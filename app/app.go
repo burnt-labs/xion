@@ -129,7 +129,7 @@ import (
 
 const appName = "XionApp"
 
-// We pull these out so we can set them with LDFLAGS in the Makefile
+// We pull these out, so we can set them with LDFLAGS in the Makefile
 var (
 	NodeDir      = ".xiond"
 	Bech32Prefix = "xion"
@@ -754,7 +754,7 @@ func NewWasmApp(
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
-	app.RegisterUpgradeHandlers()
+	// app.RegisterUpgradeHandlers()
 
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.ModuleManager.Modules))
 
