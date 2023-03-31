@@ -1,5 +1,5 @@
 syntax = "proto3";
-package mint.v1;
+package xion.mint.v1;
 
 import "gogoproto/gogo.proto";
 
