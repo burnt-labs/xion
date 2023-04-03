@@ -211,7 +211,9 @@ func TestDungeonTransferBlock(t *testing.T) {
 		Deposit: "100uxion",
 	}
 
-	paramChangeTx, err := xion.ParamChangeProposal(ctx, xionUser.KeyName(), &prop)
+	//prop := govtypes.NewMsgSubmitProposal()
+
+	paramChangeTx, err := xion.LegacyParamChangeProposal(ctx, xionUser.KeyName(), &prop)
 	require.NoError(t, err)
 	t.Logf("Param change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 
@@ -347,7 +349,7 @@ func modifyGenesisShortProposals(votingPeriod string, maxDepositPeriod string) f
 		votingParams := map[string]interface{}{"voting_period": votingPeriod}
 		if err := dyno.Set(g, votingParams, "app_state", "gov", "voting_params"); err != nil {
 			return nil, fmt.Errorf("failed to set voting params in genesis json: %w", err)
-		}q
+		}
 		minDeposit := []interface{}{
 			map[string]interface{}{
 				"denom":  chainConfig.Denom,
