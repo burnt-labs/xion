@@ -94,15 +94,16 @@ func TestDungeonTransferBlock(t *testing.T) {
 						UidGid:     "1025:1025",
 					},
 				},
-				GasPrices:      "0.0uxion",
-				GasAdjustment:  1.3,
-				Type:           "cosmos",
-				ChainID:        "xion-1",
-				Bin:            "xiond",
-				Bech32Prefix:   "xion",
-				Denom:          "uxion",
-				TrustingPeriod: "336h",
-				ModifyGenesis:  modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
+				GasPrices:              "0.0uxion",
+				GasAdjustment:          1.3,
+				Type:                   "cosmos",
+				ChainID:                "xion-1",
+				Bin:                    "xiond",
+				Bech32Prefix:           "xion",
+				Denom:                  "uxion",
+				TrustingPeriod:         "336h",
+				ModifyGenesis:          modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
+				UsingNewGenesisCommand: true,
 			},
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
@@ -343,17 +344,22 @@ func modifyGenesisShortProposals(votingPeriod string, maxDepositPeriod string) f
 		if err := json.Unmarshal(genbz, &g); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
 		}
-		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "voting_params", "voting_period"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		votingParams := map[string]interface{}{"voting_period": votingPeriod}
+		if err := dyno.Set(g, votingParams, "app_state", "gov", "voting_params"); err != nil {
+			return nil, fmt.Errorf("failed to set voting params in genesis json: %w", err)
+		}q
+		minDeposit := []interface{}{
+			map[string]interface{}{
+				"denom":  chainConfig.Denom,
+				"amount": "100",
+			},
 		}
-		if err := dyno.Set(g, maxDepositPeriod, "app_state", "gov", "deposit_params", "max_deposit_period"); err != nil {
-			return nil, fmt.Errorf("failed to set max deposit period in genesis json: %w", err)
+		depositParams := map[string]interface{}{
+			"max_deposit_period": maxDepositPeriod,
+			"min_deposit":        minDeposit,
 		}
-		if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "deposit_params", "min_deposit", 0, "denom"); err != nil {
-			return nil, fmt.Errorf("failed to set min deposit denom in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, "100", "app_state", "gov", "deposit_params", "min_deposit", 0, "amount"); err != nil {
-			return nil, fmt.Errorf("failed to set min deposit amount in genesis json: %w", err)
+		if err := dyno.Set(g, depositParams, "app_state", "gov", "deposit_params"); err != nil {
+			return nil, fmt.Errorf("failed to set deposit params in genesis json: %w", err)
 		}
 		out, err := json.Marshal(g)
 		if err != nil {
