@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"os"
 	"strings"
 	"testing"
@@ -211,7 +212,18 @@ func TestDungeonTransferBlock(t *testing.T) {
 		Deposit: "100uxion",
 	}
 
-	//prop := govtypes.NewMsgSubmitProposal()
+	prop := govtypes.NewMsgSubmitProposal(
+		[]types.Msg{
+
+		},
+		types.Coins{
+			{
+				Denom: "uxion",
+				Amount: "100"
+			},
+
+		}
+	)
 
 	paramChangeTx, err := xion.LegacyParamChangeProposal(ctx, xionUser.KeyName(), &prop)
 	require.NoError(t, err)
