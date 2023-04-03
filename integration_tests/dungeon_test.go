@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"os"
 	"strings"
 	"testing"
@@ -12,7 +14,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/icza/dyno"
@@ -196,36 +197,32 @@ func TestDungeonTransferBlock(t *testing.T) {
 			Enabled: false,
 		},
 	}
-	data, err := json.Marshal(sendEnableds)
-	require.NoError(t, err)
 
-	prop := paramsutils.ParamChangeProposalJSON{
-		Title:       "Disable sendability of uxion",
-		Description: "This proposal prevents uxion from being sent in the bank module",
-		Changes: []paramsutils.ParamChangeJSON{
-			{
-				Subspace: banktypes.ModuleName,
-				Key:      "SendEnabled",
-				Value:    data,
-			},
-		},
-		Deposit: "100uxion",
+	config := types.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+
+	setSendEnabledMsg := banktypes.MsgSetSendEnabled{
+		Authority:   authtypes.NewModuleAddress("gov").String(),
+		SendEnabled: sendEnableds,
 	}
 
-	prop := govtypes.NewMsgSubmitProposal(
-		[]types.Msg{
-
-		},
-		types.Coins{
-			{
-				Denom: "uxion",
-				Amount: "100"
-			},
-
-		}
+	registry := cdctypes.NewInterfaceRegistry()
+	registry.RegisterImplementations(
+		(*types.Msg)(nil),
+		&banktypes.MsgSetSendEnabled{},
 	)
+	cdc := codec.NewProtoCodec(registry)
 
-	paramChangeTx, err := xion.LegacyParamChangeProposal(ctx, xionUser.KeyName(), &prop)
+	msg, err := cdc.MarshalInterfaceJSON(&setSendEnabledMsg)
+
+	prop := cosmos.Proposal{
+		Messages: []json.RawMessage{msg},
+		Metadata: "",
+		Deposit:  "100uxion",
+		Title:    "Disable sendability of uxion",
+		Summary:  "This proposal prevents uxion from being sent in the bank module",
+	}
+	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), &prop)
 	require.NoError(t, err)
 	t.Logf("Param change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 
