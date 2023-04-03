@@ -32,8 +32,8 @@ func init() {
 
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(Params{}, "cosmos-sdk/x/mint/Params", nil)
-	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "cosmos-sdk/x/mint/MsgUpdateParams")
+	cdc.RegisterConcrete(Params{}, "xion/x/mint/Params", nil)
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "xion/x/mint/MsgUpdateParams")
 }
 
 // RegisterInterfaces registers the interfaces types with the interface registry.
