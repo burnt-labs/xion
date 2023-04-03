@@ -1,6 +1,6 @@
 # docker build . -t cosmwasm/xiond:latest
 # docker run --rm -it cosmwasm/xiond:latest /bin/sh
-FROM golang:1.19-alpine3.15 AS go-builder
+FROM golang:1.19-alpine3.17 AS go-builder
 ARG arch=x86_64
 
 # this comes from standard alpine nightly file
@@ -29,20 +29,45 @@ RUN echo "Ensuring binary is statically linked ..." \
   && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.15
+FROM alpine:3.17
 
-COPY --from=go-builder /code/build/wasmd /usr/bin/wasmd
+  COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
-COPY docker/* /opt/
-RUN chmod +x /opt/*.sh
+  # rest server
+  EXPOSE 1317
+  # tendermint grpc
+  EXPOSE 9090
+  # tendermint p2p
+  EXPOSE 26656
+  # tendermint rpc
+  EXPOSE 26657
+  # tendermint prometheus
+  EXPOSE 26660
 
-WORKDIR /opt
+  RUN set -euxo pipefail \
+    && apk add --no-cache \
+      aria2 \
+      aws-cli \
+      bash \
+      curl \
+      htop \
+      jq \
+      lz4 \
+      tini
 
-# rest server
-EXPOSE 1317
-# tendermint p2p
-EXPOSE 26656
-# tendermint rpc
-EXPOSE 26657
+  RUN set -euxo pipefail \
+    && addgroup -S xiond \
+    && adduser \
+       --disabled-password \
+       --gecos xiond \
+       --ingroup xiond \
+       xiond
 
-CMD ["/usr/bin/wasmd", "version"]
+  RUN set -eux \
+    && chown -R xiond:xiond /home/xiond
+
+  USER xiond:xiond
+  WORKDIR /home/xiond/.xiond
+
+  CMD ["/usr/bin/xiond", "version"]
+
