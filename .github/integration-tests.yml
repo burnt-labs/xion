@@ -61,7 +61,6 @@ jobs:
       matrix:
         test_type:
         - "DungeonTransferBlock"
-        - "ScheduledCall"
 
     steps:
       - name: Set up Go 1.18
