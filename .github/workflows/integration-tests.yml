@@ -94,9 +94,9 @@ jobs:
       - name: rename xion image
         run: docker tag ghcr.io/burnt-labs/xion/xion:${{ steps.meta-xion.outputs.version }} xion:prebuilt
       - name: build go test binary
-        run: cd ibc_tests && go test -c
+        run: cd integration_tests && go test -c
       - name: Run all up ci test
-        run: ./ibc_tests/ibc_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
+        run: ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: xion:prebuilt
