@@ -43,7 +43,7 @@ jobs:
           skaffold version
 
       - name: Cache skaffold image builds & config
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.skaffold/
           key: sha-${{ steps.vars.outputs.sha_short }}
