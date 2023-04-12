@@ -29,7 +29,7 @@ RUN echo "Ensuring binary is statically linked ..." \
   && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.17
+FROM alpine:3.17 AS xion-release
 
   COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
