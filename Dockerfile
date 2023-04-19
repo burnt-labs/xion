@@ -29,6 +29,30 @@ RUN echo "Ensuring binary is statically linked ..." \
   && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
+FROM alpine:3.16 AS localdev
+
+  COPY --from=go-builder /code/build/xiond /usr/bin/xiond
+
+  COPY ./docker/local-config /xion/config
+  COPY ./docker/entrypoint.sh /root/entrypoint.sh
+  RUN chmod +x /root/entrypoint.sh
+
+  # rest server
+  EXPOSE 1317
+  # tendermint grpc
+  EXPOSE 9090
+  # tendermint p2p
+  EXPOSE 26656
+  # tendermint rpc
+  EXPOSE 26657
+  # tendermint prometheus
+  EXPOSE 26660
+
+  VOLUME [ "/xion/data" ]
+
+  CMD ["/root/entrypoint.sh"]
+
+# --------------------------------------------------------
 FROM alpine:3.17 AS xion-release
 
   COPY --from=go-builder /code/build/xiond /usr/bin/xiond
