@@ -7,4 +7,4 @@ if [[ ! -f /xion/data/priv_validator_state.json ]]; then
     mv /xion-config /xion/config
 fi
 
-xiond start --home /xion --trace --log_level trace
+xiond start --home /xion --trace
