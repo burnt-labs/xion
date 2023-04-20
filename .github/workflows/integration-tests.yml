@@ -51,8 +51,8 @@ jobs:
           github-repo: xion
           dockerfile: cosmos
           build-target: make install
-          binaries: /go/bin/xiond
-          build-env: "BUILD_TAGS=muslc"
+          binaries: "[\"/go/bin/xiond\"]"
+          build-env: "[\"BUILD_TAGS=muslc\"]"
       - name: Push docker image
         run: |
           docker tag ${{ steps.heighlinerbuild.outputs.tag }} ghcr.io/burnt-labs/xion/${{ steps.heighlinerbuild.outputs.tag }}
