@@ -76,7 +76,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: go-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
