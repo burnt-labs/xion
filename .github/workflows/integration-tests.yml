@@ -42,7 +42,7 @@ jobs:
             type=semver,pattern=v{{version}}
       - name: Heighliner build and push
         id: heighlinerbuild
-        uses: burnt-labs/heighliner-action@v1.0.0-alpha9
+        uses: burnt-labs/heighliner-action@v1.0.0-alpha10
         with:
           local: true
           tag: ${{ steps.meta.outputs.version }}
