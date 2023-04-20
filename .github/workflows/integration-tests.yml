@@ -42,11 +42,17 @@ jobs:
             type=semver,pattern=v{{version}}
       - name: Heighliner build and push
         id: heighlinerbuild
-        uses: burnt-labs/heighliner-action@v1.0.0-alpha9
+        uses: burnt-labs/heighliner-action@v1.0.0-alpha10
         with:
           local: true
           tag: ${{ steps.meta.outputs.version }}
           chain: xion
+          github-organization: burnt-labs
+          github-repo: xion
+          dockerfile: cosmos
+          build-target: make install
+          binaries: "[\"/go/bin/xiond\"]"
+          build-env: "[\"BUILD_TAGS=muslc\"]"
       - name: Push docker image
         run: |
           docker tag ${{ steps.heighlinerbuild.outputs.tag }} ghcr.io/burnt-labs/xion/${{ steps.heighlinerbuild.outputs.tag }}
