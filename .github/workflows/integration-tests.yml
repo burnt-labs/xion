@@ -47,6 +47,14 @@ jobs:
           local: true
           tag: ${{ steps.meta.outputs.version }}
           chain: xion
+          github-organization: burnt-labs
+          github-repo: xion
+          dockerfile: cosmos
+          build-target: make install
+          binaries:
+            - /go/bin/xiond
+          build-env:
+            - BUILD_TAGS=muslc
       - name: Push docker image
         run: |
           docker tag ${{ steps.heighlinerbuild.outputs.tag }} ghcr.io/burnt-labs/xion/${{ steps.heighlinerbuild.outputs.tag }}
