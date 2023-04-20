@@ -51,10 +51,8 @@ jobs:
           github-repo: xion
           dockerfile: cosmos
           build-target: make install
-          binaries:
-            - /go/bin/xiond
-          build-env:
-            - BUILD_TAGS=muslc
+          binaries: /go/bin/xiond
+          build-env: "BUILD_TAGS=muslc"
       - name: Push docker image
         run: |
           docker tag ${{ steps.heighlinerbuild.outputs.tag }} ghcr.io/burnt-labs/xion/${{ steps.heighlinerbuild.outputs.tag }}
@@ -102,9 +100,9 @@ jobs:
       - name: rename xion image
         run: docker tag ghcr.io/burnt-labs/xion/xion:${{ steps.meta-xion.outputs.version }} xion:prebuilt
       - name: build go test binary
-        run: cd integration_tests && go test -c
+        run: cd ibc_tests && go test -c
       - name: Run all up ci test
-        run: ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
+        run: ./ibc_tests/ibc_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: xion:prebuilt
