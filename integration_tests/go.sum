@@ -318,6 +318,8 @@ github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1 h1:q0rUy8C/TYNBQS1+CGKw68tLOF
 github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce h1:YtWJF7RHm2pYCvA5t0RPmAaLUhREsKuKd+SLhxFbFeQ=
 github.com/burnt-labs/interchaintest/v6 v6.0.0-20230314191219-148474820e92 h1:8PjVIQPom8OhDLy2lh4REpPqil3egD8vDAyF4+s5VTc=
 github.com/burnt-labs/interchaintest/v6 v6.0.0-20230314191219-148474820e92/go.mod h1:5aNprRJ5FQSL7KP2uhgukg3yhVvVtKvbSrwM6KWORtY=
+github.com/burnt-labs/interchaintest/v7 v7.0.0-20230404233655-f37b60cca9b6 h1:ek5Y7blC3YSDZ34GrGxjT7wo4F6PgrdSDYYKf2ILOOw=
+github.com/burnt-labs/interchaintest/v7 v7.0.0-20230404233655-f37b60cca9b6/go.mod h1:+Tg2jC5C0eI2iOTs24OYs0NgSjU4Bw5XAQ5HVkVMwzc=
 github.com/c-bata/go-prompt v0.2.2/go.mod h1:VzqtzE2ksDBcdln8G7mk2RX9QyGjH+OVqOCSiVIqS34=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
