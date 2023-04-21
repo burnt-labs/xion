@@ -1,0 +1,14 @@
+syntax = "proto3";
+package xion.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/xion/types";
+
+message GenesisState {
+  Params params = 1;
+}
+
+message Params {
+  uint32 platform_percentage = 1 [(gogoproto.moretags) = "yaml:\"platform_percentage\""];
+}
