@@ -126,6 +126,9 @@ import (
 	"github.com/burnt-labs/xion/x/mint"
 	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
+	"github.com/burnt-labs/xion/x/xion"
+	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 const appName = "XionApp"
@@ -222,6 +225,7 @@ var (
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		ibcfee.AppModuleBasic{},
+		xion.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -237,6 +241,7 @@ var (
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
 		wasm.ModuleName:                {authtypes.Burner},
+		xiontypes.ModuleName:           nil,
 	}
 )
 
@@ -283,6 +288,8 @@ type WasmApp struct {
 	ICAHostKeeper       icahostkeeper.Keeper
 	TransferKeeper      ibctransferkeeper.Keeper
 	WasmKeeper          wasm.Keeper
+
+	XionKeeper xionkeeper.Keeper
 
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
@@ -333,7 +340,7 @@ func NewWasmApp(
 		// non sdk store keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey, ibcfeetypes.StoreKey,
 		wasm.StoreKey, icahosttypes.StoreKey,
-		icacontrollertypes.StoreKey,
+		icacontrollertypes.StoreKey, xiontypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -533,6 +540,13 @@ func NewWasmApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	app.XionKeeper = xionkeeper.NewKeeper(
+		appCodec,
+		keys[xiontypes.StoreKey],
+		app.GetSubspace(xiontypes.ModuleName),
+		app.BankKeeper,
+		app.AccountKeeper)
+
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
 		appCodec, keys[ibcfeetypes.StoreKey],
@@ -679,6 +693,7 @@ func NewWasmApp(
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
+		xion.NewAppModule(app.XionKeeper),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
