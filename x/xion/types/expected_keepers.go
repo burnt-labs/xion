@@ -1,8 +1,6 @@
 package types // noalias
 
 import (
-	"context"
-
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -29,8 +27,10 @@ type BankKeeper interface {
 		recipientModule string,
 		amt sdktypes.Coins,
 	) error
-	Send(goCtx context.Context, msg *banktypes.MsgSend) (*banktypes.MsgSendResponse, error)
-	MultiSend(goCtx context.Context, msg *banktypes.MsgMultiSend) (*banktypes.MsgMultiSendResponse, error)
+	IsSendEnabledCoins(ctx sdktypes.Context, coins ...sdktypes.Coin) error
+	BlockedAddr(addr sdktypes.AccAddress) bool
+	SendCoins(ctx sdktypes.Context, fromAddr sdktypes.AccAddress, toAddr sdktypes.AccAddress, amt sdktypes.Coins) error
+	InputOutputCoins(ctx sdktypes.Context, inputs []banktypes.Input, outputs []banktypes.Output) error
 }
 
 type AccountKeeper interface {
