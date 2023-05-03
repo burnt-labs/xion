@@ -22,10 +22,6 @@ func NewKeeper(cdc codec.BinaryCodec,
 	paramSpace paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper) Keeper {
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
 
 	return Keeper{
 		storeKey:      key,
@@ -45,14 +41,27 @@ func (k Keeper) Logger(ctx sdktypes.Context) log.Logger {
 // Params //
 ////////////
 
-// GetParamSet returns the vote period from the parameters
-func (k Keeper) GetParamSet(ctx sdktypes.Context) types.Params {
-	var p types.Params
-	k.paramSpace.GetParamSet(ctx, &p)
-	return p
+// SetParams sets the x/mint module parameters.
+func (k Keeper) SetParams(ctx sdktypes.Context, p types.Params) error {
+	if err := p.Validate(); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&p)
+	store.Set(types.ParamsKey, bz)
+
+	return nil
 }
 
-// setParams sets the parameters in the store
-func (k Keeper) setParams(ctx sdktypes.Context, params types.Params) {
-	k.paramSpace.SetParamSet(ctx, &params)
+// GetParams returns the current x/mint module parameters.
+func (k Keeper) GetParams(ctx sdktypes.Context) (p types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return p
+	}
+
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
 }

@@ -45,7 +45,7 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", msg.ToAddress)
 	}
 
-	percentage := k.GetParamSet(ctx).PlatformPercentage
+	percentage := k.GetParams(ctx).PlatformPercentage
 	throughCoins := msg.Amount
 
 	if percentage > 0 {
@@ -96,7 +96,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		}
 	}
 
-	percentage := sdk.NewIntFromUint64(uint64(k.GetParamSet(ctx).PlatformPercentage))
+	percentage := sdk.NewIntFromUint64(uint64(k.GetParams(ctx).PlatformPercentage))
 	var outputs []banktypes.Output
 	totalPlatformCoins := sdk.NewCoins()
 

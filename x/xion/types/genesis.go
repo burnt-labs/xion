@@ -9,7 +9,7 @@ import (
 // Validate performs basic validation of supply genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-	if err := gs.Params.ValidateBasic(); err != nil {
+	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
 

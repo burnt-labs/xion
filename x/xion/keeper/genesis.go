@@ -7,13 +7,15 @@ import (
 
 // InitGenesis initializes the bank module's state from a given genesis state.
 func (k Keeper) InitGenesis(ctx sdk.Context, genState *types.GenesisState) {
-	k.setParams(ctx, *genState.Params)
+	if err := k.SetParams(ctx, *genState.Params); err != nil {
+		panic(err)
+	}
 }
 
 // ExportGenesis returns the bank module's genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	rv := types.NewGenesisState(
-		k.GetParamSet(ctx),
+		k.GetParams(ctx),
 	)
 	return rv
 }
