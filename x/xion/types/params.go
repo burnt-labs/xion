@@ -5,16 +5,16 @@ import (
 )
 
 // NewParams creates a new parameter configuration for the xion module
-func NewParams() Params {
+func NewParams(platformPercentage uint32) Params {
 	return Params{
-		PlatformPercentage: 0,
+		PlatformPercentage: platformPercentage,
 	}
 }
 
 // DefaultParams is the default parameter configuration for the bank module
 func DefaultParams() Params {
 	return Params{
-		PlatformPercentage: 500,
+		PlatformPercentage: 0,
 	}
 }
 
