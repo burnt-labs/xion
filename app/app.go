@@ -220,12 +220,12 @@ var (
 		consensus.AppModuleBasic{},
 		// non sdk modules
 		wasm.AppModuleBasic{},
+		xion.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		ibcfee.AppModuleBasic{},
-		xion.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -519,7 +519,7 @@ func NewWasmApp(
 
 	app.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-			// register the governance hooks
+		// register the governance hooks
 		),
 	)
 
@@ -545,7 +545,8 @@ func NewWasmApp(
 		keys[xiontypes.StoreKey],
 		app.GetSubspace(xiontypes.ModuleName),
 		app.BankKeeper,
-		app.AccountKeeper)
+		app.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(

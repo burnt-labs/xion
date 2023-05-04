@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/burnt-labs/xion/x/xion/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,13 +46,13 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", msg.ToAddress)
 	}
 
-	percentage := k.GetParams(ctx).PlatformPercentage
+	percentage := k.GetPlatformPercentage(ctx)
 	throughCoins := msg.Amount
 
-	if percentage > 0 {
-		platformCoins := msg.Amount.MulInt(sdk.NewIntFromUint64(uint64(percentage))).QuoInt(sdk.NewInt(10000))
-		throughCoins, ok := throughCoins.SafeSub(platformCoins...)
-		if !ok {
+	if !percentage.IsZero() {
+		platformCoins := msg.Amount.MulInt(percentage).QuoInt(sdk.NewInt(10000))
+		throughCoins, wentNegative := throughCoins.SafeSub(platformCoins...)
+		if wentNegative {
 			return nil, fmt.Errorf("unable to subtract %v from %v", platformCoins, throughCoins)
 		}
 
@@ -96,7 +97,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		}
 	}
 
-	percentage := sdk.NewIntFromUint64(uint64(k.GetParams(ctx).PlatformPercentage))
+	percentage := k.GetPlatformPercentage(ctx)
 	var outputs []banktypes.Output
 	totalPlatformCoins := sdk.NewCoins()
 
@@ -110,8 +111,8 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		// if there is a platform fee set, reduce it from each output
 		if !percentage.IsZero() {
 			platformCoins := out.Coins.MulInt(percentage).QuoInt(sdk.NewInt(10000))
-			throughCoins, ok := out.Coins.SafeSub(platformCoins...)
-			if !ok {
+			throughCoins, wentNegative := out.Coins.SafeSub(platformCoins...)
+			if wentNegative {
 				return nil, fmt.Errorf("unable to subtract %v from %v", platformCoins, throughCoins)
 			}
 
@@ -134,4 +135,15 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	}
 
 	return &types.MsgMultiSendResponse{}, nil
+}
+
+func (k msgServer) SetPlatformPercentage(goCtx context.Context, msg *types.MsgSetPlatformPercentage) (*types.MsgSetPlatformPercentageResponse, error) {
+	if k.GetAuthority() != msg.Authority {
+		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.OverwritePlatformPercentage(ctx, msg.PlatformPercentage)
+
+	return &types.MsgSetPlatformPercentageResponse{}, nil
 }

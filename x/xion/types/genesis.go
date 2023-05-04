@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 )
@@ -9,24 +10,24 @@ import (
 // Validate performs basic validation of supply genesis data returning an
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
-	if err := gs.Params.Validate(); err != nil {
-		return err
+	if gs.PlatformPercentage > 10000 {
+		return fmt.Errorf("unable to set platform percentage to greater than 100%")
 	}
 
 	return nil
 }
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params) *GenesisState {
+func NewGenesisState(platformPercentage uint32) *GenesisState {
 	rv := &GenesisState{
-		Params: &params,
+		PlatformPercentage: platformPercentage,
 	}
 	return rv
 }
 
 // DefaultGenesisState returns a default bank module genesis state.
 func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(DefaultParams())
+	return NewGenesisState(0)
 }
 
 // GetGenesisStateFromAppState returns x/bank GenesisState given raw application

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	"github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,13 +16,18 @@ type Keeper struct {
 	paramSpace    paramtypes.Subspace
 	bankKeeper    types.BankKeeper
 	accountKeeper types.AccountKeeper
+
+	// the address capable of executing a MsgSetPlatformPercentage message.
+	// Typically, this should be the x/gov module account
+	authority string
 }
 
 func NewKeeper(cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	paramSpace paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
-	accountKeeper types.AccountKeeper) Keeper {
+	accountKeeper types.AccountKeeper,
+	authority string) Keeper {
 
 	return Keeper{
 		storeKey:      key,
@@ -29,6 +35,7 @@ func NewKeeper(cdc codec.BinaryCodec,
 		paramSpace:    paramSpace,
 		bankKeeper:    bankKeeper,
 		accountKeeper: accountKeeper,
+		authority:     authority,
 	}
 }
 
@@ -37,31 +44,21 @@ func (k Keeper) Logger(ctx sdktypes.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-////////////
-// Params //
-////////////
+// Platform Percentage
 
-// SetParams sets the x/mint module parameters.
-func (k Keeper) SetParams(ctx sdktypes.Context, p types.Params) error {
-	if err := p.Validate(); err != nil {
-		return err
-	}
-
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&p)
-	store.Set(types.ParamsKey, bz)
-
-	return nil
+func (k Keeper) GetPlatformPercentage(ctx sdktypes.Context) math.Int {
+	bz := ctx.KVStore(k.storeKey).Get(types.PlatformPercentageKey)
+	percentage := sdktypes.BigEndianToUint64(bz)
+	return math.NewIntFromUint64(percentage)
 }
 
-// GetParams returns the current x/mint module parameters.
-func (k Keeper) GetParams(ctx sdktypes.Context) (p types.Params) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ParamsKey)
-	if bz == nil {
-		return p
-	}
+func (k Keeper) OverwritePlatformPercentage(ctx sdktypes.Context, percentage uint32) {
+	ctx.KVStore(k.storeKey).Set(types.PlatformPercentageKey, sdktypes.Uint64ToBigEndian(uint64(percentage)))
+}
 
-	k.cdc.MustUnmarshal(bz, &p)
-	return p
+// Authority
+
+// GetAuthority returns the x/xion module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }

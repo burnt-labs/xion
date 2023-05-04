@@ -2,14 +2,18 @@ package integration_tests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types"
-	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -132,23 +136,35 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, 100, balance)
+	require.Equal(t, uint64(100), uint64(balance))
 
 	// step 2: update the platform percentage to 5%
 
-	prop := paramsutils.ParamChangeProposalJSON{
-		Title:       "5% Platform Fee",
-		Description: "Test 5% platform fee",
-		Changes: paramsutils.ParamChangesJSON{
-			{
-				Subspace: "xion",
-				Key:      "platform-percentage",
-				Value:    []byte("500"),
-			},
-		},
-		Deposit: fmt.Sprintf("%d%s", 1000, xion.Config().Denom),
+	config := types.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+
+	setPlatformPercentageMsg := xiontypes.MsgSetPlatformPercentage{
+		Authority:          authtypes.NewModuleAddress("gov").String(),
+		PlatformPercentage: 500,
 	}
-	paramChangeTx, err := xion.LegacyParamChangeProposal(ctx, "xion", &prop)
+
+	registry := cdctypes.NewInterfaceRegistry()
+	registry.RegisterImplementations(
+		(*types.Msg)(nil),
+		&xiontypes.MsgSetPlatformPercentage{},
+	)
+	cdc := codec.NewProtoCodec(registry)
+
+	msg, err := cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)
+
+	prop := cosmos.Proposal{
+		Messages: []json.RawMessage{msg},
+		Metadata: "",
+		Deposit:  "100uxion",
+		Title:    "Set platform percentage to 5%",
+		Summary:  "Ups the platform fee to 5% for the integration test",
+	}
+	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), &prop)
 	require.NoError(t, err)
 	t.Logf("Param change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 

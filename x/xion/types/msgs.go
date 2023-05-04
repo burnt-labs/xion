@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -8,13 +9,15 @@ import (
 
 // bank message types
 const (
-	TypeMsgSend      = "send"
-	TypeMsgMultiSend = "multisend"
+	TypeMsgSend                  = "send"
+	TypeMsgMultiSend             = "multisend"
+	TypeMsgSetPlatformPercentage = "setplatformpercentage"
 )
 
 var (
 	_ sdk.Msg = &MsgSend{}
 	_ sdk.Msg = &MsgMultiSend{}
+	_ sdk.Msg = &MsgSetPlatformPercentage{}
 )
 
 // NewMsgSend - construct a msg to send coins from one account to another.
@@ -107,4 +110,38 @@ func (msg MsgMultiSend) GetSigners() []sdk.AccAddress {
 	}
 
 	return addrs
+}
+
+// NewMsgMultiSend - construct arbitrary multi-in, multi-out send msg.
+func NewMsgSetPlatformPercentage(percentage uint32) *MsgSetPlatformPercentage {
+	return &MsgSetPlatformPercentage{PlatformPercentage: percentage}
+}
+
+// Route Implements Msg
+func (msg MsgSetPlatformPercentage) Route() string { return RouterKey }
+
+// Type Implements Msg
+func (msg MsgSetPlatformPercentage) Type() string { return TypeMsgSetPlatformPercentage }
+
+// ValidateBasic Implements Msg.
+func (msg MsgSetPlatformPercentage) ValidateBasic() error {
+	// this just makes sure the input and all the outputs are properly formatted,
+	// not that they actually have the money inside
+
+	if msg.PlatformPercentage > 10000 {
+		return fmt.Errorf("unable to have a platform percentage that exceeds 100%")
+	}
+
+	return nil
+}
+
+// GetSignBytes Implements Msg.
+func (msg MsgSetPlatformPercentage) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+// GetSigners Implements Msg.
+func (msg MsgSetPlatformPercentage) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{addr}
 }

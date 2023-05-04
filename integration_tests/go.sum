@@ -211,6 +211,8 @@ cosmossdk.io/math v1.0.0-beta.3 h1:TbZxSopz2LqjJ7aXYfn7nJSb8vNaBklW6BLpcei1qwM=
 cosmossdk.io/math v1.0.0-beta.3/go.mod h1:3LYasri3Zna4XpbrTNdKsWmD5fHHkaNAod/mNT9XdE4=
 cosmossdk.io/math v1.0.0-rc.0 h1:ml46ukocrAAoBpYKMidF0R2tQJ1Uxfns0yH8wqgMAFc=
 cosmossdk.io/math v1.0.0-rc.0/go.mod h1:Ygz4wBHrgc7g0N+8+MrnTfS9LLn9aaTGa9hKopuym5k=
+cosmossdk.io/math v1.0.0 h1:ro9w7eKx23om2tZz/VM2Pf+z2WAbGX1yDQQOJ6iGeJw=
+cosmossdk.io/math v1.0.0/go.mod h1:Ygz4wBHrgc7g0N+8+MrnTfS9LLn9aaTGa9hKopuym5k=
 cosmossdk.io/tools/rosetta v0.2.1 h1:ddOMatOH+pbxWbrGJKRAawdBkPYLfKXutK9IETnjYxw=
 cosmossdk.io/tools/rosetta v0.2.1/go.mod h1:Pqdc1FdvkNV3LcNIkYWt2RQY6IP1ge6YWZk8MhhO9Hw=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
@@ -403,6 +405,8 @@ github.com/cosmos/gogogateway v1.2.0/go.mod h1:iQpLkGWxYcnCdz5iAdLcRBSw3h7NXeOkZ
 github.com/cosmos/gogoproto v1.4.2/go.mod h1:cLxOsn1ljAHSV527CHOtaIP91kK6cCrZETRBrkzItWU=
 github.com/cosmos/gogoproto v1.4.6 h1:Ee7z15dWJaGlgM2rWrK8N2IX7PQcuccu8oG68jp5RL4=
 github.com/cosmos/gogoproto v1.4.6/go.mod h1:VS/ASYmPgv6zkPKLjR9EB91lwbLHOzaGCirmKKhncfI=
+github.com/cosmos/gogoproto v1.4.7 h1:RzYKVnsEC7UIkDnhTIkqEB7LnIQbsySvmNEqPCiPevk=
+github.com/cosmos/gogoproto v1.4.7/go.mod h1:gxGePp9qedovvl/StQL2BIJ6qlIBn1+9YxR0IulGBKA=
 github.com/cosmos/gorocksdb v1.2.0 h1:d0l3jJG8M4hBouIZq0mDUHZ+zjOx044J3nGRskwTb4Y=
 github.com/cosmos/gorocksdb v1.2.0/go.mod h1:aaKvKItm514hKfNJpUJXnnOWeBnk2GL4+Qw9NHizILw=
 github.com/cosmos/iavl v0.19.4 h1:t82sN+Y0WeqxDLJRSpNd8YFX5URIrT+p8n6oJbJ2Dok=
