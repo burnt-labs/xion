@@ -51,23 +51,14 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 
 	if !percentage.IsZero() {
 		platformCoins := msg.Amount.MulInt(percentage).QuoInt(sdk.NewInt(10000))
-		throughCoins, wentNegative := throughCoins.SafeSub(platformCoins...)
-		if wentNegative {
-			return nil, fmt.Errorf("unable to subtract %v from %v", platformCoins, throughCoins)
-		}
+		throughCoins = throughCoins.Sub(platformCoins...)
 
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, authtypes.FeeCollectorName, platformCoins); err != nil {
 			return nil, err
 		}
-
-		err = k.bankKeeper.SendCoins(ctx, from, to, msg.Amount)
-		if err != nil {
-			return nil, err
-		}
-
 	}
 
-	err = k.bankKeeper.SendCoins(ctx, from, to, msg.Amount)
+	err = k.bankKeeper.SendCoins(ctx, from, to, throughCoins)
 	if err != nil {
 		return nil, err
 	}

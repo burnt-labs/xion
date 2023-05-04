@@ -211,11 +211,8 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	postSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
-	t.Log("initial balance:", initialSendingBalance)
-	t.Log("post balance:", postSendingBalance)
-	//require.Equal(t, uint64(initialSendingBalance-200), uint64(postSendingBalance))
+	require.Equal(t, uint64(initialSendingBalance-200), uint64(postSendingBalance))
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, uint64(290), uint64(postReceivingBalance))
-
 }
