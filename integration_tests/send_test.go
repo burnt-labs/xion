@@ -12,7 +12,6 @@ import (
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -139,7 +138,6 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.Equal(t, uint64(100), uint64(balance))
 
 	// step 2: update the platform percentage to 5%
-
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
@@ -148,12 +146,11 @@ func TestXionSendPlatformFee(t *testing.T) {
 		PlatformPercentage: 500,
 	}
 
-	registry := cdctypes.NewInterfaceRegistry()
-	registry.RegisterImplementations(
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*types.Msg)(nil),
 		&xiontypes.MsgSetPlatformPercentage{},
 	)
-	cdc := codec.NewProtoCodec(registry)
+	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
 
 	msg, err := cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)
 
@@ -166,7 +163,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	}
 	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), &prop)
 	require.NoError(t, err)
-	t.Logf("Param change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
+	t.Logf("Platform percentage change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 
 	require.Eventuallyf(t, func() bool {
 		proposalInfo, err := xion.QueryProposal(ctx, paramChangeTx.ProposalID)
@@ -198,15 +195,27 @@ func TestXionSendPlatformFee(t *testing.T) {
 	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
 	// step 3: transfer and verify platform fees is extracted
+	initialSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+	require.NoError(t, err)
+	initialReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, uint64(100), uint64(initialReceivingBalance))
+
 	_, err = xion.FullNodes[0].ExecTx(ctx,
 		xionUser.KeyName(),
 		"xion", "send", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
-		recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+		recipientKeyAddress, fmt.Sprintf("%d%s", 200, xion.Config().Denom),
 	)
 	require.NoError(t, err)
-	balance, err = xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
+
+	postSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, 195, balance)
+	t.Log("initial balance:", initialSendingBalance)
+	t.Log("post balance:", postSendingBalance)
+	//require.Equal(t, uint64(initialSendingBalance-200), uint64(postSendingBalance))
+	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, uint64(290), uint64(postReceivingBalance))
 
 }
