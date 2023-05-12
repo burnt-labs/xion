@@ -67,6 +67,7 @@ jobs:
       matrix:
         test_type:
         - "DungeonTransferBlock"
+        - "XionSendPlatformFee"
 
     steps:
       - name: Set up Go 1.18
