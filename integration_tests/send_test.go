@@ -278,7 +278,7 @@ func TestMintModuleInflationNoTransaction(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("Initial Xion supply: %s", initialXionSupply)
 
-	// Wait for some blocks and check if the supply increases
+	// Wait for some blocks and check if that supply stays the same
 	chainHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(chainHeight) + 10, xion)
 	// Get the total bank supply
