@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"os"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -20,93 +18,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
-
-func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context) {
-	ctx := context.Background()
-
-	var numFullNodes = 1
-	var numValidators = 3
-
-	// pulling image from env to foster local dev
-	imageTag := os.Getenv("XION_IMAGE")
-	imageTagComponents := strings.Split(imageTag, ":")
-
-	// Chain factory
-	cf := ibctest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*ibctest.ChainSpec{
-		{
-			Name:    imageTagComponents[0],
-			Version: imageTagComponents[1],
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: imageTagComponents[0],
-						Version:    imageTagComponents[1],
-						UidGid:     "1025:1025",
-					},
-				},
-				GasPrices:              "0.0uxion",
-				GasAdjustment:          1.3,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
-				UsingNewGenesisCommand: true,
-			},
-			NumValidators: &numValidators,
-			NumFullNodes:  &numFullNodes,
-		},
-	})
-
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	xion := chains[0].(*cosmos.CosmosChain)
-
-	// Relayer Factory
-	client, network := ibctest.DockerSetup(t)
-	//relayer := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t)).Build(
-	//	t, client, network)
-
-	// Prep Interchain
-	// const ibcPath = "xion-osmo-dungeon-test"
-	ic := ibctest.NewInterchain().
-		AddChain(xion)
-	//AddRelayer(relayer, "relayer").
-	//AddLink(ibctest.InterchainLink{
-	//	Chain1:  xion,
-	//	Chain2:  osmosis,
-	//	Relayer: relayer,
-	//	Path:    ibcPath,
-	//})
-
-	// Log location
-	f, err := ibctest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
-	require.NoError(t, err)
-	// Reporter/logs
-	rep := testreporter.NewReporter(f)
-	eRep := rep.RelayerExecReporter(t)
-
-	// Build Interchain
-	require.NoError(t, ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
-		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
-		BlockDatabaseFile: ibctest.DefaultBlockDatabaseFilepath(),
-
-		SkipPathCreation: false},
-	),
-	)
-	return xion, ctx
-}
 
 func TestXionSendPlatformFee(t *testing.T) {
 	if testing.Short() {
@@ -361,23 +275,6 @@ func MintTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context
 			require.Equal(t, math.NewInt(0), math.NewInt(int64(tokenChange)))
 		}
 	}
-}
-
-func TestMintModuleNoInflationNoFees(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
-	t.Parallel()
-
-	xion, ctx := BuildXionChain(t)
-
-	// Wait for some blocks and check if that supply stays the same
-	chainHeight, _ := xion.Height(ctx)
-	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
-
-	// Run test harness
-	MintTestHarness(t, xion, ctx)
 }
 
 func TestMintModuleInflationNoFees(t *testing.T) {

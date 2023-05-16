@@ -13,7 +13,15 @@ RUN apk add git
 # RUN apk add libusb-dev linux-headers
 
 WORKDIR /code
-COPY . /code/
+COPY ./.git /code/.git
+COPY ./app /code/app
+COPY ./cmd /code/cmd
+COPY ./contrib /code/contrib
+COPY ./proto /code/proto
+COPY ./x /code/x
+COPY go.mod /code/
+COPY go.sum /code/
+COPY Makefile /code/
 # See https://github.com/CosmWasm/wasmvm/releases
 ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.2.2/libwasmvm_muslc.aarch64.a /lib/libwasmvm_muslc.aarch64.a
 ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.2.2/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a

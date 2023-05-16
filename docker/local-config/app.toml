@@ -123,7 +123,7 @@ enable = false
 swagger = false
 
 # Address defines the API server to listen on.
-address = "tcp://localhost:1317"
+address = "tcp://0.0.0.0:1317"
 
 # MaxOpenConnections defines the number of maximum open connections.
 max-open-connections = 1000
