@@ -1,110 +1,19 @@
 package integration_tests
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"strconv"
-	"strings"
 	"testing"
 	"time"
-
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/icza/dyno"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
-
-func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context){
-	ctx := context.Background()
-
-	var numFullNodes = 1
-	var numValidators = 3
-
-	// pulling image from env to foster local dev
-	imageTag := os.Getenv("XION_IMAGE")
-	imageTagComponents := strings.Split(imageTag, ":")
-
-	// Chain factory
-	cf := ibctest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*ibctest.ChainSpec{
-		{
-			Name:    imageTagComponents[0],
-			Version: imageTagComponents[1],
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: imageTagComponents[0],
-						Version:    imageTagComponents[1],
-						UidGid:     "1025:1025",
-					},
-				},
-				GasPrices:              "0.0uxion",
-				GasAdjustment:          1.3,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
-				UsingNewGenesisCommand: true,
-			},
-			NumValidators: &numValidators,
-			NumFullNodes:  &numFullNodes,
-		},
-	})
-
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	xion := chains[0].(*cosmos.CosmosChain)
-
-	// Relayer Factory
-	client, network := ibctest.DockerSetup(t)
-	//relayer := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t)).Build(
-	//	t, client, network)
-
-	// Prep Interchain
-	// const ibcPath = "xion-osmo-dungeon-test"
-	ic := ibctest.NewInterchain().
-		AddChain(xion)
-	//AddRelayer(relayer, "relayer").
-	//AddLink(ibctest.InterchainLink{
-	//	Chain1:  xion,
-	//	Chain2:  osmosis,
-	//	Relayer: relayer,
-	//	Path:    ibcPath,
-	//})
-
-	// Log location
-	f, err := ibctest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
-	require.NoError(t, err)
-	// Reporter/logs
-	rep := testreporter.NewReporter(f)
-	eRep := rep.RelayerExecReporter(t)
-
-	// Build Interchain
-	require.NoError(t, ic.Build(ctx, eRep, ibctest.InterchainBuildOptions{
-		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
-		BlockDatabaseFile: ibctest.DefaultBlockDatabaseFilepath(),
-
-		SkipPathCreation: false},
-	),
-	)
-	return xion, ctx
-}
 
 func TestXionSendPlatformFee(t *testing.T) {
 	if testing.Short() {
@@ -114,7 +23,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	t.Parallel()
 
 	xion, ctx := BuildXionChain(t)
-	
+
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := int64(10_000_000)
@@ -225,96 +134,4 @@ func TestXionSendPlatformFee(t *testing.T) {
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, uint64(290), uint64(postReceivingBalance))
-}
-
-func TestMintModuleNoInflationNoFees(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
-	t.Parallel()
-
-	xion, ctx := BuildXionChain(t)
-	// Get the distribution module account address
-	var moduleAccount map[string]interface{}
-	// Query the distribution module account
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "auth", "module-account", "distribution")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(queryRes, &moduleAccount))
-	moduleAccountAddress, err := dyno.GetString(moduleAccount, "account", "base_account", "address")
-	require.NoError(t, err)
-	// Get the distribution module account balance
-	initialModuleAccountBalance, err := xion.GetBalance(ctx, moduleAccountAddress, xion.Config().Denom)
-	require.NoError(t, err)
-	t.Logf("Initial distribution address balance: %d", initialModuleAccountBalance)
-	
-	// Query the mint module for the current inflation
-	var inflation json.Number
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "inflation")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(queryRes, &inflation))
-	inflationValue, err := inflation.Float64()
-	t.Logf("Current inflation: %f", inflationValue)
-	require.NoError(t, err, "inflation should be a float")
-	// Make sure inflation is 0
-	require.Equal(t, 0.0, inflationValue)
-
-	// Query the mint module for inflation rate change
-	var params = make(map[string]interface{})
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(queryRes, &params))
-	inflationRateChange, err := dyno.GetString(params, "inflation_rate_change")
-	require.NoError(t, err, "inflation_rate_change should be a string")
-	inflationRateChangeValue, err := strconv.ParseFloat(inflationRateChange, 64)
-	require.NoError(t, err, "inflation_rate_change should be convertible to float")
-	t.Logf("Current inflation rate change: %f", inflationRateChangeValue)
-	// Make sure inflation rate change is 0
-	require.Equal(t, 0.0, inflationRateChangeValue)
-
-	// Get the total bank supply
-	jsonRes := make(map[string]interface{})
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
-	require.NoError(t, err)
-
-	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
-
-	// Presuming we are the only denom on the chain
-	totalSupply, err := dyno.GetSlice(jsonRes, "supply")
-	require.NoError(t, err)
-	xionCoin := totalSupply[0]
-	require.NotEmpty(t, xionCoin)
-	// Make sure we selected the uxion denom
-	xionCoinDenom, err := dyno.GetString(xionCoin, "denom")
-	require.NoError(t, err)
-	require.Equal(t, xionCoinDenom, xion.Config().Denom)
-	initialXionSupply, err := dyno.GetString(xionCoin, "amount")
-	require.NoError(t, err)
-	t.Logf("Initial Xion supply: %s", initialXionSupply)
-
-	// Wait for some blocks and check if that supply stays the same
-	chainHeight, _ := xion.Height(ctx)
-	testutil.WaitForBlocks(ctx, int(chainHeight) + 10, xion)
-	
-	// Get the distribution module account balance
-	currentModuleAccountBalance, err := xion.GetBalance(ctx, moduleAccountAddress, xion.Config().Denom)
-	require.NoError(t, err)
-	t.Logf("Current distribution address balance: %d", currentModuleAccountBalance)
-	
-	// Get the total bank supply
-	currentResJson := make(map[string]interface{})
-	currentSupplyRes, _, queryErr := xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
-	require.NoError(t, queryErr)
-	require.NoError(t, json.Unmarshal(currentSupplyRes, &currentResJson))
-
-	newTotalSupply, err := dyno.GetSlice(currentResJson, "supply")
-	require.NoError(t, err)
-	currentXionCoin := newTotalSupply[0]
-
-	currentXionSupply, err := dyno.GetString(currentXionCoin, "amount")
-	require.NoError(t, err)
-	t.Logf("Current Xion supply: %s", currentXionSupply)
-
-	require.Equal(t, initialXionSupply, currentXionSupply)
-	require.Equal(t, initialModuleAccountBalance, currentModuleAccountBalance)
 }
