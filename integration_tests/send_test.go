@@ -234,9 +234,22 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 	t.Parallel()
 
 	xion, ctx := BuildXionChain(t)
+	// Get the distribution module account address
+	var moduleAccount map[string]interface{}
+	// Query the distribution module account
+	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "auth", "module-account", "distribution")
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(queryRes, &moduleAccount))
+	moduleAccountAddress, err := dyno.GetString(moduleAccount, "account", "base_account", "address")
+	require.NoError(t, err)
+	// Get the distribution module account balance
+	initialModuleAccountBalance, err := xion.GetBalance(ctx, moduleAccountAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	t.Logf("Initial distribution address balance: %d", initialModuleAccountBalance)
+	
 	// Query the mint module for the current inflation
 	var inflation json.Number
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "mint", "inflation")
+	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "inflation")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &inflation))
 	inflationValue, err := inflation.Float64()
@@ -281,6 +294,12 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 	// Wait for some blocks and check if that supply stays the same
 	chainHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(chainHeight) + 10, xion)
+	
+	// Get the distribution module account balance
+	currentModuleAccountBalance, err := xion.GetBalance(ctx, moduleAccountAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	t.Logf("Current distribution address balance: %d", currentModuleAccountBalance)
+	
 	// Get the total bank supply
 	currentResJson := make(map[string]interface{})
 	currentSupplyRes, _, queryErr := xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
@@ -296,4 +315,5 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 	t.Logf("Current Xion supply: %s", currentXionSupply)
 
 	require.Equal(t, initialXionSupply, currentXionSupply)
+	require.Equal(t, initialModuleAccountBalance, currentModuleAccountBalance)
 }
