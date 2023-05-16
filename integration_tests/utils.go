@@ -62,22 +62,11 @@ func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context) {
 
 	xion := chains[0].(*cosmos.CosmosChain)
 
-	// Relayer Factory
 	client, network := interchaintest.DockerSetup(t)
-	//relayer := ibctest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t)).Build(
-	//	t, client, network)
 
 	// Prep Interchain
-	// const ibcPath = "xion-osmo-dungeon-test"
 	ic := interchaintest.NewInterchain().
 		AddChain(xion)
-	//AddRelayer(relayer, "relayer").
-	//AddLink(ibctest.InterchainLink{
-	//	Chain1:  xion,
-	//	Chain2:  osmosis,
-	//	Relayer: relayer,
-	//	Path:    ibcPath,
-	//})
 
 	// Log location
 	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
