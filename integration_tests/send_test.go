@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -233,9 +234,33 @@ func TestMintModuleInflationNoTransaction(t *testing.T) {
 	t.Parallel()
 
 	xion, ctx := BuildXionChain(t)
+	// Query the mint module for the current inflation
+	var inflation json.Number
+	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "mint", "inflation")
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(queryRes, &inflation))
+	inflationValue, err := inflation.Float64()
+	t.Logf("Current inflation: %f", inflationValue)
+	require.NoError(t, err, "inflation should be a float")
+	// Make sure inflation is 0
+	require.Equal(t, 0.0, inflationValue)
+
+	// Query the mint module for inflation rate change
+	var params = make(map[string]interface{})
+	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(queryRes, &params))
+	inflationRateChange, err := dyno.GetString(params, "inflation_rate_change")
+	require.NoError(t, err, "inflation_rate_change should be a string")
+	inflationRateChangeValue, err := strconv.ParseFloat(inflationRateChange, 64)
+	require.NoError(t, err, "inflation_rate_change should be convertible to float")
+	t.Logf("Current inflation rate change: %f", inflationRateChangeValue)
+	// Make sure inflation rate change is 0
+	require.Equal(t, 0.0, inflationRateChangeValue)
+
 	// Get the total bank supply
 	jsonRes := make(map[string]interface{})
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
+	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
 	require.NoError(t, err)
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
