@@ -8,6 +8,7 @@ LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
 SIMAPP = ./app
+XION_IMAGE=xion:local
 
 # for dockerized protobuf tools
 DOCKER := $(shell which docker)
@@ -123,7 +124,10 @@ test: test-unit
 test-all: check test-race test-cover
 
 test-unit:
-	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+
+test-integration:
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
 
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
@@ -144,7 +148,7 @@ test-sim-multi-seed-short: runsim
 
 test-sim-deterministic: runsim
 	@echo "Running short multi-seed application simulation. This may take awhile!"
-	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 1 1 TestAppStateDeterminism
+	@$(BINDIR)/runsim -obs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 1 1 TestAppStateDeterminism
 
 ###############################################################################
 ###                                Linting                                  ###
