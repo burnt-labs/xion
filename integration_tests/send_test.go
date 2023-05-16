@@ -226,7 +226,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.Equal(t, uint64(290), uint64(postReceivingBalance))
 }
 
-func TestMintModuleInflationNoTransaction(t *testing.T) {
+func TestMintModuleNoInflationNoFees(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
