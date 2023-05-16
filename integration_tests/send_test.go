@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,17 +18,12 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
 
-func TestXionSendPlatformFee(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
-	t.Parallel()
-
+func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context){
 	ctx := context.Background()
 
 	var numFullNodes = 1
@@ -105,7 +101,18 @@ func TestXionSendPlatformFee(t *testing.T) {
 		SkipPathCreation: false},
 	),
 	)
+	return xion, ctx
+}
 
+func TestXionSendPlatformFee(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	t.Parallel()
+
+	xion, ctx := BuildXionChain(t)
+	
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := int64(10_000_000)
@@ -215,4 +222,57 @@ func TestXionSendPlatformFee(t *testing.T) {
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, uint64(290), uint64(postReceivingBalance))
+}
+
+func TestMintModuleInflationNoTransaction(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	t.Parallel()
+
+	xion, ctx := BuildXionChain(t)
+	// Get the total bank supply
+	jsonRes := make(map[string]interface{})
+	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
+	require.NoError(t, err)
+
+	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
+
+	// Presuming we are the only denom on the chain
+	totalSupply := jsonRes["supply"]
+	xionCoins, ok := totalSupply.([]interface{})
+	require.True(t, ok)
+	require.NotEmpty(t, xionCoins)
+	xionCoin, ok := xionCoins[0].(map[string]interface{})
+	require.True(t, ok)
+
+	// Make sure we selected the uxion denom
+	require.Equal(t, xionCoin["denom"], xion.Config().Denom)
+	initialXionSupply := xionCoin["amount"]
+	require.NotNil(t, initialXionSupply)
+	t.Logf("Initial Xion supply: %s", initialXionSupply)
+
+	// Wait for some blocks and check if the supply increases
+	chainHeight, _ := xion.Height(ctx)
+	testutil.WaitForBlocks(ctx, int(chainHeight) + 10, xion)
+	// Get the total bank supply
+	currentResJson := make(map[string]interface{})
+	currentSupplyRes, _, queryErr := xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
+	require.NoError(t, queryErr)
+	require.NoError(t, json.Unmarshal(currentSupplyRes, &currentResJson))
+
+	newTotalSupply := currentResJson["supply"]
+	currentXionCoins, ok := newTotalSupply.([]interface{})
+	require.True(t, ok)
+	require.NotEmpty(t, currentXionCoins)
+	currentXionCoin, ok := currentXionCoins[0].(map[string]interface{})
+	require.True(t, ok)
+	require.NotEmpty(t, currentXionCoin)
+
+	currentXionSupply := currentXionCoin["amount"]
+	require.NotNil(t, currentXionSupply)
+	t.Logf("Current Xion supply: %s", currentXionSupply)
+
+	require.Equal(t, initialXionSupply, currentXionSupply)
 }

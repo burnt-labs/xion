@@ -367,6 +367,12 @@ func modifyGenesisShortProposals(votingPeriod string, maxDepositPeriod string) f
 		if err := dyno.Set(g, "100", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
 			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
 		}
+		if err := dyno.Set(g, "0.0", "app_state", "mint", "minter", "inflation"); err != nil {
+			return nil, fmt.Errorf("failed to set inflation change in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, "0.0", "app_state", "mint", "params", "inflation_rate_change"); err != nil {
+			return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
+		}
 		out, err := json.Marshal(g)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
