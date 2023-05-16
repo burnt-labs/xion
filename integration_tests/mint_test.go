@@ -22,3 +22,20 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 	// Run test harness
 	MintTestHarness(t, xion, ctx)
 }
+
+func TestMintModuleInflationNoFees(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	t.Parallel()
+
+	xion, ctx := BuildXionChain(t)
+
+	// Wait for some blocks and check if that supply stays the same
+	chainHeight, _ := xion.Height(ctx)
+	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
+
+	// Run test harness
+	MintTestHarness(t, xion, ctx)
+}
