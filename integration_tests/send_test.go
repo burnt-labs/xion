@@ -75,7 +75,7 @@ func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context){
 	//	t, client, network)
 
 	// Prep Interchain
-	const ibcPath = "xion-osmo-dungeon-test"
+	// const ibcPath = "xion-osmo-dungeon-test"
 	ic := ibctest.NewInterchain().
 		AddChain(xion)
 	//AddRelayer(relayer, "relayer").
@@ -162,6 +162,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
 
 	msg, err := cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)
+	require.NoError(t, err)
 
 	prop := cosmos.Proposal{
 		Messages: []json.RawMessage{msg},
