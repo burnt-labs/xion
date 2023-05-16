@@ -10,6 +10,7 @@ import (
 	"time"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/icza/dyno"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -240,17 +241,16 @@ func TestMintModuleInflationNoTransaction(t *testing.T) {
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
 
 	// Presuming we are the only denom on the chain
-	totalSupply := jsonRes["supply"]
-	xionCoins, ok := totalSupply.([]interface{})
-	require.True(t, ok)
-	require.NotEmpty(t, xionCoins)
-	xionCoin, ok := xionCoins[0].(map[string]interface{})
-	require.True(t, ok)
-
+	totalSupply, err := dyno.GetSlice(jsonRes, "supply")
+	require.NoError(t, err)
+	xionCoin := totalSupply[0]
+	require.NotEmpty(t, xionCoin)
 	// Make sure we selected the uxion denom
-	require.Equal(t, xionCoin["denom"], xion.Config().Denom)
-	initialXionSupply := xionCoin["amount"]
-	require.NotNil(t, initialXionSupply)
+	xionCoinDenom, err := dyno.GetString(xionCoin, "denom")
+	require.NoError(t, err)
+	require.Equal(t, xionCoinDenom, xion.Config().Denom)
+	initialXionSupply, err := dyno.GetString(xionCoin, "amount")
+	require.NoError(t, err)
 	t.Logf("Initial Xion supply: %s", initialXionSupply)
 
 	// Wait for some blocks and check if the supply increases
@@ -262,16 +262,12 @@ func TestMintModuleInflationNoTransaction(t *testing.T) {
 	require.NoError(t, queryErr)
 	require.NoError(t, json.Unmarshal(currentSupplyRes, &currentResJson))
 
-	newTotalSupply := currentResJson["supply"]
-	currentXionCoins, ok := newTotalSupply.([]interface{})
-	require.True(t, ok)
-	require.NotEmpty(t, currentXionCoins)
-	currentXionCoin, ok := currentXionCoins[0].(map[string]interface{})
-	require.True(t, ok)
-	require.NotEmpty(t, currentXionCoin)
+	newTotalSupply, err := dyno.GetSlice(currentResJson, "supply")
+	require.NoError(t, err)
+	currentXionCoin := newTotalSupply[0]
 
-	currentXionSupply := currentXionCoin["amount"]
-	require.NotNil(t, currentXionSupply)
+	currentXionSupply, err := dyno.GetString(currentXionCoin, "amount")
+	require.NoError(t, err)
 	t.Logf("Current Xion supply: %s", currentXionSupply)
 
 	require.Equal(t, initialXionSupply, currentXionSupply)
