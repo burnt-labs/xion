@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/icza/dyno"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
@@ -22,11 +23,13 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context) {
+type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
+
+func BuildXionChain(t *testing.T, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) (*cosmos.CosmosChain, context.Context) {
 	ctx := context.Background()
 
 	var numFullNodes = 1
-	var numValidators = 3
+	var numValidators = 1
 
 	// pulling image from env to foster local dev
 	imageTag := os.Getenv("XION_IMAGE")
@@ -53,7 +56,7 @@ func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context) {
 				Bech32Prefix:           "xion",
 				Denom:                  "uxion",
 				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
+				ModifyGenesis:          modifyGenesis,
 				UsingNewGenesisCommand: true,
 			},
 			NumValidators: &numValidators,
@@ -92,44 +95,64 @@ func BuildXionChain(t *testing.T) (*cosmos.CosmosChain, context.Context) {
 	return xion, ctx
 }
 
-const (
-	votingPeriod     = "10s"
-	maxDepositPeriod = "10s"
-)
-
-func modifyGenesisShortProposals(votingPeriod string, maxDepositPeriod string) func(ibc.ChainConfig, []byte) ([]byte, error) {
+func ModifyInterChainGenesis(fns ModifyInterChainGenesisFn, params [][]string) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		g := make(map[string]interface{})
-		if err := json.Unmarshal(genbz, &g); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		res := genbz
+		var err error
+
+		for i, fn := range fns {
+			res, err = fn(chainConfig, res, params[i]...)
+			if err != nil {
+				return nil, fmt.Errorf("failed to modify genesis: %w", err)
+			}
 		}
-		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "params", "voting_period"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, maxDepositPeriod, "app_state", "gov", "params", "max_deposit_period"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, "100", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
-			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, "0", "app_state", "mint", "params", "inflation_min"); err != nil {
-			return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, "0", "app_state", "mint", "params", "inflation_max"); err != nil {
-			return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
-		}
-		if err := dyno.Set(g, "0", "app_state", "mint", "params", "inflation_rate_change"); err != nil {
-			return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
-		}
-		out, err := json.Marshal(g)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-		}
-		return out, nil
+		return res, nil
 	}
+}
+
+func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, params[0], "app_state", "gov", "params", "voting_period"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+	if err := dyno.Set(g, params[1], "app_state", "gov", "params", "max_deposit_period"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+	if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+	if err := dyno.Set(g, "100", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
+
+func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, params[0], "app_state", "mint", "params", "inflation_min"); err != nil {
+		return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
+	}
+	if err := dyno.Set(g, params[1], "app_state", "mint", "params", "inflation_max"); err != nil {
+		return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
+	}
+	if err := dyno.Set(g, params[2], "app_state", "mint", "params", "inflation_rate_change"); err != nil {
+		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
 }
 
 func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, denom string, blockHeight uint64) string {
@@ -196,13 +219,80 @@ func GetModuleAddress(t *testing.T, xion *cosmos.CosmosChain, ctx context.Contex
 	return moduleAddress
 }
 
+// Retrieve a block annual provision
+func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, denom string, blockHeight uint64) math.LegacyDec {
+	if blockHeight == 0 {
+		blockHeight, _ = xion.Height(ctx)
+		require.Greater(t, blockHeight, 0)
+	}
+
+	// Query the current block provision
+	var annualProvision json.Number
+	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "mint", "annual-provisions", "--height", strconv.FormatInt(int64(blockHeight), 10))
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(queryRes, &annualProvision))
+	// Query the block per year
+	var params = make(map[string]interface{})
+	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(queryRes, &params))
+	blocksPerYear, err := dyno.GetInteger(params, "blocks_per_year")
+	require.NoError(t, err)
+	// Calculate the block provision
+	return math.LegacyMustNewDecFromStr(annualProvision.String()).QuoInt(math.NewInt(blocksPerYear)) // This ideally is the minted tokens for the block
+}
+
 // This test confirms the property of the module described at
 // https://www.notion.so/burntlabs/Mint-Module-Blog-Post-78f59fb108c04e9ea5fa826dda30a340
-// Chain must have at least 12 blocks
-func MintTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context) {
+func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, blockHeight int) {
+	// Get bank supply at previous height
+	previousXionBankSupply, err := strconv.ParseInt(getTotalCoinSupplyInBank(t, xion, ctx, xion.Config().Denom, uint64(blockHeight-1)), 10, 64)
+	t.Logf("Previous Xion bank supply: %d", previousXionBankSupply)
+	require.NoError(t, err, "bank supply should be convertible to an int64")
+	// Get bank supply at current height
+	currentXionBankSupply, err := strconv.ParseInt(getTotalCoinSupplyInBank(t, xion, ctx, xion.Config().Denom, uint64(blockHeight)), 10, 64)
+	t.Logf("Current Xion bank supply: %d", currentXionBankSupply)
+	require.NoError(t, err, "bank supply should be convertible to an int64")
+	tokenChange := currentXionBankSupply - previousXionBankSupply
 
-	// We pick a random block height and 10 contiguous blocks from that height
-	// and then test the property over these blocks
+	// Get the distribution module account address
+	distributionModuleAddress := GetModuleAddress(t, xion, ctx, "distribution")
+	// Get distribution module account balance in previous height
+	previousDistributionModuleBalance, err := strconv.ParseInt(getAddressBankBalanceAtHeight(t, xion, ctx, distributionModuleAddress, xion.Config().Denom, uint64(blockHeight-1)), 10, 64)
+	require.NoError(t, err, "distribution module balance should be convertible to an int64")
+	// Get distribution module account balance in current height
+	currentDistributionModuleBalance, err := strconv.ParseInt(getAddressBankBalanceAtHeight(t, xion, ctx, distributionModuleAddress, xion.Config().Denom, uint64(blockHeight)), 10, 64)
+	require.NoError(t, err, "distribution module balance should be convertible to an int64")
+
+	delta := currentDistributionModuleBalance - previousDistributionModuleBalance
+
+	feesAccrued := delta - tokenChange
+	t.Logf("Fees accrued: %d", feesAccrued)
+
+	// Get the block provision
+	blockProvision := GetBlockAnnualProvision(t, xion, ctx, xion.Config().Denom, uint64(blockHeight))
+
+	// Make sure the minted tokens is equal to the block provision - fees accrued
+	if blockProvision.TruncateInt().GT(math.NewInt(feesAccrued)) {
+		// We have minted tokens
+		mintedTokens := blockProvision.TruncateInt().Sub(math.NewInt(feesAccrued))
+		t.Logf("Minted tokens: %d and Token change: %d", mintedTokens.Int64(), int64(tokenChange))
+		require.Equal(t, mintedTokens, math.NewInt(int64(tokenChange)))
+	} else if blockProvision.TruncateInt().LT(math.NewInt(feesAccrued)) {
+		// We have burned tokens
+		burnedTokens := math.NewInt(feesAccrued).Sub(blockProvision.TruncateInt())
+		t.Logf("Burned tokens: %d and Token change: %d", burnedTokens.Int64(), tokenChange)
+		require.Equal(t, burnedTokens, math.NewInt(tokenChange).Abs())
+	} else {
+		// We have not minted or burned tokens
+		require.Equal(t, math.NewInt(0), math.NewInt(tokenChange))
+		t.Logf("No minted or Burned tokens. Token change: %d", tokenChange)
+	}
+}
+
+// Run Mint module test over some random block height
+// Chain must have at least 12 blocks
+func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context) {
 
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
@@ -211,57 +301,18 @@ func MintTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context
 	randomHeight := rand.Intn(int(currentBlockHeight)-11) + 2
 
 	for i := randomHeight; i < randomHeight+10; i++ {
-		t.Logf("Current random height: %d", randomHeight)
-		// Get bank supply at previous height
-		previousXionBankSupply, err := strconv.ParseUint(getTotalCoinSupplyInBank(t, xion, ctx, xion.Config().Denom, uint64(randomHeight-1)), 10, 64)
-		t.Logf("Previous Xion bank supply: %d", previousXionBankSupply)
-		require.NoError(t, err, "bank supply should be convertible to an int64")
-		// Get bank supply at current height
-		currentXionBankSupply, err := strconv.ParseUint(getTotalCoinSupplyInBank(t, xion, ctx, xion.Config().Denom, uint64(randomHeight)), 10, 64)
-		t.Logf("Current Xion bank supply: %d", currentXionBankSupply)
-		require.NoError(t, err, "bank supply should be convertible to an int64")
-		tokenChange := currentXionBankSupply - previousXionBankSupply
+		t.Logf("Current random height: %d", i)
+		MintModuleTestHarness(t, xion, ctx, i)
+	}
+}
 
-		// Get the distribution module account address
-		distributionModuleAddress := GetModuleAddress(t, xion, ctx, "distribution")
-		// Get distribution module account balance in previous height
-		previousDistributionModuleBalance, err := xion.GetBalance(ctx, distributionModuleAddress, xion.Config().Denom)
-		require.NoError(t, err, "distribution module balance should be convertible to an int64")
-		// Get distribution module account balance in current height
-		currentDistributionModuleBalance, err := strconv.ParseUint(getAddressBankBalanceAtHeight(t, xion, ctx, distributionModuleAddress, xion.Config().Denom, uint64(randomHeight)), 10, 64)
-		require.NoError(t, err, "distribution module balance should be convertible to an int64")
+// Run Mint module test over some txHash
+func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, txHashes []string) {
 
-		delta := currentDistributionModuleBalance - uint64(previousDistributionModuleBalance)
-
-		feesAccrued := delta - tokenChange
-
-		// Query the current block provision
-		var annualProvision json.Number
-		queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "mint", "annual-provisions", "--height", strconv.FormatInt(int64(randomHeight), 10))
+	for i, txHash := range txHashes {
+		txResp, err := authTx.QueryTx(xion.FullNodes[0].CliContext(), txHash)
 		require.NoError(t, err)
-		require.NoError(t, json.Unmarshal(queryRes, &annualProvision))
-		// Query the block per year
-		var params = make(map[string]interface{})
-		queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
-		require.NoError(t, err)
-		require.NoError(t, json.Unmarshal(queryRes, &params))
-		blocksPerYear, err := dyno.GetInteger(params, "blocks_per_year")
-		require.NoError(t, err)
-		// Calculate the block provision
-		blockProvision := math.LegacyMustNewDecFromStr(annualProvision.String()).QuoInt(math.NewInt(blocksPerYear)) // This ideally is the minted tokens for the block
-
-		// Make sure the minted tokens is equal to the block provision - fees accrued
-		if blockProvision.TruncateInt().GT(math.NewIntFromUint64(feesAccrued)) {
-			// We have minted tokens
-			mintedTokens := blockProvision.TruncateInt().Sub(math.NewIntFromUint64(feesAccrued))
-			require.Equal(t, mintedTokens, math.NewInt(int64(tokenChange)))
-		} else if blockProvision.TruncateInt().LT(math.NewIntFromUint64(feesAccrued)) {
-			// We have burned tokens
-			burnedTokens := math.NewIntFromUint64(feesAccrued).Sub(blockProvision.TruncateInt())
-			require.Equal(t, burnedTokens, math.NewInt(int64(tokenChange)))
-		} else {
-			// We have not minted or burned tokens
-			require.Equal(t, math.NewInt(0), math.NewInt(int64(tokenChange)))
-		}
+		t.Logf("Bank send msg %d BH: %d", i, txResp.Height)
+		MintModuleTestHarness(t, xion, ctx, int(txResp.Height)+1) // check my block and the next one
 	}
 }

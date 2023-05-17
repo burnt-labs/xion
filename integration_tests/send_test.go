@@ -23,7 +23,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t)
+	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")

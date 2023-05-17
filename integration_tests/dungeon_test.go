@@ -27,6 +27,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const (
+	votingPeriod     = "10s"
+	maxDepositPeriod = "10s"
+)
+
 func TestDungeonTransferBlock(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
@@ -98,7 +103,7 @@ func TestDungeonTransferBlock(t *testing.T) {
 				Bech32Prefix:           "xion",
 				Denom:                  "uxion",
 				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
+				ModifyGenesis:          ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
 				UsingNewGenesisCommand: true,
 			},
 			NumValidators: &numValidators,
