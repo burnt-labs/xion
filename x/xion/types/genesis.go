@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 )
@@ -11,7 +11,7 @@ import (
 // error for any failed validation criteria.
 func (gs GenesisState) Validate() error {
 	if gs.PlatformPercentage > 10000 {
-		return fmt.Errorf("unable to set platform percentage to greater than 100%")
+		return errors.New("unable to set platform percentage to greater than 100%")
 	}
 
 	return nil
