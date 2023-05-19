@@ -23,6 +23,11 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+const (
+	votingPeriod     = "10s"
+	maxDepositPeriod = "10s"
+)
+
 // Function type for any function that modify the genesis file
 type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
 

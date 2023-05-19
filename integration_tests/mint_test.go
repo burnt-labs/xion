@@ -122,14 +122,12 @@ func sendPeriodicBankTx(t *testing.T, chain *cosmos.CosmosChain, ctx context.Con
 			t.Log(string(stdout))
 			t.Log(string(ee))
 			t.Fatal(err)
-			break
 		}
 
 		output := cosmos.CosmosTx{}
 		err = json.Unmarshal([]byte(stdout), &output)
 		if err != nil {
 			t.Fatal(err)
-			break
 		}
 
 		// Save the hash of the send tx for later analysis

@@ -27,11 +27,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-const (
-	votingPeriod     = "10s"
-	maxDepositPeriod = "10s"
-)
-
 func TestDungeonTransferBlock(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
