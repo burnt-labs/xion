@@ -1,0 +1,22 @@
+package keeper
+
+import (
+	v2 "github.com/burnt-labs/xion/x/globalfee/migrations/v2"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+)
+
+// Migrator is a struct for handling in-place store migrations.
+type Migrator struct {
+	globalfeeSubspace paramtypes.Subspace
+}
+
+// NewMigrator returns a new Migrator.
+func NewMigrator(globalfeeSubspace paramtypes.Subspace) Migrator {
+	return Migrator{globalfeeSubspace: globalfeeSubspace}
+}
+
+// Migrate1to2 migrates from version 1 to 2.
+func (m Migrator) Migrate1to2(ctx sdk.Context) error {
+	return v2.MigrateStore(ctx, m.globalfeeSubspace)
+}
