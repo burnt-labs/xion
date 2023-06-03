@@ -130,7 +130,7 @@ import (
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 
-	"github.com/cosmos/gaia/v11/x/globalfee"
+	"github.com/burnt-labs/xion/x/globalfee"
 )
 
 const appName = "XionApp"
