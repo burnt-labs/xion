@@ -12,6 +12,8 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
+	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -22,7 +24,8 @@ type HandlerOptions struct {
 	IBCKeeper         *keeper.Keeper
 	WasmConfig        *wasmTypes.WasmConfig
 	TXCounterStoreKey storetypes.StoreKey
-	GlobalFeeSubpsace paramtypes.Subspace
+	GlobalFeeSubspace paramtypes.Subspace
+	StakingSubspace   paramtypes.Subspace
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -38,7 +41,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.WasmConfig == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm config is required for ante builder")
 	}
-	if opts.GlobalFeeSubspace.Name() == "" {
+	if options.GlobalFeeSubspace.Name() == "" {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrNotFound, "globalfee param store is required for AnteHandler")
 	}
 	if options.TXCounterStoreKey == nil {
@@ -54,7 +57,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		gaiafeeante.NewFeeDecorator(opts.GlobalFeeSubspace, opts.StakingSubspace),
+		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, options.StakingSubspace),
 		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),

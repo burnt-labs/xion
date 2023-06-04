@@ -880,6 +880,7 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtype
 			WasmConfig:        &wasmConfig,
 			TXCounterStoreKey: txCounterStoreKey,
 			GlobalFeeSubspace: app.GetSubspace(globalfee.ModuleName),
+			StakingSubspace:   app.GetSubspace(stakingtypes.ModuleName),
 		},
 	)
 	if err != nil {
@@ -1080,6 +1081,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
 	paramsKeeper.Subspace(wasm.ModuleName)
+	paramsKeeper.Subspace(globalfee.ModuleName)
 
 	return paramsKeeper
 }
