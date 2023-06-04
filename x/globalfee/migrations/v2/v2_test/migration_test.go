@@ -3,6 +3,8 @@ package v2_test
 import (
 	"testing"
 
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -12,8 +14,6 @@ import (
 	v2 "github.com/cosmos/gaia/v11/x/globalfee/migrations/v2"
 	globalfeetypes "github.com/cosmos/gaia/v11/x/globalfee/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 )
 

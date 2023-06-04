@@ -1,4 +1,5 @@
-package globalfee
+
+ackage globalfee
 
 import (
 	"testing"
@@ -13,8 +14,8 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/burnt-labs/xion/x/globalfee/types"

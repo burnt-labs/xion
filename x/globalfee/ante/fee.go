@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
+	tmstrings "github.com/cometbft/cometbft/libs/strings"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	tmstrings "github.com/tendermint/tendermint/libs/strings"
 
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/globalfee/types"
