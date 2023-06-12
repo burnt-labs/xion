@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
+
+	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 var testGasLimit uint64 = 200_000

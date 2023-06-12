@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -19,8 +20,10 @@ var (
 
 	// DefaultMinGasPrices is set at runtime to the staking token with zero amount i.e. "0uatom"
 	// see DefaultZeroGlobalFee method in xion/x/globalfee/ante/fee.go.
-	DefaultMinGasPrices         = sdk.DecCoins{}
+	DefaultMinGasPrices = sdk.DecCoins{}
+
 	DefaultBypassMinFeeMsgTypes = []string{
+		sdk.MsgTypeURL(&wasmtypes.MsgExecuteContract{}),
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
 		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
 		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
