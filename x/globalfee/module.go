@@ -16,6 +16,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/burnt-labs/xion/x/globalfee/client/cli"
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
@@ -78,29 +80,33 @@ func (a AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
 
 type AppModule struct {
 	AppModuleBasic
-	paramSpace paramstypes.Subspace
+	globalfeeSubspace paramstypes.Subspace
+	stakingSubspace   paramstypes.Subspace
 }
 
 // NewAppModule constructor
-func NewAppModule(paramSpace paramstypes.Subspace) *AppModule {
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+func NewAppModule(globalfeeSubspace paramstypes.Subspace, stakingSubspace paramstypes.Subspace) *AppModule {
+	if !globalfeeSubspace.HasKeyTable() {
+		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
+	}
+	if !stakingSubspace.HasKeyTable() {
+		stakingSubspace = stakingSubspace.WithKeyTable(stakingtypes.ParamKeyTable())
 	}
 
-	return &AppModule{paramSpace: paramSpace}
+	return &AppModule{globalfeeSubspace: globalfeeSubspace, stakingSubspace: stakingSubspace}
 }
 
 func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
 
-	a.paramSpace.SetParamSet(ctx, &genesisState.Params)
+	a.globalfeeSubspace.SetParamSet(ctx, &genesisState.Params)
 	return nil
 }
 
 func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
 	var genState types.GenesisState
-	a.paramSpace.GetParamSet(ctx, &genState.Params)
+	a.globalfeeSubspace.GetParamSet(ctx, &genState.Params)
 	return marshaler.MustMarshalJSON(&genState)
 }
 
@@ -112,7 +118,7 @@ func (a AppModule) QuerierRoute() string {
 }
 
 func (a AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.paramSpace))
+	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.globalfeeSubspace))
 }
 
 func (a AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
