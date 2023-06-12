@@ -73,7 +73,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	msg, err := cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)
 	require.NoError(t, err)
 
-	prop := cosmos.Proposal{
+	prop := cosmos.TxProposalv1{
 		Messages: []json.RawMessage{msg},
 		Metadata: "",
 		Deposit:  "100uxion",
