@@ -69,6 +69,10 @@ jobs:
         - "DungeonTransferBlock"
         - "XionSendPlatformFee"
         - "MintModuleNoInflationNoFees"
+        - "MintModuleInflationNoFees"
+        - "MintModuleInflationHighFees"
+        - "MintModuleInflationLowFees"
+        - "MultipleBlockTx"
 
     steps:
       - name: Set up Go 1.18
