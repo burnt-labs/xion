@@ -67,6 +67,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*types.Msg)(nil),
 		&xiontypes.MsgSetPlatformPercentage{},
+		&xiontypes.MsgSend{},
 	)
 	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
 
