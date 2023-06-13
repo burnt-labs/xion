@@ -4,13 +4,10 @@ The Xion Daemon is scaffolded off of [CosmWasm/wasmd](https://github.com/CosmWas
 rather than being scaffolded with ignite in order to more easily achieve
 compatibility with the latest cosmos-sdk and CosmWasm releases.
 
-
-
-
-
 ## Running integration tests
 
 ### Prerequisites
+* [golang](https://golang.org)
 * [docker](https://docs.docker.com/get-docker/)
 * [heighliner](https://github.com/strangelove-ventures/heighliner)
 
