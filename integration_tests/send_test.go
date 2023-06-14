@@ -45,6 +45,13 @@ func TestXionSendPlatformFee(t *testing.T) {
 	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
 	require.NoError(t, err)
 
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
+		(*types.Msg)(nil),
+		&xiontypes.MsgSetPlatformPercentage{},
+		&xiontypes.MsgSend{},
+	)
+	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
+
 	_, err = xion.FullNodes[0].ExecTx(ctx,
 		xionUser.KeyName(),
 		"xion", "send", xionUser.KeyName(),
@@ -65,16 +72,10 @@ func TestXionSendPlatformFee(t *testing.T) {
 		PlatformPercentage: 500,
 	}
 
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-	)
-	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
-
 	msg, err := cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)
 	require.NoError(t, err)
 
-	prop := cosmos.Proposal{
+	prop := cosmos.TxProposalv1{
 		Messages: []json.RawMessage{msg},
 		Metadata: "",
 		Deposit:  "100uxion",

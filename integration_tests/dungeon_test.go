@@ -209,7 +209,7 @@ func TestDungeonTransferBlock(t *testing.T) {
 
 	msg, err := cdc.MarshalInterfaceJSON(&setSendEnabledMsg)
 
-	prop := cosmos.Proposal{
+	prop := cosmos.TxProposalv1{
 		Messages: []json.RawMessage{msg},
 		Metadata: "",
 		Deposit:  "100uxion",
