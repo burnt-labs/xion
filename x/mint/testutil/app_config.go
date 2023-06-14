@@ -2,7 +2,6 @@ package testutil
 
 import (
 	"cosmossdk.io/core/appconfig"
-	_ "github.com/burnt-labs/xion/x/mint"
 	_ "github.com/cosmos/cosmos-sdk/x/auth"
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	_ "github.com/cosmos/cosmos-sdk/x/bank"
