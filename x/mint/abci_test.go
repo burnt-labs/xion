@@ -80,7 +80,7 @@ func TestBeginBlocker(t *testing.T) {
 			},
 		},
 		{
-			name: "above staking threshold, feegrant has values",
+			name: "above staking threshold, fee collector has values",
 			parameters: parameters{
 				bonded:        stakingTokenSupply,
 				bondedRatio:   sdk.NewDecWithPrec(1, 4),
