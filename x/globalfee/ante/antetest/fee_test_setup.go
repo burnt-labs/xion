@@ -10,6 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/params/types"
@@ -42,7 +43,8 @@ func (s *IntegrationTestSuite) SetupTest() {
 		Height:  1,
 	})
 
-	encodingConfig := xionapp.MakeTestEncodingConfig()
+	//encodingConfig := xionapp.MakeTestEncodingConfig() // ?? How to Replace....
+	encodingConfig := testutil.MakeTestEncodingConfig()
 	encodingConfig.Amino.RegisterConcrete(&testdata.TestMsg{}, "testdata.TestMsg", nil)
 	testdata.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
