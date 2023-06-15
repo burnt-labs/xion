@@ -447,3 +447,69 @@ func TestMulBlockTxDiffAddrMulTxIncSeq(t *testing.T) {
 	// Run test harness
 	checkTxInBlock(t, xion, ctx, currentHeight, xionUser.FormattedAddress(), &txHashes)
 }
+
+// This test would test the result of having multiple transactions (same tx e.g. send 1 xion from A to B)
+// sent from the same account in the same block with increasing sequence number.
+// but with a failing tx in the middle
+func TestMulBlockTxSameAddrOneFailingTxIncSeq(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
+
+	txHashes := BlockTxTest{TxHashes: []string{}}
+
+	// Retrieve the faucet address. Every chain has a faucet account
+	faucet, err := xion.FullNodes[0].AccountKeyBech32(ctx, "faucet")
+	require.NoError(t, err)
+	// Create and Fund User Wallets
+	t.Log("creating and funding user accounts")
+	fundAmount := int64(10_000_000)
+	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
+	xionUser := users[0]
+
+	currentHeight, _ := xion.Height(ctx)
+	var mu sync.Mutex
+
+	mu.Lock()
+	go func(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, blockHeight uint64, duration int, txHashes *BlockTxTest) {
+		currentHeight, _ := chain.Height(ctx)
+		sequenceNumber := 0
+		for currentHeight < blockHeight {
+			var err error
+			var stdout, ee []byte
+			if sequenceNumber == 5 {
+				// send a tx with a failing message
+				stdout, ee, err = xion.FullNodes[0].Exec(ctx,
+					append(txCommand(xion, xionUser.FormattedAddress(), faucet, "100000000"), "--sequence", strconv.Itoa(int(sequenceNumber))),
+					nil,
+				)
+			} else {
+				stdout, ee, err = xion.FullNodes[0].Exec(ctx,
+					append(txCommand(xion, xionUser.FormattedAddress(), faucet, "1000000"), "--sequence", strconv.Itoa(int(sequenceNumber))),
+					nil,
+				)
+			}
+			if err != nil {
+				t.Log(string(stdout))
+				t.Log(string(ee))
+			}
+			output := cosmos.CosmosTx{}
+			err = json.Unmarshal([]byte(stdout), &output)
+			require.NoError(t, err)
+
+			// Save the hash of the send tx for later analysis
+			txHashes.TxHashes = append(txHashes.TxHashes, output.TxHash)
+			time.Sleep(time.Duration(duration) * time.Microsecond)
+			currentHeight, _ = chain.Height(ctx)
+			sequenceNumber++
+		}
+	}(t, xion, ctx, currentHeight+2, 1, &txHashes)
+	mu.Unlock()
+	// Wait for some blocks and check if that supply stays the same
+	testutil.WaitForBlocks(ctx, int(currentHeight)+4, xion)
+
+	// Run test harness
+	checkTxInBlock(t, xion, ctx, currentHeight, xionUser.FormattedAddress(), &txHashes)
+}
