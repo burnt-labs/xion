@@ -6,12 +6,14 @@ import (
 	"testing"
 	"time"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,13 +24,15 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t)
+	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := int64(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
+	currentHeight, _ := xion.Height(ctx)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+4, xion)
 	t.Logf("created xion user %s", xionUser.FormattedAddress())
 
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
