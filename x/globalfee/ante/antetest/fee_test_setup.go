@@ -52,8 +52,15 @@ func (s *IntegrationTestSuite) SetupTest() {
 	s.ctx = ctx
 	s.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 }
+func bondDenom(_ sdk.Context) string {
+	return testBondDenom
+}
 
-func (s *IntegrationTestSuite) SetupTestGlobalFeeStoreAndMinGasPrice(minGasPrice []sdk.DecCoin, globalFeeParams *globfeetypes.Params) (xionfeeante.FeeDecorator, sdk.AnteHandler) {
+func noBondDenom(_ sdk.Context) string {
+	return ""
+}
+
+func (s *IntegrationTestSuite) SetupTestGlobalFeeStoreAndMinGasPrice(minGasPrice []sdk.DecCoin, globalFeeParams *globfeetypes.Params, bondDenom func(sdk.Context) string) (xionfeeante.FeeDecorator, sdk.AnteHandler) {
 	subspace := s.app.GetSubspace(globalfee.ModuleName)
 	subspace.SetParamSet(s.ctx, globalFeeParams)
 	s.ctx = s.ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
@@ -61,10 +68,9 @@ func (s *IntegrationTestSuite) SetupTestGlobalFeeStoreAndMinGasPrice(minGasPrice
 	// set staking params
 	stakingParam := stakingtypes.DefaultParams()
 	stakingParam.BondDenom = testBondDenom
-	stakingSubspace := s.SetupTestStakingSubspace(stakingParam)
 
 	// build fee decorator
-	feeDecorator := xionfeeante.NewFeeDecorator(subspace, stakingSubspace)
+	feeDecorator := xionfeeante.NewFeeDecorator(subspace, bondDenom)
 
 	// chain fee decorator to antehandler
 	antehandler := sdk.ChainAnteDecorators(feeDecorator)

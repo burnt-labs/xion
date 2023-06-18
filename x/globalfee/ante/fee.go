@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/globalfee/types"
@@ -29,21 +28,17 @@ var _ sdk.AnteDecorator = FeeDecorator{}
 
 type FeeDecorator struct {
 	GlobalMinFeeParamSource globalfee.ParamSource
-	StakingSubspace         paramtypes.Subspace
+	StakingKeeperBondDenom  func(sdk.Context) string
 }
 
-func NewFeeDecorator(globalfeeSubspace, stakingSubspace paramtypes.Subspace) FeeDecorator {
+func NewFeeDecorator(globalfeeSubspace paramtypes.Subspace, stakingKeeperDenom func(sdk.Context) string) FeeDecorator {
 	if !globalfeeSubspace.HasKeyTable() {
 		panic("global fee paramspace was not set up via module")
 	}
 
-	if !stakingSubspace.HasKeyTable() {
-		panic("staking paramspace was not set up via module")
-	}
-
 	return FeeDecorator{
 		GlobalMinFeeParamSource: globalfeeSubspace,
-		StakingSubspace:         stakingSubspace,
+		StakingKeeperBondDenom:  stakingKeeperDenom,
 	}
 }
 
@@ -189,7 +184,7 @@ func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.Coin
 	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMinGasPrices) {
 		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMinGasPrices, &globalMinGasPrices)
 	}
-	// global fee is empty set, set global fee to 0uatom
+	// global fee is empty set, set global fee to 0uxion
 	if len(globalMinGasPrices) == 0 {
 		globalMinGasPrices, err = mfd.DefaultZeroGlobalFee(ctx)
 		if err != nil {
@@ -219,11 +214,7 @@ func (mfd FeeDecorator) DefaultZeroGlobalFee(ctx sdk.Context) ([]sdk.DecCoin, er
 }
 
 func (mfd FeeDecorator) getBondDenom(ctx sdk.Context) (bondDenom string) {
-	if mfd.StakingSubspace.Has(ctx, stakingtypes.KeyBondDenom) {
-		mfd.StakingSubspace.Get(ctx, stakingtypes.KeyBondDenom, &bondDenom)
-	}
-
-	return
+	return mfd.StakingKeeperBondDenom(ctx)
 }
 
 func (mfd FeeDecorator) ContainsOnlyBypassMinFeeMsgs(ctx sdk.Context, msgs []sdk.Msg) bool {

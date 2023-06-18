@@ -24,7 +24,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 
 func (s *IntegrationTestSuite) TestGetDefaultGlobalFees() {
 	// set globalfees and min gas price
-	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, &globfeetypes.Params{})
+	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, &globfeetypes.Params{}, bondDenom)
 	defaultGlobalFees, err := feeDecorator.DefaultZeroGlobalFee(s.ctx)
 	s.Require().NoError(err)
 	s.Require().Greater(len(defaultGlobalFees), 0)
@@ -609,7 +609,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeMinimumGasFeeAnteHandler() {
 		s.Run(name, func() {
 			// set globalfees and min gas price
 			globalfeeParams.MinimumGasPrices = tc.globalFee
-			_, antehandler := s.SetupTestGlobalFeeStoreAndMinGasPrice(tc.minGasPrice, globalfeeParams)
+			_, antehandler := s.SetupTestGlobalFeeStoreAndMinGasPrice(tc.minGasPrice, globalfeeParams, bondDenom)
 
 			// set fee decorator to ante handler
 
@@ -697,7 +697,7 @@ func (s *IntegrationTestSuite) TestGetMinGasPrice() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.SetupTestGlobalFeeStoreAndMinGasPrice(tc.minGasPrice, &globfeetypes.Params{})
+			s.SetupTestGlobalFeeStoreAndMinGasPrice(tc.minGasPrice, &globfeetypes.Params{}, bondDenom)
 
 			fees := xionfeeante.GetMinGasPrice(s.ctx, int64(tc.feeTxGasLimit))
 			s.Require().True(tc.expCoins.Sort().IsEqual(fees))
@@ -711,7 +711,7 @@ func (s *IntegrationTestSuite) TestContainsOnlyBypassMinFeeMsgs() {
 		BypassMinFeeMsgTypes:            globfeetypes.DefaultBypassMinFeeMsgTypes,
 		MaxTotalBypassMinFeeMsgGasUsage: globfeetypes.DefaultmaxTotalBypassMinFeeMsgGasUsage,
 	}
-	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParams)
+	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParams, bondDenom)
 	testCases := []struct {
 		name    string
 		msgs    []sdk.Msg
@@ -768,10 +768,10 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	globalfeeParamsEmpty := &globfeetypes.Params{MinimumGasPrices: []sdk.DecCoin{}}
 
 	// setup tests with default global fee i.e. "0uatom" and empty local min gas prices
-	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParamsEmpty)
+	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParamsEmpty, noBondDenom)
 
 	// set a subspace that doesn't have the stakingtypes.KeyBondDenom key registred
-	feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
+	//feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
 
 	// check that an error is returned when staking bond denom is empty
 	_, err := feeDecorator.GetTxFeeRequired(s.ctx, nil)
@@ -784,6 +784,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	feeDecorator, _ = s.SetupTestGlobalFeeStoreAndMinGasPrice(
 		sdk.NewDecCoinsFromCoins(localMinGasPrices...),
 		globalfeeParamsEmpty,
+		bondDenom,
 	)
 
 	// mock tx data

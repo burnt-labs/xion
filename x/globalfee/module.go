@@ -16,8 +16,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	"github.com/burnt-labs/xion/x/globalfee/client/cli"
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
@@ -85,15 +83,11 @@ type AppModule struct {
 }
 
 // NewAppModule constructor
-func NewAppModule(globalfeeSubspace paramstypes.Subspace, stakingSubspace paramstypes.Subspace) *AppModule {
+func NewAppModule(globalfeeSubspace paramstypes.Subspace) *AppModule {
 	if !globalfeeSubspace.HasKeyTable() {
 		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
 	}
-	if !stakingSubspace.HasKeyTable() {
-		stakingSubspace = stakingSubspace.WithKeyTable(stakingtypes.ParamKeyTable())
-	}
-
-	return &AppModule{globalfeeSubspace: globalfeeSubspace, stakingSubspace: stakingSubspace}
+	return &AppModule{globalfeeSubspace: globalfeeSubspace}
 }
 
 func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {

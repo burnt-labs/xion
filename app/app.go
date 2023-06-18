@@ -697,7 +697,7 @@ func NewWasmApp(
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		xion.NewAppModule(app.XionKeeper),
-		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName), app.GetSubspace(stakingtypes.ModuleName)),
+		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
@@ -884,7 +884,7 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtype
 			WasmConfig:        &wasmConfig,
 			TXCounterStoreKey: txCounterStoreKey,
 			GlobalFeeSubspace: app.GetSubspace(globalfee.ModuleName),
-			StakingSubspace:   app.GetSubspace(stakingtypes.ModuleName),
+			StakingKeeper:     app.StakingKeeper,
 		},
 	)
 	if err != nil {
