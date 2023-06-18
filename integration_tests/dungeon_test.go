@@ -98,7 +98,7 @@ func TestDungeonTransferBlock(t *testing.T) {
 				Bech32Prefix:           "xion",
 				Denom:                  "uxion",
 				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesisShortProposals(votingPeriod, maxDepositPeriod),
+				ModifyGenesis:          ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
 				UsingNewGenesisCommand: true,
 			},
 			NumValidators: &numValidators,

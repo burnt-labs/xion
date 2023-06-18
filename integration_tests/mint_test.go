@@ -1,104 +1,202 @@
 package integration_tests
 
 import (
+	"context"
 	"encoding/json"
-	"strconv"
+	"fmt"
+	"sync"
 	"testing"
+	"time"
 
-	"github.com/icza/dyno"
+	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	inflationMin        = "0.0"
+	inflationMax        = "0.0"
+	inflationRateChange = "0.0"
+)
+
+// In this test case, the mint module inflation is set to 0 by setting the inflation rate
+// and inflation max and min values to 0 in the genesis file. We then send a bunch of
+// transactions without fees and check if the total supply stays the same.
+// The supply should remain constants because no token would be minted and there are no
+// tx fees to pay validators with. This is a base test case to ensure that the mint module
+// is not minting tokens when it shouldn't.
 func TestMintModuleNoInflationNoFees(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisInflation}, [][]string{{inflationMin, inflationMax, inflationRateChange}}))
+
+	// Wait for some blocks and check if that supply stays the same
+	chainHeight, _ := xion.Height(ctx)
+	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
+
+	// Run test harness
+	VerifyMintModuleTestRandomBlocks(t, xion, ctx)
+}
+
+// In this test case, the mint module inflation is left to the default value in
+// the genesis file. We then send a bunch of transactions without fees and check
+// if the total supply increases. The supply should increase because the mint module
+// is minting tokens to pay validators with.
+func TestMintModuleInflationNoFees(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t)
-	// Get the distribution module account address
-	var moduleAccount map[string]interface{}
-	// Query the distribution module account
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "auth", "module-account", "distribution")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(queryRes, &moduleAccount))
-	moduleAccountAddress, err := dyno.GetString(moduleAccount, "account", "base_account", "address")
-	require.NoError(t, err)
-	// Get the distribution module account balance
-	initialModuleAccountBalance, err := xion.GetBalance(ctx, moduleAccountAddress, xion.Config().Denom)
-	require.NoError(t, err)
-	t.Logf("Initial distribution address balance: %d", initialModuleAccountBalance)
+	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
 
-	// Query the mint module for the current inflation
-	var inflation json.Number
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "inflation")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(queryRes, &inflation))
-	inflationValue, err := inflation.Float64()
-	t.Logf("Current inflation: %f", inflationValue)
-	require.NoError(t, err, "inflation should be a float")
-	// Make sure inflation is 0
-	require.Equal(t, 0.0, inflationValue)
-
-	// Query the mint module for inflation rate change
-	var params = make(map[string]interface{})
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(queryRes, &params))
-	inflationRateChange, err := dyno.GetString(params, "inflation_rate_change")
-	require.NoError(t, err, "inflation_rate_change should be a string")
-	inflationRateChangeValue, err := strconv.ParseFloat(inflationRateChange, 64)
-	require.NoError(t, err, "inflation_rate_change should be convertible to float")
-	t.Logf("Current inflation rate change: %f", inflationRateChangeValue)
-	// Make sure inflation rate change is 0
-	require.Equal(t, 0.0, inflationRateChangeValue)
-
-	// Get the total bank supply
-	jsonRes := make(map[string]interface{})
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
-	require.NoError(t, err)
-
-	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
-
-	// Presuming we are the only denom on the chain
-	totalSupply, err := dyno.GetSlice(jsonRes, "supply")
-	require.NoError(t, err)
-	xionCoin := totalSupply[0]
-	require.NotEmpty(t, xionCoin)
-	// Make sure we selected the uxion denom
-	xionCoinDenom, err := dyno.GetString(xionCoin, "denom")
-	require.NoError(t, err)
-	require.Equal(t, xionCoinDenom, xion.Config().Denom)
-	initialXionSupply, err := dyno.GetString(xionCoin, "amount")
-	require.NoError(t, err)
-	t.Logf("Initial Xion supply: %s", initialXionSupply)
-
-	// Wait for some blocks and check if that supply stays the same
 	chainHeight, _ := xion.Height(ctx)
-	err = testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
+	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
+
+	// Run test harness
+	VerifyMintModuleTestRandomBlocks(t, xion, ctx)
+}
+
+// TxCommand is a helper to retrieve a full command for broadcasting a tx
+// with the chain node binary.
+func feeTxCommand(chain *cosmos.CosmosChain, fee string, sender string, receiver string) []string {
+	command := []string{"tx"}
+	return chain.FullNodes[0].NodeCommand(append(command,
+		"bank", "send", sender, receiver,
+		fmt.Sprintf("%s%s", "1000000", chain.Config().Denom),
+		"--from", "faucet",
+		"--fees", fmt.Sprintf("%s%s", fee, chain.Config().Denom),
+		"--chain-id", chain.Config().ChainID,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+	)...)
+}
+
+/*
+Send bank send txs at some intervals
+
+	chainHeight is the block height at which to stop sending txs (instead of using a clock)
+	duration is the time in seconds between each tx
+	txHashes is a pointer to a struct that contains the tx hashes of the bank send txs
+	feeTypeHigh is a boolean that determines whether the test is for high fees or low fees
+	- High fees are 2x the previous block provision since the rate of change of inflation is << 2x block_provision. This way we can be sure that we accrue more fees than block provision
+	- Low fees are 0.5x the previous block provision. This way we can be sure that we accrue less fees than block provision
+*/
+func sendPeriodicBankTx(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, chainHeight uint64, duration int, txHashes *MintModuleTest, feeTypeHigh bool) {
+	// Create a test wallet to send funds to
+	err := chain.CreateKey(ctx, "testAccount")
 	require.NoError(t, err)
-
-	// Get the distribution module account balance
-	currentModuleAccountBalance, err := xion.GetBalance(ctx, moduleAccountAddress, xion.Config().Denom)
+	// Retrieve the test wallet address
+	testAccountAddress, err := chain.FullNodes[0].AccountKeyBech32(ctx, "testAccount")
 	require.NoError(t, err)
-	t.Logf("Current distribution address balance: %d", currentModuleAccountBalance)
-
-	// Get the total bank supply
-	currentResJson := make(map[string]interface{})
-	currentSupplyRes, _, queryErr := xion.FullNodes[0].ExecQuery(ctx, "bank", "total")
-	require.NoError(t, queryErr)
-	require.NoError(t, json.Unmarshal(currentSupplyRes, &currentResJson))
-
-	newTotalSupply, err := dyno.GetSlice(currentResJson, "supply")
+	// Retrieve the faucet address. Every chain has a faucet account
+	faucet, err := chain.FullNodes[0].AccountKeyBech32(ctx, "faucet")
 	require.NoError(t, err)
-	currentXionCoin := newTotalSupply[0]
+	// Get the current chain height
+	curHeight, _ := chain.Height(ctx)
 
-	currentXionSupply, err := dyno.GetString(currentXionCoin, "amount")
-	require.NoError(t, err)
-	t.Logf("Current Xion supply: %s", currentXionSupply)
+	for curHeight < chainHeight {
+		// Get the current block provision at some height
+		blockProvisionDec := GetBlockAnnualProvision(t, chain, ctx, chain.Config().Denom, curHeight) // This the minted token amount for the current block
+		var blockProvision math.Int
+		if feeTypeHigh {
+			// we are testing high fees
+			// We send a fee that is 2x the block provision since
+			// the inflation rate cannot increase that much
+			blockProvision = blockProvisionDec.TruncateInt().Mul(math.NewInt(2))
+		} else {
+			// we are testing low fees
+			// We send a fee that is 0.5x the block provision since
+			// the inflation rate cannot decrease that much
+			blockProvision = blockProvisionDec.TruncateInt().Quo(math.NewInt(2))
+		}
 
-	require.Equal(t, initialXionSupply, currentXionSupply)
-	require.Equal(t, initialModuleAccountBalance, currentModuleAccountBalance)
+		stdout, ee, err := chain.Exec(ctx, feeTxCommand(chain, blockProvision.String(), faucet, testAccountAddress), nil)
+		if err != nil {
+			t.Log(string(stdout))
+			t.Log(string(ee))
+			t.Fatal(err)
+		}
+
+		output := cosmos.CosmosTx{}
+		err = json.Unmarshal([]byte(stdout), &output)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Save the hash of the send tx for later analysis
+		txHashes.TxHashes = append(txHashes.TxHashes, output.TxHash)
+
+		time.Sleep(time.Duration(duration) * time.Second)
+		curHeight, _ = chain.Height(ctx)
+	}
+}
+
+type MintModuleTest struct {
+	TxHashes []string
+}
+
+// Here we test the mint module by sending a bunch of transactions with extra high fees
+// and checking if the total supply increases. We also check if the total supply
+// increases by the correct amount.
+func TestMintModuleInflationHighFees(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	t.Parallel()
+
+	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
+
+	txHashes := MintModuleTest{
+		TxHashes: []string{},
+	}
+
+	go func(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, blockHeight uint64, duration int, txHashes *MintModuleTest) {
+		sendPeriodicBankTx(t, xion, ctx, blockHeight, duration, txHashes, true)
+	}(t, xion, ctx, 20, 4, &txHashes)
+
+	// Wait some blocks
+	testutil.WaitForBlocks(ctx, 25, xion)
+
+	require.NotEmpty(t, txHashes.TxHashes)
+	// Run test harness
+	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
+}
+
+// Here we test the mint module by sending a bunch of transactions with extra low fees
+// and checking if the total supply increases. We also check if the total supply
+// increases by the correct amount.
+func TestMintModuleInflationLowFees(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	t.Parallel()
+
+	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
+
+	txHashes := MintModuleTest{
+		TxHashes: []string{},
+	}
+	var mu sync.Mutex
+
+	mu.Lock()
+	go func(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, blockHeight uint64, duration int, txHashes *MintModuleTest) {
+		sendPeriodicBankTx(t, xion, ctx, blockHeight, duration, txHashes, false)
+	}(t, xion, ctx, 20, 4, &txHashes)
+	mu.Unlock()
+
+	// Wait some blocks
+	testutil.WaitForBlocks(ctx, 25, xion)
+
+	require.NotEmpty(t, txHashes.TxHashes)
+	// Run test harness
+	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
 }
