@@ -32,7 +32,7 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 		t.Skip("skipping in short mode")
 	}
 
-	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisInflation}, [][]string{{inflationMin, inflationMax, inflationRateChange}}))
+	xion, ctx := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisInflation}, [][]string{{inflationMin, inflationMax, inflationRateChange}}))
 
 	// Wait for some blocks and check if that supply stays the same
 	chainHeight, _ := xion.Height(ctx)
@@ -53,7 +53,7 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
+	xion, ctx := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
 
 	chainHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
@@ -152,7 +152,7 @@ func TestMintModuleInflationHighFees(t *testing.T) {
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
+	xion, ctx := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
 
 	txHashes := MintModuleTest{
 		TxHashes: []string{},
@@ -180,7 +180,7 @@ func TestMintModuleInflationLowFees(t *testing.T) {
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
+	xion, ctx := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{}, [][]string{{}}))
 
 	txHashes := MintModuleTest{
 		TxHashes: []string{},

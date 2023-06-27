@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/icza/dyno"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -31,7 +33,7 @@ const (
 // Function type for any function that modify the genesis file
 type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
 
-func BuildXionChain(t *testing.T, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) (*cosmos.CosmosChain, context.Context) {
+func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) (*cosmos.CosmosChain, context.Context) {
 	ctx := context.Background()
 
 	var numFullNodes = 1
@@ -54,8 +56,9 @@ func BuildXionChain(t *testing.T, modifyGenesis func(ibc.ChainConfig, []byte) ([
 						UidGid:     "1025:1025",
 					},
 				},
-				GasPrices:              "0.0uxion",
-				GasAdjustment:          1.3,
+				//GasPrices:              "0.1uxion",
+				GasPrices:              gas,
+				GasAdjustment:          2.0,
 				Type:                   "cosmos",
 				ChainID:                "xion-1",
 				Bin:                    "xiond",
@@ -381,4 +384,36 @@ func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Co
 		t.Logf("Bank send msg %d BH: %d", i, txResp.Height)
 		MintModuleTestHarness(t, xion, ctx, int(txResp.Height)+1) // check my block and the next one
 	}
+}
+
+func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas string, command ...string) []string {
+	command = append([]string{"tx"}, command...)
+	return tn.NodeCommand(append(command,
+		"--from", keyName,
+		"--gas-prices", gas,
+		"--gas-adjustment", fmt.Sprint(tn.Chain.Config().GasAdjustment),
+		"--gas", "auto",
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+	)...)
+}
+
+func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
+	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.0uxion", command...), nil)
+	if err != nil {
+		return "", err
+	}
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal([]byte(stdout), &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, nil
 }

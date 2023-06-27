@@ -97,6 +97,7 @@ func splitCoinsByDenoms(feeCoins sdk.Coins, denomMap map[string]struct{}) (sdk.C
 
 // getNonZeroFees returns the given fees nonzero coins
 // and a map storing the zero coins's denoms
+// TODO: document
 func getNonZeroFees(fees sdk.Coins) (sdk.Coins, map[string]struct{}) {
 	requiredFeesNonZero := sdk.Coins{}
 	requiredFeesZeroDenom := map[string]struct{}{}
