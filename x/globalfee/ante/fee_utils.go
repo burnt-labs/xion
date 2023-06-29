@@ -3,6 +3,7 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // ContainZeroCoins returns true if the given coins are empty or contain zero coins,
@@ -97,7 +98,6 @@ func splitCoinsByDenoms(feeCoins sdk.Coins, denomMap map[string]struct{}) (sdk.C
 
 // getNonZeroFees returns the given fees nonzero coins
 // and a map storing the zero coins's denoms
-// TODO: document
 func getNonZeroFees(fees sdk.Coins) (sdk.Coins, map[string]struct{}) {
 	requiredFeesNonZero := sdk.Coins{}
 	requiredFeesZeroDenom := map[string]struct{}{}
@@ -111,4 +111,44 @@ func getNonZeroFees(fees sdk.Coins) (sdk.Coins, map[string]struct{}) {
 	}
 
 	return requiredFeesNonZero.Sort(), requiredFeesZeroDenom
+}
+
+// Returns the largest coins given 2 sets of coins
+func MaxCoins(a, b sdk.Coins) sdk.Coins {
+	if a.IsAllGT(b) {
+		return a
+	}
+	return b
+}
+
+// CheckGas returns an error if there are incongruences between the height
+// and the gas provided by the FeeTx
+func CheckGas(ctx sdk.Context, tx sdk.FeeTx, simulate bool) (sdk.Context, error) {
+	if !simulate && ctx.BlockHeight() > 0 && tx.GetGas() == 0 {
+		return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidGasLimit, "must provide positive gas")
+	}
+	return ctx, nil
+}
+
+// CheckFeeTx returns a Fee tx if the Tx satisifies the valid interface
+func CheckFeeTx(ctx sdk.Context, tx sdk.Tx) (sdk.FeeTx, error) {
+	feeTx, ok := tx.(sdk.FeeTx)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+	}
+	return feeTx, nil
+}
+
+// DeductFees deducts fees from the given account and send it to fee collector
+func DeductFees(bankKeeper authtypes.BankKeeper, ctx sdk.Context, acc authtypes.AccountI, fees sdk.Coins) error {
+	if !fees.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fees)
+	}
+
+	err := bankKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), authtypes.FeeCollectorName, fees)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
+	}
+
+	return nil
 }
