@@ -64,7 +64,7 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	}
 
 	defer func() {
-		for _, a := range msg.Amount {
+		for _, a := range throughCoins {
 			if a.Amount.IsInt64() {
 				telemetry.SetGaugeWithLabels(
 					[]string{"tx", "msg", "send"},

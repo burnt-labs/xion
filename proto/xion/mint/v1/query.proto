@@ -12,7 +12,7 @@ option go_package = "github.com/burnt-labs/xion/x/mint/types";
 service Query {
   // Params returns the total set of minting parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/cosmos/mint/v1beta1/params";
+    option (google.api.http).get = "/cosmos/mint/v1/params";
   }
 
   // Inflation returns the current minting inflation value.
