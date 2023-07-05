@@ -132,7 +132,6 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	// otherwise, err
 	if len(feeCoins) == 0 {
 		if len(zeroCoinFeesDenomReq) != 0 {
-			ctx.Logger().Info("Fees are Zero\n\n")
 			return mfd.Deduct(ctx, tx, simulate, next)
 		}
 		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins.String(), feeRequired.String())
@@ -141,7 +140,6 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	// when feeCoins != []
 	// special case: if TX has at least one of the zeroCoinFeesDenomReq, then it should pass
 	if len(feeCoinsZeroDenom) > 0 {
-		ctx.Logger().Info("Fees are greater than zero\n\n")
 		return mfd.Deduct(ctx, tx, simulate, next)
 	}
 
@@ -177,8 +175,6 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 
 	// In DeliverTx, the global fee min gas prices are the only tx fee requirements.
 	if !ctx.IsCheckTx() {
-		ctx.Logger().Info(fmt.Sprintf("Height: %d\nGlobalFees: %s \n", ctx.BlockHeight(), globalFees.String()))
-		ctx.Logger().Info("We are ignoring local fees!!!")
 		return globalFees, nil
 	}
 
@@ -187,9 +183,6 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
-
-	ctx.Logger().Info(fmt.Sprintf("GlobalFees: %s \n", globalFees.String()))
-	ctx.Logger().Info(fmt.Sprintf("LocalFees: %s \n", localFees.String()))
 
 	return MaxCoins(globalFees, localFees), nil
 }

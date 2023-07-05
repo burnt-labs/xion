@@ -400,7 +400,7 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 }
 
 func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
-	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.0uxion", command...), nil)
+	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...), nil)
 	if err != nil {
 		return "", err
 	}
