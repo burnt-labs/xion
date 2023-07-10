@@ -1,7 +1,6 @@
 package antetest
 
 import (
-	"fmt"
 	"testing"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -34,8 +33,6 @@ func (s *IntegrationTestSuite) TestGetDefaultGlobalFees() {
 		s.T().Fatalf("bond denom: %s, default global fee denom: %s", testBondDenom, defaultGlobalFees[0].Denom)
 	}
 }
-
-// TODO: investigate globalfeeParamsContain0, consider removing the secondary denom
 
 // Test global fees and min_gas_price with bypass msg types.
 // Please note even globalfee=0, min_gas_price=0, we do not let fee=0random_denom pass.
@@ -617,7 +614,6 @@ func (s *IntegrationTestSuite) TestGlobalFeeMinimumGasFeeAnteHandler() {
 		s.Run(name, func() {
 			// set globalfees and min gas price
 			globalfeeParams.MinimumGasPrices = tc.globalFee
-			fmt.Printf("Networkfee: %v\ngasPrice: %v\n", tc.globalFee, tc.gasPrice)
 			_, antehandler := s.SetupTestGlobalFeeStoreAndMinGasPrice(tc.minGasPrice, globalfeeParams, bondDenom)
 
 			// set fee decorator to ante handler
