@@ -15,12 +15,9 @@ import (
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
 	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
-	antetestutil "github.com/cosmos/cosmos-sdk/x/auth/ante/testutil"
-	authtestutil "github.com/cosmos/cosmos-sdk/x/auth/testutil"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/globalfee"
@@ -37,7 +34,7 @@ type IntegrationTestSuite struct {
 	txBuilder client.TxBuilder
 }
 
-var testBondDenom = "uatom"
+var testBondDenom = "uxion"
 
 func (s *IntegrationTestSuite) SetupTest() {
 	app := xionapp.Setup(s.T())
@@ -71,15 +68,8 @@ func (s *IntegrationTestSuite) SetupTestGlobalFeeStoreAndMinGasPrice(minGasPrice
 	stakingParam := stakingtypes.DefaultParams()
 	stakingParam.BondDenom = testBondDenom
 
-	ctrl := gomock.NewController(nil)
-	//authKeeper = authtestutil.
-	//bankKeeper = authtestutil.NewMockBankKeeper(ctrl)
-	ak := antetestutil.NewMockAccountKeeper(ctrl)
-	bk := authtestutil.NewMockBankKeeper(ctrl)
-	fgk := antetestutil.NewMockFeegrantKeeper(ctrl)
-
 	// build fee decorator
-	feeDecorator := xionfeeante.NewFeeDecorator(subspace, ak, bk, fgk, nil, bondDenom)
+	feeDecorator := xionfeeante.NewFeeDecorator(subspace, bondDenom)
 
 	// chain fee decorator to antehandler
 	antehandler := sdk.ChainAnteDecorators(feeDecorator)

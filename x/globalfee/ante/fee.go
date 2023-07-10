@@ -12,10 +12,6 @@ import (
 	"github.com/burnt-labs/xion/x/globalfee"
 
 	"github.com/burnt-labs/xion/x/globalfee/types"
-
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 )
 
 // FeeWithBypassDecorator checks if the transaction's fee is at least as large
@@ -34,28 +30,16 @@ var _ sdk.AnteDecorator = FeeDecorator{}
 type FeeDecorator struct {
 	GlobalMinFeeParamSource globalfee.ParamSource
 	StakingKeeperBondDenom  func(sdk.Context) string
-	accountKeeper           authante.AccountKeeper
-	bankKeeper              authtypes.BankKeeper
-	feegrantKeeper          FeegrantKeeper
-	txFeeChecker            authante.TxFeeChecker
 }
 
-func NewFeeDecorator(globalfeeSubspace paramtypes.Subspace, ak authante.AccountKeeper, bk authtypes.BankKeeper, fk authante.FeegrantKeeper, tfc authante.TxFeeChecker, stakingKeeperDenom func(sdk.Context) string) FeeDecorator {
+func NewFeeDecorator(globalfeeSubspace paramtypes.Subspace, stakingKeeperDenom func(sdk.Context) string) FeeDecorator {
 	if !globalfeeSubspace.HasKeyTable() {
 		panic("global fee paramspace was not set up via module")
-	}
-
-	if tfc == nil {
-		tfc = checkTxFeeWithValidatorMinGasPrices
 	}
 
 	return FeeDecorator{
 		GlobalMinFeeParamSource: globalfeeSubspace,
 		StakingKeeperBondDenom:  stakingKeeperDenom,
-		txFeeChecker:            tfc,
-		accountKeeper:           ak,
-		bankKeeper:              bk,
-		feegrantKeeper:          fk,
 	}
 }
 
@@ -68,7 +52,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 
 	// Do not check minimum-gas-prices and global fees during simulations
 	if simulate {
-		return mfd.Deduct(ctx, tx, simulate, next)
+		return next(ctx, tx, simulate)
 	}
 
 	// Get the required fees, as per xion specification max(network_fees, local_validator_fees)
@@ -121,7 +105,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	allowedToBypassMinFee := allBypassMsgs && doesNotExceedMaxGasUsage
 
 	if allowedToBypassMinFee {
-		return mfd.Deduct(ctx, tx, simulate, next)
+		return next(ctx, tx, simulate)
 	}
 
 	// if the msg does not satisfy bypass condition and the feeCoins denoms are subset of feeRequired,
@@ -132,7 +116,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	// otherwise, err
 	if len(feeCoins) == 0 {
 		if len(zeroCoinFeesDenomReq) != 0 {
-			return mfd.Deduct(ctx, tx, simulate, next)
+			return next(ctx, tx, simulate)
 		}
 		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins.String(), feeRequired.String())
 	}
@@ -140,7 +124,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	// when feeCoins != []
 	// special case: if TX has at least one of the zeroCoinFeesDenomReq, then it should pass
 	if len(feeCoinsZeroDenom) > 0 {
-		return mfd.Deduct(ctx, tx, simulate, next)
+		return next(ctx, tx, simulate)
 	}
 
 	// After all the checks, the tx is confirmed:
@@ -159,7 +143,8 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrInsufficientFee, errMsg)
 	}
 
-	return mfd.DeductFee(ctx, tx, feeRequired, simulate, next) // needs to deduct requried fee
+	// we should pick max between feeRequired & tx Fee
+	return next(ctx, tx, simulate)
 }
 
 // GetTxFeeRequired returns the required fees for the given FeeTx.
@@ -183,7 +168,6 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
-
 	return MaxCoins(globalFees, localFees), nil
 }
 
@@ -280,113 +264,4 @@ func GetMinGasPrice(ctx sdk.Context, gasLimit int64) sdk.Coins {
 	}
 
 	return requiredFees.Sort()
-}
-
-// Deduct Fee - Replaces Standard auth ante handler behavior by passing a network fee
-// CONTRACT: the network fee in the xion network is determined by max(local_validator_fee, minimum_gas_param)
-func (mfd FeeDecorator) DeductFee(ctx sdk.Context, tx sdk.Tx, networkFee sdk.Coins, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	feeTx, err := CheckFeeTx(ctx, tx)
-	if err != nil {
-		return ctx, err
-	}
-
-	ctx, err = CheckGas(ctx, feeTx, simulate)
-	if err != nil {
-		return ctx, err
-	}
-
-	var priority int64
-
-	if err := mfd.checkDeductFee(ctx, tx, networkFee); err != nil {
-		return ctx, err
-	}
-
-	newCtx := ctx.WithPriority(priority)
-
-	return next(newCtx, tx, simulate)
-}
-
-// Deduct Fee - Replaces Standard auth ante handler.
-func (mfd FeeDecorator) Deduct(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	feeTx, err := CheckFeeTx(ctx, tx)
-	if err != nil {
-		return ctx, err
-	}
-
-	ctx, err = CheckGas(ctx, feeTx, simulate)
-	if err != nil {
-		return ctx, err
-	}
-
-	var priority int64
-
-	fee := feeTx.GetFee()
-
-	if !simulate {
-		fee, priority, err = mfd.txFeeChecker(ctx, tx)
-		if err != nil {
-			return ctx, err
-		}
-	}
-	if err := mfd.checkDeductFee(ctx, tx, fee); err != nil {
-		return ctx, err
-	}
-
-	newCtx := ctx.WithPriority(priority)
-
-	return next(newCtx, tx, simulate)
-}
-
-func (mfd FeeDecorator) checkDeductFee(ctx sdk.Context, sdkTx sdk.Tx, fee sdk.Coins) error {
-	feeTx, ok := sdkTx.(sdk.FeeTx)
-	if !ok {
-		return sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
-	}
-
-	if addr := mfd.accountKeeper.GetModuleAddress(authtypes.FeeCollectorName); addr == nil {
-		return fmt.Errorf("fee collector module account (%s) has not been set", authtypes.FeeCollectorName)
-	}
-
-	feePayer := feeTx.FeePayer()
-	feeGranter := feeTx.FeeGranter()
-	deductFeesFrom := feePayer
-
-	// if feegranter set deduct fee from feegranter account.
-	// this works with only when feegrant enabled.
-	if feeGranter != nil {
-		if mfd.feegrantKeeper == nil {
-			return sdkerrors.ErrInvalidRequest.Wrap("fee grants are not enabled")
-		} else if !feeGranter.Equals(feePayer) {
-			err := mfd.feegrantKeeper.UseGrantedFees(ctx, feeGranter, feePayer, fee, sdkTx.GetMsgs())
-			if err != nil {
-				return sdkerrors.Wrapf(err, "%s does not allow to pay fees for %s", feeGranter, feePayer)
-			}
-		}
-
-		deductFeesFrom = feeGranter
-	}
-
-	deductFeesFromAcc := mfd.accountKeeper.GetAccount(ctx, deductFeesFrom)
-	if deductFeesFromAcc == nil {
-		return sdkerrors.ErrUnknownAddress.Wrapf("fee payer address: %s does not exist", deductFeesFrom)
-	}
-
-	// deduct the fees
-	if !fee.IsZero() {
-		err := DeductFees(mfd.bankKeeper, ctx, deductFeesFromAcc, fee)
-		if err != nil {
-			return err
-		}
-	}
-
-	events := sdk.Events{
-		sdk.NewEvent(
-			sdk.EventTypeTx,
-			sdk.NewAttribute(sdk.AttributeKeyFee, fee.String()),
-			sdk.NewAttribute(sdk.AttributeKeyFeePayer, deductFeesFrom.String()),
-		),
-	}
-	ctx.EventManager().EmitEvents(events)
-
-	return nil
 }

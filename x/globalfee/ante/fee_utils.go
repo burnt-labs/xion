@@ -3,7 +3,6 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // ContainZeroCoins returns true if the given coins are empty or contain zero coins,
@@ -137,18 +136,4 @@ func CheckFeeTx(ctx sdk.Context, tx sdk.Tx) (sdk.FeeTx, error) {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 	return feeTx, nil
-}
-
-// DeductFees deducts fees from the given account and send it to fee collector
-func DeductFees(bankKeeper authtypes.BankKeeper, ctx sdk.Context, acc authtypes.AccountI, fees sdk.Coins) error {
-	if !fees.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "invalid fee amount: %s", fees)
-	}
-
-	err := bankKeeper.SendCoinsFromAccountToModule(ctx, acc.GetAddress(), authtypes.FeeCollectorName, fees)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
-	}
-
-	return nil
 }
