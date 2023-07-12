@@ -1,7 +1,8 @@
 package types
 
 import (
-	"fmt"
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -129,7 +130,7 @@ func (msg MsgSetPlatformPercentage) ValidateBasic() error {
 	// not that they actually have the money inside
 
 	if msg.PlatformPercentage > 10000 {
-		return fmt.Errorf("unable to have a platform percentage that exceeds 100%")
+		return errors.New("unable to have a platform percentage that exceeds 100%")
 	}
 
 	return nil

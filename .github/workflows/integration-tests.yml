@@ -68,10 +68,13 @@ jobs:
         test_type:
         - "DungeonTransferBlock"
         - "XionSendPlatformFee"
+        - "MintModuleNoInflationNoFees"
+        - "MintModuleInflationHighFees"
+        - "MintModuleInflationLowFees"
 
     steps:
       - name: Set up Go 1.18
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: ^1.18
       - name: checkout
