@@ -46,3 +46,7 @@ dependency-graph.png
 *.out
 *.synctex.gz
 contract_tests/*
+
+# Go
+go.work
+go.work.sum
