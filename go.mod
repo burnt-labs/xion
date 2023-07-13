@@ -44,7 +44,7 @@ require (
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/golang/mock v1.6.0
 	github.com/spf13/viper v1.15.0
-	gotest.tools/v3 v3.4.0
+	gotest.tools/v3 v3.5.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
