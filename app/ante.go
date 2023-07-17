@@ -62,7 +62,8 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 			options.AbstractAccountKeeper,
 			options.AccountKeeper,
 			options.SignModeHandler,
-		), ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		),
+		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 	}
 

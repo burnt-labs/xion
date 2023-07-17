@@ -43,7 +43,7 @@ require (
 	github.com/cometbft/cometbft v0.37.1
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/golang/mock v1.6.0
-	github.com/larry0x/abstract-account v0.0.0-20230706184728-2cae2b52b439
+	github.com/larry0x/abstract-account v0.0.0-20230708200055-2ea462db913f
 	github.com/spf13/viper v1.15.0
 	gotest.tools/v3 v3.4.0
 	sigs.k8s.io/yaml v1.3.0
