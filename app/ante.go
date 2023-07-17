@@ -6,9 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	"github.com/larry0x/abstract-account/x/abstractaccount"
+	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -22,11 +25,12 @@ import (
 type HandlerOptions struct {
 	ante.HandlerOptions
 
-	IBCKeeper         *keeper.Keeper
-	WasmConfig        *wasmTypes.WasmConfig
-	TXCounterStoreKey storetypes.StoreKey
-	GlobalFeeSubspace paramtypes.Subspace
-	StakingKeeper     *stakingkeeper.Keeper
+	IBCKeeper             *keeper.Keeper
+	WasmConfig            *wasmTypes.WasmConfig
+	TXCounterStoreKey     storetypes.StoreKey
+	GlobalFeeSubspace     paramtypes.Subspace
+	StakingKeeper         *stakingkeeper.Keeper
+	AbstractAccountKeeper aakeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -66,10 +70,34 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
-		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		// BeforeTxDecorator replaces the default NewSigVerificationDecorator
+		abstractaccount.NewBeforeTxDecorator(
+			options.AbstractAccountKeeper,
+			options.AccountKeeper,
+			options.SignModeHandler,
+		),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
+}
+
+type PostHandlerOptions struct {
+	posthandler.HandlerOptions
+
+	AccountKeeper         ante.AccountKeeper
+	AbstractAccountKeeper aakeeper.Keeper
+}
+
+func NewPostHandler(options PostHandlerOptions) (sdk.PostHandler, error) {
+	if options.AccountKeeper == nil {
+		return nil, sdkerrors.ErrLogic.Wrap("account keeper is required for AnteHandler")
+	}
+
+	postDecorators := []sdk.PostDecorator{
+		abstractaccount.NewAfterTxDecorator(options.AbstractAccountKeeper),
+	}
+
+	return sdk.ChainPostDecorators(postDecorators...), nil
 }
