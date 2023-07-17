@@ -24,7 +24,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t, ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	xion, ctx := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
@@ -32,7 +32,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 	currentHeight, _ := xion.Height(ctx)
-	testutil.WaitForBlocks(ctx, int(currentHeight)+4, xion)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
 	t.Logf("created xion user %s", xionUser.FormattedAddress())
 
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
@@ -131,11 +131,13 @@ func TestXionSendPlatformFee(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 		recipientKeyAddress, fmt.Sprintf("%d%s", 200, xion.Config().Denom),
 	)
+
 	require.NoError(t, err)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+100, xion)
 
 	postSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(initialSendingBalance-200), uint64(postSendingBalance))
+	require.Equalf(t, uint64(initialSendingBalance-200), uint64(postSendingBalance), "Wanted %d, got %d", uint64(initialSendingBalance-200), uint64(postSendingBalance))
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, uint64(290), uint64(postReceivingBalance))

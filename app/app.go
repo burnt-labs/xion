@@ -132,6 +132,8 @@ import (
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+
+	"github.com/burnt-labs/xion/x/globalfee"
 )
 
 const appName = "XionApp"
@@ -222,6 +224,7 @@ var (
 		consensus.AppModuleBasic{},
 		// non sdk modules
 		wasm.AppModuleBasic{},
+		globalfee.AppModuleBasic{},
 		aa.AppModuleBasic{},
 		xion.AppModuleBasic{},
 		ibc.AppModuleBasic{},
@@ -244,6 +247,7 @@ var (
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
 		wasm.ModuleName:                {authtypes.Burner},
+		globalfee.ModuleName:           nil,
 		aatypes.ModuleName:             nil,
 		xiontypes.ModuleName:           nil,
 	}
@@ -345,7 +349,7 @@ func NewWasmApp(
 		// non sdk store keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey, ibcfeetypes.StoreKey,
 		wasm.StoreKey, icahosttypes.StoreKey, aatypes.StoreKey,
-		icacontrollertypes.StoreKey, xiontypes.StoreKey,
+		icacontrollertypes.StoreKey, globalfee.StoreKey, xiontypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -709,6 +713,7 @@ func NewWasmApp(
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		xion.NewAppModule(app.XionKeeper),
+		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		aa.NewAppModule(app.AbstractAccountKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
@@ -731,6 +736,7 @@ func NewWasmApp(
 		genutiltypes.ModuleName, authz.ModuleName, feegrant.ModuleName,
 		nft.ModuleName, group.ModuleName, paramstypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
+		globalfee.ModuleName,
 		xiontypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
@@ -748,7 +754,9 @@ func NewWasmApp(
 		genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName, xiontypes.ModuleName,
+		consensusparamtypes.ModuleName,
+		globalfee.ModuleName,
+		xiontypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -771,7 +779,7 @@ func NewWasmApp(
 		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName,
 		minttypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, consensusparamtypes.ModuleName, xiontypes.ModuleName,
+		vestingtypes.ModuleName, consensusparamtypes.ModuleName, globalfee.ModuleName, xiontypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -895,6 +903,8 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtype
 			IBCKeeper:         app.IBCKeeper,
 			WasmConfig:        &wasmConfig,
 			TXCounterStoreKey: txCounterStoreKey,
+			GlobalFeeSubspace: app.GetSubspace(globalfee.ModuleName),
+			StakingKeeper:     app.StakingKeeper,
 		},
 	)
 	if err != nil {
@@ -1097,6 +1107,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
+	paramsKeeper.Subspace(globalfee.ModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
 	paramsKeeper.Subspace(wasm.ModuleName)
 	paramsKeeper.Subspace(aatypes.ModuleName)
