@@ -189,4 +189,4 @@ replace (
 
 )
 
-replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20230721040454-68904221c088
+replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20230721042501-ef9e3f63d0cd
