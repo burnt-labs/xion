@@ -28,8 +28,8 @@ const (
 * 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgradeIBC ./...
 
 As of July 25 2023 this is the necceary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
-current-testnet: 2722f0f
-upgrade-version: c7a6ec3
+current-testnet: 2722f0fb1234db97e9bf9b98f744675eb8fb1b26
+upgrade-version: 990da9d6e272552ac73e1abef81418f294838b03
 */
 func TestXionUpgradeIBC(t *testing.T) {
 	CosmosChainUpgradeIBCTest(t, "xion", "current", "xion", "upgrade", "v0.3.0")
