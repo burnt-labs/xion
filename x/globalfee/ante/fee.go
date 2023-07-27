@@ -105,7 +105,8 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	allowedToBypassMinFee := allBypassMsgs && doesNotExceedMaxGasUsage
 
 	if allowedToBypassMinFee {
-		return next(ctx, tx, simulate)
+		// if allowed to bypass, update context with zero min gas
+		return next(ctx.WithMinGasPrices(sdk.DecCoins{}), tx, simulate)
 	}
 
 	// if the msg does not satisfy bypass condition and the feeCoins denoms are subset of feeRequired,
