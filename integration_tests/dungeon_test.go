@@ -219,7 +219,7 @@ func TestDungeonTransferBlock(t *testing.T) {
 		Title:    "Disable sendability of uxion",
 		Summary:  "This proposal prevents uxion from being sent in the bank module",
 	}
-	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), &prop)
+	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), prop)
 	require.NoError(t, err)
 	t.Logf("Param change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 
