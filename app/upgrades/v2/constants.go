@@ -6,6 +6,7 @@ import (
 	"github.com/burnt-labs/xion/app/upgrades"
 
 	"github.com/burnt-labs/xion/x/globalfee"
+	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
@@ -21,6 +22,7 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			globalfee.ModuleName,
 			aatypes.ModuleName,
+			ibchookstypes.ModuleName,
 		},
 	},
 }
