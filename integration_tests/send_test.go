@@ -63,9 +63,15 @@ func TestXionSendPlatformFee(t *testing.T) {
 		recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
 	)
 	require.NoError(t, err)
-	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, uint64(100), uint64(balance))
+
+	require.Eventuallyf(t, func() bool {
+		balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
+		require.NoError(t, err)
+		return uint64(balance) == uint64(100)
+	},
+		time.Second*20,
+		time.Second*6,
+		"balance never correctly changed")
 
 	// step 2: update the platform percentage to 5%
 	config := types.GetConfig()
