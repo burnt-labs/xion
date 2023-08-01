@@ -23,7 +23,7 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			globalfee.ModuleName,
 			aatypes.ModuleName,
-			ibchookstypes.ModuleName,
+			ibchookstypes.StoreKey,
 			packetforwardtypes.ModuleName,
 		},
 	},
