@@ -2,6 +2,7 @@ package v2
 
 import (
 	store "github.com/cosmos/cosmos-sdk/store/types"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/router/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
 
@@ -23,6 +24,7 @@ var Upgrade = upgrades.Upgrade{
 			globalfee.ModuleName,
 			aatypes.ModuleName,
 			ibchookstypes.ModuleName,
+			packetforwardtypes.ModuleName,
 		},
 	},
 }
