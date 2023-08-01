@@ -188,8 +188,6 @@ replace (
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.37.2
-
 	github.com/notional-labs/fee-abstraction/v2 => github.com/osmosis-labs/fee-abstraction/v2 v2.0.0-20230718172125-87710739dbbc
 
 	// pin version! 126854af5e6d has issues with the store so that queries fail
