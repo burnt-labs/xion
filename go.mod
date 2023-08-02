@@ -190,6 +190,9 @@ replace (
 
 	github.com/notional-labs/fee-abstraction/v2 => github.com/osmosis-labs/fee-abstraction/v2 v2.0.0-20230718172125-87710739dbbc
 
+	github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.24
+
+
 	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
