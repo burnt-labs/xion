@@ -120,9 +120,9 @@ import (
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/notional-labs/fee-abstraction/v2/x/feeabs"
-	feeabskeeper "github.com/notional-labs/fee-abstraction/v2/x/feeabs/keeper"
-	feeabstypes "github.com/notional-labs/fee-abstraction/v2/x/feeabs/types"
+	"github.com/notional-labs/fee-abstraction/v4/x/feeabs"
+	feeabskeeper "github.com/notional-labs/fee-abstraction/v4/x/feeabs/keeper"
+	feeabstypes "github.com/notional-labs/fee-abstraction/v4/x/feeabs/types"
 
 	"github.com/spf13/cast"
 

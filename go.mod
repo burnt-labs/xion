@@ -49,7 +49,6 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/notional-labs/fee-abstraction/v2 v2.1.1 // indirect
 
 require (
 	cloud.google.com/go v0.110.0 // indirect
@@ -139,6 +138,7 @@ require (
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
+	github.com/notional-labs/fee-abstraction/v4 v4.0.0-20230803105745-1ff2732e1405 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/petermattis/goid v0.0.0-20230317030725-371a4b8eda08 // indirect
@@ -188,11 +188,11 @@ replace (
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-	github.com/notional-labs/fee-abstraction/v2 => github.com/osmosis-labs/fee-abstraction/v2 v2.0.0-20230718172125-87710739dbbc
-
-	github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.24
+	github.com/strangelove-ventures/packet-forward-middleware/v7 => github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.0.1
 
 
 	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+
+	github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.24
 )
