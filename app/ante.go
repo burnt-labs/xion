@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
-	feeabsante "github.com/notional-labs/fee-abstraction/v2/x/feeabs/ante"
-	feeabskeeper "github.com/notional-labs/fee-abstraction/v2/x/feeabs/keeper"
+	feeabsante "github.com/notional-labs/fee-abstraction/v4/x/feeabs/ante"
+	feeabskeeper "github.com/notional-labs/fee-abstraction/v4/x/feeabs/keeper"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"

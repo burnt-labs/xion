@@ -16,6 +16,7 @@ import (
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/icza/dyno"
 
+	"github.com/docker/docker/client"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -33,7 +34,13 @@ const (
 // Function type for any function that modify the genesis file
 type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
 
-func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) (*cosmos.CosmosChain, context.Context) {
+type TestData struct {
+	xionChain *cosmos.CosmosChain
+	ctx       context.Context
+	client    *client.Client
+}
+
+func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
 	var numFullNodes = 1
@@ -101,7 +108,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 		SkipPathCreation: false},
 	),
 	)
-	return xion, ctx
+	return TestData{xion, ctx, client}
 }
 
 /*

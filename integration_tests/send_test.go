@@ -24,7 +24,8 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	t.Parallel()
 
-	xion, ctx := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	xion, ctx := td.xionChain, td.ctx
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
@@ -62,9 +63,15 @@ func TestXionSendPlatformFee(t *testing.T) {
 		recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
 	)
 	require.NoError(t, err)
-	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, uint64(100), uint64(balance))
+
+	require.Eventuallyf(t, func() bool {
+		balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
+		require.NoError(t, err)
+		return uint64(balance) == uint64(100)
+	},
+		time.Second*20,
+		time.Second*6,
+		"balance never correctly changed")
 
 	// step 2: update the platform percentage to 5%
 	config := types.GetConfig()
@@ -85,7 +92,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 		Title:    "Set platform percentage to 5%",
 		Summary:  "Ups the platform fee to 5% for the integration test",
 	}
-	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), &prop)
+	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), prop)
 	require.NoError(t, err)
 	t.Logf("Platform percentage change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 

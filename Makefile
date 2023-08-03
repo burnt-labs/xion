@@ -1,8 +1,7 @@
 #!/usr/bin/make -f
 
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
-#VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
-VERSION := 0.1.0
+VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
@@ -128,6 +127,12 @@ test-unit:
 
 test-integration:
 	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
+
+test-integration-min:
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run  TestXionMinimumFee -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+
+test-integration-upgrade:
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
