@@ -3,14 +3,13 @@ package mint_test
 import (
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/stretchr/testify/require"
-
 	"github.com/burnt-labs/xion/x/mint/testutil"
 	"github.com/burnt-labs/xion/x/mint/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestItCreatesModuleAccountOnInitBlock(t *testing.T) {

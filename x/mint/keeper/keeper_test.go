@@ -3,9 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/burnt-labs/xion/x/mint"
 	"github.com/burnt-labs/xion/x/mint/keeper"
 	minttestutil "github.com/burnt-labs/xion/x/mint/testutil"
@@ -15,6 +12,8 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
 )
 
 type IntegrationTestSuite struct {

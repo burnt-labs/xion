@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/burnt-labs/xion/x/xion/client/cli"
+	"github.com/burnt-labs/xion/x/xion/keeper"
+	"github.com/burnt-labs/xion/x/xion/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,10 +16,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-
-	"github.com/burnt-labs/xion/x/xion/client/cli"
-	"github.com/burnt-labs/xion/x/xion/keeper"
-	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 var (

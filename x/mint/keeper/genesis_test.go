@@ -4,9 +4,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/burnt-labs/xion/x/mint"
 	"github.com/burnt-labs/xion/x/mint/keeper"
 	minttestutil "github.com/burnt-labs/xion/x/mint/testutil"
@@ -17,6 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
 )
 
 var minterAcc = authtypes.NewEmptyModuleAccount(types.ModuleName, authtypes.Minter)

@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/burnt-labs/xion/x/globalfee/client/cli"
+	"github.com/burnt-labs/xion/x/globalfee/keeper"
+	"github.com/burnt-labs/xion/x/globalfee/types"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,10 +19,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-
-	"github.com/burnt-labs/xion/x/globalfee/client/cli"
-	"github.com/burnt-labs/xion/x/globalfee/keeper"
-	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 var (

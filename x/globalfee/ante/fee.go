@@ -4,14 +4,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/burnt-labs/xion/x/globalfee"
+	"github.com/burnt-labs/xion/x/globalfee/types"
 	tmstrings "github.com/cometbft/cometbft/libs/strings"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/burnt-labs/xion/x/globalfee"
-
-	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 // FeeWithBypassDecorator checks if the transaction's fee is at least as large

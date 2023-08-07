@@ -4,14 +4,13 @@ import (
 	"math/rand"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"gotest.tools/v3/assert"
-
 	"github.com/burnt-labs/xion/x/mint/simulation"
 	"github.com/burnt-labs/xion/x/mint/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"gotest.tools/v3/assert"
 )
 
 func TestProposalMsgs(t *testing.T) {

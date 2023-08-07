@@ -7,12 +7,12 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
     - dogsled
     - errcheck
     - exportloopref
     - goconst
     - gocritic
+    - gci
     - gofumpt
     - gosec
     - gosimple

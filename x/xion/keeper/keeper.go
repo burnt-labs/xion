@@ -27,8 +27,8 @@ func NewKeeper(cdc codec.BinaryCodec,
 	paramSpace paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
-	authority string) Keeper {
-
+	authority string,
+) Keeper {
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,

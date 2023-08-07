@@ -10,7 +10,18 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/burnt-labs/xion/app/upgrades"
+	v2 "github.com/burnt-labs/xion/app/upgrades/v2"
+	"github.com/burnt-labs/xion/x/globalfee"
+	"github.com/burnt-labs/xion/x/mint"
+	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
+	minttypes "github.com/burnt-labs/xion/x/mint/types"
+	"github.com/burnt-labs/xion/x/xion"
+	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -127,21 +138,6 @@ import (
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cast"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-
-	"github.com/burnt-labs/xion/app/upgrades"
-	"github.com/burnt-labs/xion/x/mint"
-	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
-	minttypes "github.com/burnt-labs/xion/x/mint/types"
-	"github.com/burnt-labs/xion/x/xion"
-	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-
-	v2 "github.com/burnt-labs/xion/app/upgrades/v2"
-	"github.com/burnt-labs/xion/x/globalfee"
 )
 
 const appName = "XionApp"

@@ -3,10 +3,9 @@ package main
 import (
 	"os"
 
+	"github.com/burnt-labs/xion/app"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-
-	"github.com/burnt-labs/xion/app"
 )
 
 func main() {
