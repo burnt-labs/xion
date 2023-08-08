@@ -50,7 +50,8 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	}
 
 	// Do not check minimum-gas-prices and global fees during simulations
-	if simulate {
+	// short-circuit bypass messages
+	if simulate || mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
 		return next(ctx, tx, simulate)
 	}
 
@@ -60,10 +61,6 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		return ctx, err
 	}
 
-	// If message should be bypassed short-circuit, don't modify gas
-	if mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
-		return next(ctx, tx, simulate)
-	}
 	return next(ctx.WithMinGasPrices(sdk.NewDecCoinsFromCoins(feeRequired...)), tx, simulate)
 }
 

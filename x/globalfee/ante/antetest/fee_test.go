@@ -51,10 +51,6 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 		sdk.NewDecCoinFromDec("photon", sdk.NewDec(0)),
 		sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0)),
 	}
-	//	globalfeeParamsContain0 := []sdk.DecCoin{
-	//		sdk.NewDecCoinFromDec("photon", med),
-	//		sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0)),
-	//	}
 	minGasPrice0 := []sdk.DecCoin{
 		sdk.NewDecCoinFromDec("stake", sdk.NewDec(0)),
 		sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0)),
@@ -65,16 +61,10 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 	}
 	minGasPrice := []sdk.DecCoin{
 		sdk.NewDecCoinFromDec("uxion", med),
-		//sdk.NewDecCoinFromDec("stake", med),
 	}
 	globalfeeParamsLow := []sdk.DecCoin{
 		sdk.NewDecCoinFromDec("uxion", low),
 	}
-	// global fee must be sorted in denom
-	//	globalfeeParamsNewDenom := []sdk.DecCoin{
-	//		sdk.NewDecCoinFromDec("photon", high),
-	//		sdk.NewDecCoinFromDec("quark", high),
-	//	}
 
 	testCases := map[string]struct {
 		minGasPrice []sdk.DecCoin
