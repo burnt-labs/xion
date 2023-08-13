@@ -46,7 +46,7 @@ require (
 	github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230802211043-d72e83c94350
 	github.com/golang/mock v1.6.0
 	github.com/larry0x/abstract-account v0.0.0-20230708200055-2ea462db913f
-	github.com/notional-labs/fee-abstraction/v4 v4.0.0-20230803210815-7afad2bae25c
+	github.com/osmosis-labs/fee-abstraction/v4 v4.0.0-20230812032455-33dfc391894d
 	github.com/spf13/viper v1.16.0
 	gotest.tools/v3 v3.5.0
 	sigs.k8s.io/yaml v1.3.0
