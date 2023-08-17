@@ -36,7 +36,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 }
 
 func CosmosChainUpgradeIBCTest(t *testing.T, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
-	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
+	t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 
 	t.Parallel()
 
