@@ -11,6 +11,7 @@ import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 
+	"github.com/burnt-labs/xion/x/globalfee"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -145,7 +146,7 @@ import (
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 
 	v2 "github.com/burnt-labs/xion/app/upgrades/v2"
-	"github.com/burnt-labs/xion/x/globalfee"
+	v3 "github.com/burnt-labs/xion/app/upgrades/v3"
 )
 
 const appName = "XionApp"
@@ -162,7 +163,7 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v2.Upgrade}
+	Upgrades                = []upgrades.Upgrade{v2.Upgrade, v3.Upgrade}
 )
 
 // GetEnabledProposals parses the ProposalsEnabled / EnableSpecificProposals values to
