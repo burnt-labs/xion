@@ -32,11 +32,11 @@ current-testnet: 455cfa5b78e79e1c50867f6d61a99b0e9df6b9b1
 upgrade-version: 7e0d629b3e65f524e94cd4aeddb6cfda3f582a5c
 */
 func TestXionUpgradeIBC(t *testing.T) {
-	CosmosChainUpgradeIBCTest(t, "xion", "current", "xion", "upgrade", "v0.3.0")
+	CosmosChainUpgradeIBCTest(t, "xion", "current", "xion", "upgrade", "v3")
 }
 
 func CosmosChainUpgradeIBCTest(t *testing.T, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
-	t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
+	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 
 	t.Parallel()
 
