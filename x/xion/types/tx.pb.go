@@ -357,11 +357,14 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// Send defines a method for sending coins from one account to another account.
+	// Send defines a method for sending coins from one account to another
+	// account.
 	Send(ctx context.Context, in *MsgSend, opts ...grpc.CallOption) (*MsgSendResponse, error)
-	// MultiSend defines a method for sending coins from some accounts to other accounts.
+	// MultiSend defines a method for sending coins from some accounts to other
+	// accounts.
 	MultiSend(ctx context.Context, in *MsgMultiSend, opts ...grpc.CallOption) (*MsgMultiSendResponse, error)
-	// SetPlatformPercentage defines the method for updating the platform percentage fee
+	// SetPlatformPercentage defines the method for updating the platform
+	// percentage fee
 	SetPlatformPercentage(ctx context.Context, in *MsgSetPlatformPercentage, opts ...grpc.CallOption) (*MsgSetPlatformPercentageResponse, error)
 }
 
@@ -402,11 +405,14 @@ func (c *msgClient) SetPlatformPercentage(ctx context.Context, in *MsgSetPlatfor
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// Send defines a method for sending coins from one account to another account.
+	// Send defines a method for sending coins from one account to another
+	// account.
 	Send(context.Context, *MsgSend) (*MsgSendResponse, error)
-	// MultiSend defines a method for sending coins from some accounts to other accounts.
+	// MultiSend defines a method for sending coins from some accounts to other
+	// accounts.
 	MultiSend(context.Context, *MsgMultiSend) (*MsgMultiSendResponse, error)
-	// SetPlatformPercentage defines the method for updating the platform percentage fee
+	// SetPlatformPercentage defines the method for updating the platform
+	// percentage fee
 	SetPlatformPercentage(context.Context, *MsgSetPlatformPercentage) (*MsgSetPlatformPercentageResponse, error)
 }
 
