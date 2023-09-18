@@ -49,7 +49,7 @@ require (
 	github.com/osmosis-labs/fee-abstraction/v4 v4.0.0-20230812032455-33dfc391894d
 	github.com/spf13/viper v1.16.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230629202037-9506855d4529
-	gotest.tools/v3 v3.5.0
+	gotest.tools/v3 v3.5.1
 	sigs.k8s.io/yaml v1.3.0
 )
 
