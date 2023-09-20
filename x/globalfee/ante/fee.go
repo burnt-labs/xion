@@ -86,7 +86,6 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
 	return CombinedFeeRequirement(globalFees, localFees)
-	//return MaxCoins(globalFees, localFees), nil
 }
 
 // GetGlobalFee returns the global fees for a given fee tx's gas
