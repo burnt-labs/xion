@@ -1,8 +1,13 @@
 package cli
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"os"
+
 	"github.com/burnt-labs/xion/x/xion/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/spf13/cobra"
 
@@ -10,10 +15,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
-const FlagSplit = "split"
+const (
+	FlagSplit = "split"
+	signMode  = signing.SignMode_SIGN_MODE_DIRECT
+)
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
 func NewTxCmd() *cobra.Command {
@@ -28,6 +41,7 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		NewSendTxCmd(),
 		NewMultiSendTxCmd(),
+		NewSignCmd(),
 	)
 
 	return txCmd
@@ -142,4 +156,144 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// NewSendTxCmd returns a CLI command handler for creating a MsgSend transaction.
+func NewSignCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sign [path/to/tx.json]",
+		Short: "sign a transaction",
+		Long:  `Sign transaction by retrieving the Smart Contract Account signer.`,
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cmd.Flags().Set(flags.FlagFrom, args[0])
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txBz, err := os.ReadFile(args[0])
+			if err != nil {
+				panic(err)
+			}
+
+			stdTx, err := clientCtx.TxConfig.TxJSONDecoder()(txBz)
+			if err != nil {
+				panic(err)
+			}
+
+			queryClient := authtypes.NewQueryClient(clientCtx) // TODO: determine if the ClientCtx has a qurey client
+
+			signerAcc, err := getSignerOfTx(queryClient, stdTx)
+			if err != nil {
+				panic(err)
+
+			}
+
+			signerData := authsigning.SignerData{
+				Address:       signerAcc.GetAddress().String(),
+				ChainID:       clientCtx.ChainID, // TODO:  what's the chain ID ? get it from flag /
+				AccountNumber: signerAcc.GetAccountNumber(),
+				Sequence:      signerAcc.GetSequence(),
+				PubKey:        signerAcc.GetPubKey(),
+			}
+
+			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
+			if err != nil {
+				panic(err)
+			}
+
+			sigData := signing.SingleSignatureData{
+				SignMode:  signMode,
+				Signature: nil,
+			}
+
+			sig := signing.SignatureV2{
+				PubKey:   signerAcc.GetPubKey(),
+				Data:     &sigData,
+				Sequence: signerAcc.GetSequence(),
+			}
+
+			if err := txBuilder.SetSignatures(sig); err != nil {
+				panic(err)
+			}
+
+			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
+			if err != nil {
+				panic(err)
+			}
+
+			sigBytes, _, err := clientCtx.Keyring.Sign("foo", signBytes) // TODO: add keyname as either flag or parameter
+			if err != nil {
+				panic(err)
+			}
+
+			sigData = signing.SingleSignatureData{
+				SignMode:  signMode,
+				Signature: sigBytes,
+			}
+
+			sig = signing.SignatureV2{
+				PubKey:   signerAcc.GetPubKey(),
+				Data:     &sigData,
+				Sequence: signerAcc.GetSequence(),
+			}
+
+			if err := txBuilder.SetSignatures(sig); err != nil {
+				panic(err)
+			}
+
+			bz, err := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
+			if err != nil {
+				return err
+			}
+			res, err := clientCtx.BroadcastTx(bz)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
+	var signerAddr sdk.AccAddress = nil
+	for i, msg := range stdTx.GetMsgs() {
+		signers := msg.GetSigners()
+		if len(signers) != 1 {
+			return nil, fmt.Errorf("msg %d has more than one signers", i)
+		}
+
+		if signerAddr != nil && !signerAddr.Equals(signers[0]) {
+			return nil, errors.New("tx has more than one signers")
+		}
+
+		signerAddr = signers[0]
+	}
+
+	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: signerAddr.String()})
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Account.TypeUrl != typeURL((*aatypes.AbstractAccount)(nil)) {
+		return nil, fmt.Errorf("signer %s is not an AbstractAccount", signerAddr.String())
+	}
+
+	var acc = &aatypes.AbstractAccount{}
+	if err = proto.Unmarshal(res.Account.Value, acc); err != nil {
+		return nil, err
+	}
+
+	return acc, nil
+}
+
+func typeURL(x proto.Message) string {
+	return "/" + proto.MessageName(x)
 }
