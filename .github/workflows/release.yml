@@ -1,0 +1,71 @@
+name: Create Release and Publish Binary
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    environment: CI
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata for docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: burntnetwork/xion
+          tags: |
+            type=semver,pattern={{version}},priority=1000
+            type=sha,priority=700
+
+      - name: Build docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          target: xion-release
+
+      - name: Copy xiond binary from container
+        id: copy-binary
+        run: |
+          docker create --name temp_container $(echo ${{ steps.meta.outputs.tags }} | awk '{print $1}')
+          docker cp temp_container:/usr/bin/xiond ./xiond
+          ./xiond version --long
+          docker rm -v temp_container
+
+      - name: Create Release
+        id: create-release
+        uses: gh-actions/create-release@v1
+        env:
+          GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+          prerelease: true
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ./xiond
+          asset_name: xiond-${{ github.ref }}-linux-amd64
+          asset_content_type: application/octet-stream
