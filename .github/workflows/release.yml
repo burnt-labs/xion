@@ -26,6 +26,9 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - name: Set up docker buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Extract metadata for docker
         id: meta
         uses: docker/metadata-action@v5
@@ -39,9 +42,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          target: xion-release
 
       - name: Copy xiond binary from linux/amd64 container
         id: copy-binary-amd64
@@ -125,6 +130,15 @@ jobs:
         with:
           name: xiond.src.tgz
 
+      - name: Build Changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          token: ${{ secrets.GH_RELEASE_TOKEN }}
+
+      - name: Output Changelog
+        run: echo "${{steps.changelog.outputs.changelog}}"
+
       - name: Create and Update Release
         id: create-release
         uses: ncipollo/release-action@v1
@@ -132,8 +146,8 @@ jobs:
           allowUpdates: true
           artifactContentType: application/octet-stream
           artifacts: xiond-linux-amd64,xiond.src.zip,xiond.src.tgz
+          body: ${{steps.changelog.outputs.changelog}}
           draft: true
-          generateReleaseNotes: true
           name: Release ${{ github.ref }}
           prerelease: true
           tag: ${{ github.ref }}
