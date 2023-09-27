@@ -91,13 +91,13 @@ jobs:
 
       - name: Create tgz
         run: |
-          tar --exclude='./xiond.tgz' -czvf xiond.tgz .
+          tar -czvf /tmp/xiond.tgz .
 
       - name: Upload tgz
         uses: actions/upload-artifact@v2
         with:
           name: Source code (tgz)
-          path: xiond.tgz
+          path: /tmp/xiond.tgz
 
   release:
     runs-on: ubuntu-latest
