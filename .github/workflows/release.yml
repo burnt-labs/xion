@@ -52,7 +52,7 @@ jobs:
           docker rm -v temp_container-amd64
 
       - name: Upload binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: xiond-linux-amd64
           path: ./xiond-linux-amd64
@@ -73,7 +73,7 @@ jobs:
           zip -r xiond.zip . -x '.github/*' 'docker/*' 'xiond.zip'
 
       - name: Upload zip
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Source code (zip)
           path: xiond.zip
@@ -94,7 +94,7 @@ jobs:
           tar -czvf /tmp/xiond.tgz .
 
       - name: Upload tgz
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Source code (tgz)
           path: /tmp/xiond.tgz
@@ -116,12 +116,12 @@ jobs:
       - name: Download zip
         uses: actions/download-artifact@v3
         with:
-          name: xiond.zip
+          name: "Source code (zip)"
 
       - name: Download tgz
         uses: actions/download-artifact@v3
         with:
-          name: xiond.tgz
+          name: "Source code (tgz)"
 
       - name: Create and Update Release
         id: create-release
