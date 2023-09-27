@@ -8,8 +8,8 @@ on:
       - '*'
 
 jobs:
-  release:
-    name: Release
+
+  build-amd64:
     runs-on: ubuntu-latest
     environment: CI
 
@@ -26,9 +26,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Set up docker buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Extract metadata for docker
         id: meta
         uses: docker/metadata-action@v5
@@ -38,23 +35,93 @@ jobs:
             type=semver,pattern={{version}},priority=1000
             type=sha,priority=700
 
-      - name: Build docker image
+      - name: Build docker image for linux/amd64
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: xion-release
 
-      - name: Copy xiond binary from container
-        id: copy-binary
+      - name: Copy xiond binary from linux/amd64 container
+        id: copy-binary-amd64
         run: |
-          docker create --name temp_container $(echo ${{ steps.meta.outputs.tags }} | awk '{print $1}')
-          docker cp temp_container:/usr/bin/xiond ./xiond-linux-amd64
+          docker create --name temp_container-amd64 $(echo ${{ steps.meta.outputs.tags }} | awk '{print $1}')
+          docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
           ./xiond-linux-amd64 version --long
-          docker rm -v temp_container
+          docker rm -v temp_container-amd64
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: xiond-linux-amd64
+          path: ./xiond-linux-amd64
+
+  build-zip:
+    runs-on: ubuntu-latest
+    environment: CI
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Zip source
+        run: |
+          zip -r xiond.zip . -x '.github/*' 'docker/*' 'xiond.zip'
+
+      - name: Upload zip
+        uses: actions/upload-artifact@v2
+        with:
+          name: Source code (zip)
+          path: xiond.zip
+
+  build-tgz:
+    runs-on: ubuntu-latest
+    environment: CI
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Create tgz
+        run: |
+          tar --exclude='./xiond.tgz' -czvf xiond.tgz .
+
+      - name: Upload tgz
+        uses: actions/upload-artifact@v2
+        with:
+          name: Source code (tgz)
+          path: xiond.tgz
+
+  release:
+    runs-on: ubuntu-latest
+    environment: CI
+    needs:
+      - build-amd64
+      - build-zip
+      - build-tgz
+
+    steps:
+      - name: Download xiond-linux-amd64
+        uses: actions/download-artifact@v3
+        with:
+          name: xiond-linux-amd64
+
+      - name: Download zip
+        uses: actions/download-artifact@v3
+        with:
+          name: xiond.zip
+
+      - name: Download tgz
+        uses: actions/download-artifact@v3
+        with:
+          name: xiond.tgz
 
       - name: Create and Update Release
         id: create-release
@@ -63,7 +130,7 @@ jobs:
           allowUpdates: true
           draft: true
           prerelease: true
-          artifacts: ./xiond-linux-amd64
+          artifacts: xiond-linux-amd64,xiond.zip,xiond.tgz
           artifactContentType: application/octet-stream
           tag: ${{ github.ref }}
           token: ${{ secrets.GH_RELEASE_TOKEN }}
