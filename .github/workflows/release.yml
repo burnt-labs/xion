@@ -20,6 +20,12 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
       - name: Set up docker buildx
         uses: docker/setup-buildx-action@v3
 
@@ -36,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -46,28 +52,19 @@ jobs:
         id: copy-binary
         run: |
           docker create --name temp_container $(echo ${{ steps.meta.outputs.tags }} | awk '{print $1}')
-          docker cp temp_container:/usr/bin/xiond ./xiond
-          ./xiond version --long
+          docker cp temp_container:/usr/bin/xiond ./xiond-linux-amd64
+          ./xiond-linux-amd64 version --long
           docker rm -v temp_container
 
-      - name: Create Release
+      - name: Create and Update Release
         id: create-release
-        uses: actions/create-release@v1
-        env:
-          GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          allowUpdates: true
           draft: true
           prerelease: true
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ./xiond
-          asset_name: xiond-${{ github.ref }}-linux-amd64
-          asset_content_type: application/octet-stream
+          artifacts: ./xiond-linux-amd64
+          artifactContentType: application/octet-stream
+          tag: ${{ github.ref }}
+          token: ${{ secrets.GH_RELEASE_TOKEN }}
+          name: Release ${{ github.ref }}
