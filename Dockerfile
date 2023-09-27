@@ -41,7 +41,7 @@ FROM golang:1.19-alpine3.17 AS go-builder
     && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.16 AS localdev
+FROM alpine:3.17 AS localdev
 
   COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
