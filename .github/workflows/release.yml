@@ -2,6 +2,8 @@ name: Create Release and Publish Binary
 
 on:
   push:
+    branches:
+      - froch/version
     tags:
       - '*'
 
@@ -50,7 +52,7 @@ jobs:
 
       - name: Create Release
         id: create-release
-        uses: gh-actions/create-release@v1
+        uses: actions/create-release@v1
         env:
           GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
         with:
