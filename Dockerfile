@@ -1,7 +1,7 @@
 # docker build . -t cosmwasm/xiond:latest
 # docker run --rm -it cosmwasm/xiond:latest /bin/sh
 FROM golang:1.19-alpine3.17 AS go-builder
-  ARG arch=x86_64
+ARG arch=x86_64
 
   # this comes from standard alpine nightly file
   #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
