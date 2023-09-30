@@ -18,7 +18,7 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.1uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	// Create and Fund User Wallets
@@ -56,6 +56,21 @@ func TestXionAbstractAccount(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 		recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
 	)
+
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), "../testdata/contracts/account_updatable-aarch64.wasm")
+	require.NoError(t, err)
+	_, err = xion.InstantiateContract(ctx, xionUser.FormattedAddress(), codeID, "", false)
+	require.NoError(t, err)
+
+	/*
+		_, err = ExecTx(t, ctx, xion.FullNodes[0],
+			xionUser.KeyName(),
+			"xion", "wasm", "store", "[path_to_file]", xionUser.KeyName(),
+			"--chain-id", xion.Config().ChainID,
+			recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+		)
+	*/
+
 	require.NoError(t, err)
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
