@@ -37,7 +37,7 @@ message Params {
   ];
 
   // max_total_bypass_min_fee_msg_gas_usage defines the total maximum gas usage
-  // allowed for a transaction containing only messages of types in bypass_min_fee_msg_types
-  // to bypass fee charge.
+  // allowed for a transaction containing only messages of types in
+  // bypass_min_fee_msg_types to bypass fee charge.
   uint64 max_total_bypass_min_fee_msg_gas_usage = 3;
 }

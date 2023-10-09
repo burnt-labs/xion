@@ -5,6 +5,4 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
-message GenesisState {
-  uint32 platform_percentage = 1;
-}
+message GenesisState { uint32 platform_percentage = 1; }
