@@ -443,7 +443,7 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 	return output.TxHash, nil
 }
 
-func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (map[string]interface{}, error) {
+func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
 	jsonRes := make(map[string]interface{})
 	output, _, err := tn.ExecQuery(ctx, command...)
 	if err != nil {

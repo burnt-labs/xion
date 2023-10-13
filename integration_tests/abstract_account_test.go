@@ -53,13 +53,6 @@ func TestXionAbstractAccount(t *testing.T) {
 	err = xion.CreateKey(ctx, recipientKeyName)
 	require.NoError(t, err)
 
-	/*
-		receipientKeyAddressBytes, err := xion.GetAddress(ctx, recipientKeyName)
-		require.NoError(t, err)
-		recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
-		require.NoError(t, err)
-	*/
-
 	currentHeight, _ = xion.Height(ctx)
 	account, err := ExecBin(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
@@ -69,13 +62,11 @@ func TestXionAbstractAccount(t *testing.T) {
 		"-p",
 	)
 	require.NoError(t, err)
-	fmt.Println("Post Query")
-	fmt.Println("=======================================================")
-	fmt.Println(account)
-	fmt.Println("=======================================================")
 
 	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), "./testdata/contracts/account_updatable-aarch64.wasm")
 	require.NoError(t, err)
+
+	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
 	/* add register AA using Public key */
 	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
@@ -83,24 +74,60 @@ func TestXionAbstractAccount(t *testing.T) {
 		"abstract-account", "register",
 		codeID,
 		fmt.Sprintf(`{"pubkey": "%s"}`, account["key"]),
-		"--funds", fmt.Sprintf("%d%s", 100000, xion.Config().Denom),
+		"--funds", depositedFunds,
 		"--salt", "foo",
 		"--chain-id", xion.Config().ChainID,
 	)
 
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
 	require.NoError(t, err)
-	fmt.Println("Post Register?")
-	fmt.Println("=======================================================")
-	fmt.Println(r)
+	aaContractAddr := GetAAContractAddress(t, txDetails)
+	fmt.Println(aaContractAddr)
 	fmt.Println("=======================================================")
 
-	//_, err = xion.InstantiateContract(ctx, xionUser.FormattedAddress(), codeID, fmt.Sprintf(`{"new_pubkey:%s"}`, ""), true)
+	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, uint64(100000), uint64(contractBalance))
 
 	/*
-		require.NoError(t, err)
-		balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
-		require.NoError(t, err)
-		require.Equal(t, uint64(100), uint64(balance))
+			NOTE: Ideally we would use this metod, however the QueryContract formats the string making it harder to predict.
+		var ContractResponse interface{}
+			require.NoError(t, xion.QueryContract(ctx, aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`), ContractResponse))
 	*/
+
+	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`))
+	require.NoError(t, err)
+
+	pubkey, ok := contractState["data"].(string)
+	require.True(t, ok)
+	require.Equal(t, account["key"], pubkey)
+
+	// TODO:
+	// - sign and rotate key
+
+}
+
+func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string {
+	logs, ok := txDetails["logs"].([]interface{})
+	require.True(t, ok)
+
+	log, ok := logs[0].(map[string]interface{})
+	require.True(t, ok)
+
+	events, ok := log["events"].([]interface{})
+	require.True(t, ok)
+
+	event, ok := events[4].(map[string]interface{})
+	require.True(t, ok)
+
+	attributes, ok := event["attributes"].([]interface{})
+	require.True(t, ok)
+
+	attribute, ok := attributes[0].(map[string]interface{})
+	require.True(t, ok)
+
+	addr, ok := attribute["value"].(string)
+	require.True(t, ok)
+
+	return addr
 }
