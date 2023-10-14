@@ -40,6 +40,24 @@ type TestData struct {
 	client    *client.Client
 }
 
+func RawJSONMsg(from, to, denom string) []byte {
+	msg := fmt.Sprintf(`
+	{
+		"@type": "/cosmos.bank.v1beta1.MsgSend",
+		"from_address": "%s",
+		"to_address": "%s",
+		"amount": [
+			{
+				"denom": "%s",
+				"amount": "12345"
+			}
+		]
+	}
+	`, from, to, denom)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
 func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
@@ -423,4 +441,28 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 		return "", err
 	}
 	return output.TxHash, nil
+}
+
+func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	t.Logf("querying with cmd: %s", command)
+	output, _, err := tn.ExecQuery(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
+}
+
+func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	output, _, err := tn.ExecBin(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	fmt.Printf("%+s\n", output)
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
 }

@@ -1,8 +1,10 @@
 package integration_tests
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"os"
 	"path"
 	"testing"
@@ -24,40 +26,6 @@ func TestXionDeployContract(t *testing.T) {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
-
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
-	require.NoError(t, err)
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
-	require.NoError(t, err)
-	t.Logf("private key: %v", privateKey)
-
-	publicKey, err := jwk.New(privateKey)
-	require.NoError(t, err)
-	publicKeyJSON, err := json.Marshal(publicKey)
-	require.NoError(t, err)
-
-	t.Logf("public key: %s", publicKeyJSON)
-
-	now := time.Now()
-	inFive := now.Add(time.Minute * 5)
-
-	sub := "user-test-f52dded2-c93a-4efd-9169-577fbdf6cb86"
-	aud := "project-test-185e9a9f-8bab-42f2-a924-953a59e8ff94"
-
-	auds := jwt.ClaimStrings{aud}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss": "stytch.com/project-test-185e9a9f-8bab-42f2-a924-953a59e8ff94",
-		"sub": sub,
-		"aud": auds,
-		"exp": inFive.Unix(),
-		"nbf": now.Unix(),
-		"iat": now.Unix(),
-	})
-
-	output, err := token.SignedString(privateKey)
-	require.NoError(t, err)
-
-	t.Logf("signed token:\n %s \n", output)
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
@@ -105,27 +73,77 @@ func TestXionDeployContract(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
 		path.Join(fp, "integration_tests", "testdata", "contracts", "account.wasm"))
 	require.NoError(t, err)
 
-	authenticator := map[string]string{}
-	authenticator["sub"] = sub
-	authenticator["aud"] = aud
-	authenticator["_type"] = ""
+	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+		"wasm", "code-info", codeIDStr)
+	require.NoError(t, err)
+	t.Logf("code response: %s", codeResp)
+
+	sub := "integration-test-user"
+	aud := "integration-test-project"
+
+	authenticatorDetails := map[string]string{}
+	authenticatorDetails["sub"] = sub
+	authenticatorDetails["aud"] = aud
+
+	authenticator := map[string]interface{}{}
+	authenticator["Jwt"] = authenticatorDetails
 
 	instantiateMsg := map[string]interface{}{}
 	instantiateMsg["id"] = 0
 	instantiateMsg["authenticator"] = authenticator
-	instantiateMsg["signature"] = ""
+
+	creatorAddr := types.AccAddress(xionUser.Address())
+	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+	require.NoError(t, err)
+	t.Logf("predicting address")
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte("beef"), []byte{})
+
+	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	require.NoError(t, err)
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
+	require.NoError(t, err)
+	t.Logf("private key: %v", privateKey)
+
+	publicKey, err := jwk.New(privateKey)
+	require.NoError(t, err)
+	publicKeyJSON, err := json.Marshal(publicKey)
+	require.NoError(t, err)
+
+	t.Logf("public key: %s", publicKeyJSON)
+
+	now := time.Now()
+	fiveAgo := now.Add(-time.Minute * 5)
+	inFive := now.Add(time.Minute * 5)
+
+	auds := jwt.ClaimStrings{aud}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"iss":              "stytch.com/project-test-185e9a9f-8bab-42f2-a924-953a59e8ff94",
+		"sub":              sub,
+		"aud":              auds,
+		"exp":              inFive.Unix(),
+		"nbf":              fiveAgo.Unix(),
+		"iat":              fiveAgo.Unix(),
+		"transaction_hash": predictedAddr.Bytes(),
+	})
+
+	output, err := token.SignedString(privateKey)
+	require.NoError(t, err)
+
+	instantiateMsg["signature"] = []byte(output)
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 	t.Logf("inst msg: %s", string(instantiateMsgStr))
 
+	t.Logf("registering account: %s", instantiateMsgStr)
+
 	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"abstract-account", "register",
-		codeID, string(instantiateMsgStr),
+		codeIDStr, string(instantiateMsgStr),
 		"--salt", "beef",
 		"--chain-id", xion.Config().ChainID,
 	)
