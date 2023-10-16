@@ -1009,12 +1009,14 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtype
 				FeegrantKeeper:  app.FeeGrantKeeper,
 				SigGasConsumer:  aa.SigVerificationGasConsumer,
 			},
-			IBCKeeper:         app.IBCKeeper,
-			WasmConfig:        &wasmConfig,
-			TXCounterStoreKey: txCounterStoreKey,
-			GlobalFeeSubspace: app.GetSubspace(globalfee.ModuleName),
-			StakingKeeper:     app.StakingKeeper,
-			FeeAbsKeeper:      &app.FeeAbsKeeper,
+
+			AbstractAccountKeeper: app.AbstractAccountKeeper,
+			IBCKeeper:             app.IBCKeeper,
+			WasmConfig:            &wasmConfig,
+			TXCounterStoreKey:     txCounterStoreKey,
+			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
+			StakingKeeper:         app.StakingKeeper,
+			FeeAbsKeeper:          &app.FeeAbsKeeper,
 		},
 	)
 	if err != nil {
