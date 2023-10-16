@@ -24,6 +24,14 @@
   "app_hash": "",
   "app_state": {
     "07-tendermint": null,
+    "abstractaccount": {
+      "params": {
+        "allow_all_code_ids": true,
+        "allowed_code_ids": null,
+        "max_gas_before": 50000000,
+        "max_gas_after": 50000000
+      }
+    },
     "auth": {
       "params": {
         "max_memo_characters": "256",
