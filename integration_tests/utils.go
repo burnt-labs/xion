@@ -40,19 +40,40 @@ type TestData struct {
 	client    *client.Client
 }
 
-func RawJSONMsg(from, to, denom string) []byte {
+func RawJSONMsg(t *testing.T, from, to, denom string) []byte {
 	msg := fmt.Sprintf(`
-	{
-		"@type": "/cosmos.bank.v1beta1.MsgSend",
-		"from_address": "%s",
-		"to_address": "%s",
-		"amount": [
-			{
-				"denom": "%s",
-				"amount": "12345"
-			}
-		]
-	}
+{
+  "body": {
+    "messages": [
+      {
+        "@type": "/cosmos.bank.v1beta1.MsgSend",
+        "from_address": "%s",
+        "to_address": "%s",
+        "amount": [
+          {
+            "denom": "%s",
+            "amount": "100000"
+          }
+        ]
+      }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
 	`, from, to, denom)
 	var rawMsg json.RawMessage = []byte(msg)
 	return rawMsg
@@ -464,4 +485,14 @@ func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName st
 	require.NoError(t, json.Unmarshal(output, &jsonRes))
 
 	return jsonRes, nil
+}
+
+func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
+
+	content, err := os.ReadFile(file.Name())
+	if err != nil {
+		return err
+	}
+	path := strings.Split(file.Name(), "/")
+	return tn.WriteFile(ctx, content, path[len(path)-1])
 }

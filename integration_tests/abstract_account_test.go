@@ -1,7 +1,11 @@
 package integration_tests
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path"
+	"strings"
 	"testing"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
@@ -21,7 +25,6 @@ func TestXionAbstractAccount(t *testing.T) {
 	}
 
 	t.Parallel()
-
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
@@ -82,8 +85,6 @@ func TestXionAbstractAccount(t *testing.T) {
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
 	require.NoError(t, err)
 	aaContractAddr := GetAAContractAddress(t, txDetails)
-	fmt.Println(aaContractAddr)
-	fmt.Println("=======================================================")
 
 	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
 	require.NoError(t, err)
@@ -102,9 +103,38 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, account["key"], pubkey)
 
+	receipientKeyAddressBytes, err := xion.GetAddress(ctx, recipientKeyName)
+	require.NoError(t, err)
+	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
+	require.NoError(t, err)
+
+	jsonMsg := RawJSONMsg(t, aaContractAddr, recipientKeyAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	require.True(t, json.Valid(jsonMsg))
+
+	file, err := os.CreateTemp("", "*-msg-bank-send.json")
+	require.NoError(t, err)
+	defer os.Remove(file.Name())
+
+	_, err = file.Write(jsonMsg)
+	require.NoError(t, err)
+
+	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], file)
+	require.NoError(t, err)
+
+	filePath := strings.Split(file.Name(), "/")
+	broadcastTx, err := ExecTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"xion", "sign",
+		xionUser.KeyName(),
+		path.Join(xion.FullNodes[0].HomeDir(), filePath[len(filePath)-1]),
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	fmt.Println(broadcastTx)
+
 	// TODO:
 	// - sign and rotate key
-
 }
 
 func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string {

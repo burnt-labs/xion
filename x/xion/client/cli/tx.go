@@ -161,19 +161,21 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 // NewSendTxCmd returns a CLI command handler for creating a MsgSend transaction.
 func NewSignCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sign [path/to/tx.json]",
+		Use:   "sign [keyname] [path/to/tx.json]",
 		Short: "sign a transaction",
 		Long:  `Sign transaction by retrieving the Smart Contract Account signer.`,
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
+			if err := cmd.Flags().Set(flags.FlagFrom, args[0]); err != nil {
+				return err
+			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			txBz, err := os.ReadFile(args[0])
+			txBz, err := os.ReadFile(args[1])
 			if err != nil {
 				panic(err)
 			}
@@ -188,12 +190,11 @@ func NewSignCmd() *cobra.Command {
 			signerAcc, err := getSignerOfTx(queryClient, stdTx)
 			if err != nil {
 				panic(err)
-
 			}
 
 			signerData := authsigning.SignerData{
 				Address:       signerAcc.GetAddress().String(),
-				ChainID:       clientCtx.ChainID, // TODO:  what's the chain ID ? get it from flag /
+				ChainID:       clientCtx.ChainID,
 				AccountNumber: signerAcc.GetAccountNumber(),
 				Sequence:      signerAcc.GetSequence(),
 				PubKey:        signerAcc.GetPubKey(),
@@ -223,8 +224,7 @@ func NewSignCmd() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-
-			sigBytes, _, err := clientCtx.Keyring.Sign("foo", signBytes) // TODO: add keyname as either flag or parameter
+			sigBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromAddress().String(), signBytes) // TODO: add keyname as either flag or parameter
 			if err != nil {
 				panic(err)
 			}
