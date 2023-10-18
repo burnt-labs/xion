@@ -197,7 +197,7 @@ func NewSignCmd() *cobra.Command {
 				ChainID:       clientCtx.ChainID,
 				AccountNumber: signerAcc.GetAccountNumber(),
 				Sequence:      signerAcc.GetSequence(),
-				PubKey:        signerAcc.GetPubKey(),
+				PubKey:        signerAcc.GetPubKey(), // NOTE: NilPubKey
 			}
 
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
@@ -211,7 +211,7 @@ func NewSignCmd() *cobra.Command {
 			}
 
 			sig := signing.SignatureV2{
-				PubKey:   signerAcc.GetPubKey(),
+				PubKey:   signerAcc.GetPubKey(), // NOTE: NilPubKey
 				Data:     &sigData,
 				Sequence: signerAcc.GetSequence(),
 			}
@@ -224,7 +224,7 @@ func NewSignCmd() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			sigBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromAddress().String(), signBytes) // TODO: add keyname as either flag or parameter
+			sigBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
 			if err != nil {
 				panic(err)
 			}
@@ -246,11 +246,11 @@ func NewSignCmd() *cobra.Command {
 
 			bz, err := clientCtx.TxConfig.TxEncoder()(txBuilder.GetTx())
 			if err != nil {
-				return err
+				panic(err)
 			}
 			res, err := clientCtx.BroadcastTx(bz)
 			if err != nil {
-				return err
+				panic(err)
 			}
 
 			return clientCtx.PrintProto(res)
@@ -290,6 +290,7 @@ func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.Ab
 	if err = proto.Unmarshal(res.Account.Value, acc); err != nil {
 		return nil, err
 	}
+	//panic(fmt.Sprintf("Account: %s\nTypeURL: %s\nAcc: %+v", res.Account.TypeUrl, typeURL((*aatypes.AbstractAccount)(nil)), acc))
 
 	return acc, nil
 }
