@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestXionDeployContract(t *testing.T) {
+func TestJWTAbstractAccount(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}

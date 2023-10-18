@@ -71,6 +71,7 @@ jobs:
         - "MintModuleNoInflationNoFees"
         - "MintModuleInflationHighFees"
         - "MintModuleInflationLowFees"
+        - "JWTAbstractAccount"
 
     steps:
       - name: Set up Go 1.18
