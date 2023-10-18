@@ -71,6 +71,7 @@ jobs:
         - "MintModuleNoInflationNoFees"
         - "MintModuleInflationHighFees"
         - "MintModuleInflationLowFees"
+        - "XionSendPlatformFee"
 
     steps:
       - name: Set up Go 1.18
