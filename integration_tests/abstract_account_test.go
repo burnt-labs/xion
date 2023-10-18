@@ -30,6 +30,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
+	// Register All messages we are interacting.
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*types.Msg)(nil),
 		&xiontypes.MsgSetPlatformPercentage{},
@@ -57,12 +58,16 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	// step 1: send a xion message with default (0%) platform fee
+	// Create a Secondary Key For Rotation
 	recipientKeyName := "recipient-key"
 	err = xion.CreateKey(ctx, recipientKeyName)
 	require.NoError(t, err)
+	receipientKeyAddressBytes, err := xion.GetAddress(ctx, recipientKeyName)
+	require.NoError(t, err)
+	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
+	require.NoError(t, err)
 
-	currentHeight, _ = xion.Height(ctx)
+	// Get Public Key For Funded Account
 	account, err := ExecBin(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"keys", "show",
@@ -72,12 +77,13 @@ func TestXionAbstractAccount(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	// Store Wasm Contract
 	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), "./testdata/contracts/account_updatable-aarch64.wasm")
 	require.NoError(t, err)
 
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
-	/* add register AA using Public key */
+	// Register Abstract Account Using Public Key
 	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"abstract-account", "register",
@@ -108,11 +114,6 @@ func TestXionAbstractAccount(t *testing.T) {
 	pubkey, ok := contractState["data"].(string)
 	require.True(t, ok)
 	require.Equal(t, account["key"], pubkey)
-
-	receipientKeyAddressBytes, err := xion.GetAddress(ctx, recipientKeyName)
-	require.NoError(t, err)
-	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
-	require.NoError(t, err)
 
 	// Generate Msg Send without signatures
 	jsonMsg := RawJSONMsgSend(t, aaContractAddr, recipientKeyAddress, xion.Config().Denom)
