@@ -40,7 +40,7 @@ type TestData struct {
 	client    *client.Client
 }
 
-func RawJSONMsg(t *testing.T, from, to, denom string) []byte {
+func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
 	msg := fmt.Sprintf(`
 {
   "body": {
@@ -75,6 +75,45 @@ func RawJSONMsg(t *testing.T, from, to, denom string) []byte {
   "signatures": []
 }
 	`, from, to, denom)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
+func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey string) []byte {
+	msg := fmt.Sprintf(`
+{
+  "body": {
+    "messages": [
+      {
+        "@type": "/cosmwasm.wasm.v1.MsgExecuteContract",
+        "sender": "%s",
+        "contract": "%s",
+        "msg": {
+          "update_pubkey": {
+            "new_pubkey": "%s"
+          }
+        },
+        "funds": []
+      }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
+	`, sender, contract, pubkey)
 	var rawMsg json.RawMessage = []byte(msg)
 	return rawMsg
 }

@@ -16,6 +16,8 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
@@ -33,10 +35,14 @@ func TestXionAbstractAccount(t *testing.T) {
 		&xiontypes.MsgSetPlatformPercentage{},
 		&xiontypes.MsgSend{},
 		&wasmtypes.MsgInstantiateContract{},
+		&wasmtypes.MsgExecuteContract{},
 		&wasmtypes.MsgStoreCode{},
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
 	)
+
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
@@ -108,33 +114,77 @@ func TestXionAbstractAccount(t *testing.T) {
 	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
 	require.NoError(t, err)
 
-	jsonMsg := RawJSONMsg(t, aaContractAddr, recipientKeyAddress, xion.Config().Denom)
+	// Generate Msg Send without signatures
+	jsonMsg := RawJSONMsgSend(t, aaContractAddr, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
 	require.True(t, json.Valid(jsonMsg))
 
-	file, err := os.CreateTemp("", "*-msg-bank-send.json")
+	sendFile, err := os.CreateTemp("", "*-msg-bank-send.json")
 	require.NoError(t, err)
-	defer os.Remove(file.Name())
+	defer os.Remove(sendFile.Name())
 
-	_, err = file.Write(jsonMsg)
-	require.NoError(t, err)
-
-	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], file)
+	_, err = sendFile.Write(jsonMsg)
 	require.NoError(t, err)
 
-	filePath := strings.Split(file.Name(), "/")
-	broadcastTx, err := ExecTx(t, ctx, xion.FullNodes[0],
+	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], sendFile)
+	require.NoError(t, err)
+
+	// Sign and broadcast a transaction
+	sendFilePath := strings.Split(sendFile.Name(), "/")
+	_, err = ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
-		path.Join(xion.FullNodes[0].HomeDir(), filePath[len(filePath)-1]),
+		path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
-	fmt.Println(broadcastTx)
 
-	// TODO:
-	// - sign and rotate key
+	// Confirm the updated balance
+	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, uint64(100000), uint64(balance))
+
+	// Generate Key Rotation Msg
+	account, err = ExecBin(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"keys", "show",
+		xionUser.KeyName(),
+		"--keyring-backend", keyring.BackendTest,
+		"-p",
+	)
+
+	jsonExecMsg := RawJSONMsgExecContractNewPubKey(t, aaContractAddr, aaContractAddr, fmt.Sprintf("%s", account["key"]))
+	require.NoError(t, err)
+	require.True(t, json.Valid(jsonExecMsg))
+
+	rotateFile, err := os.CreateTemp("", "*-msg-exec-rotate-key.json")
+	require.NoError(t, err)
+	defer os.Remove(rotateFile.Name())
+
+	_, err = rotateFile.Write(jsonExecMsg)
+	require.NoError(t, err)
+
+	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], rotateFile)
+	require.NoError(t, err)
+
+	rotateFilePath := strings.Split(rotateFile.Name(), "/")
+	_, err = ExecTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"xion", "sign",
+		xionUser.KeyName(),
+		path.Join(xion.FullNodes[0].HomeDir(), rotateFilePath[len(rotateFilePath)-1]),
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+
+	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`))
+	require.NoError(t, err)
+
+	updatedPubKey, ok := updatedContractstate["data"].(string)
+	require.True(t, ok)
+	require.Equal(t, account["key"], updatedPubKey)
+
 }
 
 func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string {
