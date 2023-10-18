@@ -119,21 +119,3 @@ func MaxCoins(a, b sdk.Coins) sdk.Coins {
 	}
 	return b
 }
-
-// CheckGas returns an error if there are incongruences between the height
-// and the gas provided by the FeeTx
-func CheckGas(ctx sdk.Context, tx sdk.FeeTx, simulate bool) (sdk.Context, error) {
-	if !simulate && ctx.BlockHeight() > 0 && tx.GetGas() == 0 {
-		return ctx, sdkerrors.Wrap(sdkerrors.ErrInvalidGasLimit, "must provide positive gas")
-	}
-	return ctx, nil
-}
-
-// CheckFeeTx returns a Fee tx if the Tx satisifies the valid interface
-func CheckFeeTx(ctx sdk.Context, tx sdk.Tx) (sdk.FeeTx, error) {
-	feeTx, ok := tx.(sdk.FeeTx)
-	if !ok {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
-	}
-	return feeTx, nil
-}

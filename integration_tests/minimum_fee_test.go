@@ -18,7 +18,7 @@ func TestXionMinimumFee(t *testing.T) {
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.1uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	// Create and Fund User Wallets
@@ -48,12 +48,6 @@ func TestXionMinimumFee(t *testing.T) {
 		&xiontypes.MsgSetPlatformPercentage{},
 		&xiontypes.MsgSend{},
 	)
-	//_, err = xion.FullNodes[0].ExecTx(ctx,
-	//	xionUser.KeyName(),
-	//	"xion", "send", xionUser.KeyName(),
-	//	"--chain-id", xion.Config().ChainID,
-	//	recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
-	//)
 
 	currentHeight, _ = xion.Height(ctx)
 	_, err = ExecTx(t, ctx, xion.FullNodes[0],
