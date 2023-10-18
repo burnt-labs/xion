@@ -3,8 +3,8 @@ package integration_tests
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"path"
 
 	"math/rand"
 	"os"
@@ -15,12 +15,7 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/larry0x/abstract-account/x/abstractaccount/types"
-
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v7"
@@ -461,15 +456,6 @@ func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command 
 	return jsonRes, nil
 }
 
-func ExecQueryBz(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) ([]byte, error) {
-	t.Logf("querying with cmd: %s", command)
-	output, _, err := tn.ExecQuery(ctx, command...)
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
-}
-
 func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (map[string]interface{}, error) {
 	jsonRes := make(map[string]interface{})
 	output, _, err := tn.ExecBin(ctx, command...)
@@ -482,37 +468,16 @@ func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName st
 	return jsonRes, nil
 }
 
-func typeURL(x proto.Message) string {
-	return "/" + proto.MessageName(x)
-}
-func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*types.AbstractAccount, error) {
-	var signerAddr sdk.AccAddress = nil
-	for i, msg := range stdTx.GetMsgs() {
-		signers := msg.GetSigners()
-		if len(signers) != 1 {
-			return nil, fmt.Errorf("msg %d has more than one signers", i)
-		}
-
-		if signerAddr != nil && !signerAddr.Equals(signers[0]) {
-			return nil, errors.New("tx has more than one signers")
-		}
-
-		signerAddr = signers[0]
+func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
+	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
+		return "", err
 	}
 
-	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: signerAddr.String()})
+	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"))
+
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	if res.Account.TypeUrl != typeURL((*types.AbstractAccount)(nil)) {
-		return nil, fmt.Errorf("signer %s is not an AbstractAccount", signerAddr.String())
-	}
-
-	var acc = &types.AbstractAccount{}
-	if err = proto.Unmarshal(res.Account.Value, acc); err != nil {
-		return nil, err
-	}
-
-	return acc, nil
+	return string(stdout), err
 }

@@ -43,8 +43,8 @@ func TestXionDeployContract(t *testing.T) {
 	fundAmount := int64(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
-	currentHeight, _ := xion.Height(ctx)
-	testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
+	err := testutil.WaitForBlocks(ctx, 8, xion)
+	require.NoError(t, err)
 	t.Logf("created xion user %s", xionUser.FormattedAddress())
 
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
@@ -161,6 +161,12 @@ func TestXionDeployContract(t *testing.T) {
 	require.NoError(t, err)
 
 	contract := contractsResponse["contracts"].([]interface{})[0].(string)
+
+	err = testutil.WaitForBlocks(ctx, 1, xion)
+	require.NoError(t, err)
+	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, int64(10_000), newBalance)
 
 	// get the account from the chain. there might be a better way to do this
 	accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
@@ -291,18 +297,13 @@ func TestXionDeployContract(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	//txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
-	//require.NoError(t, err)
-	//
-	//sigData := signing.SingleSignatureData{
-	//	SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
-	//	Signature: nil,
-	//}
-	//
-	//sig := signing.SignatureV2{
-	//	PubKey:   signerAcc.GetPubKey(),
-	//	Data:     &sigData,
-	//	Sequence: signerAcc.GetSequence(),
-	//}
+	output, err = ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
+	require.NoError(t, err)
+	t.Logf("output: %s", output)
 
+	err = testutil.WaitForBlocks(ctx, 1, xion)
+	require.NoError(t, err)
+	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, int64(10_000-1337), newBalance)
 }
