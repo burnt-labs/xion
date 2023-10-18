@@ -1,8 +1,11 @@
 # docker build . -t cosmwasm/xiond:latest
 # docker run --rm -it cosmwasm/xiond:latest /bin/sh
 FROM golang:1.19-alpine3.17 AS go-builder
-ARG arch=x86_64
-ENV WASMVM_VERSION=v1.3.0
+  ARG arch=x86_64
+
+  ENV WASMVM_VERSION=v1.3.0
+  ENV WASMVM_CHECKSUM_AARCH64=b1610f9c8ad8bdebf5b8f819f71d238466f83521c74a2deb799078932e862722
+  ENV WASMVM_CHECKSUM_x86_64=b4aad4480f9b4c46635b4943beedbb72c929eab1d1b9467fe3b43e6dbf617e32
 
   # this comes from standard alpine nightly file
   #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
@@ -27,8 +30,8 @@ ENV WASMVM_VERSION=v1.3.0
   # See https://github.com/CosmWasm/wasmvm/releases
   ADD https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.aarch64.a /lib/libwasmvm_muslc.aarch64.a
   ADD https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
-  RUN sha256sum /lib/libwasmvm_muslc.aarch64.a | grep b1610f9c8ad8bdebf5b8f819f71d238466f83521c74a2deb799078932e862722
-  RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep b4aad4480f9b4c46635b4943beedbb72c929eab1d1b9467fe3b43e6dbf617e32
+  RUN sha256sum /lib/libwasmvm_muslc.aarch64.a | grep ${WASMVM_CHECKSUM_AARCH64}
+  RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep ${WASMVM_CHECKSUM_x86_64}
 
   # Copy the library you want to the final location that will be found by the linker flag `-lwasmvm_muslc`
   RUN cp -vf /lib/libwasmvm_muslc.${arch}.a /lib/libwasmvm_muslc.a
