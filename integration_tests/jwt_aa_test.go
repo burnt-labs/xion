@@ -6,9 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	xionapp "github.com/burnt-labs/xion/app"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"os"
 	"path"
 	"testing"
@@ -16,8 +13,13 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	xionapp "github.com/burnt-labs/xion/app"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/golang-jwt/jwt/v4"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -61,6 +63,8 @@ func TestXionDeployContract(t *testing.T) {
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
 	)
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
 	// prepare the JWT key and data
 	fp, err := os.Getwd()
@@ -301,7 +305,7 @@ func TestXionDeployContract(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
-	err = testutil.WaitForBlocks(ctx, 1, xion)
+	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
