@@ -17,14 +17,16 @@ FROM golang:1.19-alpine3.17 AS go-builder
   # RUN apk add libusb-dev linux-headers
 
   WORKDIR /code
+  COPY go.mod /code/
+  COPY go.sum /code/
+  RUN go mod download
+
   COPY ./.git /code/.git
   COPY ./app /code/app
   COPY ./cmd /code/cmd
   COPY ./contrib /code/contrib
   COPY ./proto /code/proto
   COPY ./x /code/x
-  COPY go.mod /code/
-  COPY go.sum /code/
   COPY Makefile /code/
 
   # See https://github.com/CosmWasm/wasmvm/releases
@@ -45,13 +47,8 @@ FROM golang:1.19-alpine3.17 AS go-builder
     && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.17 AS localdev
-
+FROM alpine:3.17 AS xion-dev
   COPY --from=go-builder /code/build/xiond /usr/bin/xiond
-
-  COPY ./docker/local-config /xion/config
-  COPY ./docker/entrypoint.sh /root/entrypoint.sh
-  RUN chmod +x /root/entrypoint.sh
 
   # rest server
   EXPOSE 1317
@@ -64,9 +61,34 @@ FROM alpine:3.17 AS localdev
   # tendermint prometheus
   EXPOSE 26660
 
-  VOLUME [ "/xion/data" ]
+  RUN mkdir /xion
 
-  CMD ["/root/entrypoint.sh"]
+  RUN set -euxo pipefail \
+    && apk add --no-cache \
+    bash \
+    curl \
+    htop \
+    jq \
+    lz4 \
+    tini
+
+  RUN set -euxo pipefail \
+    && addgroup -S xiond \
+    && adduser \
+       --disabled-password \
+       --gecos xiond \
+       --ingroup xiond \
+       xiond
+
+  RUN set -eux \
+    && chown -R xiond:xiond /home/xiond \
+    && chown -R xiond:xiond /xion
+
+  USER xiond:xiond
+
+  COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
+
+  CMD ["/home/xiond/entrypoint.sh"]
 
 # --------------------------------------------------------
 FROM alpine:3.17 AS xion-release

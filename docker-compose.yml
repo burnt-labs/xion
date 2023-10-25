@@ -5,10 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: localdev
+      target: xion-dev
     platform: linux/amd64
     volumes:
-      - testnet-data:/xion/data
+      - testnet-data:/xion/
     ports:
       - "1317:1317"
       - "26656:26656"

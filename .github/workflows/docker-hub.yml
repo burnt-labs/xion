@@ -39,12 +39,24 @@ jobs:
             type=semver,pattern={{version}},priority=1000
             type=sha,priority=700
 
-      - name: Build and push docker image
+      - name: Build and push release docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          target: xion-release
+
+      - name: Build and push local dev docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags:
+            - ${{ steps.meta.outputs.tags }}-local-dev
+            - local-dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: xion-release
