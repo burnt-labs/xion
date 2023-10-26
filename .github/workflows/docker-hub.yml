@@ -54,7 +54,17 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}-dev,dev
+          tags: dev
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          target: xion-dev
+
+      - name: Build and push local dev docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}-dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: xion-dev
