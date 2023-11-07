@@ -42,6 +42,9 @@ if [[ ! -f $HOME_DIRECTORY/data/priv_validator_state.json ]]; then
 
   # Bind API to all the network interfaces.
   sed -i '/\[rpc\]/,+3 s/laddr = "tcp\:\/\/127.0.0.1:26657"/laddr = "tcp\:\/\/0.0.0.0:26657"/' $HOME_DIRECTORY/config/config.toml;
+
+  # Expand CORS to be accessible from anywhere.
+  sed -i '/\[rpc\]/,+8 s/cors_allowed_origins = \[\]/cors_allowed_origins = ["*"]/' $HOME_DIRECTORY/config/config.toml;
 fi
 
 xiond start --trace --home $HOME_DIRECTORY
