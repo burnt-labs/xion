@@ -77,8 +77,11 @@ func TestXionAbstractAccount(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	fp, err := os.Getwd()
+	require.NoError(t, err)
+
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), "./testdata/contracts/account_updatable-aarch64.wasm")
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
