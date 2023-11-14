@@ -134,6 +134,9 @@ test-integration:
 test-integration-aa:
 	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionAbstractAccount -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
 
+test-integration-send:
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionSendPlatformFee -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
+
 test-integration-min:
 	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run  TestXionMinimumFee -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
