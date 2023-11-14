@@ -4,11 +4,13 @@ go 1.19
 
 require (
 	cosmossdk.io/math v1.1.2
+	github.com/CosmWasm/wasmd v0.43.0
 	github.com/burnt-labs/xion v0.1.0
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/cosmos/ibc-go/v7 v7.3.0
 	github.com/docker/docker v24.0.4+incompatible
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
+	github.com/larry0x/abstract-account v0.0.0-20230708200055-2ea462db913f
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.0-20230721183422-fb937bb0e165
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.24.0
@@ -34,6 +36,7 @@ require (
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/ChainSafe/go-schnorrkel/1 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/ComposableFi/go-subkey/v2 v2.0.0-tm03420 // indirect
+	github.com/CosmWasm/wasmvm v1.4.1 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect

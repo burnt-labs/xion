@@ -40,6 +40,84 @@ type TestData struct {
 	client    *client.Client
 }
 
+func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
+	msg := fmt.Sprintf(`
+{
+  "body": {
+    "messages": [
+      {
+        "@type": "/cosmos.bank.v1beta1.MsgSend",
+        "from_address": "%s",
+        "to_address": "%s",
+        "amount": [
+          {
+            "denom": "%s",
+            "amount": "100000"
+          }
+        ]
+      }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
+	`, from, to, denom)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
+func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey string) []byte {
+	msg := fmt.Sprintf(`
+{
+  "body": {
+    "messages": [
+      {
+        "@type": "/cosmwasm.wasm.v1.MsgExecuteContract",
+        "sender": "%s",
+        "contract": "%s",
+        "msg": {
+          "update_pubkey": {
+            "new_pubkey": "%s"
+          }
+        },
+        "funds": []
+      }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
+	`, sender, contract, pubkey)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
 func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
@@ -423,4 +501,37 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 		return "", err
 	}
 	return output.TxHash, nil
+}
+
+func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	output, _, err := tn.ExecQuery(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
+}
+
+func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	output, _, err := tn.ExecBin(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	fmt.Printf("%+s\n", output)
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
+}
+
+func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
+
+	content, err := os.ReadFile(file.Name())
+	if err != nil {
+		return err
+	}
+	path := strings.Split(file.Name(), "/")
+	return tn.WriteFile(ctx, content, path[len(path)-1])
 }
