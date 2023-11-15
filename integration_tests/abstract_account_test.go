@@ -81,21 +81,36 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
+
+	authenticatorDetails := map[string]string{}
+
+	authenticator := map[string]interface{}{}
+	authenticator["Ed25519"] = authenticatorDetails
+
+	instantiateMsg := map[string]interface{}{}
+	instantiateMsg["id"] = 0
+	instantiateMsg["authenticator"] = authenticator
+
+	instantiateMsg["signature"] = []byte(output) // TODO: add signature ??
+	instantiateMsgStr, err := json.Marshal(instantiateMsg)
+	require.NoError(t, err)
+	t.Logf("inst msg: %s", string(instantiateMsgStr))
 
 	// Register Abstract Account Using Public Key
 	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"abstract-account", "register",
 		codeID,
-		fmt.Sprintf(`{"pubkey": "%s"}`, account["key"]),
+		string(instantiateMsgStr),
 		"--funds", depositedFunds,
 		"--salt", "foo",
 		"--chain-id", xion.Config().ChainID,
 	)
+	require.NoError(t, err)
 
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
 	require.NoError(t, err)
