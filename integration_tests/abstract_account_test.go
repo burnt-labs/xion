@@ -1,7 +1,6 @@
 package integration_tests
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -119,14 +118,11 @@ func TestXionAbstractAccount(t *testing.T) {
 	t.Logf("public key: %s", publicKeyJSON)
 
 	// sha256 the contract addr, as it expects
-	signatureBz := sha256.Sum256(predictedAddr)
-	signature, err := privateKey.Sign(predictedAddr[:])
+	signature, err := privateKey.Sign([]byte(predictedAddr.String()))
 	require.NoError(t, err)
 
-	t.Logf("sha256 predicted Addr: %s", signatureBz)
-	t.Logf("signature: %s", signatureBz)
 	// Check if it's verifiable
-	require.True(t, publicKey.VerifySignature(predictedAddr[:], signature[:]))
+	require.True(t, publicKey.VerifySignature([]byte(predictedAddr.String()), signature[:]))
 
 	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["pubkey"] = publicKey.Bytes()
@@ -163,7 +159,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.Equal(t, uint64(100000), uint64(contractBalance))
 
 	/*
-			NOTE: Ideally we would use this metod, however the QueryContract formats the string making it harder to predict.
+			NOTE: Ideally we would use this method, however the QueryContract formats the string making it harder to predict.
 		var ContractResponse interface{}
 			require.NoError(t, xion.QueryContract(ctx, aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`), ContractResponse))
 	*/
