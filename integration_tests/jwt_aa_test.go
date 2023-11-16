@@ -72,7 +72,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	// deploy the contract
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		path.Join(fp, "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -103,7 +103,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile("./testdata/keys/jwtRS256.key")
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)

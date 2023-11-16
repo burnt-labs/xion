@@ -1,6 +1,8 @@
 package integration_tests
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,8 +16,10 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -29,6 +33,9 @@ func TestXionAbstractAccount(t *testing.T) {
 	t.Parallel()
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
+
+	config := types.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
 
 	// Register All messages we are interacting.
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
@@ -84,18 +91,53 @@ func TestXionAbstractAccount(t *testing.T) {
 	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
+	// retrieve the hash
+	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+		"wasm", "code-info", codeID)
+	require.NoError(t, err)
+	t.Logf("code response: %s", codeResp)
+
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
-	authenticatorDetails := map[string]string{}
+	// predict the contract address so it can be verified
+	salt := "0"
+	creatorAddr := types.AccAddress(xionUser.Address())
+	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+	require.NoError(t, err)
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+	t.Logf("predicted address: %s", predictedAddr.String())
+
+	// Testdata create private key
+	// CREATE PRIVATE KEY
+	// USE PRIVATE KEY TO SIGN PRECOMPUTE ADDRESS
+	// BUILD MESSAGE WITH NEW SIGNATURE
+	privateKey := secp256k1.GenPrivKey()
+	publicKey := privateKey.PubKey()
+	publicKeyJSON, err := json.Marshal(publicKey)
+	require.NoError(t, err)
+	t.Logf("private key: %s", privateKey)
+	t.Logf("public key: %s", publicKeyJSON)
+
+	// sha256 the contract addr, as it expects
+	signatureBz := sha256.Sum256(predictedAddr)
+	signature, err := privateKey.Sign(signatureBz[:])
+	require.NoError(t, err)
+
+	t.Logf("sha256 predicted Addr: %s", signatureBz)
+	t.Logf("signature: %s", signatureBz)
+	// Check if it's verifiable
+	require.True(t, publicKey.VerifySignature(signatureBz[:], signature[:]))
+
+	authenticatorDetails := map[string]interface{}{}
+	authenticatorDetails["pubkey"] = publicKey.Bytes()
 
 	authenticator := map[string]interface{}{}
-	authenticator["Ed25519"] = authenticatorDetails
-
+	authenticator["Secp256K1"] = authenticatorDetails
 	instantiateMsg := map[string]interface{}{}
 	instantiateMsg["id"] = 0
 	instantiateMsg["authenticator"] = authenticator
 
-	instantiateMsg["signature"] = []byte(output) // TODO: add signature ??
+	instantiateMsg["signature"] = signature
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 	t.Logf("inst msg: %s", string(instantiateMsgStr))
@@ -107,7 +149,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		codeID,
 		string(instantiateMsgStr),
 		"--funds", depositedFunds,
-		"--salt", "foo",
+		"--salt", "0",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
