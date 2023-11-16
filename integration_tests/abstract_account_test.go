@@ -120,13 +120,13 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	// sha256 the contract addr, as it expects
 	signatureBz := sha256.Sum256(predictedAddr)
-	signature, err := privateKey.Sign(signatureBz[:])
+	signature, err := privateKey.Sign(predictedAddr[:])
 	require.NoError(t, err)
 
 	t.Logf("sha256 predicted Addr: %s", signatureBz)
 	t.Logf("signature: %s", signatureBz)
 	// Check if it's verifiable
-	require.True(t, publicKey.VerifySignature(signatureBz[:], signature[:]))
+	require.True(t, publicKey.VerifySignature(predictedAddr[:], signature[:]))
 
 	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["pubkey"] = publicKey.Bytes()
