@@ -152,6 +152,7 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
 	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
 	aaContractAddr := GetAAContractAddress(t, txDetails)
 
 	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
@@ -164,7 +165,7 @@ func TestXionAbstractAccount(t *testing.T) {
 			require.NoError(t, xion.QueryContract(ctx, aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`), ContractResponse))
 	*/
 
-	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`))
+	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
 	require.NoError(t, err)
 
 	pubkey, ok := contractState["data"].(string)

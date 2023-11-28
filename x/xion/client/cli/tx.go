@@ -24,8 +24,11 @@ import (
 )
 
 const (
-	FlagSplit = "split"
-	signMode  = signing.SignMode_SIGN_MODE_DIRECT
+	FlagSplit         = "split"
+	signMode          = signing.SignMode_SIGN_MODE_DIRECT
+	flagSalt          = "salt"
+	flagFunds         = "funds"
+	flagAuthenticator = "authenticator"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
@@ -42,6 +45,7 @@ func NewTxCmd() *cobra.Command {
 		NewSendTxCmd(),
 		NewMultiSendTxCmd(),
 		NewSignCmd(),
+		NewRegisterCmd(),
 	)
 
 	return txCmd
@@ -154,6 +158,94 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 
 	cmd.Flags().Bool(FlagSplit, false, "Send the equally split token amount to each address")
 	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewRegisterCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "register [keyname] [code-id] [authenticator-id] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required]",
+		Short: "Register an abstract account",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			/*
+					if err := cmd.Flags().Set(flags.FlagFrom, args[0]); err != nil {
+						return err
+					}
+
+					clientCtx, err := client.GetClientTxContext(cmd)
+					if err != nil {
+						return err
+					}
+
+					codeID, err := strconv.ParseUint(args[0], 10, 64)
+					if err != nil {
+						return err
+					}
+
+					authenticatorID, err := strconv.ParseUint(args[1], 10, 64)
+					if err != nil {
+						return err
+					}
+
+					salt, err := cmd.Flags().GetString(flagSalt)
+					if err != nil {
+						return fmt.Errorf("salt: %s", err)
+					}
+
+					amountStr, err := cmd.Flags().GetString(flagFunds)
+					if err != nil {
+						return fmt.Errorf("amount: %s", err)
+					}
+
+					authenticatorType, err := cmd.Flags().GetString(flagAuthenticator)
+					if err != nil {
+						return fmt.Errorf("amount: %s", err)
+					}
+
+					amount, err := sdk.ParseCoinsNormalized(amountStr)
+					if err != nil {
+						return fmt.Errorf("amount: %s", err)
+					}
+
+					/*
+						authenticatorDetails := map[string]interface{}{}
+						authenticatorDetails["pubkey"] = publicKey.Bytes() // TODO: get public key
+
+						authenticator := map[string]interface{}{}
+						authenticator[authenticatorType] = authenticatorDetails // TODO: pass in authenticator types
+						instantiateMsg := map[string]interface{}{}
+						instantiateMsg["id"] = authenticatorID
+						instantiateMsg["authenticator"] = authenticator
+
+						instantiateMsg["signature"] = signature
+						instantiateMsgStr, err := json.Marshal(instantiateMsg)
+						if err != nil {
+							return fmt.Errorf("error signing contract msg : %s", err)
+						}
+
+						msg := &aatypes.MsgRegisterAccount{
+							Sender: clientCtx.GetFromAddress().String(),
+							CodeID: codeID,
+							Msg:    []byte(string(instantiateMsgStr)),
+							Funds:  amount,
+							Salt:   []byte(salt),
+						}
+
+						if err := msg.ValidateBasic(); err != nil {
+							return err
+						}
+				return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			*/
+			return nil
+		},
+		SilenceUsage: true,
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	cmd.Flags().String(flagSalt, "", "Salt value used in determining account address")
+	cmd.Flags().String(flagFunds, "", "Coins to send to the account during instantiation")
 
 	return cmd
 }
