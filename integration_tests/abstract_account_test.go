@@ -1,7 +1,6 @@
 package integration_tests
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -15,10 +14,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -82,6 +79,11 @@ func TestXionAbstractAccount(t *testing.T) {
 		"-p",
 	)
 	require.NoError(t, err)
+	t.Log("Funded Account:")
+	for k, v := range account {
+		t.Logf("[%s]: %v", k, v)
+	}
+	t.Logf("[Address]:%s", xionUser.FormattedAddress())
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)
@@ -98,53 +100,70 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
-	// predict the contract address so it can be verified
-	salt := "0"
-	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
-	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
-	t.Logf("predicted address: %s", predictedAddr.String())
+	// NOTE: 1HERE
+	/*
+		// predict the contract address so it can be verified
+		salt := "0"
+		creatorAddr := types.AccAddress(xionUser.Address())
+		codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+		require.NoError(t, err)
+		predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+		t.Logf("predicted address: %s", predictedAddr.String())
 
-	// Testdata create private key
-	// CREATE PRIVATE KEY
-	// USE PRIVATE KEY TO SIGN PRECOMPUTE ADDRESS
-	// BUILD MESSAGE WITH NEW SIGNATURE
-	privateKey := secp256k1.GenPrivKey()
-	publicKey := privateKey.PubKey()
-	publicKeyJSON, err := json.Marshal(publicKey)
-	require.NoError(t, err)
-	t.Logf("private key: %s", privateKey)
-	t.Logf("public key: %s", publicKeyJSON)
+		// Testdata create private key
+		// CREATE PRIVATE KEY
+		// USE PRIVATE KEY TO SIGN PRECOMPUTE ADDRESS
+		// BUILD MESSAGE WITH NEW SIGNATURE
+		privateKey := secp256k1.GenPrivKey()
+		publicKey := privateKey.PubKey()
+		publicKeyJSON, err := json.Marshal(publicKey)
+		require.NoError(t, err)
+		t.Logf("private key: %s", privateKey)
+		t.Logf("public key: %s", publicKeyJSON)
 
-	// sha256 the contract addr, as it expects
-	signature, err := privateKey.Sign([]byte(predictedAddr.String()))
-	require.NoError(t, err)
+		// sha256 the contract addr, as it expects
+		signature, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), []byte(predictedAddr.String()))
+		require.NoError(t, err)
 
-	// Check if it's verifiable
-	require.True(t, publicKey.VerifySignature([]byte(predictedAddr.String()), signature[:]))
+		// Check if it's verifiable
+		require.True(t, publicKey.VerifySignature([]byte(predictedAddr.String()), signature[:]))
 
-	authenticatorDetails := map[string]interface{}{}
-	authenticatorDetails["pubkey"] = publicKey.Bytes()
+		authenticatorDetails := map[string]interface{}{}
+		authenticatorDetails["pubkey"] = publicKey.Bytes()
 
-	authenticator := map[string]interface{}{}
-	authenticator["Secp256K1"] = authenticatorDetails
-	instantiateMsg := map[string]interface{}{}
-	instantiateMsg["id"] = 0
-	instantiateMsg["authenticator"] = authenticator
+		authenticator := map[string]interface{}{}
+		authenticator["Secp256K1"] = authenticatorDetails
+		instantiateMsg := map[string]interface{}{}
+		instantiateMsg["id"] = 0
+		instantiateMsg["authenticator"] = authenticator
 
-	instantiateMsg["signature"] = signature
-	instantiateMsgStr, err := json.Marshal(instantiateMsg)
-	require.NoError(t, err)
-	t.Logf("inst msg: %s", string(instantiateMsgStr))
+		instantiateMsg["signature"] = signature
+		instantiateMsgStr, err := json.Marshal(instantiateMsg)
+		require.NoError(t, err)
+		t.Logf("inst msg: %s", string(instantiateMsgStr))
 
-	// Register Abstract Account Using Public Key
+		// Register Abstract Account Using Public Key
+		registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+			xionUser.KeyName(),
+			"abstract-account", "register",
+			codeID,
+			string(instantiateMsgStr),
+			"--funds", depositedFunds,
+			"--salt", "0",
+			"--chain-id", xion.Config().ChainID,
+		)
+		require.NoError(t, err)
+	*/
+	// NOTE: TO HERE
+
 	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
-		"abstract-account", "register",
+		"xion", "register",
 		codeID,
-		string(instantiateMsgStr),
+		"0",
+		xionUser.KeyName(),
 		"--funds", depositedFunds,
+		"--authenticator", "Secp256K1",
 		"--salt", "0",
 		"--chain-id", xion.Config().ChainID,
 	)
@@ -158,12 +177,6 @@ func TestXionAbstractAccount(t *testing.T) {
 	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, uint64(100000), uint64(contractBalance))
-
-	/*
-			NOTE: Ideally we would use this method, however the QueryContract formats the string making it harder to predict.
-		var ContractResponse interface{}
-			require.NoError(t, xion.QueryContract(ctx, aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`), ContractResponse))
-	*/
 
 	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
 	require.NoError(t, err)

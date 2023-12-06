@@ -2,10 +2,15 @@ package cli
 
 import (
 	"context"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -164,79 +169,94 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 
 func NewRegisterCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register [keyname] [code-id] [authenticator-id] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required]",
+		Use:   "register [code-id] [authenticator-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required]",
 		Short: "Register an abstract account",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.MaximumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			/*
-					if err := cmd.Flags().Set(flags.FlagFrom, args[0]); err != nil {
-						return err
-					}
+			if err := cmd.Flags().Set(flags.FlagFrom, args[2]); err != nil {
+				return err
+			}
 
-					clientCtx, err := client.GetClientTxContext(cmd)
-					if err != nil {
-						return err
-					}
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-					codeID, err := strconv.ParseUint(args[0], 10, 64)
-					if err != nil {
-						return err
-					}
+			codeID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
 
-					authenticatorID, err := strconv.ParseUint(args[1], 10, 64)
-					if err != nil {
-						return err
-					}
+			authenticatorID, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
 
-					salt, err := cmd.Flags().GetString(flagSalt)
-					if err != nil {
-						return fmt.Errorf("salt: %s", err)
-					}
+			salt, err := cmd.Flags().GetString(flagSalt)
+			if err != nil {
+				return fmt.Errorf("salt: %s", err)
+			}
 
-					amountStr, err := cmd.Flags().GetString(flagFunds)
-					if err != nil {
-						return fmt.Errorf("amount: %s", err)
-					}
+			amountStr, err := cmd.Flags().GetString(flagFunds)
+			if err != nil {
+				return fmt.Errorf("amount: %s", err)
+			}
 
-					authenticatorType, err := cmd.Flags().GetString(flagAuthenticator)
-					if err != nil {
-						return fmt.Errorf("amount: %s", err)
-					}
+			authenticatorType, err := cmd.Flags().GetString(flagAuthenticator)
+			if err != nil {
+				return fmt.Errorf("authenticator: %s", err)
+			}
 
-					amount, err := sdk.ParseCoinsNormalized(amountStr)
-					if err != nil {
-						return fmt.Errorf("amount: %s", err)
-					}
+			amount, err := sdk.ParseCoinsNormalized(amountStr)
+			if err != nil {
+				return fmt.Errorf("amount: %s", err)
+			}
+			queryClient := wasmtypes.NewQueryClient(clientCtx)
 
-					/*
-						authenticatorDetails := map[string]interface{}{}
-						authenticatorDetails["pubkey"] = publicKey.Bytes() // TODO: get public key
+			codeResp, err := queryClient.Code(
+				context.Background(),
+				&wasmtypes.QueryCodeRequest{
+					CodeId: codeID,
+				},
+			)
+			creatorAddr := sdk.AccAddress(clientCtx.GetFromAddress())
+			codeHash, err := hex.DecodeString(codeResp.DataHash.String())
+			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
-						authenticator := map[string]interface{}{}
-						authenticator[authenticatorType] = authenticatorDetails // TODO: pass in authenticator types
-						instantiateMsg := map[string]interface{}{}
-						instantiateMsg["id"] = authenticatorID
-						instantiateMsg["authenticator"] = authenticator
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()))
+			if err != nil {
+				return fmt.Errorf("error signing predicted address : %s\n", err)
+			}
 
-						instantiateMsg["signature"] = signature
-						instantiateMsgStr, err := json.Marshal(instantiateMsg)
-						if err != nil {
-							return fmt.Errorf("error signing contract msg : %s", err)
-						}
+			authenticatorDetails := map[string]interface{}{}
+			authenticatorDetails["pubkey"] = pubKey.Bytes()
 
-						msg := &aatypes.MsgRegisterAccount{
-							Sender: clientCtx.GetFromAddress().String(),
-							CodeID: codeID,
-							Msg:    []byte(string(instantiateMsgStr)),
-							Funds:  amount,
-							Salt:   []byte(salt),
-						}
+			authenticator := map[string]interface{}{}
+			authenticator[authenticatorType] = authenticatorDetails // TODO: pass in authenticator types
+			instantiateMsg := map[string]interface{}{}
+			instantiateMsg["id"] = authenticatorID
+			instantiateMsg["authenticator"] = authenticator
 
-						if err := msg.ValidateBasic(); err != nil {
-							return err
-						}
-				return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-			*/
+			instantiateMsg["signature"] = signature
+			instantiateMsgStr, err := json.Marshal(instantiateMsg)
+			if err != nil {
+				return fmt.Errorf("error signing contract msg : %s", err)
+			}
+
+			msg := &aatypes.MsgRegisterAccount{
+				Sender: clientCtx.GetFromAddress().String(),
+				CodeID: codeID,
+				Msg:    []byte(string(instantiateMsgStr)),
+				Funds:  amount,
+				Salt:   []byte(salt),
+			}
+
+			//fmt.Printf("pubkey: %s\n publicKey:? %s", pubKey.Bytes(), pubKey.String())
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 			return nil
 		},
 		SilenceUsage: true,
@@ -245,6 +265,7 @@ func NewRegisterCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	cmd.Flags().String(flagSalt, "", "Salt value used in determining account address")
+	cmd.Flags().String(flagAuthenticator, "", "Authenticator type: Seckp256K1|JWT")
 	cmd.Flags().String(flagFunds, "", "Coins to send to the account during instantiation")
 
 	return cmd
@@ -352,6 +373,23 @@ func NewSignCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func getAccount(queryClient authtypes.QueryClient, address string) (*authtypes.BaseAccount, error) {
+	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: address})
+	if err != nil {
+		return nil, err
+	}
+	if res.Account.TypeUrl != typeURL((*authtypes.BaseAccount)(nil)) {
+		return nil, fmt.Errorf("address %s is not an BaseAccount", address)
+	}
+
+	var acc = &authtypes.BaseAccount{}
+	if err = proto.Unmarshal(res.Account.Value, acc); err != nil {
+		return nil, err
+	}
+
+	return acc, nil
 }
 
 func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
