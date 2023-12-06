@@ -11,11 +11,6 @@ import (
 	"net/url"
 )
 
-//func (k Keeper) QueryVerifyRegisterCredential(c context.Context) {
-//
-//	credential, err := types.VerifyRegistration()
-//}
-
 var _ types.QueryServer = Keeper{}
 
 func (k Keeper) WebAuthNVerifyRegister(_ context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (*types.QueryWebAuthNVerifyRegisterResponse, error) {

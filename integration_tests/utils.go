@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
+
 	"math/rand"
 	"os"
 	"strconv"
@@ -14,9 +16,8 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/icza/dyno"
-
 	"github.com/docker/docker/client"
+	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -505,6 +506,7 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 
 func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
 	jsonRes := make(map[string]interface{})
+	t.Logf("querying with cmd: %s", command)
 	output, _, err := tn.ExecQuery(ctx, command...)
 	if err != nil {
 		return jsonRes, err
@@ -526,6 +528,19 @@ func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName st
 	return jsonRes, nil
 }
 
+func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
+	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
+		return "", err
+	}
+
+	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"))
+
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), err
+}
 func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
 
 	content, err := os.ReadFile(file.Name())
