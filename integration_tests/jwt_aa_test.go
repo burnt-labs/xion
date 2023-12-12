@@ -72,7 +72,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	// deploy the contract
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
