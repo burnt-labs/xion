@@ -29,11 +29,12 @@ import (
 )
 
 const (
-	FlagSplit         = "split"
-	signMode          = signing.SignMode_SIGN_MODE_DIRECT
-	flagSalt          = "salt"
-	flagFunds         = "funds"
-	flagAuthenticator = "authenticator"
+	FlagSplit           = "split"
+	signMode            = signing.SignMode_SIGN_MODE_DIRECT
+	flagSalt            = "salt"
+	flagFunds           = "funds"
+	flagAuthenticator   = "authenticator"
+	flagAuthenticatorID = "authenticator-id"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
@@ -169,11 +170,11 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 
 func NewRegisterCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register [code-id] [authenticator-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required]",
+		Use:   "register [code-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required] --authenticator-id [uint8]",
 		Short: "Register an abstract account",
-		Args:  cobra.MaximumNArgs(3),
+		Args:  cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := cmd.Flags().Set(flags.FlagFrom, args[2]); err != nil {
+			if err := cmd.Flags().Set(flags.FlagFrom, args[1]); err != nil {
 				return err
 			}
 
@@ -187,7 +188,7 @@ func NewRegisterCmd() *cobra.Command {
 				return err
 			}
 
-			authenticatorID, err := strconv.ParseUint(args[1], 10, 64)
+			authenticatorID, err := cmd.Flags().GetUint8(flagAuthenticatorID)
 			if err != nil {
 				return err
 			}
@@ -228,11 +229,10 @@ func NewRegisterCmd() *cobra.Command {
 				return fmt.Errorf("error signing predicted address : %s\n", err)
 			}
 
+			authenticator := map[string]interface{}{}
 			authenticatorDetails := map[string]interface{}{}
 			authenticatorDetails["pubkey"] = pubKey.Bytes()
-
-			authenticator := map[string]interface{}{}
-			authenticator[authenticatorType] = authenticatorDetails // TODO: pass in authenticator types
+			authenticator[authenticatorType] = authenticatorDetails
 			instantiateMsg := map[string]interface{}{}
 			instantiateMsg["id"] = authenticatorID
 			instantiateMsg["authenticator"] = authenticator
@@ -251,8 +251,6 @@ func NewRegisterCmd() *cobra.Command {
 				Salt:   []byte(salt),
 			}
 
-			//fmt.Printf("pubkey: %s\n publicKey:? %s", pubKey.Bytes(), pubKey.String())
-
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -267,6 +265,7 @@ func NewRegisterCmd() *cobra.Command {
 	cmd.Flags().String(flagSalt, "", "Salt value used in determining account address")
 	cmd.Flags().String(flagAuthenticator, "", "Authenticator type: Seckp256K1|JWT")
 	cmd.Flags().String(flagFunds, "", "Coins to send to the account during instantiation")
+	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
 
 	return cmd
 }
@@ -287,22 +286,26 @@ func NewSignCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			authenticatorID, err := cmd.Flags().GetUint8(flagAuthenticatorID)
+			if err != nil {
+				return err
+			}
 
 			txBz, err := os.ReadFile(args[1])
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			stdTx, err := clientCtx.TxConfig.TxJSONDecoder()(txBz)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
-			queryClient := authtypes.NewQueryClient(clientCtx) // TODO: determine if the ClientCtx has a qurey client
+			queryClient := authtypes.NewQueryClient(clientCtx)
 
 			signerAcc, err := getSignerOfTx(queryClient, stdTx)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			signerData := authsigning.SignerData{
@@ -324,7 +327,7 @@ func NewSignCmd() *cobra.Command {
 			}
 
 			sig := signing.SignatureV2{
-				PubKey:   signerAcc.GetPubKey(), // NOTE: NilPubKey
+				PubKey:   signerAcc.GetPubKey(),
 				Data:     &sigData,
 				Sequence: signerAcc.GetSequence(),
 			}
@@ -337,11 +340,12 @@ func NewSignCmd() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			sigBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
+			signedBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
 			if err != nil {
 				panic(err)
 			}
 
+			sigBytes := append([]byte{authenticatorID}, signedBytes...)
 			sigData = signing.SingleSignatureData{
 				SignMode:  signMode,
 				Signature: sigBytes,
@@ -371,7 +375,7 @@ func NewSignCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-
+	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
 	return cmd
 }
 
