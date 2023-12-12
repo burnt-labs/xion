@@ -22,7 +22,7 @@ import (
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
-type jsonauthenticator map[string]map[string]string
+type jsonAuthenticator map[string]map[string]string
 
 func TestXionAbstractAccount(t *testing.T) {
 	if testing.Short() {
@@ -131,7 +131,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.True(t, ok)
 	pubkeyRawJSON, err := base64.StdEncoding.DecodeString(pubkey64)
 	require.NoError(t, err)
-	var pubKeyMap jsonauthenticator
+	var pubKeyMap jsonAuthenticator
 	json.Unmarshal(pubkeyRawJSON, &pubKeyMap)
 	require.Equal(t, account["key"], pubKeyMap["Secp256K1"]["pubkey"])
 
@@ -207,7 +207,7 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	updatedPubKeyRawJSON, err := base64.StdEncoding.DecodeString(updatedPubKey)
 	require.NoError(t, err)
-	var updatedPubKeyMap jsonauthenticator
+	var updatedPubKeyMap jsonAuthenticator
 
 	json.Unmarshal(updatedPubKeyRawJSON, &updatedPubKeyMap)
 	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
