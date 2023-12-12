@@ -103,7 +103,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	privateKeyBz, err := os.ReadFile("./testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
