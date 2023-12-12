@@ -1,6 +1,7 @@
 package integration_tests
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -21,6 +22,8 @@ import (
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
+type jsonAuthenticator map[string]map[string]string
+
 func TestXionAbstractAccount(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
@@ -29,6 +32,9 @@ func TestXionAbstractAccount(t *testing.T) {
 	t.Parallel()
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
+
+	config := types.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
 
 	// Register All messages we are interacting.
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
@@ -76,6 +82,10 @@ func TestXionAbstractAccount(t *testing.T) {
 		"-p",
 	)
 	require.NoError(t, err)
+	t.Log("Funded Account:")
+	for k, v := range account {
+		t.Logf("[%s]: %v", k, v)
+	}
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)
@@ -84,39 +94,46 @@ func TestXionAbstractAccount(t *testing.T) {
 	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
+	// retrieve the hash
+	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+		"wasm", "code-info", codeID)
+	require.NoError(t, err)
+	t.Logf("code response: %s", codeResp)
+
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
-	// Register Abstract Account Using Public Key
 	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
-		"abstract-account", "register",
+		"xion", "register",
 		codeID,
-		fmt.Sprintf(`{"pubkey": "%s"}`, account["key"]),
+		xionUser.KeyName(),
 		"--funds", depositedFunds,
-		"--salt", "foo",
+		"--authenticator", "Secp256K1",
+		"--salt", "0",
+		"--authenticator-id", "0",
 		"--chain-id", xion.Config().ChainID,
 	)
+	require.NoError(t, err)
 
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
 	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
 	aaContractAddr := GetAAContractAddress(t, txDetails)
 
 	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, uint64(100000), uint64(contractBalance))
 
-	/*
-			NOTE: Ideally we would use this metod, however the QueryContract formats the string making it harder to predict.
-		var ContractResponse interface{}
-			require.NoError(t, xion.QueryContract(ctx, aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`), ContractResponse))
-	*/
-
-	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`))
+	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
 	require.NoError(t, err)
 
-	pubkey, ok := contractState["data"].(string)
+	pubkey64, ok := contractState["data"].(string)
 	require.True(t, ok)
-	require.Equal(t, account["key"], pubkey)
+	pubkeyRawJSON, err := base64.StdEncoding.DecodeString(pubkey64)
+	require.NoError(t, err)
+	var pubKeyMap jsonAuthenticator
+	json.Unmarshal(pubkeyRawJSON, &pubKeyMap)
+	require.Equal(t, account["key"], pubKeyMap["Secp256K1"]["pubkey"])
 
 	// Generate Msg Send without signatures
 	jsonMsg := RawJSONMsgSend(t, aaContractAddr, recipientKeyAddress, xion.Config().Denom)
@@ -182,12 +199,18 @@ func TestXionAbstractAccount(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"pubkey":{}}`))
+	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
 	require.NoError(t, err)
 
 	updatedPubKey, ok := updatedContractstate["data"].(string)
 	require.True(t, ok)
-	require.Equal(t, account["key"], updatedPubKey)
+
+	updatedPubKeyRawJSON, err := base64.StdEncoding.DecodeString(updatedPubKey)
+	require.NoError(t, err)
+	var updatedPubKeyMap jsonAuthenticator
+
+	json.Unmarshal(updatedPubKeyRawJSON, &updatedPubKeyMap)
+	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
 
 }
 

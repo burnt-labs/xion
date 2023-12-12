@@ -522,7 +522,6 @@ func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName st
 	if err != nil {
 		return jsonRes, err
 	}
-	fmt.Printf("%+s\n", output)
 	require.NoError(t, json.Unmarshal(output, &jsonRes))
 
 	return jsonRes, nil
