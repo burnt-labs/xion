@@ -270,7 +270,7 @@ func NewRegisterCmd() *cobra.Command {
 	return cmd
 }
 
-// NewSendTxCmd returns a CLI command handler for creating a MsgSend transaction.
+// NewSignCmd returns a CLI command to sign a Tx with the Smart Contract Account signer
 func NewSignCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sign [keyname] [path/to/tx.json]",
