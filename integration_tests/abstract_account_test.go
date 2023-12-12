@@ -102,62 +102,6 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
-	// NOTE: 1HERE
-	/*
-		// predict the contract address so it can be verified
-		salt := "0"
-		creatorAddr := types.AccAddress(xionUser.Address())
-		codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
-		require.NoError(t, err)
-		predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
-		t.Logf("predicted address: %s", predictedAddr.String())
-
-		// Testdata create private key
-		// CREATE PRIVATE KEY
-		// USE PRIVATE KEY TO SIGN PRECOMPUTE ADDRESS
-		// BUILD MESSAGE WITH NEW SIGNATURE
-		privateKey := secp256k1.GenPrivKey()
-		publicKey := privateKey.PubKey()
-		publicKeyJSON, err := json.Marshal(publicKey)
-		require.NoError(t, err)
-		t.Logf("private key: %s", privateKey)
-		t.Logf("public key: %s", publicKeyJSON)
-
-		// sha256 the contract addr, as it expects
-		signature, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), []byte(predictedAddr.String()))
-		require.NoError(t, err)
-
-		// Check if it's verifiable
-		require.True(t, publicKey.VerifySignature([]byte(predictedAddr.String()), signature[:]))
-
-		authenticatorDetails := map[string]interface{}{}
-		authenticatorDetails["pubkey"] = publicKey.Bytes()
-
-		authenticator := map[string]interface{}{}
-		authenticator["Secp256K1"] = authenticatorDetails
-		instantiateMsg := map[string]interface{}{}
-		instantiateMsg["id"] = 0
-		instantiateMsg["authenticator"] = authenticator
-
-		instantiateMsg["signature"] = signature
-		instantiateMsgStr, err := json.Marshal(instantiateMsg)
-		require.NoError(t, err)
-		t.Logf("inst msg: %s", string(instantiateMsgStr))
-
-		// Register Abstract Account Using Public Key
-		registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
-			xionUser.KeyName(),
-			"abstract-account", "register",
-			codeID,
-			string(instantiateMsgStr),
-			"--funds", depositedFunds,
-			"--salt", "0",
-			"--chain-id", xion.Config().ChainID,
-		)
-		require.NoError(t, err)
-	*/
-	// NOTE: TO HERE
-
 	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"xion", "register",
