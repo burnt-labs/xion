@@ -71,6 +71,7 @@ jobs:
         - "MintModuleNoInflationNoFees"
         - "MintModuleInflationHighFees"
         - "MintModuleInflationLowFees"
+        - "JWTAbstractAccount"
         - "XionSendPlatformFee"
         - "XionAbstractAccount"
 
