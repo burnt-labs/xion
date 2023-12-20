@@ -2,10 +2,15 @@ package cli
 
 import (
 	"context"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -24,8 +29,12 @@ import (
 )
 
 const (
-	FlagSplit = "split"
-	signMode  = signing.SignMode_SIGN_MODE_DIRECT
+	FlagSplit           = "split"
+	signMode            = signing.SignMode_SIGN_MODE_DIRECT
+	flagSalt            = "salt"
+	flagFunds           = "funds"
+	flagAuthenticator   = "authenticator"
+	flagAuthenticatorID = "authenticator-id"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
@@ -42,6 +51,7 @@ func NewTxCmd() *cobra.Command {
 		NewSendTxCmd(),
 		NewMultiSendTxCmd(),
 		NewSignCmd(),
+		NewRegisterCmd(),
 	)
 
 	return txCmd
@@ -158,7 +168,109 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 	return cmd
 }
 
-// NewSendTxCmd returns a CLI command handler for creating a MsgSend transaction.
+func NewRegisterCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "register [code-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required] --authenticator-id [uint8]",
+		Short: "Register an abstract account",
+		Args:  cobra.MaximumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := cmd.Flags().Set(flags.FlagFrom, args[1]); err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			codeID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			authenticatorID, err := cmd.Flags().GetUint8(flagAuthenticatorID)
+			if err != nil {
+				return err
+			}
+
+			salt, err := cmd.Flags().GetString(flagSalt)
+			if err != nil {
+				return fmt.Errorf("salt: %s", err)
+			}
+
+			amountStr, err := cmd.Flags().GetString(flagFunds)
+			if err != nil {
+				return fmt.Errorf("amount: %s", err)
+			}
+
+			authenticatorType, err := cmd.Flags().GetString(flagAuthenticator)
+			if err != nil {
+				return fmt.Errorf("authenticator: %s", err)
+			}
+
+			amount, err := sdk.ParseCoinsNormalized(amountStr)
+			if err != nil {
+				return fmt.Errorf("amount: %s", err)
+			}
+			queryClient := wasmtypes.NewQueryClient(clientCtx)
+
+			codeResp, err := queryClient.Code(
+				context.Background(),
+				&wasmtypes.QueryCodeRequest{
+					CodeId: codeID,
+				},
+			)
+			creatorAddr := sdk.AccAddress(clientCtx.GetFromAddress())
+			codeHash, err := hex.DecodeString(codeResp.DataHash.String())
+			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()))
+			if err != nil {
+				return fmt.Errorf("error signing predicted address : %s\n", err)
+			}
+
+			authenticator := map[string]interface{}{}
+			authenticatorDetails := map[string]interface{}{}
+			authenticatorDetails["pubkey"] = pubKey.Bytes()
+			authenticator[authenticatorType] = authenticatorDetails
+			instantiateMsg := map[string]interface{}{}
+			instantiateMsg["id"] = authenticatorID
+			instantiateMsg["authenticator"] = authenticator
+
+			instantiateMsg["signature"] = signature
+			instantiateMsgStr, err := json.Marshal(instantiateMsg)
+			if err != nil {
+				return fmt.Errorf("error signing contract msg : %s", err)
+			}
+
+			msg := &aatypes.MsgRegisterAccount{
+				Sender: clientCtx.GetFromAddress().String(),
+				CodeID: codeID,
+				Msg:    []byte(string(instantiateMsgStr)),
+				Funds:  amount,
+				Salt:   []byte(salt),
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			return nil
+		},
+		SilenceUsage: true,
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	cmd.Flags().String(flagSalt, "", "Salt value used in determining account address")
+	cmd.Flags().String(flagAuthenticator, "", "Authenticator type: Seckp256K1|JWT")
+	cmd.Flags().String(flagFunds, "", "Coins to send to the account during instantiation")
+	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
+
+	return cmd
+}
+
+// NewSignCmd returns a CLI command to sign a Tx with the Smart Contract Account signer
 func NewSignCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sign [keyname] [path/to/tx.json]",
@@ -174,22 +286,26 @@ func NewSignCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			authenticatorID, err := cmd.Flags().GetUint8(flagAuthenticatorID)
+			if err != nil {
+				return err
+			}
 
 			txBz, err := os.ReadFile(args[1])
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			stdTx, err := clientCtx.TxConfig.TxJSONDecoder()(txBz)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
-			queryClient := authtypes.NewQueryClient(clientCtx) // TODO: determine if the ClientCtx has a qurey client
+			queryClient := authtypes.NewQueryClient(clientCtx)
 
 			signerAcc, err := getSignerOfTx(queryClient, stdTx)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			signerData := authsigning.SignerData{
@@ -211,7 +327,7 @@ func NewSignCmd() *cobra.Command {
 			}
 
 			sig := signing.SignatureV2{
-				PubKey:   signerAcc.GetPubKey(), // NOTE: NilPubKey
+				PubKey:   signerAcc.GetPubKey(),
 				Data:     &sigData,
 				Sequence: signerAcc.GetSequence(),
 			}
@@ -224,11 +340,12 @@ func NewSignCmd() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			sigBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
+			signedBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
 			if err != nil {
 				panic(err)
 			}
 
+			sigBytes := append([]byte{authenticatorID}, signedBytes...)
 			sigData = signing.SingleSignatureData{
 				SignMode:  signMode,
 				Signature: sigBytes,
@@ -258,8 +375,25 @@ func NewSignCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-
+	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
 	return cmd
+}
+
+func getAccount(queryClient authtypes.QueryClient, address string) (*authtypes.BaseAccount, error) {
+	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: address})
+	if err != nil {
+		return nil, err
+	}
+	if res.Account.TypeUrl != typeURL((*authtypes.BaseAccount)(nil)) {
+		return nil, fmt.Errorf("address %s is not an BaseAccount", address)
+	}
+
+	var acc = &authtypes.BaseAccount{}
+	if err = proto.Unmarshal(res.Account.Value, acc); err != nil {
+		return nil, err
+	}
+
+	return acc, nil
 }
 
 func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
