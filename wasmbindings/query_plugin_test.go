@@ -52,7 +52,7 @@ func (suite *StargateTestSuite) TestStargateQuerier() {
 
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyRegisterRequest{
 					Addr:      "cosmos1fl48vsnmsdzcv85q5d2q4z5ajdha8yu34mf0eh",
-					Rp:        "xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+					Rp:        "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
 					Challenge: "dGVzdC1jaGFsbGVuZ2U",
 					Data:      []byte(`{"type":"public-key","id":"8ofgr8BFk_HalAiGi6tBxAJez4d7lq0iVi7Gi7_SN5E","rawId":"8ofgr8BFk_HalAiGi6tBxAJez4d7lq0iVi7Gi7_SN5E","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZEdWemRDMWphR0ZzYkdWdVoyVSIsIm9yaWdpbiI6Imh0dHBzOi8veGlvbi1kYXBwLWV4YW1wbGUtZ2l0LWZlYXQtZmFjZWlkLWJ1cm50ZmluYW5jZS52ZXJjZWwuYXBwIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQ","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1BAAAAAK3OAAI1vMYKZIsLJfHwVQMAIPKH4K_ARZPx2pQIhourQcQCXs-He5atIlYuxou_0jeRpQECAyYgASFYILbJBGn3gOiKXecsLGRvLfOEVic9KiQJ55Tbz5BBNFffIlggSrIMryGmxIEl9p1z0uXvuPnH-T7GMeF_hrwJS6bWMKQ","transports":["internal"]},"clientExtensionResults":{}}`),
 				})
