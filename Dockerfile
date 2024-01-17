@@ -19,7 +19,7 @@ FROM golang:1.19-alpine3.17 AS go-builder
   WORKDIR /code
   COPY go.mod /code/
   COPY go.sum /code/
-  RUN go mod download
+  RUN go mod download -x
 
   COPY ./.git /code/.git
   COPY ./app /code/app
