@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package xion.jwk.v1;
+
+import "xion/jwk/v1/audience.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/jwk/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc CreateAudience (MsgCreateAudience) returns (MsgCreateAudienceResponse);
+  rpc UpdateAudience (MsgUpdateAudience) returns (MsgUpdateAudienceResponse);
+  rpc DeleteAudience (MsgDeleteAudience) returns (MsgDeleteAudienceResponse);
+}
+message MsgCreateAudience {
+  string admin = 1;
+  string aud   = 2;
+  string key   = 3;
+}
+
+message MsgCreateAudienceResponse {}
+
+message MsgUpdateAudience {
+  string admin = 1;
+  string aud   = 2;
+  string key   = 3;
+}
+
+message MsgUpdateAudienceResponse {}
+
+message MsgDeleteAudience {
+  string admin = 1;
+  string aud   = 2;
+}
+
+message MsgDeleteAudienceResponse {}
+

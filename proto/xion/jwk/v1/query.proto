@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package xion.jwk.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "xion/jwk/v1/params.proto";
+import "xion/jwk/v1/audience.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/jwk/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  
+  // Parameters queries the parameters of the module.
+  rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/jwk/jwk/params";
+  
+  }
+  
+  // Queries a list of Audience items.
+  rpc Audience    (QueryGetAudienceRequest) returns (QueryGetAudienceResponse) {
+    option (google.api.http).get = "/jwk/jwk/audience/{aud}";
+  
+  }
+  rpc AudienceAll (QueryAllAudienceRequest) returns (QueryAllAudienceResponse) {
+    option (google.api.http).get = "/jwk/jwk/audience";
+  
+  }
+  
+  // Queries a list of ValidateJWT items.
+  rpc ValidateJWT (QueryValidateJWTRequest) returns (QueryValidateJWTResponse) {
+    option (google.api.http).get = "/jwk/jwk/validate_jwt/{aud}/{sub}/{sigBytes}/{txHash}";
+  
+  }
+}
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetAudienceRequest {
+  string aud = 1;
+}
+
+message QueryGetAudienceResponse {
+  Audience audience = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllAudienceRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllAudienceResponse {
+  repeated Audience                               audience   = 1 [(gogoproto.nullable) = false];
+           cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryValidateJWTRequest {
+  string aud      = 1;
+  string sub      = 2;
+  string sigBytes = 3;
+  string txHash   = 4;
+}
+
+message QueryValidateJWTResponse {}
+

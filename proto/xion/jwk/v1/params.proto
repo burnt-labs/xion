@@ -1,0 +1,14 @@
+syntax = "proto3";
+package xion.jwk.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/jwk/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  uint64 time_offset = 1; // in nanoseconds
+  uint64 deployment_gas = 2; // gas to deploy a new project/audience
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package xion.jwk.v1;
+
+import "gogoproto/gogo.proto";
+import "xion/jwk/v1/params.proto";
+import "xion/jwk/v1/audience.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/jwk/types";
+
+// GenesisState defines the jwk module's genesis state.
+message GenesisState {
+           Params   params       = 1 [(gogoproto.nullable) = false];
+  repeated Audience audienceList = 2 [(gogoproto.nullable) = false];
+}
+

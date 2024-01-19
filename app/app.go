@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/burnt-labs/xion/x/globalfee"
+	"github.com/burnt-labs/xion/x/jwk"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -232,6 +233,7 @@ var (
 		ibchooks.AppModuleBasic{},
 		packetforward.AppModuleBasic{},
 		feeabs.AppModuleBasic{},
+		jwk.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -250,6 +252,7 @@ var (
 		globalfee.ModuleName:           nil,
 		aatypes.ModuleName:             nil,
 		xiontypes.ModuleName:           nil,
+		jwttypes.ModuleName:            nil,
 		packetforwardtypes.ModuleName:  nil,
 		ibchookstypes.ModuleName:       nil,
 		feeabstypes.ModuleName:         nil,
