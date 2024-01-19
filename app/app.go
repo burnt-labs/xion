@@ -11,6 +11,8 @@ import (
 
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
+	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -252,7 +254,7 @@ var (
 		globalfee.ModuleName:           nil,
 		aatypes.ModuleName:             nil,
 		xiontypes.ModuleName:           nil,
-		jwttypes.ModuleName:            nil,
+		jwktypes.ModuleName:            nil,
 		packetforwardtypes.ModuleName:  nil,
 		ibchookstypes.ModuleName:       nil,
 		feeabstypes.ModuleName:         nil,
@@ -309,6 +311,7 @@ type WasmApp struct {
 	FeeAbsKeeper          feeabskeeper.Keeper
 
 	XionKeeper xionkeeper.Keeper
+	JwkKeeper  jwkkeeper.Keeper
 
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
@@ -365,6 +368,7 @@ func NewWasmApp(
 		wasmtypes.StoreKey, icahosttypes.StoreKey, aatypes.StoreKey,
 		icacontrollertypes.StoreKey, globalfee.StoreKey, xiontypes.StoreKey,
 		ibchookstypes.StoreKey, packetforwardtypes.StoreKey, feeabstypes.StoreKey,
+		jwktypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -583,6 +587,11 @@ func NewWasmApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	app.JwkKeeper = jwkkeeper.NewKeeper(
+		appCodec,
+		keys[jwktypes.StoreKey],
+		app.GetSubspace(xiontypes.ModuleName))
+
 	app.XionKeeper = xionkeeper.NewKeeper(
 		appCodec,
 		keys[xiontypes.StoreKey],
@@ -781,6 +790,7 @@ func NewWasmApp(
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		xion.NewAppModule(app.XionKeeper),
+		jwk.NewAppModule(appCodec, app.JwkKeeper),
 		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		aa.NewAppModule(app.AbstractAccountKeeper),
@@ -809,6 +819,7 @@ func NewWasmApp(
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
 		globalfee.ModuleName,
 		xiontypes.ModuleName,
+		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -831,6 +842,7 @@ func NewWasmApp(
 		consensusparamtypes.ModuleName,
 		globalfee.ModuleName,
 		xiontypes.ModuleName,
+		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -853,10 +865,13 @@ func NewWasmApp(
 	// genesis phase. For example bank transfer, auth account check, staking, ...
 	genesisModuleOrder := []string{
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
-		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName,
-		minttypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
-		feegrant.ModuleName, nft.ModuleName, group.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, consensusparamtypes.ModuleName, globalfee.ModuleName, xiontypes.ModuleName,
+		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName,
+		govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
+		genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
+		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
+		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
+		consensusparamtypes.ModuleName, globalfee.ModuleName, xiontypes.ModuleName,
+		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -1231,6 +1246,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(globalfee.ModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
+	paramsKeeper.Subspace(jwktypes.ModuleName)
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
