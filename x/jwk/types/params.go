@@ -19,7 +19,11 @@ func NewParams() Params {
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams()
+	params := NewParams()
+	params.DeploymentGas = 0
+	params.TimeOffset = 5 * 1000 // default to 5 seconds, assuming 3 second block
+
+	return params
 }
 
 // ParamSetPairs get the params.ParamSet

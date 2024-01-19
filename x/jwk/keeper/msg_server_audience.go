@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,6 +26,9 @@ func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAud
 		Aud:   msg.Aud,
 		Key:   msg.Key,
 	}
+
+	// extra gas consumed to dis-incentivize spamming
+	ctx.GasMeter().ConsumeGas(k.GetParams(ctx).DeploymentGas, fmt.Sprintf("gas for jwt verifier %s", msg.Aud))
 
 	k.SetAudience(
 		ctx,
