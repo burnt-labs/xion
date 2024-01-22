@@ -68,25 +68,34 @@ func TestJWTAbstractAccount(t *testing.T) {
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
-	// deploy the JWK to the module
+	// load the test private key
 	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
 	t.Logf("private key: %v", privateKey)
 
+	// log the test public key
 	publicKey, err := jwk.New(privateKey)
 	require.NoError(t, err)
 	publicKeyJSON, err := json.Marshal(publicKey)
 	require.NoError(t, err)
 	t.Logf("public key: %s", publicKeyJSON)
 
+	// build the jwk set and make it public
+	testKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
+	testSet := jwk.NewSet()
+	testSet.Add(testKey)
+	testPublicSet, err := jwk.PublicSetOf(testSet)
+	require.NoError(t, err)
+	testPublicSetJSON, err := json.Marshal(testPublicSet)
+
 	aud := "integration-test-project"
 	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"jwk", "create-audience",
 		aud,
-		string(publicKeyJSON),
+		string(testPublicSetJSON),
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)

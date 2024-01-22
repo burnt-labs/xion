@@ -8,5 +8,5 @@ import (
 
 // x/jwk module sentinel errors
 var (
-	ErrSample = sdkerrors.Register(ModuleName, 1100, "sample error")
+	ErrInvalidJWK = sdkerrors.Register(ModuleName, 1100, "invalid jwk")
 )

@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 const (
@@ -52,6 +53,12 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
+
+	_, err = jwk.ParseKey([]byte(msg.Key))
+	if err != nil {
+		return sdkerrors.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
+	}
+
 	return nil
 }
 
