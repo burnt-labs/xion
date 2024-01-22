@@ -82,20 +82,19 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("public key: %s", publicKeyJSON)
 
-	// build the jwk set and make it public
+	// build the jwk key
 	testKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
-	testSet := jwk.NewSet()
-	testSet.Add(testKey)
-	testPublicSet, err := jwk.PublicSetOf(testSet)
 	require.NoError(t, err)
-	testPublicSetJSON, err := json.Marshal(testPublicSet)
+	testKeyPublic, err := testKey.PublicKey()
+	require.NoError(t, err)
+	testPublicKeyJSON, err := json.Marshal(testKeyPublic)
 
 	aud := "integration-test-project"
 	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"jwk", "create-audience",
 		aud,
-		string(testPublicSetJSON),
+		string(testPublicKeyJSON),
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
