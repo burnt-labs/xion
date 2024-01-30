@@ -126,8 +126,8 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	var numValidators = 1
 
 	// pulling image from env to foster local dev
-	imageTag := os.Getenv("XION_IMAGE")
-	imageTagComponents := strings.Split(imageTag, ":")
+	// imageTag := os.Getenv("XION_IMAGE")
+	imageTagComponents := []string{"xion", "latest"}
 
 	// Chain factory
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{

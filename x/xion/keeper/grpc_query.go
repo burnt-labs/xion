@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/url"
+
 	"github.com/burnt-labs/xion/x/xion/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"net/url"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -54,9 +55,15 @@ func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.Que
 	}
 
 	data, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(request.Data))
+	if err != nil {
+		return nil, err
+	}
 
 	var credential webauthn.Credential
 	err = json.Unmarshal(request.Credential, &credential)
+	if err != nil {
+		return nil, err
+	}
 
 	_, err = types.VerifyAuthentication(rp, addr, request.Challenge, &credential, data)
 	if err != nil {

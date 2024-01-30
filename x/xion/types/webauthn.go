@@ -1,10 +1,11 @@
 package types
 
 import (
+	"net/url"
+
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"net/url"
 )
 
 type SmartContractUser struct {
