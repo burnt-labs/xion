@@ -21,6 +21,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 )
@@ -90,7 +91,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 
 	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["url"] = "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"
-	authenticatorDetails["credential"] = "eyJ0eXBlIjoicHVibGljLWtleSIsImlkIjoiLUhKMVFvak1mb2NyTXZBM0FtVThwdXVsc1pVIiwicmF3SWQiOiItSEoxUW9qTWZvY3JNdkEzQW1VOHB1dWxzWlUiLCJhdXRoZW50aWNhdG9yQXR0YWNobWVudCI6ImNyb3NzLXBsYXRmb3JtIiwicmVzcG9uc2UiOnsiY2xpZW50RGF0YUpTT04iOiJleUowZVhCbElqb2lkMlZpWVhWMGFHNHVZM0psWVhSbElpd2lZMmhoYkd4bGJtZGxJam9pWlVkc2RtSnFSbmxPV0doNVducEJNVTVFWkhSaVYyaHVUa2RHTUUxSGNIRk9NMUl3VDFScmVXUllTbnBhUkZreFpESndNbU16V2pKbFNGSnFZVWRTZEZwdGNIaFBSRnBzV2toR2VHRnRUVEpPTW5RMklpd2liM0pwWjJsdUlqb2lhSFIwY0hNNkx5OTRhVzl1TFdSaGNIQXRaWGhoYlhCc1pTMW5hWFF0Wm1WaGRDMW1ZV05sYVdRdFluVnliblJtYVc1aGJtTmxMblpsY21ObGJDNWhjSEFpTENKamNtOXpjMDl5YVdkcGJpSTZabUZzYzJWOSIsImF0dGVzdGF0aW9uT2JqZWN0IjoibzJObWJYUmtibTl1WldkaGRIUlRkRzEwb0doaGRYUm9SR0YwWVZpWXNHTUJpRGNFcHBpTWZ4UTEwVFBDZTItRmFLckxlVGt2cHp4Y3puZ1RNdzFkQUFBQUFQdjhNQWNWVGs3TWpBdHVBZ1ZYMTcwQUZQaHlkVUtJekg2SEt6THdOd0psUEticnBiR1ZwUUVDQXlZZ0FTRllJTjM0ajlZVldDcjRMZjRPeUkwckEtNGlzeTRuX3J0d0FwSkFqV211akZBQUlsZ2d5bFZXQ0YxNDJWY3d6ZHF5U2FhbGpCWER1azlxNks4REl3SXM3WE5kdkFRIiwidHJhbnNwb3J0cyI6WyJoeWJyaWQiLCJpbnRlcm5hbCJdfSwiY2xpZW50RXh0ZW5zaW9uUmVzdWx0cyI6e319"
+	authenticatorDetails["credential"] = "eyJ0eXBlIjoicHVibGljLWtleSIsImlkIjoieWlkaUs0Ump5SkdCeU82RnREaXNvaDYzN3E0eU8xWUZoZTd0QzctQ2Y0TSIsInJhd0lkIjoieWlkaUs0Ump5SkdCeU82RnREaXNvaDYzN3E0eU8xWUZoZTd0QzctQ2Y0TSIsImF1dGhlbnRpY2F0b3JBdHRhY2htZW50IjoicGxhdGZvcm0iLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVkzSmxZWFJsSWl3aVkyaGhiR3hsYm1kbElqb2laVWRzZG1KcVJqUmxhbXd5V2xjMWVscEhlR3hpU0dRMVpVZFdjVm95Vm5KaVIzaDBZbGR2TlZwWVl6Vmtla0p5Wkcxd00xcFVZekZqTWpGNFltcE9OV0pIYUdoYU0yUnhaVzF3ZW1OWFJUSmhNbFV6SWl3aWIzSnBaMmx1SWpvaWFIUjBjSE02THk5NGFXOXVMV1JoY0hBdFpYaGhiWEJzWlMxbmFYUXRabVZoZEMxbVlXTmxhV1F0WW5WeWJuUm1hVzVoYm1ObExuWmxjbU5sYkM1aGNIQWlMQ0pqY205emMwOXlhV2RwYmlJNlptRnNjMlY5IiwiYXR0ZXN0YXRpb25PYmplY3QiOiJvMk5tYlhSa2JtOXVaV2RoZEhSVGRHMTBvR2hoZFhSb1JHRjBZVmlrc0dNQmlEY0VwcGlNZnhRMTBUUENlMi1GYUtyTGVUa3Zwenhjem5nVE13MUJBQUFBQUszT0FBSTF2TVlLWklzTEpmSHdWUU1BSU1vbllpdUVZOGlSZ2NqdWhiUTRyS0lldC02dU1qdFdCWVh1N1F1X2duLURwUUVDQXlZZ0FTRllJQnR6UjFUbGNxWkdCYUgyRl81ZW15a0h2WnFFR2ZCQWJFSC1vNmMwNTRBR0lsZ2dCcUI1VmoyZVBjc3AxLUdvR0pkUWJVNFljYVRJSnpvc3Mza2NWVHhCZ1VJIiwidHJhbnNwb3J0cyI6WyJpbnRlcm5hbCJdfSwiY2xpZW50RXh0ZW5zaW9uUmVzdWx0cyI6e319"
 	authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
@@ -134,6 +135,8 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
+	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: 10_000})
+	require.NoError(t, err)
 	// create the raw tx
 	sendMsg := fmt.Sprintf(`
 	{
@@ -141,7 +144,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	   "messages": [
 	     {
 	       "@type": "/cosmos.bank.v1beta1.MsgSend",
-	       "from_address": "xion1z63j80gdeu0dcrlnc80w520347v6rfh4899s35qupyewv79hnjfqczcquh",
+	       "from_address": "%s",
 	       "to_address": "%s",
 	       "amount": [
 	         {
@@ -168,21 +171,19 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	 },
 	 "signatures": []
 	}
-		`, deployerAddr.FormattedAddress(), "uxion")
+		`, contract, deployerAddr.FormattedAddress(), "uxion")
 
 	tx, err := encodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)
 	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
-	testAcc := aatypes.AbstractAccount{Address: "xion1z63j80gdeu0dcrlnc80w520347v6rfh4899s35qupyewv79hnjfqczcquh",
-		AccountNumber: 40, Sequence: 0}
 	// create the sign bytes
 	signerData := authsigning.SignerData{
-		Address:       "xion1z63j80gdeu0dcrlnc80w520347v6rfh4899s35qupyewv79hnjfqczcquh",
-		ChainID:       "xion-local-testnet-1",
-		AccountNumber: 40,
-		Sequence:      0,
-		PubKey:        testAcc.GetPubKey(),
+		Address:       account.GetAddress().String(),
+		ChainID:       xion.Config().ChainID,
+		AccountNumber: account.GetAccountNumber(),
+		Sequence:      account.GetSequence(),
+		PubKey:        account.GetPubKey(),
 	}
 
 	sigData := signing.SingleSignatureData{
@@ -201,16 +202,13 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 
 	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
 	require.NoError(t, err)
-	t.Log("Sign bytes: ", signBytes)
 	// our signature is the sha256 of the signbytes
 	signatureBz := sha256.Sum256(signBytes)
-	t.Log("Sign hash: ", signatureBz)
 	challenge := base64.StdEncoding.EncodeToString(signatureBz[:])
 
 	t.Log("challenge ", challenge)
 
-	signedChallenge := "MEYCIQCp-oalKD6jeiA74nrPN3wFfLi8jD7z1T9dS1Vl-0yzzwIhANG2OIUXXS6gv2xF7yQOG_RLS0PV4PZSFRuBLXjABVxi"
-
+	signedChallenge := `{"type":"public-key","id":"yidiK4RjyJGByO6FtDisoh637q4yO1YFhe7tC7-Cf4M","rawId":"yidiK4RjyJGByO6FtDisoh637q4yO1YFhe7tC7-Cf4M","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiYkZWRlkweENXWE5TWkUwMU1pOU9hV2xMU1UxaFRrMVJha3RFUTBvNVVGaFliV1pFYUZwcksxRmFORDAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0BAAAAAA","signature":"MEYCIQCV_sVRJOeMetpROLx_dH-keRyXOJowjMLrlOq8lghTmgIhAOJV-10mMDtYrYdR6C_Ww5DgmFU0DTtzMI5_D4SJ3eKP","userHandle":"eGlvbjF4ejl2ZW5zZGxlbHd5eGVqZ2VrbGxtbWo5ZXc5dzBrdmp3ZTc1c21xbjN5bGhhZ3dqempzcWE2a2U3"},"clientExtensionResults":{}}`
 	// add the auth index to the signature
 	signedTokenBz := []byte(signedChallenge)
 	sigBytes := append([]byte{0}, signedTokenBz...)

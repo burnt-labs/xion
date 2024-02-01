@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	"github.com/burnt-labs/xion/x/xion/types"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
@@ -15,10 +14,6 @@ import (
 var _ types.QueryServer = Keeper{}
 
 func (k Keeper) WebAuthNVerifyRegister(_ context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (*types.QueryWebAuthNVerifyRegisterResponse, error) {
-	addr, err := sdktypes.AccAddressFromBech32(request.Addr)
-	if err != nil {
-		return nil, err
-	}
 
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
@@ -30,7 +25,7 @@ func (k Keeper) WebAuthNVerifyRegister(_ context.Context, request *types.QueryWe
 		return nil, err
 	}
 
-	credential, err := types.VerifyRegistration(rp, addr, request.Challenge, data)
+	credential, err := types.VerifyRegistration(rp, request.Addr, request.Challenge, data)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +39,6 @@ func (k Keeper) WebAuthNVerifyRegister(_ context.Context, request *types.QueryWe
 }
 
 func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (*types.QueryWebAuthNVerifyAuthenticateResponse, error) {
-	addr, err := sdktypes.AccAddressFromBech32(request.Addr)
-	if err != nil {
-		return nil, err
-	}
 
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
@@ -65,7 +56,7 @@ func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.Que
 		return nil, err
 	}
 
-	_, err = types.VerifyAuthentication(rp, addr, request.Challenge, &credential, data)
+	_, err = types.VerifyAuthentication(rp, request.Addr, request.Challenge, &credential, data)
 	if err != nil {
 		return nil, err
 	}
