@@ -262,8 +262,8 @@ github.com/btcsuite/btcd/btcec/v2 v2.3.2/go.mod h1:zYzJ8etWJQIv1Ogk7OzpWjowwOdXY
 github.com/btcsuite/btcd/btcutil v1.1.2 h1:XLMbX8JQEiwMcYft2EGi8zPUkoa0abKIU6/BJSRsjzQ=
 github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1 h1:q0rUy8C/TYNBQS1+CGKw68tLOFYSNEs0TFnxxnS9+4U=
 github.com/bufbuild/protocompile v0.4.0 h1:LbFKd2XowZvQ/kajzguUp2DC9UEIQhIq77fZZlaQsNA=
-github.com/burnt-labs/abstract-account v0.0.0-20230904175526-2716f00fddf3 h1:6FxpgV0kveYp9AESjIUIFWYwIhogX+zW43lNZ8ix0pA=
-github.com/burnt-labs/abstract-account v0.0.0-20230904175526-2716f00fddf3/go.mod h1:R+/UYwxE92VUFOWLyyuBa2RRI2lUwb9uHwRWDBrNzx0=
+github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee h1:04DdmDV4PnDOIyEeasOcu+fGDPzXpappY8Um8c+PSRI=
+github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee/go.mod h1:R+/UYwxE92VUFOWLyyuBa2RRI2lUwb9uHwRWDBrNzx0=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
