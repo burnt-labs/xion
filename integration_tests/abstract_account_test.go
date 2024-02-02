@@ -91,7 +91,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "testdata", "contracts", "account.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
