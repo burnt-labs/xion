@@ -91,7 +91,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "testdata", "contracts", "account.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -102,20 +102,31 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
-	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
-		xionUser.KeyName(),
-		"xion", "register",
-		codeID,
-		xionUser.KeyName(),
-		"--funds", depositedFunds,
-		"--authenticator", "Secp256K1",
-		"--salt", "0",
-		"--authenticator-id", "0",
-		"--chain-id", xion.Config().ChainID,
-	)
-	require.NoError(t, err)
+	instantiateMsg := map[string]interface{}{}
+	authenticatorDetails := map[string]interface{}{}
+	authenticator := map[string]interface{}{}
 
-	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
+	authenticatorDetails["id"] = 0
+	authenticatorDetails["pubkey"] = "Ayrlj6q3WWs91p45LVKwI8JyfMYNmWMrcDinLNEdWYE4"
+	authenticatorDetails["signature"] = "2NxI9Wzd3spFTPSpdqF6gmo2A8n3ptxviAIXrIu5BtAtBDjnccGw5GCJ98Dlz1l6rLsziwvJmyLYo70F7uRbvg=="
+
+	authenticator["Secp256K1"] = authenticatorDetails
+	instantiateMsg["authenticator"] = authenticator
+
+	instantiateMsgStr, err := json.Marshal(instantiateMsg)
+	require.NoError(t, err)
+	registerCmd := []string{
+		"abstract-account", "register",
+		codeID, string(instantiateMsgStr),
+		"--salt", "0",
+		"--funds", depositedFunds,
+		"--chain-id", xion.Config().ChainID,
+	}
+	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], xionUser.KeyName(), registerCmd...)
+	require.NoError(t, err)
+	t.Logf("tx hash: %s", txHash)
+
+	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", txHash)
 	require.NoError(t, err)
 	t.Logf("TxDetails: %s", txDetails)
 	aaContractAddr := GetAAContractAddress(t, txDetails)
@@ -124,7 +135,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(100000), uint64(contractBalance))
 
-	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
+	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
 	require.NoError(t, err)
 
 	pubkey64, ok := contractState["data"].(string)
@@ -199,7 +210,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
+	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
 	require.NoError(t, err)
 
 	updatedPubKey, ok := updatedContractstate["data"].(string)
