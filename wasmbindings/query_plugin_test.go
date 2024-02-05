@@ -51,10 +51,10 @@ func (suite *StargateTestSuite) TestStargateQuerier() {
 			requestData: func() []byte {
 
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyRegisterRequest{
-					Addr:      "cosmos1fl48vsnmsdzcv85q5d2q4z5ajdha8yu34mf0eh",
+					Addr:      "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
 					Rp:        "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-					Challenge: "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
-					Data:      []byte(`{"type":"public-key","id":"Y5qXLhNUfi-TmYV9E2l36qyLnYq7hO1DT3XaOehwp1I","rawId":"Y5qXLhNUfi-TmYV9E2l36qyLnYq7hO1DT3XaOehwp1I","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoieGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2V9","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1BAAAAAK3OAAI1vMYKZIsLJfHwVQMAIGOaly4TVH4vk5mFfRNpd-qsi52Ku4TtQ0912jnocKdSpQECAyYgASFYIEIHixFtOvjC8f3Xxh2DYeZK6c7Q0KT_zoU9Dur84xDmIlgglPmfOQBRNbG8yEjYcQMrfywvQ0zwPDOGODTpMSQ6g3M","transports":["internal"]},"clientExtensionResults":{}}`),
+					Challenge: "eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6",
+					Data:      []byte(`{"type":"public-key","id":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","rawId":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRjViblUxZW5VM04zQnFlWFZxT1hWbFpYQnhkekIyZG1WeE1tWndaREo0Y0RacVozZ3djemR0TW5Kc1kyZDFlR3hrZUhaeE9HRnJlbkI2Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2V9","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1BAAAAAK3OAAI1vMYKZIsLJfHwVQMAIMtM1EEDJ3ZLP8IeJ2mjUS_z2SThYMLrGzti2FVYR72YpQECAyYgASFYIP00VX-FAxs2eClWYI-wgmmBwSt5qPduwIC6JqaVeEwwIlggzFwyKvRH0UvJTLzZQa0fKPr0gCdbT2A-nuNa0Jcp1_k","transports":["internal"]},"clientExtensionResults":{}}`),
 				})
 				suite.Require().NoError(err)
 				return bz
@@ -67,11 +67,11 @@ func (suite *StargateTestSuite) TestStargateQuerier() {
 			requestData: func() []byte {
 
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyAuthenticateRequest{
-					Addr:       "cosmos1fl48vsnmsdzcv85q5d2q4z5ajdha8yu34mf0eh",
-					Challenge:  "PTrMlb8KaP0oPO7DNqdjD6mbe10096D4",
+					Addr:       "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
+					Challenge:  "eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6",
 					Rp:         "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-					Credential: []byte(`{"ID":"Y5qXLhNUfi+TmYV9E2l36qyLnYq7hO1DT3XaOehwp1I=","PublicKey":"pQECAyYgASFYIEIHixFtOvjC8f3Xxh2DYeZK6c7Q0KT/zoU9Dur84xDmIlgglPmfOQBRNbG8yEjYcQMrfywvQ0zwPDOGODTpMSQ6g3M=","AttestationType":"none","Transport":["internal"],"Flags":{"UserPresent":true,"UserVerified":false,"BackupEligible":false,"BackupState":false},"Authenticator":{"AAGUID":"rc4AAjW8xgpkiwsl8fBVAw==","SignCount":0,"CloneWarning":false,"Attachment":"platform"}}`),
-					Data:       []byte(`{"type":"public-key","id":"Y5qXLhNUfi-TmYV9E2l36qyLnYq7hO1DT3XaOehwp1I","rawId":"Y5qXLhNUfi-TmYV9E2l36qyLnYq7hO1DT3XaOehwp1I","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiUFRyTWxiOEthUDBvUE83RE5xZGpENm1iZTEwMDk2RDQiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZX0=","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0BAAAAAA","signature":"MEUCIQDW5_exyssyAzpDJUJ_eTDMij9u4KgBPth82fSDB85jQwIgdAk3TUcCAZtOB7PHEWECMorxG41e-cyzAbjOouRquYg"},"clientExtensionResults":{}}`),
+					Credential: []byte(`{"ID":"y0zUQQMndks/wh4naaNRL/PZJOFgwusbO2LYVVhHvZg=","PublicKey":"pQECAyYgASFYIP00VX+FAxs2eClWYI+wgmmBwSt5qPduwIC6JqaVeEwwIlggzFwyKvRH0UvJTLzZQa0fKPr0gCdbT2A+nuNa0Jcp1/k=","AttestationType":"none","Transport":["internal"],"Flags":{"UserPresent":true,"UserVerified":false,"BackupEligible":false,"BackupState":false},"Authenticator":{"AAGUID":"rc4AAjW8xgpkiwsl8fBVAw==","SignCount":0,"CloneWarning":false,"Attachment":"platform"}}`),
+					Data:       []byte(`{"type":"public-key","id":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","rawId":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiZUdsdmJqRjViblUxZW5VM04zQnFlWFZxT1hWbFpYQnhkekIyZG1WeE1tWndaREo0Y0RacVozZ3djemR0TW5Kc1kyZDFlR3hrZUhaeE9HRnJlbkI2Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2UsIm90aGVyX2tleXNfY2FuX2JlX2FkZGVkX2hlcmUiOiJkbyBub3QgY29tcGFyZSBjbGllbnREYXRhSlNPTiBhZ2FpbnN0IGEgdGVtcGxhdGUuIFNlZSBodHRwczovL2dvby5nbC95YWJQZXgifQ","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0BAAAAAA","signature":"MEUCIQC7pTqOWJ5zm40pJOr9W6Bi3xW27fs07mfr6LF_KSOUhgIgBDC3o0P1-7XjMsVFMLtI1a94i1-lkxwYN0W8T_bMxKs","userHandle":"eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6"},"clientExtensionResults":{}}`),
 				})
 				suite.Require().NoError(err)
 				return bz
