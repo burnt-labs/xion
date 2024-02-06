@@ -72,7 +72,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	// deploy the contract
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -84,15 +84,15 @@ func TestJWTAbstractAccount(t *testing.T) {
 	sub := "integration-test-user"
 	aud := "integration-test-project"
 
-	authenticatorDetails := map[string]string{}
+	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["sub"] = sub
 	authenticatorDetails["aud"] = aud
+	authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
 	authenticator["Jwt"] = authenticatorDetails
 
 	instantiateMsg := map[string]interface{}{}
-	instantiateMsg["id"] = 0
 	instantiateMsg["authenticator"] = authenticator
 
 	// predict the contract address so it can be verified
@@ -103,7 +103,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	privateKeyBz, err := os.ReadFile("./testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
@@ -140,7 +140,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("signed token: %s", output)
 
-	instantiateMsg["signature"] = []byte(output)
+	authenticatorDetails["token"] = []byte(output)
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 	t.Logf("inst msg: %s", string(instantiateMsgStr))

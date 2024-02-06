@@ -70,6 +70,7 @@ func init() {
 
 	// xion queries
 	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyRegister", &xiontypes.QueryWebAuthNVerifyRegisterResponse{})
+	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyAuthenticate", &xiontypes.QueryWebAuthNVerifyAuthenticateResponse{})
 
 }
 

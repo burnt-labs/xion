@@ -1,10 +1,11 @@
 package types_test
 
 import (
-	"github.com/dvsekhvalnov/jose2go/base64url"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/dvsekhvalnov/jose2go/base64url"
 
 	"github.com/burnt-labs/xion/x/xion/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -16,8 +17,7 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 	config := sdktypes.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
-	addr, err := sdktypes.AccAddressFromBech32("xion1cyyld62ly828e2xnp0c0ckpyz68wwfs26tjpscmqlaum2jcj8zdstlxvya")
-	require.NoError(t, err)
+	bec32Addr := "xion1cyyld62ly828e2xnp0c0ckpyz68wwfs26tjpscmqlaum2jcj8zdstlxvya"
 
 	rp, err := url.Parse("https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app")
 	require.NoError(t, err)
@@ -29,7 +29,7 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 	data, err := protocol.ParseCredentialCreationResponseBody(strings.NewReader(registerStr))
 	require.NoError(t, err)
 
-	cred, err := types.VerifyRegistration(rp, addr, challenge, data)
+	cred, err := types.VerifyRegistration(rp, bec32Addr, challenge, data)
 	require.NoError(t, err)
 
 	t.Logf("credential: %v", cred)
@@ -39,7 +39,7 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 	authData, err := protocol.ParseCredentialRequestResponseBody(strings.NewReader(authenticateStr))
 	require.NoError(t, err)
 
-	verified, err := types.VerifyAuthentication(rp, addr, challenge, cred, authData)
+	verified, err := types.VerifyAuthentication(rp, bec32Addr, challenge, cred, authData)
 	require.NoError(t, err)
 	require.True(t, verified)
 }

@@ -1,23 +1,24 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/types"
+	"net/url"
+
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
-	"net/url"
 )
 
 type SmartContractUser struct {
-	address    types.Address
+	address    string
 	credential *webauthn.Credential
 }
 
 func (s SmartContractUser) WebAuthnID() []byte {
-	return s.address.Bytes()
+
+	return []byte(s.address)
 }
 
 func (s SmartContractUser) WebAuthnName() string {
-	return s.address.String()
+	return s.address
 }
 
 func (s SmartContractUser) WebAuthnDisplayName() string {
@@ -34,7 +35,7 @@ func (s SmartContractUser) WebAuthnIcon() string {
 
 var _ webauthn.User = SmartContractUser{}
 
-func VerifyRegistration(rp *url.URL, contractAddr types.Address, challenge string, credentialCreationData *protocol.ParsedCredentialCreationData) (*webauthn.Credential, error) {
+func VerifyRegistration(rp *url.URL, contractAddr string, challenge string, credentialCreationData *protocol.ParsedCredentialCreationData) (*webauthn.Credential, error) {
 	config := webauthn.Config{
 		RPID:                   rp.Host,
 		RPDisplayName:          rp.String(),
@@ -57,7 +58,7 @@ func VerifyRegistration(rp *url.URL, contractAddr types.Address, challenge strin
 	return webAuthn.CreateCredential(smartContractUser, session, credentialCreationData)
 }
 
-func VerifyAuthentication(rp *url.URL, contractAddr types.Address, challenge string, credential *webauthn.Credential, credentialAssertionData *protocol.ParsedCredentialAssertionData) (bool, error) {
+func VerifyAuthentication(rp *url.URL, contractAddr string, challenge string, credential *webauthn.Credential, credentialAssertionData *protocol.ParsedCredentialAssertionData) (bool, error) {
 	config := webauthn.Config{
 		RPID:                   rp.Host,
 		RPDisplayName:          rp.String(),

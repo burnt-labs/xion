@@ -51,10 +51,27 @@ func (suite *StargateTestSuite) TestStargateQuerier() {
 			requestData: func() []byte {
 
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyRegisterRequest{
-					Addr:      "cosmos1fl48vsnmsdzcv85q5d2q4z5ajdha8yu34mf0eh",
+					Addr:      "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
 					Rp:        "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-					Challenge: "dGVzdC1jaGFsbGVuZ2U",
-					Data:      []byte(`{"type":"public-key","id":"8ofgr8BFk_HalAiGi6tBxAJez4d7lq0iVi7Gi7_SN5E","rawId":"8ofgr8BFk_HalAiGi6tBxAJez4d7lq0iVi7Gi7_SN5E","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZEdWemRDMWphR0ZzYkdWdVoyVSIsIm9yaWdpbiI6Imh0dHBzOi8veGlvbi1kYXBwLWV4YW1wbGUtZ2l0LWZlYXQtZmFjZWlkLWJ1cm50ZmluYW5jZS52ZXJjZWwuYXBwIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQ","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1BAAAAAK3OAAI1vMYKZIsLJfHwVQMAIPKH4K_ARZPx2pQIhourQcQCXs-He5atIlYuxou_0jeRpQECAyYgASFYILbJBGn3gOiKXecsLGRvLfOEVic9KiQJ55Tbz5BBNFffIlggSrIMryGmxIEl9p1z0uXvuPnH-T7GMeF_hrwJS6bWMKQ","transports":["internal"]},"clientExtensionResults":{}}`),
+					Challenge: "eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6",
+					Data:      []byte(`{"type":"public-key","id":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","rawId":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRjViblUxZW5VM04zQnFlWFZxT1hWbFpYQnhkekIyZG1WeE1tWndaREo0Y0RacVozZ3djemR0TW5Kc1kyZDFlR3hrZUhaeE9HRnJlbkI2Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2V9","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1BAAAAAK3OAAI1vMYKZIsLJfHwVQMAIMtM1EEDJ3ZLP8IeJ2mjUS_z2SThYMLrGzti2FVYR72YpQECAyYgASFYIP00VX-FAxs2eClWYI-wgmmBwSt5qPduwIC6JqaVeEwwIlggzFwyKvRH0UvJTLzZQa0fKPr0gCdbT2A-nuNa0Jcp1_k","transports":["internal"]},"clientExtensionResults":{}}`),
+				})
+				suite.Require().NoError(err)
+				return bz
+			},
+			responseProtoStruct: &xiontypes.QueryWebAuthNVerifyRegisterResponse{},
+		},
+		{
+			name: "WebAuthNVerifyAuthenticate",
+			path: "/xion.v1.Query/WebAuthNVerifyAuthenticate",
+			requestData: func() []byte {
+
+				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyAuthenticateRequest{
+					Addr:       "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
+					Challenge:  "eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6",
+					Rp:         "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+					Credential: []byte(`{"ID":"y0zUQQMndks/wh4naaNRL/PZJOFgwusbO2LYVVhHvZg=","PublicKey":"pQECAyYgASFYIP00VX+FAxs2eClWYI+wgmmBwSt5qPduwIC6JqaVeEwwIlggzFwyKvRH0UvJTLzZQa0fKPr0gCdbT2A+nuNa0Jcp1/k=","AttestationType":"none","Transport":["internal"],"Flags":{"UserPresent":true,"UserVerified":false,"BackupEligible":false,"BackupState":false},"Authenticator":{"AAGUID":"rc4AAjW8xgpkiwsl8fBVAw==","SignCount":0,"CloneWarning":false,"Attachment":"platform"}}`),
+					Data:       []byte(`{"type":"public-key","id":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","rawId":"y0zUQQMndks_wh4naaNRL_PZJOFgwusbO2LYVVhHvZg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiZUdsdmJqRjViblUxZW5VM04zQnFlWFZxT1hWbFpYQnhkekIyZG1WeE1tWndaREo0Y0RacVozZ3djemR0TW5Kc1kyZDFlR3hrZUhaeE9HRnJlbkI2Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2UsIm90aGVyX2tleXNfY2FuX2JlX2FkZGVkX2hlcmUiOiJkbyBub3QgY29tcGFyZSBjbGllbnREYXRhSlNPTiBhZ2FpbnN0IGEgdGVtcGxhdGUuIFNlZSBodHRwczovL2dvby5nbC95YWJQZXgifQ","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0BAAAAAA","signature":"MEUCIQC7pTqOWJ5zm40pJOr9W6Bi3xW27fs07mfr6LF_KSOUhgIgBDC3o0P1-7XjMsVFMLtI1a94i1-lkxwYN0W8T_bMxKs","userHandle":"eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6"},"clientExtensionResults":{}}`),
 				})
 				suite.Require().NoError(err)
 				return bz
