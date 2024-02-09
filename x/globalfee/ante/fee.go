@@ -2,6 +2,7 @@ package ante
 
 import (
 	"errors"
+	"fmt"
 
 	tmstrings "github.com/cometbft/cometbft/libs/strings"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -51,7 +52,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 
 	// Do not check minimum-gas-prices and global fees during simulations
 	// short-circuit bypass messages
-	if simulate || mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
+	if simulate || mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) { // TODO: change ContainsOnly to ensure only whitelisted msgs go through
 		return next(ctx, tx, simulate)
 	}
 
@@ -85,7 +86,14 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
-	return CombinedFeeRequirement(globalFees, localFees)
+	ls := localFees.String()
+	combined, err := CombinedFeeRequirement(globalFees, localFees)
+	cs := combined.String()
+	gs := globalFees.String()
+	fmt.Println(gs)
+	fmt.Println(ls)
+	fmt.Println(cs)
+	return combined, err
 }
 
 // GetGlobalFee returns the global fees for a given fee tx's gas
@@ -137,7 +145,8 @@ func (mfd FeeDecorator) getBondDenom(ctx sdk.Context) (bondDenom string) {
 func (mfd FeeDecorator) ContainsOnlyBypassMinFeeMsgs(ctx sdk.Context, msgs []sdk.Msg) bool {
 	bypassMsgTypes := mfd.GetBypassMsgTypes(ctx)
 	for _, msg := range msgs {
-		if tmstrings.StringInSlice(sdk.MsgTypeURL(msg), bypassMsgTypes) {
+		target := sdk.MsgTypeURL(msg)
+		if tmstrings.StringInSlice(target, bypassMsgTypes) {
 			continue
 		}
 		return false
