@@ -2,7 +2,6 @@ package ante
 
 import (
 	"errors"
-	"fmt"
 
 	tmstrings "github.com/cometbft/cometbft/libs/strings"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -86,14 +85,7 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
-	ls := localFees.String()
-	combined, err := CombinedFeeRequirement(globalFees, localFees)
-	cs := combined.String()
-	gs := globalFees.String()
-	fmt.Println(gs)
-	fmt.Println(ls)
-	fmt.Println(cs)
-	return combined, err
+	return CombinedFeeRequirement(globalFees, localFees)
 }
 
 // GetGlobalFee returns the global fees for a given fee tx's gas
