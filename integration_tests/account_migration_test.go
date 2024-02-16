@@ -368,7 +368,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	var contractMetadata wasmtypes.ContractInfo
 	err = json.Unmarshal(contractMetadataResp["contract_info"].([]byte), &contractMetadata)
 	require.NoError(t, err)
-	t.Logf("contract code id: %s", contractMetadata.CodeID)
+	t.Logf("contract code id: %d", contractMetadata.CodeID)
 
 	require.Equal(t, NEW_CODE_ID, contractMetadata.CodeID)
 }
