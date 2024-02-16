@@ -8,7 +8,7 @@ import (
 
 func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wasmViewKeeper wasmtypes.ViewKeeper, aaKeeper types.AbstractAccountKeeper) error {
 	const OriginalCodeId = 21
-	const NewCodeId = -1 // todo: set
+	const NewCodeId = 21 // todo: set
 
 	// the account contract should always be pinned
 	err := wasmOpsKeeper.PinCode(ctx, NewCodeId)
