@@ -83,6 +83,8 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
+	// todo: set the allowed code ID in the aa module params
+
 	sub := "integration-test-user"
 	aud := "integration-test-project"
 
@@ -329,7 +331,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	height, err := xion.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
-	haltHeight := height + haltHeightDelta - 3
+	haltHeight := height + haltHeightDelta
 
 	proposal := cosmos.SoftwareUpgradeProposal{
 		Deposit:     "500000000" + xion.Config().Denom, // greater than min deposit
@@ -371,4 +373,6 @@ func TestAbstractAccountMigration(t *testing.T) {
 	t.Logf("contract code id: %d", contractMetadata.CodeID)
 
 	require.Equal(t, NewCodeId, contractMetadata.CodeID)
+
+	// todo: validate that verification or tx submission still works
 }
