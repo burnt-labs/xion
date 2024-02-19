@@ -74,6 +74,7 @@ jobs:
         - "JWTAbstractAccount"
         - "XionSendPlatformFee"
         - "XionAbstractAccount"
+        - "AbstractAccountMigration"
 
     steps:
       - name: Set up Go 1.18

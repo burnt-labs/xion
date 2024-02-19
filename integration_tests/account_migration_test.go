@@ -359,7 +359,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 
 	// chain is upgraded. Check the contract is updated
 
-	NEW_CODE_ID := uint64(25)
+	NewCodeId := uint64(25)
 
 	// retrieve the new code ID
 	contractMetadataResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
@@ -370,5 +370,5 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("contract code id: %d", contractMetadata.CodeID)
 
-	require.Equal(t, NEW_CODE_ID, contractMetadata.CodeID)
+	require.Equal(t, NewCodeId, contractMetadata.CodeID)
 }
