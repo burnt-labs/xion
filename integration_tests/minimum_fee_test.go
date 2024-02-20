@@ -6,6 +6,7 @@ import (
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
@@ -60,4 +61,12 @@ func TestXionMinimumFee(t *testing.T) {
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, uint64(100), uint64(balance))
+
+	//TODO: increase minimum gas fee
+	coin := sdk.NewDecCoinFromDec("uxion", sdk.NewDec(1))
+	proposal := ParamChangeProposal(t, "globalfee", "MinimumGasPricesParam", coin.String(), "update-fee", "update-minimum-fee", "500000000"+xion.Config().Denom)
+	_, err = xion.ParamChangeProposal(ctx, xionUser.KeyName(), &proposal)
+	require.NoError(t, err)
+	//TODO: send msg that should be free
+	//TODO: send msg that should not be free
 }
