@@ -1,13 +1,11 @@
 package integration_tests
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"os"
 	"path"
 	"testing"
@@ -328,51 +326,6 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", newCodeResp)
 
-	height, err := xion.Height(ctx)
-	require.NoError(t, err, "error fetching height before submit upgrade proposal")
-
-	haltHeight := height + haltHeightDelta
-
-	proposal := cosmos.SoftwareUpgradeProposal{
-		Deposit:     "500000000" + xion.Config().Denom, // greater than min deposit
-		Title:       "Chain Upgrade 1",
-		Name:        "v4",
-		Description: "Account migration software upgrade",
-		Height:      haltHeight,
-	}
-
-	upgradeTx, err := xion.LegacyUpgradeProposal(ctx, xionUser.KeyName(), proposal)
-	require.NoError(t, err, "error submitting software upgrade proposal tx")
-
-	err = xion.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoError(t, err, "failed to submit votes")
-
-	_, err = cosmos.PollForProposalStatus(ctx, xion, height, height+haltHeightDelta, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
-
-	height, err = xion.Height(ctx)
-	require.NoError(t, err, "error fetching height before upgrade")
-
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
-	defer timeoutCtxCancel()
-
-	err = testutil.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), xion)
-	require.NoError(t, err, "chain did not produce blocks after upgrade")
-
-	// chain is upgraded. Check the contract is updated
-
-	NewCodeId := uint64(25)
-
-	// retrieve the new code ID
-	contractMetadataResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
-		"wasm", "contract", contract)
-	require.NoError(t, err)
-	var contractMetadata wasmtypes.ContractInfo
-	err = json.Unmarshal(contractMetadataResp["contract_info"].([]byte), &contractMetadata)
-	require.NoError(t, err)
-	t.Logf("contract code id: %d", contractMetadata.CodeID)
-
-	require.Equal(t, NewCodeId, contractMetadata.CodeID)
-
+	CosmosChainUpgradeIBCTest(t, "xion", "current", "xion", "upgrade", "v4")
 	// todo: validate that verification or tx submission still works
 }
