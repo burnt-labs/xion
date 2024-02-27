@@ -2,13 +2,14 @@ package v1
 
 import (
 	"fmt"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/xion/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wasmViewKeeper wasmtypes.ViewKeeper, aaKeeper types.AbstractAccountKeeper) error {
-	const NewCodeId = 21 // todo: set
+	const NewCodeId = 2 // todo: set
 
 	// get the previous account code ID
 	aaParams, err := aaKeeper.GetParams(ctx)
@@ -16,7 +17,7 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 		return err
 	}
 	if len(aaParams.AllowedCodeIDs) != 1 {
-		return fmt.Errorf("expected one allowed code id for abstract account")
+		return fmt.Errorf("expected one allowed code id for abstract account, got: %s", aaParams.AllowedCodeIDs)
 	}
 
 	originalCodeId := aaParams.AllowedCodeIDs[0]

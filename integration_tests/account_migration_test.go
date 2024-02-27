@@ -34,7 +34,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	config := types.GetConfig()
@@ -326,6 +326,19 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", newCodeResp)
 
-	CosmosChainUpgradeIBCTest(t, "xion", "current", "xion", "upgrade", "v4")
+	CosmosChainUpgradeIBCTest(t, &td, "xion", "current", "xion", "upgrade", "v4")
 	// todo: validate that verification or tx submission still works
+
+	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.FullNodes[0],
+		"wasm", "code-info", newCodeIDStr)
+	require.NoError(t, err)
+	t.Logf("code response: %s", newCodeResp)
+	t.Logf("code response: %+v", newCodeResp)
+
+	err = testutil.WaitForBlocks(ctx, int(blocksAfterUpgrade), td.xionChain)
+	require.NoError(t, err, "chain did not produce blocks after upgrade")
+
+	_, err = ExecQuery(t, ctx, td.xionChain.FullNodes[0],
+		"wasm", "code-info", "21")
+	require.NoError(t, err)
 }

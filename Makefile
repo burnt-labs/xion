@@ -146,6 +146,9 @@ test-integration-min:
 test-integration-upgrade:
 	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
+test-integration-mig:
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run TestAbstractAccountMigration -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 

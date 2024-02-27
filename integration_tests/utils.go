@@ -257,6 +257,25 @@ func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ..
 	return out, nil
 }
 
+func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, []int64{1}, "app_state", "abstractaccount", "params", "allowed_code_ids"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+
+	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
+
 // Helper method to retrieve the total token supply for a chain at some particular history denoted by the block height
 func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, denom string, blockHeight uint64) string {
 	if blockHeight == 0 {
