@@ -30,7 +30,7 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 
 	// iterate through all existing accounts at this code ID, and migrate them
 	wasmViewKeeper.IterateContractsByCode(ctx, originalCodeId, func(instance sdk.AccAddress) bool {
-		_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, NewCodeId, nil)
+		_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, NewCodeId, []byte{})
 
 		// if there is an error, abort iteration and report it
 		return err == nil
