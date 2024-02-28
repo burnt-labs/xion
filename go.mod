@@ -45,7 +45,7 @@ require (
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.0.0-20230803181732-7c8f814d3b79
 	github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230802211043-d72e83c94350
 	github.com/golang/mock v1.6.0
-	github.com/larry0x/abstract-account v0.0.0-20230708200055-2ea462db913f
+	github.com/larry0x/abstract-account v0.0.0-20240202022305-255071ed91ee
 	github.com/lestrrat-go/jwx/v2 v2.0.19
 	github.com/osmosis-labs/fee-abstraction/v4 v4.0.0-20230812032455-33dfc391894d
 	github.com/spf13/viper v1.16.0
@@ -213,4 +213,4 @@ replace (
 	github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.24
 )
 
-replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20230904175526-2716f00fddf3
+replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
