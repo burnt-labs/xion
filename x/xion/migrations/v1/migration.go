@@ -17,7 +17,7 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 		return err
 	}
 	if len(aaParams.AllowedCodeIDs) != 1 {
-		return fmt.Errorf("expected one allowed code id for abstract account, got: %s", aaParams.AllowedCodeIDs)
+		return fmt.Errorf("expected one allowed code id for abstract account, got: %v", aaParams.AllowedCodeIDs)
 	}
 
 	originalCodeId := aaParams.AllowedCodeIDs[0]
