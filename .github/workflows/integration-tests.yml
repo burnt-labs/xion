@@ -74,6 +74,7 @@ jobs:
         - "JWTAbstractAccount"
         - "XionSendPlatformFee"
         - "XionAbstractAccount"
+        - "WebAuthNAbstractAccount"
 
     steps:
       - name: Set up Go 1.21
