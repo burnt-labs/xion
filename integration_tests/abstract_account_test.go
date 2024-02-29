@@ -110,6 +110,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		codeID,
 		xionUser.KeyName(),
 		"--funds", depositedFunds,
+		"--salt", "0",
 		"--authenticator", "Secp256K1",
 	)
 	require.NoError(t, err)
