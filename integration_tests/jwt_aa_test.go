@@ -89,6 +89,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	testPublicKeyJSON, err := json.Marshal(testKeyPublic)
 
+	// deploy the key to the jwk module
 	aud := "integration-test-project"
 	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
