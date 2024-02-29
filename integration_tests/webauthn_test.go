@@ -9,31 +9,30 @@ import (
 	"os"
 	"path"
 	"testing"
-	"time"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xionapp "github.com/burnt-labs/xion/app"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/golang-jwt/jwt/v4"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/lestrrat-go/jwx/jwk"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 )
 
-func TestJWTAbstractAccount(t *testing.T) {
+var deployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
+
+func TestWebAuthNAbstractAccount(t *testing.T) {
+	t.Parallel()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
-	t.Parallel()
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
@@ -44,13 +43,14 @@ func TestJWTAbstractAccount(t *testing.T) {
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := int64(10_000_000)
-	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
-	xionUser := users[0]
-	err := testutil.WaitForBlocks(ctx, 8, xion)
+	// users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
+	deployerAddr, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
 	require.NoError(t, err)
-	t.Logf("created xion user %s", xionUser.FormattedAddress())
+	err = testutil.WaitForBlocks(ctx, 8, xion)
+	require.NoError(t, err)
+	t.Logf("created xion user %s", deployerAddr.FormattedAddress())
 
-	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+	xionUserBalInitial, err := xion.GetBalance(ctx, deployerAddr.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
@@ -63,48 +63,16 @@ func TestJWTAbstractAccount(t *testing.T) {
 		&wasmtypes.MsgStoreCode{},
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
-		&jwktypes.MsgCreateAudience{},
 	)
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
-
-	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
-	require.NoError(t, err)
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
-	require.NoError(t, err)
-	t.Logf("private key: %v", privateKey)
-
-	// log the test public key
-	publicKey, err := jwk.New(privateKey)
-	require.NoError(t, err)
-	publicKeyJSON, err := json.Marshal(publicKey)
-	require.NoError(t, err)
-	t.Logf("public key: %s", publicKeyJSON)
-
-	// build the jwk key
-	testKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
-	require.NoError(t, err)
-	testKeyPublic, err := testKey.PublicKey()
-	require.NoError(t, err)
-	testPublicKeyJSON, err := json.Marshal(testKeyPublic)
-
-	aud := "integration-test-project"
-	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
-		xionUser.KeyName(),
-		"jwk", "create-audience",
-		aud,
-		string(testPublicKeyJSON),
-		"--chain-id", xion.Config().ChainID,
-	)
-	require.NoError(t, err)
-	t.Logf("create audience hash: %s", createAudienceHash)
-
-	// deploy the contract
+	// t.Log(xion.Config().EncodingConfig.InterfaceRegistry.ListImplementations("/xion.v1.Msg/Send"))
 	fp, err := os.Getwd()
 	require.NoError(t, err)
-	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+
+	// deploy the contract
+	codeIDStr, err := xion.StoreContract(ctx, deployerAddr.FormattedAddress(),
+		path.Join(fp, "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -113,70 +81,37 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
-	sub := "integration-test-user"
-
-	authenticatorDetails := map[string]interface{}{}
-	authenticatorDetails["sub"] = sub
-	authenticatorDetails["aud"] = aud
-	authenticatorDetails["id"] = 0
-
-	authenticator := map[string]interface{}{}
-	authenticator["Jwt"] = authenticatorDetails
-
-	instantiateMsg := map[string]interface{}{}
-	instantiateMsg["authenticator"] = authenticator
-
 	// predict the contract address so it can be verified
 	salt := "0"
-	creatorAddr := types.AccAddress(xionUser.Address())
+	creatorAddr := types.AccAddress(deployerAddr.Address())
 	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
 	require.NoError(t, err)
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	// sha256 the contract addr, as it expects
-	signatureBz := sha256.Sum256([]byte(predictedAddr.String()))
-	signature := base64.StdEncoding.EncodeToString(signatureBz[:])
+	authenticatorDetails := map[string]interface{}{}
+	authenticatorDetails["url"] = "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"
+	authenticatorDetails["credential"] = "eyJ0eXBlIjoicHVibGljLWtleSIsImlkIjoieWlkaUs0Ump5SkdCeU82RnREaXNvaDYzN3E0eU8xWUZoZTd0QzctQ2Y0TSIsInJhd0lkIjoieWlkaUs0Ump5SkdCeU82RnREaXNvaDYzN3E0eU8xWUZoZTd0QzctQ2Y0TSIsImF1dGhlbnRpY2F0b3JBdHRhY2htZW50IjoicGxhdGZvcm0iLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVkzSmxZWFJsSWl3aVkyaGhiR3hsYm1kbElqb2laVWRzZG1KcVJqUmxhbXd5V2xjMWVscEhlR3hpU0dRMVpVZFdjVm95Vm5KaVIzaDBZbGR2TlZwWVl6Vmtla0p5Wkcxd00xcFVZekZqTWpGNFltcE9OV0pIYUdoYU0yUnhaVzF3ZW1OWFJUSmhNbFV6SWl3aWIzSnBaMmx1SWpvaWFIUjBjSE02THk5NGFXOXVMV1JoY0hBdFpYaGhiWEJzWlMxbmFYUXRabVZoZEMxbVlXTmxhV1F0WW5WeWJuUm1hVzVoYm1ObExuWmxjbU5sYkM1aGNIQWlMQ0pqY205emMwOXlhV2RwYmlJNlptRnNjMlY5IiwiYXR0ZXN0YXRpb25PYmplY3QiOiJvMk5tYlhSa2JtOXVaV2RoZEhSVGRHMTBvR2hoZFhSb1JHRjBZVmlrc0dNQmlEY0VwcGlNZnhRMTBUUENlMi1GYUtyTGVUa3Zwenhjem5nVE13MUJBQUFBQUszT0FBSTF2TVlLWklzTEpmSHdWUU1BSU1vbllpdUVZOGlSZ2NqdWhiUTRyS0lldC02dU1qdFdCWVh1N1F1X2duLURwUUVDQXlZZ0FTRllJQnR6UjFUbGNxWkdCYUgyRl81ZW15a0h2WnFFR2ZCQWJFSC1vNmMwNTRBR0lsZ2dCcUI1VmoyZVBjc3AxLUdvR0pkUWJVNFljYVRJSnpvc3Mza2NWVHhCZ1VJIiwidHJhbnNwb3J0cyI6WyJpbnRlcm5hbCJdfSwiY2xpZW50RXh0ZW5zaW9uUmVzdWx0cyI6e319"
+	authenticatorDetails["id"] = 0
 
-	now := time.Now()
-	fiveAgo := now.Add(-time.Second * 5)
-	inFive := now.Add(time.Minute * 5)
+	authenticator := map[string]interface{}{}
+	authenticator["Passkey"] = authenticatorDetails
 
-	auds := jwt.ClaimStrings{aud}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss":              aud,
-		"sub":              sub,
-		"aud":              auds,
-		"exp":              inFive.Unix(),
-		"nbf":              fiveAgo.Unix(),
-		"iat":              fiveAgo.Unix(),
-		"transaction_hash": signature,
-	})
-	t.Logf("jwt claims: %v", token)
+	instantiateMsg := map[string]interface{}{}
+	instantiateMsg["authenticator"] = authenticator
 
-	// sign the JWT with the predefined key
-	output, err := token.SignedString(privateKey)
-	require.NoError(t, err)
-	t.Logf("signed token: %s", output)
-
-	authenticatorDetails["token"] = []byte(output)
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
-	t.Logf("inst msg: %s", string(instantiateMsgStr))
 
-	// register the account
-	t.Logf("registering account: %s", instantiateMsgStr)
 	registerCmd := []string{
 		"abstract-account", "register",
 		codeIDStr, string(instantiateMsgStr),
 		"--salt", salt,
-		"--funds", "10000uxion",
 		"--chain-id", xion.Config().ChainID,
 	}
-	t.Logf("sender: %s", xionUser.FormattedAddress())
-	t.Logf("register cmd: %s", registerCmd)
+	t.Logf("sender: %s", deployerAddr.FormattedAddress())
 
-	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], xionUser.KeyName(), registerCmd...)
+	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], deployerAddr.KeyName(), registerCmd...)
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
 
@@ -184,12 +119,6 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	contract := contractsResponse["contracts"].([]interface{})[0].(string)
-
-	err = testutil.WaitForBlocks(ctx, 1, xion)
-	require.NoError(t, err)
-	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, int64(10_000), newBalance)
 
 	// get the account from the chain. there might be a better way to do this
 	accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
@@ -206,6 +135,8 @@ func TestJWTAbstractAccount(t *testing.T) {
 	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
+	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: 10_000})
+	require.NoError(t, err)
 	// create the raw tx
 	sendMsg := fmt.Sprintf(`
 	{
@@ -240,13 +171,13 @@ func TestJWTAbstractAccount(t *testing.T) {
 	 },
 	 "signatures": []
 	}
-		`, contract, xionUser.FormattedAddress(), "uxion")
+		`, contract, deployerAddr.FormattedAddress(), "uxion")
 
 	tx, err := encodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)
-
+	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
+	require.NoError(t, err)
 	// create the sign bytes
-
 	signerData := authsigning.SignerData{
 		Address:       account.GetAddress().String(),
 		ChainID:       xion.Config().ChainID,
@@ -254,9 +185,6 @@ func TestJWTAbstractAccount(t *testing.T) {
 		Sequence:      account.GetSequence(),
 		PubKey:        account.GetPubKey(),
 	}
-
-	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
-	require.NoError(t, err)
 
 	sigData := signing.SingleSignatureData{
 		SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
@@ -274,33 +202,15 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
 	require.NoError(t, err)
-
 	// our signature is the sha256 of the signbytes
-	signatureBz = sha256.Sum256(signBytes)
-	signature = base64.StdEncoding.EncodeToString(signatureBz[:])
+	signatureBz := sha256.Sum256(signBytes)
+	challenge := base64.StdEncoding.EncodeToString(signatureBz[:])
 
-	// we need to create a new valid token, making sure the time works
-	now = time.Now()
-	fiveAgo = now.Add(-time.Second * 5)
-	inFive = now.Add(time.Minute * 5)
+	t.Log("challenge ", challenge)
 
-	token = jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss":              aud,
-		"sub":              sub,
-		"aud":              auds,
-		"exp":              inFive.Unix(),
-		"nbf":              fiveAgo.Unix(),
-		"iat":              fiveAgo.Unix(),
-		"transaction_hash": signature,
-	})
-	t.Logf("jwt claims: %v", token)
-
-	// sign the JWT with the predefined key
-	signedTokenStr, err := token.SignedString(privateKey)
-	require.NoError(t, err)
-
+	signedChallenge := `{"type":"public-key","id":"yidiK4RjyJGByO6FtDisoh637q4yO1YFhe7tC7-Cf4M","rawId":"yidiK4RjyJGByO6FtDisoh637q4yO1YFhe7tC7-Cf4M","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiYkZWRlkweENXWE5TWkUwMU1pOU9hV2xMU1UxaFRrMVJha3RFUTBvNVVGaFliV1pFYUZwcksxRmFORDAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0BAAAAAA","signature":"MEYCIQCV_sVRJOeMetpROLx_dH-keRyXOJowjMLrlOq8lghTmgIhAOJV-10mMDtYrYdR6C_Ww5DgmFU0DTtzMI5_D4SJ3eKP","userHandle":"eGlvbjF4ejl2ZW5zZGxlbHd5eGVqZ2VrbGxtbWo5ZXc5dzBrdmp3ZTc1c21xbjN5bGhhZ3dqempzcWE2a2U3"},"clientExtensionResults":{}}`
 	// add the auth index to the signature
-	signedTokenBz := []byte(signedTokenStr)
+	signedTokenBz := []byte(signedChallenge)
 	sigBytes := append([]byte{0}, signedTokenBz...)
 
 	sigData = signing.SingleSignatureData{
@@ -320,13 +230,13 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err = ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
+	output, err := ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
-	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
+	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, int64(10_000-1337), newBalance)
 }

@@ -1,6 +1,6 @@
 # docker build . -t cosmwasm/xiond:latest
 # docker run --rm -it cosmwasm/xiond:latest /bin/sh
-FROM golang:1.19-alpine3.17 AS go-builder
+FROM golang:1.21-alpine3.18 AS go-builder
   ARG arch=x86_64
 
   ENV WASMVM_VERSION=v1.4.1
@@ -47,7 +47,7 @@ FROM golang:1.19-alpine3.17 AS go-builder
     && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.17 AS xion-dev
+FROM alpine:3.18 AS xion-dev
   COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
   # rest server
@@ -91,7 +91,7 @@ FROM alpine:3.17 AS xion-dev
   CMD ["/home/xiond/entrypoint.sh"]
 
 # --------------------------------------------------------
-FROM alpine:3.17 AS xion-release
+FROM alpine:3.18 AS xion-release
 
   COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
