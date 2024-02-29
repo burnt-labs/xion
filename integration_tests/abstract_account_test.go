@@ -112,6 +112,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		"--funds", depositedFunds,
 		"--authenticator", "Secp256K1",
 	)
+	require.NoError(t, err)
 	//
 	//// predict the contract address so it can be verified
 	//salt := "0"
