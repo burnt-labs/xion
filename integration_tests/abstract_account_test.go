@@ -112,6 +112,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		"--funds", depositedFunds,
 		"--salt", "0",
 		"--authenticator", "Secp256K1",
+		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
 	//
