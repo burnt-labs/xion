@@ -119,7 +119,7 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	authenticatorDetails["id"] = 0
 	authenticatorDetails["pubkey"] = "Ayrlj6q3WWs91p45LVKwI8JyfMYNmWMrcDinLNEdWYE4"
-	authenticatorDetails["signature"] = "Tv2YRs5OmB4kR6Yk+74YvS/P0AoIkum2ZH7Y39tgrExvEAj+4wrAZfMaJa7apIx4/0YfB1WWc5mvtV0qS/PlMw=="
+	authenticatorDetails["signature"] = "pm1d7+ETTlJ40DcGFU1bAxrCKSwJBwa6u/2h62FdsGh14Cxem13NDAaMiBCFgyQummVEEeVah1kmqO3ZX3A5rw=="
 
 	authenticator["Secp256K1"] = authenticatorDetails
 	instantiateMsg["authenticator"] = authenticator
