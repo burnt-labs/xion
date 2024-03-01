@@ -51,3 +51,4 @@ contract_tests/*
 # Go
 go.work
 go.work.sum
+/integration_tests/integration_tests.test
