@@ -3,7 +3,7 @@ module github.com/burnt-labs/xion
 go 1.21
 
 require (
-	github.com/CosmWasm/wasmvm v1.4.1 // indirect
+	github.com/CosmWasm/wasmvm v1.5.0 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.47.6
 	github.com/cosmos/gogogateway v1.2.0 // indirect
@@ -38,7 +38,7 @@ require (
 	cosmossdk.io/errors v1.0.0
 	cosmossdk.io/math v1.2.0
 	cosmossdk.io/tools/rosetta v0.2.1
-	github.com/CosmWasm/wasmd v0.43.0
+	github.com/CosmWasm/wasmd v0.45.0
 	github.com/armon/go-metrics v0.4.1
 	github.com/cometbft/cometbft v0.37.4
 	github.com/cometbft/cometbft-db v0.9.1
