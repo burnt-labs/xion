@@ -258,8 +258,10 @@ replace (
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/burnt-labs/xion => ../
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
 	github.com/strangelove-ventures/interchaintest/v7 => github.com/burnt-labs/interchaintest/v7 v7.0.0-20230725204927-990da9d6e272
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
+	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )
