@@ -2,11 +2,9 @@ module integration_tests
 
 go 1.21
 
-toolchain go1.21.7
-
 require (
 	cosmossdk.io/math v1.2.0
-	github.com/CosmWasm/wasmd v0.43.0
+	github.com/CosmWasm/wasmd v0.45.0
 	github.com/burnt-labs/xion v0.1.0
 	github.com/cosmos/cosmos-sdk v0.47.6
 	github.com/cosmos/ibc-go/v7 v7.3.1
@@ -40,7 +38,7 @@ require (
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/ChainSafe/go-schnorrkel/1 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/ComposableFi/go-subkey/v2 v2.0.0-tm03420 // indirect
-	github.com/CosmWasm/wasmvm v1.4.1 // indirect
+	github.com/CosmWasm/wasmvm v1.5.2 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
@@ -180,7 +178,7 @@ require (
 	github.com/multiformats/go-varint v0.0.6 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
-	github.com/osmosis-labs/fee-abstraction/v4 v4.0.0-20230812032455-33dfc391894d // indirect
+	github.com/osmosis-labs/fee-abstraction/v7 v7.0.0-20240302094915-ba36778366d0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.9 // indirect
 	github.com/petermattis/goid v0.0.0-20230317030725-371a4b8eda08 // indirect
