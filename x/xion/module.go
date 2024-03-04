@@ -1,137 +1,167 @@
-package xion
+package module
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
+
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+
+	"cosmossdk.io/client/v2/autocli"
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 	"github.com/burnt-labs/xion/x/xion/keeper"
 	"github.com/burnt-labs/xion/x/xion/types"
+
+	// this line is used by starport scaffolding # 1
+
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	xionv1 "github.com/burnt-labs/xion/api/xion/v1"
+)
+
+const (
+	// ConsensusVersion defines the current x/xion module consensus version.
+	ConsensusVersion = 1
+
+// this line is used by starport scaffolding # simapp/module/const
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModuleBasic   = AppModuleBasic{}
+	_ module.AppModuleGenesis = AppModule{}
+	_ module.AppModule        = AppModule{}
+
+	_ autocli.HasAutoCLIConfig      = AppModule{}
+	_ autocli.HasCustomQueryCommand = AppModule{}
+	_ autocli.HasCustomTxCommand    = AppModule{}
 )
 
-// AppModuleBasic is the 29-fee AppModuleBasic
-type AppModuleBasic struct{}
+// AppModuleBasic defines the basic application module used by the wasm module.
+type AppModuleBasic struct {
+	cdc codec.Codec
+}
 
-// Name implements AppModuleBasic interface
-func (AppModuleBasic) Name() string {
+type AppModule struct {
+	AppModuleBasic
+
+	keeper keeper.Keeper
+}
+
+// NewAppModule constructor
+func NewAppModule(
+	cdc codec.Codec,
+	keeper keeper.Keeper,
+) *AppModule {
+	return &AppModule{
+		AppModuleBasic: AppModuleBasic{cdc: cdc},
+		keeper:         keeper,
+	}
+}
+
+func (a AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterLegacyAminoCodec implements AppModuleBasic interface
+func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(&types.GenesisState{
+		Params: types.DefaultParams(),
+	})
+}
+
+func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEncodingConfig, message json.RawMessage) error {
+	var data types.GenesisState
+	err := marshaler.UnmarshalJSON(message, &data)
+	if err != nil {
+		return err
+	}
+	if err := data.Params.Validate(); err != nil {
+		return errorsmod.Wrap(err, "params")
+	}
+	return nil
+}
+
+func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
+}
+
+func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err != nil {
+		// same behavior as in cosmos-sdk
+		panic(err)
+	}
+}
+
+// AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
+func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
+	return &autocliv1.ModuleOptions{
+		Query: &autocliv1.ServiceCommandDescriptor{
+			Service: xionv1.Query_ServiceDesc.ServiceName,
+		},
+		Tx: &autocliv1.ServiceCommandDescriptor{
+			Service:           xionv1.Msg_ServiceDesc.ServiceName,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{},
+		},
+	}
+}
+
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
+}
+
+func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
 
-// RegisterInterfaces registers module concrete types into protobuf Any.
-func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
+func (a AppModuleBasic) RegisterInterfaces(r codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(r)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the ibc
-// 29-fee module.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
-}
-
-// ValidateGenesis performs genesis state validation for the 29-fee module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var gs types.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
-	}
-
-	return gs.Validate()
-}
-
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for ics29 fee module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
-
-// GetTxCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
-}
-
-// GetQueryCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
-}
-
-// AppModule represents the AppModule for this module
-type AppModule struct {
-	AppModuleBasic
-	keeper keeper.Keeper
-}
-
-// NewAppModule creates a new 29-fee module
-func NewAppModule(k keeper.Keeper) AppModule {
-	return AppModule{
-		keeper: k,
-	}
-}
-
-// RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-}
-
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
-}
-
-// InitGenesis performs genesis initialization for the ibc-29-fee module. It returns
-// no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	am.keeper.InitGenesis(ctx, &genesisState)
-	return []abci.ValidatorUpdate{}
-}
+	marshaler.MustUnmarshalJSON(message, &genesisState)
 
-// ExportGenesis returns the exported genesis state as raw bytes for the ibc-29-fee
-// module.
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	gs := am.keeper.ExportGenesis(ctx)
-	return cdc.MustMarshalJSON(gs)
-}
+	if err := a.keeper.Params.Set(ctx, genesisState.Params); err != nil {
+		panic(err)
+	}
 
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 1 }
-
-// BeginBlock implements the AppModule interface
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-}
-
-// EndBlock implements the AppModule interface
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
-
-// AppModuleSimulation functions
-
-// GenerateGenesisState creates a randomized GenState of the 29-fee module.
-func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
-}
-
-// RegisterStoreDecoder registers a decoder for 29-fee module's types
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
-}
-
-// WeightedOperations returns the all the 29-fee module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
+}
+
+func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
+	genState := a.keeper.ExportGenesis(ctx)
+	return marshaler.MustMarshalJSON(genState)
+}
+
+func (a AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+}
+
+func (a AppModule) QuerierRoute() string {
+	return types.QuerierRoute
+}
+
+func (a AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(a.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(a.keeper))
+}
+
+// ConsensusVersion is a sequence number for state-breaking change of the
+// module. It should be incremented on each consensus-breaking change
+// introduced by the module. To avoid wrong/empty versions, the initial version
+// should be set to 1.
+func (a AppModule) ConsensusVersion() uint64 {
+	return ConsensusVersion
 }

@@ -1,0 +1,301 @@
+package abstractaccount
+
+import (
+	"cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	txsigning "cosmossdk.io/x/tx/signing"
+	"encoding/json"
+	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"google.golang.org/protobuf/types/known/anypb"
+
+	"cosmossdk.io/errors"
+
+	storetypes "cosmossdk.io/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdktxsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
+	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
+	"github.com/burnt-labs/xion/x/abstractaccount/types"
+)
+
+var (
+	_ sdk.AnteDecorator = &BeforeTxDecorator{}
+	_ sdk.PostDecorator = &AfterTxDecorator{}
+)
+
+// -------------------------------- GasComsumer --------------------------------
+
+func SigVerificationGasConsumer(
+	meter storetypes.GasMeter, sig sdktxsigning.SignatureV2, params authtypes.Params,
+) error {
+	// If the pubkey is a NilPubKey, for now we do not consume any gas (the
+	// contract execution consumes it)
+	// Otherwise, we simply delegate to the default consumer
+	switch sig.PubKey.(type) {
+	case *types.NilPubKey:
+		return nil
+	default:
+		return authante.DefaultSigVerificationGasConsumer(meter, sig, params)
+	}
+}
+
+// --------------------------------- BeforeTx ----------------------------------
+
+type BeforeTxDecorator struct {
+	aak                keeper.Keeper
+	ak                 authante.AccountKeeper
+	signModeHandlerMap *txsigning.HandlerMap
+}
+
+func NewBeforeTxDecorator(aak keeper.Keeper, ak authante.AccountKeeper, signModeHandlerMap *txsigning.HandlerMap) BeforeTxDecorator {
+	return BeforeTxDecorator{aak, ak, signModeHandlerMap}
+}
+
+func (d BeforeTxDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	// first we need to determine whether the rules of account abstraction should
+	// apply to this tx. there are two criteria:
+	//
+	// - the tx has exactly one signer and one signature
+	// - this one signer is an AbstractAccount
+	//
+	// both criteria must be satisfied for this be to be qualified as an AA tx.
+	isAbstractAccountTx, signerAcc, sig, err := IsAbstractAccountTx(ctx, tx, d.ak)
+	if err != nil {
+		return ctx, err
+	}
+
+	// if the tx isn't an AA tx, we simply delegate the ante task to the default
+	// SigVerificationDecorator
+	if !isAbstractAccountTx {
+		svd := authante.NewSigVerificationDecorator(d.ak, d.signModeHandlerMap)
+		return svd.AnteHandle(ctx, tx, simulate, next)
+	}
+
+	// save the account address to the module store. we will need it in the
+	// posthandler
+	d.aak.SetSignerAddress(ctx, signerAcc.GetAddress())
+
+	// check account sequence number
+	if sig.Sequence != signerAcc.GetSequence() {
+		return ctx, sdkerrors.ErrWrongSequence.Wrapf("account sequence mismatch, expected %d, got %d", signerAcc.GetSequence(), sig.Sequence)
+	}
+
+	// now that we've determined the tx is an AA tx, let us prepare the SudoMsg
+	// that will be used to invoke the account contract. The msg includes:
+	//
+	// - the messages in the tx, converted to []Any
+	// - the sign bytes
+	// - the credential
+	//
+	// firstly let's prepare the messages.
+	msgAnys, err := sdkMsgsToAnys(tx.GetMsgs())
+	if err != nil {
+		return ctx, err
+	}
+
+	// then let us the prepare the sign bytes and credential.
+	// logics here are mostly copied over from the SigVerificationDecorator.
+	signBytes, sigBytes, err := prepareCredentials(ctx, tx, signerAcc, sig.Data, d.signModeHandlerMap)
+	if err != nil {
+		return ctx, err
+	}
+
+	sudoMsgBytes, err := json.Marshal(&types.AccountSudoMsg{
+		BeforeTx: &types.BeforeTx{
+			Msgs:    msgAnys,
+			TxBytes: signBytes,
+			// Note that we call this field "cred_bytes" (credental bytes) instead of
+			// signature. There is an important reason for this!
+			//
+			// For EOAs, the credential used to prove a tx is authenticated is a
+			// cryptographic signature. For AbstractAccounts however, this is not
+			// necessarily the case. The account contract can be programmed to take
+			// any credential, not limited to cryptographic signatures. An example of
+			// this can be a zk proof that the sender has undergone certain KYC
+			// procedures. Therefore, instead of calling this "signature", we choose a
+			// more generalized term: credentials.
+			CredBytes: sigBytes,
+			Simulate:  simulate,
+		},
+	})
+	if err != nil {
+		return ctx, err
+	}
+
+	params, err := d.aak.GetParams(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	if err := sudoWithGasLimit(ctx, d.aak.ContractKeeper(), signerAcc.GetAddress(), sudoMsgBytes, params.MaxGasBefore); err != nil {
+		return ctx, err
+	}
+
+	return next(ctx, tx, simulate)
+}
+
+// ---------------------------------- AfterTx ----------------------------------
+
+type AfterTxDecorator struct {
+	aak keeper.Keeper
+}
+
+func NewAfterTxDecorator(aak keeper.Keeper) AfterTxDecorator {
+	return AfterTxDecorator{aak}
+}
+
+func (d AfterTxDecorator) PostHandle(ctx sdk.Context, tx sdk.Tx, simulate, success bool, next sdk.PostHandler) (newCtx sdk.Context, err error) {
+	// load the signer address, which we determined during the AnteHandler
+	//
+	// if not found, it means this tx is simply not an AA tx. we skip
+	signerAddr := d.aak.GetSignerAddress(ctx)
+	if signerAddr == nil {
+		return next(ctx, tx, simulate, success)
+	}
+
+	d.aak.DeleteSignerAddress(ctx)
+
+	sudoMsgBytes, err := json.Marshal(&types.AccountSudoMsg{
+		AfterTx: &types.AfterTx{
+			Simulate: simulate,
+			// we don't need to pass the `success` parameter into the contract,
+			// because the Posthandler is only executed if the tx is successful, so it
+			// should always be true anyways
+		},
+	})
+	if err != nil {
+		return ctx, err
+	}
+
+	params, err := d.aak.GetParams(ctx)
+	if err != nil {
+		return ctx, err
+	}
+
+	if err := sudoWithGasLimit(ctx, d.aak.ContractKeeper(), signerAddr, sudoMsgBytes, params.MaxGasAfter); err != nil {
+		return ctx, err
+	}
+
+	return next(ctx, tx, simulate, success)
+}
+
+// ---------------------------------- Helpers ----------------------------------
+
+func IsAbstractAccountTx(ctx sdk.Context, tx sdk.Tx, ak authante.AccountKeeper) (bool, *types.AbstractAccount, *sdktxsigning.SignatureV2, error) {
+	sigTx, ok := tx.(authsigning.SigVerifiableTx)
+	if !ok {
+		return false, nil, nil, errors.Wrap(sdkerrors.ErrTxDecode, "tx is not a SigVerifiableTx")
+	}
+
+	sigs, err := sigTx.GetSignaturesV2()
+	if err != nil {
+		return false, nil, nil, err
+	}
+
+	signerAddrs, err := sigTx.GetSigners()
+	if err != nil {
+		return false, nil, nil, err
+	}
+	if len(signerAddrs) != 1 || len(sigs) != 1 {
+		return false, nil, nil, nil
+	}
+
+	signerAcc, err := authante.GetSignerAcc(ctx, ak, signerAddrs[0])
+	if err != nil {
+		return false, nil, nil, err
+	}
+
+	absAcc, ok := signerAcc.(*types.AbstractAccount)
+	if !ok {
+		return false, nil, nil, nil
+	}
+
+	return true, absAcc, &sigs[0], nil
+}
+
+func prepareCredentials(
+	ctx sdk.Context, tx sdk.Tx, signerAcc authtypes.AccountI,
+	sigData sdktxsigning.SignatureData, handler *txsigning.HandlerMap,
+) ([]byte, []byte, error) {
+	pubKey := signerAcc.GetPubKey()
+	anyPk, err := codectypes.NewAnyWithValue(pubKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	signerData := txsigning.SignerData{
+		Address:       signerAcc.GetAddress().String(),
+		ChainID:       ctx.ChainID(),
+		AccountNumber: signerAcc.GetAccountNumber(), // should we handle the case that this is a gentx?
+		Sequence:      signerAcc.GetSequence(),
+		PubKey: &anypb.Any{
+			TypeUrl: anyPk.TypeUrl,
+			Value:   anyPk.Value,
+		},
+	}
+
+	data, ok := sigData.(*sdktxsigning.SingleSignatureData)
+	if !ok {
+		return nil, nil, types.ErrNotSingleSignature
+	}
+
+	adaptableTx, ok := tx.(authsigning.V2AdaptableTx)
+	if !ok {
+		return nil, nil, fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", tx)
+	}
+	txData := adaptableTx.GetSigningTxData()
+	signBytes, err := handler.GetSignBytes(ctx, signingv1beta1.SignMode(data.SignMode), signerData, txData)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return signBytes, data.Signature, nil
+}
+
+func sdkMsgsToAnys(msgs []sdk.Msg) ([]*types.Any, error) {
+	anys := []*types.Any{}
+
+	for _, msg := range msgs {
+		msgAny, err := types.NewAnyFromProtoMsg(msg)
+		if err != nil {
+			return nil, err
+		}
+
+		anys = append(anys, msgAny)
+	}
+
+	return anys, nil
+}
+
+// Call a contract's sudo entry point with a gas limit.
+//
+// Copied from Osmosis' protorev posthandler:
+// https://github.com/osmosis-labs/osmosis/blob/98025f185ab2ee1b060511ed22679112abcc08fa/x/protorev/keeper/posthandler.go#L42-L43
+//
+// Thanks Roman and Jorge for the helpful discussion.
+func sudoWithGasLimit(
+	ctx sdk.Context, contractKeeper wasmtypes.ContractOpsKeeper,
+	contractAddr sdk.AccAddress, msg []byte, maxGas storetypes.Gas,
+) error {
+	cacheCtx, write := ctx.CacheContext()
+	cacheCtx = cacheCtx.WithGasMeter(storetypes.NewGasMeter(maxGas))
+
+	if _, err := contractKeeper.Sudo(cacheCtx, contractAddr, msg); err != nil {
+		return err
+	}
+
+	write()
+	// EmitEvents method is deprecated in favor EmitTypedEvent
+	// however, here we're not creating events ourselves, but rather just
+	// forwarding events emitted by another process (contractKeeper.Sudo)
+	// so we have to stick with the legacy EmitEvents here.
+	ctx.EventManager().EmitEvents(cacheCtx.EventManager().Events())
+
+	return nil
+}

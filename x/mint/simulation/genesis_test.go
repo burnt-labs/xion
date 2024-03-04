@@ -8,14 +8,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
-	"github.com/burnt-labs/xion/x/mint"
-	"github.com/burnt-labs/xion/x/mint/simulation"
-	"github.com/burnt-labs/xion/x/mint/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/mint/simulation"
+	"github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.
@@ -31,8 +31,9 @@ func TestRandomizedGenState(t *testing.T) {
 		Cdc:          encCfg.Codec,
 		Rand:         r,
 		NumBonded:    3,
+		BondDenom:    sdk.DefaultBondDenom,
 		Accounts:     simtypes.RandomAccounts(r, 3),
-		InitialStake: sdkmath.NewInt(1000),
+		InitialStake: math.NewInt(1000),
 		GenState:     make(map[string]json.RawMessage),
 	}
 
@@ -41,9 +42,9 @@ func TestRandomizedGenState(t *testing.T) {
 	var mintGenesis types.GenesisState
 	simState.Cdc.MustUnmarshalJSON(simState.GenState[types.ModuleName], &mintGenesis)
 
-	dec1, _ := sdk.NewDecFromStr("0.670000000000000000")
-	dec2, _ := sdk.NewDecFromStr("0.200000000000000000")
-	dec3, _ := sdk.NewDecFromStr("0.070000000000000000")
+	dec1, _ := math.LegacyNewDecFromStr("0.670000000000000000")
+	dec2, _ := math.LegacyNewDecFromStr("0.200000000000000000")
+	dec3, _ := math.LegacyNewDecFromStr("0.070000000000000000")
 
 	require.Equal(t, uint64(6311520), mintGenesis.Params.BlocksPerYear)
 	require.Equal(t, dec1, mintGenesis.Params.GoalBonded)

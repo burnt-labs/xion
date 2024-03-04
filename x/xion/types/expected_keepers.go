@@ -1,8 +1,8 @@
 package types // noalias
 
 import (
+	"context"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
@@ -10,29 +10,30 @@ import (
 // dependencies.
 type BankKeeper interface {
 	SendCoinsFromModuleToAccount(
-		ctx sdktypes.Context,
+		ctx context.Context,
 		senderModule string,
 		recipientAddr sdktypes.AccAddress,
 		amt sdktypes.Coins,
 	) error
+
 	SendCoinsFromModuleToModule(
-		ctx sdktypes.Context,
+		ctx context.Context,
 		senderModule,
 		recipientModule string,
 		amt sdktypes.Coins,
 	) error
 	SendCoinsFromAccountToModule(
-		ctx sdktypes.Context,
+		ctx context.Context,
 		senderAddr sdktypes.AccAddress,
 		recipientModule string,
 		amt sdktypes.Coins,
 	) error
-	IsSendEnabledCoins(ctx sdktypes.Context, coins ...sdktypes.Coin) error
+	IsSendEnabledCoins(ctx context.Context, coins ...sdktypes.Coin) error
 	BlockedAddr(addr sdktypes.AccAddress) bool
-	SendCoins(ctx sdktypes.Context, fromAddr sdktypes.AccAddress, toAddr sdktypes.AccAddress, amt sdktypes.Coins) error
-	InputOutputCoins(ctx sdktypes.Context, inputs []banktypes.Input, outputs []banktypes.Output) error
+	SendCoins(ctx context.Context, fromAddr sdktypes.AccAddress, toAddr sdktypes.AccAddress, amt sdktypes.Coins) error
+	InputOutputCoins(ctx context.Context, input banktypes.Input, outputs []banktypes.Output) error
 }
 
 type AccountKeeper interface {
-	GetModuleAccount(ctx sdktypes.Context, moduleName string) authtypes.ModuleAccountI
+	GetModuleAccount(ctx context.Context, moduleName string) sdktypes.ModuleAccountI
 }

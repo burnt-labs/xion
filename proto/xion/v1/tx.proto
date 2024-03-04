@@ -1,17 +1,25 @@
 syntax = "proto3";
 package xion.v1;
 
-import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
-import "amino/amino.proto";
+import "xion/v1/genesis.proto";
+import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/bank/v1beta1/bank.proto";
 
+
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
+// Msg defines the Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
+
+  // UpdateParams defines a governance operation for updating the parameters.
+  //
+  // Since: cosmos-sdk 0.47
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
   // Send defines a method for sending coins from one account to another
   // account.
@@ -21,25 +29,43 @@ service Msg {
   // accounts.
   rpc MultiSend(MsgMultiSend) returns (MsgMultiSendResponse);
 
-  // SetPlatformPercentage defines the method for updating the platform
-  // percentage fee
-  rpc SetPlatformPercentage(MsgSetPlatformPercentage)
-      returns (MsgSetPlatformPercentageResponse);
 }
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+//
+// Since: cosmos-sdk 0.47
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+//
+// Since: cosmos-sdk 0.47
+message MsgUpdateParamsResponse {}
 
 // MsgSend represents a message to send coins from one account to another.
 message MsgSend {
   option (cosmos.msg.v1.signer) = "from_address";
-  option (amino.name) = "xion/MsgSend";
+  option (amino.name)           = "xion/MsgSend";
 
-  option (gogoproto.equal) = false;
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string from_address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  string to_address = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string   from_address                    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string   to_address                      = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   repeated cosmos.base.v1beta1.Coin amount = 3 [
-    (gogoproto.nullable) = false,
-    (amino.dont_omitempty) = true,
+    (gogoproto.nullable)     = false,
+    (amino.dont_omitempty)   = true,
+    (amino.encoding)         = "legacy_coins",
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
@@ -50,29 +76,17 @@ message MsgSendResponse {}
 // MsgMultiSend represents an arbitrary multi-in, multi-out send message.
 message MsgMultiSend {
   option (cosmos.msg.v1.signer) = "inputs";
-  option (amino.name) = "xion/MsgMultiSend";
+  option (amino.name)           = "xion/MsgMultiSend";
 
   option (gogoproto.equal) = false;
 
   // Inputs, despite being `repeated`, only allows one sender input. This is
   // checked in MsgMultiSend's ValidateBasic.
   repeated cosmos.bank.v1beta1.Input inputs = 1
-      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+  [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
   repeated cosmos.bank.v1beta1.Output outputs = 2
-      [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+  [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 }
 
 // MsgMultiSendResponse defines the Msg/MultiSend response type.
 message MsgMultiSendResponse {}
-
-message MsgSetPlatformPercentage {
-  option (cosmos.msg.v1.signer) = "authority";
-  option (amino.name) = "xion/MsgSetPlatformPercentage";
-
-  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-
-  // platform_percentage is the platform fee percentage to multiplied by 10000
-  uint32 platform_percentage = 2;
-}
-
-message MsgSetPlatformPercentageResponse {}

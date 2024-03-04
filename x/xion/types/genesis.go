@@ -1,43 +1,22 @@
 package types
 
-import (
-	"encoding/json"
-	"errors"
+// this line is used by starport scaffolding # genesis/types/import
 
-	"github.com/cosmos/cosmos-sdk/codec"
-)
+// DefaultIndex is the default global index
+const DefaultIndex uint64 = 1
 
-// Validate performs basic validation of supply genesis data returning an
-// error for any failed validation criteria.
+// DefaultGenesis returns the default genesis state
+func DefaultGenesis() *GenesisState {
+	return &GenesisState{
+		// this line is used by starport scaffolding # genesis/types/default
+		Params: DefaultParams(),
+	}
+}
+
+// Validate performs basic genesis state validation returning an error upon any
+// failure.
 func (gs GenesisState) Validate() error {
-	if gs.PlatformPercentage > 10000 {
-		return errors.New("unable to set platform percentage to greater than 100%")
-	}
+	// this line is used by starport scaffolding # genesis/types/validate
 
-	return nil
-}
-
-// NewGenesisState creates a new genesis state.
-func NewGenesisState(platformPercentage uint32) *GenesisState {
-	rv := &GenesisState{
-		PlatformPercentage: platformPercentage,
-	}
-	return rv
-}
-
-// DefaultGenesisState returns a default bank module genesis state.
-func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(0)
-}
-
-// GetGenesisStateFromAppState returns x/bank GenesisState given raw application
-// genesis state.
-func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.RawMessage) *GenesisState {
-	var genesisState GenesisState
-
-	if appState[ModuleName] != nil {
-		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
-	}
-
-	return &genesisState
+	return gs.Params.Validate()
 }

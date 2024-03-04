@@ -2,10 +2,16 @@ package cli
 
 import (
 	"context"
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"google.golang.org/protobuf/types/known/anypb"
 	"os"
 	"strconv"
 
@@ -21,11 +27,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 const (
@@ -129,7 +134,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 				return err
 			}
 
-			totalAddrs := sdk.NewInt(int64(len(args) - 2))
+			totalAddrs := math.NewInt(int64(len(args) - 2))
 			// coins to be received by the addresses
 			sendCoins := coins
 			if split {
@@ -156,7 +161,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 				amount = coins.MulInt(totalAddrs)
 			}
 
-			msg := types.NewMsgMultiSend([]banktypes.Input{banktypes.NewInput(clientCtx.FromAddress, amount)}, output)
+			msg := types.NewMsgMultiSend(banktypes.NewInput(clientCtx.FromAddress, amount), output)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -224,7 +229,7 @@ func NewRegisterCmd() *cobra.Command {
 			codeHash, err := hex.DecodeString(codeResp.DataHash.String())
 			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
-			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()))
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()), signMode)
 			if err != nil {
 				return fmt.Errorf("error signing predicted address : %s\n", err)
 			}
@@ -308,12 +313,21 @@ func NewSignCmd() *cobra.Command {
 				return err
 			}
 
-			signerData := authsigning.SignerData{
+			pubKey := signerAcc.GetPubKey()
+			anyPk, err := codectypes.NewAnyWithValue(pubKey)
+			if err != nil {
+				panic(err)
+			}
+
+			signerData := txsigning.SignerData{
 				Address:       signerAcc.GetAddress().String(),
 				ChainID:       clientCtx.ChainID,
 				AccountNumber: signerAcc.GetAccountNumber(),
 				Sequence:      signerAcc.GetSequence(),
-				PubKey:        signerAcc.GetPubKey(), // NOTE: NilPubKey
+				PubKey: &anypb.Any{
+					TypeUrl: anyPk.TypeUrl,
+					Value:   anyPk.Value,
+				}, // NOTE: NilPubKey
 			}
 
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
@@ -336,11 +350,19 @@ func NewSignCmd() *cobra.Command {
 				panic(err)
 			}
 
-			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
+			builtTx := txBuilder.GetTx()
+			adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
+			if !ok {
+				panic(fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", builtTx))
+			}
+			txData := adaptableTx.GetSigningTxData()
+
+			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(
+				clientCtx.CmdContext, signingv1beta1.SignMode(signMode), signerData, txData)
 			if err != nil {
 				panic(err)
 			}
-			signedBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
+			signedBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes, signMode)
 			if err != nil {
 				panic(err)
 			}
@@ -399,7 +421,8 @@ func getAccount(queryClient authtypes.QueryClient, address string) (*authtypes.B
 func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
 	var signerAddr sdk.AccAddress = nil
 	for i, msg := range stdTx.GetMsgs() {
-		signers := msg.GetSigners()
+		legacyMsg := msg.(sdk.LegacyMsg)
+		signers := legacyMsg.GetSigners()
 		if len(signers) != 1 {
 			return nil, fmt.Errorf("msg %d has more than one signers", i)
 		}
