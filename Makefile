@@ -7,13 +7,10 @@ LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
 SIMAPP = ./app
-XION_IMAGE=xion:local
 
 # for dockerized protobuf tools
 DOCKER := $(shell which docker)
-BUF_IMAGE=bufbuild/buf@sha256:3cb1f8a4b48bd5ad8f09168f10f607ddc318af202f5c057d52a45216793d85e5 #v1.4.0
-DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(BUF_IMAGE)
-HTTPS_GIT := https://github.com/burnt-labs/xiond.git
+HTTPS_GIT := github.com/burnt-labs/xion.git
 
 export GO111MODULE = on
 
@@ -60,7 +57,6 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=xion \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=xiond \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X github.com/CosmWasm/wasmd/app.Bech32Prefix=xion \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
 
 ifeq ($(WITH_CLEVELDB),yes)
@@ -90,6 +86,13 @@ endif
 build-windows-client: go.sum
 	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
 
+build-contract-tests-hooks:
+ifeq ($(OS),Windows_NT)
+	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests.exe ./cmd/contract_tests
+else
+	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests ./cmd/contract_tests
+endif
+
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
 
@@ -118,33 +121,11 @@ distclean: clean
 ########################################
 ### Testing
 
-
 test: test-unit
-test-all: check test-race test-cover
-
-test-version:
-	@echo $(VERSION)
+test-all: test-race test-cover test-system
 
 test-unit:
-	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
-
-test-integration:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
-
-test-integration-aa:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionAbstractAccount -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
-
-test-integration-aa-jwt:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestJWTAbstractAccount -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
-
-test-integration-send:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionSendPlatformFee -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
-
-test-integration-min:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run  TestXionMinimumFee -mod=readonly  -tags='ledger test_ledger_mock'  ./...
-
-test-integration-upgrade:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
@@ -164,8 +145,11 @@ test-sim-multi-seed-short: runsim
 	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 5 TestFullAppSimulation
 
 test-sim-deterministic: runsim
-	@echo "Running short multi-seed application simulation. This may take awhile!"
+	@echo "Running application deterministic simulation. This may take awhile!"
 	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 1 1 TestAppStateDeterminism
+
+test-system: install
+	$(MAKE) -C tests/system/ test
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -174,22 +158,22 @@ test-sim-deterministic: runsim
 format-tools:
 	go install mvdan.cc/gofumpt@v0.4.0
 	go install github.com/client9/misspell/cmd/misspell@v0.3.4
-	go install golang.org/x/tools/cmd/goimports@latest
+	go install github.com/daixiang0/gci@v0.11.2
 
 lint: format-tools
 	golangci-lint run --tests=false
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*_test.go" | xargs gofumpt -d
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "./tests/system/vendor*" -not -path "*.git*" -not -path "*_test.go" | xargs gofumpt -d
 
 format: format-tools
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/burnt-labs/xiond
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "./tests/system/vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofumpt -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "./tests/system/vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "./tests/system/vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gci write --skip-generated -s standard -s default -s "prefix(cosmossdk.io)" -s "prefix(github.com/cosmos/cosmos-sdk)" -s "prefix(github.com/CosmWasm/wasmd)" --custom-order
 
 
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
-protoVer=0.11.6
+protoVer=0.13.2
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
@@ -198,6 +182,8 @@ proto-all: proto-format proto-lint proto-gen format
 proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/protocgen.sh
+# generate the stubs for the proto files from the proto directory
+	spawn stub-gen
 
 proto-format:
 	@echo "Formatting Protobuf files"
@@ -207,12 +193,92 @@ proto-swagger-gen:
 	@./scripts/protoc-swagger-gen.sh
 
 proto-lint:
-	@$(DOCKER_BUF) lint --error-format=json
+	@$(protoImage) buf lint --error-format=json
 
 proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
+	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
 .PHONY: all install install-debug \
 	go-mod-cache draw-deps clean build format \
 	test test-all test-build test-cover test-unit test-race \
 	test-sim-import-export build-windows-client \
+	test-system
+
+## --- Testnet Utilities ---
+get-localic:
+	@echo "Installing local-interchain"
+	git clone --branch v8.1.0 https://github.com/strangelove-ventures/interchaintest.git interchaintest-downloader
+	cd interchaintest-downloader/local-interchain && make install
+
+is-localic-installed:
+ifeq (,$(shell which local-ic))
+	make get-localic
+endif
+
+get-heighliner:
+	git clone https://github.com/strangelove-ventures/heighliner.git
+	cd heighliner && go install
+
+local-image:
+ifeq (,$(shell which heighliner))
+	echo 'heighliner' binary not found. Consider running `make get-heighliner`
+else
+	heighliner build -c xion --local -f chains.yaml
+endif
+
+.PHONY: get-heighliner local-image is-localic-installed
+
+###############################################################################
+###                                     e2e                                 ###
+###############################################################################
+
+ictest-basic:
+	@echo "Running basic interchain tests"
+	@cd interchaintest && go test -race -v -run TestBasicChain .
+
+ictest-ibc:
+	@echo "Running IBC interchain tests"
+	@cd interchaintest && go test -race -v -run TestIBC .
+
+ictest-wasm:
+	@echo "Running cosmwasm interchain tests"
+	@cd interchaintest && go test -race -v -run TestCosmWasmIntegration .
+
+ictest-packetforward:
+	@echo "Running packet forward middleware interchain tests"
+	@cd interchaintest && go test -race -v -run TestPacketForwardMiddleware .
+
+ictest-poa:
+	@echo "Running proof of authority interchain tests"
+	@cd interchaintest && go test -race -v -run TestPOA .
+
+ictest-tokenfactory:
+	@echo "Running token factory interchain tests"
+	@cd interchaintest && go test -race -v -run TestTokenFactory .
+
+###############################################################################
+###                                    testnet                              ###
+###############################################################################
+
+setup-testnet: is-localic-installed install local-image set-testnet-configs setup-testnet-keys
+
+# Run this before testnet keys are added
+# chainid-1 is used in the testnet.json
+set-testnet-configs:
+	xiond config set client chain-id chainid-1
+	xiond config set client keyring-backend test
+	xiond config set client output text
+
+# import keys from testnet.json into test keyring
+setup-testnet-keys:
+	-`echo "decorate bright ozone fork gallery riot bus exhaust worth way bone indoor calm squirrel merry zero scheme cotton until shop any excess stage laundry" | xiond keys add acc0 --recover`
+	-`echo "wealth flavor believe regret funny network recall kiss grape useless pepper cram hint member few certain unveil rather brick bargain curious require crowd raise" | xiond keys add acc1 --recover`
+
+# default testnet is with IBC
+testnet: setup-testnet
+	spawn local-ic start ibc-testnet
+
+testnet-basic: setup-testnet
+	spawn local-ic start testnet
+
+.PHONY: testnet testnet-basic
