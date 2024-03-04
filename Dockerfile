@@ -3,9 +3,9 @@
 FROM golang:1.21-alpine3.19 AS go-builder
   ARG arch=x86_64
 
-  ENV WASMVM_VERSION=v1.4.1
-  ENV WASMVM_CHECKSUM_AARCH64=a8259ba852f1b68f2a5f8eb666a9c7f1680196562022f71bb361be1472a83cfd
-  ENV WASMVM_CHECKSUM_x86_64=324c1073cb988478d644861783ed5a7de21cfd090976ccc6b1de0559098fbbad
+  ENV WASMVM_VERSION=v1.5.2
+  ENV WASMVM_CHECKSUM_AARCH64=e78b224c15964817a3b75a40e59882b4d0e06fd055b39514d61646689cef8c6e
+  ENV WASMVM_CHECKSUM_x86_64=e660a38efb2930b34ee6f6b0bb12730adccb040b6ab701b8f82f34453a426ae7
 
   # this comes from standard alpine nightly file
   #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
