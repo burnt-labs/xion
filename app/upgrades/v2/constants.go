@@ -3,7 +3,7 @@ package v2
 import (
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/router/types"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
 
