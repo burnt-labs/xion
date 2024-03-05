@@ -69,7 +69,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
 	// load the test private key
-	privateKeyBz, err := os.ReadFile("./testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
