@@ -11,7 +11,6 @@ require (
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
-	github.com/larry0x/abstract-account v0.0.0-20240202022305-255071ed91ee
 	github.com/lestrrat-go/jwx v1.2.26
 	github.com/strangelove-ventures/interchaintest/v8 v8.1.0
 	github.com/stretchr/testify v1.8.4
@@ -83,7 +82,6 @@ require (
 	github.com/cosmos/ibc-go/modules/capability v1.0.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
-	github.com/creachadair/taskgroup v0.4.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
@@ -192,6 +190,7 @@ require (
 	github.com/multiformats/go-multicodec v0.9.0 // indirect
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
+	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
@@ -269,21 +268,23 @@ require (
 	modernc.org/opt v0.1.3 // indirect
 	modernc.org/sqlite v1.28.0 // indirect
 	modernc.org/strutil v1.1.3 // indirect
-	modernc.org/token v1.0.1 // indirect
+	modernc.org/token v1.1.0 // indirect
 	nhooyr.io/websocket v1.8.10 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 replace (
+	cosmossdk.io/core => cosmossdk.io/core v0.11.0
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
+	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.2 //indirect
+
 	github.com/burnt-labs/xion => ../
-	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.2
-	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.0.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
-	//github.com/strangelove-ventures/interchaintest/v8 => github.com/burnt-labs/interchaintest/v7 v7.0.0-20230725204927-990da9d6e272
+	// breaks SDK app.toml parsing for client configs.
+	github.com/spf13/viper => github.com/spf13/viper v1.17.0
+	// If using custom internal modules, replace your app here with the parent application
+	// github.com/strangelove-ventures/simapp => ../.
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
-	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )

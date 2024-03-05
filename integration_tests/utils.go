@@ -22,7 +22,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -144,16 +143,16 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 					},
 				},
 				//GasPrices:              "0.1uxion",
-				GasPrices:              gas,
-				GasAdjustment:          2.0,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesis,
-				UsingNewGenesisCommand: true,
+				GasPrices:      gas,
+				GasAdjustment:  2.0,
+				Type:           "cosmos",
+				ChainID:        "xion-1",
+				Bin:            "xiond",
+				Bech32Prefix:   "xion",
+				Denom:          "uxion",
+				TrustingPeriod: "336h",
+				ModifyGenesis:  modifyGenesis,
+				//UsingNewGenesisCommand: true,
 			},
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
@@ -487,22 +486,25 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 }
 
 func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
-	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...), nil)
-	if err != nil {
-		return "", err
-	}
-	output := cosmos.CosmosTx{}
-	err = json.Unmarshal([]byte(stdout), &output)
-	if err != nil {
-		return "", err
-	}
-	if output.Code != 0 {
-		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
-	}
-	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
-		return "", err
-	}
-	return output.TxHash, nil
+	//stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...), nil)
+	//if err != nil {
+	//	return "", err
+	//}
+	//output := cosmos.CosmosTx{}
+	//err = json.Unmarshal([]byte(stdout), &output)
+	//if err != nil {
+	//	return "", err
+	//}
+	//if output.Code != 0 {
+	//	return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	//}
+	//if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+	//	return "", err
+	//}
+	//return output.TxHash, nil
+	//cmd := TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...)
+	//t.Logf("command: %s", cmd)
+	return tn.ExecTx(ctx, keyName, command...)
 }
 
 func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {

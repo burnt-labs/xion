@@ -1,6 +1,7 @@
 package integration_tests
 
 import (
+	"cosmossdk.io/math"
 	"fmt"
 	"testing"
 
@@ -24,7 +25,7 @@ func TestXionMinimumFee(t *testing.T) {
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := int64(10_000_000)
-	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
+	users := ibctest.GetAndFundTestUsers(t, ctx, "default", math.NewInt(fundAmount), xion)
 	xionUser := users[0]
 	currentHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
@@ -45,7 +46,7 @@ func TestXionMinimumFee(t *testing.T) {
 
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
+		&xiontypes.MsgUpdateParams{},
 		&xiontypes.MsgSend{},
 	)
 
@@ -59,5 +60,5 @@ func TestXionMinimumFee(t *testing.T) {
 	require.NoError(t, err)
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(100), uint64(balance))
+	require.Equal(t, uint64(100), uint64(balance.Int64()))
 }
