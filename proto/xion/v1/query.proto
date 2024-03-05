@@ -1,0 +1,30 @@
+syntax = "proto3";
+package xion.v1;
+
+option go_package = "github.com/burnt-labs/xion/x/xion/types";
+
+service Query {
+  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest) returns (QueryWebAuthNVerifyRegisterResponse) {}
+  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest) returns (QueryWebAuthNVerifyAuthenticateResponse) {}
+}
+
+message QueryWebAuthNVerifyRegisterRequest {
+  string addr = 1;
+  string challenge = 2;
+  string rp = 3;
+  bytes data = 4;
+}
+
+message QueryWebAuthNVerifyRegisterResponse {
+  bytes credential = 1;
+}
+
+message QueryWebAuthNVerifyAuthenticateRequest {
+  string addr = 1;
+  string challenge = 2;
+  string rp = 3;
+  bytes credential = 4;
+  bytes data = 5;
+}
+
+message QueryWebAuthNVerifyAuthenticateResponse {}
