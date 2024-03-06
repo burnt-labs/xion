@@ -15,6 +15,7 @@ import (
 
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
@@ -71,7 +72,10 @@ func init() {
 	// xion queries
 	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyRegister", &xiontypes.QueryWebAuthNVerifyRegisterResponse{})
 	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyAuthenticate", &xiontypes.QueryWebAuthNVerifyAuthenticateResponse{})
-
+	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", &jwktypes.QueryAllAudienceResponse{})
+	setWhitelistedQuery("/xion.jwk.v1.Query/Audience", &jwktypes.QueryGetAudienceResponse{})
+	setWhitelistedQuery("/xion.jwk.v1.Query/Params", &jwktypes.QueryParamsResponse{})
+	setWhitelistedQuery("/xion.jwk.v1.Query/ValidateJWT", &jwktypes.QueryValidateJWTResponse{})
 }
 
 // GetWhitelistedQuery returns the whitelisted query at the provided path.

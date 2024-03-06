@@ -2,7 +2,6 @@ package integration_tests
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,7 +15,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -59,7 +57,8 @@ func TestXionAbstractAccount(t *testing.T) {
 	xionUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
 	require.NoError(t, err)
 	currentHeight, _ := xion.Height(ctx)
-	testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
+	err = testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
+	require.NoError(t, err)
 	t.Logf("created xion user %s", xionUser.FormattedAddress())
 
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
@@ -105,39 +104,20 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
 
-	// predict the contract address so it can be verified
-	salt := "0"
-	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
-	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
-	t.Logf("predicted address: *******%s********", predictedAddr.String())
-
-	instantiateMsg := map[string]interface{}{}
-	authenticatorDetails := map[string]interface{}{}
-	authenticator := map[string]interface{}{}
-
-	authenticatorDetails["id"] = 0
-	authenticatorDetails["pubkey"] = "Ayrlj6q3WWs91p45LVKwI8JyfMYNmWMrcDinLNEdWYE4"
-	authenticatorDetails["signature"] = "Tv2YRs5OmB4kR6Yk+74YvS/P0AoIkum2ZH7Y39tgrExvEAj+4wrAZfMaJa7apIx4/0YfB1WWc5mvtV0qS/PlMw=="
-
-	authenticator["Secp256K1"] = authenticatorDetails
-	instantiateMsg["authenticator"] = authenticator
-
-	instantiateMsgStr, err := json.Marshal(instantiateMsg)
-	require.NoError(t, err)
-	registerCmd := []string{
-		"abstract-account", "register",
-		codeID, string(instantiateMsgStr),
-		"--salt", "0",
+	registeredTxHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"xion", "register",
+		codeID,
+		xionUser.KeyName(),
 		"--funds", depositedFunds,
+		"--salt", "0",
+		"--authenticator", "Secp256K1",
 		"--chain-id", xion.Config().ChainID,
-	}
-	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], xionUser.KeyName(), registerCmd...)
+	)
 	require.NoError(t, err)
-	t.Logf("tx hash: %s", txHash)
+	t.Logf("tx hash: %s", registeredTxHash)
 
-	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", txHash)
+	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
 	require.NoError(t, err)
 	t.Logf("TxDetails: %s", txDetails)
 	aaContractAddr := GetAAContractAddress(t, txDetails)

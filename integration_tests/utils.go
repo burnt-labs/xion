@@ -123,10 +123,11 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	ctx := context.Background()
 
 	var numFullNodes = 1
-	var numValidators = 1
+	var numValidators = 3
 
 	// pulling image from env to foster local dev
 	imageTag := os.Getenv("XION_IMAGE")
+	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
 	// Chain factory

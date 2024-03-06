@@ -78,6 +78,8 @@ func TestJWTAbstractAccount(t *testing.T) {
 	// log the test public key
 	publicKey, err := jwk.New(privateKey)
 	require.NoError(t, err)
+	publicKey, err = publicKey.PublicKey()
+	require.NoError(t, err)
 	publicKeyJSON, err := json.Marshal(publicKey)
 	require.NoError(t, err)
 	t.Logf("public key: %s", publicKeyJSON)
@@ -85,9 +87,12 @@ func TestJWTAbstractAccount(t *testing.T) {
 	// build the jwk key
 	testKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
 	require.NoError(t, err)
+	err = testKey.Set("alg", "RS256")
+	require.NoError(t, err)
 	testKeyPublic, err := testKey.PublicKey()
 	require.NoError(t, err)
 	testPublicKeyJSON, err := json.Marshal(testKeyPublic)
+	require.NoError(t, err)
 
 	// deploy the key to the jwk module
 	aud := "integration-test-project"
@@ -135,9 +140,8 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	// sha256 the contract addr, as it expects
-	signatureBz := sha256.Sum256([]byte(predictedAddr.String()))
-	signature := base64.StdEncoding.EncodeToString(signatureBz[:])
+	//b64 the contract address to use as the transaction hash
+	signature := base64.StdEncoding.EncodeToString([]byte(predictedAddr.String()))
 
 	now := time.Now()
 	fiveAgo := now.Add(-time.Second * 5)
@@ -277,7 +281,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	// our signature is the sha256 of the signbytes
-	signatureBz = sha256.Sum256(signBytes)
+	signatureBz := sha256.Sum256(signBytes)
 	signature = base64.StdEncoding.EncodeToString(signatureBz[:])
 
 	// we need to create a new valid token, making sure the time works
