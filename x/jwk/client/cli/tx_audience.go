@@ -10,9 +10,9 @@ import (
 
 func CmdCreateAudience() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-audience [aud] [key]",
+		Use:   "create-audience [aud] [key] [admin | optional]",
 		Short: "Create a new audience",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			// Get indexes
 			indexAud := args[0]
@@ -25,8 +25,16 @@ func CmdCreateAudience() *cobra.Command {
 				return err
 			}
 
+			// if admin provided, use it. if not, use `from`
+			var admin string
+			if len(args) == 3 {
+				admin = args[2]
+			} else {
+				admin = clientCtx.GetFromAddress().String()
+			}
+
 			msg := types.NewMsgCreateAudience(
-				clientCtx.GetFromAddress().String(),
+				admin,
 				indexAud,
 				argKey,
 			)
@@ -60,6 +68,7 @@ func CmdUpdateAudience() *cobra.Command {
 			}
 
 			msg := types.NewMsgUpdateAudience(
+				clientCtx.GetFromAddress().String(),
 				clientCtx.GetFromAddress().String(),
 				indexAud,
 				argKey,

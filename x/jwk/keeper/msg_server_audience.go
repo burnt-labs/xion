@@ -49,8 +49,8 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
 	}
 
-	// Checks if the msg admin is the same as the current owner
-	if msg.Admin != valFound.Admin {
+	// Checks if the msg signer is the same as the current owner
+	if msg.Signer != valFound.Admin {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
 	}
 
