@@ -185,17 +185,6 @@ func request_Query_ValidateJWT_0(ctx context.Context, marshaler runtime.Marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sigBytes", err)
 	}
 
-	val, ok = pathParams["txHash"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "txHash")
-	}
-
-	protoReq.TxHash, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "txHash", err)
-	}
-
 	msg, err := client.ValidateJWT(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -243,17 +232,6 @@ func local_request_Query_ValidateJWT_0(ctx context.Context, marshaler runtime.Ma
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sigBytes", err)
-	}
-
-	val, ok = pathParams["txHash"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "txHash")
-	}
-
-	protoReq.TxHash, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "txHash", err)
 	}
 
 	msg, err := server.ValidateJWT(ctx, &protoReq)
@@ -490,7 +468,7 @@ var (
 
 	pattern_Query_AudienceAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 0, 2, 1}, []string{"jwk", "audience"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ValidateJWT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"jwk", "validate_jwt", "aud", "sub", "sigBytes", "txHash"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_ValidateJWT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"jwk", "validate_jwt", "aud", "sub", "sigBytes"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

@@ -33,7 +33,6 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		jwt.WithKey(key.Algorithm(), key),
 		jwt.WithAudience(req.Aud),
 		jwt.WithSubject(req.Sub),
-		jwt.WithClaimValue("transaction_hash", req.TxHash),
 		jwt.WithClock(jwt.ClockFunc(func() time.Time {
 			// adjust the time from the block-height due to lagging reported time
 			return ctx.BlockTime().Add(time.Duration(k.GetParams(ctx).TimeOffset))

@@ -31,7 +31,7 @@ service Query {
   
   // Queries a list of ValidateJWT items.
   rpc ValidateJWT (QueryValidateJWTRequest) returns (QueryValidateJWTResponse) {
-    option (google.api.http).get = "/jwk/jwk/validate_jwt/{aud}/{sub}/{sigBytes}/{txHash}";
+    option (google.api.http).get = "/jwk/jwk/validate_jwt/{aud}/{sub}/{sigBytes}";
   
   }
 }
@@ -66,7 +66,7 @@ message QueryValidateJWTRequest {
   string aud      = 1;
   string sub      = 2;
   string sigBytes = 3;
-  string txHash   = 4;
+//  string txHash   = 4;
 }
 
 message QueryValidateJWTResponse {}
