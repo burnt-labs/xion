@@ -140,14 +140,13 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
+	v4 "github.com/burnt-labs/xion/app/upgrades/v4"
 	"github.com/burnt-labs/xion/x/mint"
 	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-
-	v3 "github.com/burnt-labs/xion/app/upgrades/v3"
 )
 
 const appName = "XionApp"
@@ -164,7 +163,7 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v3.Upgrade}
+	Upgrades                = []upgrades.Upgrade{v4.Upgrade}
 )
 
 // These constants are derived from the above variables.
@@ -793,7 +792,7 @@ func NewWasmApp(
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		xion.NewAppModule(app.XionKeeper),
-		jwk.NewAppModule(appCodec, app.JwkKeeper),
+		jwk.NewAppModule(appCodec, app.JwkKeeper, app.GetSubspace(jwktypes.ModuleName)),
 		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		aa.NewAppModule(app.AbstractAccountKeeper),
