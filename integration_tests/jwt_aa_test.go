@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	xionapp "github.com/burnt-labs/xion/app"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"google.golang.org/protobuf/types/known/anypb"
 	"os"
@@ -18,7 +19,6 @@ import (
 	"cosmossdk.io/math"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionapp "github.com/burnt-labs/xion/app"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -158,6 +158,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 		"--salt", salt,
 		"--funds", "10000uxion",
 		"--chain-id", xion.Config().ChainID,
+		"--gas", "auto",
 	}
 	t.Logf("sender: %s", xionUser.FormattedAddress())
 	t.Logf("register cmd: %s", registerCmd)
@@ -165,6 +166,10 @@ func TestJWTAbstractAccount(t *testing.T) {
 	txHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), registerCmd...)
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
+
+	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	require.NoError(t, err)
+	t.Logf("tx details: %s", txDetails)
 
 	contractsResponse, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contracts", codeIDStr)
 	require.NoError(t, err)
@@ -175,11 +180,11 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, int64(10_000), newBalance)
+	require.Equal(t, int64(10_000), newBalance.Int64())
 
 	// get the account from the chain. there might be a better way to do this
 	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
-		"account", contract)
+		"auth", "account", contract)
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
 
