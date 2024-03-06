@@ -262,7 +262,6 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 					Aud:      "test-aud",
 					Sub:      "admin",
 					SigBytes: signedToken,
-					TxHash:   "test-tx-hash",
 				})
 				suite.Require().NoError(err)
 				return bz
