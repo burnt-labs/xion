@@ -91,7 +91,15 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 
 	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["url"] = "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"
-	authenticatorDetails["credential"] = "eyJ0eXBlIjoicHVibGljLWtleSIsImlkIjoiR0tGWGRGbWs5MXJKTkdDOHRnXzdRUmFzdFRucEk1bEZwWnBaeUttZEIxcyIsInJhd0lkIjoiR0tGWGRGbWs5MXJKTkdDOHRnXzdRUmFzdFRucEk1bEZwWnBaeUttZEIxcyIsImF1dGhlbnRpY2F0b3JBdHRhY2htZW50IjoicGxhdGZvcm0iLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVkzSmxZWFJsSWl3aVkyaGhiR3hsYm1kbElqb2laVWRzZG1KcVJqTk9SRko0WVc1S00yRXlOVzFoUkVsM1kxZDRkRTF1U20xWk0xRTFZVzVzZW1FemFHOU5TRWw1V2xoT2JXSlVVbTVrZWxwMVkwZGFOV1JYY0hSa1NGa3hUWHBPZUUxRVVtaGpWRnAxSWl3aWIzSnBaMmx1SWpvaWFIUjBjSE02THk5NGFXOXVMV1JoY0hBdFpYaGhiWEJzWlMxbmFYUXRabVZoZEMxbVlXTmxhV1F0WW5WeWJuUm1hVzVoYm1ObExuWmxjbU5sYkM1aGNIQWlMQ0pqY205emMwOXlhV2RwYmlJNlptRnNjMlVzSW05MGFHVnlYMnRsZVhOZlkyRnVYMkpsWDJGa1pHVmtYMmhsY21VaU9pSmtieUJ1YjNRZ1kyOXRjR0Z5WlNCamJHbGxiblJFWVhSaFNsTlBUaUJoWjJGcGJuTjBJR0VnZEdWdGNHeGhkR1V1SUZObFpTQm9kSFJ3Y3pvdkwyZHZieTVuYkM5NVlXSlFaWGdpZlEiLCJhdHRlc3RhdGlvbk9iamVjdCI6Im8yTm1iWFJrYm05dVpXZGhkSFJUZEcxMG9HaGhkWFJvUkdGMFlWaWtzR01CaURjRXBwaU1meFExMFRQQ2UyLUZhS3JMZVRrdnB6eGN6bmdUTXcxRkFBQUFBSzNPQUFJMXZNWUtaSXNMSmZId1ZRTUFJQmloVjNSWnBQZGF5VFJndkxZUC0wRVdyTFU1NlNPWlJhV2FXY2lwblFkYnBRRUNBeVlnQVNGWUlQMU54dE5Ea1lTMzJqQlMtbXh6TXhJT2xPdGQ1VnlVM2NxR0tLLTVMVG9kSWxnZ1JwOUxfSldwNG1Na2wzNXVYcXF5TGZkM24xUTlBbFNSeS01RG1YQXFJRm8iLCJ0cmFuc3BvcnRzIjpbImludGVybmFsIl19LCJjbGllbnRFeHRlbnNpb25SZXN1bHRzIjp7fX0="
+	/*
+		The following is a valid public key response from a webauthn authenticator the using above url. This will need to be updated from time to time when the accounts contract is updated.
+		To regenerate, use the following steps:
+		1. Run this test and make note of the `predicted address` output above.
+		2. Go to the url above and open the developer tools console
+		3. Enter the `predicted address` in the second field within the WebAuthN section (populated with the string "test-challenge" by default)
+		4. Click "Register" and copy the result from the console
+	*/
+	authenticatorDetails["credential"] = []byte(`{"type":"public-key","id":"uK9MczZ7BTKeeIBZaqUlfJ5ZJCz45W2-vihTCCRvRk4","rawId":"uK9MczZ7BTKeeIBZaqUlfJ5ZJCz45W2-vihTCCRvRk4","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRjFjMnRqT1hJelpYaHFaMjVtZG5oamNEZGpNbXh4WlhWMFpqUnRZMlExT0RBNGNuSjZZMlpoT0d4eFpuWXpZV2RtY1cxeE0zSjVaR1p0Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2V9","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1FAAAAAK3OAAI1vMYKZIsLJfHwVQMAILivTHM2ewUynniAWWqlJXyeWSQs-OVtvr4oUwgkb0ZOpQECAyYgASFYIAOSagdSZIs0_UD4hUU5kJTCDuk13MfJ17Vyo6RlsIVQIlggNy0xgW2n7IT5wwpGbXHaiF-YxLXwPGTZ2v_-FMLJLmQ","transports":["internal"]},"clientExtensionResults":{}}`)
 	authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
@@ -208,6 +216,14 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 
 	t.Log("challenge ", challenge)
 
+	/*
+		The following is a valid signed challenge from a webauthn authenticator the using above url. This will need to be updated from time to time when the accounts contract is updated.
+		To regenerate, use the following steps:
+		1. Run this test and make note of the `challenge` output above.
+		2. Go to the url above and open the developer tools console.
+		3. Enter the `challenge` in the first field within the WebAuthN section (populated with the string "test-challenge" by default)
+		4. Click "Sign" and copy the result from the console
+	*/
 	signedChallenge := `{"type":"public-key","id":"GKFXdFmk91rJNGC8tg_7QRastTnpI5lFpZpZyKmdB1s","rawId":"GKFXdFmk91rJNGC8tg_7QRastTnpI5lFpZpZyKmdB1s","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiWlZsUFQyWlRTWEpaYWtSeU9WVllhQzkwYTJwTVNIVmtTMjF0VjNwalNETk9iVzVoVm1kWE5ETmlNRDAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0FAAAAAA","signature":"MEQCIF8DoaerCCd3gsjia6R4uUo0RXbjGKnHd_ImpAsdHsQpAiBBhkjAxJBB9L-7Ck6DO5Z2qAEV2cS6wzHkcPf34xfP-w","userHandle":"eGlvbjF3NDRxanJ3a25maDIwcWxtMnJmY3Q5anlza3hoMHIyZXNmbTRndzZucGZ5dWptdHY1MzNxMDRhcTZu"},"clientExtensionResults":{}}`
 	// add the auth index to the signature
 	signedTokenBz := []byte(signedChallenge)
