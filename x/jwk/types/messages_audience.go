@@ -65,17 +65,17 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 var _ sdk.Msg = &MsgUpdateAudience{}
 
 func NewMsgUpdateAudience(
-	signer string,
 	admin string,
+	newAdmin string,
 	aud string,
 	key string,
 
 ) *MsgUpdateAudience {
 	return &MsgUpdateAudience{
-		Signer: signer,
-		Admin:  admin,
-		Aud:    aud,
-		Key:    key,
+		NewAdmin: newAdmin,
+		Admin:    admin,
+		Aud:      aud,
+		Key:      key,
 	}
 }
 

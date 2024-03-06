@@ -21,8 +21,8 @@ message MsgCreateAudience {
 message MsgCreateAudienceResponse {}
 
 message MsgUpdateAudience {
-  string signer = 1;
-  string admin  = 2;
+  string admin = 1;
+  string new_admin  = 2;
   string aud    = 3;
   string key    = 4;
 }

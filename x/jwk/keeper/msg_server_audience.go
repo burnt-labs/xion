@@ -50,12 +50,13 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 	}
 
 	// Checks if the msg signer is the same as the current owner
-	if msg.Signer != valFound.Admin {
+	if msg.Admin != valFound.Admin {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
 	}
 
+	// updates based on new values provided, potentially admin, aud and key
 	var audience = types.Audience{
-		Admin: msg.Admin,
+		Admin: msg.NewAdmin,
 		Aud:   msg.Aud,
 		Key:   msg.Key,
 	}
