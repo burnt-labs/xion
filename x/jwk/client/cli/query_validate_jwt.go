@@ -13,14 +13,13 @@ var _ = strconv.Itoa(0)
 
 func CmdValidateJWT() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validate-jwt [aud] [sub] [sig-bytes] [tx-hash]",
+		Use:   "validate-jwt [aud] [sub] [sig-bytes]",
 		Short: "Query ValidateJWT",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqAud := args[0]
 			reqSub := args[1]
 			reqSigBytes := args[2]
-			reqTxHash := args[3]
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -34,7 +33,6 @@ func CmdValidateJWT() *cobra.Command {
 				Aud:      reqAud,
 				Sub:      reqSub,
 				SigBytes: reqSigBytes,
-				TxHash:   reqTxHash,
 			}
 
 			res, err := queryClient.ValidateJWT(cmd.Context(), params)
