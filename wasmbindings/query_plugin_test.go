@@ -1,18 +1,26 @@
 package wasmbinding_test
 
 import (
+	"crypto/rsa"
+	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
+	jwkMsgServer "github.com/burnt-labs/xion/x/jwk/keeper"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/golang-jwt/jwt/v5"
 	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
+	jwk "github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -33,7 +41,34 @@ func TestStargateTestSuite(t *testing.T) {
 	suite.Run(t, new(StargateTestSuite))
 }
 
-func (suite *StargateTestSuite) TestStargateQuerier() {
+func SetupKeys(suite *StargateTestSuite) *rsa.PrivateKey {
+	// CreateAudience
+	privateKeyBz, err := os.ReadFile("./keys/jwtRS256.key")
+	suite.Require().NoError(err)
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
+	suite.Require().NoError(err)
+	return privateKey
+}
+
+func SetUpAudience(suite *StargateTestSuite) {
+	privKey := SetupKeys(suite)
+	jwkPrivKey, err := jwk.New(privKey)
+	suite.Require().NoError(err)
+	pubKey, err := jwkPrivKey.PublicKey()
+	suite.NoError(err)
+	pubKey.Set("alg", "RS256")
+	pubKeyJson, err := json.Marshal(pubKey)
+	suite.NoError(err)
+	msgServer := jwkMsgServer.NewMsgServerImpl(suite.app.JwkKeeper)
+	_, err = msgServer.CreateAudience(sdk.WrapSDKContext(suite.ctx), &jwktypes.MsgCreateAudience{
+		Admin: "admin",
+		Aud:   "test-aud",
+		Key:   string(pubKeyJson),
+	})
+	suite.NoError(err)
+}
+
+func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 	testCases := []struct {
 		name                   string
 		testSetup              func()
@@ -102,6 +137,164 @@ func (suite *StargateTestSuite) TestStargateQuerier() {
 			if tc.checkResponseStruct {
 				expectedResponse, err := proto.Marshal(tc.responseProtoStruct)
 				suite.Require().NoError(err)
+				expJsonResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct, expectedResponse, suite.app.AppCodec())
+				suite.Require().NoError(err)
+				suite.Require().Equal(expJsonResp, stargateResponse)
+			}
+
+			suite.Require().NoError(err)
+
+			protoResponse, ok := tc.responseProtoStruct.(proto.Message)
+			suite.Require().True(ok)
+
+			// test correctness by unmarshalling json response into proto struct
+			err = suite.app.AppCodec().UnmarshalJSON(stargateResponse, protoResponse)
+			if tc.expectedUnMarshalError {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(protoResponse)
+			}
+
+			if tc.resendRequest {
+				stargateQuerier = wasmbinding.StargateQuerier(*suite.app.GRPCQueryRouter(), suite.app.AppCodec())
+				stargateRequest = &wasmvmtypes.StargateQuery{
+					Path: tc.path,
+					Data: tc.requestData(),
+				}
+				resendResponse, err := stargateQuerier(suite.ctx, stargateRequest)
+				suite.Require().NoError(err)
+				suite.Require().Equal(stargateResponse, resendResponse)
+			}
+		})
+	}
+}
+
+func (suite *StargateTestSuite) TestJWKStargateQuerier() {
+	privKey := SetupKeys(suite)
+	jwkPrivKey, err := jwk.New(privKey)
+	suite.Require().NoError(err)
+	publicKey, err := jwkPrivKey.PublicKey()
+	suite.NoError(err)
+	publicKey.Set("alg", "RS256")
+	publicKeyJson, err := json.Marshal(publicKey)
+	suite.NoError(err)
+
+	testCases := []struct {
+		name                   string
+		testSetup              func()
+		path                   string
+		requestData            func() []byte
+		responseProtoStruct    codec.ProtoMarshaler
+		expectedQuerierError   bool
+		expectedUnMarshalError bool
+		resendRequest          bool
+		checkResponseStruct    bool
+	}{
+		{
+			name: "JWKAudience",
+			path: "/xion.jwk.v1.Query/Audience",
+			requestData: func() []byte {
+				bz, err := proto.Marshal(&jwktypes.QueryGetAudienceRequest{
+					Aud: "test-aud",
+				})
+				suite.Require().NoError(err)
+				return bz
+			},
+			testSetup: func() {
+				SetUpAudience(suite)
+			},
+			responseProtoStruct: &jwktypes.QueryGetAudienceResponse{
+				Audience: jwktypes.Audience{
+					Admin: "admin",
+					Aud:   "test-aud",
+					Key:   string(publicKeyJson),
+				},
+			},
+		},
+		{
+			name: "JWKAllAudience",
+			path: "/xion.jwk.v1.Query/AudienceAll",
+			requestData: func() []byte {
+				bz, err := proto.Marshal(&jwktypes.QueryAllAudienceRequest{
+					Pagination: &query.PageRequest{
+						CountTotal: true,
+					},
+				})
+				suite.Require().NoError(err)
+				return bz
+			},
+			testSetup: func() {
+				SetUpAudience(suite)
+			},
+			responseProtoStruct: &jwktypes.QueryAllAudienceResponse{
+				Audience: []jwktypes.Audience{
+					{
+						Admin: "admin",
+						Aud:   "test-aud",
+						Key:   string(publicKeyJson),
+					}},
+				Pagination: &query.PageResponse{
+					Total: 1,
+				},
+			},
+		},
+		{
+			name: "JWKValidateJWT",
+			path: "/xion.jwk.v1.Query/ValidateJWT",
+			requestData: func() []byte {
+				now := time.Now()
+				fiveAgo := now.Add(-time.Second * 5)
+				inFive := now.Add(time.Minute * 5)
+				token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+					"iss":              "test-aud",
+					"sub":              "admin",
+					"aud":              "test-aud",
+					"exp":              inFive.Unix(),
+					"nbf":              fiveAgo.Unix(),
+					"iat":              fiveAgo.Unix(),
+					"transaction_hash": "test-tx-hash",
+				})
+				signedToken, err := token.SignedString(privKey)
+				suite.Require().NoError(err)
+				suite.NotEmpty(signedToken)
+				bz, err := proto.Marshal(&jwktypes.QueryValidateJWTRequest{
+					Aud:      "test-aud",
+					Sub:      "admin",
+					SigBytes: signedToken,
+				})
+				suite.Require().NoError(err)
+				return bz
+			},
+			testSetup: func() {
+				SetUpAudience(suite)
+			},
+			responseProtoStruct: &jwktypes.QueryValidateJWTResponse{},
+		},
+
+		// TODO: errors in wrong query in state machine
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest()
+			if tc.testSetup != nil {
+				tc.testSetup()
+			}
+
+			stargateQuerier := wasmbinding.StargateQuerier(*suite.app.GRPCQueryRouter(), suite.app.AppCodec())
+			stargateRequest := &wasmvmtypes.StargateQuery{
+				Path: tc.path,
+				Data: tc.requestData(),
+			}
+			stargateResponse, err := stargateQuerier(suite.ctx, stargateRequest)
+			if tc.expectedQuerierError {
+				suite.Require().Error(err)
+				return
+			}
+			if tc.checkResponseStruct {
+				expectedResponse, err := proto.Marshal(tc.responseProtoStruct)
+				suite.NoError(err)
 				expJsonResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct, expectedResponse, suite.app.AppCodec())
 				suite.Require().NoError(err)
 				suite.Require().Equal(expJsonResp, stargateResponse)

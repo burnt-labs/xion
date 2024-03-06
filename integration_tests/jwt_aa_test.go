@@ -14,6 +14,7 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xionapp "github.com/burnt-labs/xion/app"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -62,15 +63,52 @@ func TestJWTAbstractAccount(t *testing.T) {
 		&wasmtypes.MsgStoreCode{},
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
+		&jwktypes.MsgCreateAudience{},
 	)
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
-	// prepare the JWT key and data
-	fp, err := os.Getwd()
+	// load the test private key
+	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	require.NoError(t, err)
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
+	require.NoError(t, err)
+	t.Logf("private key: %v", privateKey)
+
+	// log the test public key
+	publicKey, err := jwk.New(privateKey)
+	require.NoError(t, err)
+	publicKey, err = publicKey.PublicKey()
+	require.NoError(t, err)
+	publicKeyJSON, err := json.Marshal(publicKey)
+	require.NoError(t, err)
+	t.Logf("public key: %s", publicKeyJSON)
+
+	// build the jwk key
+	testKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
+	require.NoError(t, err)
+	err = testKey.Set("alg", "RS256")
+	require.NoError(t, err)
+	testKeyPublic, err := testKey.PublicKey()
+	require.NoError(t, err)
+	testPublicKeyJSON, err := json.Marshal(testKeyPublic)
 	require.NoError(t, err)
 
+	// deploy the key to the jwk module
+	aud := "integration-test-project"
+	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"jwk", "create-audience",
+		aud,
+		string(testPublicKeyJSON),
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	t.Logf("create audience hash: %s", createAudienceHash)
+
 	// deploy the contract
+	fp, err := os.Getwd()
+	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
 		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
@@ -82,7 +120,6 @@ func TestJWTAbstractAccount(t *testing.T) {
 	t.Logf("code response: %s", codeResp)
 
 	sub := "integration-test-user"
-	aud := "integration-test-project"
 
 	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["sub"] = sub
@@ -103,21 +140,8 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
-	require.NoError(t, err)
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
-	require.NoError(t, err)
-	t.Logf("private key: %v", privateKey)
-
-	publicKey, err := jwk.New(privateKey)
-	require.NoError(t, err)
-	publicKeyJSON, err := json.Marshal(publicKey)
-	require.NoError(t, err)
-	t.Logf("public key: %s", publicKeyJSON)
-
-	// sha256 the contract addr, as it expects
-	signatureBz := sha256.Sum256([]byte(predictedAddr.String()))
-	signature := base64.StdEncoding.EncodeToString(signatureBz[:])
+	//b64 the contract address to use as the transaction hash
+	signature := base64.StdEncoding.EncodeToString([]byte(predictedAddr.String()))
 
 	now := time.Now()
 	fiveAgo := now.Add(-time.Second * 5)
@@ -257,7 +281,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	// our signature is the sha256 of the signbytes
-	signatureBz = sha256.Sum256(signBytes)
+	signatureBz := sha256.Sum256(signBytes)
 	signature = base64.StdEncoding.EncodeToString(signatureBz[:])
 
 	// we need to create a new valid token, making sure the time works

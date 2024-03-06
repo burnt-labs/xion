@@ -28,12 +28,7 @@ import (
 
 var deployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
 
-func TestWebAuthNAbstractAccount(t *testing.T) {
-	t.Parallel()
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
+func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
@@ -81,17 +76,39 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
+	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+
+	return td, deployerAddr, codeHash, codeIDStr, nil
+}
+func TestWebAuthNAbstractAccount(t *testing.T) {
+	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	td, deployerAddr, codeHash, codeIDStr, err := setupChain(t)
+	require.NoError(t, err)
+
+	xion, ctx := td.xionChain, td.ctx
+
 	// predict the contract address so it can be verified
 	salt := "0"
 	creatorAddr := types.AccAddress(deployerAddr.Address())
-	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
 	require.NoError(t, err)
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["url"] = "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"
-	authenticatorDetails["credential"] = "eyJ0eXBlIjoicHVibGljLWtleSIsImlkIjoidUs5TWN6WjdCVEtlZUlCWmFxVWxmSjVaSkN6NDVXMi12aWhUQ0NSdlJrNCIsInJhd0lkIjoidUs5TWN6WjdCVEtlZUlCWmFxVWxmSjVaSkN6NDVXMi12aWhUQ0NSdlJrNCIsImF1dGhlbnRpY2F0b3JBdHRhY2htZW50IjoicGxhdGZvcm0iLCJyZXNwb25zZSI6eyJjbGllbnREYXRhSlNPTiI6ImV5SjBlWEJsSWpvaWQyVmlZWFYwYUc0dVkzSmxZWFJsSWl3aVkyaGhiR3hsYm1kbElqb2laVWRzZG1KcVJqRmpNblJxVDFoSmVscFlhSEZhTWpWdFpHNW9hbU5FWkdwTmJYaDRXbGhXTUZwcVVuUlpNbEV4VDBSQk5HTnVTalpaTWxwb1QwZDRlRnB1V1hwWlYyUnRZMWN4ZUUwelNqVmFSMXAwSWl3aWIzSnBaMmx1SWpvaWFIUjBjSE02THk5NGFXOXVMV1JoY0hBdFpYaGhiWEJzWlMxbmFYUXRabVZoZEMxbVlXTmxhV1F0WW5WeWJuUm1hVzVoYm1ObExuWmxjbU5sYkM1aGNIQWlMQ0pqY205emMwOXlhV2RwYmlJNlptRnNjMlY5IiwiYXR0ZXN0YXRpb25PYmplY3QiOiJvMk5tYlhSa2JtOXVaV2RoZEhSVGRHMTBvR2hoZFhSb1JHRjBZVmlrc0dNQmlEY0VwcGlNZnhRMTBUUENlMi1GYUtyTGVUa3Zwenhjem5nVE13MUZBQUFBQUszT0FBSTF2TVlLWklzTEpmSHdWUU1BSUxpdlRITTJld1V5bm5pQVdXcWxKWHllV1NRcy1PVnR2cjRvVXdna2IwWk9wUUVDQXlZZ0FTRllJQU9TYWdkU1pJczBfVUQ0aFVVNWtKVENEdWsxM01mSjE3VnlvNlJsc0lWUUlsZ2dOeTB4Z1cybjdJVDV3d3BHYlhIYWlGLVl4TFh3UEdUWjJ2Xy1GTUxKTG1RIiwidHJhbnNwb3J0cyI6WyJpbnRlcm5hbCJdfSwiY2xpZW50RXh0ZW5zaW9uUmVzdWx0cyI6e319"
+	/*
+		The following is a valid public key response from a webauthn authenticator the using above url. This will need to be updated from time to time when the accounts contract is updated.
+		To regenerate, use the following steps:
+		1. Run this test and make note of the `predicted address` output above.
+		2. Go to the url above and open the developer tools console
+		3. Enter the `predicted address` in the second field within the WebAuthN section (populated with the string "test-challenge" by default)
+		4. Click "Register" and copy the result from the console
+	*/
+	authenticatorDetails["credential"] = []byte(`{"type":"public-key","id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","rawId":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRnVZM2d3WVRCcWJuTjVZWGszZFdSa01ETmhhREpuWmpZME56Y3laekF5Y1hOM2FqVXlPVGsyWkhrNE1IRm1kbWR1YlhweE5tVndiSEZ4Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2V9","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1FAAAAAK3OAAI1vMYKZIsLJfHwVQMAIFFsWPskXSJbPCE_r8jEupWtWYqhEjgH3-21mfy1ldD4pQECAyYgASFYIBs-8ZhiLYtNYWnyPdNxhka3UM7oGCyWzHZlT_FumMOsIlggjBzL-ZhjwRGxFCw3S0HGsyh9cZ-p_BESG0e6xQPg6ZI","transports":["internal"]},"clientExtensionResults":{}}`)
 	authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
@@ -208,7 +225,15 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 
 	t.Log("challenge ", challenge)
 
-	signedChallenge := `{"type":"public-key","id":"uK9MczZ7BTKeeIBZaqUlfJ5ZJCz45W2-vihTCCRvRk4","rawId":"uK9MczZ7BTKeeIBZaqUlfJ5ZJCz45W2-vihTCCRvRk4","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiWVV4TFNGaHZjMXA1T1dvMGVVNTBNRkJQTnpSSU1HbHZhV2t5VjIxWlpYSk1lSHBCWmxFclUwbHFZejAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0FAAAAAA","signature":"MEUCIE9R22-mnoZ9LgCmsxh2dH_Dl9VvlwEc1QbNCt18TZ-vAiEAxiM32ftfx_FIAHDWkS_x3dKF_YxsUpGWUcpietkcvc4","userHandle":"eGlvbjF1c2tjOXIzZXhqZ25mdnhjcDdjMmxxZXV0ZjRtY2Q1ODA4cnJ6Y2ZhOGxxZnYzYWdmcW1xM3J5ZGZt"},"clientExtensionResults":{}}`
+	/*
+		The following is a valid signed challenge from a webauthn authenticator the using above url. This will need to be updated from time to time when the accounts contract is updated.
+		To regenerate, use the following steps:
+		1. Run this test and make note of the `challenge` output above.
+		2. Go to the url above and open the developer tools console.
+		3. Enter the `challenge` in the first field within the WebAuthN section (populated with the string "test-challenge" by default)
+		4. Click "Sign" and copy the result from the console
+	*/
+	signedChallenge := `{"type":"public-key","id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","rawId":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiT1V0UGMyMWpMM3BhWVROd2NFbEJXSEZMYjNkTk1sTmxjR1JRWWs5a09GUlJOMEp6ZGk4elRYb3laejAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0FAAAAAA","signature":"MEQCIE0N5DESKA8PeykB1t98815g99XeXpxxZ94UjDuSl85pAiBssBSfcsYJ4c4hxkLoaVj635pBuGI3IBPBia8VJ4HOug","userHandle":"eGlvbjFuY3gwYTBqbnN5YXk3dWRkMDNhaDJnZjY0NzcyZzAycXN3ajUyOTk2ZHk4MHFmdmdubXpxNmVwbHFx"},"clientExtensionResults":{}}`
 	// add the auth index to the signature
 	signedTokenBz := []byte(signedChallenge)
 	sigBytes := append([]byte{0}, signedTokenBz...)
