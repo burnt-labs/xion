@@ -27,6 +27,7 @@ COPY ./cmd /code/cmd
 COPY ./contrib /code/contrib
 COPY ./proto /code/proto
 COPY ./x /code/x
+COPY ./wasmbindings /code/wasmbindings
 COPY Makefile /code/
 
 # See https://github.com/CosmWasm/wasmvm/releases
