@@ -28,12 +28,7 @@ import (
 
 var deployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
 
-func TestWebAuthNAbstractAccount(t *testing.T) {
-	t.Parallel()
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
+func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
@@ -81,10 +76,24 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
+	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+
+	return td, deployerAddr, codeHash, codeIDStr, nil
+}
+func TestWebAuthNAbstractAccount(t *testing.T) {
+	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	td, deployerAddr, codeHash, codeIDStr, err := setupChain(t)
+	require.NoError(t, err)
+
+	xion, ctx := td.xionChain, td.ctx
+
 	// predict the contract address so it can be verified
 	salt := "0"
 	creatorAddr := types.AccAddress(deployerAddr.Address())
-	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
 	require.NoError(t, err)
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
