@@ -28,14 +28,16 @@ const (
 * 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgradeIBC ./...
 
 As of Aug 17 2023 this is the necessary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
-current-testnet: 455cfa5b78e79e1c50867f6d61a99b0e9df6b9b1
-upgrade-version: 7e0d629b3e65f524e94cd4aeddb6cfda3f582a5c
+current-testnet: 5fe70b43e3bbe53bc15923d3035e15ce48cc1227 tag: v0.3.5
+upgrade-version: ef75512ddf90629b063807d4a75b5d9ce24a7251
 */
 func TestXionUpgradeIBC(t *testing.T) {
+
 	t.Parallel()
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
 	CosmosChainUpgradeIBCTest(t, &td, "xion", "current", "xion", "upgrade", "v4")
+
 }
 
 // we have an error we need to pass testdata pointer

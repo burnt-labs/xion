@@ -9,8 +9,11 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-
+	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
+	"github.com/burnt-labs/xion/x/jwk"
+	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
@@ -95,9 +98,9 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/router"
-	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/router/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/router/types"
+	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 	ibchooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7"
 	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/keeper"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/types"
@@ -126,9 +129,9 @@ import (
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/osmosis-labs/fee-abstraction/v4/x/feeabs"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v4/x/feeabs/keeper"
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v4/x/feeabs/types"
+	"github.com/osmosis-labs/fee-abstraction/v7/x/feeabs"
+	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/keeper"
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/types"
 
 	"github.com/spf13/cast"
 
@@ -232,6 +235,7 @@ var (
 		ibchooks.AppModuleBasic{},
 		packetforward.AppModuleBasic{},
 		feeabs.AppModuleBasic{},
+		jwk.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -250,6 +254,7 @@ var (
 		globalfee.ModuleName:           nil,
 		aatypes.ModuleName:             nil,
 		xiontypes.ModuleName:           nil,
+		jwktypes.ModuleName:            nil,
 		packetforwardtypes.ModuleName:  nil,
 		ibchookstypes.ModuleName:       nil,
 		feeabstypes.ModuleName:         nil,
@@ -306,6 +311,7 @@ type WasmApp struct {
 	FeeAbsKeeper          feeabskeeper.Keeper
 
 	XionKeeper xionkeeper.Keeper
+	JwkKeeper  jwkkeeper.Keeper
 
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
@@ -362,6 +368,7 @@ func NewWasmApp(
 		wasmtypes.StoreKey, icahosttypes.StoreKey, aatypes.StoreKey,
 		icacontrollertypes.StoreKey, globalfee.StoreKey, xiontypes.StoreKey,
 		ibchookstypes.StoreKey, packetforwardtypes.StoreKey, feeabstypes.StoreKey,
+		jwktypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -516,7 +523,6 @@ func NewWasmApp(
 	app.FeeAbsKeeper = feeabskeeper.NewKeeper(
 		appCodec,
 		keys[feeabstypes.StoreKey],
-		keys[feeabstypes.MemStoreKey],
 		app.GetSubspace(feeabstypes.ModuleName),
 		app.StakingKeeper,
 		app.AccountKeeper,
@@ -580,18 +586,10 @@ func NewWasmApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
-	/*
-		app.XionKeeper = xionkeeper.NewKeeper(
-			appCodec,
-			keys[xiontypes.StoreKey],
-			app.GetSubspace(xiontypes.ModuleName),
-			app.BankKeeper,
-			app.AccountKeeper,
-			app.ContractKeeper,
-			app.WasmKeeper,
-			app.AbstractAccountKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	*/
+	app.JwkKeeper = jwkkeeper.NewKeeper(
+		appCodec,
+		keys[jwktypes.StoreKey],
+		app.GetSubspace(xiontypes.ModuleName))
 
 	// Configure the hooks keeper
 	hooksKeeper := ibchookskeeper.NewKeeper(
@@ -619,12 +617,12 @@ func NewWasmApp(
 	app.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
 		keys[packetforwardtypes.StoreKey],
-		app.GetSubspace(packetforwardtypes.ModuleName),
 		app.TransferKeeper, // Will be zero-value here. Reference is set later on with SetTransferKeeper.
 		app.IBCKeeper.ChannelKeeper,
 		app.DistrKeeper,
 		app.BankKeeper,
 		app.IBCKeeper.ChannelKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create Transfer Keepers
@@ -675,6 +673,9 @@ func NewWasmApp(
 	// if we want to allow any custom callbacks
 	// See https://github.com/CosmWasm/cosmwasm/blob/main/docs/CAPABILITIES-BUILT-IN.md
 	availableCapabilities := "iterator,staking,stargate,cosmwasm_1_1,cosmwasm_1_2,cosmwasm_1_3,cosmwasm_1_4"
+
+	wasmOpts = append(owasm.RegisterStargateQueries(*app.GRPCQueryRouter(), appCodec), wasmOpts...)
+
 	app.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
 		keys[wasmtypes.StoreKey],
@@ -796,6 +797,7 @@ func NewWasmApp(
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
+		jwk.NewAppModule(appCodec, app.JwkKeeper, app.GetSubspace(jwktypes.ModuleName)),
 		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		aa.NewAppModule(app.AbstractAccountKeeper),
@@ -805,7 +807,7 @@ func NewWasmApp(
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		ibchooks.NewAppModule(app.AccountKeeper),
-		packetforward.NewAppModule(app.PacketForwardKeeper),
+		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		feeabsModule,
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	)
@@ -824,6 +826,7 @@ func NewWasmApp(
 		nft.ModuleName, group.ModuleName, paramstypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
 		globalfee.ModuleName,
+		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -847,6 +850,7 @@ func NewWasmApp(
 		consensusparamtypes.ModuleName,
 		globalfee.ModuleName,
 		xiontypes.ModuleName,
+		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -869,10 +873,13 @@ func NewWasmApp(
 	// genesis phase. For example bank transfer, auth account check, staking, ...
 	genesisModuleOrder := []string{
 		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
-		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName,
-		minttypes.ModuleName, crisistypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
-		feegrant.ModuleName, nft.ModuleName, group.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, consensusparamtypes.ModuleName, globalfee.ModuleName, xiontypes.ModuleName,
+		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName,
+		govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
+		genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
+		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
+		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
+		consensusparamtypes.ModuleName, globalfee.ModuleName, xiontypes.ModuleName,
+		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
@@ -1247,6 +1254,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(globalfee.ModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
+	paramsKeeper.Subspace(jwktypes.ModuleName)
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)

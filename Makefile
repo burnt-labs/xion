@@ -128,23 +128,41 @@ test-version:
 test-unit:
 	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
+compile_integration_tests:
+	@cd integration_tests && go test -c
+
 test-integration:
 	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
 
-test-integration-aa:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionAbstractAccount -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
+test-integration-dungeon-transfer-block: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestDungeonTransferBlock
 
-test-integration-aa-jwt:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestJWTAbstractAccount -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
+test-integration-mint-module-no-inflation-no-fees: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleNoInflationNoFees
 
-test-integration-send:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionSendPlatformFee -v -mod=readonly -tags='ledger test_ledger_mock'  ./...
+test-integration-mint-module-inflation-high-fees: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationHighFees
+
+test-integration-mint-module-inflation-low-fees: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationLowFees
+
+test-integration-jwt-abstract-account: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestJWTAbstractAccount
+
+test-integration-xion-send-platform-fee: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionSendPlatformFee
+
+test-integration-xion-abstract-account: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
 
 test-integration-min:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run  TestXionMinimumFee -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run  TestXionMinimumFeeDefault -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+
+test-integration-web-auth-n-abstract-account: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run WebAuthNAbstractAccount
 
 test-integration-upgrade:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-mig:
 	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run TestAbstractAccountMigration -mod=readonly  -tags='ledger test_ledger_mock'  ./...

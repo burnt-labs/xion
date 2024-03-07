@@ -91,6 +91,7 @@ func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper.ContractOpsKeeper, am.keeper.ContractViewKeeper, am.keeper.AAKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {

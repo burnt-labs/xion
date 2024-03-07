@@ -4,6 +4,7 @@ import (
 	store "github.com/cosmos/cosmos-sdk/store/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 )
 
 const (
@@ -14,5 +15,9 @@ const (
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
 	CreateUpgradeHandler: CreateUpgradeHandler,
-	StoreUpgrades:        store.StoreUpgrades{},
+	StoreUpgrades: store.StoreUpgrades{
+		Added: []string{
+			jwktypes.ModuleName,
+		},
+	},
 }

@@ -16,6 +16,9 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v7"
@@ -30,6 +33,10 @@ import (
 const (
 	votingPeriod     = "10s"
 	maxDepositPeriod = "10s"
+)
+
+var (
+	defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
 )
 
 // Function type for any function that modify the genesis file
@@ -119,6 +126,20 @@ func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey stri
 	return rawMsg
 }
 
+func ParamChangeProposal(t *testing.T, subspace, key, value, title, description, deposit string) paramsutils.ParamChangeProposalJSON {
+	changes := paramsutils.ParamChangeJSON{
+		Subspace: subspace,
+		Key:      key,
+		Value:    json.RawMessage(fmt.Sprintf(`"%s"`, value)),
+	}
+	proposal := paramsutils.ParamChangeProposalJSON{
+		Title:       title,
+		Description: description,
+		Deposit:     deposit,
+		Changes:     []paramsutils.ParamChangeJSON{changes},
+	}
+	return proposal
+}
 func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
@@ -127,6 +148,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 
 	// pulling image from env to foster local dev
 	imageTag := os.Getenv("XION_IMAGE")
+	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
 	// Chain factory
