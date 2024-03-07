@@ -591,14 +591,6 @@ func NewWasmApp(
 		keys[jwktypes.StoreKey],
 		app.GetSubspace(xiontypes.ModuleName))
 
-	app.XionKeeper = xionkeeper.NewKeeper(
-		appCodec,
-		keys[xiontypes.StoreKey],
-		app.GetSubspace(xiontypes.ModuleName),
-		app.BankKeeper,
-		app.AccountKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
 	// Configure the hooks keeper
 	hooksKeeper := ibchookskeeper.NewKeeper(
 		keys[ibchookstypes.StoreKey],
@@ -713,6 +705,20 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
+	app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
+
+	app.XionKeeper = xionkeeper.NewKeeper(
+		appCodec,
+		keys[xiontypes.StoreKey],
+		app.GetSubspace(xiontypes.ModuleName),
+		app.BankKeeper,
+		app.AccountKeeper,
+		app.ContractKeeper,
+		app.WasmKeeper,
+		app.AbstractAccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
 	// Set legacy router for backwards compatibility with gov v1beta1
 	app.GovKeeper.SetLegacyRouter(govRouter)
 
@@ -791,11 +797,11 @@ func NewWasmApp(
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
-		xion.NewAppModule(app.XionKeeper),
 		jwk.NewAppModule(appCodec, app.JwkKeeper, app.GetSubspace(jwktypes.ModuleName)),
 		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		aa.NewAppModule(app.AbstractAccountKeeper),
+		xion.NewAppModule(app.XionKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
@@ -820,7 +826,6 @@ func NewWasmApp(
 		nft.ModuleName, group.ModuleName, paramstypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
 		globalfee.ModuleName,
-		xiontypes.ModuleName,
 		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
@@ -830,6 +835,7 @@ func NewWasmApp(
 		ibcfeetypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
+		xiontypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	)

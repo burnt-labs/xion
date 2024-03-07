@@ -74,6 +74,7 @@ jobs:
         - "JWTAbstractAccount"
         - "XionSendPlatformFee"
         - "XionAbstractAccount"
+        - "AbstractAccountMigration"
         - "WebAuthNAbstractAccount"
 
     steps:

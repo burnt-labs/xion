@@ -32,15 +32,18 @@ current-testnet: 5fe70b43e3bbe53bc15923d3035e15ce48cc1227 tag: v0.3.5
 upgrade-version: ef75512ddf90629b063807d4a75b5d9ce24a7251
 */
 func TestXionUpgradeIBC(t *testing.T) {
-	CosmosChainUpgradeIBCTest(t, "xion", "current", "xion", "upgrade", "v4")
-}
-
-func CosmosChainUpgradeIBCTest(t *testing.T, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
-	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
+	CosmosChainUpgradeIBCTest(t, &td, "xion", "current", "xion", "upgrade", "v4")
+
+}
+
+// we have an error we need to pass testdata pointer
+func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
+	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
+	//td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	chain, ctx, client := td.xionChain, td.ctx, td.client
 
 	fundAmount := int64(10_000_000_000)
@@ -103,4 +106,5 @@ func CosmosChainUpgradeIBCTest(t *testing.T, chainName, initialVersion, upgradeC
 	err = testutil.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
+	return
 }
