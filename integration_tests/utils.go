@@ -285,11 +285,11 @@ func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, pa
 		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
 	}
 	if err := dyno.Set(g, []int64{1}, "app_state", "abstractaccount", "params", "allowed_code_ids"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		return nil, fmt.Errorf("failed to set allowed code ids in genesis json: %w", err)
 	}
 
 	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
 	}
 	out, err := json.Marshal(g)
 	if err != nil {
