@@ -332,13 +332,17 @@ func TestAbstractAccountMigration(t *testing.T) {
 	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.FullNodes[0],
 		"wasm", "code-info", newCodeIDStr)
 	require.NoError(t, err)
-	t.Logf("code response: %s", newCodeResp)
 	t.Logf("code response: %+v", newCodeResp)
 
 	err = testutil.WaitForBlocks(ctx, int(blocksAfterUpgrade), td.xionChain)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
-	_, err = ExecQuery(t, ctx, td.xionChain.FullNodes[0],
-		"wasm", "code-info", "21")
+	rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.FullNodes[0],
+		"wasm", "contract", predictedAddr.String())
 	require.NoError(t, err)
+	t.Logf("updated contract info: %s", rawUpdatedContractInfo)
+
+	updatedContractInfo := rawUpdatedContractInfo["contract_info"].(map[string]interface{})
+	updatedCodeID := updatedContractInfo["code_id"].(string)
+	require.Equal(t, updatedCodeID, newCodeIDStr)
 }
