@@ -1,15 +1,11 @@
 package integration_tests
 
 import (
-	txsigning "cosmossdk.io/x/tx/signing"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	xionapp "github.com/burnt-labs/xion/app"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"google.golang.org/protobuf/types/known/anypb"
 	"os"
 	"path"
 	"testing"
@@ -17,20 +13,24 @@ import (
 
 	"cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	xionapp "github.com/burnt-labs/xion/app"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/lestrrat-go/jwx/jwk"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func TestJWTAbstractAccount(t *testing.T) {
