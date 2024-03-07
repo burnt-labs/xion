@@ -137,8 +137,7 @@ func (mfd FeeDecorator) getBondDenom(ctx sdk.Context) (bondDenom string) {
 func (mfd FeeDecorator) ContainsOnlyBypassMinFeeMsgs(ctx sdk.Context, msgs []sdk.Msg) bool {
 	bypassMsgTypes := mfd.GetBypassMsgTypes(ctx)
 	for _, msg := range msgs {
-		target := sdk.MsgTypeURL(msg)
-		if tmstrings.StringInSlice(target, bypassMsgTypes) {
+		if tmstrings.StringInSlice(sdk.MsgTypeURL(msg), bypassMsgTypes) {
 			continue
 		}
 		return false
