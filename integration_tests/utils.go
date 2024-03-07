@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
@@ -32,6 +33,10 @@ import (
 const (
 	votingPeriod     = "10s"
 	maxDepositPeriod = "10s"
+)
+
+var (
+	defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
 )
 
 // Function type for any function that modify the genesis file
