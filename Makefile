@@ -155,6 +155,9 @@ test-integration-xion-send-platform-fee: compile_integration_tests
 test-integration-xion-abstract-account: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
 
+test-integration-min:
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run  TestXionMinimumFeeDefault -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+
 test-integration-web-auth-n-abstract-account: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run WebAuthNAbstractAccount
 

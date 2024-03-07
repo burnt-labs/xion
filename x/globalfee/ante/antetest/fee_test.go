@@ -1,6 +1,7 @@
 package antetest
 
 import (
+	"fmt"
 	"testing"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -10,7 +11,9 @@ import (
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/stretchr/testify/suite"
 
+	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 var testGasLimit uint64 = 200_000
@@ -84,7 +87,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			txMsg:       testdata.NewTestMsg(addr1),
 			txCheck:     true,
 			expErr:      false,
-			networkFee:  false,
+			networkFee:  true,
 		},
 		"nonempty min_gas_price with defaultGlobalFee denom, empty global fee": {
 			minGasPrice: minGasPrice,
@@ -104,6 +107,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			txMsg:       testdata.NewTestMsg(addr1),
 			txCheck:     true,
 			expErr:      false,
+			networkFee:  true,
 		},
 		// zero min_gas_price and empty  global fee
 		"zero min_gas_price, empty global fee, zero fee in min_gas_price_denom": {
@@ -114,6 +118,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			txMsg:       testdata.NewTestMsg(addr1),
 			txCheck:     true,
 			expErr:      false,
+			networkFee:  true,
 		},
 		// empty min_gas_price, zero global fee
 		"empty min_gas_price, zero global fee": {
@@ -124,6 +129,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			txMsg:       testdata.NewTestMsg(addr1),
 			txCheck:     true,
 			expErr:      false,
+			networkFee:  true,
 		},
 		// zero min_gas_price, nonzero global fee
 		"zero min_gas_price, nonzero global fee": {
@@ -134,6 +140,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			txMsg:       testdata.NewTestMsg(addr1),
 			txCheck:     true,
 			expErr:      false,
+			networkFee:  true,
 		},
 		"fee lower than globalfee and min_gas_price": {
 			minGasPrice: minGasPrice,
@@ -143,57 +150,28 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			txMsg:       testdata.NewTestMsg(addr1),
 			txCheck:     true,
 			expErr:      false,
+			networkFee:  true,
 		},
-		"bypass msg type: ibc.core.channel.v1.MsgRecvPacket": {
+		"does not bypass msg type: ibc.core.channel.v1.MsgRecvPacket": {
 			minGasPrice: minGasPrice,
 			globalFee:   globalfeeParamsLow,
 			gasPrice:    sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())),
 			gasLimit:    testGasLimit,
 			txMsg: ibcchanneltypes.NewMsgRecvPacket(
 				ibcchanneltypes.Packet{}, nil, ibcclienttypes.Height{}, ""),
-			txCheck: true,
-			expErr:  false,
+			txCheck:    true,
+			expErr:     false,
+			networkFee: true,
 		},
-		"bypass msg type: ibc.core.channel.v1.MsgTimeout": {
+		"bypass msg type: xion.v1.MsgSend": {
 			minGasPrice: minGasPrice,
 			globalFee:   globalfeeParamsLow,
 			gasPrice:    sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())),
 			gasLimit:    testGasLimit,
-			txMsg: ibcchanneltypes.NewMsgTimeout(
-				// todo check here
-				ibcchanneltypes.Packet{}, 1, nil, ibcclienttypes.Height{}, ""),
-			txCheck: true,
-			expErr:  false,
-		},
-		"bypass msg type: ibc.core.channel.v1.MsgTimeoutOnClose": {
-			minGasPrice: minGasPrice,
-			globalFee:   globalfeeParamsLow,
-			gasPrice:    sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())),
-			gasLimit:    testGasLimit,
-			txMsg: ibcchanneltypes.NewMsgTimeout(
-				ibcchanneltypes.Packet{}, 2, nil, ibcclienttypes.Height{}, ""),
-			txCheck: true,
-			expErr:  false,
-		},
-		"bypass msg gas usage exceeds maxTotalBypassMinFeeMsgGasUsage": {
-			minGasPrice: minGasPrice,
-			globalFee:   globalfeeParamsLow,
-			gasPrice:    sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())),
-			gasLimit:    2 * globfeetypes.DefaultmaxTotalBypassMinFeeMsgGasUsage,
-			txMsg: ibcchanneltypes.NewMsgTimeout(
-				ibcchanneltypes.Packet{}, 2, nil, ibcclienttypes.Height{}, ""),
-			txCheck: true,
-			expErr:  false,
-		},
-		"bypass msg gas usage equals to maxTotalBypassMinFeeMsgGasUsage": {
-			minGasPrice: minGasPrice,
-			globalFee:   globalfeeParamsLow,
-			gasPrice:    sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())),
-			gasLimit:    globfeetypes.DefaultmaxTotalBypassMinFeeMsgGasUsage,
-			txMsg: ibcchanneltypes.NewMsgTimeout(
-				ibcchanneltypes.Packet{}, 3, nil, ibcclienttypes.Height{}, ""),
-			txCheck: true,
-			expErr:  false,
+			txMsg:       &xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr1.String()},
+			txCheck:     true,
+			expErr:      false,
+			networkFee:  false,
 		},
 	}
 
@@ -205,6 +183,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 	for name, tc := range testCases {
 		s.Run(name, func() {
 			// set globalfees and min gas price
+			fmt.Println(name)
 			globalfeeParams.MinimumGasPrices = tc.globalFee
 			_, antehandler := s.SetupTestGlobalFeeStoreAndMinGasPrice(tc.minGasPrice, globalfeeParams, bondDenom)
 
@@ -216,14 +195,47 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			s.Require().NoError(err)
 
 			s.ctx = s.ctx.WithIsCheckTx(tc.txCheck)
-			_, err = antehandler(s.ctx, tx, false)
+			tcCtx, err := antehandler(s.ctx, tx, false)
 			if !tc.expErr {
 				s.Require().NoError(err)
 			} else {
 				s.Require().Error(err)
 			}
+
+			// Calculate expected Min Gas Fee
+			// Combine(local, network)
+			// where:
+			// Network = tc.globalFee * GasPrice
+			// Local = tc.minGasPrice
+			networkFee := getFee(tc.globalFee, tc.gasLimit)
+			localFee := getFee(tc.minGasPrice, tc.gasLimit)
+			minGas := tcCtx.MinGasPrices()
+			expected, err := xionfeeante.CombinedFeeRequirement(networkFee, localFee)
+			s.Require().NoError(err)
+			if !tc.networkFee {
+				s.Require().Equal(sdk.NewDecCoins(tc.minGasPrice...), minGas)
+			} else {
+				s.Require().Equal(sdk.NewDecCoinsFromCoins(expected...), minGas)
+			}
 		})
 	}
+}
+
+func getFee(originFee sdk.DecCoins, gasLimit uint64) sdk.Coins {
+	var targetFee sdk.DecCoins = originFee
+	if len(originFee) == 0 {
+		targetFee = []sdk.DecCoin{sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0))}
+	}
+	requiredFees := make(sdk.Coins, len(targetFee))
+	// Determine the required fees by multiplying each required minimum gas
+	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
+	glDec := sdk.NewDec(int64(gasLimit))
+	for i, gp := range targetFee {
+		fee := gp.Amount.Mul(glDec)
+		requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
+	}
+
+	return requiredFees.Sort()
 }
 
 func (s *IntegrationTestSuite) TestGetTxFeeRequired() {

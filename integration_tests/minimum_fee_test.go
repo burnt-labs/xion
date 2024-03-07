@@ -1,24 +1,53 @@
 package integration_tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 )
 
-func TestXionMinimumFee(t *testing.T) {
+// TODO:
+// param change test (in the upcoming interchain v8 upgrade)
+
+func TestXionMinimumFeeDefault(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount int64) {
+		//currentHeight, _ := xion.Height(ctx)
+		_, err := ExecTx(t, ctx, xion.FullNodes[0],
+			xionUser.KeyName(),
+			"xion", "send", xionUser.KeyName(),
+			"--chain-id", xion.Config().ChainID,
+			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+		)
+		require.NoError(t, err)
+
+		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+		require.NoError(t, err)
+		require.Equal(t, fundAmount-14342, balance)
+
+		balance, err = xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
+		require.NoError(t, err)
+		require.Equal(t, uint64(100), uint64(balance))
+	}
+
+	testMinimumFee(t, &td, assertion)
+}
+
+func testMinimumFee(t *testing.T, td *TestData, assert assertionFn) {
 	xion, ctx := td.xionChain, td.ctx
 
 	// Create and Fund User Wallets
@@ -49,15 +78,7 @@ func TestXionMinimumFee(t *testing.T) {
 		&xiontypes.MsgSend{},
 	)
 
-	currentHeight, _ = xion.Height(ctx)
-	_, err = ExecTx(t, ctx, xion.FullNodes[0],
-		xionUser.KeyName(),
-		"xion", "send", xionUser.KeyName(),
-		"--chain-id", xion.Config().ChainID,
-		recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
-	)
-	require.NoError(t, err)
-	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, uint64(100), uint64(balance))
+	assert(t, ctx, xion, xionUser, recipientKeyAddress, fundAmount)
 }
+
+type assertionFn func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, wallet ibc.Wallet, recipientAddress string, fundAmount int64)

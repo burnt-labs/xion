@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 )
 
 var (
@@ -23,12 +21,8 @@ var (
 	DefaultMinGasPrices = sdk.DecCoins{}
 
 	DefaultBypassMinFeeMsgTypes = []string{
-		sdk.MsgTypeURL(&wasmtypes.MsgExecuteContract{}),
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgRecvPacket{}),
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgAcknowledgement{}),
-		sdk.MsgTypeURL(&ibcclienttypes.MsgUpdateClient{}),
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgTimeout{}),
-		sdk.MsgTypeURL(&ibcchanneltypes.MsgTimeoutOnClose{}),
+		sdk.MsgTypeURL(&xiontypes.MsgSend{}),
+		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
 	}
 
 	// maxTotalBypassMinFeeMsgGasUsage is the allowed maximum gas usage
