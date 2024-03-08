@@ -933,7 +933,7 @@ func (m *QueryInflationResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Inflation", wireType)
+				return fmt.Errorf("proto: wrong wireType c = %d for field Inflation", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {

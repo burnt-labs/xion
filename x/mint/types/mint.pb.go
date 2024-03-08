@@ -372,7 +372,7 @@ func (m *Minter) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Inflation", wireType)
+				return fmt.Errorf("proto: wrong wireType b = %d for field Inflation", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {

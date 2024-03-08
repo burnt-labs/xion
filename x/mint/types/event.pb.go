@@ -315,7 +315,7 @@ func (m *MintIncentiveTokens) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Inflation", wireType)
+				return fmt.Errorf("proto: wrong wireType a = %d for field Inflation", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
