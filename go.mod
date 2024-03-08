@@ -210,6 +210,8 @@ require (
 
 replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 => github.com/burnt-labs/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240308232808-736bd51c54ad
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
@@ -225,8 +227,6 @@ replace (
 	github.com/tendermint/tendermint => github.com/informalsystems/tendermint v0.34.24
 
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
-
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 => github.com/burnt-labs/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240308231814-b7a7ee8e4957
 )
 
 replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
