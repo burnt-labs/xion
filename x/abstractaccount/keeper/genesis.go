@@ -13,7 +13,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) []abci.Vali
 		panic(err)
 	}
 
-	k.SetNextAccountID(ctx, gs.NextAccountId)
+	err := k.SetNextAccountID(ctx, gs.NextAccountId)
+	if err != nil {
+		panic(err)
+	}
 
 	return []abci.ValidatorUpdate{}
 }
@@ -24,8 +27,12 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	nextAccountID, err := k.GetNextAccountID(ctx)
+	if err != nil {
+		panic(err)
+	}
 	return &types.GenesisState{
 		Params:        params,
-		NextAccountId: k.GetNextAccountID(ctx),
+		NextAccountId: nextAccountID,
 	}
 }

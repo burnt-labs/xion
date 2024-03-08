@@ -154,19 +154,25 @@ func (d AfterTxDecorator) PostHandle(ctx sdk.Context, tx sdk.Tx, simulate, succe
 	// load the signer address, which we determined during the AnteHandler
 	//
 	// if not found, it means this tx is simply not an AA tx. we skip
-	signerAddr := d.aak.GetSignerAddress(ctx)
+	signerAddr, err := d.aak.GetSignerAddress(ctx)
+	if err != nil {
+		return ctx, err
+	}
 	if signerAddr == nil {
 		return next(ctx, tx, simulate, success)
 	}
 
-	d.aak.DeleteSignerAddress(ctx)
+	err = d.aak.DeleteSignerAddress(ctx)
+	if err != nil {
+		return ctx, err
+	}
 
 	sudoMsgBytes, err := json.Marshal(&types.AccountSudoMsg{
 		AfterTx: &types.AfterTx{
 			Simulate: simulate,
 			// we don't need to pass the `success` parameter into the contract,
 			// because the Posthandler is only executed if the tx is successful, so it
-			// should always be true anyways
+			// should always be true anyway
 		},
 	})
 	if err != nil {

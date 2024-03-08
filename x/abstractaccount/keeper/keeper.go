@@ -3,7 +3,7 @@ package keeper
 import (
 	log "cosmossdk.io/log"
 
-	storetypes "cosmossdk.io/store/types"
+	storetypes "cosmossdk.io/core/store"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -15,15 +15,15 @@ import (
 )
 
 type Keeper struct {
-	cdc       codec.BinaryCodec
-	storeKey  storetypes.StoreKey
-	ak        authkeeper.AccountKeeperI
-	ck        wasmtypes.ContractOpsKeeper
-	authority string
+	cdc          codec.BinaryCodec
+	storeService storetypes.KVStoreService
+	ak           authkeeper.AccountKeeperI
+	ck           wasmtypes.ContractOpsKeeper
+	authority    string
 }
 
 func NewKeeper(
-	cdc codec.BinaryCodec, storeKey storetypes.StoreKey,
+	cdc codec.BinaryCodec, storeService storetypes.KVStoreService,
 	ak authkeeper.AccountKeeperI, ck wasmtypes.ContractOpsKeeper,
 	authority string,
 ) Keeper {
@@ -35,7 +35,7 @@ func NewKeeper(
 		panic("ContractOpsKeeper cannot be nil")
 	}
 
-	return Keeper{cdc, storeKey, ak, ck, authority}
+	return Keeper{cdc, storeService, ak, ck, authority}
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
@@ -49,9 +49,12 @@ func (k Keeper) ContractKeeper() wasmtypes.ContractOpsKeeper {
 // ---------------------------------- Params -----------------------------------
 
 func (k Keeper) GetParams(ctx sdk.Context) (*types.Params, error) {
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 
-	bz := store.Get(types.KeyParams)
+	bz, err := store.Get(types.KeyParams)
+	if err != nil {
+		return nil, err
+	}
 	if bz == nil {
 		return nil, sdkerrors.ErrNotFound.Wrap("x/abstractaccount module params")
 	}
@@ -65,7 +68,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (*types.Params, error) {
 }
 
 func (k Keeper) SetParams(ctx sdk.Context, params *types.Params) error {
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 
 	// params must be valid before we save it
 	// there are two instances where SetParams is called - in Keeper.InitGenesis,
@@ -81,46 +84,58 @@ func (k Keeper) SetParams(ctx sdk.Context, params *types.Params) error {
 		return types.ErrParsingParams.Wrap(err.Error())
 	}
 
-	store.Set(types.KeyParams, bz)
-
-	return nil
+	return store.Set(types.KeyParams, bz)
 }
 
 // ------------------------------- NextAccountId -------------------------------
 
-func (k Keeper) GetAndIncrementNextAccountID(ctx sdk.Context) uint64 {
-	id := k.GetNextAccountID(ctx)
+func (k Keeper) GetAndIncrementNextAccountID(ctx sdk.Context) (uint64, error) {
+	id, err := k.GetNextAccountID(ctx)
+	if err != nil {
+		return 0, err
+	}
 
-	k.SetNextAccountID(ctx, id+1)
+	err = k.SetNextAccountID(ctx, id+1)
+	if err != nil {
+		return 0, err
+	}
 
-	return id
+	return id, nil
 }
 
-func (k Keeper) GetNextAccountID(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) GetNextAccountID(ctx sdk.Context) (uint64, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.KeyNextAccountID)
+	if err != nil {
+		return 0, err
+	}
 
-	return sdk.BigEndianToUint64(store.Get(types.KeyNextAccountID))
+	return sdk.BigEndianToUint64(bz), nil
 }
 
-func (k Keeper) SetNextAccountID(ctx sdk.Context, id uint64) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyNextAccountID, sdk.Uint64ToBigEndian(id))
+func (k Keeper) SetNextAccountID(ctx sdk.Context, id uint64) error {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Set(types.KeyNextAccountID, sdk.Uint64ToBigEndian(id))
 }
 
 // ------------------------------- SignerAddress -------------------------------
 
-func (k Keeper) GetSignerAddress(ctx sdk.Context) sdk.AccAddress {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) GetSignerAddress(ctx sdk.Context) (sdk.AccAddress, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.KeySignerAddress)
+	if err != nil {
+		return nil, err
+	}
 
-	return sdk.AccAddress(store.Get(types.KeySignerAddress))
+	return bz, nil
 }
 
-func (k Keeper) SetSignerAddress(ctx sdk.Context, signerAddr sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeySignerAddress, signerAddr)
+func (k Keeper) SetSignerAddress(ctx sdk.Context, signerAddr sdk.AccAddress) error {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Set(types.KeySignerAddress, signerAddr)
 }
 
-func (k Keeper) DeleteSignerAddress(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.KeySignerAddress)
+func (k Keeper) DeleteSignerAddress(ctx sdk.Context) error {
+	store := k.storeService.OpenKVStore(ctx)
+	return store.Delete(types.KeySignerAddress)
 }

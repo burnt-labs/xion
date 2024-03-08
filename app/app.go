@@ -732,7 +732,7 @@ func NewChainApp(
 
 	app.AbstractAccountKeeper = aakeeper.NewKeeper(
 		appCodec,
-		keys[aatypes.StoreKey],
+		runtime.NewKVStoreService(keys[minttypes.StoreKey]),
 		app.AccountKeeper,
 		wasmkeeper.NewGovPermissionKeeper(app.WasmKeeper),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),

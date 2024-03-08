@@ -54,13 +54,17 @@ func (ms msgServer) RegisterAccount(goCtx context.Context, req *types.MsgRegiste
 		return nil, err
 	}
 
+	newAccountID, err := ms.k.GetAndIncrementNextAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	contractAddr, data, err := ms.k.ck.Instantiate2(
 		ctx,
 		req.CodeID,
 		senderAddr,
 		senderAddr,
 		req.Msg,
-		fmt.Sprintf("%s/%d", types.ModuleName, ms.k.GetAndIncrementNextAccountID(ctx)),
+		fmt.Sprintf("%s/%d", types.ModuleName, newAccountID),
 		req.Funds,
 		req.Salt,
 		// we set fix_msg to false because there simply isn't any good reason

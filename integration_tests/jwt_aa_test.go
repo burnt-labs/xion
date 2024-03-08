@@ -16,7 +16,6 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionappparams "github.com/burnt-labs/xion/app/params"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -195,7 +194,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	accountJSON, err := json.Marshal(accountResponse)
 	require.NoError(t, err)
 
-	encodingConfig := xionappparams.MakeEncodingConfig()
+	encodingConfig := xion.Config().EncodingConfig
 	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
