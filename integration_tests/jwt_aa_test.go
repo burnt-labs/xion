@@ -16,7 +16,7 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionapp "github.com/burnt-labs/xion/app"
+	xionappparams "github.com/burnt-labs/xion/app/params"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -183,17 +183,19 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.Equal(t, int64(10_000), newBalance.Int64())
 
 	// get the account from the chain. there might be a better way to do this
-	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
+	accountResponseWrapper, err := ExecQuery(t, ctx, xion.GetNode(),
 		"auth", "account", contract)
 	require.NoError(t, err)
-	t.Logf("account response: %s", accountResponse)
+	accountResponseJSON := accountResponseWrapper["account"]
+	t.Logf("account response: %s", accountResponseJSON)
+	accountTypeResponse := accountResponseJSON.(map[string]interface{})
+	accountResponse := accountTypeResponse["value"].(map[string]interface{})
 
-	delete(accountResponse, "@type")
 	var account aatypes.AbstractAccount
 	accountJSON, err := json.Marshal(accountResponse)
 	require.NoError(t, err)
 
-	encodingConfig := xionapp.MakeEncodingConfig(t)
+	encodingConfig := xionappparams.MakeEncodingConfig()
 	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
