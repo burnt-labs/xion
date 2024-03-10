@@ -3,19 +3,25 @@ module integration_tests
 go 1.21
 
 require (
+	cosmossdk.io/api v0.7.3
 	cosmossdk.io/math v1.2.0
+	cosmossdk.io/x/tx v0.13.0
+	cosmossdk.io/x/upgrade v0.1.1
 	github.com/CosmWasm/wasmd v0.50.0
 	github.com/burnt-labs/xion v0.1.0
 	github.com/cosmos/cosmos-sdk v0.50.4
+	github.com/cosmos/ibc-go/modules/capability v1.0.0
 	github.com/cosmos/ibc-go/v8 v8.1.0
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
 	github.com/lestrrat-go/jwx v1.2.26
+	github.com/reecepbcups/globalfee v0.0.1-alpha.2
+	github.com/reecepbcups/tokenfactory v0.50.0-alpha.3
 	github.com/strangelove-ventures/interchaintest/v8 v8.1.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.26.0
-	google.golang.org/grpc v1.60.1
+	google.golang.org/protobuf v1.32.0
 )
 
 require (
@@ -24,20 +30,14 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/storage v1.35.1 // indirect
-	cosmossdk.io/api v0.7.3 // indirect
-	cosmossdk.io/client/v2 v2.0.0-beta.1 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/core v0.12.0 // indirect
 	cosmossdk.io/depinject v1.0.0-alpha.4 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
 	cosmossdk.io/log v1.3.1 // indirect
 	cosmossdk.io/store v1.0.2 // indirect
-	cosmossdk.io/x/circuit v0.1.0 // indirect
 	cosmossdk.io/x/evidence v0.1.0 // indirect
 	cosmossdk.io/x/feegrant v0.1.0 // indirect
-	cosmossdk.io/x/nft v0.1.0 // indirect
-	cosmossdk.io/x/tx v0.13.0 // indirect
-	cosmossdk.io/x/upgrade v0.1.1 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -63,7 +63,6 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
-	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/cockroachdb/errors v1.11.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
@@ -78,8 +77,6 @@ require (
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.4.11 // indirect
 	github.com/cosmos/iavl v1.0.1 // indirect
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2-0.20240228211029-91e486ec4dbb // indirect
-	github.com/cosmos/ibc-go/modules/capability v1.0.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
@@ -149,7 +146,6 @@ require (
 	github.com/hdevalence/ed25519consensus v0.1.0 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/huandu/skiplist v1.2.0 // indirect
-	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -205,8 +201,6 @@ require (
 	github.com/prometheus/common v0.47.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/reecepbcups/globalfee v0.0.1-alpha.2 // indirect
-	github.com/reecepbcups/tokenfactory v0.50.0-alpha.3 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
@@ -252,7 +246,7 @@ require (
 	google.golang.org/genproto v0.0.0-20240102182953-50ed04b92917 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231212172506-995d672761c0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240108191215-35c7eff3a6b1 // indirect
-	google.golang.org/protobuf v1.32.0 // indirect
+	google.golang.org/grpc v1.60.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
