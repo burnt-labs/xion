@@ -9,11 +9,11 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	"github.com/burnt-labs/xion/x/mint/simulation"
+	"github.com/burnt-labs/xion/x/mint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/mint/simulation"
-	"github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 func TestProposalMsgs(t *testing.T) {

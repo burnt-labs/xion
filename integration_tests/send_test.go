@@ -7,7 +7,7 @@ package integration_tests
 //
 //	t.Parallel()
 //
-//	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+//	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{VotingPeriod, MaxDepositPeriod}}))
 //	xion, ctx := td.xionChain, td.ctx
 //
 //	// Create and Fund User Wallets

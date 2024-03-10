@@ -7,8 +7,8 @@ import (
 
 	"cosmossdk.io/math"
 
+	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 // Simulation parameter constants

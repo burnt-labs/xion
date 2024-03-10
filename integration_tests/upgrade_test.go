@@ -28,7 +28,7 @@ upgrade-version: 7e0d629b3e65f524e94cd4aeddb6cfda3f582a5c
 //
 //	t.Parallel()
 //
-//	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+//	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{VotingPeriod, MaxDepositPeriod}}))
 //	chain, ctx, client := td.xionChain, td.ctx, td.client
 //
 //	fundAmount := int64(10_000_000_000)

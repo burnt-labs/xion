@@ -71,7 +71,7 @@ package integration_tests
 //				Bech32Prefix:   "xion",
 //				Denom:          "uxion",
 //				TrustingPeriod: "336h",
-//				ModifyGenesis:  ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
+//				ModifyGenesis:  ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{VotingPeriod, MaxDepositPeriod}}),
 //				//UsingNewGenesisCommand: true,
 //			},
 //			NumValidators: &numValidators,

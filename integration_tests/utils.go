@@ -51,8 +51,9 @@ import (
 )
 
 const (
-	votingPeriod     = "10s"
-	maxDepositPeriod = "10s"
+	VotingPeriod     = "10s"
+	MaxDepositPeriod = "10s"
+	Denom            = "uxion"
 )
 
 // Function type for any function that modify the genesis file
@@ -142,7 +143,23 @@ func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey stri
 	return rawMsg
 }
 
-func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
+var (
+	// default genesis includes short proposals
+	DefaultGenesis = []cosmos.GenesisKV{
+		// default
+		cosmos.NewGenesisKV("app_state.gov.params.voting_period", VotingPeriod),
+		cosmos.NewGenesisKV("app_state.gov.params.max_deposit_period", MaxDepositPeriod),
+		cosmos.NewGenesisKV("app_state.gov.params.min_deposit.0.denom", Denom),
+		cosmos.NewGenesisKV("app_state.gov.params.min_deposit.0.amount", "1"),
+		// globalfee: set minimum fee requirements
+		//cosmos.NewGenesisKV("app_state.globalfee.params.minimum_gas_prices", sdk.DecCoins{sdk.NewDecCoinFromDec(Denom, sdkmath.LegacyMustNewDecFromStr("0.0"))}),
+		// tokenfactory: set create cost in set denom or in gas usage.
+		cosmos.NewGenesisKV("app_state.tokenfactory.params.denom_creation_fee", nil),
+		cosmos.NewGenesisKV("app_state.tokenfactory.params.denom_creation_gas_consume", 1), // cost 1 gas to create a new denom
+	}
+)
+
+func BuildXionChain(t *testing.T, gas string) TestData {
 	ctx := context.Background()
 
 	var numFullNodes = 1
@@ -153,61 +170,64 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
+	// config
+	cfg := ibc.ChainConfig{
+		Images: []ibc.DockerImage{
+			{
+				Repository: imageTagComponents[0],
+				Version:    imageTagComponents[1],
+				UidGid:     "1025:1025",
+			},
+		},
+		//GasPrices:              "0.1uxion",
+		GasPrices:      gas,
+		GasAdjustment:  2.0,
+		Type:           "cosmos",
+		ChainID:        "xion-1",
+		Bin:            "xiond",
+		Bech32Prefix:   "xion",
+		Denom:          "uxion",
+		TrustingPeriod: "336h",
+		ModifyGenesis:  cosmos.ModifyGenesis(DefaultGenesis),
+		//UsingNewGenesisCommand: true,
+		EncodingConfig: func() *moduletestutil.TestEncodingConfig {
+			cfg := testutil.MakeTestEncodingConfig(
+				auth.AppModuleBasic{},
+				genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				bank.AppModuleBasic{},
+				capability.AppModuleBasic{},
+				staking.AppModuleBasic{},
+				distr.AppModuleBasic{},
+				gov.NewAppModuleBasic(
+					[]govclient.ProposalHandler{
+						paramsclient.ProposalHandler,
+					},
+				),
+				params.AppModuleBasic{},
+				slashing.AppModuleBasic{},
+				upgrade.AppModuleBasic{},
+				consensus.AppModuleBasic{},
+				transfer.AppModuleBasic{},
+				ibccore.AppModuleBasic{},
+				ibctm.AppModuleBasic{},
+				ibcwasm.AppModuleBasic{},
+			)
+			// TODO: add encoding types here for the modules you want to use
+			wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			tokenfactory.RegisterInterfaces(cfg.InterfaceRegistry)
+			globalfee.RegisterInterfaces(cfg.InterfaceRegistry)
+			xiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			return &cfg
+		}(),
+	}
+
 	// Chain factory
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
-			Name:    imageTagComponents[0],
-			Version: imageTagComponents[1],
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: imageTagComponents[0],
-						Version:    imageTagComponents[1],
-						UidGid:     "1025:1025",
-					},
-				},
-				//GasPrices:              "0.1uxion",
-				GasPrices:      gas,
-				GasAdjustment:  2.0,
-				Type:           "cosmos",
-				ChainID:        "xion-1",
-				Bin:            "xiond",
-				Bech32Prefix:   "xion",
-				Denom:          "uxion",
-				TrustingPeriod: "336h",
-				ModifyGenesis:  modifyGenesis,
-				//UsingNewGenesisCommand: true,
-				EncodingConfig: func() *moduletestutil.TestEncodingConfig {
-					cfg := testutil.MakeTestEncodingConfig(
-						auth.AppModuleBasic{},
-						genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-						bank.AppModuleBasic{},
-						capability.AppModuleBasic{},
-						staking.AppModuleBasic{},
-						distr.AppModuleBasic{},
-						gov.NewAppModuleBasic(
-							[]govclient.ProposalHandler{
-								paramsclient.ProposalHandler,
-							},
-						),
-						params.AppModuleBasic{},
-						slashing.AppModuleBasic{},
-						upgrade.AppModuleBasic{},
-						consensus.AppModuleBasic{},
-						transfer.AppModuleBasic{},
-						ibccore.AppModuleBasic{},
-						ibctm.AppModuleBasic{},
-						ibcwasm.AppModuleBasic{},
-					)
-					// TODO: add encoding types here for the modules you want to use
-					wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-					tokenfactory.RegisterInterfaces(cfg.InterfaceRegistry)
-					globalfee.RegisterInterfaces(cfg.InterfaceRegistry)
-					xiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
-					minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
-					return &cfg
-				}(),
-			},
+			Name:          imageTagComponents[0],
+			Version:       imageTagComponents[1],
+			ChainConfig:   cfg,
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
 		},

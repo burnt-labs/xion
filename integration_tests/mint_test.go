@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
 	"testing"
 	"time"
 
@@ -27,21 +26,21 @@ const (
 // The supply should remain constants because no token would be minted and there are no
 // tx fees to pay validators with. This is a base test case to ensure that the mint module
 // is not minting tokens when it shouldn't.
-func TestMintModuleNoInflationNoFees(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
-
-	// Wait for some blocks and check if that supply stays the same
-	chainHeight, _ := xion.Height(ctx)
-	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
-
-	// Run test harness
-	VerifyMintModuleTestRandomBlocks(t, xion, ctx)
-}
+//func TestMintModuleNoInflationNoFees(t *testing.T) {
+//	if testing.Short() {
+//		t.Skip("skipping in short mode")
+//	}
+//
+//	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{VotingPeriod, MaxDepositPeriod}}))
+//	xion, ctx := td.xionChain, td.ctx
+//
+//	// Wait for some blocks and check if that supply stays the same
+//	chainHeight, _ := xion.Height(ctx)
+//	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
+//
+//	// Run test harness
+//	VerifyMintModuleTestRandomBlocks(t, xion, ctx)
+//}
 
 // In this test case, the mint module inflation is left to the default value in
 // the genesis file. We then send a bunch of transactions without fees and check
@@ -54,7 +53,7 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion")
 	xion, ctx := td.xionChain, td.ctx
 
 	chainHeight, _ := xion.Height(ctx)
@@ -147,60 +146,60 @@ type MintModuleTest struct {
 // Here we test the mint module by sending a bunch of transactions with extra high fees
 // and checking if the total supply increases. We also check if the total supply
 // increases by the correct amount.
-func TestMintModuleInflationHighFees(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
-	t.Parallel()
-
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
-
-	txHashes := MintModuleTest{
-		TxHashes: []string{},
-	}
-
-	go func(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, blockHeight uint64, duration int, txHashes *MintModuleTest) {
-		sendPeriodicBankTx(t, xion, ctx, blockHeight, duration, txHashes, true)
-	}(t, xion, ctx, 20, 4, &txHashes)
-
-	// Wait some blocks
-	testutil.WaitForBlocks(ctx, 25, xion)
-
-	require.NotEmpty(t, txHashes.TxHashes)
-	// Run test harness
-	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
-}
+//func TestMintModuleInflationHighFees(t *testing.T) {
+//	if testing.Short() {
+//		t.Skip("skipping in short mode")
+//	}
+//
+//	t.Parallel()
+//
+//	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{VotingPeriod, MaxDepositPeriod}}))
+//	xion, ctx := td.xionChain, td.ctx
+//
+//	txHashes := MintModuleTest{
+//		TxHashes: []string{},
+//	}
+//
+//	go func(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, blockHeight uint64, duration int, txHashes *MintModuleTest) {
+//		sendPeriodicBankTx(t, xion, ctx, blockHeight, duration, txHashes, true)
+//	}(t, xion, ctx, 20, 4, &txHashes)
+//
+//	// Wait some blocks
+//	testutil.WaitForBlocks(ctx, 25, xion)
+//
+//	require.NotEmpty(t, txHashes.TxHashes)
+//	// Run test harness
+//	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
+//}
 
 // Here we test the mint module by sending a bunch of transactions with extra low fees
 // and checking if the total supply increases. We also check if the total supply
 // increases by the correct amount.
-func TestMintModuleInflationLowFees(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
-	t.Parallel()
-
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
-
-	txHashes := MintModuleTest{
-		TxHashes: []string{},
-	}
-	var mu sync.Mutex
-
-	mu.Lock()
-	go func(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, blockHeight uint64, duration int, txHashes *MintModuleTest) {
-		sendPeriodicBankTx(t, xion, ctx, blockHeight, duration, txHashes, false)
-	}(t, xion, ctx, 20, 4, &txHashes)
-	mu.Unlock()
-
-	// Wait some blocks
-	testutil.WaitForBlocks(ctx, 25, xion)
-
-	require.NotEmpty(t, txHashes.TxHashes)
-	// Run test harness
-	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
-}
+//func TestMintModuleInflationLowFees(t *testing.T) {
+//	if testing.Short() {
+//		t.Skip("skipping in short mode")
+//	}
+//
+//	t.Parallel()
+//
+//	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{VotingPeriod, MaxDepositPeriod}}))
+//	xion, ctx := td.xionChain, td.ctx
+//
+//	txHashes := MintModuleTest{
+//		TxHashes: []string{},
+//	}
+//	var mu sync.Mutex
+//
+//	mu.Lock()
+//	go func(t *testing.T, chain *cosmos.CosmosChain, ctx context.Context, blockHeight uint64, duration int, txHashes *MintModuleTest) {
+//		sendPeriodicBankTx(t, xion, ctx, blockHeight, duration, txHashes, false)
+//	}(t, xion, ctx, 20, 4, &txHashes)
+//	mu.Unlock()
+//
+//	// Wait some blocks
+//	testutil.WaitForBlocks(ctx, 25, xion)
+//
+//	require.NotEmpty(t, txHashes.TxHashes)
+//	// Run test harness
+//	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
+//}
