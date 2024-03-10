@@ -225,7 +225,7 @@ func NewRegisterCmd() *cobra.Command {
 					CodeId: codeID,
 				},
 			)
-			creatorAddr := sdk.AccAddress(clientCtx.GetFromAddress())
+			creatorAddr := clientCtx.GetFromAddress()
 			codeHash, err := hex.DecodeString(codeResp.DataHash.String())
 			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
@@ -234,15 +234,16 @@ func NewRegisterCmd() *cobra.Command {
 				return fmt.Errorf("error signing predicted address : %s\n", err)
 			}
 
-			authenticator := map[string]interface{}{}
-			authenticatorDetails := map[string]interface{}{}
-			authenticatorDetails["pubkey"] = pubKey.Bytes()
-			authenticator[authenticatorType] = authenticatorDetails
 			instantiateMsg := map[string]interface{}{}
-			instantiateMsg["id"] = authenticatorID
-			instantiateMsg["authenticator"] = authenticator
+			authenticatorDetails := map[string]interface{}{}
+			authenticator := map[string]interface{}{}
 
-			instantiateMsg["signature"] = signature
+			authenticatorDetails["id"] = authenticatorID
+			authenticatorDetails["pubkey"] = pubKey.Bytes()
+			authenticatorDetails["signature"] = signature
+			authenticator[authenticatorType] = authenticatorDetails
+
+			instantiateMsg["authenticator"] = authenticator
 			instantiateMsgStr, err := json.Marshal(instantiateMsg)
 			if err != nil {
 				return fmt.Errorf("error signing contract msg : %s", err)
@@ -260,7 +261,6 @@ func NewRegisterCmd() *cobra.Command {
 				return err
 			}
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-			return nil
 		},
 		SilenceUsage: true,
 	}
