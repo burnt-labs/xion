@@ -1,0 +1,34 @@
+syntax = "proto3";
+package mint.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/mint/types";
+
+// MintIncentiveTokens defines an event emitted on each block from the mint
+// module EndBlocker
+message MintIncentiveTokens {
+  string bonded_ratio = 1 [
+    (gogoproto.moretags) = "yaml:\"bonded_ratio\"",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  string inflation = 2 [
+    (gogoproto.moretags) = "yaml:\"inflation\"",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  string annual_provisions = 3 [
+    (gogoproto.moretags) = "yaml:\"annual_provisions\"",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+  uint64 needed_amount = 4;
+  uint64 collected_amount = 5;
+  uint64 minted_amount = 6;
+  uint64 burned_amount = 7;
+}

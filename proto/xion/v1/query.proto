@@ -1,30 +1,24 @@
 syntax = "proto3";
 package xion.v1;
 
+import "google/api/annotations.proto";
+import "xion/v1/genesis.proto";
+
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
+// Query provides defines the gRPC querier service.
 service Query {
-  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest) returns (QueryWebAuthNVerifyRegisterResponse) {}
-  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest) returns (QueryWebAuthNVerifyAuthenticateResponse) {}
+  // Params queries all parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/xion/v1/params";
+  }
 }
 
-message QueryWebAuthNVerifyRegisterRequest {
-  string addr = 1;
-  string challenge = 2;
-  string rp = 3;
-  bytes data = 4;
-}
+// QueryParamsRequest is the request type for the Query/Params RPC method.
+message QueryParamsRequest {}
 
-message QueryWebAuthNVerifyRegisterResponse {
-  bytes credential = 1;
+// QueryParamsResponse is the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params defines the parameters of the module.
+  Params params = 1;
 }
-
-message QueryWebAuthNVerifyAuthenticateRequest {
-  string addr = 1;
-  string challenge = 2;
-  string rp = 3;
-  bytes credential = 4;
-  bytes data = 5;
-}
-
-message QueryWebAuthNVerifyAuthenticateResponse {}

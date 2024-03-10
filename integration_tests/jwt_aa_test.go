@@ -11,22 +11,25 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionapp "github.com/burnt-labs/xion/app"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/golang-jwt/jwt/v4"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/lestrrat-go/jwx/jwk"
-	ibctest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func TestJWTAbstractAccount(t *testing.T) {
@@ -35,7 +38,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion")
 	xion, ctx := td.xionChain, td.ctx
 
 	config := types.GetConfig()
@@ -44,7 +47,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := int64(10_000_000)
-	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
+	users := ibctest.GetAndFundTestUsers(t, ctx, "default", math.NewInt(fundAmount), xion)
 	xionUser := users[0]
 	err := testutil.WaitForBlocks(ctx, 8, xion)
 	require.NoError(t, err)
@@ -52,84 +55,48 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, fundAmount, xionUserBalInitial)
+	require.Equal(t, fundAmount, xionUserBalInitial.Int64())
 
 	// register any needed msg types
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
+		&xiontypes.MsgUpdateParams{},
 		&xiontypes.MsgSend{},
 		&wasmtypes.MsgInstantiateContract{},
 		&wasmtypes.MsgStoreCode{},
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
-		&jwktypes.MsgCreateAudience{},
 	)
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
-	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
-	require.NoError(t, err)
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
-	require.NoError(t, err)
-	t.Logf("private key: %v", privateKey)
-
-	// log the test public key
-	publicKey, err := jwk.New(privateKey)
-	require.NoError(t, err)
-	publicKey, err = publicKey.PublicKey()
-	require.NoError(t, err)
-	publicKeyJSON, err := json.Marshal(publicKey)
-	require.NoError(t, err)
-	t.Logf("public key: %s", publicKeyJSON)
-
-	// build the jwk key
-	testKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
-	require.NoError(t, err)
-	err = testKey.Set("alg", "RS256")
-	require.NoError(t, err)
-	testKeyPublic, err := testKey.PublicKey()
-	require.NoError(t, err)
-	testPublicKeyJSON, err := json.Marshal(testKeyPublic)
-	require.NoError(t, err)
-
-	// deploy the key to the jwk module
-	aud := "integration-test-project"
-	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
-		xionUser.KeyName(),
-		"jwk", "create-audience",
-		aud,
-		string(testPublicKeyJSON),
-		"--chain-id", xion.Config().ChainID,
-	)
-	require.NoError(t, err)
-	t.Logf("create audience hash: %s", createAudienceHash)
-
-	// deploy the contract
+	// prepare the JWT key and data
 	fp, err := os.Getwd()
 	require.NoError(t, err)
+
+	// deploy the contract
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
 		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
-	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", codeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
 	sub := "integration-test-user"
+	aud := "integration-test-project"
 
-	authenticatorDetails := map[string]interface{}{}
+	authenticatorDetails := map[string]string{}
 	authenticatorDetails["sub"] = sub
 	authenticatorDetails["aud"] = aud
-	authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
 	authenticator["Jwt"] = authenticatorDetails
 
 	instantiateMsg := map[string]interface{}{}
+	instantiateMsg["id"] = 0
 	instantiateMsg["authenticator"] = authenticator
 
 	// predict the contract address so it can be verified
@@ -140,8 +107,21 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	//b64 the contract address to use as the transaction hash
-	signature := base64.StdEncoding.EncodeToString([]byte(predictedAddr.String()))
+	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	require.NoError(t, err)
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
+	require.NoError(t, err)
+	t.Logf("private key: %v", privateKey)
+
+	publicKey, err := jwk.New(privateKey)
+	require.NoError(t, err)
+	publicKeyJSON, err := json.Marshal(publicKey)
+	require.NoError(t, err)
+	t.Logf("public key: %s", publicKeyJSON)
+
+	// sha256 the contract addr, as it expects
+	signatureBz := sha256.Sum256([]byte(predictedAddr.String()))
+	signature := base64.StdEncoding.EncodeToString(signatureBz[:])
 
 	now := time.Now()
 	fiveAgo := now.Add(-time.Second * 5)
@@ -164,7 +144,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("signed token: %s", output)
 
-	authenticatorDetails["token"] = []byte(output)
+	instantiateMsg["signature"] = []byte(output)
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 	t.Logf("inst msg: %s", string(instantiateMsgStr))
@@ -177,15 +157,20 @@ func TestJWTAbstractAccount(t *testing.T) {
 		"--salt", salt,
 		"--funds", "10000uxion",
 		"--chain-id", xion.Config().ChainID,
+		"--gas", "auto",
 	}
 	t.Logf("sender: %s", xionUser.FormattedAddress())
 	t.Logf("register cmd: %s", registerCmd)
 
-	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], xionUser.KeyName(), registerCmd...)
+	txHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), registerCmd...)
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
 
-	contractsResponse, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contracts", codeIDStr)
+	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	require.NoError(t, err)
+	t.Logf("tx details: %s", txDetails)
+
+	contractsResponse, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contracts", codeIDStr)
 	require.NoError(t, err)
 
 	contract := contractsResponse["contracts"].([]interface{})[0].(string)
@@ -194,21 +179,23 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, int64(10_000), newBalance)
+	require.Equal(t, int64(10_000), newBalance.Int64())
 
 	// get the account from the chain. there might be a better way to do this
-	accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
-		"account", contract)
+	accountResponseWrapper, err := ExecQuery(t, ctx, xion.GetNode(),
+		"auth", "account", contract)
 	require.NoError(t, err)
-	t.Logf("account response: %s", accountResponse)
+	accountResponseJSON := accountResponseWrapper["account"]
+	t.Logf("account response: %s", accountResponseJSON)
+	accountTypeResponse := accountResponseJSON.(map[string]interface{})
+	accountResponse := accountTypeResponse["value"].(map[string]interface{})
 
-	delete(accountResponse, "@type")
 	var account aatypes.AbstractAccount
 	accountJSON, err := json.Marshal(accountResponse)
 	require.NoError(t, err)
 
-	encodingConfig := xionapp.MakeEncodingConfig()
-	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
+	encodingConfig := xion.Config().EncodingConfig
+	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
 	// create the raw tx
@@ -252,12 +239,21 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	// create the sign bytes
 
-	signerData := authsigning.SignerData{
+	pubKey := account.GetPubKey()
+	anyPk, err := codectypes.NewAnyWithValue(pubKey)
+	if err != nil {
+		panic(err)
+	}
+
+	signerData := txsigning.SignerData{
 		Address:       account.GetAddress().String(),
 		ChainID:       xion.Config().ChainID,
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      account.GetSequence(),
-		PubKey:        account.GetPubKey(),
+		PubKey: &anypb.Any{
+			TypeUrl: anyPk.TypeUrl,
+			Value:   anyPk.Value,
+		}, // NOTE: NilPubKey
 	}
 
 	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
@@ -277,11 +273,21 @@ func TestJWTAbstractAccount(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
+	builtTx := txBuilder.GetTx()
+	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
+	if !ok {
+		panic(fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", builtTx))
+	}
+	txData := adaptableTx.GetSigningTxData()
+
+	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+		ctx,
+		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
+		signerData, txData)
 	require.NoError(t, err)
 
 	// our signature is the sha256 of the signbytes
-	signatureBz := sha256.Sum256(signBytes)
+	signatureBz = sha256.Sum256(signBytes)
 	signature = base64.StdEncoding.EncodeToString(signatureBz[:])
 
 	// we need to create a new valid token, making sure the time works
@@ -325,7 +331,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err = ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
+	output, err = ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 

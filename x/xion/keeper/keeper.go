@@ -1,64 +1,110 @@
 package keeper
 
 import (
+	"context"
 	"cosmossdk.io/math"
-	"github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"cosmossdk.io/collections"
+	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/log"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 type Keeper struct {
-	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
-	paramSpace    paramtypes.Subspace
+	cdc codec.BinaryCodec
+
+	logger log.Logger
+
 	bankKeeper    types.BankKeeper
 	accountKeeper types.AccountKeeper
 
-	// the address capable of executing a MsgSetPlatformPercentage message.
-	// Typically, this should be the x/gov module account
+	// state management
+	Schema collections.Schema
+	Params collections.Item[types.Params]
+
 	authority string
 }
 
-func NewKeeper(cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
-	paramSpace paramtypes.Subspace,
+// NewKeeper creates a new poa Keeper instance
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeService storetypes.KVStoreService,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
-	authority string) Keeper {
+	logger log.Logger,
+	authority string,
+) Keeper {
+	logger = logger.With(log.ModuleKey, "x/"+types.ModuleName)
 
-	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramSpace:    paramSpace,
+	sb := collections.NewSchemaBuilder(storeService)
+
+	if authority == "" {
+		authority = authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	}
+
+	k := Keeper{
+		cdc:    cdc,
+		logger: logger,
+
 		bankKeeper:    bankKeeper,
 		accountKeeper: accountKeeper,
-		authority:     authority,
+
+		Params: collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
+
+		authority: authority,
 	}
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	k.Schema = schema
+
+	return k
 }
 
-// Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdktypes.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+types.ModuleName)
+func (k Keeper) Logger() log.Logger {
+	return k.logger
+}
+
+// InitGenesis initializes the module's state from a genesis state.
+func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) error {
+	// this line is used by starport scaffolding # genesis/module/init
+	if err := data.Params.Validate(); err != nil {
+		return err
+	}
+
+	return k.Params.Set(ctx, data.Params)
+}
+
+// ExportGenesis exports the module's state to a genesis state.
+func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	// this line is used by starport scaffolding # genesis/module/export
+
+	return &types.GenesisState{
+		Params: params,
+	}
 }
 
 // Platform Percentage
 
-func (k Keeper) GetPlatformPercentage(ctx sdktypes.Context) math.Int {
-	bz := ctx.KVStore(k.storeKey).Get(types.PlatformPercentageKey)
-	percentage := sdktypes.BigEndianToUint64(bz)
-	return math.NewIntFromUint64(percentage)
-}
-
-func (k Keeper) OverwritePlatformPercentage(ctx sdktypes.Context, percentage uint32) {
-	ctx.KVStore(k.storeKey).Set(types.PlatformPercentageKey, sdktypes.Uint64ToBigEndian(uint64(percentage)))
-}
-
-// Authority
-
-// GetAuthority returns the x/xion module's authority.
-func (k Keeper) GetAuthority() string {
-	return k.authority
+func (k Keeper) GetPlatformPercentage(ctx sdktypes.Context) (math.Int, error) {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		return math.Int{}, err
+	}
+	return math.NewIntFromUint64(params.PlatformPercentage), nil
 }

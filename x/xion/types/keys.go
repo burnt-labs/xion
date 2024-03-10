@@ -1,19 +1,19 @@
 package types
 
+import "cosmossdk.io/collections"
+
 var (
-	PlatformPercentageKey = []byte{0x00}
+	// ParamsKey saves the current module params.
+	ParamsKey = collections.NewPrefix(0)
 )
 
 const (
-	// ModuleName is the module name constant used in many places
 	ModuleName = "xion"
 
-	// StoreKey is the store key string for oracle
 	StoreKey = ModuleName
+
+	QuerierRoute = ModuleName
 
 	// RouterKey is the message route for oracle
 	RouterKey = ModuleName
-
-	// QuerierRoute is the querier route for oracle
-	QuerierRoute = ModuleName
 )

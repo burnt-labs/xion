@@ -1,6 +1,7 @@
 package integration_tests
 
 import (
+	"cosmossdk.io/math"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -11,15 +12,15 @@ import (
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	ibctest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
 type jsonAuthenticator map[string]map[string]string
@@ -30,7 +31,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion")
 	xion, ctx := td.xionChain, td.ctx
 
 	config := types.GetConfig()
@@ -39,7 +40,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	// Register All messages we are interacting.
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
 		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
+		&xiontypes.MsgUpdateParams{},
 		&xiontypes.MsgSend{},
 		&wasmtypes.MsgInstantiateContract{},
 		&wasmtypes.MsgExecuteContract{},
@@ -54,11 +55,10 @@ func TestXionAbstractAccount(t *testing.T) {
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := int64(10_000_000)
-	xionUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
-	require.NoError(t, err)
+	users := ibctest.GetAndFundTestUsers(t, ctx, "default", math.NewInt(fundAmount), xion)
+	xionUser := users[0]
 	currentHeight, _ := xion.Height(ctx)
-	err = testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
-	require.NoError(t, err)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
 	t.Logf("created xion user %s", xionUser.FormattedAddress())
 
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
@@ -92,8 +92,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -110,12 +109,12 @@ func TestXionAbstractAccount(t *testing.T) {
 		codeID,
 		xionUser.KeyName(),
 		"--funds", depositedFunds,
-		"--salt", "0",
 		"--authenticator", "Secp256K1",
+		"--salt", "0",
+		"--authenticator-id", "0",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
-	t.Logf("tx hash: %s", registeredTxHash)
 
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", registeredTxHash)
 	require.NoError(t, err)
@@ -124,9 +123,9 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(100000), uint64(contractBalance))
+	require.Equal(t, uint64(100000), uint64(contractBalance.Int64()))
 
-	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
+	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
 	require.NoError(t, err)
 
 	pubkey64, ok := contractState["data"].(string)
@@ -166,7 +165,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	// Confirm the updated balance
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(100000), uint64(balance))
+	require.Equal(t, uint64(100000), uint64(balance.Int64()))
 
 	// Generate Key Rotation Msg
 	account, err = ExecBin(t, ctx, xion.FullNodes[0],
@@ -201,7 +200,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
+	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, fmt.Sprintf(`{"authenticator_by_i_d":{ "id": 0 }}`))
 	require.NoError(t, err)
 
 	updatedPubKey, ok := updatedContractstate["data"].(string)

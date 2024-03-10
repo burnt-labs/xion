@@ -4,39 +4,56 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
-
 	"math/rand"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	"cosmossdk.io/x/upgrade"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	minttypes "github.com/burnt-labs/xion/x/mint/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/types/module/testutil"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/ibc-go/modules/capability"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	globalfee "github.com/reecepbcups/globalfee/x/globalfee/types"
+	tokenfactory "github.com/reecepbcups/tokenfactory/x/tokenfactory/types"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
 
 const (
-	votingPeriod     = "10s"
-	maxDepositPeriod = "10s"
-)
-
-var (
-	defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
+	VotingPeriod     = "10s"
+	MaxDepositPeriod = "10s"
+	Denom            = "uxion"
 )
 
 // Function type for any function that modify the genesis file
@@ -126,21 +143,23 @@ func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey stri
 	return rawMsg
 }
 
-func ParamChangeProposal(t *testing.T, subspace, key, value, title, description, deposit string) paramsutils.ParamChangeProposalJSON {
-	changes := paramsutils.ParamChangeJSON{
-		Subspace: subspace,
-		Key:      key,
-		Value:    json.RawMessage(fmt.Sprintf(`"%s"`, value)),
+var (
+	// default genesis includes short proposals
+	DefaultGenesis = []cosmos.GenesisKV{
+		// default
+		cosmos.NewGenesisKV("app_state.gov.params.voting_period", VotingPeriod),
+		cosmos.NewGenesisKV("app_state.gov.params.max_deposit_period", MaxDepositPeriod),
+		cosmos.NewGenesisKV("app_state.gov.params.min_deposit.0.denom", Denom),
+		cosmos.NewGenesisKV("app_state.gov.params.min_deposit.0.amount", "1"),
+		// globalfee: set minimum fee requirements
+		//cosmos.NewGenesisKV("app_state.globalfee.params.minimum_gas_prices", sdk.DecCoins{sdk.NewDecCoinFromDec(Denom, sdkmath.LegacyMustNewDecFromStr("0.0"))}),
+		// tokenfactory: set create cost in set denom or in gas usage.
+		cosmos.NewGenesisKV("app_state.tokenfactory.params.denom_creation_fee", nil),
+		cosmos.NewGenesisKV("app_state.tokenfactory.params.denom_creation_gas_consume", 1), // cost 1 gas to create a new denom
 	}
-	proposal := paramsutils.ParamChangeProposalJSON{
-		Title:       title,
-		Description: description,
-		Deposit:     deposit,
-		Changes:     []paramsutils.ParamChangeJSON{changes},
-	}
-	return proposal
-}
-func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
+)
+
+func BuildXionChain(t *testing.T, gas string) TestData {
 	ctx := context.Background()
 
 	var numFullNodes = 1
@@ -151,31 +170,64 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
+	// config
+	cfg := ibc.ChainConfig{
+		Images: []ibc.DockerImage{
+			{
+				Repository: imageTagComponents[0],
+				Version:    imageTagComponents[1],
+				UidGid:     "1025:1025",
+			},
+		},
+		//GasPrices:              "0.1uxion",
+		GasPrices:      gas,
+		GasAdjustment:  2.0,
+		Type:           "cosmos",
+		ChainID:        "xion-1",
+		Bin:            "xiond",
+		Bech32Prefix:   "xion",
+		Denom:          "uxion",
+		TrustingPeriod: "336h",
+		ModifyGenesis:  cosmos.ModifyGenesis(DefaultGenesis),
+		//UsingNewGenesisCommand: true,
+		EncodingConfig: func() *moduletestutil.TestEncodingConfig {
+			cfg := testutil.MakeTestEncodingConfig(
+				auth.AppModuleBasic{},
+				genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				bank.AppModuleBasic{},
+				capability.AppModuleBasic{},
+				staking.AppModuleBasic{},
+				distr.AppModuleBasic{},
+				gov.NewAppModuleBasic(
+					[]govclient.ProposalHandler{
+						paramsclient.ProposalHandler,
+					},
+				),
+				params.AppModuleBasic{},
+				slashing.AppModuleBasic{},
+				upgrade.AppModuleBasic{},
+				consensus.AppModuleBasic{},
+				transfer.AppModuleBasic{},
+				ibccore.AppModuleBasic{},
+				ibctm.AppModuleBasic{},
+				ibcwasm.AppModuleBasic{},
+			)
+			// TODO: add encoding types here for the modules you want to use
+			wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			tokenfactory.RegisterInterfaces(cfg.InterfaceRegistry)
+			globalfee.RegisterInterfaces(cfg.InterfaceRegistry)
+			xiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			return &cfg
+		}(),
+	}
+
 	// Chain factory
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
-			Name:    imageTagComponents[0],
-			Version: imageTagComponents[1],
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: imageTagComponents[0],
-						Version:    imageTagComponents[1],
-						UidGid:     "1025:1025",
-					},
-				},
-				//GasPrices:              "0.1uxion",
-				GasPrices:              gas,
-				GasAdjustment:          2.0,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesis,
-				UsingNewGenesisCommand: true,
-			},
+			Name:          imageTagComponents[0],
+			Version:       imageTagComponents[1],
+			ChainConfig:   cfg,
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
 		},
@@ -508,22 +560,25 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 }
 
 func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
-	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...), nil)
-	if err != nil {
-		return "", err
-	}
-	output := cosmos.CosmosTx{}
-	err = json.Unmarshal([]byte(stdout), &output)
-	if err != nil {
-		return "", err
-	}
-	if output.Code != 0 {
-		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
-	}
-	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
-		return "", err
-	}
-	return output.TxHash, nil
+	//stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...), nil)
+	//if err != nil {
+	//	return "", err
+	//}
+	//output := cosmos.CosmosTx{}
+	//err = json.Unmarshal([]byte(stdout), &output)
+	//if err != nil {
+	//	return "", err
+	//}
+	//if output.Code != 0 {
+	//	return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	//}
+	//if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+	//	return "", err
+	//}
+	//return output.TxHash, nil
+	//cmd := TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...)
+	//t.Logf("command: %s", cmd)
+	return tn.ExecTx(ctx, keyName, command...)
 }
 
 func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {

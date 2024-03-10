@@ -1,32 +1,47 @@
 package app
 
 import (
-	"os"
 	"testing"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	abci "github.com/cometbft/cometbft/abci/types"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/gogoproto/proto"
+	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/log"
+
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 )
 
-var emptyWasmOpts []wasmkeeper.Option
-
-func TestWasmdExport(t *testing.T) {
+func TestAppExport(t *testing.T) {
 	db := dbm.NewMemDB()
-	gapp := NewWasmAppWithCustomOptions(t, false, SetupOptions{
-		Logger:  log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
+	logger := log.NewTestLogger(t)
+	gapp := NewChainAppWithCustomOptions(t, false, SetupOptions{
+		Logger:  logger.With("instance", "first"),
 		DB:      db,
 		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
 	})
-	gapp.Commit()
+
+	// finalize block so we have CheckTx state set
+	_, err := gapp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: 1,
+	})
+	require.NoError(t, err)
+
+	_, err = gapp.Commit()
+	require.NoError(t, err)
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newGapp := NewWasmApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, simtestutil.NewAppOptionsWithFlagHome(t.TempDir()), emptyWasmOpts)
-	_, err := newGapp.ExportAppStateAndValidators(false, []string{}, nil)
+	var wasmOpts []wasmkeeper.Option = nil
+	newGapp := NewChainApp(
+		logger, db, nil, true, simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
+		wasmOpts,
+	)
+	_, err = newGapp.ExportAppStateAndValidators(false, []string{}, nil)
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }
 
@@ -50,4 +65,19 @@ func TestBlockedAddrs(t *testing.T) {
 func TestGetMaccPerms(t *testing.T) {
 	dup := GetMaccPerms()
 	require.Equal(t, maccPerms, dup, "duplicated module account permissions differed from actual module account permissions")
+}
+
+// TestMergedRegistry tests that fetching the gogo/protov2 merged registry
+// doesn't fail after loading all file descriptors.
+func TestMergedRegistry(t *testing.T) {
+	r, err := proto.MergedRegistry()
+	require.NoError(t, err)
+	require.Greater(t, r.NumFiles(), 0)
+}
+
+func TestProtoAnnotations(t *testing.T) {
+	r, err := proto.MergedRegistry()
+	require.NoError(t, err)
+	err = msgservice.ValidateProtoAnnotations(r)
+	require.NoError(t, err)
 }
