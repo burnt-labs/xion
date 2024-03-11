@@ -9,7 +9,7 @@ import (
 )
 
 func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wasmViewKeeper wasmtypes.ViewKeeper, aaKeeper types.AbstractAccountKeeper) error {
-	const NewCodeId = 2 // todo: set
+	const NewCodeId = 327 // todo: set
 
 	// get the previous account code ID
 	aaParams, err := aaKeeper.GetParams(ctx)
