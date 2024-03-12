@@ -41,7 +41,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 	users := interchaintest.GetAndFundTestUsers(t, td.ctx, "default", fundAmount, td.xionChain)
 	chainUser := users[0]
 
-	CosmosChainUpgradeIBCTest(t, &td, chainUser, "xion", "current", "xion", "upgrade", "v4")
+	CosmosChainUpgradeIBCTest(t, &td, chainUser, "xion", "current", "xion", "upgrade", "v5")
 }
 
 func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
@@ -63,6 +63,9 @@ func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet,
 
 	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting software upgrade proposal tx")
+
+	fmt.Printf("%+v", upgradeTx)
+	time.Sleep(time.Second * 30)
 
 	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
