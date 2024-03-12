@@ -65,7 +65,6 @@ func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet,
 	require.NoError(t, err, "error submitting software upgrade proposal tx")
 
 	fmt.Printf("%+v", upgradeTx)
-	time.Sleep(time.Second * 30)
 
 	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
