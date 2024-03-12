@@ -140,14 +140,16 @@ func ParamChangeProposal(t *testing.T, subspace, key, value, title, description,
 	}
 	return proposal
 }
-func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
+func BuildXionChain(t *testing.T, imageTag string, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
 	var numFullNodes = 1
 	var numValidators = 3
 
 	// pulling image from env to foster local dev
-	imageTag := os.Getenv("XION_IMAGE")
+	if imageTag == "" {
+		imageTag = os.Getenv("XION_IMAGE")
+	}
 	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 

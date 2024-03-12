@@ -29,7 +29,7 @@ import (
 var deployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
 
 func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "", "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	config := types.GetConfig()

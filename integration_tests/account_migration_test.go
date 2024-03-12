@@ -34,7 +34,14 @@ func TestAbstractAccountMigration(t *testing.T) {
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t,
+		"ghcr.io/strangelove-ventures/heighliner/xion:v0.3.4",
+		"0.0uxion",
+		ModifyInterChainGenesis(
+			ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs},
+			[][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}},
+		),
+	)
 	xion, ctx := td.xionChain, td.ctx
 
 	config := types.GetConfig()
@@ -326,7 +333,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", newCodeResp)
 
-	CosmosChainUpgradeIBCTest(t, &td, "xion", "current", "xion", "prebuilt", "v4")
+	CosmosChainUpgradeIBCTest(t, &td, "xion", "v0.3.4", "xion", "prebuilt", "v4")
 	// todo: validate that verification or tx submission still works
 
 	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.FullNodes[0],
