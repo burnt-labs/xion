@@ -32,8 +32,8 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 	wasmViewKeeper.IterateContractsByCode(ctx, originalCodeId, func(instance sdk.AccAddress) bool {
 		_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, NewCodeId, []byte("{}"))
 
-		// if there is an error, abort iteration and report it
-		return err == nil
+		// if there is an error, return true (abort iteration) and report it
+		return err != nil
 	})
 	if err != nil {
 		return err
