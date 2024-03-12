@@ -2,6 +2,9 @@ package v1
 
 import (
 	"fmt"
+	"github.com/cometbft/cometbft/libs/log"
+	"os"
+	"sync"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/xion/types"
@@ -28,15 +31,40 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 		return err
 	}
 
+	// setup concurrency control
+	var wg sync.WaitGroup
+	errors := make(chan error, 1)
+	defer close(errors)
+	semaphore := make(chan struct{}, 10) // Limits the number of concurrent migrations
+	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+
 	// iterate through all existing accounts at this code ID, and migrate them
 	wasmViewKeeper.IterateContractsByCode(ctx, originalCodeId, func(instance sdk.AccAddress) bool {
-		_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, NewCodeId, []byte("{}"))
+		semaphore <- struct{}{} // acquire semaphore
+		wg.Add(1)
 
-		// if there is an error, return true (abort iteration) and report it
-		return err != nil
+		go func(instance sdk.AccAddress) {
+			defer wg.Done()
+			defer func() { <-semaphore }() // release semaphore
+
+			logger.Info("Migrating contract", "contract", instance.String())
+			_, err := wasmOpsKeeper.Migrate(ctx, instance, instance, NewCodeId, []byte("{}"))
+			if err != nil {
+				logger.Error("Error migrating contract", "contract", instance.String(), "error", err.Error())
+				errors <- err
+			}
+		}(instance)
+
+		return false
 	})
-	if err != nil {
+
+	wg.Wait()
+
+	select {
+	case err := <-errors:
 		return err
+	default:
+		// No errors, proceed
 	}
 
 	// as the previous contract is no longer the main account target, it doesn't
