@@ -271,6 +271,8 @@ github.com/bufbuild/protocompile v0.4.0 h1:LbFKd2XowZvQ/kajzguUp2DC9UEIQhIq77fZZ
 github.com/bufbuild/protocompile v0.4.0/go.mod h1:3v93+mbWn/v3xzN+31nwkJfrEpAUwp+BagBSZWx+TP8=
 github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee h1:04DdmDV4PnDOIyEeasOcu+fGDPzXpappY8Um8c+PSRI=
 github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee/go.mod h1:R+/UYwxE92VUFOWLyyuBa2RRI2lUwb9uHwRWDBrNzx0=
+github.com/burnt-labs/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240308232808-736bd51c54ad h1:nDgtQvVt9MR4h6O/4nD6BUZUrIU+JF3y3Ec4TuAeLLc=
+github.com/burnt-labs/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240308232808-736bd51c54ad/go.mod h1:UvDmcGIWJPIytq+Q78/ff5NTOsuX/7IrNgEugTW5i0s=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
@@ -348,8 +350,6 @@ github.com/cosmos/gogoproto v1.4.10 h1:QH/yT8X+c0F4ZDacDv3z+xE3WU1P1Z3wQoLMBRJoK
 github.com/cosmos/gogoproto v1.4.10/go.mod h1:3aAZzeRWpAwr+SS/LLkICX2/kDFyaYVzckBDzygIxek=
 github.com/cosmos/iavl v0.20.1 h1:rM1kqeG3/HBT85vsZdoSNsehciqUQPWrR4BYmqE2+zg=
 github.com/cosmos/iavl v0.20.1/go.mod h1:WO7FyvaZJoH65+HFOsDir7xU9FWk2w9cHXNW1XHcl7A=
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240228213828-cce7f56d000b h1:VwhHRRIPdMshBMb2TP7xrkY4Ee8CJWsHZvucYeJ56no=
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240228213828-cce7f56d000b/go.mod h1:UvDmcGIWJPIytq+Q78/ff5NTOsuX/7IrNgEugTW5i0s=
 github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230802211043-d72e83c94350 h1:NyXIgMKsCTnmD8fcuuuX+45Py9xh/mfpPJ8yr3MI3zg=
 github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230802211043-d72e83c94350/go.mod h1:JwHFbo1oX/ht4fPpnPvmhZr+dCkYK1Vihw+vZE9umR4=
 github.com/cosmos/ibc-go/v7 v7.3.1 h1:bil1IjnHdyWDASFYKfwdRiNtFP6WK3osW7QFEAgU4I8=
