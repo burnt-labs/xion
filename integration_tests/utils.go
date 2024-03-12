@@ -33,6 +33,7 @@ import (
 const (
 	votingPeriod     = "10s"
 	maxDepositPeriod = "10s"
+	packetforward    = "0.0"
 )
 
 var (
@@ -256,6 +257,20 @@ func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, para
 	}
 	return out, nil
 }
+func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, "0.0", "app_state", "packetfowardmiddleware", "params", "fee_percentage"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
 
 // This function modifies the inflation parameters of the mint module in the genesis file
 func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
@@ -271,6 +286,25 @@ func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ..
 	}
 	if err := dyno.Set(g, params[2], "app_state", "mint", "params", "inflation_rate_change"); err != nil {
 		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
+
+func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, []int64{1}, "app_state", "abstractaccount", "params", "allowed_code_ids"); err != nil {
+		return nil, fmt.Errorf("failed to set allowed code ids in genesis json: %w", err)
+	}
+
+	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
+		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
 	}
 	out, err := json.Marshal(g)
 	if err != nil {

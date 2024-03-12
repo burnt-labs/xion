@@ -8,6 +8,7 @@ import (
 
 	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
 )
@@ -28,24 +29,24 @@ const (
 * 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgradeIBC ./...
 
 As of Aug 17 2023 this is the necessary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
-current-testnet: 5fe70b43e3bbe53bc15923d3035e15ce48cc1227 tag: v0.3.5
-upgrade-version: ef75512ddf90629b063807d4a75b5d9ce24a7251
+current-testnet: v0.3.4
+step between: v0.3.5
+upgrade-version: v0.3.6
 */
 func TestXionUpgradeIBC(t *testing.T) {
-	CosmosChainUpgradeIBCTest(t, "xion", "current", "xion", "upgrade", "v4")
-}
-
-func CosmosChainUpgradeIBCTest(t *testing.T, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
-	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
-
 	t.Parallel()
-
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	chain, ctx, client := td.xionChain, td.ctx, td.client
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesispacketForwardMiddleware}, [][]string{{votingPeriod, maxDepositPeriod}, {packetforward}}))
 
 	fundAmount := int64(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
+	users := interchaintest.GetAndFundTestUsers(t, td.ctx, "default", fundAmount, td.xionChain)
 	chainUser := users[0]
+
+	CosmosChainUpgradeIBCTest(t, &td, chainUser, "xion", "current", "xion", "upgrade", "v4")
+}
+
+func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
+	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
+	chain, ctx, client := td.xionChain, td.ctx, td.client
 
 	height, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
