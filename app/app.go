@@ -140,6 +140,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
+	v5 "github.com/burnt-labs/xion/app/upgrades/v5"
 	"github.com/burnt-labs/xion/x/mint"
 	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
