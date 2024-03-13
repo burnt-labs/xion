@@ -28,13 +28,18 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 		return err
 	}
 
+	iteration := 0
 	// iterate through all existing accounts at this code ID, and migrate them
 	wasmViewKeeper.IterateContractsByCode(ctx, originalCodeId, func(instance sdk.AccAddress) bool {
+		fmt.Printf("iteration: %d\n", iteration+1)
+		fmt.Printf("instance: %s\n", instance.String())
 		_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, NewCodeId, []byte("{}"))
-
 		if err != nil {
+			fmt.Printf("%v\n", err)
 			ctx.Logger().Error("Something happened, aborting: %v", err)
 		}
+
+		iteration++
 		// if there is an error, return true (abort iteration) and report it
 		return err != nil
 	})

@@ -190,8 +190,6 @@ func TestAbstractAccountMigration(t *testing.T) {
 	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
-	// test of previous account usage validated. migrate to the new contract
-
 	// deploy the new contract
 	newCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
 		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
