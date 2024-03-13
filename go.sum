@@ -212,8 +212,6 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ChainSafe/go-schnorrkel v1.0.0 h1:3aDA67lAykLaG1y3AOjs88dMxC88PgUuHRrLeDnvGIM=
 github.com/ChainSafe/go-schnorrkel v1.0.0/go.mod h1:dpzHYVxLZcp8pjlV+O+UR8K0Hp/z7vcchBSbMBEhCw4=
-github.com/CosmWasm/wasmd v0.45.0 h1:9zBqrturKJwC2kVsfHvbrA++EN0PS7UTXCffCGbg6JI=
-github.com/CosmWasm/wasmd v0.45.0/go.mod h1:RnSAiqbNIZu4QhO+0pd7qGZgnYAMBPGmXpzTADag944=
 github.com/CosmWasm/wasmvm v1.5.2 h1:+pKB1Mz9GZVt1vadxB+EDdD1FOz3dMNjIKq/58/lrag=
 github.com/CosmWasm/wasmvm v1.5.2/go.mod h1:Q0bSEtlktzh7W2hhEaifrFp1Erx11ckQZmjq8FLCyys=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
@@ -273,6 +271,8 @@ github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee h1:04D
 github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee/go.mod h1:R+/UYwxE92VUFOWLyyuBa2RRI2lUwb9uHwRWDBrNzx0=
 github.com/burnt-labs/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240308232808-736bd51c54ad h1:nDgtQvVt9MR4h6O/4nD6BUZUrIU+JF3y3Ec4TuAeLLc=
 github.com/burnt-labs/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240308232808-736bd51c54ad/go.mod h1:UvDmcGIWJPIytq+Q78/ff5NTOsuX/7IrNgEugTW5i0s=
+github.com/burnt-labs/wasmd v0.45.1-0.20240312170141-3dfd94af17a8 h1:wDyW7USxarGYN8fgTOT2cwWjqTM2AYk5qL/necMPzCU=
+github.com/burnt-labs/wasmd v0.45.1-0.20240312170141-3dfd94af17a8/go.mod h1:RnSAiqbNIZu4QhO+0pd7qGZgnYAMBPGmXpzTADag944=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
