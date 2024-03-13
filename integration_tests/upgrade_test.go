@@ -64,7 +64,9 @@ func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet,
 	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting software upgrade proposal tx")
 
-	fmt.Printf("%+v", upgradeTx)
+	_, err = ExecQuery(t, ctx, chain.FullNodes[0],
+		"tx", upgradeTx.TxHash)
+	require.NoError(t, err, "error querying software upgrade proposal tx")
 
 	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")

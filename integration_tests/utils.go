@@ -560,6 +560,22 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 	return output.TxHash, nil
 }
 
+func ExecTxNoWait(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
+	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...), nil)
+	if err != nil {
+		return "", err
+	}
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal([]byte(stdout), &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	return output.TxHash, nil
+}
+
 func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
 	jsonRes := make(map[string]interface{})
 	t.Logf("querying with cmd: %s", command)
