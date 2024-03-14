@@ -112,7 +112,7 @@ RUN set -euxo pipefail \
   aria2 \
   aws-cli \
   bash \
-  curl \
+  curl>8.6.0-r0 \
   htop \
   jq \
   lz4 \
