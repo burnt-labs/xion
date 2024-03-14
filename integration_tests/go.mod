@@ -3,10 +3,10 @@ module integration_tests
 go 1.21
 
 require (
-	cosmossdk.io/math v1.2.0
+	cosmossdk.io/math v1.3.0
 	github.com/CosmWasm/wasmd v0.45.0
 	github.com/burnt-labs/xion v0.1.0
-	github.com/cosmos/cosmos-sdk v0.47.9
+	github.com/cosmos/cosmos-sdk v0.47.10
 	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/docker/docker v24.0.4+incompatible
 	github.com/golang-jwt/jwt/v4 v4.3.0
@@ -264,7 +264,7 @@ require (
 	modernc.org/token v1.0.1 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 replace (
