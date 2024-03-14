@@ -48,7 +48,7 @@ RUN echo "Ensuring binary is statically linked ..." \
   && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.19 AS xion-dev
+FROM alpine:3.19.1 AS xion-dev
 COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
 # rest server
@@ -92,7 +92,7 @@ COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
 CMD ["/home/xiond/entrypoint.sh"]
 
 # --------------------------------------------------------
-FROM alpine:3.19 AS xion-release
+FROM alpine:3.19.1 AS xion-release
 
 COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
