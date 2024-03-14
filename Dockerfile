@@ -1,5 +1,3 @@
-# docker build . -t cosmwasm/xiond:latest
-# docker run --rm -it cosmwasm/xiond:latest /bin/sh
 FROM golang:1.21-alpine3.19 AS go-builder
 ARG arch=x86_64
 
@@ -7,12 +5,12 @@ ENV WASMVM_VERSION=v1.5.2
 ENV WASMVM_CHECKSUM_AARCH64=e78b224c15964817a3b75a40e59882b4d0e06fd055b39514d61646689cef8c6e
 ENV WASMVM_CHECKSUM_x86_64=e660a38efb2930b34ee6f6b0bb12730adccb040b6ab701b8f82f34453a426ae7
 
-# this comes from standard alpine nightly file
-#  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
-# with some changes to support our toolchain, etc
-RUN set -eux; apk add --no-cache ca-certificates build-base;
+RUN set -euxo pipefail \
+  && apk add --no-cache \
+    ca-certificates  \
+    build-base \
+    git
 
-RUN apk add git
 # NOTE: add these to run with LEDGER_ENABLED=true
 # RUN apk add libusb-dev linux-headers
 
@@ -48,88 +46,53 @@ RUN echo "Ensuring binary is statically linked ..." \
   && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.19.1 AS xion-dev
+FROM alpine:3.19.1 AS xion-base
 COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
-# rest server
+# api
 EXPOSE 1317
-# tendermint grpc
+# grpc
 EXPOSE 9090
-# tendermint p2p
+# p2p
 EXPOSE 26656
-# tendermint rpc
+# rpc
 EXPOSE 26657
-# tendermint prometheus
+# prometheus
 EXPOSE 26660
 
 RUN mkdir /xion
 
 RUN set -euxo pipefail \
+  && echo http://dl-cdn.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories \
   && apk add --no-cache \
-  bash \
-  curl \
-  htop \
-  jq \
-  lz4 \
-  tini
+    bash \
+    curl>8.6.0-r0 \
+    htop \
+    jq \
+    lz4 \
+    tini
+
+# --------------------------------------------------------
+FROM xion-base AS xion-dev
+
+COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
+CMD ["/home/xiond/entrypoint.sh"]
+
+# --------------------------------------------------------
+FROM xion-base as xion-release
 
 RUN set -euxo pipefail \
   && addgroup -S xiond \
   && adduser \
-  --disabled-password \
-  --gecos xiond \
-  --ingroup xiond \
-  xiond
+    --disabled-password \
+    --gecos xiond \
+    --ingroup xiond \
+    xiond
 
 RUN set -eux \
   && chown -R xiond:xiond /home/xiond \
   && chown -R xiond:xiond /xion
 
 USER xiond:xiond
-
-COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
-
-CMD ["/home/xiond/entrypoint.sh"]
-
-# --------------------------------------------------------
-FROM alpine:3.19.1 AS xion-release
-
-COPY --from=go-builder /code/build/xiond /usr/bin/xiond
-
-# rest server
-EXPOSE 1317
-# tendermint grpc
-EXPOSE 9090
-# tendermint p2p
-EXPOSE 26656
-# tendermint rpc
-EXPOSE 26657
-# tendermint prometheus
-EXPOSE 26660
-
-RUN set -euxo pipefail \
-  && apk add --no-cache \
-  aria2 \
-  aws-cli \
-  bash \
-  curl>8.6.0-r0 \
-  htop \
-  jq \
-  lz4 \
-  tini
-
-RUN set -euxo pipefail \
-  && addgroup -S xiond \
-  && adduser \
-  --disabled-password \
-  --gecos xiond \
-  --ingroup xiond \
-  xiond
-
-RUN set -eux \
-  && chown -R xiond:xiond /home/xiond
-
-USER xiond:xiond
-WORKDIR /home/xiond/.xiond
 
 CMD ["/usr/bin/xiond", "version"]
