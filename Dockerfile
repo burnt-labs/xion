@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine3.19 AS go-builder
+FROM golang:1.21-alpine3.18 AS go-builder
 ARG arch=x86_64
 
 ENV WASMVM_VERSION=v1.5.2
@@ -46,7 +46,7 @@ RUN echo "Ensuring binary is statically linked ..." \
   && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.19.1 AS xion-base
+FROM alpine:3.18 AS xion-base
 COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
 # api
