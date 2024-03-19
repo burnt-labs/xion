@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine3.19 AS go-builder
+FROM golang:1.21-alpine3.18 AS go-builder
 ARG arch=x86_64
 
 ENV WASMVM_VERSION=v1.5.2
