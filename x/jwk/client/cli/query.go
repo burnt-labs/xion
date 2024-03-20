@@ -29,6 +29,9 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowAudience())
 	cmd.AddCommand(CmdValidateJWT())
 
+	// utils, not sure where best to put this
+	cmd.AddCommand(CmdConvertPemToJson())
+
 	// this line is used by starport scaffolding # 1
 
 	return cmd
