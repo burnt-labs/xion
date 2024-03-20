@@ -2,11 +2,11 @@ package cli
 
 import (
 	"encoding/json"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/spf13/cobra"
 )
 
