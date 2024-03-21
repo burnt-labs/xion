@@ -1,11 +1,17 @@
 package types
 
 import (
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
+
+var (
+	ParamStoreKeyTimeOffset    = []byte("TimeOffset")
+	ParamStoreKeyDeploymentGas = []byte("DeploymentGas")
+)
 
 // ParamKeyTable the param key table for launch module
 func ParamKeyTable() paramtypes.KeyTable {
@@ -28,7 +34,28 @@ func DefaultParams() Params {
 
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{}
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(ParamStoreKeyDeploymentGas, &p.DeploymentGas, validateDeploymentGas),
+		paramtypes.NewParamSetPair(ParamStoreKeyTimeOffset, &p.TimeOffset, validateTimeOffset),
+	}
+}
+
+func validateDeploymentGas(i interface{}) error {
+	_, ok := i.(uint64)
+	if !ok {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
+	}
+
+	return nil
+}
+
+func validateTimeOffset(i interface{}) error {
+	_, ok := i.(uint64)
+	if !ok {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
+	}
+
+	return nil
 }
 
 // Validate validates the set of params
