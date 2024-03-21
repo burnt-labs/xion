@@ -115,8 +115,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.jwkSubspace)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.MigrateTo1); err != nil {
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1To2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/jwk v1: %v", err))
+	}
+	if err := cfg.RegisterMigration(types.ModuleName, 2, m.Migrate1To2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/jwk v2: %v", err))
 	}
 }
 
