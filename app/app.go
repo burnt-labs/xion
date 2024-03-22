@@ -589,7 +589,7 @@ func NewWasmApp(
 	app.JwkKeeper = jwkkeeper.NewKeeper(
 		appCodec,
 		keys[jwktypes.StoreKey],
-		app.GetSubspace(xiontypes.ModuleName))
+		app.GetSubspace(jwktypes.ModuleName))
 
 	app.XionKeeper = xionkeeper.NewKeeper(
 		appCodec,

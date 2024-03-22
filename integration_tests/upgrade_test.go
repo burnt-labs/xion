@@ -41,10 +41,10 @@ func TestXionUpgradeIBC(t *testing.T) {
 	users := interchaintest.GetAndFundTestUsers(t, td.ctx, "default", fundAmount, td.xionChain)
 	chainUser := users[0]
 
-	CosmosChainUpgradeIBCTest(t, &td, chainUser, "xion", "current", "xion", "upgrade", "v5")
+	CosmosChainUpgradeIBCTest(t, &td, chainUser, "xion", "local", "v5")
 }
 
-func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
+func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
 	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 	chain, ctx, client := td.xionChain, td.ctx, td.client
 
@@ -103,4 +103,15 @@ func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet,
 
 	err = testutil.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
+
+	// check that the upgrade set the params
+	paramsModResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
+		"params", "subspace", "jwk", "TimeOffset")
+	require.NoError(t, err)
+	t.Logf("jwk params response: %v", paramsModResp)
+
+	paramsResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
+		"jwk", "params")
+	require.NoError(t, err)
+	t.Logf("jwk params response: %v", paramsResp)
 }

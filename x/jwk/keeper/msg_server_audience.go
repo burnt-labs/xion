@@ -28,7 +28,7 @@ func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAud
 	}
 
 	// extra gas consumed to dis-incentivize spamming
-	ctx.GasMeter().ConsumeGas(k.GetParams(ctx).DeploymentGas, fmt.Sprintf("gas for jwt verifier %s", msg.Aud))
+	ctx.GasMeter().ConsumeGas(k.GetDeploymentGas(ctx), fmt.Sprintf("gas for jwt verifier %s", msg.Aud))
 
 	k.SetAudience(
 		ctx,
