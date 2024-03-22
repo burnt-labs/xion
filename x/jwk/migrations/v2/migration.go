@@ -14,7 +14,7 @@ import (
 //
 // this should correct a previous migration
 func MigrateStore(ctx sdk.Context, jwkSubspace paramtypes.Subspace) error {
-	ctx.Logger().Info("Running Migration to v2")
+	ctx.Logger().Info("Running Migration to v3")
 	defaultParams := types.DefaultParams()
 
 	if !jwkSubspace.HasKeyTable() {
