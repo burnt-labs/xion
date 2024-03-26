@@ -24,11 +24,11 @@ func ContainZeroCoins(coins sdk.Coins) bool {
 // Both globalFees and minGasPrices must be valid, but CombinedFeeRequirement
 // does not validate them, so it may return 0denom.
 // if globalfee is empty, CombinedFeeRequirement return sdk.Coins{}
-func CombinedFeeRequirement(globalFees, minGasPrices sdk.Coins) (sdk.Coins, error) {
+func CombinedFeeRequirement(globalFees, minGasPrices sdk.DecCoins) (sdk.DecCoins, error) {
 	// global fees should never be empty
 	// since it has a default value using the staking module's bond denom
 	if len(globalFees) == 0 {
-		return sdk.Coins{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "global fee cannot be empty")
+		return sdk.DecCoins{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "global fee cannot be empty")
 	}
 
 	// empty min_gas_price
@@ -37,7 +37,7 @@ func CombinedFeeRequirement(globalFees, minGasPrices sdk.Coins) (sdk.Coins, erro
 	}
 
 	// if min_gas_price denom is in globalfee, and the amount is higher than globalfee, add min_gas_price to allFees
-	var allFees sdk.Coins
+	var allFees sdk.DecCoins
 	for _, fee := range globalFees {
 		// min_gas_price denom in global fee
 		ok, c := Find(minGasPrices, fee.Denom)
@@ -52,17 +52,17 @@ func CombinedFeeRequirement(globalFees, minGasPrices sdk.Coins) (sdk.Coins, erro
 }
 
 // Find replaces the functionality of Coins.Find from SDK v0.46.x
-func Find(coins sdk.Coins, denom string) (bool, sdk.Coin) {
+func Find(coins sdk.DecCoins, denom string) (bool, sdk.DecCoin) {
 	switch len(coins) {
 	case 0:
-		return false, sdk.Coin{}
+		return false, sdk.DecCoin{}
 
 	case 1:
 		coin := coins[0]
 		if coin.Denom == denom {
 			return true, coin
 		}
-		return false, sdk.Coin{}
+		return false, sdk.DecCoin{}
 
 	default:
 		midIdx := len(coins) / 2 // 2:1, 3:1, 4:2

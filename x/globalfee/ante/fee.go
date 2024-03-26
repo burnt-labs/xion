@@ -61,27 +61,26 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		return ctx, err
 	}
 
-	newFee := sdk.NewDecCoinsFromCoins(feeRequired...)
+	//newFee := sdk.NewDecCoinsFromCoins(feeRequired...)
 
 	ctx.Logger().Error("debugging global fee",
 		"fee required", feeRequired,
 		"tx", tx,
 		"min gas prices", ctx.MinGasPrices(),
-		"new fee", newFee,
 	)
 
-	return next(ctx.WithMinGasPrices(newFee), tx, simulate)
+	return next(ctx.WithMinGasPrices(feeRequired), tx, simulate)
 }
 
 // GetTxFeeRequired returns the required fees for the given FeeTx.
 // In case the FeeTx's mode is CheckTx, it returns the combined requirements
 // of local min gas prices and global fees. Otherwise, in DeliverTx, it returns the global fee.
-func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coins, error) {
+func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.DecCoins, error) {
 	// Get required global fee min gas prices
 	// Note that it should never be empty since its default value is set to coin={"StakingBondDenom", 0}
 	globalFees, err := mfd.GetGlobalFee(ctx, tx)
 	if err != nil {
-		return sdk.Coins{}, err
+		return sdk.DecCoins{}, err
 	}
 
 	// In DeliverTx, the global fee min gas prices are the only tx fee requirements.
@@ -94,14 +93,17 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
-	return CombinedFeeRequirement(globalFees, localFees)
+	ctx.Logger().Error("[DEBUG]:", "local fee is ", localFees)
+	combined, err := CombinedFeeRequirement(globalFees, localFees)
+	ctx.Logger().Error("[DEBUG]:", "combined fee is ", combined)
+	return combined, err
 }
 
 // GetGlobalFee returns the global fees for a given fee tx's gas
 // (might also return 0denom if globalMinGasPrice is 0)
 // sorted in ascending order.
 // Note that ParamStoreKeyMinGasPrices type requires coins sorted.
-func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.Coins, error) {
+func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.DecCoins, error) {
 	var (
 		globalMinGasPrices sdk.DecCoins
 		err                error
@@ -114,17 +116,20 @@ func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.Coin
 	if len(globalMinGasPrices) == 0 {
 		globalMinGasPrices, err = mfd.DefaultZeroGlobalFee(ctx)
 		if err != nil {
-			return sdk.Coins{}, err
+			return sdk.DecCoins{}, err
 		}
 	}
-	requiredGlobalFees := make(sdk.Coins, len(globalMinGasPrices))
-	// Determine the required fees by multiplying each required minimum gas
-	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-	for i, gp := range globalMinGasPrices {
-		requiredGlobalFees[i] = sdk.NewCoin(gp.Denom, gp.Amount.RoundInt())
-	}
+	ctx.Logger().Error("[DEBUG]:", "global fee is ", globalMinGasPrices)
+	/*
+		requiredGlobalFees := make(sdk.Coins, len(globalMinGasPrices))
+		// Determine the required fees by multiplying each required minimum gas
+		// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
+		for i, gp := range globalMinGasPrices {
+			requiredGlobalFees[i] = sdk.NewCoin(gp.Denom, gp.Amount.RoundInt())
+		}
+	*/
 
-	return requiredGlobalFees.Sort(), nil
+	return globalMinGasPrices.Sort(), nil
 }
 
 // DefaultZeroGlobalFee returns a zero coin with the staking module bond denom
@@ -171,19 +176,22 @@ func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) (res
 
 // GetMinGasPrice returns a nodes's local minimum gas prices
 // fees given a gas limit
-func GetMinGasPrice(ctx sdk.Context, gasLimit int64) sdk.Coins {
+func GetMinGasPrice(ctx sdk.Context, gasLimit int64) sdk.DecCoins {
 	minGasPrices := ctx.MinGasPrices()
 	// special case: if minGasPrices=[], requiredFees=[]
 	if minGasPrices.IsZero() {
-		return sdk.Coins{}
+		return sdk.DecCoins{}
 	}
 
-	requiredFees := make(sdk.Coins, len(minGasPrices))
-	// Determine the required fees by multiplying each required minimum gas
-	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-	for i, gp := range minGasPrices {
-		requiredFees[i] = sdk.NewCoin(gp.Denom, gp.Amount.RoundInt())
-	}
+	ctx.Logger().Error("[DEBUG]:", "minGasPrices  is ", minGasPrices)
+	/*
+		requiredFees := make(sdk.Coins, len(minGasPrices))
+		// Determine the required fees by multiplying each required minimum gas
+		// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
+		for i, gp := range minGasPrices {
+			requiredFees[i] = sdk.NewCoin(gp.Denom, gp.Amount.RoundInt())
+		}
+	*/
 
-	return requiredFees.Sort()
+	return minGasPrices.Sort()
 }
