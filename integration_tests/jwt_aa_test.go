@@ -328,7 +328,6 @@ func TestJWTAbstractAccount(t *testing.T) {
 	output, err = ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
-	// Tx is failing
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
