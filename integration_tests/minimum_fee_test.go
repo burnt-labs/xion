@@ -65,7 +65,6 @@ func TestXionMinimumFeeZero(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		fmt.Println("waiting check logs")
 
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
