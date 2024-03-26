@@ -61,7 +61,16 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		return ctx, err
 	}
 
-	return next(ctx.WithMinGasPrices(sdk.NewDecCoinsFromCoins(feeRequired...)), tx, simulate)
+	newFee := sdk.NewDecCoinsFromCoins(feeRequired...)
+
+	ctx.Logger().Error("debugging global fee",
+		"fee required", feeRequired,
+		"tx", tx,
+		"min gas prices", ctx.MinGasPrices(),
+		"new fee", newFee,
+	)
+
+	return next(ctx.WithMinGasPrices(newFee), tx, simulate)
 }
 
 // GetTxFeeRequired returns the required fees for the given FeeTx.
