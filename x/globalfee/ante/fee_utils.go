@@ -5,21 +5,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// ContainZeroCoins returns true if the given coins are empty or contain zero coins,
-// Note that the coins denoms must be validated, see sdk.ValidateDenom
-func ContainZeroCoins(coins sdk.Coins) bool {
-	if len(coins) == 0 {
-		return true
-	}
-	for _, coin := range coins {
-		if coin.IsZero() {
-			return true
-		}
-	}
-
-	return false
-}
-
 // CombinedFeeRequirement returns the global fee and min_gas_price combined and sorted.
 // Both globalFees and minGasPrices must be valid, but CombinedFeeRequirement
 // does not validate them, so it may return 0denom.
@@ -76,46 +61,4 @@ func Find(coins sdk.DecCoins, denom string) (bool, sdk.DecCoin) {
 			return Find(coins[midIdx+1:], denom)
 		}
 	}
-}
-
-// splitCoinsByDenoms returns the given coins split in two whether
-// their demon is or isn't found in the given denom map.
-func splitCoinsByDenoms(feeCoins sdk.Coins, denomMap map[string]struct{}) (sdk.Coins, sdk.Coins) {
-	feeCoinsNonZeroDenom, feeCoinsZeroDenom := sdk.Coins{}, sdk.Coins{}
-
-	for _, fc := range feeCoins {
-		_, found := denomMap[fc.Denom]
-		if found {
-			feeCoinsZeroDenom = append(feeCoinsZeroDenom, fc)
-		} else {
-			feeCoinsNonZeroDenom = append(feeCoinsNonZeroDenom, fc)
-		}
-	}
-
-	return feeCoinsNonZeroDenom.Sort(), feeCoinsZeroDenom.Sort()
-}
-
-// getNonZeroFees returns the given fees nonzero coins
-// and a map storing the zero coins's denoms
-func getNonZeroFees(fees sdk.Coins) (sdk.Coins, map[string]struct{}) {
-	requiredFeesNonZero := sdk.Coins{}
-	requiredFeesZeroDenom := map[string]struct{}{}
-
-	for _, gf := range fees {
-		if gf.IsZero() {
-			requiredFeesZeroDenom[gf.Denom] = struct{}{}
-		} else {
-			requiredFeesNonZero = append(requiredFeesNonZero, gf)
-		}
-	}
-
-	return requiredFeesNonZero.Sort(), requiredFeesZeroDenom
-}
-
-// Returns the largest coins given 2 sets of coins
-func MaxCoins(a, b sdk.Coins) sdk.Coins {
-	if a.IsAllGT(b) {
-		return a
-	}
-	return b
 }
