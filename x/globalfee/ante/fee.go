@@ -63,7 +63,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 
 	//newFee := sdk.NewDecCoinsFromCoins(feeRequired...)
 
-	ctx.Logger().Error("debugging global fee",
+	ctx.Logger().Debug("debugging global fee",
 		"fee required", feeRequired,
 		"tx", tx,
 		"min gas prices", ctx.MinGasPrices(),
