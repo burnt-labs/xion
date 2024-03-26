@@ -61,12 +61,6 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		return ctx, err
 	}
 
-	ctx.Logger().Debug("[DEBUG]",
-		"fee required", feeRequired,
-		"tx", tx,
-		"min gas prices", ctx.MinGasPrices(),
-	)
-
 	return next(ctx.WithMinGasPrices(feeRequired), tx, simulate)
 }
 
@@ -92,6 +86,15 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Dec
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
 	combined, err := CombinedFeeRequirement(globalFees, localFees)
+
+	ctx.Logger().Debug("debugging globalfee",
+		"fee required", combined,
+		"tx", tx,
+		"min gas prices", ctx.MinGasPrices(),
+		"global fees", globalFees,
+		"local fees", localFees,
+	)
+
 	return combined, err
 }
 
@@ -108,7 +111,6 @@ func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.DecC
 	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMinGasPrices) {
 		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMinGasPrices, &globalMinGasPrices)
 	}
-	ctx.Logger().Debug("[DEBUG]:", "global fee is ", globalMinGasPrices)
 
 	// global fee is empty set, set global fee to 0uxion
 	if len(globalMinGasPrices) == 0 {
@@ -167,7 +169,6 @@ func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) (res
 // fees given a gas limit
 func GetMinGasPrice(ctx sdk.Context, gasLimit int64) sdk.DecCoins {
 	minGasPrices := ctx.MinGasPrices()
-	ctx.Logger().Debug("[DEBUG]:", "minGasPrices  is ", minGasPrices)
 	// special case: if minGasPrices=[], requiredFees=[]
 	if minGasPrices.IsZero() {
 		return sdk.DecCoins{}
