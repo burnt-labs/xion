@@ -55,21 +55,23 @@ func TestXionMinimumFeeZero(t *testing.T) {
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
 
 	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount int64) {
+		toSend := int64(100)
+
 		_, err := ExecTx(t, ctx, xion.FullNodes[0],
 			xionUser.KeyName(),
 			"xion", "send", xionUser.KeyName(),
 			"--chain-id", xion.Config().ChainID,
-			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+			recipientAddress, fmt.Sprintf("%d%s", toSend, xion.Config().Denom),
 		)
 		require.NoError(t, err)
 
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
-		require.Equal(t, fundAmount-14342, balance)
+		require.Equal(t, fundAmount-toSend, balance)
 
 		balance, err = xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
 		require.NoError(t, err)
-		require.Equal(t, uint64(100), uint64(balance))
+		require.Equal(t, uint64(toSend), uint64(balance))
 	}
 
 	testMinimumFee(t, &td, assertion)
