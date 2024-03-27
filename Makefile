@@ -155,7 +155,6 @@ test-integration-xion-send-platform-fee: compile_integration_tests
 test-integration-xion-abstract-account: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
 
-
 test-integration-xion-min-default: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeDefault
 
