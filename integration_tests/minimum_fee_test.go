@@ -34,8 +34,6 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		fmt.Println("waiting check logs")
-
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
 		require.Equal(t, fundAmount-14345, balance)
@@ -64,7 +62,6 @@ func TestXionMinimumFeeZero(t *testing.T) {
 			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
 		)
 		require.NoError(t, err)
-
 
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
