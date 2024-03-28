@@ -462,13 +462,13 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 0, 2, 1}, []string{"jwk", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"xion", "jwk", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Audience_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"jwk", "audience", "aud"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Audience_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"xion", "jwk", "audience", "aud"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_AudienceAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 0, 2, 1}, []string{"jwk", "audience"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_AudienceAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"xion", "jwk", "audience"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ValidateJWT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"jwk", "validate_jwt", "aud", "sub", "sigBytes"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_ValidateJWT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"xion", "jwk", "validate_jwt", "aud", "sub", "sigBytes"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
