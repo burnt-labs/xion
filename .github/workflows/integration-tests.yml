@@ -77,6 +77,8 @@ jobs:
         - "XionSendPlatformFee"
         - "XionAbstractAccount"
         - "WebAuthNAbstractAccount"
+        - "XionMinimumFeeDefault"
+        - "XionMinimumFeeZero"
 
     steps:
       - name: Set up Go 1.21
