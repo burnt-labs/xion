@@ -60,13 +60,12 @@ EXPOSE 26657
 # prometheus
 EXPOSE 26660
 
-RUN mkdir /xion
-
 RUN set -euxo pipefail \
   && echo http://dl-cdn.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories \
   && apk add --no-cache \
     bash \
-    curl>8.6.0-r0 \
+    openssl \
+    curl \
     htop \
     jq \
     lz4 \
@@ -76,6 +75,8 @@ RUN set -euxo pipefail \
 FROM xion-base AS xion-dev
 
 COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
+WORKDIR /home/xiond/
+
 CMD ["/home/xiond/entrypoint.sh"]
 
 # --------------------------------------------------------
@@ -90,9 +91,9 @@ RUN set -euxo pipefail \
     xiond
 
 RUN set -eux \
-  && chown -R xiond:xiond /home/xiond \
-  && chown -R xiond:xiond /xion
+  && chown -R xiond:xiond /home/xiond
 
 USER xiond:xiond
+WORKDIR /home/xiond/.xiond
 
 CMD ["/usr/bin/xiond", "version"]
