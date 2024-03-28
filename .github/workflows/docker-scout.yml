@@ -2,11 +2,7 @@
 name: Docker Scout
 
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - '*'
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -38,8 +34,7 @@ jobs:
         with:
           images: burnt/xion
           tags: |
-            type=semver,pattern={{version}},priority=1000
-            type=sha,priority=700
+            type=raw,value=scout,priority=1000
 
       - name: Build Docker image
         uses: docker/build-push-action@v5
