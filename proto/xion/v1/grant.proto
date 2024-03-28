@@ -1,0 +1,115 @@
+syntax = "proto3";
+package xion.v1;
+
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/xion/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// CodeIdExecutionAuthorization defines authorization for wasm execute.
+message CodeIdExecutionAuthorization {
+    option (amino.name) = "xion/CodeIdExecutionAuthorization";
+    option (cosmos_proto.implements_interface) =
+        "cosmos.authz.v1beta1.Authorization";
+  
+    // Grants for contract executions
+    repeated CodeIdGrant grants = 1
+        [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+}
+
+// CodeIdGrant a granted permission for a single code
+message CodeIdGrant {
+    // CodeId is the unique identifier created when uploading the contract.
+    string code_id = 1;
+
+    // Limit defines execution limits that are enforced and updated when the grant
+    // is applied. When the limit lapsed the grant is removed.
+    google.protobuf.Any limit = 2 [ (cosmos_proto.accepts_interface) =
+    "xion.v1.ContractAuthzLimitX" ];
+
+    // Filter define more fine-grained control on the message payload passed
+    // to the contract in the operation. When no filter applies on execution, the
+    // operation is prohibited.
+    google.protobuf.Any filter = 3
+    [ (cosmos_proto.accepts_interface) =
+    "xion.v1.ContractAuthzFilterX" ];
+}
+
+// MaxCallsLimit limited number of calls to the contract. No funds transferable.
+// Since: wasmd 0.30
+message MaxCallsLimit {
+    option (amino.name) = "wasm/MaxCallsLimit";
+    option (cosmos_proto.implements_interface) =
+        "cosmwasm.wasm.v1.ContractAuthzLimitX";
+  
+    // Remaining number that is decremented on each execution
+    uint64 remaining = 1;
+}
+
+// MaxFundsLimit defines the maximal amounts that can be sent to the contract.
+// Since: wasmd 0.30
+message MaxFundsLimit {
+option (amino.name) = "wasm/MaxFundsLimit";
+option (cosmos_proto.implements_interface) =
+    "cosmwasm.wasm.v1.ContractAuthzLimitX";
+
+// Amounts is the maximal amount of tokens transferable to the contract.
+repeated cosmos.base.v1beta1.Coin amounts = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+];
+}
+
+// CombinedLimit defines the maximal amounts that can be sent to a contract and
+// the maximal number of calls executable. Both need to remain >0 to be valid.
+// Since: wasmd 0.30
+message CombinedLimit {
+option (amino.name) = "wasm/CombinedLimit";
+option (cosmos_proto.implements_interface) =
+    "cosmwasm.wasm.v1.ContractAuthzLimitX";
+
+// Remaining number that is decremented on each execution
+uint64 calls_remaining = 1;
+// Amounts is the maximal amount of tokens transferable to the contract.
+repeated cosmos.base.v1beta1.Coin amounts = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+];
+}
+
+// AllowAllMessagesFilter is a wildcard to allow any type of contract payload
+// message.
+message AllowAllMessagesFilter {
+    option (amino.name) = "xion/AllowAllMessagesFilter";
+    option (cosmos_proto.implements_interface) =
+        "xion.v1.ContractAuthzFilterX";
+}
+  
+// AcceptedMessageKeysFilter accept only the specific contract message keys in
+// the json object to be executed.
+message AcceptedMessageKeysFilter {
+option (amino.name) = "xion/AcceptedMessageKeysFilter";
+option (cosmos_proto.implements_interface) =
+    "xion.v1.ContractAuthzFilterX";
+
+// Messages is the list of unique keys
+repeated string keys = 1;
+}
+  
+// AcceptedMessagesFilter accept only the specific raw contract messages to be
+// executed.
+message AcceptedMessagesFilter {
+option (amino.name) = "xion/AcceptedMessagesFilter";
+option (cosmos_proto.implements_interface) =
+    "xion.v1.ContractAuthzFilterX";
+
+// Messages is the list of raw contract messages
+repeated bytes messages = 1 [ (gogoproto.casttype) = "RawContractMessage" ];
+}
+  
