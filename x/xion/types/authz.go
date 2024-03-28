@@ -95,6 +95,18 @@ func AcceptGrantedMessage[T wasmtypes.AuthzableWasmMsg](ctx sdk.Context, grants 
 			Filter:   g.Filter,
 		}
 		// TODO: Make sure the contract is instantiated from the code id
+		store := ctx.KVStore(sdk.NewKVStoreKey(wasmtypes.StoreKey))
+		var contract wasmtypes.ContractInfo
+		contractAddr := sdk.MustAccAddressFromBech32(exec.GetContract())
+		contractBz := store.Get(wasmtypes.GetContractAddressKey(contractAddr))
+		if contractBz == nil {
+			return authztypes.AcceptResponse{}, sdkerrors.ErrNotFound.Wrap("contract not found")
+		}
+		k.cdc.MustUnmarshal(contractBz, &contract) // need access to codec to unmarshal
+
+		if contract.CodeID != g.CodeId {
+			continue
+		}
 
 		// first check limits
 		result, err := contractGrant.GetLimit().Accept(ctx, exec)
