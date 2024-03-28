@@ -95,7 +95,9 @@ func AcceptGrantedMessage[T wasmtypes.AuthzableWasmMsg](ctx sdk.Context, grants 
 	if contractBz == nil {
 		return authztypes.AcceptResponse{}, sdkerrors.ErrNotFound.Wrap("contract not found")
 	}
-	k.cdc.MustUnmarshal(contractBz, &contract) // need access to codec to unmarshal
+	if err := contract.Unmarshal(contractBz); err != nil {
+		return authztypes.AcceptResponse{}, err
+	}
 
 	// iterate though all grants
 	for i, g := range grants {
