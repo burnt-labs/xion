@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
@@ -15,7 +16,7 @@ func CmdValidateJWT() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate-jwt [aud] [sub] [sig-bytes]",
 		Short: "Query ValidateJWT",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqAud := args[0]
 			reqSub := args[1]
@@ -29,11 +30,12 @@ func CmdValidateJWT() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryValidateJWTRequest{
-
 				Aud:      reqAud,
 				Sub:      reqSub,
 				SigBytes: reqSigBytes,
 			}
+
+			fmt.Printf("request: %s", params)
 
 			res, err := queryClient.ValidateJWT(cmd.Context(), params)
 			if err != nil {
