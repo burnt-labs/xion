@@ -216,6 +216,8 @@ github.com/CosmWasm/wasmd v0.45.0 h1:9zBqrturKJwC2kVsfHvbrA++EN0PS7UTXCffCGbg6JI
 github.com/CosmWasm/wasmd v0.45.0/go.mod h1:RnSAiqbNIZu4QhO+0pd7qGZgnYAMBPGmXpzTADag944=
 github.com/CosmWasm/wasmvm v1.5.2 h1:+pKB1Mz9GZVt1vadxB+EDdD1FOz3dMNjIKq/58/lrag=
 github.com/CosmWasm/wasmvm v1.5.2/go.mod h1:Q0bSEtlktzh7W2hhEaifrFp1Erx11ckQZmjq8FLCyys=
+github.com/CosmosContracts/juno/v21 v21.0.0 h1:/hGHItwTnNn1sJFhjp+0X0e0lgTQlmYJ6wWHgS8xNpo=
+github.com/CosmosContracts/juno/v21 v21.0.0/go.mod h1:yKAY7tMfaKFpR+yPeh8KJwN9+if9YWqBxurl/DIwRLs=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Microsoft/go-winio v0.6.0 h1:slsWYD/zyx7lCXoZVlvQrj0hPTM1HI4+v1sIda2yDvg=
@@ -277,8 +279,8 @@ github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/cenkalti/backoff/v4 v4.1.1/go.mod h1:scbssz8iZGpm3xbr14ovlUdkxfGXNInqkPWOWmG2CLw=
-github.com/cenkalti/backoff/v4 v4.1.3 h1:cFAlzYUlVYDysBEH2T5hyJZMh3+5+WCBvSnK6Q8UtC4=
-github.com/cenkalti/backoff/v4 v4.1.3/go.mod h1:scbssz8iZGpm3xbr14ovlUdkxfGXNInqkPWOWmG2CLw=
+github.com/cenkalti/backoff/v4 v4.2.1 h1:y4OZtCnogmCPw98Zjyt5a6+QwPLGkiQsYW5oUqylYbM=
+github.com/cenkalti/backoff/v4 v4.2.1/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
@@ -350,8 +352,12 @@ github.com/cosmos/gogoproto v1.4.10 h1:QH/yT8X+c0F4ZDacDv3z+xE3WU1P1Z3wQoLMBRJoK
 github.com/cosmos/gogoproto v1.4.10/go.mod h1:3aAZzeRWpAwr+SS/LLkICX2/kDFyaYVzckBDzygIxek=
 github.com/cosmos/iavl v0.20.1 h1:rM1kqeG3/HBT85vsZdoSNsehciqUQPWrR4BYmqE2+zg=
 github.com/cosmos/iavl v0.20.1/go.mod h1:WO7FyvaZJoH65+HFOsDir7xU9FWk2w9cHXNW1XHcl7A=
-github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230802211043-d72e83c94350 h1:NyXIgMKsCTnmD8fcuuuX+45Py9xh/mfpPJ8yr3MI3zg=
-github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230802211043-d72e83c94350/go.mod h1:JwHFbo1oX/ht4fPpnPvmhZr+dCkYK1Vihw+vZE9umR4=
+github.com/cosmos/ibc-apps/modules/async-icq/v7 v7.0.0 h1:mMHedP3Q+mz5gpOWNz0P+X8hxPdamylrBKc/P2cFakA=
+github.com/cosmos/ibc-apps/modules/async-icq/v7 v7.0.0/go.mod h1:/P6l2bWo2AR3rrsfs0DHuFZO3Imzb93sxFD3ihrIgw4=
+github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230803181732-7c8f814d3b79 h1:pCxyhIxgWTabAQC5UerkITraHG3SwajdLKKMCFDWCv4=
+github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230803181732-7c8f814d3b79/go.mod h1:JwHFbo1oX/ht4fPpnPvmhZr+dCkYK1Vihw+vZE9umR4=
+github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.1.1-0.20231213092633-b306e7a706e1 h1:fCtG9qasnNzhgxGR1jM9eBufZ5WQVpy0KdaOpKRfg8Y=
+github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.1.1-0.20231213092633-b306e7a706e1/go.mod h1:h114vYKBtI5zKBeSyr8y5JZ8ZtpQJInO4TYww2IQr6o=
 github.com/cosmos/ibc-go/v7 v7.3.1 h1:bil1IjnHdyWDASFYKfwdRiNtFP6WK3osW7QFEAgU4I8=
 github.com/cosmos/ibc-go/v7 v7.3.1/go.mod h1:wvx4pPBofe5ZdMNV3OFRxSI4auEP5Qfqf8JXLLNV04g=
 github.com/cosmos/ics23/go v0.10.0 h1:iXqLLgp2Lp+EdpIuwXTYIQU+AiHj9mOC2X9ab++bZDM=
@@ -963,6 +969,8 @@ github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrf
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
+github.com/skip-mev/pob v1.0.4 h1:Degz+Pdm9pCom16bbLawZhXi6PbYPiiJe6cGjBE5g30=
+github.com/skip-mev/pob v1.0.4/go.mod h1:tpZivmkiDgCO6O79qBnK4eJQjuJeR9yUzc1jPlGaE1s=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/goconvey v1.6.4/go.mod h1:syvi0/a8iFYH4r/RixwvyeAJjdLS9QV7WQ/tjFTllLA=
 github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa h1:YJfZp12Z3AFhSBeXOlv4BO55RMwPn2NoQeDsrdWnBtY=
@@ -1731,8 +1739,9 @@ honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWh
 honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
 honnef.co/go/tools v0.0.1-2020.1.3/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
 honnef.co/go/tools v0.0.1-2020.1.4/go.mod h1:X/FiERA/W4tHapMX5mGpAtMSVEeEUOyHaw9vFzvIQ3k=
-nhooyr.io/websocket v1.8.6 h1:s+C3xAMLwGmlI31Nyn/eAehUlZPwfYZu2JXM621Q5/k=
 nhooyr.io/websocket v1.8.6/go.mod h1:B70DZP8IakI65RVQ51MsWP/8jndNma26DVA/nFSCgW0=
+nhooyr.io/websocket v1.8.7 h1:usjR2uOr/zjjkVMy0lW+PPohFok7PCow5sDjLgX4P4g=
+nhooyr.io/websocket v1.8.7/go.mod h1:B70DZP8IakI65RVQ51MsWP/8jndNma26DVA/nFSCgW0=
 pgregory.net/rapid v1.1.0 h1:CMa0sjHSru3puNx+J0MIAuiiEV4N0qj8/cMWGBBCsjw=
 pgregory.net/rapid v1.1.0/go.mod h1:PY5XlDGj0+V1FCq0o192FdRhpKHGTRIWBgqjDBTrq04=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=

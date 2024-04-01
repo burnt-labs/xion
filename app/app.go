@@ -139,6 +139,9 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
+	"github.com/CosmosContracts/juno/v21/x/tokenfactory"
+	tokenfactorykeeper "github.com/CosmosContracts/juno/v21/x/tokenfactory/keeper"
+	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
 	"github.com/burnt-labs/xion/app/upgrades"
 	v5 "github.com/burnt-labs/xion/app/upgrades/v5"
 	"github.com/burnt-labs/xion/x/mint"
@@ -223,6 +226,7 @@ var (
 		nftmodule.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 		// non sdk modules
+		tokenfactory.AppModuleBasic{},
 		wasm.AppModuleBasic{},
 		globalfee.AppModuleBasic{},
 		aa.AppModuleBasic{},
@@ -251,6 +255,7 @@ var (
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
 		wasmtypes.ModuleName:           {authtypes.Burner},
+		tokenfactorytypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 		globalfee.ModuleName:           nil,
 		aatypes.ModuleName:             nil,
 		xiontypes.ModuleName:           nil,
@@ -258,6 +263,11 @@ var (
 		packetforwardtypes.ModuleName:  nil,
 		ibchookstypes.ModuleName:       nil,
 		feeabstypes.ModuleName:         nil,
+	}
+	tokenFactoryCapabilities = []string{
+		tokenfactorytypes.EnableBurnFrom,
+		tokenfactorytypes.EnableForceTransfer,
+		tokenfactorytypes.EnableSetMetadata,
 	}
 )
 
@@ -310,8 +320,9 @@ type WasmApp struct {
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
 	FeeAbsKeeper          feeabskeeper.Keeper
 
-	XionKeeper xionkeeper.Keeper
-	JwkKeeper  jwkkeeper.Keeper
+	XionKeeper         xionkeeper.Keeper
+	JwkKeeper          jwkkeeper.Keeper
+	TokenFactoryKeeper tokenfactorykeeper.Keeper
 
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
@@ -368,7 +379,7 @@ func NewWasmApp(
 		wasmtypes.StoreKey, icahosttypes.StoreKey, aatypes.StoreKey,
 		icacontrollertypes.StoreKey, globalfee.StoreKey, xiontypes.StoreKey,
 		ibchookstypes.StoreKey, packetforwardtypes.StoreKey, feeabstypes.StoreKey,
-		jwktypes.StoreKey,
+		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -591,6 +602,18 @@ func NewWasmApp(
 		keys[jwktypes.StoreKey],
 		app.GetSubspace(jwktypes.ModuleName))
 
+	govModAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
+	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
+		appCodec,
+		keys[tokenfactorytypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.DistrKeeper,
+		tokenFactoryCapabilities,
+		govModAddress,
+	)
+
 	app.XionKeeper = xionkeeper.NewKeeper(
 		appCodec,
 		keys[xiontypes.StoreKey],
@@ -791,6 +814,7 @@ func NewWasmApp(
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
+		tokenfactory.NewAppModule(app.TokenFactoryKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(tokenfactorytypes.ModuleName)),
 		xion.NewAppModule(app.XionKeeper),
 		jwk.NewAppModule(appCodec, app.JwkKeeper, app.GetSubspace(jwktypes.ModuleName)),
 		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
@@ -819,6 +843,7 @@ func NewWasmApp(
 		genutiltypes.ModuleName, authz.ModuleName, feegrant.ModuleName,
 		nft.ModuleName, group.ModuleName, paramstypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
+		tokenfactorytypes.ModuleName,
 		globalfee.ModuleName,
 		xiontypes.ModuleName,
 		jwktypes.ModuleName,
@@ -842,6 +867,7 @@ func NewWasmApp(
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		tokenfactorytypes.ModuleName,
 		globalfee.ModuleName,
 		xiontypes.ModuleName,
 		jwktypes.ModuleName,
@@ -872,7 +898,9 @@ func NewWasmApp(
 		genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName, globalfee.ModuleName, xiontypes.ModuleName,
+		consensusparamtypes.ModuleName,
+		tokenfactorytypes.ModuleName,
+		globalfee.ModuleName, xiontypes.ModuleName,
 		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
@@ -1246,6 +1274,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
+	paramsKeeper.Subspace(tokenfactorytypes.ModuleName)
 	paramsKeeper.Subspace(globalfee.ModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
 	paramsKeeper.Subspace(jwktypes.ModuleName)
