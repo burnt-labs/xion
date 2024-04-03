@@ -597,6 +597,8 @@ func NewWasmApp(
 		app.GetSubspace(xiontypes.ModuleName),
 		app.BankKeeper,
 		app.AccountKeeper,
+		app.WasmKeeper,
+		app.AuthzKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Configure the hooks keeper

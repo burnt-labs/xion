@@ -24,19 +24,19 @@ message CodeIdExecutionAuthorization {
 // CodeIdGrant a granted permission for a single code
 message CodeIdGrant {
     // CodeId is the unique identifier created when uploading the contract.
-    string code_id = 1;
+    uint64 code_id = 1;
 
     // Limit defines execution limits that are enforced and updated when the grant
     // is applied. When the limit lapsed the grant is removed.
     google.protobuf.Any limit = 2 [ (cosmos_proto.accepts_interface) =
-    "xion.v1.ContractAuthzLimitX" ];
+    "github.com/CosmWasm/wasmd/x/wasm/types.ContractAuthzLimitX" ];
 
     // Filter define more fine-grained control on the message payload passed
     // to the contract in the operation. When no filter applies on execution, the
     // operation is prohibited.
     google.protobuf.Any filter = 3
     [ (cosmos_proto.accepts_interface) =
-    "xion.v1.ContractAuthzFilterX" ];
+    "github.com/CosmWasm/wasmd/x/wasm/types.ContractAuthzFilterX" ];
 }
 
 // MaxCallsLimit limited number of calls to the contract. No funds transferable.
@@ -86,17 +86,17 @@ repeated cosmos.base.v1beta1.Coin amounts = 2 [
 // AllowAllMessagesFilter is a wildcard to allow any type of contract payload
 // message.
 message AllowAllMessagesFilter {
-    option (amino.name) = "xion/AllowAllMessagesFilter";
+    option (amino.name) = "wasm/AllowAllMessagesFilter";
     option (cosmos_proto.implements_interface) =
-        "xion.v1.ContractAuthzFilterX";
+        "cosmwasm.wasm.v1.ContractAuthzFilterX";
 }
   
 // AcceptedMessageKeysFilter accept only the specific contract message keys in
 // the json object to be executed.
 message AcceptedMessageKeysFilter {
-option (amino.name) = "xion/AcceptedMessageKeysFilter";
+option (amino.name) = "wasm/AcceptedMessageKeysFilter";
 option (cosmos_proto.implements_interface) =
-    "xion.v1.ContractAuthzFilterX";
+    "cosmwasm.wasm.v1.ContractAuthzFilterX";
 
 // Messages is the list of unique keys
 repeated string keys = 1;
@@ -105,11 +105,11 @@ repeated string keys = 1;
 // AcceptedMessagesFilter accept only the specific raw contract messages to be
 // executed.
 message AcceptedMessagesFilter {
-option (amino.name) = "xion/AcceptedMessagesFilter";
+option (amino.name) = "wasm/AcceptedMessagesFilter";
 option (cosmos_proto.implements_interface) =
-    "xion.v1.ContractAuthzFilterX";
+    "cosmwasm.wasm.v1.ContractAuthzFilterX";
 
 // Messages is the list of raw contract messages
-repeated bytes messages = 1 [ (gogoproto.casttype) = "RawContractMessage" ];
+repeated bytes messages = 1 [ (gogoproto.casttype) = "github.com/CosmWasm/wasmd/x/wasm/types.RawContractMessage" ];
 }
   

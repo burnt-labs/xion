@@ -87,28 +87,12 @@ func AcceptGrantedMessage[T wasmtypes.AuthzableWasmMsg](ctx sdk.Context, grants 
 		return authztypes.AcceptResponse{}, err
 	}
 
-	// todo: is this the best way to access code id?
-	store := ctx.KVStore(sdk.NewKVStoreKey(wasmtypes.StoreKey))
-	var contract wasmtypes.ContractInfo
-	contractAddr := sdk.MustAccAddressFromBech32(exec.GetContract())
-	contractBz := store.Get(wasmtypes.GetContractAddressKey(contractAddr))
-	if contractBz == nil {
-		return authztypes.AcceptResponse{}, sdkerrors.ErrNotFound.Wrap("contract not found")
-	}
-	if err := contract.Unmarshal(contractBz); err != nil {
-		return authztypes.AcceptResponse{}, err
-	}
-
 	// iterate though all grants
 	for i, g := range grants {
 		contractGrant := wasmtypes.ContractGrant{
 			Contract: "",
 			Limit:    g.Limit,
 			Filter:   g.Filter,
-		}
-		// TODO: Make sure the contract is instantiated from the code id
-		if contract.CodeID != g.CodeId {
-			continue
 		}
 
 		// first check limits

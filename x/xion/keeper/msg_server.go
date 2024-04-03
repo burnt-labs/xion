@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+
 	"github.com/armon/go-metrics"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -18,7 +19,9 @@ type msgServer struct {
 	Keeper
 }
 
-var _ types.MsgServer = msgServer{}
+var (
+	_ types.MsgServer = msgServer{}
+)
 
 // NewMsgServerImpl returns an implementation of the bank MsgServer interface
 // for the provided Keeper.
@@ -137,4 +140,25 @@ func (k msgServer) SetPlatformPercentage(goCtx context.Context, msg *types.MsgSe
 	k.OverwritePlatformPercentage(ctx, msg.PlatformPercentage)
 
 	return &types.MsgSetPlatformPercentageResponse{}, nil
+}
+
+// Exec implements the MsgServer.Exec method.
+func (k Keeper) Exec(goCtx context.Context, msg *types.MsgExec) (*types.MsgExecResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	grantee, err := sdk.AccAddressFromBech32(msg.Grantee)
+	if err != nil {
+		return nil, err
+	}
+
+	msgs, err := msg.GetMessages()
+	if err != nil {
+		return nil, err
+	}
+
+	results, err := k.DispatchActions(ctx, grantee, msgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgExecResponse{Results: results}, nil
 }
