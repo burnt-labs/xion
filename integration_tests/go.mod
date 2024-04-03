@@ -71,9 +71,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.10 // indirect
 	github.com/cosmos/iavl v0.20.1 // indirect
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240228213828-cce7f56d000b // indirect
-	github.com/cosmos/ibc-apps/modules/async-icq/v7 v7.0.0 // indirect
 	github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230803181732-7c8f814d3b79 // indirect
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.1.1-0.20231213092633-b306e7a706e1 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.4 // indirect
 	github.com/cosmos/rosetta-sdk-go v0.10.0 // indirect
@@ -209,7 +207,6 @@ require (
 	github.com/rs/zerolog v1.32.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/skip-mev/pob v1.0.4 // indirect
 	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
