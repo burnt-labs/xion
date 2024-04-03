@@ -24,7 +24,7 @@ func (g CodeIdGrant) UnpackInterfaces(unpacker cdctypes.AnyUnpacker) error {
 }
 
 // NewCodeIdGrant constructor
-func NewCodeIdGrant(codeId string, limit wasmtypes.ContractAuthzLimitX, filter wasmtypes.ContractAuthzFilterX) (*CodeIdGrant, error) {
+func NewCodeIdGrant(codeId uint64, limit wasmtypes.ContractAuthzLimitX, filter wasmtypes.ContractAuthzFilterX) (*CodeIdGrant, error) {
 	pFilter, ok := filter.(proto.Message)
 	if !ok {
 		return nil, sdkerrors.ErrInvalidType.Wrap("filter is not a proto type")
@@ -59,6 +59,9 @@ func (g CodeIdGrant) WithNewLimits(limit wasmtypes.ContractAuthzLimitX) (*CodeId
 
 // ValidateBasic validates the grant
 func (g CodeIdGrant) ValidateBasic() error {
+	if g.CodeId == 0 {
+		return wasmtypes.ErrEmpty.Wrap("code id")
+	}
 	// CodeIdGrant uses the same limit as contract grant.
 	// to avoid code duplication, we just validate the contract grant
 	contractGrant := wasmtypes.ContractGrant{
