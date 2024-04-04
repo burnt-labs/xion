@@ -1,13 +1,13 @@
 package testutil
 
 import (
-	_ "github.com/cosmos/cosmos-sdk/x/auth"
-	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
-	_ "github.com/cosmos/cosmos-sdk/x/bank"
-	_ "github.com/cosmos/cosmos-sdk/x/consensus"
-	_ "github.com/cosmos/cosmos-sdk/x/genutil"
-	_ "github.com/cosmos/cosmos-sdk/x/params"
-	_ "github.com/cosmos/cosmos-sdk/x/staking"
+	_ "github.com/cosmos/cosmos-sdk/x/auth"           // nolint:blank-imports
+	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // nolint:blank-imports
+	_ "github.com/cosmos/cosmos-sdk/x/bank"           // nolint:blank-imports
+	_ "github.com/cosmos/cosmos-sdk/x/consensus"      // nolint:blank-imports
+	_ "github.com/cosmos/cosmos-sdk/x/genutil"        // nolint:blank-imports
+	_ "github.com/cosmos/cosmos-sdk/x/params"         // nolint:blank-imports
+	_ "github.com/cosmos/cosmos-sdk/x/staking"        // nolint:blank-imports
 
 	runtimev1alpha1 "cosmossdk.io/api/cosmos/app/runtime/v1alpha1"
 	appv1alpha1 "cosmossdk.io/api/cosmos/app/v1alpha1"
