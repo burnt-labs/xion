@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+
 	errorsmod "cosmossdk.io/errors"
 
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"

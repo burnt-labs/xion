@@ -7,34 +7,31 @@ import (
 	"testing"
 	"time"
 
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/burnt-labs/xion/app"
+	"github.com/stretchr/testify/require"
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/app"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 )
 
-func setup(db dbm.DB, withGenesis bool, invCheckPeriod uint, opts ...wasm.Option) (*app.WasmApp, app.GenesisState) { //nolint:unparam
+func setup(db dbm.DB, withGenesis bool, _ uint, _ ...wasmkeeper.Option) (*app.WasmApp, app.GenesisState) { //nolint:unparam
 	wasmApp := app.NewWasmApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
 
 	if withGenesis {

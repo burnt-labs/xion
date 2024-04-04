@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"

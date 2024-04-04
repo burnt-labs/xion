@@ -5,6 +5,7 @@ import (
 
 	"github.com/burnt-labs/xion/x/mint/keeper"
 	"github.com/burnt-labs/xion/x/mint/types"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

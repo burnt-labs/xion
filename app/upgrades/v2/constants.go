@@ -1,15 +1,15 @@
 package v2
 
 import (
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	store "github.com/cosmos/cosmos-sdk/store/types"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-
 	"github.com/burnt-labs/xion/app/upgrades"
-
 	"github.com/burnt-labs/xion/x/globalfee"
-	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
+	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/types"
+
+	store "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 const (

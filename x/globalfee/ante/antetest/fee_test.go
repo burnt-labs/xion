@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/testutil/testdata"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/stretchr/testify/suite"
-
 	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	"github.com/stretchr/testify/suite"
+
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var testGasLimit uint64 = 200_000
@@ -221,8 +222,8 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 	}
 }
 
-func getFee(originFee sdk.DecCoins, gasLimit uint64) sdk.DecCoins {
-	var targetFee sdk.DecCoins = originFee
+func getFee(originFee sdk.DecCoins, _ uint64) sdk.DecCoins {
+	targetFee := originFee
 	if len(originFee) == 0 {
 		targetFee = []sdk.DecCoin{sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0))}
 	}
@@ -275,7 +276,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	s.Require().NoError(err)
 
 	// check that the global fee is returned in DeliverTx mode.
-	globalFee, err := feeDecorator.GetGlobalFee(s.ctx, tx)
+	globalFee, err := feeDecorator.GetGlobalFee(s.ctx)
 	s.Require().NoError(err)
 
 	ctx := s.ctx.WithIsCheckTx(false)

@@ -3,9 +3,10 @@ package keeper
 import (
 	"context"
 
+	"github.com/burnt-labs/xion/x/mint/types"
+
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/burnt-labs/xion/x/mint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )

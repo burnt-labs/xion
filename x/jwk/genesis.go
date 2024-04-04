@@ -3,6 +3,7 @@ package jwk
 import (
 	"github.com/burnt-labs/xion/x/jwk/keeper"
 	"github.com/burnt-labs/xion/x/jwk/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

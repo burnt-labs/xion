@@ -3,10 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	"cosmossdk.io/math"
+	"github.com/burnt-labs/xion/x/mint/types"
+
 	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/burnt-labs/xion/x/mint/types"
+	"cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

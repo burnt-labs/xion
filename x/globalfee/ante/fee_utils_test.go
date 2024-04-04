@@ -3,8 +3,9 @@ package ante
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Note that in a real Gaia deployment all zero coins can be removed from minGasPrice.

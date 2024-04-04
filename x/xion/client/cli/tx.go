@@ -12,9 +12,10 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/gogoproto/proto"
-
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -24,8 +25,6 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
 const (
@@ -390,7 +389,7 @@ func NewSignCmd() *cobra.Command {
 }
 
 func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
-	var signerAddr sdk.AccAddress = nil
+	var signerAddr sdk.AccAddress
 	for i, msg := range stdTx.GetMsgs() {
 		signers := msg.GetSigners()
 		if len(signers) != 1 {

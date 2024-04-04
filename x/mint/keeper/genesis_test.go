@@ -3,14 +3,15 @@ package keeper_test
 import (
 	"testing"
 
-	"cosmossdk.io/math"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/burnt-labs/xion/x/mint"
 	"github.com/burnt-labs/xion/x/mint/keeper"
 	minttestutil "github.com/burnt-labs/xion/x/mint/testutil"
 	"github.com/burnt-labs/xion/x/mint/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
+
+	"cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"

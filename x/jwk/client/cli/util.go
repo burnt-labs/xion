@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 )
 
-func CmdConvertPemToJson() *cobra.Command {
+func CmdConvertPemToJSON() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "convert-pem [file]",
 		Short: "Convery PEM to JSON",

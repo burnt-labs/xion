@@ -1,10 +1,10 @@
 package v4
 
 import (
-	store "github.com/cosmos/cosmos-sdk/store/types"
-
 	"github.com/burnt-labs/xion/app/upgrades"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+
+	store "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 const (

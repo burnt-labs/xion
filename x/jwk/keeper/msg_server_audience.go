@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/burnt-labs/xion/x/jwk/types"
+
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )

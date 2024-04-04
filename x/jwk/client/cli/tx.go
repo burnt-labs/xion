@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	// "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 var DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())

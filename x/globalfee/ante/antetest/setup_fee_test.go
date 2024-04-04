@@ -3,8 +3,15 @@ package antetest
 import (
 	"fmt"
 
+	xionapp "github.com/burnt-labs/xion/app"
+	"github.com/burnt-labs/xion/x/globalfee"
+	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
+	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	"github.com/stretchr/testify/suite"
+
 	tmrand "github.com/cometbft/cometbft/libs/rand"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -15,14 +22,6 @@ import (
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/suite"
-
-	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
-
-	xionapp "github.com/burnt-labs/xion/app"
-	"github.com/burnt-labs/xion/x/globalfee"
-
-	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 type IntegrationTestSuite struct {

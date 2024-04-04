@@ -5,22 +5,23 @@ import (
 	"encoding/json"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
+	"github.com/burnt-labs/xion/x/globalfee/client/cli"
+	"github.com/burnt-labs/xion/x/globalfee/keeper"
+	"github.com/burnt-labs/xion/x/globalfee/types"
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/gorilla/mux"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-
-	"github.com/burnt-labs/xion/x/globalfee/client/cli"
-	"github.com/burnt-labs/xion/x/globalfee/keeper"
-	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 var (

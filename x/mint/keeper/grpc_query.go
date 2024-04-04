@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/burnt-labs/xion/x/mint/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

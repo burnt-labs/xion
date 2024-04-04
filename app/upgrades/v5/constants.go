@@ -1,9 +1,9 @@
 package v5
 
 import (
-	store "github.com/cosmos/cosmos-sdk/store/types"
-
 	"github.com/burnt-labs/xion/app/upgrades"
+
+	store "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 const (

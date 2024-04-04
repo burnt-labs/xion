@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/burnt-labs/xion/x/xion/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

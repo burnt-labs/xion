@@ -1,9 +1,12 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
 	"github.com/burnt-labs/xion/x/xion/types"
+
 	"github.com/cometbft/cometbft/libs/log"
+
+	"cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"

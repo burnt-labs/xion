@@ -3,9 +3,9 @@ package cli
 import (
 	"fmt"
 
+	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/spf13/cobra"
 
-	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 )

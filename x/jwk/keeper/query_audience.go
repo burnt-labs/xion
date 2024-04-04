@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRequest) (*types.QueryAllAudienceResponse, error) {

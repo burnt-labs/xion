@@ -5,18 +5,18 @@ import (
 	"sync"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 // stargateWhitelist keeps whitelist and its deterministic

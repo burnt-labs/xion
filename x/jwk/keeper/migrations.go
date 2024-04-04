@@ -2,6 +2,7 @@ package keeper
 
 import (
 	v1 "github.com/burnt-labs/xion/x/jwk/migrations/v1"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )

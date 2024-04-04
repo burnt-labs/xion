@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRequest) (*types.QueryValidateJWTResponse, error) {

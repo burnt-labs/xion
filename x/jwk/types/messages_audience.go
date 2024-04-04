@@ -1,10 +1,12 @@
 package types
 
 import (
+	"github.com/lestrrat-go/jwx/v2/jwk"
+
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 const (

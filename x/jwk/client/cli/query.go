@@ -2,19 +2,15 @@ package cli
 
 import (
 	"fmt"
-	// "strings"
 
+	"github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group jwk queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -30,7 +26,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdValidateJWT())
 
 	// utils, not sure where best to put this
-	cmd.AddCommand(CmdConvertPemToJson())
+	cmd.AddCommand(CmdConvertPemToJSON())
 
 	// this line is used by starport scaffolding # 1
 
