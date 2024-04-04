@@ -41,7 +41,7 @@ linters-settings:
       - prefix(github.com/cosmos)
       - prefix(cosmossdk.io)
       - prefix(github.com/cosmos/cosmos-sdk)
-      - prefix(github.com/CosmosContracts/juno)
+      - prefix(github.com/burnt-labs/xion)
   gosec:
     excludes:
       - G404
