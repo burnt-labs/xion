@@ -13,7 +13,8 @@ func CmdListAudience() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-audience",
 		Short: "list all audience",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err

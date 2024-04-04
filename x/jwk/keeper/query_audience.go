@@ -24,7 +24,7 @@ func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRe
 	store := ctx.KVStore(k.storeKey)
 	audienceStore := prefix.NewStore(store, types.KeyPrefix(types.AudienceKeyPrefix))
 
-	pageRes, err := query.Paginate(audienceStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(audienceStore, req.Pagination, func(_ []byte, value []byte) error {
 		var audience types.Audience
 		if err := k.cdc.Unmarshal(value, &audience); err != nil {
 			return err
