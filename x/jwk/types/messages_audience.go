@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -18,7 +19,6 @@ func NewMsgCreateAudience(
 	admin string,
 	aud string,
 	key string,
-
 ) *MsgCreateAudience {
 	return &MsgCreateAudience{
 		Admin: admin,
@@ -51,12 +51,12 @@ func (msg *MsgCreateAudience) GetSignBytes() []byte {
 func (msg *MsgCreateAudience) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 
 	_, err = jwk.ParseKey([]byte(msg.Key))
 	if err != nil {
-		return sdkerrors.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
 	}
 
 	return nil
@@ -69,7 +69,6 @@ func NewMsgUpdateAudience(
 	newAdmin string,
 	aud string,
 	key string,
-
 ) *MsgUpdateAudience {
 	return &MsgUpdateAudience{
 		NewAdmin: newAdmin,
@@ -103,7 +102,7 @@ func (msg *MsgUpdateAudience) GetSignBytes() []byte {
 func (msg *MsgUpdateAudience) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 	return nil
 }
@@ -113,13 +112,13 @@ var _ sdk.Msg = &MsgDeleteAudience{}
 func NewMsgDeleteAudience(
 	admin string,
 	aud string,
-
 ) *MsgDeleteAudience {
 	return &MsgDeleteAudience{
 		Admin: admin,
 		Aud:   aud,
 	}
 }
+
 func (msg *MsgDeleteAudience) Route() string {
 	return RouterKey
 }
@@ -144,7 +143,7 @@ func (msg *MsgDeleteAudience) GetSignBytes() []byte {
 func (msg *MsgDeleteAudience) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 	return nil
 }

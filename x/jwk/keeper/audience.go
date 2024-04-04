@@ -19,7 +19,6 @@ func (k Keeper) SetAudience(ctx sdk.Context, audience types.Audience) {
 func (k Keeper) GetAudience(
 	ctx sdk.Context,
 	aud string,
-
 ) (val types.Audience, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AudienceKeyPrefix))
 
@@ -38,7 +37,6 @@ func (k Keeper) GetAudience(
 func (k Keeper) RemoveAudience(
 	ctx sdk.Context,
 	aud string,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AudienceKeyPrefix))
 	store.Delete(types.AudienceKey(

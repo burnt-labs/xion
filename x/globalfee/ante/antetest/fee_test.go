@@ -238,7 +238,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParamsEmpty, noBondDenom)
 
 	// set a subspace that doesn't have the stakingtypes.KeyBondDenom key registred
-	//feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
+	// feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
 
 	// check that an error is returned when staking bond denom is empty
 	_, err := feeDecorator.GetTxFeeRequired(s.ctx, nil)
@@ -259,7 +259,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	priv1, _, addr1 := testdata.KeyTestPubAddr()
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
 
-	//privfee, accNums, accSeqs := []cryptotypes.PrivKey{priv2}, []uint64{0}, []uint64{0}
+	// privfee, accNums, accSeqs := []cryptotypes.PrivKey{priv2}, []uint64{0}, []uint64{0}
 	s.Require().NoError(s.txBuilder.SetMsgs(testdata.NewTestMsg(addr1)))
 	s.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())))
 

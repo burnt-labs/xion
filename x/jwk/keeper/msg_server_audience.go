@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/burnt-labs/xion/x/jwk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -18,10 +20,10 @@ func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAud
 		msg.Aud,
 	)
 	if isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "index already set")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "index already set")
 	}
 
-	var audience = types.Audience{
+	audience := types.Audience{
 		Admin: msg.Admin,
 		Aud:   msg.Aud,
 		Key:   msg.Key,
@@ -46,16 +48,16 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 		msg.Aud,
 	)
 	if !isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
+		return nil, errorsmod.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
 	}
 
 	// Checks if the msg signer is the same as the current owner
 	if msg.Admin != valFound.Admin {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
 	}
 
 	// updates based on new values provided, potentially admin, aud and key
-	var audience = types.Audience{
+	audience := types.Audience{
 		Admin: msg.NewAdmin,
 		Aud:   msg.Aud,
 		Key:   msg.Key,
@@ -75,12 +77,12 @@ func (k msgServer) DeleteAudience(goCtx context.Context, msg *types.MsgDeleteAud
 		msg.Aud,
 	)
 	if !isFound {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
+		return nil, errorsmod.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
 	}
 
 	// Checks if the msg admin is the same as the current owner
 	if msg.Admin != valFound.Admin {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
 	}
 
 	k.RemoveAudience(

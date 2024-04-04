@@ -29,7 +29,6 @@ func CmdValidateJWT() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryValidateJWTRequest{
-
 				Aud:      reqAud,
 				Sub:      reqSub,
 				SigBytes: reqSigBytes,

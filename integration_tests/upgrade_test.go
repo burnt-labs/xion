@@ -45,7 +45,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 }
 
 func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
-	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
+	// t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 	chain, ctx, client := td.xionChain, td.ctx, td.client
 
 	height, err := chain.Height(ctx)

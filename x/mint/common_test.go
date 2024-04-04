@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	//banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	// banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
@@ -55,7 +55,7 @@ func createTestBaseKeeperAndContextWithMocks(t *testing.T) (testutil.TestContext
 	if err := keeper.SetParams(testCtx.Ctx, params); err != nil {
 		t.FailNow()
 	}
-	//keeper.SetMinter(testCtx.Ctx, minttypes.DefaultInitialMinter()) // TODO: minter needs to be parametrized!!
+	// keeper.SetMinter(testCtx.Ctx, minttypes.DefaultInitialMinter()) // TODO: minter needs to be parametrized!!
 
 	return testCtx, &keeper, mocks{*accountKeeper, *bankKeeper, *stakingKeeper, mintAcc}
 }

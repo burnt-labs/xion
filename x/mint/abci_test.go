@@ -159,6 +159,7 @@ func TestBeginBlocker(t *testing.T) {
 		})
 	}
 }
+
 func stripValue(t *testing.T, s string) string {
 	stripped := strings.Replace(s, "\\", "", -1)
 	return strings.Replace(stripped, "\"", "", -1)

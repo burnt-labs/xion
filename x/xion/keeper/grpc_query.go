@@ -14,7 +14,6 @@ import (
 var _ types.QueryServer = Keeper{}
 
 func (k Keeper) WebAuthNVerifyRegister(_ context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (*types.QueryWebAuthNVerifyRegisterResponse, error) {
-
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
 		return nil, err
@@ -39,7 +38,6 @@ func (k Keeper) WebAuthNVerifyRegister(_ context.Context, request *types.QueryWe
 }
 
 func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (*types.QueryWebAuthNVerifyAuthenticateResponse, error) {
-
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
 		return nil, err

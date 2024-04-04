@@ -51,6 +51,7 @@ func (s *IntegrationTestSuite) SetupTest() {
 	s.ctx = ctx
 	s.clientCtx = client.Context{}.WithTxConfig(encodingConfig.TxConfig)
 }
+
 func bondDenom(_ sdk.Context) string {
 	return testBondDenom
 }

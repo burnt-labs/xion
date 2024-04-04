@@ -84,7 +84,6 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 			name: "WebAuthNVerifyRegister",
 			path: "/xion.v1.Query/WebAuthNVerifyRegister",
 			requestData: func() []byte {
-
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyRegisterRequest{
 					Addr:      "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
 					Rp:        "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
@@ -100,7 +99,6 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 			name: "WebAuthNVerifyAuthenticate",
 			path: "/xion.v1.Query/WebAuthNVerifyAuthenticate",
 			requestData: func() []byte {
-
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyAuthenticateRequest{
 					Addr:       "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
 					Challenge:  "eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6",
@@ -233,7 +231,8 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 						Admin: "admin",
 						Aud:   "test-aud",
 						Key:   string(publicKeyJson),
-					}},
+					},
+				},
 				Pagination: &query.PageResponse{
 					Total: 1,
 				},

@@ -140,7 +140,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	//b64 the contract address to use as the transaction hash
+	// b64 the contract address to use as the transaction hash
 	signature := base64.StdEncoding.EncodeToString([]byte(predictedAddr.String()))
 
 	now := time.Now()

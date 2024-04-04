@@ -38,8 +38,8 @@ func TestDungeonTransferBlock(t *testing.T) {
 
 	ctx := context.Background()
 
-	var numFullNodes = 1
-	var numValidators = 3
+	numFullNodes := 1
+	numValidators := 3
 
 	// pulling image from env to foster local dev
 	imageTag := os.Getenv("XION_IMAGE")
@@ -146,7 +146,8 @@ func TestDungeonTransferBlock(t *testing.T) {
 		NetworkID:         network,
 		BlockDatabaseFile: ibctest.DefaultBlockDatabaseFilepath(),
 
-		SkipPathCreation: false},
+		SkipPathCreation: false,
+	},
 	),
 	)
 
