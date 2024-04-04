@@ -140,7 +140,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
-	v4 "github.com/burnt-labs/xion/app/upgrades/v4"
+	v5 "github.com/burnt-labs/xion/app/upgrades/v5"
 	"github.com/burnt-labs/xion/x/mint"
 	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
@@ -163,7 +163,7 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v4.Upgrade}
+	Upgrades                = []upgrades.Upgrade{v5.Upgrade}
 )
 
 // These constants are derived from the above variables.
@@ -589,7 +589,7 @@ func NewWasmApp(
 	app.JwkKeeper = jwkkeeper.NewKeeper(
 		appCodec,
 		keys[jwktypes.StoreKey],
-		app.GetSubspace(xiontypes.ModuleName))
+		app.GetSubspace(jwktypes.ModuleName))
 
 	app.XionKeeper = xionkeeper.NewKeeper(
 		appCodec,

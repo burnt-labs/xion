@@ -167,7 +167,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				},
 				//GasPrices:              "0.1uxion",
 				GasPrices:              gas,
-				GasAdjustment:          2.0,
+				GasAdjustment:          1.3,
 				Type:                   "cosmos",
 				ChainID:                "xion-1",
 				Bin:                    "xiond",
@@ -542,7 +542,7 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 }
 
 func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
-	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, "0.1uxion", command...), nil)
+	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, tn.Chain.Config().GasPrices, command...), nil)
 	if err != nil {
 		return "", err
 	}

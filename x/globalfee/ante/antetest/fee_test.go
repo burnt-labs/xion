@@ -215,27 +215,19 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			if !tc.networkFee {
 				s.Require().Equal(sdk.NewDecCoins(tc.minGasPrice...), minGas)
 			} else {
-				s.Require().Equal(sdk.NewDecCoinsFromCoins(expected...), minGas)
+				s.Require().Equal(expected, minGas)
 			}
 		})
 	}
 }
 
-func getFee(originFee sdk.DecCoins, gasLimit uint64) sdk.Coins {
+func getFee(originFee sdk.DecCoins, gasLimit uint64) sdk.DecCoins {
 	var targetFee sdk.DecCoins = originFee
 	if len(originFee) == 0 {
 		targetFee = []sdk.DecCoin{sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0))}
 	}
-	requiredFees := make(sdk.Coins, len(targetFee))
-	// Determine the required fees by multiplying each required minimum gas
-	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-	glDec := sdk.NewDec(int64(gasLimit))
-	for i, gp := range targetFee {
-		fee := gp.Amount.Mul(glDec)
-		requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
-	}
 
-	return requiredFees.Sort()
+	return targetFee.Sort()
 }
 
 func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
@@ -253,11 +245,11 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	s.Require().Equal(err.Error(), "empty staking bond denomination")
 
 	// set non-zero local min gas prices
-	localMinGasPrices := sdk.NewCoins(sdk.NewCoin("uxion", sdk.NewInt(1)))
+	localMinGasPrices := sdk.NewDecCoins(sdk.NewDecCoin("uxion", sdk.NewInt(1)))
 
 	// setup tests with non-empty local min gas prices
 	feeDecorator, _ = s.SetupTestGlobalFeeStoreAndMinGasPrice(
-		sdk.NewDecCoinsFromCoins(localMinGasPrices...),
+		localMinGasPrices,
 		globalfeeParamsEmpty,
 		bondDenom,
 	)

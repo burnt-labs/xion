@@ -16,7 +16,7 @@ func NewMigrator(jwkSubspace paramtypes.Subspace) Migrator {
 	return Migrator{jwkSubspace}
 }
 
-// Migrate1to2 migrates from version to 1
-func (m Migrator) MigrateTo1(ctx sdk.Context) error {
+// Migrate1To2 migrates from version 1 to 2
+func (m Migrator) Migrate1To2(ctx sdk.Context) error {
 	return v1.MigrateStore(ctx, m.jwkSubspace)
 }
