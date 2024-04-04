@@ -1,8 +1,12 @@
 package types // noalias
 
 import (
+	"context"
+
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
@@ -35,4 +39,15 @@ type BankKeeper interface {
 
 type AccountKeeper interface {
 	GetModuleAccount(ctx sdktypes.Context, moduleName string) authtypes.ModuleAccountI
+}
+
+type WasmKeeper interface {
+	GetCodeInfo(ctx sdktypes.Context, codeID uint64) *wasmtypes.CodeInfo
+	GetContractInfo(ctx sdktypes.Context, contractAddress sdktypes.AccAddress) *wasmtypes.ContractInfo
+}
+
+type AuthzKeeper interface {
+	Grants(c context.Context, req *authztypes.QueryGrantsRequest) (*authztypes.QueryGrantsResponse, error)
+	DeleteGrant(ctx sdktypes.Context, grantee sdktypes.AccAddress, granter sdktypes.AccAddress, msgType string) error
+	DispatchActions(ctx sdktypes.Context, grantee sdktypes.AccAddress, msgs []sdktypes.Msg) ([][]byte, error)
 }

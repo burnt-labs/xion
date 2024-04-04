@@ -3,8 +3,10 @@ package types
 import (
 	"errors"
 
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
@@ -19,6 +21,7 @@ var (
 	_ sdk.Msg = &MsgSend{}
 	_ sdk.Msg = &MsgMultiSend{}
 	_ sdk.Msg = &MsgSetPlatformPercentage{}
+	_ sdk.Msg = &MsgExec{}
 )
 
 // NewMsgSend - construct a msg to send coins from one account to another.
@@ -145,4 +148,68 @@ func (msg MsgSetPlatformPercentage) GetSignBytes() []byte {
 func (msg MsgSetPlatformPercentage) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
 	return []sdk.AccAddress{addr}
+}
+
+// NewMsgExec creates a new MsgExecAuthorized
+//
+//nolint:interfacer
+func NewMsgExec(grantee sdk.AccAddress, msgs []sdk.Msg) MsgExec {
+	msgsAny := make([]*cdctypes.Any, len(msgs))
+	for i, msg := range msgs {
+		any, err := cdctypes.NewAnyWithValue(msg)
+		if err != nil {
+			panic(err)
+		}
+
+		msgsAny[i] = any
+	}
+
+	return MsgExec{
+		Grantee: grantee.String(),
+		Msgs:    msgsAny,
+	}
+}
+
+// GetMessages returns the cache values from the MsgExecAuthorized.Msgs if present.
+func (msg MsgExec) GetMessages() ([]sdk.Msg, error) {
+
+	grantMsg := authztypes.MsgExec{
+		Grantee: msg.Grantee,
+		Msgs:    msg.Msgs,
+	}
+	return grantMsg.GetMessages()
+}
+
+// GetSigners implements Msg
+func (msg MsgExec) GetSigners() []sdk.AccAddress {
+	grantee, _ := sdk.AccAddressFromBech32(msg.Grantee)
+	return []sdk.AccAddress{grantee}
+}
+
+// ValidateBasic implements Msg
+func (msg MsgExec) ValidateBasic() error {
+	grantMsg := authztypes.MsgExec{
+		Grantee: msg.Grantee,
+		Msgs:    msg.Msgs,
+	}
+	return grantMsg.ValidateBasic()
+}
+
+// Type implements the LegacyMsg.Type method.
+func (msg MsgExec) Type() string {
+	return sdk.MsgTypeURL(&msg)
+}
+
+// Route implements the LegacyMsg.Route method.
+func (msg MsgExec) Route() string {
+	return sdk.MsgTypeURL(&msg)
+}
+
+// GetSignBytes implements the LegacyMsg.GetSignBytes method.
+func (msg MsgExec) GetSignBytes() []byte {
+	grantMsg := authztypes.MsgExec{
+		Grantee: msg.Grantee,
+		Msgs:    msg.Msgs,
+	}
+	return grantMsg.GetSignBytes()
 }
