@@ -3,8 +3,6 @@ package v2_test
 import (
 	"testing"
 
-	v2 "github.com/burnt-labs/xion/x/globalfee/migrations/v2"
-	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 	"github.com/stretchr/testify/require"
 
 	cometdb "github.com/cometbft/cometbft-db"
@@ -17,6 +15,9 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	v2 "github.com/burnt-labs/xion/x/globalfee/migrations/v2"
+	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 func TestMigrateStore(t *testing.T) {

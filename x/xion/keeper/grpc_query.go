@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"net/url"
 
-	"github.com/burnt-labs/xion/x/xion/types"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 var _ types.QueryServer = Keeper{}

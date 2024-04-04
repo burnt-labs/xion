@@ -9,11 +9,6 @@ import (
 	"time"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
-	xionapp "github.com/burnt-labs/xion/app"
-	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
-	jwkMsgServer "github.com/burnt-labs/xion/x/jwk/keeper"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/golang-jwt/jwt/v5"
 	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
 	jwk "github.com/lestrrat-go/jwx/jwk"
@@ -24,6 +19,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	xionapp "github.com/burnt-labs/xion/app"
+	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
+	jwkMsgServer "github.com/burnt-labs/xion/x/jwk/keeper"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 type StargateTestSuite struct {

@@ -1,10 +1,11 @@
 package v3
 
 import (
-	"github.com/burnt-labs/xion/app/upgrades"
 	feeabstypes "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/types"
 
 	store "github.com/cosmos/cosmos-sdk/store/types"
+
+	"github.com/burnt-labs/xion/app/upgrades"
 )
 
 const (

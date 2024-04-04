@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/burnt-labs/xion/x/xion/client/cli"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/xion/client/cli"
 )
 
 func (s *CLITestSuite) TestSendTxCmd() {

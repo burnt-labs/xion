@@ -3,10 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/burnt-labs/xion/x/mint"
-	"github.com/burnt-labs/xion/x/mint/keeper"
-	minttestutil "github.com/burnt-labs/xion/x/mint/testutil"
-	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
@@ -18,6 +14,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/burnt-labs/xion/x/mint"
+	"github.com/burnt-labs/xion/x/mint/keeper"
+	minttestutil "github.com/burnt-labs/xion/x/mint/testutil"
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 var minterAcc = authtypes.NewEmptyModuleAccount(types.ModuleName, authtypes.Minter)

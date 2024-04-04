@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
-	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/stretchr/testify/suite"
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -15,6 +12,10 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
+	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 var testGasLimit uint64 = 200_000

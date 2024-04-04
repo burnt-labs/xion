@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"github.com/burnt-labs/xion/x/xion/types"
-
 	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/math"
@@ -11,6 +9,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 type Keeper struct {

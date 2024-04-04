@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"github.com/burnt-labs/xion/x/jwk/types"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 // SetAudience set a specific audience in the store from its index

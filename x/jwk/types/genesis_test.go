@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

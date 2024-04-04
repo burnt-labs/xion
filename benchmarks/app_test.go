@@ -9,7 +9,6 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/app"
 	"github.com/stretchr/testify/require"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -29,6 +28,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/burnt-labs/xion/app"
 )
 
 func setup(db dbm.DB, withGenesis bool, _ uint, _ ...wasmkeeper.Option) (*app.WasmApp, app.GenesisState) { //nolint:unparam

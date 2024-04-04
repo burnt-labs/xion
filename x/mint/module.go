@@ -5,11 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/burnt-labs/xion/x/mint/client/cli"
-	"github.com/burnt-labs/xion/x/mint/exported"
-	"github.com/burnt-labs/xion/x/mint/keeper"
-	"github.com/burnt-labs/xion/x/mint/simulation"
-	"github.com/burnt-labs/xion/x/mint/types"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -28,6 +23,12 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/burnt-labs/xion/x/mint/client/cli"
+	"github.com/burnt-labs/xion/x/mint/exported"
+	"github.com/burnt-labs/xion/x/mint/keeper"
+	"github.com/burnt-labs/xion/x/mint/simulation"
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 // ConsensusVersion defines the current x/mint module consensus version.

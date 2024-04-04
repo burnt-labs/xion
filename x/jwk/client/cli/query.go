@@ -3,10 +3,11 @@ package cli
 import (
 	"fmt"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

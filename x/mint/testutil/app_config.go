@@ -1,8 +1,6 @@
 package testutil
 
 import (
-	minttypes "github.com/burnt-labs/xion/x/mint/types"
-
 	_ "github.com/cosmos/cosmos-sdk/x/auth"
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	_ "github.com/cosmos/cosmos-sdk/x/bank"
@@ -29,6 +27,8 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	minttypes "github.com/burnt-labs/xion/x/mint/types"
 )
 
 var AppConfig = appconfig.Compose(&appv1alpha1.Config{

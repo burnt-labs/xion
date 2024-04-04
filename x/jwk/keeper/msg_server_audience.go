@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAudience) (*types.MsgCreateAudienceResponse, error) {

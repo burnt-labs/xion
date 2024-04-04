@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/burnt-labs/xion/x/mint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 // InitGenesis new mint genesis

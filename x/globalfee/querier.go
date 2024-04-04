@@ -3,9 +3,9 @@ package globalfee
 import (
 	"context"
 
-	"github.com/burnt-labs/xion/x/globalfee/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 var _ types.QueryServer = &GrpcQuerier{}

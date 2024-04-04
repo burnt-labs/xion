@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/armon/go-metrics"
-	"github.com/burnt-labs/xion/x/xion/types"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -15,6 +14,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 type msgServer struct {

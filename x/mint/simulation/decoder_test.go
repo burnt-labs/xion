@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/burnt-labs/xion/x/mint"
-	"github.com/burnt-labs/xion/x/mint/simulation"
-	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
+	"github.com/burnt-labs/xion/x/mint"
+	"github.com/burnt-labs/xion/x/mint/simulation"
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 func TestDecodeStore(t *testing.T) {

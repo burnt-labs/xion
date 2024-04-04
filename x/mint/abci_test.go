@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/stretchr/testify/assert"
 
 	sdkmath "cosmossdk.io/math"
@@ -14,6 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 func TestBeginBlocker(t *testing.T) {

@@ -11,7 +11,6 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/x/xion/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cobra"
 
@@ -25,6 +24,8 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 const (

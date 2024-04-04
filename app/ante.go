@@ -3,7 +3,6 @@ package app
 import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	"github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 	feeabsante "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/ante"
@@ -21,6 +20,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
+	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC

@@ -5,9 +5,6 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/burnt-labs/xion/x/mint"
-	"github.com/burnt-labs/xion/x/mint/simulation"
-	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
@@ -16,6 +13,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
+	"github.com/burnt-labs/xion/x/mint"
+	"github.com/burnt-labs/xion/x/mint/simulation"
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.

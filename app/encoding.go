@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/burnt-labs/xion/app/params"
-
 	"github.com/cosmos/cosmos-sdk/std"
+
+	"github.com/burnt-labs/xion/app/params"
 )
 
 // MakeEncodingConfig creates a new EncodingConfig with all modules registered

@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/burnt-labs/xion/x/jwk/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 // GetParams get all parameters as types.Params

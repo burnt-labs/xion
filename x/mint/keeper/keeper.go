@@ -3,8 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/burnt-labs/xion/x/mint/types"
-
 	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/math"
@@ -12,6 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 // Keeper of the mint store

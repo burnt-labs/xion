@@ -1,12 +1,13 @@
 package cli
 
 import (
-	"github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 func CmdCreateAudience() *cobra.Command {

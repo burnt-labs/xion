@@ -1,10 +1,10 @@
 package jwk
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/burnt-labs/xion/x/jwk/keeper"
 	"github.com/burnt-labs/xion/x/jwk/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.
