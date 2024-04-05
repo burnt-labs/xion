@@ -104,7 +104,7 @@ func TestXionTokenFactory(t *testing.T) {
 	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
 		"tx", txHash)
 	require.NoError(t, err)
-	t.Logf("txHash: %s", codeResp)
+	t.Logf("txHash: %s, response: %s", txHash, codeResp)
 
 	// ensure uaddr2 has 31+70 = 101
 	if balance, err := xion.GetBalance(ctx, uaddr2, tfDenom); err != nil {
