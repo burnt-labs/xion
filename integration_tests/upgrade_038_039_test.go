@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/conformance"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"github.com/strangelove-ventures/interchaintest/v7/relayer"
 	"github.com/strangelove-ventures/interchaintest/v7/relayer/rly"
@@ -180,8 +179,8 @@ func SetupInterchain(t *testing.T, chains []ibc.Chain) *interchaintest.Interchai
 	t.Logf("created axelar user %s", axelarUser.FormattedAddress())
 
 	// test IBC conformance
-	conformance.TestChainPair(t, ctx, client, network, xion, osmosis, rf, rep, r1, rlyXionOsmosisPath)
-	conformance.TestChainPair(t, ctx, client, network, xion, axelar, rf, rep, r2, rlyXionAxelarPath)
+	TestChainPair(t, ctx, client, network, xion, osmosis, rf, rep, r1, rlyXionOsmosisPath)
+	TestChainPair(t, ctx, client, network, xion, axelar, rf, rep, r2, rlyXionAxelarPath)
 
 	return ic
 }
