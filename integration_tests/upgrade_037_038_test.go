@@ -19,6 +19,7 @@ const (
 	blocksAfterUpgrade = uint64(10)
 )
 
+// TestXionUpgrade_037_038 ensures that the globalfee params are set correctly after a software upgrade from v0.3.7 to v0.3.8
 func TestXionUpgrade_037_038(t *testing.T) {
 	t.Parallel()
 
