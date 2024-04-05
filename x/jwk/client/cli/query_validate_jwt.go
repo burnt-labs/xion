@@ -15,7 +15,7 @@ func CmdValidateJWT() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate-jwt [aud] [sub] [sig-bytes]",
 		Short: "Query ValidateJWT",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqAud := args[0]
 			reqSub := args[1]
