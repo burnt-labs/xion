@@ -67,13 +67,12 @@ func TestXionTokenFactory(t *testing.T) {
 	}
 
 	// mint-to
-	MintToTokenFactoryDenom(t, ctx, xion, xionUser, xionUser2, 70, tfDenom)
+	expectedMint := uint64(70)
+	MintToTokenFactoryDenom(t, ctx, xion, xionUser, xionUser2, expectedMint, tfDenom)
 	t.Log("minted tfDenom to user")
-	if balance, err := xion.GetBalance(ctx, uaddr2, tfDenom); err != nil {
-		t.Fatal(err)
-	} else if balance != 70 {
-		t.Fatal("balance not 70")
-	}
+	balance, err := xion.GetBalance(ctx, uaddr2, tfDenom)
+	require.NoError(t, err)
+	require.Equal(t, uint64(balance), expectedMint, "balance not 70")
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)
@@ -98,25 +97,12 @@ func TestXionTokenFactory(t *testing.T) {
 
 	// Mint on the contract for the user to ensure mint bindings work.
 	mintMsg := fmt.Sprintf(`{"mint":{"address":"%s","denom":[{"denom":"%s","amount":"31"}]}}`, uaddr2, tfDenom)
-	txHash, err := xion.ExecuteContract(ctx, xionUser.FormattedAddress(), coreTFContract, mintMsg)
+	_, err = xion.ExecuteContract(ctx, xionUser.FormattedAddress(), coreTFContract, mintMsg)
 	require.NoError(t, err)
-
-	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
-		"tx", txHash)
-	require.NoError(t, err)
-	t.Logf("txHash: %s, response: %s", txHash, codeResp)
 
 	// ensure uaddr2 has 31+70 = 101
-	if balance, err := xion.GetBalance(ctx, uaddr2, tfDenom); err != nil {
-		t.Fatal(err)
-	} else if balance != 101 {
-		fmt.Println(balance)
-		t.Fatal("balance not 101")
-	}
-
-	/*
-		t.Cleanup(func() {
-			_ = xion.Close()
-		})
-	*/
+	balance, err = xion.GetBalance(ctx, uaddr2, tfDenom)
+	require.NoError(t, err)
+	fmt.Println(balance)
+	require.Equal(t, balance, int64(101))
 }

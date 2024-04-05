@@ -3,11 +3,12 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/CosmosContracts/juno/v21/x/tokenfactory/bindings"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/CosmosContracts/juno/v21/x/tokenfactory/bindings"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -146,7 +147,7 @@ import (
 	tokenfactorykeeper "github.com/CosmosContracts/juno/v21/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
 	"github.com/burnt-labs/xion/app/upgrades"
-	v5 "github.com/burnt-labs/xion/app/upgrades/v5"
+	v6 "github.com/burnt-labs/xion/app/upgrades/v6"
 	"github.com/burnt-labs/xion/x/mint"
 	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
@@ -169,7 +170,7 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v5.Upgrade}
+	Upgrades                = []upgrades.Upgrade{v6.Upgrade}
 )
 
 // These constants are derived from the above variables.
