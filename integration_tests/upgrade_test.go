@@ -41,7 +41,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 	users := interchaintest.GetAndFundTestUsers(t, td.ctx, "default", fundAmount, td.xionChain)
 	chainUser := users[0]
 
-	CosmosChainUpgradeIBCTest(t, &td, chainUser, "xion", "local", "v5")
+	CosmosChainUpgradeIBCTest(t, &td, chainUser, "xion", "upgrade", "v6")
 }
 
 func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
@@ -110,8 +110,13 @@ func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainUser ibc.Wallet,
 	require.NoError(t, err)
 	t.Logf("jwk params response: %v", paramsModResp)
 
-	paramsResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
+	jwkParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
 		"jwk", "params")
 	require.NoError(t, err)
-	t.Logf("jwk params response: %v", paramsResp)
+	t.Logf("jwk params response: %v", jwkParams)
+
+	tokenFactoryParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
+		"tokenfactory", "params")
+	require.NoError(t, err)
+	t.Logf("tokenfactory params response: %v", tokenFactoryParams)
 }

@@ -13,9 +13,9 @@ import (
 
 func CmdConvertPemToJSON() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "convert-pem [file]",
+		Use:   "convert-pem [file] [alg | optional]",
 		Short: "Convery PEM to JSON",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			publicKeyBz, err := os.ReadFile(args[0])
 			if err != nil {
@@ -25,6 +25,14 @@ func CmdConvertPemToJSON() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			if len(args) == 2 {
+				err = publicKey.Set("alg", args[1])
+				if err != nil {
+					return err
+				}
+			}
+
 			publicKeyJSON, err := json.Marshal(publicKey)
 			if err != nil {
 				return err
