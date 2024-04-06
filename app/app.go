@@ -606,8 +606,6 @@ func NewWasmApp(
 		keys[jwktypes.StoreKey],
 		app.GetSubspace(jwktypes.ModuleName))
 
-	govModAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-
 	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
 		appCodec,
 		keys[tokenfactorytypes.StoreKey],
@@ -615,7 +613,7 @@ func NewWasmApp(
 		app.BankKeeper,
 		app.DistrKeeper,
 		tokenFactoryCapabilities,
-		govModAddress,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	app.XionKeeper = xionkeeper.NewKeeper(
