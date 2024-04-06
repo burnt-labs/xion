@@ -241,6 +241,7 @@ func TestChainPair(
 		t,
 		ctx,
 		srcChain.Config().ChainID,
+		dstChain.Config().ChainID,
 		relayerImpl,
 		rep.RelayerExecReporter(t),
 		preRelayerStartFuncs,
@@ -274,6 +275,7 @@ func StopStartRelayerWithPreStartFuncs(
 	t *testing.T,
 	ctx context.Context,
 	srcChainID string,
+	dstChainID string,
 	relayerImpl ibc.Relayer,
 	eRep *testreporter.RelayerExecReporter,
 	preRelayerStartFuncs []func([]ibc.ChannelOutput),
@@ -282,13 +284,13 @@ func StopStartRelayerWithPreStartFuncs(
 	if err := relayerImpl.StopRelayer(ctx, eRep); err != nil {
 		t.Logf("error stopping relayer: %v", err)
 	}
-	channels, err := relayerImpl.GetChannels(ctx, eRep, srcChainID)
+
+	channels := make([]ibc.ChannelOutput, 0)
+	channel, err := ibc.GetTransferChannel(ctx, relayerImpl, eRep, srcChainID, dstChainID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get channels: %w", err)
+		return nil, fmt.Errorf("failed to get transfer channel: %w", err)
 	}
-	if len(channels) == 0 {
-		return nil, fmt.Errorf("channel count invalid. expected: > 0, actual: %d", len(channels))
-	}
+	channels = append(channels, *channel)
 
 	wg := sync.WaitGroup{}
 	for _, preRelayerStart := range preRelayerStartFuncs {
@@ -305,9 +307,7 @@ func StopStartRelayerWithPreStartFuncs(
 	wg.Wait()
 
 	if len(pathNames) == 0 {
-		if err := relayerImpl.StartRelayer(ctx, eRep, testPathName); err != nil {
-			return nil, fmt.Errorf("failed to start relayer: %w", err)
-		}
+		return nil, fmt.Errorf("len(pathNames) must be > 0")
 	} else {
 		if err := relayerImpl.StartRelayer(ctx, eRep, pathNames...); err != nil {
 			return nil, fmt.Errorf("failed to start relayer: %w", err)
