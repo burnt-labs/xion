@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
+	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"
@@ -604,4 +605,114 @@ func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNo
 	}
 	path := strings.Split(file.Name(), "/")
 	return tn.WriteFile(ctx, content, path[len(path)-1])
+}
+
+func CreateTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, subDenomName, feeCoin string) (fullDenom string) {
+	// TF gas to create cost 2mil, so we set to 2.5 to be safe
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "create-denom", subDenomName,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", user.KeyName(),
+		"--gas", "2500000",
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+
+	if feeCoin != "" {
+		cmd = append(cmd, "--fees", feeCoin)
+	}
+
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+
+	return "factory/" + user.FormattedAddress() + "/" + subDenomName
+}
+
+func MintTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, amount uint64, fullDenom string) {
+	denom := strconv.FormatUint(amount, 10) + fullDenom
+
+	// mint new tokens to the account
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "mint", denom,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", admin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func MintToTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, toWallet ibc.Wallet, amount uint64, fullDenom string) {
+	denom := strconv.FormatUint(amount, 10) + fullDenom
+
+	receiver := toWallet.FormattedAddress()
+
+	t.Log("minting", denom, "to", receiver)
+
+	// mint new tokens to the account
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "mint-to", receiver, denom,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", admin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func TransferTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, currentAdmin ibc.Wallet, newAdminBech32 string, fullDenom string) {
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "change-admin", fullDenom, newAdminBech32,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", currentAdmin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, fullDenom string) string {
+	cmd := []string{
+		"xiond", "query", "tokenfactory", "denom-authority-metadata", fullDenom,
+		"--node", chain.GetRPCAddress(),
+		//"--chain-id", chain.Config().ChainID,
+		"--output", "json",
+	}
+	stdout, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	results := &tokenfactorytypes.QueryDenomAuthorityMetadataResponse{}
+	err = json.Unmarshal(stdout, results)
+	require.NoError(t, err)
+
+	t.Log(results)
+
+	return results.AuthorityMetadata.Admin
 }
