@@ -11,10 +11,10 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/gogoproto/proto"
-
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cobra"
+
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -25,7 +25,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 const (
@@ -68,7 +68,9 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 `,
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
+			if err := cmd.Flags().Set(flags.FlagFrom, args[0]); err != nil {
+				return err
+			}
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -109,7 +111,9 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 `,
 		Args: cobra.MinimumNArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Flags().Set(flags.FlagFrom, args[0])
+			if err := cmd.Flags().Set(flags.FlagFrom, args[0]); err != nil {
+				return err
+			}
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -220,13 +224,19 @@ func NewRegisterCmd() *cobra.Command {
 					CodeId: codeID,
 				},
 			)
+			if err != nil {
+				return err
+			}
 			creatorAddr := clientCtx.GetFromAddress()
 			codeHash, err := hex.DecodeString(codeResp.DataHash.String())
+			if err != nil {
+				return err
+			}
 			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
 			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()))
 			if err != nil {
-				return fmt.Errorf("error signing predicted address : %s\n", err)
+				return fmt.Errorf("error signing predicted address : %s", err)
 			}
 
 			instantiateMsg := map[string]interface{}{}
@@ -379,25 +389,8 @@ func NewSignCmd() *cobra.Command {
 	return cmd
 }
 
-func getAccount(queryClient authtypes.QueryClient, address string) (*authtypes.BaseAccount, error) {
-	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: address})
-	if err != nil {
-		return nil, err
-	}
-	if res.Account.TypeUrl != typeURL((*authtypes.BaseAccount)(nil)) {
-		return nil, fmt.Errorf("address %s is not an BaseAccount", address)
-	}
-
-	var acc = &authtypes.BaseAccount{}
-	if err = proto.Unmarshal(res.Account.Value, acc); err != nil {
-		return nil, err
-	}
-
-	return acc, nil
-}
-
 func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
-	var signerAddr sdk.AccAddress = nil
+	var signerAddr sdk.AccAddress
 	for i, msg := range stdTx.GetMsgs() {
 		signers := msg.GetSigners()
 		if len(signers) != 1 {
@@ -420,11 +413,10 @@ func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.Ab
 		return nil, fmt.Errorf("signer %s is not an AbstractAccount", signerAddr.String())
 	}
 
-	var acc = &aatypes.AbstractAccount{}
+	acc := &aatypes.AbstractAccount{}
 	if err = proto.Unmarshal(res.Account.Value, acc); err != nil {
 		return nil, err
 	}
-	//panic(fmt.Sprintf("Account: %s\nTypeURL: %s\nAcc: %+v", res.Account.TypeUrl, typeURL((*aatypes.AbstractAccount)(nil)), acc))
 
 	return acc, nil
 }

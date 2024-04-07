@@ -5,20 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	modulev1 "cosmossdk.io/api/cosmos/mint/module/v1"
 	"cosmossdk.io/core/appmodule"
-
 	"cosmossdk.io/depinject"
 
-	"github.com/burnt-labs/xion/x/mint/client/cli"
-	"github.com/burnt-labs/xion/x/mint/exported"
-	"github.com/burnt-labs/xion/x/mint/keeper"
-	"github.com/burnt-labs/xion/x/mint/simulation"
-	"github.com/burnt-labs/xion/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -28,6 +23,12 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/burnt-labs/xion/x/mint/client/cli"
+	"github.com/burnt-labs/xion/x/mint/exported"
+	"github.com/burnt-labs/xion/x/mint/keeper"
+	"github.com/burnt-labs/xion/x/mint/simulation"
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 // ConsensusVersion defines the current x/mint module consensus version.
@@ -68,7 +69,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 }
 
 // ValidateGenesis performs genesis state validation for the mint module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
@@ -185,7 +186,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // ProposalMsgs returns msgs used for governance proposals for simulations.
-func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+func (AppModule) ProposalMsgs(_ module.SimulationState) []simtypes.WeightedProposalMsg {
 	return simulation.ProposalMsgs()
 }
 
@@ -209,7 +210,7 @@ func init() {
 	)
 }
 
-type MintInputs struct {
+type Inputs struct {
 	depinject.In
 
 	ModuleKey              depinject.OwnModuleKey
@@ -226,14 +227,14 @@ type MintInputs struct {
 	StakingKeeper types.StakingKeeper
 }
 
-type MintOutputs struct {
+type Outputs struct {
 	depinject.Out
 
 	MintKeeper keeper.Keeper
 	Module     appmodule.AppModule
 }
 
-func ProvideModule(in MintInputs) MintOutputs {
+func ProvideModule(in Inputs) Outputs {
 	feeCollectorName := in.Config.FeeCollectorName
 	if feeCollectorName == "" {
 		feeCollectorName = authtypes.FeeCollectorName
@@ -258,5 +259,5 @@ func ProvideModule(in MintInputs) MintOutputs {
 	// when no inflation calculation function is provided it will use the default types.DefaultInflationCalculationFn
 	m := NewAppModule(in.Cdc, k, in.AccountKeeper, in.InflationCalculationFn, in.LegacySubspace)
 
-	return MintOutputs{MintKeeper: k, Module: m}
+	return Outputs{MintKeeper: k, Module: m}
 }

@@ -1,9 +1,10 @@
 package v6
 
 import (
+	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
+
 	store "github.com/cosmos/cosmos-sdk/store/types"
 
-	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
 	"github.com/burnt-labs/xion/app/upgrades"
 )
 

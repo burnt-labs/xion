@@ -80,6 +80,7 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 
 	return td, deployerAddr, codeHash, codeIDStr, nil
 }
+
 func TestWebAuthNAbstractAccount(t *testing.T) {
 	t.Parallel()
 	if testing.Short() {

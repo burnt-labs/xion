@@ -9,20 +9,22 @@ import (
 	"time"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	"github.com/golang-jwt/jwt/v5"
+	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
+	jwk "github.com/lestrrat-go/jwx/jwk"
+	"github.com/stretchr/testify/suite"
+
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+
 	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	jwkMsgServer "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/golang-jwt/jwt/v5"
-	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
-	jwk "github.com/lestrrat-go/jwx/jwk"
-
-	"github.com/stretchr/testify/suite"
 )
 
 type StargateTestSuite struct {
@@ -56,14 +58,15 @@ func SetUpAudience(suite *StargateTestSuite) {
 	suite.Require().NoError(err)
 	pubKey, err := jwkPrivKey.PublicKey()
 	suite.NoError(err)
-	pubKey.Set("alg", "RS256")
-	pubKeyJson, err := json.Marshal(pubKey)
+	err = pubKey.Set("alg", "RS256")
+	suite.NoError(err)
+	pubKeyJSON, err := json.Marshal(pubKey)
 	suite.NoError(err)
 	msgServer := jwkMsgServer.NewMsgServerImpl(suite.app.JwkKeeper)
 	_, err = msgServer.CreateAudience(sdk.WrapSDKContext(suite.ctx), &jwktypes.MsgCreateAudience{
 		Admin: "admin",
 		Aud:   "test-aud",
-		Key:   string(pubKeyJson),
+		Key:   string(pubKeyJSON),
 	})
 	suite.NoError(err)
 }
@@ -84,7 +87,6 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 			name: "WebAuthNVerifyRegister",
 			path: "/xion.v1.Query/WebAuthNVerifyRegister",
 			requestData: func() []byte {
-
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyRegisterRequest{
 					Addr:      "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
 					Rp:        "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
@@ -100,7 +102,6 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 			name: "WebAuthNVerifyAuthenticate",
 			path: "/xion.v1.Query/WebAuthNVerifyAuthenticate",
 			requestData: func() []byte {
-
 				bz, err := proto.Marshal(&xiontypes.QueryWebAuthNVerifyAuthenticateRequest{
 					Addr:       "xion1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvq8akzpz",
 					Challenge:  "eGlvbjF5bnU1enU3N3BqeXVqOXVlZXBxdzB2dmVxMmZwZDJ4cDZqZ3gwczdtMnJsY2d1eGxkeHZxOGFrenB6",
@@ -137,9 +138,9 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 			if tc.checkResponseStruct {
 				expectedResponse, err := proto.Marshal(tc.responseProtoStruct)
 				suite.Require().NoError(err)
-				expJsonResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct, expectedResponse, suite.app.AppCodec())
+				expJSONResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct, expectedResponse, suite.app.AppCodec())
 				suite.Require().NoError(err)
-				suite.Require().Equal(expJsonResp, stargateResponse)
+				suite.Require().Equal(expJSONResp, stargateResponse)
 			}
 
 			suite.Require().NoError(err)
@@ -176,8 +177,9 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 	suite.Require().NoError(err)
 	publicKey, err := jwkPrivKey.PublicKey()
 	suite.NoError(err)
-	publicKey.Set("alg", "RS256")
-	publicKeyJson, err := json.Marshal(publicKey)
+	err = publicKey.Set("alg", "RS256")
+	suite.NoError(err)
+	publicKeyJSON, err := json.Marshal(publicKey)
 	suite.NoError(err)
 
 	testCases := []struct {
@@ -208,7 +210,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 				Audience: jwktypes.Audience{
 					Admin: "admin",
 					Aud:   "test-aud",
-					Key:   string(publicKeyJson),
+					Key:   string(publicKeyJSON),
 				},
 			},
 		},
@@ -232,8 +234,9 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 					{
 						Admin: "admin",
 						Aud:   "test-aud",
-						Key:   string(publicKeyJson),
-					}},
+						Key:   string(publicKeyJSON),
+					},
+				},
 				Pagination: &query.PageResponse{
 					Total: 1,
 				},
@@ -295,9 +298,9 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 			if tc.checkResponseStruct {
 				expectedResponse, err := proto.Marshal(tc.responseProtoStruct)
 				suite.NoError(err)
-				expJsonResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct, expectedResponse, suite.app.AppCodec())
+				expJSONResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct, expectedResponse, suite.app.AppCodec())
 				suite.Require().NoError(err)
-				suite.Require().Equal(expJsonResp, stargateResponse)
+				suite.Require().Equal(expJSONResp, stargateResponse)
 			}
 
 			suite.Require().NoError(err)

@@ -213,7 +213,6 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	json.Unmarshal(updatedPubKeyRawJSON, &updatedPubKeyMap)
 	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
-
 }
 
 func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string {

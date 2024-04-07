@@ -1,24 +1,27 @@
 package app
 
 import (
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/larry0x/abstract-account/x/abstractaccount"
+	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
+	feeabsante "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/ante"
+	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/keeper"
+
+	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
+	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+
 	errorsmod "cosmossdk.io/errors"
-	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
+
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	"github.com/larry0x/abstract-account/x/abstractaccount"
-	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
-	feeabsante "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/ante"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/keeper"
-
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+
+	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -52,7 +55,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm config is required for ante builder")
 	}
 	if options.GlobalFeeSubspace.Name() == "" {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrNotFound, "globalfee param store is required for AnteHandler")
+		return nil, errorsmod.Wrap(sdkerrors.ErrNotFound, "globalfee param store is required for AnteHandler")
 	}
 	if options.TXCounterStoreKey == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "tx counter key is required for ante builder")

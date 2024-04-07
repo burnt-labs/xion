@@ -5,15 +5,16 @@ import (
 	"sync"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
@@ -31,7 +32,6 @@ var stargateWhitelist sync.Map
 // Note: When adding a migration here, we should also add it to the Async ICQ params in the upgrade.
 // In the future we may want to find a better way to keep these in sync
 
-//nolint:staticcheck
 func init() {
 	// ibc queries
 	setWhitelistedQuery("/ibc.applications.transfer.v1.Query/DenomTrace", &ibctransfertypes.QueryDenomTraceResponse{})
@@ -94,18 +94,4 @@ func GetWhitelistedQuery(queryPath string) (codec.ProtoMarshaler, error) {
 
 func setWhitelistedQuery(queryPath string, protoType codec.ProtoMarshaler) {
 	stargateWhitelist.Store(queryPath, protoType)
-}
-
-func GetStargateWhitelistedPaths() (keys []string) {
-	// Iterate over the map and collect the keys
-	stargateWhitelist.Range(func(key, value interface{}) bool {
-		keyStr, ok := key.(string)
-		if !ok {
-			panic("key is not a string")
-		}
-		keys = append(keys, keyStr)
-		return true
-	})
-
-	return keys
 }

@@ -1,6 +1,8 @@
 package ante
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -13,7 +15,7 @@ func CombinedFeeRequirement(globalFees, minGasPrices sdk.DecCoins) (sdk.DecCoins
 	// global fees should never be empty
 	// since it has a default value using the staking module's bond denom
 	if len(globalFees) == 0 {
-		return sdk.DecCoins{}, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "global fee cannot be empty")
+		return sdk.DecCoins{}, errorsmod.Wrapf(sdkerrors.ErrNotFound, "global fee cannot be empty")
 	}
 
 	// empty min_gas_price
@@ -70,6 +72,7 @@ func MaxCoins(a, b sdk.DecCoins) sdk.DecCoins {
 	}
 	return b
 }
+
 func IsAllGT(a, b sdk.DecCoins) bool {
 	if len(a) == 0 {
 		return false
@@ -106,5 +109,4 @@ func DenomsSubsetOf(a, b sdk.DecCoins) bool {
 	}
 
 	return true
-
 }

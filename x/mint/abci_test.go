@@ -6,11 +6,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/burnt-labs/xion/x/mint/types"
-	minttypes "github.com/burnt-labs/xion/x/mint/types"
+	"github.com/stretchr/testify/assert"
+
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/stretchr/testify/assert"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 func TestBeginBlocker(t *testing.T) {
@@ -24,7 +28,7 @@ func TestBeginBlocker(t *testing.T) {
 		needed           uint64
 	}
 	type parameters struct {
-		bonded        sdk.Int
+		bonded        sdkmath.Int
 		bondedRatio   sdk.Dec
 		fees          sdk.Coins
 		collectedFees sdk.Coin
@@ -112,7 +116,7 @@ func TestBeginBlocker(t *testing.T) {
 				Populate mock
 			*/
 
-			keeper.SetMinter(ctx, minttypes.InitialMinter(tc.parameters.bondedRatio))
+			keeper.SetMinter(ctx, types.InitialMinter(tc.parameters.bondedRatio))
 
 			stakingKeeper.EXPECT().TotalBondedTokens(ctx).Return(tc.parameters.bonded)
 			stakingKeeper.EXPECT().BondedRatio(ctx).Return(tc.parameters.bondedRatio)
@@ -128,7 +132,7 @@ func TestBeginBlocker(t *testing.T) {
 				bankKeeper.EXPECT().BurnCoins(ctx, authtypes.FeeCollectorName, sdk.NewCoins(tc.parameters.collectedFees.Sub(c))).Return(nil)
 			}
 
-			BeginBlocker(ctx, *keeper, minttypes.DefaultInflationCalculationFn)
+			BeginBlocker(ctx, *keeper, types.DefaultInflationCalculationFn)
 
 			events := ctx.EventManager().Events()
 			assert.Equalf(t, 1, len(events), "A single event must be emitted. However %d events were emitted", len(events))
@@ -159,9 +163,10 @@ func TestBeginBlocker(t *testing.T) {
 		})
 	}
 }
-func stripValue(t *testing.T, s string) string {
-	stripped := strings.Replace(s, "\\", "", -1)
-	return strings.Replace(stripped, "\"", "", -1)
+
+func stripValue(_ *testing.T, s string) string {
+	stripped := strings.ReplaceAll(s, "\\", "")
+	return strings.ReplaceAll(stripped, "\"", "")
 }
 
 func stringToU64(t *testing.T, s string) uint64 {

@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cobra"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 var _ = strconv.Itoa(0)

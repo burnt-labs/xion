@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
-
 	"math/rand"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"testing"
@@ -37,9 +36,7 @@ const (
 	packetforward    = "0.0"
 )
 
-var (
-	defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
-)
+var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
 
 // Function type for any function that modify the genesis file
 type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
@@ -142,11 +139,12 @@ func ParamChangeProposal(t *testing.T, subspace, key, value, title, description,
 	}
 	return proposal
 }
+
 func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
-	var numFullNodes = 1
-	var numValidators = 3
+	numFullNodes := 1
+	numValidators := 3
 
 	// pulling image from env to foster local dev
 	imageTag := os.Getenv("XION_IMAGE")
@@ -166,7 +164,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 						UidGid:     "1025:1025",
 					},
 				},
-				//GasPrices:              "0.1uxion",
+				// GasPrices:              "0.1uxion",
 				GasPrices:              gas,
 				GasAdjustment:          1.3,
 				Type:                   "cosmos",
@@ -208,7 +206,8 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 		NetworkID:         network,
 		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 
-		SkipPathCreation: false},
+		SkipPathCreation: false,
+	},
 	),
 	)
 	return TestData{xion, ctx, client}
@@ -258,6 +257,7 @@ func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, para
 	}
 	return out, nil
 }
+
 func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
 	g := make(map[string]interface{})
 	if err := json.Unmarshal(genbz, &g); err != nil {
@@ -423,7 +423,7 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &annualProvision))
 	// Query the block per year
-	var params = make(map[string]interface{})
+	params := make(map[string]interface{})
 	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &params))
@@ -505,7 +505,6 @@ func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.C
 // Run Mint module test harness over some random block height
 // Chain must have at least 12 blocks
 func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context) {
-
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, currentBlockHeight, uint64(12))
@@ -520,7 +519,6 @@ func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ct
 
 // Run Mint module test over some txHash
 func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, txHashes []string) {
-
 	for i, txHash := range txHashes {
 		txResp, err := authTx.QueryTx(xion.FullNodes[0].CliContext(), txHash)
 		require.NoError(t, err)
@@ -597,8 +595,8 @@ func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx [
 	}
 	return string(stdout), err
 }
-func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
 
+func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
 	content, err := os.ReadFile(file.Name())
 	if err != nil {
 		return err

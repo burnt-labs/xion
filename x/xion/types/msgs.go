@@ -3,6 +3,8 @@ package types
 import (
 	"errors"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -45,11 +47,11 @@ func (msg MsgSend) ValidateBasic() error {
 	}
 
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	if !msg.Amount.IsAllPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	return nil

@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/stretchr/testify/suite"
 
 	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
@@ -221,8 +223,8 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 	}
 }
 
-func getFee(originFee sdk.DecCoins, gasLimit uint64) sdk.DecCoins {
-	var targetFee sdk.DecCoins = originFee
+func getFee(originFee sdk.DecCoins, _ uint64) sdk.DecCoins {
+	targetFee := originFee
 	if len(originFee) == 0 {
 		targetFee = []sdk.DecCoin{sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0))}
 	}
@@ -238,7 +240,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParamsEmpty, noBondDenom)
 
 	// set a subspace that doesn't have the stakingtypes.KeyBondDenom key registred
-	//feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
+	// feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
 
 	// check that an error is returned when staking bond denom is empty
 	_, err := feeDecorator.GetTxFeeRequired(s.ctx, nil)
@@ -259,7 +261,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	priv1, _, addr1 := testdata.KeyTestPubAddr()
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
 
-	//privfee, accNums, accSeqs := []cryptotypes.PrivKey{priv2}, []uint64{0}, []uint64{0}
+	// privfee, accNums, accSeqs := []cryptotypes.PrivKey{priv2}, []uint64{0}, []uint64{0}
 	s.Require().NoError(s.txBuilder.SetMsgs(testdata.NewTestMsg(addr1)))
 	s.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())))
 
@@ -275,7 +277,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	s.Require().NoError(err)
 
 	// check that the global fee is returned in DeliverTx mode.
-	globalFee, err := feeDecorator.GetGlobalFee(s.ctx, tx)
+	globalFee, err := feeDecorator.GetGlobalFee(s.ctx)
 	s.Require().NoError(err)
 
 	ctx := s.ctx.WithIsCheckTx(false)

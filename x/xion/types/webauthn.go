@@ -13,7 +13,6 @@ type SmartContractUser struct {
 }
 
 func (s SmartContractUser) WebAuthnID() []byte {
-
 	return []byte(s.address)
 }
 
@@ -48,8 +47,8 @@ func VerifyRegistration(rp *url.URL, contractAddr string, challenge string, cred
 		return nil, err
 	}
 
-	var smartContractUser = SmartContractUser{address: contractAddr}
-	var session = webauthn.SessionData{
+	smartContractUser := SmartContractUser{address: contractAddr}
+	session := webauthn.SessionData{
 		Challenge:        challenge,
 		UserID:           smartContractUser.WebAuthnID(),
 		UserVerification: protocol.VerificationPreferred,
@@ -71,11 +70,11 @@ func VerifyAuthentication(rp *url.URL, contractAddr string, challenge string, cr
 		return false, err
 	}
 
-	var smartContractUser = SmartContractUser{
+	smartContractUser := SmartContractUser{
 		address:    contractAddr,
 		credential: credential,
 	}
-	var session = webauthn.SessionData{
+	session := webauthn.SessionData{
 		Challenge:            challenge,
 		UserID:               smartContractUser.WebAuthnID(),
 		UserVerification:     protocol.VerificationPreferred,
