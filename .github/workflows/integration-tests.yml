@@ -9,6 +9,8 @@ on:
 
   pull_request:
 
+  workflow_dispatch:
+
 env:
   CARGO_TERM_COLOR: always
   REGISTRY: ghcr.io
@@ -76,6 +78,9 @@ jobs:
         - "XionAbstractAccount"
         - "AbstractAccountMigration"
         - "WebAuthNAbstractAccount"
+        - "XionMinimumFeeDefault"
+        - "XionMinimumFeeZero"
+        - "XionTokenFactory"
 
     steps:
       - name: Set up Go 1.21

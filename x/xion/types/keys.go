@@ -1,8 +1,6 @@
 package types
 
-var (
-	PlatformPercentageKey = []byte{0x00}
-)
+var PlatformPercentageKey = []byte{0x00}
 
 const (
 	// ModuleName is the module name constant used in many places

@@ -1,10 +1,11 @@
 package types // noalias
 
 import (
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
 // BankKeeper defines the contract needed to be fulfilled for banking and supply

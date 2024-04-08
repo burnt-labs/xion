@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/dvsekhvalnov/jose2go/base64url"
-
-	"github.com/burnt-labs/xion/x/xion/types"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/stretchr/testify/require"
+
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 func TestRegisterAndAuthenticate(t *testing.T) {

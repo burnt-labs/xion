@@ -155,8 +155,20 @@ test-integration-xion-send-platform-fee: compile_integration_tests
 test-integration-xion-abstract-account: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
 
+test-integration-xion-min-default: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeDefault
+
+test-integration-xion-min-zero: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeZero
+
+test-integration-xion-token-factory: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionTokenFactory
+
 test-integration-min:
 	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run  TestXionMinimumFeeDefault -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+
+test-integration-mig:
+	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run  TestAbstractAccountMigration -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-web-auth-n-abstract-account: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run WebAuthNAbstractAccount
@@ -199,12 +211,13 @@ format-tools:
 
 lint: format-tools
 	golangci-lint run --tests=false
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*_test.go" | xargs gofumpt -d
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*_test.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -d
 
 format: format-tools
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/burnt-labs/xiond
+	golangci-lint run --fix
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
 
 
 ###############################################################################

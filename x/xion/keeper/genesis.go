@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/burnt-labs/xion/x/xion/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 // InitGenesis initializes the bank module's state from a given genesis state.

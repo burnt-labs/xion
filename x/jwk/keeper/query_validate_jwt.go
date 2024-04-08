@@ -4,12 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRequest) (*types.QueryValidateJWTResponse, error) {
@@ -35,7 +37,7 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		jwt.WithSubject(req.Sub),
 		jwt.WithClock(jwt.ClockFunc(func() time.Time {
 			// adjust the time from the block-height due to lagging reported time
-			return ctx.BlockTime().Add(time.Duration(k.GetParams(ctx).TimeOffset))
+			return ctx.BlockTime().Add(time.Duration(k.GetTimeOffset(ctx)))
 		})),
 		jwt.WithValidate(true),
 	); err != nil {

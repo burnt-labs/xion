@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	"github.com/stretchr/testify/suite"
 
 	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
@@ -215,27 +217,19 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			if !tc.networkFee {
 				s.Require().Equal(sdk.NewDecCoins(tc.minGasPrice...), minGas)
 			} else {
-				s.Require().Equal(sdk.NewDecCoinsFromCoins(expected...), minGas)
+				s.Require().Equal(expected, minGas)
 			}
 		})
 	}
 }
 
-func getFee(originFee sdk.DecCoins, gasLimit uint64) sdk.Coins {
-	var targetFee sdk.DecCoins = originFee
+func getFee(originFee sdk.DecCoins, _ uint64) sdk.DecCoins {
+	targetFee := originFee
 	if len(originFee) == 0 {
 		targetFee = []sdk.DecCoin{sdk.NewDecCoinFromDec("uxion", sdk.NewDec(0))}
 	}
-	requiredFees := make(sdk.Coins, len(targetFee))
-	// Determine the required fees by multiplying each required minimum gas
-	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-	glDec := sdk.NewDec(int64(gasLimit))
-	for i, gp := range targetFee {
-		fee := gp.Amount.Mul(glDec)
-		requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
-	}
 
-	return requiredFees.Sort()
+	return targetFee.Sort()
 }
 
 func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
@@ -246,18 +240,18 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParamsEmpty, noBondDenom)
 
 	// set a subspace that doesn't have the stakingtypes.KeyBondDenom key registred
-	//feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
+	// feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
 
 	// check that an error is returned when staking bond denom is empty
 	_, err := feeDecorator.GetTxFeeRequired(s.ctx, nil)
 	s.Require().Equal(err.Error(), "empty staking bond denomination")
 
 	// set non-zero local min gas prices
-	localMinGasPrices := sdk.NewCoins(sdk.NewCoin("uxion", sdk.NewInt(1)))
+	localMinGasPrices := sdk.NewDecCoins(sdk.NewDecCoin("uxion", sdk.NewInt(1)))
 
 	// setup tests with non-empty local min gas prices
 	feeDecorator, _ = s.SetupTestGlobalFeeStoreAndMinGasPrice(
-		sdk.NewDecCoinsFromCoins(localMinGasPrices...),
+		localMinGasPrices,
 		globalfeeParamsEmpty,
 		bondDenom,
 	)
@@ -267,7 +261,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	priv1, _, addr1 := testdata.KeyTestPubAddr()
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
 
-	//privfee, accNums, accSeqs := []cryptotypes.PrivKey{priv2}, []uint64{0}, []uint64{0}
+	// privfee, accNums, accSeqs := []cryptotypes.PrivKey{priv2}, []uint64{0}, []uint64{0}
 	s.Require().NoError(s.txBuilder.SetMsgs(testdata.NewTestMsg(addr1)))
 	s.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uxion", sdk.ZeroInt())))
 
@@ -283,7 +277,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	s.Require().NoError(err)
 
 	// check that the global fee is returned in DeliverTx mode.
-	globalFee, err := feeDecorator.GetGlobalFee(s.ctx, tx)
+	globalFee, err := feeDecorator.GetGlobalFee(s.ctx)
 	s.Require().NoError(err)
 
 	ctx := s.ctx.WithIsCheckTx(false)

@@ -1,14 +1,18 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/x/xion/types"
+
 	"github.com/cometbft/cometbft/libs/log"
+
+	"cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 type Keeper struct {
@@ -34,8 +38,8 @@ func NewKeeper(cdc codec.BinaryCodec,
 	wasmOpsKeeper wasmtypes.ContractOpsKeeper,
 	wasmViewKeeper wasmtypes.ViewKeeper,
 	aaKeeper types.AbstractAccountKeeper,
-	authority string) Keeper {
-
+	authority string,
+) Keeper {
 	return Keeper{
 		storeKey:           key,
 		cdc:                cdc,

@@ -2,9 +2,11 @@ package keeper
 
 import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	v1 "github.com/burnt-labs/xion/x/xion/migrations/v1"
 	"github.com/burnt-labs/xion/x/xion/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type Migrator struct {

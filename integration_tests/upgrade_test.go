@@ -28,22 +28,19 @@ const (
 * 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgradeIBC ./...
 
 As of Aug 17 2023 this is the necessary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
-current-testnet: 5fe70b43e3bbe53bc15923d3035e15ce48cc1227 tag: v0.3.5
-upgrade-version: ef75512ddf90629b063807d4a75b5d9ce24a7251
+current-testnet: v0.3.4
+step between: v0.3.5
+upgrade-version: v0.3.6
 */
 func TestXionUpgradeIBC(t *testing.T) {
-
 	t.Parallel()
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
-	CosmosChainUpgradeIBCTest(t, &td, "xion", "current", "xion", "upgrade", "v4")
-
+	CosmosChainUpgradeIBCTest(t, &td, "xion", "upgrade", "v4")
 }
 
-// we have an error we need to pass testdata pointer
-func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainName, initialVersion, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
-	//t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
-	//td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
+	// t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 	chain, ctx, client := td.xionChain, td.ctx, td.client
 
 	fundAmount := int64(10_000_000_000)
@@ -106,5 +103,19 @@ func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, chainName, initialVer
 	err = testutil.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
-	return
+	// check that the upgrade set the params
+	paramsModResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
+		"params", "subspace", "jwk", "TimeOffset")
+	require.NoError(t, err)
+	t.Logf("jwk params response: %v", paramsModResp)
+
+	jwkParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
+		"jwk", "params")
+	require.NoError(t, err)
+	t.Logf("jwk params response: %v", jwkParams)
+
+	tokenFactoryParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
+		"tokenfactory", "params")
+	require.NoError(t, err)
+	t.Logf("tokenfactory params response: %v", tokenFactoryParams)
 }
