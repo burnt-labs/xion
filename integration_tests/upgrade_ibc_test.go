@@ -16,8 +16,8 @@ import (
 	"time"
 )
 
-// TestXionUpgrade_038_039 ensures that IBC connections to counterparties are not broken after a software upgrade from v0.3.8 to v0.3.9
-func TestXionUpgrade_038_039(t *testing.T) {
+// TestXionUpgradeIBC ensures that IBC connections to counterparties are not broken after a software upgrade
+func TestXionUpgradeIBC(t *testing.T) {
 	t.Parallel()
 
 	chains := ConfigureChains(t)
