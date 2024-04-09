@@ -90,7 +90,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", newCodeResp)
 
-	CosmosChainUpgradeIBCTest(t, &td, "xion", "upgrade", "v7")
+	CosmosChainUpgradeIBCTest(t, &td, "xion", "upgrade", "v6")
 	// todo: validate that verification or tx submission still works
 
 	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.FullNodes[0],
