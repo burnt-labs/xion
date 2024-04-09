@@ -3,41 +3,81 @@ package integration_tests
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
+	"github.com/docker/docker/client"
+	"github.com/strangelove-ventures/interchaintest/v7/conformance"
+	"github.com/strangelove-ventures/interchaintest/v7/relayer"
+	"github.com/strangelove-ventures/interchaintest/v7/relayer/rly"
+
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer/rly"
 	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-	"os"
-	"testing"
-	"time"
 )
 
-// TestXionUpgradeIBC ensures that IBC connections to counterparties are not broken after a software upgrade
+// TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
 func TestXionUpgradeIBC(t *testing.T) {
 	t.Parallel()
+	ctx := context.Background()
 
-	chains := ConfigureChains(t)
-	ic := SetupInterchain(t, chains)
-	t.Cleanup(func() {
-		_ = ic.Close()
-	})
+	// Setup Docker
+	dockerClient, dockerNetwork := interchaintest.DockerSetup(t)
+
+	// Build Relayer
+	rlyImage := relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main", rly.RlyDefaultUidGid)
+	rf := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t), rlyImage)
+	r := rf.Build(t, dockerClient, dockerNetwork)
+
+	// Setup loggers and reporters
+	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
+	require.NoError(t, err)
+	rep := testreporter.NewReporter(f)
+	eRep := rep.RelayerExecReporter(t)
+
+	// Configure Chains
+	chains := ConfigureChains(t, 1, 2)
+
+	// Test cases
+	testCases := []struct {
+		name        string
+		setup       func(t *testing.T, path string) (ibc.Chain, ibc.Chain)
+		conformance func(t *testing.T, ctx context.Context, client *client.Client, network string, srcChain, dstChain ibc.Chain, rf interchaintest.RelayerFactory, rep *testreporter.Reporter, relayerImpl ibc.Relayer, pathNames ...string)
+	}{
+		{
+			name: "xion-osmosis",
+			setup: func(t *testing.T, path string) (ibc.Chain, ibc.Chain) {
+				xion, osmosis := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
+				setupInterchain(t, xion, osmosis, path, r, eRep, dockerClient, dockerNetwork)
+				return xion, osmosis
+			},
+			conformance: conformance.TestChainPair,
+		},
+		{
+			name: "xion-axelar",
+			setup: func(t *testing.T, path string) (ibc.Chain, ibc.Chain) {
+				xion, axelar := chains[0].(*cosmos.CosmosChain), chains[2].(*cosmos.CosmosChain)
+				setupInterchain(t, xion, axelar, path, r, eRep, dockerClient, dockerNetwork)
+				return xion, axelar
+			},
+			conformance: conformance.TestChainPair,
+		},
+	}
+
+	// Run tests
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			chain1, chain2 := tc.setup(t, tc.name)
+			tc.conformance(t, ctx, dockerClient, dockerNetwork, chain1, chain2, nil, rep, r, tc.name)
+		})
+	}
 }
 
-func ConfigureChains(t *testing.T) []ibc.Chain {
-
-	numValidators := 2
-	numFullNodes := 1
-
-	// must override Axelar's default override NoHostMount in yaml
-	// otherwise fails on `cp` on heighliner img as it's not available in the container
-	f := OverrideConfiguredChainsYaml(t)
-	defer os.Remove(f.Name())
-
-	// Chain factory
+// ConfigureChains creates a list of chains with the given number of full nodes and validators.
+func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:    "xion",
@@ -119,68 +159,38 @@ func ConfigureChains(t *testing.T) []ibc.Chain {
 	return chains
 }
 
-// SetupInterchain sets up the interchain test environment
-func SetupInterchain(t *testing.T, chains []ibc.Chain) *interchaintest.Interchain {
-	ctx := context.Background()
-	const rlyXionOsmosisPath = "xion-osmosis"
-	const rlyXionAxelarPath = "xion-axelar"
-
-	xion, osmosis, axelar := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain), chains[2].(*cosmos.CosmosChain)
-
-	// Build relayer instance
-	client, network := interchaintest.DockerSetup(t)
-	rlyImage := relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main", rly.RlyDefaultUidGid)
-	rf := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t), rlyImage)
-	r1 := rf.Build(t, client, network)
-	r2 := rf.Build(t, client, network)
-
-	// Prep Interchain
+// setupInterchain builds an Interchain with the given chain pair and relayer path.
+func setupInterchain(
+	t *testing.T,
+	xion ibc.Chain,
+	counterparty ibc.Chain,
+	path string,
+	r ibc.Relayer,
+	eRep *testreporter.RelayerExecReporter,
+	dockerClient *client.Client,
+	dockerNetwork string,
+) *interchaintest.Interchain {
+	// Configure Interchain
 	ic := interchaintest.NewInterchain().
 		AddChain(xion).
-		AddChain(osmosis).
-		AddChain(axelar).
-		AddRelayer(r1, "r1").
-		AddRelayer(r2, "r2").
+		AddChain(counterparty).
+		AddRelayer(r, "rly").
 		AddLink(interchaintest.InterchainLink{
 			Chain1:  xion,
-			Chain2:  osmosis,
-			Relayer: r1,
-			Path:    rlyXionOsmosisPath,
-		}).
-		AddLink(interchaintest.InterchainLink{
-			Chain1:  xion,
-			Chain2:  axelar,
-			Relayer: r2,
-			Path:    rlyXionAxelarPath,
+			Chain2:  counterparty,
+			Relayer: r,
+			Path:    path,
 		})
 
-	// Setup loggers
-	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
-	require.NoError(t, err)
-	rep := testreporter.NewReporter(f)
-	eRep := rep.RelayerExecReporter(t)
-
 	// Build Interchain
-	err = ic.Build(context.Background(), eRep, interchaintest.InterchainBuildOptions{
+	err := ic.Build(context.Background(), eRep, interchaintest.InterchainBuildOptions{
 		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
+		Client:            dockerClient,
+		NetworkID:         dockerNetwork,
 		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 		SkipPathCreation:  false,
 	})
+
 	require.NoError(t, err)
-
-	// Fund users on all chains
-	fundAmount := int64(10_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion, osmosis, axelar)
-	xionUser, osmoUser, axelarUser := users[0], users[1], users[2]
-	t.Logf("created xion user %s", xionUser.FormattedAddress())
-	t.Logf("created osmosis user %s", osmoUser.FormattedAddress())
-	t.Logf("created axelar user %s", axelarUser.FormattedAddress())
-
-	// test IBC conformance
-	TestChainPair(t, ctx, client, network, xion, osmosis, rf, rep, r1, rlyXionOsmosisPath)
-	TestChainPair(t, ctx, client, network, xion, axelar, rf, rep, r2, rlyXionAxelarPath)
-
 	return ic
 }
