@@ -84,6 +84,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 			tc.conformance(t, ctx, dockerClient, dockerNetwork, xion, counterparty, rf, rep, rlyr, tc.name)
 			x := xion.(*cosmos.CosmosChain)
 			tc.upgrade(t, x, tc.upgradeName, dockerClient, "ghcr.io/burnt-labs/xion/xion", tc.upgradeImageVersion)
+			tc.conformance(t, ctx, dockerClient, dockerNetwork, xion, counterparty, rf, rep, rlyr, tc.name)
 		})
 	}
 }
