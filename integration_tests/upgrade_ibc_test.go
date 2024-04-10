@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+
 	"github.com/docker/docker/client"
 	"github.com/strangelove-ventures/interchaintest/v7/conformance"
 	"github.com/strangelove-ventures/interchaintest/v7/relayer"
@@ -40,39 +42,54 @@ func TestXionUpgradeIBC(t *testing.T) {
 
 	// Define Test cases
 	testCases := []struct {
-		name        string
-		setup       func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, interchaintest.RelayerFactory, ibc.Relayer)
-		conformance func(t *testing.T, ctx context.Context, client *client.Client, network string, srcChain, dstChain ibc.Chain, rf interchaintest.RelayerFactory, rep *testreporter.Reporter, relayerImpl ibc.Relayer, pathNames ...string)
+		name                string
+		setup               func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, ibc.Relayer)
+		conformance         func(t *testing.T, ctx context.Context, client *client.Client, network string, srcChain, dstChain ibc.Chain, rf interchaintest.RelayerFactory, rep *testreporter.Reporter, relayerImpl ibc.Relayer, pathNames ...string)
+		upgrade             func(t *testing.T, chain *cosmos.CosmosChain, upgradeName string, dockerClient *client.Client, dockerImageRepo, dockerImageVersion string)
+		upgradeName         string
+		upgradeImageVersion string
 	}{
 		{
 			name: "xion-osmosis",
-			setup: func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, interchaintest.RelayerFactory, ibc.Relayer) {
-				// chains
+			setup: func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, ibc.Relayer) {
 				xion, osmosis := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
-				// relayer
 				r := rf.Build(t, dockerClient, dockerNetwork)
-				// setup
-				ic := setupInterchain(t, xion, osmosis, path, r, eRep, dockerClient, dockerNetwork)
-				return xion, osmosis, ic, rf, r
+				ic := SetupInterchain(t, xion, osmosis, path, r, eRep, dockerClient, dockerNetwork)
+				return xion, osmosis, ic, r
 			},
-			conformance: conformance.TestChainPair,
+			conformance:         conformance.TestChainPair,
+			upgrade:             SoftwareUpgrade,
+			upgradeName:         "v6",
+			upgradeImageVersion: "sha-872993e",
 		},
+		//{
+		//	name: "xion-axelar",
+		//	setup: func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, ibc.Relayer) {
+		//		xion, axelar := chains[0].(*cosmos.CosmosChain), chains[2].(*cosmos.CosmosChain)
+		//		r := rf.Build(t, dockerClient, dockerNetwork)
+		//		ic := SetupInterchain(t, xion, axelar, path, r, eRep, dockerClient, dockerNetwork)
+		//		return xion, axelar, ic, r
+		//	},
+		//	conformance: conformance.TestChainPair,
+		//	upgrade:     SoftwareUpgrade,
+		//},
 	}
 
 	// Run tests
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			dockerClient, dockerNetwork := interchaintest.DockerSetup(t)
-			chain1, chain2, ic, rf, r := tc.setup(t, tc.name, dockerClient, dockerNetwork)
-			defer ic.Close()
-			tc.conformance(t, ctx, dockerClient, dockerNetwork, chain1, chain2, rf, rep, r, tc.name)
+			xion, counterparty, ichain, rlyr := tc.setup(t, tc.name, dockerClient, dockerNetwork)
+			defer ichain.Close()
+			tc.conformance(t, ctx, dockerClient, dockerNetwork, xion, counterparty, rf, rep, rlyr, tc.name)
+			x := xion.(*cosmos.CosmosChain)
+			tc.upgrade(t, x, tc.upgradeName, dockerClient, "ghcr.io/burnt-labs/xion/xion", tc.upgradeImageVersion)
 		})
 	}
 }
 
 // ConfigureChains creates a slice of ibc.Chain with the given number of full nodes and validators.
 func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain {
-
 	// must override Axelar's default override NoHostMount in yaml
 	// otherwise fails on `cp` on heighliner img as it's not available in the container
 	f := OverrideConfiguredChainsYaml(t)
@@ -159,8 +176,8 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 	return chains
 }
 
-// setupInterchain builds an interchaintest.Interchain with the given chain pair and relayer.
-func setupInterchain(
+// SetupInterchain builds an interchaintest.Interchain with the given chain pair and relayer.
+func SetupInterchain(
 	t *testing.T,
 	xion ibc.Chain,
 	counterparty ibc.Chain,
@@ -170,7 +187,6 @@ func setupInterchain(
 	dockerClient *client.Client,
 	dockerNetwork string,
 ) *interchaintest.Interchain {
-
 	// Configure Interchain
 	ic := interchaintest.NewInterchain().
 		AddChain(xion).
@@ -194,4 +210,65 @@ func setupInterchain(
 
 	require.NoError(t, err)
 	return ic
+}
+
+func SoftwareUpgrade(
+	t *testing.T,
+	chain *cosmos.CosmosChain,
+	upgradeName string,
+	dockerClient *client.Client,
+	dockerImageRepo, dockerImageVersion string,
+) {
+	ctx := context.Background()
+
+	// fund user
+	fundAmount := int64(10_000_000_000)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
+	chainUser := users[0]
+
+	// build govprop
+	height, err := chain.Height(ctx)
+	require.NoErrorf(t, err, "couldn't get chain height for proposal: %v", err)
+	haltHeight := height + haltHeightDelta - 3
+	proposal := cosmos.SoftwareUpgradeProposal{
+		Deposit:     fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
+		Title:       fmt.Sprintf("Software Upgrade %s", upgradeName),
+		Name:        upgradeName,
+		Description: fmt.Sprintf("Software Upgrade %s", upgradeName),
+		Height:      haltHeight,
+	}
+
+	// submit and vote on govprop
+	upgradeTx, err := chain.UpgradeProposal(ctx, chainUser.KeyName(), proposal)
+	require.NoErrorf(t, err, "couldn't submit software upgrade proposal tx: %v", err)
+	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoErrorf(t, err, "couldn't poll for proposal status: %v", err)
+	height, err = chain.Height(ctx)
+	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
+
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
+	defer timeoutCtxCancel()
+
+	// confirm chain halt
+	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height), chain)
+	height, err = chain.Height(ctx)
+	require.NoErrorf(t, err, "couldn't get chain height after chain should have halted: %v", err)
+	require.Equalf(t, haltHeight, height, "height: %d is not equal to halt height: %d", height, haltHeight)
+
+	// upgrade all nodes
+	err = chain.StopAllNodes(ctx)
+	require.NoErrorf(t, err, "couldn't stop nodes: %v", err)
+	chain.UpgradeVersion(ctx, dockerClient, dockerImageRepo, dockerImageVersion)
+
+	// reboot nodes
+	err = chain.StartAllNodes(ctx)
+	require.NoErrorf(t, err, "couldn't reboot nodes: %v", err)
+
+	timeoutCtx, timeoutCtxCancel = context.WithTimeout(ctx, time.Second*45)
+	defer timeoutCtxCancel()
+
+	err = testutil.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
+	require.NoError(t, err, "chain did not produce blocks after upgrade")
 }
