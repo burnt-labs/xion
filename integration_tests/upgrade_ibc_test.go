@@ -3,6 +3,7 @@ package integration_tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -24,44 +25,35 @@ func TestXionUpgradeIBC(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	// Setup Docker
-	dockerClient, dockerNetwork := interchaintest.DockerSetup(t)
-
-	// Build Relayer
-	rlyImage := relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main", rly.RlyDefaultUidGid)
-	rf := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t), rlyImage)
-	r := rf.Build(t, dockerClient, dockerNetwork)
-
 	// Setup loggers and reporters
 	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
 	require.NoError(t, err)
 	rep := testreporter.NewReporter(f)
 	eRep := rep.RelayerExecReporter(t)
 
+	// Build RelayerFactory
+	rlyImage := relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main", rly.RlyDefaultUidGid)
+	rf := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t), rlyImage)
+
 	// Configure Chains
 	chains := ConfigureChains(t, 1, 2)
 
-	// Test cases
+	// Define Test cases
 	testCases := []struct {
 		name        string
-		setup       func(t *testing.T, path string) (ibc.Chain, ibc.Chain)
+		setup       func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, interchaintest.RelayerFactory, ibc.Relayer)
 		conformance func(t *testing.T, ctx context.Context, client *client.Client, network string, srcChain, dstChain ibc.Chain, rf interchaintest.RelayerFactory, rep *testreporter.Reporter, relayerImpl ibc.Relayer, pathNames ...string)
 	}{
 		{
 			name: "xion-osmosis",
-			setup: func(t *testing.T, path string) (ibc.Chain, ibc.Chain) {
+			setup: func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, interchaintest.RelayerFactory, ibc.Relayer) {
+				// chains
 				xion, osmosis := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
-				setupInterchain(t, xion, osmosis, path, r, eRep, dockerClient, dockerNetwork)
-				return xion, osmosis
-			},
-			conformance: conformance.TestChainPair,
-		},
-		{
-			name: "xion-axelar",
-			setup: func(t *testing.T, path string) (ibc.Chain, ibc.Chain) {
-				xion, axelar := chains[0].(*cosmos.CosmosChain), chains[2].(*cosmos.CosmosChain)
-				setupInterchain(t, xion, axelar, path, r, eRep, dockerClient, dockerNetwork)
-				return xion, axelar
+				// relayer
+				r := rf.Build(t, dockerClient, dockerNetwork)
+				// setup
+				ic := setupInterchain(t, xion, osmosis, path, r, eRep, dockerClient, dockerNetwork)
+				return xion, osmosis, ic, rf, r
 			},
 			conformance: conformance.TestChainPair,
 		},
@@ -70,14 +62,22 @@ func TestXionUpgradeIBC(t *testing.T) {
 	// Run tests
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			chain1, chain2 := tc.setup(t, tc.name)
-			tc.conformance(t, ctx, dockerClient, dockerNetwork, chain1, chain2, nil, rep, r, tc.name)
+			dockerClient, dockerNetwork := interchaintest.DockerSetup(t)
+			chain1, chain2, ic, rf, r := tc.setup(t, tc.name, dockerClient, dockerNetwork)
+			defer ic.Close()
+			tc.conformance(t, ctx, dockerClient, dockerNetwork, chain1, chain2, rf, rep, r, tc.name)
 		})
 	}
 }
 
-// ConfigureChains creates a list of chains with the given number of full nodes and validators.
+// ConfigureChains creates a slice of ibc.Chain with the given number of full nodes and validators.
 func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain {
+
+	// must override Axelar's default override NoHostMount in yaml
+	// otherwise fails on `cp` on heighliner img as it's not available in the container
+	f := OverrideConfiguredChainsYaml(t)
+	defer os.Remove(f.Name())
+
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:    "xion",
@@ -159,7 +159,7 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 	return chains
 }
 
-// setupInterchain builds an Interchain with the given chain pair and relayer path.
+// setupInterchain builds an interchaintest.Interchain with the given chain pair and relayer.
 func setupInterchain(
 	t *testing.T,
 	xion ibc.Chain,
@@ -170,6 +170,7 @@ func setupInterchain(
 	dockerClient *client.Client,
 	dockerNetwork string,
 ) *interchaintest.Interchain {
+
 	// Configure Interchain
 	ic := interchaintest.NewInterchain().
 		AddChain(xion).
