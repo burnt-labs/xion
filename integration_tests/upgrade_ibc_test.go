@@ -213,6 +213,7 @@ func SetupInterchain(
 	return ic
 }
 
+// SoftwareUpgrade submits, votes and performs a software upgrade govprop on the given chain.
 func SoftwareUpgrade(
 	t *testing.T,
 	chain *cosmos.CosmosChain,
