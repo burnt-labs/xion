@@ -8,7 +8,7 @@ require (
 	github.com/CosmosContracts/juno/v21 v21.0.0
 	github.com/burnt-labs/xion v0.1.0
 	github.com/cosmos/cosmos-sdk v0.47.10
-	github.com/cosmos/ibc-go/v7 v7.3.1
+	github.com/cosmos/ibc-go/v7 v7.4.0
 	github.com/docker/docker v24.0.4+incompatible
 	github.com/golang-jwt/jwt/v4 v4.3.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
