@@ -240,7 +240,7 @@ func SoftwareUpgrade(
 	}
 
 	// submit and vote on govprop
-	upgradeTx, err := chain.UpgradeProposal(ctx, chainUser.KeyName(), proposal)
+	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), proposal)
 	require.NoErrorf(t, err, "couldn't submit software upgrade proposal tx: %v", err)
 	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
