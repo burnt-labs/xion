@@ -40,6 +40,7 @@ func MigrateStore(
 	errors := make(chan error, 1)
 	defer close(errors)
 	semaphore := make(chan struct{}, 10) // Limits the number of concurrent migrations
+	defer close(semaphore)
 
 	// iterate through all existing accounts at this code ID, and migrate them
 	wasmViewKeeper.IterateContractsByCode(ctx, originalCodeID, func(instance sdk.AccAddress) bool {
