@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
@@ -27,6 +28,7 @@ func MigrateStore(
 		return fmt.Errorf("expected one allowed code id for abstract account, got: %v", aaParams.AllowedCodeIDs)
 	}
 
+	ctx.Logger().Info(fmt.Sprintf("Migrating contracts to wasm codeID: %d", newCodeID))
 	originalCodeID := aaParams.AllowedCodeIDs[0]
 
 	// the account contract should always be pinned
@@ -42,6 +44,9 @@ func MigrateStore(
 	semaphore := make(chan struct{}, 10) // Limits the number of concurrent migrations
 	defer close(semaphore)
 
+	// counter for migrated contracts
+	var migratedCount uint64
+
 	// iterate through all existing accounts at this code ID, and migrate them
 	wasmViewKeeper.IterateContractsByCode(ctx, originalCodeID, func(instance sdk.AccAddress) bool {
 		semaphore <- struct{}{} // acquire semaphore
@@ -56,6 +61,9 @@ func MigrateStore(
 			if err != nil {
 				ctx.Logger().Error("Error migrating contract", "contract", instance.String(), "error", err.Error())
 				errors <- err
+			} else {
+				// safely increment the counter
+				atomic.AddUint64(&migratedCount, 1)
 			}
 		}(instance)
 
@@ -70,6 +78,8 @@ func MigrateStore(
 	default:
 		// No errors, proceed
 	}
+
+	ctx.Logger().Info(fmt.Sprintf("Total contracts migrated: %d", migratedCount))
 
 	// as the previous contract is no longer the main account target, it doesn't
 	// need to be pinned
