@@ -111,7 +111,7 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 				GasPrices:              "0.0uxion",
 				GasAdjustment:          1.3,
 				Type:                   "cosmos",
-				ChainID:                "xion-1",
+				ChainID:                "xion-integration-1",
 				Bin:                    "xiond",
 				Bech32Prefix:           "xion",
 				Denom:                  "uxion",
