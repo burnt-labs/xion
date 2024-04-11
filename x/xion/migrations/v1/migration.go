@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	"sync"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
@@ -10,9 +11,13 @@ import (
 	"github.com/burnt-labs/xion/x/xion/types"
 )
 
-func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wasmViewKeeper wasmtypes.ViewKeeper, aaKeeper types.AbstractAccountKeeper) error {
-	const NewCodeID = 2 // todo: set
-
+func MigrateStore(
+	ctx sdk.Context,
+	wasmOpsKeeper wasmtypes.ContractOpsKeeper,
+	wasmViewKeeper wasmtypes.ViewKeeper,
+	aaKeeper types.AbstractAccountKeeper,
+	newCodeID uint64,
+) error {
 	// get the previous account code ID
 	aaParams, err := aaKeeper.GetParams(ctx)
 	if err != nil {
@@ -25,20 +30,44 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 	originalCodeID := aaParams.AllowedCodeIDs[0]
 
 	// the account contract should always be pinned
-	err = wasmOpsKeeper.PinCode(ctx, NewCodeID)
+	err = wasmOpsKeeper.PinCode(ctx, newCodeID)
 	if err != nil {
 		return err
 	}
 
+	// setup concurrency control
+	var wg sync.WaitGroup
+	errors := make(chan error, 1)
+	defer close(errors)
+	semaphore := make(chan struct{}, 10) // Limits the number of concurrent migrations
+
 	// iterate through all existing accounts at this code ID, and migrate them
 	wasmViewKeeper.IterateContractsByCode(ctx, originalCodeID, func(instance sdk.AccAddress) bool {
-		_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, NewCodeID, []byte("{}"))
+		semaphore <- struct{}{} // acquire semaphore
+		wg.Add(1)
 
-		// if there is an error, return true (abort iteration) and report it
-		return err != nil
+		go func(instance sdk.AccAddress) {
+			defer wg.Done()
+			defer func() { <-semaphore }() // release semaphore
+
+			ctx.Logger().Info("Migrating contract", "contract", instance.String())
+			_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, newCodeID, []byte("{}"))
+			if err != nil {
+				ctx.Logger().Error("Error migrating contract", "contract", instance.String(), "error", err.Error())
+				errors <- err
+			}
+		}(instance)
+
+		return false
 	})
-	if err != nil {
+
+	wg.Wait()
+
+	select {
+	case err = <-errors:
 		return err
+	default:
+		// No errors, proceed
 	}
 
 	// as the previous contract is no longer the main account target, it doesn't
@@ -49,7 +78,7 @@ func MigrateStore(ctx sdk.Context, wasmOpsKeeper wasmtypes.ContractOpsKeeper, wa
 	}
 
 	// adjust the aa registration endpoint to point at the new code ID
-	aaParams.AllowedCodeIDs = []uint64{NewCodeID}
+	aaParams.AllowedCodeIDs = []uint64{newCodeID}
 	err = aaKeeper.SetParams(ctx, aaParams)
 	if err != nil {
 		return err
