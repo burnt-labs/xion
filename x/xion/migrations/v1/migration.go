@@ -28,7 +28,6 @@ func MigrateStore(
 		return fmt.Errorf("expected one allowed code id for abstract account, got: %v", aaParams.AllowedCodeIDs)
 	}
 
-	ctx.Logger().Info(fmt.Sprintf("Migrating contracts to wasm codeID: %d", newCodeID))
 	originalCodeID := aaParams.AllowedCodeIDs[0]
 
 	// the account contract should always be pinned
@@ -56,7 +55,7 @@ func MigrateStore(
 			defer wg.Done()
 			defer func() { <-semaphore }() // release semaphore
 
-			ctx.Logger().Info("Migrating contract", "contract", instance.String())
+			ctx.Logger().Info("Migrating contract", "instance", instance.String(), "newCodeID", newCodeID)
 			_, err = wasmOpsKeeper.Migrate(ctx, instance, instance, newCodeID, []byte("{}"))
 			if err != nil {
 				ctx.Logger().Error("Error migrating contract", "contract", instance.String(), "error", err.Error())
