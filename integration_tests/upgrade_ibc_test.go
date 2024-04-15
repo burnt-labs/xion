@@ -3,6 +3,7 @@ package integration_tests
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"os"
 	"testing"
 	"time"
@@ -228,11 +229,38 @@ func SoftwareUpgrade(
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
 	chainUser := users[0]
 
-	// build govprop
+	// build param change govprop
 	height, err := chain.Height(ctx)
-	require.NoErrorf(t, err, "couldn't get chain height for proposal: %v", err)
+	pcpj := &utils.ParamChangeProposalJSON{
+		Title:       "Abstract Account Param Change",
+		Description: "Abstract Account Param Change",
+		Changes: utils.ParamChangesJSON{
+			utils.NewParamChangeJSON("abstractaccount", "AllowedCodeIDs", []byte(`[21]`)),
+		},
+		Deposit: fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
+	}
+
+	// submit and vote on govprop
+	pcpTx, err := chain.ParamChangeProposal(ctx, "abstractaccount", pcpj)
+	require.NoErrorf(t, err, "couldn't build paramChangeProposal: %v", err)
+	err = chain.VoteOnProposalAllValidators(ctx, pcpTx.ProposalID, cosmos.ProposalVoteYes)
+	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, pcpTx.ProposalID, cosmos.ProposalStatusPassed)
+	require.NoErrorf(t, err, "couldn't poll for paramChangeProposal status: %v", err)
+	height, err = chain.Height(ctx)
+	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
+
+	// confirm param change
+	paramsResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
+		"params", "subspace", "abstractaccount", "AllowedCodeIDs")
+	require.NoError(t, err)
+	t.Logf("jwk params response: %v", paramsResp)
+
+	// build software upgrade govprop
+	height, err = chain.Height(ctx)
+	require.NoErrorf(t, err, "couldn't get chain height for softwareUpgradeProposal: %v", err)
 	haltHeight := height + haltHeightDelta - 3
-	proposal := cosmos.SoftwareUpgradeProposal{
+	softwareUpgradeProposal := cosmos.SoftwareUpgradeProposal{
 		Deposit:     fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
 		Title:       fmt.Sprintf("Software Upgrade %s", upgradeName),
 		Name:        upgradeName,
@@ -241,12 +269,12 @@ func SoftwareUpgrade(
 	}
 
 	// submit and vote on govprop
-	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), proposal)
-	require.NoErrorf(t, err, "couldn't submit software upgrade proposal tx: %v", err)
+	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), softwareUpgradeProposal)
+	require.NoErrorf(t, err, "couldn't submit software upgrade softwareUpgradeProposal tx: %v", err)
 	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
 	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
 	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoErrorf(t, err, "couldn't poll for proposal status: %v", err)
+	require.NoErrorf(t, err, "couldn't poll for softwareUpgradeProposal status: %v", err)
 	height, err = chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
 
