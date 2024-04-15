@@ -2,6 +2,7 @@ package integration_tests
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -29,6 +30,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
+
+//go:embed configuredChains.yaml
+var configuredChainsFile embed.FS
 
 const (
 	votingPeriod     = "10s"
@@ -168,7 +172,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				GasPrices:              gas,
 				GasAdjustment:          1.3,
 				Type:                   "cosmos",
-				ChainID:                "xion-1",
+				ChainID:                "xion-integration-1",
 				Bin:                    "xiond",
 				Bech32Prefix:           "xion",
 				Denom:                  "uxion",
@@ -713,4 +717,34 @@ func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	t.Log(results)
 
 	return results.AuthorityMetadata.Admin
+}
+
+// OverrideConfiguredChainsYaml overrides the interchaintests configuredChains.yaml file with an embedded tmpfile
+func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
+	// Extract the embedded file to a temporary file
+	tempFile, err := os.CreateTemp("", "configuredChains-*.yaml")
+	if err != nil {
+		t.Errorf("error creating temporary file: %v", err)
+	}
+
+	content, err := configuredChainsFile.ReadFile("configuredChains.yaml")
+	if err != nil {
+		t.Errorf("error reading embedded file: %v", err)
+	}
+
+	if _, err := tempFile.Write(content); err != nil {
+		t.Errorf("error writing to temporary file: %v", err)
+	}
+	if err := tempFile.Close(); err != nil {
+		t.Errorf("error closing temporary file: %v", err)
+	}
+
+	// Set the environment variable to the path of the temporary file
+	err = os.Setenv("IBCTEST_CONFIGURED_CHAINS", tempFile.Name())
+	t.Logf("set env var IBCTEST_CONFIGURED_CHAINS to %s", tempFile.Name())
+	if err != nil {
+		t.Errorf("error setting env var: %v", err)
+	}
+
+	return tempFile
 }

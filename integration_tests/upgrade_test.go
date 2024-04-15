@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	interchaintest "github.com/strangelove-ventures/interchaintest/v7"
+	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 	"github.com/stretchr/testify/require"
@@ -25,21 +25,21 @@ const (
 * 4- Build using heighliner pass in the flag `-t upgrade`. (for instructions on how to build check README.md on the root of the project)
 * 5- Mark upgrade name as the last parameter of the function
 * 6- cd integration_test
-* 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgradeIBC ./...
+* 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgrade ./...
 
 As of Aug 17 2023 this is the necessary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
 current-testnet: v0.3.4
 step between: v0.3.5
 upgrade-version: v0.3.6
 */
-func TestXionUpgradeIBC(t *testing.T) {
+func TestXionUpgrade(t *testing.T) {
 	t.Parallel()
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
-	CosmosChainUpgradeIBCTest(t, &td, "xion", "upgrade", "v4")
+	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v4")
 }
 
-func CosmosChainUpgradeIBCTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
+func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
 	// t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 	chain, ctx, client := td.xionChain, td.ctx, td.client
 
