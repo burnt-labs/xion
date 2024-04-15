@@ -3,7 +3,6 @@ package integration_tests
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"os"
 	"testing"
 	"time"
@@ -61,7 +60,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 			conformance:         conformance.TestChainPair,
 			upgrade:             SoftwareUpgrade,
 			upgradeName:         "v6",
-			upgradeImageVersion: "sha-872993e",
+			upgradeImageVersion: "sha-f7f7132",
 		},
 		//{
 		//	name: "xion-axelar",
@@ -229,35 +228,8 @@ func SoftwareUpgrade(
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
 	chainUser := users[0]
 
-	// build param change govprop
-	height, err := chain.Height(ctx)
-	pcpj := &utils.ParamChangeProposalJSON{
-		Title:       "Abstract Account Param Change",
-		Description: "Abstract Account Param Change",
-		Changes: utils.ParamChangesJSON{
-			utils.NewParamChangeJSON("abstractaccount", "AllowedCodeIDs", []byte(`[21]`)),
-		},
-		Deposit: fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
-	}
-
-	// submit and vote on govprop
-	pcpTx, err := chain.ParamChangeProposal(ctx, "abstractaccount", pcpj)
-	require.NoErrorf(t, err, "couldn't build paramChangeProposal: %v", err)
-	err = chain.VoteOnProposalAllValidators(ctx, pcpTx.ProposalID, cosmos.ProposalVoteYes)
-	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, pcpTx.ProposalID, cosmos.ProposalStatusPassed)
-	require.NoErrorf(t, err, "couldn't poll for paramChangeProposal status: %v", err)
-	height, err = chain.Height(ctx)
-	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
-
-	// confirm param change
-	paramsResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
-		"params", "subspace", "abstractaccount", "AllowedCodeIDs")
-	require.NoError(t, err)
-	t.Logf("jwk params response: %v", paramsResp)
-
 	// build software upgrade govprop
-	height, err = chain.Height(ctx)
+	height, err := chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height for softwareUpgradeProposal: %v", err)
 	haltHeight := height + haltHeightDelta - 3
 	softwareUpgradeProposal := cosmos.SoftwareUpgradeProposal{
@@ -268,7 +240,7 @@ func SoftwareUpgrade(
 		Height:      haltHeight,
 	}
 
-	// submit and vote on govprop
+	// submit and vote on software upgrade
 	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), softwareUpgradeProposal)
 	require.NoErrorf(t, err, "couldn't submit software upgrade softwareUpgradeProposal tx: %v", err)
 	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
