@@ -6,12 +6,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-/*
-const NewDenomCreationGasConsume uint64 = 2_000_000
-
-var DenomCreationFee = sdk.NewCoins(sdk.NewInt64Coin(`uxion`, 50_000_000))
-*/
-
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
@@ -24,7 +18,7 @@ func CreateUpgradeHandler(
 			return vm, err
 		}
 
-		ctx.Logger().Info("Upgrade complete")
+		ctx.Logger().Info("Upgrade v6 complete")
 		return vm, err
 	}
 }

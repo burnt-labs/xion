@@ -95,10 +95,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	m := keeper.NewMigrator(am.keeper.ContractOpsKeeper, am.keeper.ContractViewKeeper, am.keeper.AAKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
-		panic(fmt.Sprintf("failed to migrate x/xion from version 1 to 2: %v", err))
-	}
+	// TODO(froch, 20240415): Migration to be applied later
+	// m := keeper.NewMigrator(am.keeper.ContractOpsKeeper, am.keeper.ContractViewKeeper, am.keeper.AAKeeper)
+	// if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+	//	panic(fmt.Sprintf("failed to migrate x/xion from version 1 to 2: %v", err))
+	// }
 }
 
 // InitGenesis performs genesis initialization for the ibc-29-fee module. It returns
@@ -118,7 +119,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
