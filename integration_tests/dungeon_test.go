@@ -95,7 +95,7 @@ func TestDungeonTransferBlock(t *testing.T) {
 				GasPrices:              "0.0uxion",
 				GasAdjustment:          1.3,
 				Type:                   "cosmos",
-				ChainID:                "xion-integration-1",
+				ChainID:                "xion-1",
 				Bin:                    "xiond",
 				Bech32Prefix:           "xion",
 				Denom:                  "uxion",

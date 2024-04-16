@@ -172,7 +172,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				GasPrices:              gas,
 				GasAdjustment:          1.3,
 				Type:                   "cosmos",
-				ChainID:                "xion-integration-1",
+				ChainID:                "xion-1",
 				Bin:                    "xiond",
 				Bech32Prefix:           "xion",
 				Denom:                  "uxion",

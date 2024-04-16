@@ -28,7 +28,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	case "xion-testnet-1":
 		newCodeID := uint64(327)
 		return v1.MigrateStore(ctx, m.wasmOpsKeeper, m.wasmViewKeeper, m.aaKeeper, newCodeID)
-	case "xion-integration-1":
+	case "xion-1": // integration tests chainID
 		newCodeID := uint64(2)
 		return v1.MigrateStore(ctx, m.wasmOpsKeeper, m.wasmViewKeeper, m.aaKeeper, newCodeID)
 	default:
