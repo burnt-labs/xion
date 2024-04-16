@@ -1,6 +1,8 @@
 package types // noalias
 
 import (
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -35,4 +37,16 @@ type BankKeeper interface {
 
 type AccountKeeper interface {
 	GetModuleAccount(ctx sdktypes.Context, moduleName string) authtypes.ModuleAccountI
+}
+
+type WasmKeeper interface {
+	Migrate(ctx sdktypes.Context, contractAddress, caller sdktypes.AccAddress, newCodeID uint64, msg []byte) ([]byte, error)
+	IterateContractsByCode(ctx sdktypes.Context, codeID uint64, cb func(address sdktypes.AccAddress) bool)
+	PinCode(ctx sdktypes.Context, codeID uint64) error
+	UnpinCode(ctx sdktypes.Context, codeID uint64) error
+}
+
+type AbstractAccountKeeper interface {
+	GetParams(ctx sdktypes.Context) (*aatypes.Params, error)
+	SetParams(ctx sdktypes.Context, params *aatypes.Params) error
 }

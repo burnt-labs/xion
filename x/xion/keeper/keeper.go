@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/math"
@@ -14,11 +16,14 @@ import (
 )
 
 type Keeper struct {
-	cdc           codec.BinaryCodec
-	storeKey      storetypes.StoreKey
-	paramSpace    paramtypes.Subspace
-	bankKeeper    types.BankKeeper
-	accountKeeper types.AccountKeeper
+	cdc                codec.BinaryCodec
+	storeKey           storetypes.StoreKey
+	paramSpace         paramtypes.Subspace
+	bankKeeper         types.BankKeeper
+	accountKeeper      types.AccountKeeper
+	ContractOpsKeeper  wasmtypes.ContractOpsKeeper
+	ContractViewKeeper wasmtypes.ViewKeeper
+	AAKeeper           types.AbstractAccountKeeper
 
 	// the address capable of executing a MsgSetPlatformPercentage message.
 	// Typically, this should be the x/gov module account
@@ -30,15 +35,21 @@ func NewKeeper(cdc codec.BinaryCodec,
 	paramSpace paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
+	wasmOpsKeeper wasmtypes.ContractOpsKeeper,
+	wasmViewKeeper wasmtypes.ViewKeeper,
+	aaKeeper types.AbstractAccountKeeper,
 	authority string,
 ) Keeper {
 	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		paramSpace:    paramSpace,
-		bankKeeper:    bankKeeper,
-		accountKeeper: accountKeeper,
-		authority:     authority,
+		storeKey:           key,
+		cdc:                cdc,
+		paramSpace:         paramSpace,
+		bankKeeper:         bankKeeper,
+		accountKeeper:      accountKeeper,
+		ContractOpsKeeper:  wasmOpsKeeper,
+		ContractViewKeeper: wasmViewKeeper,
+		AAKeeper:           aaKeeper,
+		authority:          authority,
 	}
 }
 

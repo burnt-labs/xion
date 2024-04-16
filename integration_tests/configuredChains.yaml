@@ -1,0 +1,45 @@
+## NOTICE: This file gets embedded into interchaintest binary.
+## Set the environment variable: IBCTEST_CONFIGURED_CHAINS to a path
+## to use custom versions of this file
+
+axelar:
+  name: axelar
+  type: cosmos
+  bin: axelard
+  bech32-prefix: axelar
+  denom: uaxl
+  gas-prices: 0.01uaxl
+  gas-adjustment: 1.3
+  trusting-period: 168h
+  images:
+    - repository: ghcr.io/strangelove-ventures/heighliner/axelar
+      uid-gid: 1025:1025
+  no-host-mount: false
+
+osmosis:
+  name: osmosis
+  type: cosmos
+  bin: osmosisd
+  bech32-prefix: osmo
+  denom: uosmo
+  gas-prices: 0.0025uosmo
+  gas-adjustment: 1.3
+  trusting-period: 336h
+  images:
+    - repository: ghcr.io/strangelove-ventures/heighliner/osmosis
+      uid-gid: 1025:1025
+  no-host-mount: false
+
+xion:
+  name: xion
+  type: cosmos
+  bin: xiond
+  bech32-prefix: xion
+  denom: uxion
+  gas-prices: 0.0uxion
+  gas-adjustment: 1.3
+  trusting-period: 336h
+  images:
+    - repository: ghcr.io/burnt-labs/xion/xion
+      uid-gid: 1025:1025
+  no-host-mount: false
