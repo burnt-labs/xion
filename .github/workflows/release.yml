@@ -52,7 +52,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          target: xion-release
+          target: release
 
       - name: Copy xiond binary from linux/amd64 container
         id: copy-binary-amd64
