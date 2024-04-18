@@ -102,7 +102,12 @@ func (msg *MsgUpdateAudience) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateAudience) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Admin)
+	_, err := sdk.AccAddressFromBech32(msg.NewAdmin)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
+	_, err = sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
