@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -177,8 +178,15 @@ func TestXionAbstractAccount(t *testing.T) {
 		"-p",
 	)
 
-	jsonExecMsg := RawJSONMsgExecContractNewPubKey(t, aaContractAddr, aaContractAddr, fmt.Sprintf("%s", account["key"]))
+	// add secondary authenticator to account. in this case, the same key but in a different position
+	jsonExecMsgStr, err := GenerateTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"xion", "add-authenticator", aaContractAddr,
+		"--authenticator-id", "1",
+		"--chain-id", xion.Config().ChainID,
+	)
 	require.NoError(t, err)
+	jsonExecMsg := []byte(jsonExecMsgStr)
 	require.True(t, json.Valid(jsonExecMsg))
 
 	rotateFile, err := os.CreateTemp("", "*-msg-exec-rotate-key.json")
@@ -192,6 +200,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	rotateFilePath := strings.Split(rotateFile.Name(), "/")
+
 	_, err = ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"xion", "sign",
@@ -201,18 +210,63 @@ func TestXionAbstractAccount(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	updatedContractstate, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
+	//rotateTxDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", rotateKeyTxHash)
+	//require.NoError(t, err)
+	//t.Logf("TxDetails: %s", rotateTxDetails)
+
+	updatedContractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 1 }}`)
 	require.NoError(t, err)
 
-	updatedPubKey, ok := updatedContractstate["data"].(string)
+	updatedPubKey, ok := updatedContractState["data"].(string)
 	require.True(t, ok)
 
 	updatedPubKeyRawJSON, err := base64.StdEncoding.DecodeString(updatedPubKey)
 	require.NoError(t, err)
 	var updatedPubKeyMap jsonAuthenticator
 
-	json.Unmarshal(updatedPubKeyRawJSON, &updatedPubKeyMap)
+	err = json.Unmarshal(updatedPubKeyRawJSON, &updatedPubKeyMap)
+	require.NoError(t, err)
 	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
+
+	// delete the original key
+	jsonExecMsg = RawJSONMsgExecContractRemoveAuthenticator(aaContractAddr, aaContractAddr, 0)
+	require.True(t, json.Valid(jsonExecMsg))
+
+	removeFile, err := os.CreateTemp("", "*-msg-exec-remove-key.json")
+	require.NoError(t, err)
+	defer os.Remove(removeFile.Name())
+
+	_, err = removeFile.Write(jsonExecMsg)
+	require.NoError(t, err)
+
+	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], removeFile)
+	require.NoError(t, err)
+
+	removeFilePath := strings.Split(removeFile.Name(), "/")
+
+	_, err = ExecTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"xion", "sign",
+		xionUser.KeyName(),
+		path.Join(xion.FullNodes[0].HomeDir(), removeFilePath[len(removeFilePath)-1]),
+		"--chain-id", xion.Config().ChainID,
+		"--authenticator-id", "1",
+	)
+	require.NoError(t, err)
+
+	// validate original key was deleted
+	updatedContractState, err = ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_i_ds":{}}`)
+	require.NoError(t, err)
+	resp := updatedContractState["data"]
+	t.Logf("type: %v %T", resp, resp)
+	rv := reflect.ValueOf(resp)
+	if rv.Kind() == reflect.Slice {
+		require.Equal(t, 1, rv.Len())
+		require.Equal(t, uint8(1), uint8(rv.Index(0).Interface().(float64)))
+
+	} else {
+		require.Fail(t, "response not a slice")
+	}
 }
 
 func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string {
