@@ -209,11 +209,6 @@ func TestXionAbstractAccount(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
-
-	//rotateTxDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", rotateKeyTxHash)
-	//require.NoError(t, err)
-	//t.Logf("TxDetails: %s", rotateTxDetails)
-
 	updatedContractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 1 }}`)
 	require.NoError(t, err)
 
