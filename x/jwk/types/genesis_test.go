@@ -1,11 +1,12 @@
 package types_test
 
 import (
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
