@@ -37,7 +37,7 @@ func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAud
 		ctx,
 		audience,
 	)
-	return &types.MsgCreateAudienceResponse{}, nil
+	return &types.MsgCreateAudienceResponse{Audience: &audience}, nil
 }
 
 func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAudience) (*types.MsgUpdateAudienceResponse, error) {
@@ -66,7 +66,7 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 
 	k.SetAudience(ctx, audience)
 
-	return &types.MsgUpdateAudienceResponse{}, nil
+	return &types.MsgUpdateAudienceResponse{Audience: &audience}, nil
 }
 
 func (k msgServer) DeleteAudience(goCtx context.Context, msg *types.MsgDeleteAudience) (*types.MsgDeleteAudienceResponse, error) {
