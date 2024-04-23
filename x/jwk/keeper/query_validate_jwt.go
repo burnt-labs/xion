@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -31,7 +32,7 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, err
 	}
 
-	if _, err := jwt.Parse([]byte(req.SigBytes),
+	token, err := jwt.Parse([]byte(req.SigBytes),
 		jwt.WithKey(key.Algorithm(), key),
 		jwt.WithAudience(req.Aud),
 		jwt.WithSubject(req.Sub),
@@ -40,9 +41,28 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 			return ctx.BlockTime().Add(time.Duration(k.GetTimeOffset(ctx)))
 		})),
 		jwt.WithValidate(true),
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
+	// returning maps in protobufs can get hairy, we return a list instead
+	privateClaimsMap := token.PrivateClaims()
+	privateClaims := make([]*types.PrivateClaim, len(privateClaimsMap))
 
-	return &types.QueryValidateJWTResponse{}, nil
+	var i = 0
+	for k, v := range privateClaimsMap {
+		privateClaims[i] = &types.PrivateClaim{
+			Key:   k,
+			Value: v.(string),
+		}
+		i++
+	}
+	// even though there should be no duplicates, sort this deterministically
+	sort.SliceStable(privateClaims, func(i, j int) bool {
+		return privateClaims[i].Key < privateClaims[j].Key
+	})
+
+	return &types.QueryValidateJWTResponse{
+		PrivateClaims: privateClaims,
+	}, nil
 }
