@@ -45,7 +45,7 @@ func TestStargateTestSuite(t *testing.T) {
 
 func SetupKeys(suite *StargateTestSuite) *rsa.PrivateKey {
 	// CreateAudience
-	privateKeyBz, err := os.ReadFile("./keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile("./testdata/keys/jwtRS256.key")
 	suite.Require().NoError(err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	suite.Require().NoError(err)
