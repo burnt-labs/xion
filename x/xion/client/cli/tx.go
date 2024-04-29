@@ -35,6 +35,8 @@ const (
 	flagFunds           = "funds"
 	flagAuthenticator   = "authenticator"
 	flagAuthenticatorID = "authenticator-id"
+	flagAudience        = "aud"
+	flagSubject         = "sub"
 )
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
@@ -174,7 +176,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 
 func NewRegisterCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register [code-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required] --authenticator-id [uint8]",
+		Use:   "register [code-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required] --authenticator-id [uint8] --aud [string] --sub [string]",
 		Short: "Register an abstract account",
 		Args:  cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -238,6 +240,7 @@ func NewRegisterCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("error signing predicted address : %s", err)
 			}
+			// Split using switch,
 
 			instantiateMsg := map[string]interface{}{}
 			authenticatorDetails := map[string]interface{}{}
@@ -276,6 +279,8 @@ func NewRegisterCmd() *cobra.Command {
 	cmd.Flags().String(flagAuthenticator, "", "Authenticator type: Seckp256K1|JWT")
 	cmd.Flags().String(flagFunds, "", "Coins to send to the account during instantiation")
 	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
+	cmd.Flags().String(flagAudience, "", "Recipient for the token")
+	cmd.Flags().String(flagSubject, "", "Principal for the token")
 
 	return cmd
 }
