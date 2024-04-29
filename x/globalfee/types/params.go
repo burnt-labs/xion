@@ -10,6 +10,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
@@ -26,6 +27,7 @@ var (
 	DefaultBypassMinFeeMsgTypes = []string{
 		sdk.MsgTypeURL(&xiontypes.MsgSend{}),
 		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
+		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudienceResponse{}),
 	}
 
 	// maxTotalBypassMinFeeMsgGasUsage is the allowed maximum gas usage
