@@ -27,7 +27,7 @@ var (
 	DefaultBypassMinFeeMsgTypes = []string{
 		sdk.MsgTypeURL(&xiontypes.MsgSend{}),
 		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
-		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudienceResponse{}),
+		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudience{}),
 	}
 
 	// maxTotalBypassMinFeeMsgGasUsage is the allowed maximum gas usage
