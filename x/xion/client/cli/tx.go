@@ -240,34 +240,35 @@ func NewRegisterCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("error signing predicted address : %s", err)
 			}
-			// Split using switch,
-
-			instantiateMsg := map[string]interface{}{}
-			authenticatorDetails := map[string]interface{}{}
-			authenticator := map[string]interface{}{}
-
-			authenticatorDetails["id"] = authenticatorID
-			authenticatorDetails["pubkey"] = pubKey.Bytes()
-			authenticatorDetails["signature"] = signature
-			authenticator[authenticatorType] = authenticatorDetails
-
-			instantiateMsg["authenticator"] = authenticator
-			instantiateMsgStr, err := json.Marshal(instantiateMsg)
-			if err != nil {
-				return fmt.Errorf("error signing contract msg : %s", err)
+			// TODO: Split authenticator types using switch,
+			var instantiateMsg string
+			switch authenticatorType {
+			case "Jwt":
+				instantiateMsg, err = newInstantiateMsg(authenticatorType, authenticatorID, signature, pubKey.Bytes())
+				if err != nil {
+					return err
+				}
+			default:
+				instantiateMsg, err = newInstantiateMsg(authenticatorType, authenticatorID, signature, pubKey.Bytes())
+				if err != nil {
+					return err
+				}
 			}
 
-			msg := &aatypes.MsgRegisterAccount{
-				Sender: clientCtx.GetFromAddress().String(),
-				CodeID: codeID,
-				Msg:    []byte(string(instantiateMsgStr)),
-				Funds:  amount,
-				Salt:   []byte(salt),
-			}
-
+			msg := registerMsg(clientCtx.GetFromAddress().String(), salt, instantiateMsg, codeID, amount)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
+			/*
+				msg := &aatypes.MsgRegisterAccount{
+					Sender: clientCtx.GetFromAddress().String(),
+					CodeID: codeID,
+					Msg:    []byte(string(instantiateMsgStr)),
+					Funds:  amount,
+					Salt:   []byte(salt),
+				}
+			*/
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 		SilenceUsage: true,
@@ -428,4 +429,33 @@ func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.Ab
 
 func typeURL(x proto.Message) string {
 	return "/" + proto.MessageName(x)
+}
+
+func registerMsg(sender, salt, instantiateMsg string, codeID uint64, amount sdk.Coins) *aatypes.MsgRegisterAccount {
+	msg := &aatypes.MsgRegisterAccount{
+		Sender: sender,
+		CodeID: codeID,
+		Msg:    []byte(string(instantiateMsg)),
+		Funds:  amount,
+		Salt:   []byte(salt),
+	}
+	return msg
+}
+
+func newInstantiateMsg(authenticatorType string, authenticatorID uint8, signature, pubKey []byte) (string, error) {
+	instantiateMsg := map[string]interface{}{}
+	authenticatorDetails := map[string]interface{}{}
+	authenticator := map[string]interface{}{}
+
+	authenticatorDetails["id"] = authenticatorID
+	authenticatorDetails["pubkey"] = pubKey
+	authenticatorDetails["signature"] = signature
+	authenticator[authenticatorType] = authenticatorDetails
+
+	instantiateMsg["authenticator"] = authenticator
+	instantiateMsgStr, err := json.Marshal(instantiateMsg)
+	if err != nil {
+		return "", fmt.Errorf("error signing contract msg : %s", err)
+	}
+	return string(instantiateMsgStr), nil
 }
