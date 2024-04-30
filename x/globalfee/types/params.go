@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -11,6 +10,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 

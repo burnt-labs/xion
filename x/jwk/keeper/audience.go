@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 func (k Keeper) SetAudienceClaim(ctx sdk.Context, hash []byte, signer sdk.AccAddress) {
