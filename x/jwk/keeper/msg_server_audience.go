@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -12,6 +13,51 @@ import (
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
+func (k msgServer) CreateAudienceClaim(goCtx context.Context, msg *types.MsgCreateAudienceClaim) (*types.MsgCreateAudienceClaimResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// check if the audience is already claimed
+	_, isFound := k.GetAudienceClaim(
+		ctx,
+		msg.AudHash,
+	)
+	if isFound {
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "audience already claimed")
+	}
+
+	// extra gas consumed to dis-incentivize spamming
+	ctx.GasMeter().ConsumeGas(k.GetDeploymentGas(ctx), fmt.Sprintf("gas for audience in jwt verifier %b", msg.AudHash))
+
+	k.SetAudienceClaim(ctx, msg.AudHash, sdk.AccAddress(msg.Admin))
+
+	return &types.MsgCreateAudienceClaimResponse{}, nil
+}
+
+func (k msgServer) DeleteAudienceClaim(goCtx context.Context, msg *types.MsgDeleteAudienceClaim) (*types.MsgDeleteAudienceClaimResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Check if the value exists
+	valFound, isFound := k.GetAudienceClaim(
+		ctx,
+		msg.AudHash,
+	)
+	if !isFound {
+		return nil, errorsmod.Wrap(sdkerrors.ErrKeyNotFound, "index not set")
+	}
+
+	// Checks if the msg admin is the same as the current owner
+	if msg.Admin != valFound.Signer {
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "incorrect owner")
+	}
+
+	k.RemoveAudienceClaim(
+		ctx,
+		msg.AudHash,
+	)
+
+	return &types.MsgDeleteAudienceClaimResponse{}, nil
+}
+
 func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAudience) (*types.MsgCreateAudienceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -21,7 +67,21 @@ func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAud
 		msg.Aud,
 	)
 	if isFound {
-		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "index already set")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "audience already created")
+	}
+
+	audHash, err := base64.URLEncoding.DecodeString(msg.Aud)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "invalid base64: %s", msg.Aud)
+	}
+
+	claim, isFound := k.GetAudienceClaim(ctx, audHash)
+	if !isFound {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrNotFound, "claim not found for aud %s", msg.Aud)
+	}
+
+	if claim.Signer != msg.Admin {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrorInvalidSigner, "expected %s, got %s", claim.Signer, msg.Admin)
 	}
 
 	audience := types.Audience{
@@ -29,9 +89,6 @@ func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAud
 		Aud:   msg.Aud,
 		Key:   msg.Key,
 	}
-
-	// extra gas consumed to dis-incentivize spamming
-	ctx.GasMeter().ConsumeGas(k.GetDeploymentGas(ctx), fmt.Sprintf("gas for jwt verifier %s", msg.Aud))
 
 	k.SetAudience(
 		ctx,
@@ -62,6 +119,34 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 		Admin: msg.NewAdmin,
 		Aud:   msg.Aud,
 		Key:   msg.Key,
+	}
+
+	// if changing the aud, make sure a claim exists under this admin, and that it won't override
+	if valFound.Aud != msg.Aud {
+		// Check if the value already exists
+		_, isFound := k.GetAudience(
+			ctx,
+			msg.Aud,
+		)
+		if isFound {
+			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "audience already created")
+		}
+
+		audHash, err := base64.URLEncoding.DecodeString(msg.Aud)
+		if err != nil {
+			return nil, errorsmod.Wrapf(err, "invalid base64: %s", msg.Aud)
+		}
+
+		claim, isFound := k.GetAudienceClaim(ctx, audHash)
+		if !isFound {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrNotFound, "claim not found for aud %s", msg.Aud)
+		}
+
+		if claim.Signer != msg.Admin {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrorInvalidSigner, "expected %s, got %s", claim.Signer, msg.Admin)
+		}
+
+		k.RemoveAudience(ctx, valFound.Aud)
 	}
 
 	k.SetAudience(ctx, audience)

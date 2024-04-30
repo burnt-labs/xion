@@ -27,6 +27,182 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type MsgCreateAudienceClaim struct {
+	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
+}
+
+func (m *MsgCreateAudienceClaim) Reset()         { *m = MsgCreateAudienceClaim{} }
+func (m *MsgCreateAudienceClaim) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateAudienceClaim) ProtoMessage()    {}
+func (*MsgCreateAudienceClaim) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb37d2745ede75df, []int{0}
+}
+func (m *MsgCreateAudienceClaim) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCreateAudienceClaim) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCreateAudienceClaim.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCreateAudienceClaim) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateAudienceClaim.Merge(m, src)
+}
+func (m *MsgCreateAudienceClaim) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCreateAudienceClaim) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateAudienceClaim.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCreateAudienceClaim proto.InternalMessageInfo
+
+func (m *MsgCreateAudienceClaim) GetAdmin() string {
+	if m != nil {
+		return m.Admin
+	}
+	return ""
+}
+
+func (m *MsgCreateAudienceClaim) GetAudHash() []byte {
+	if m != nil {
+		return m.AudHash
+	}
+	return nil
+}
+
+type MsgCreateAudienceClaimResponse struct {
+}
+
+func (m *MsgCreateAudienceClaimResponse) Reset()         { *m = MsgCreateAudienceClaimResponse{} }
+func (m *MsgCreateAudienceClaimResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateAudienceClaimResponse) ProtoMessage()    {}
+func (*MsgCreateAudienceClaimResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb37d2745ede75df, []int{1}
+}
+func (m *MsgCreateAudienceClaimResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCreateAudienceClaimResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCreateAudienceClaimResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCreateAudienceClaimResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateAudienceClaimResponse.Merge(m, src)
+}
+func (m *MsgCreateAudienceClaimResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCreateAudienceClaimResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateAudienceClaimResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCreateAudienceClaimResponse proto.InternalMessageInfo
+
+type MsgDeleteAudienceClaim struct {
+	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
+}
+
+func (m *MsgDeleteAudienceClaim) Reset()         { *m = MsgDeleteAudienceClaim{} }
+func (m *MsgDeleteAudienceClaim) String() string { return proto.CompactTextString(m) }
+func (*MsgDeleteAudienceClaim) ProtoMessage()    {}
+func (*MsgDeleteAudienceClaim) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb37d2745ede75df, []int{2}
+}
+func (m *MsgDeleteAudienceClaim) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeleteAudienceClaim) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeleteAudienceClaim.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeleteAudienceClaim) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeleteAudienceClaim.Merge(m, src)
+}
+func (m *MsgDeleteAudienceClaim) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeleteAudienceClaim) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeleteAudienceClaim.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeleteAudienceClaim proto.InternalMessageInfo
+
+func (m *MsgDeleteAudienceClaim) GetAdmin() string {
+	if m != nil {
+		return m.Admin
+	}
+	return ""
+}
+
+func (m *MsgDeleteAudienceClaim) GetAudHash() []byte {
+	if m != nil {
+		return m.AudHash
+	}
+	return nil
+}
+
+type MsgDeleteAudienceClaimResponse struct {
+}
+
+func (m *MsgDeleteAudienceClaimResponse) Reset()         { *m = MsgDeleteAudienceClaimResponse{} }
+func (m *MsgDeleteAudienceClaimResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDeleteAudienceClaimResponse) ProtoMessage()    {}
+func (*MsgDeleteAudienceClaimResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cb37d2745ede75df, []int{3}
+}
+func (m *MsgDeleteAudienceClaimResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeleteAudienceClaimResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeleteAudienceClaimResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeleteAudienceClaimResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeleteAudienceClaimResponse.Merge(m, src)
+}
+func (m *MsgDeleteAudienceClaimResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeleteAudienceClaimResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeleteAudienceClaimResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeleteAudienceClaimResponse proto.InternalMessageInfo
+
 type MsgCreateAudience struct {
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
 	Aud   string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
@@ -37,7 +213,7 @@ func (m *MsgCreateAudience) Reset()         { *m = MsgCreateAudience{} }
 func (m *MsgCreateAudience) String() string { return proto.CompactTextString(m) }
 func (*MsgCreateAudience) ProtoMessage()    {}
 func (*MsgCreateAudience) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb37d2745ede75df, []int{0}
+	return fileDescriptor_cb37d2745ede75df, []int{4}
 }
 func (m *MsgCreateAudience) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -94,7 +270,7 @@ func (m *MsgCreateAudienceResponse) Reset()         { *m = MsgCreateAudienceResp
 func (m *MsgCreateAudienceResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgCreateAudienceResponse) ProtoMessage()    {}
 func (*MsgCreateAudienceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb37d2745ede75df, []int{1}
+	return fileDescriptor_cb37d2745ede75df, []int{5}
 }
 func (m *MsgCreateAudienceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -134,7 +310,7 @@ func (m *MsgUpdateAudience) Reset()         { *m = MsgUpdateAudience{} }
 func (m *MsgUpdateAudience) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateAudience) ProtoMessage()    {}
 func (*MsgUpdateAudience) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb37d2745ede75df, []int{2}
+	return fileDescriptor_cb37d2745ede75df, []int{6}
 }
 func (m *MsgUpdateAudience) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -198,7 +374,7 @@ func (m *MsgUpdateAudienceResponse) Reset()         { *m = MsgUpdateAudienceResp
 func (m *MsgUpdateAudienceResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateAudienceResponse) ProtoMessage()    {}
 func (*MsgUpdateAudienceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb37d2745ede75df, []int{3}
+	return fileDescriptor_cb37d2745ede75df, []int{7}
 }
 func (m *MsgUpdateAudienceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -236,7 +412,7 @@ func (m *MsgDeleteAudience) Reset()         { *m = MsgDeleteAudience{} }
 func (m *MsgDeleteAudience) String() string { return proto.CompactTextString(m) }
 func (*MsgDeleteAudience) ProtoMessage()    {}
 func (*MsgDeleteAudience) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb37d2745ede75df, []int{4}
+	return fileDescriptor_cb37d2745ede75df, []int{8}
 }
 func (m *MsgDeleteAudience) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -286,7 +462,7 @@ func (m *MsgDeleteAudienceResponse) Reset()         { *m = MsgDeleteAudienceResp
 func (m *MsgDeleteAudienceResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgDeleteAudienceResponse) ProtoMessage()    {}
 func (*MsgDeleteAudienceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cb37d2745ede75df, []int{5}
+	return fileDescriptor_cb37d2745ede75df, []int{9}
 }
 func (m *MsgDeleteAudienceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -316,6 +492,10 @@ func (m *MsgDeleteAudienceResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgDeleteAudienceResponse proto.InternalMessageInfo
 
 func init() {
+	proto.RegisterType((*MsgCreateAudienceClaim)(nil), "xion.jwk.v1.MsgCreateAudienceClaim")
+	proto.RegisterType((*MsgCreateAudienceClaimResponse)(nil), "xion.jwk.v1.MsgCreateAudienceClaimResponse")
+	proto.RegisterType((*MsgDeleteAudienceClaim)(nil), "xion.jwk.v1.MsgDeleteAudienceClaim")
+	proto.RegisterType((*MsgDeleteAudienceClaimResponse)(nil), "xion.jwk.v1.MsgDeleteAudienceClaimResponse")
 	proto.RegisterType((*MsgCreateAudience)(nil), "xion.jwk.v1.MsgCreateAudience")
 	proto.RegisterType((*MsgCreateAudienceResponse)(nil), "xion.jwk.v1.MsgCreateAudienceResponse")
 	proto.RegisterType((*MsgUpdateAudience)(nil), "xion.jwk.v1.MsgUpdateAudience")
@@ -327,28 +507,33 @@ func init() {
 func init() { proto.RegisterFile("xion/jwk/v1/tx.proto", fileDescriptor_cb37d2745ede75df) }
 
 var fileDescriptor_cb37d2745ede75df = []byte{
-	// 323 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xa9, 0xc8, 0xcc, 0xcf,
-	0xd3, 0xcf, 0x2a, 0xcf, 0xd6, 0x2f, 0x33, 0xd4, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9,
-	0x17, 0xe2, 0x06, 0x89, 0xea, 0x65, 0x95, 0x67, 0xeb, 0x95, 0x19, 0x4a, 0x49, 0x21, 0x2b, 0x49,
-	0x2c, 0x4d, 0xc9, 0x4c, 0xcd, 0x4b, 0x4e, 0x85, 0x28, 0x54, 0xf2, 0xe5, 0x12, 0xf4, 0x2d, 0x4e,
-	0x77, 0x2e, 0x4a, 0x4d, 0x2c, 0x49, 0x75, 0x84, 0x4a, 0x09, 0x89, 0x70, 0xb1, 0x26, 0xa6, 0xe4,
-	0x66, 0xe6, 0x49, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x41, 0x38, 0x42, 0x02, 0x5c, 0xcc, 0x89,
-	0xa5, 0x29, 0x12, 0x4c, 0x60, 0x31, 0x10, 0x13, 0x24, 0x92, 0x9d, 0x5a, 0x29, 0xc1, 0x0c, 0x11,
-	0xc9, 0x4e, 0xad, 0x54, 0x92, 0xe6, 0x92, 0xc4, 0x30, 0x2e, 0x28, 0xb5, 0xb8, 0x20, 0x3f, 0xaf,
-	0x38, 0x55, 0x29, 0x0b, 0x6c, 0x57, 0x68, 0x41, 0x0a, 0x61, 0xbb, 0xa4, 0xb9, 0x38, 0xf3, 0x52,
-	0xcb, 0xe3, 0x21, 0x32, 0x10, 0x1b, 0x39, 0xf2, 0x52, 0xcb, 0x1d, 0x91, 0x1d, 0xc2, 0x8c, 0xe1,
-	0x10, 0x16, 0x74, 0x87, 0xa0, 0xda, 0x05, 0x77, 0x88, 0x35, 0xd8, 0x21, 0x2e, 0xa9, 0x39, 0xa9,
-	0xa4, 0x7b, 0x1a, 0x6a, 0x32, 0xaa, 0x66, 0x98, 0xc9, 0x46, 0x93, 0x99, 0xb8, 0x98, 0x7d, 0x8b,
-	0xd3, 0x85, 0x22, 0xb8, 0xf8, 0xd0, 0xc2, 0x54, 0x4e, 0x0f, 0x29, 0x4a, 0xf4, 0x30, 0x02, 0x49,
-	0x4a, 0x0d, 0xbf, 0x3c, 0xcc, 0x06, 0x90, 0xc9, 0x68, 0x21, 0x88, 0x61, 0x32, 0xaa, 0x3c, 0xa6,
-	0xc9, 0xd8, 0x43, 0x05, 0x64, 0x32, 0x5a, 0x90, 0x60, 0x98, 0x8c, 0x2a, 0x8f, 0x69, 0x32, 0xf6,
-	0x50, 0x71, 0x72, 0x38, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18,
-	0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0xb5, 0xf4,
-	0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0xa4, 0xd2, 0xa2, 0xbc, 0x12, 0xdd,
-	0x9c, 0xc4, 0xa4, 0x62, 0x7d, 0x70, 0x82, 0xad, 0x00, 0x27, 0xd9, 0x92, 0xca, 0x82, 0xd4, 0xe2,
-	0x24, 0x36, 0x70, 0x6a, 0x35, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0xb1, 0x25, 0xe5, 0x4b, 0xee,
-	0x02, 0x00, 0x00,
+	// 409 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x94, 0xc1, 0x4e, 0xf2, 0x40,
+	0x14, 0x85, 0xe9, 0xdf, 0x5f, 0x85, 0xd1, 0x18, 0xad, 0xc4, 0x40, 0x49, 0x26, 0x04, 0x13, 0x42,
+	0x62, 0x6c, 0x83, 0x2e, 0xdd, 0x88, 0xb8, 0xd0, 0x05, 0x9b, 0x26, 0x26, 0xc6, 0x0d, 0x99, 0xd2,
+	0x49, 0x5b, 0x0a, 0x6d, 0xc3, 0xb4, 0x14, 0xde, 0xc2, 0xc7, 0x72, 0xc9, 0xd2, 0xa5, 0x81, 0xf8,
+	0x1e, 0xa6, 0x2d, 0x90, 0xb6, 0x33, 0x56, 0x16, 0xee, 0xda, 0xb9, 0xb7, 0xe7, 0x3b, 0xd3, 0x7b,
+	0x72, 0x41, 0x79, 0x66, 0x3a, 0xb6, 0x3c, 0x0c, 0x2c, 0x79, 0xda, 0x96, 0xbd, 0x99, 0xe4, 0x4e,
+	0x1c, 0xcf, 0x11, 0x0e, 0xc3, 0x53, 0x69, 0x18, 0x58, 0xd2, 0xb4, 0x2d, 0x8a, 0xc9, 0x16, 0xe4,
+	0x6b, 0x26, 0xb6, 0x07, 0x38, 0x6e, 0x6c, 0x3c, 0x81, 0xf3, 0x1e, 0xd1, 0xbb, 0x13, 0x8c, 0x3c,
+	0xdc, 0x59, 0x97, 0xba, 0x23, 0x64, 0x8e, 0x85, 0x32, 0xd8, 0x43, 0xda, 0xd8, 0xb4, 0x2b, 0x5c,
+	0x9d, 0x6b, 0x95, 0x94, 0xf8, 0x45, 0xa8, 0x82, 0x22, 0xf2, 0xb5, 0xbe, 0x81, 0x88, 0x51, 0xf9,
+	0x57, 0xe7, 0x5a, 0x47, 0xca, 0x01, 0xf2, 0xb5, 0x47, 0x44, 0x8c, 0x46, 0x1d, 0x40, 0xb6, 0x94,
+	0x82, 0x89, 0xeb, 0xd8, 0x04, 0xaf, 0x61, 0x0f, 0x78, 0x84, 0xff, 0x08, 0xc6, 0x90, 0xda, 0xc2,
+	0x7a, 0xe0, 0x94, 0xb2, 0xf3, 0x03, 0xe7, 0x04, 0xf0, 0xc8, 0xd7, 0x22, 0x44, 0x49, 0x09, 0x1f,
+	0xc3, 0x13, 0x0b, 0xcf, 0x2b, 0x7c, 0x7c, 0x62, 0xe1, 0x79, 0xa3, 0x06, 0xaa, 0x94, 0xdc, 0x96,
+	0x35, 0x8c, 0x58, 0xcf, 0xae, 0xf6, 0x3b, 0xab, 0x06, 0x4a, 0x36, 0x0e, 0xfa, 0x71, 0x25, 0x26,
+	0x16, 0x6d, 0x1c, 0x74, 0x92, 0x46, 0x78, 0xca, 0xc8, 0xff, 0xac, 0x91, 0x34, 0x6b, 0x6b, 0xe4,
+	0x36, 0x32, 0x92, 0xfe, 0x2d, 0xbb, 0x5e, 0x7a, 0xad, 0x9c, 0xfe, 0x78, 0xa3, 0x7c, 0xfd, 0xc5,
+	0x03, 0xbe, 0x47, 0x74, 0x41, 0x07, 0x67, 0xac, 0xb4, 0x5c, 0x48, 0x89, 0xc4, 0x49, 0xec, 0x1c,
+	0x88, 0x97, 0x3b, 0x34, 0x6d, 0x80, 0x21, 0x88, 0x95, 0x14, 0x0a, 0xc4, 0x68, 0xa2, 0x41, 0x39,
+	0x41, 0x11, 0x5e, 0xc0, 0x71, 0x26, 0x25, 0x30, 0xdf, 0xa7, 0xd8, 0xcc, 0xaf, 0x27, 0x95, 0x33,
+	0x99, 0xa0, 0x94, 0xd3, 0x75, 0x5a, 0x99, 0x3d, 0xe7, 0x50, 0x39, 0x33, 0x64, 0x98, 0x7f, 0x65,
+	0x5a, 0x99, 0x3d, 0xe7, 0xfb, 0xbb, 0xf7, 0x25, 0xe4, 0x16, 0x4b, 0xc8, 0x7d, 0x2e, 0x21, 0xf7,
+	0xb6, 0x82, 0x85, 0xc5, 0x0a, 0x16, 0x3e, 0x56, 0xb0, 0xf0, 0xda, 0xd4, 0x4d, 0xcf, 0xf0, 0x55,
+	0x69, 0xe0, 0x8c, 0x65, 0xd5, 0x9f, 0xd8, 0xde, 0xd5, 0x08, 0xa9, 0x44, 0x8e, 0x96, 0xcb, 0x2c,
+	0x5a, 0x2f, 0xde, 0xdc, 0xc5, 0x44, 0xdd, 0x8f, 0x36, 0xcb, 0xcd, 0x77, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0xee, 0x0c, 0xa3, 0xc8, 0x9a, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -363,6 +548,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	CreateAudienceClaim(ctx context.Context, in *MsgCreateAudienceClaim, opts ...grpc.CallOption) (*MsgCreateAudienceClaimResponse, error)
+	DeleteAudienceClaim(ctx context.Context, in *MsgDeleteAudienceClaim, opts ...grpc.CallOption) (*MsgDeleteAudienceClaimResponse, error)
 	CreateAudience(ctx context.Context, in *MsgCreateAudience, opts ...grpc.CallOption) (*MsgCreateAudienceResponse, error)
 	UpdateAudience(ctx context.Context, in *MsgUpdateAudience, opts ...grpc.CallOption) (*MsgUpdateAudienceResponse, error)
 	DeleteAudience(ctx context.Context, in *MsgDeleteAudience, opts ...grpc.CallOption) (*MsgDeleteAudienceResponse, error)
@@ -374,6 +561,24 @@ type msgClient struct {
 
 func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
+}
+
+func (c *msgClient) CreateAudienceClaim(ctx context.Context, in *MsgCreateAudienceClaim, opts ...grpc.CallOption) (*MsgCreateAudienceClaimResponse, error) {
+	out := new(MsgCreateAudienceClaimResponse)
+	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Msg/CreateAudienceClaim", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) DeleteAudienceClaim(ctx context.Context, in *MsgDeleteAudienceClaim, opts ...grpc.CallOption) (*MsgDeleteAudienceClaimResponse, error) {
+	out := new(MsgDeleteAudienceClaimResponse)
+	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Msg/DeleteAudienceClaim", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *msgClient) CreateAudience(ctx context.Context, in *MsgCreateAudience, opts ...grpc.CallOption) (*MsgCreateAudienceResponse, error) {
@@ -405,6 +610,8 @@ func (c *msgClient) DeleteAudience(ctx context.Context, in *MsgDeleteAudience, o
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	CreateAudienceClaim(context.Context, *MsgCreateAudienceClaim) (*MsgCreateAudienceClaimResponse, error)
+	DeleteAudienceClaim(context.Context, *MsgDeleteAudienceClaim) (*MsgDeleteAudienceClaimResponse, error)
 	CreateAudience(context.Context, *MsgCreateAudience) (*MsgCreateAudienceResponse, error)
 	UpdateAudience(context.Context, *MsgUpdateAudience) (*MsgUpdateAudienceResponse, error)
 	DeleteAudience(context.Context, *MsgDeleteAudience) (*MsgDeleteAudienceResponse, error)
@@ -414,6 +621,12 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
+func (*UnimplementedMsgServer) CreateAudienceClaim(ctx context.Context, req *MsgCreateAudienceClaim) (*MsgCreateAudienceClaimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAudienceClaim not implemented")
+}
+func (*UnimplementedMsgServer) DeleteAudienceClaim(ctx context.Context, req *MsgDeleteAudienceClaim) (*MsgDeleteAudienceClaimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAudienceClaim not implemented")
+}
 func (*UnimplementedMsgServer) CreateAudience(ctx context.Context, req *MsgCreateAudience) (*MsgCreateAudienceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAudience not implemented")
 }
@@ -426,6 +639,42 @@ func (*UnimplementedMsgServer) DeleteAudience(ctx context.Context, req *MsgDelet
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
+}
+
+func _Msg_CreateAudienceClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreateAudienceClaim)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).CreateAudienceClaim(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.jwk.v1.Msg/CreateAudienceClaim",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).CreateAudienceClaim(ctx, req.(*MsgCreateAudienceClaim))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_DeleteAudienceClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDeleteAudienceClaim)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DeleteAudienceClaim(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.jwk.v1.Msg/DeleteAudienceClaim",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DeleteAudienceClaim(ctx, req.(*MsgDeleteAudienceClaim))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_CreateAudience_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -487,6 +736,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "CreateAudienceClaim",
+			Handler:    _Msg_CreateAudienceClaim_Handler,
+		},
+		{
+			MethodName: "DeleteAudienceClaim",
+			Handler:    _Msg_DeleteAudienceClaim_Handler,
+		},
+		{
 			MethodName: "CreateAudience",
 			Handler:    _Msg_CreateAudience_Handler,
 		},
@@ -501,6 +758,126 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "xion/jwk/v1/tx.proto",
+}
+
+func (m *MsgCreateAudienceClaim) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCreateAudienceClaim) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCreateAudienceClaim) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AudHash) > 0 {
+		i -= len(m.AudHash)
+		copy(dAtA[i:], m.AudHash)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AudHash)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Admin) > 0 {
+		i -= len(m.Admin)
+		copy(dAtA[i:], m.Admin)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Admin)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCreateAudienceClaimResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCreateAudienceClaimResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCreateAudienceClaimResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeleteAudienceClaim) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeleteAudienceClaim) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeleteAudienceClaim) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AudHash) > 0 {
+		i -= len(m.AudHash)
+		copy(dAtA[i:], m.AudHash)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.AudHash)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Admin) > 0 {
+		i -= len(m.Admin)
+		copy(dAtA[i:], m.Admin)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Admin)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeleteAudienceClaimResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeleteAudienceClaimResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeleteAudienceClaimResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
 }
 
 func (m *MsgCreateAudience) Marshal() (dAtA []byte, err error) {
@@ -715,6 +1092,58 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *MsgCreateAudienceClaim) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Admin)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AudHash)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgCreateAudienceClaimResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgDeleteAudienceClaim) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Admin)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.AudHash)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgDeleteAudienceClaimResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *MsgCreateAudience) Size() (n int) {
 	if m == nil {
 		return 0
@@ -810,6 +1239,338 @@ func sovTx(x uint64) (n int) {
 }
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *MsgCreateAudienceClaim) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCreateAudienceClaim: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCreateAudienceClaim: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Admin", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Admin = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AudHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AudHash = append(m.AudHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.AudHash == nil {
+				m.AudHash = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCreateAudienceClaimResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCreateAudienceClaimResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCreateAudienceClaimResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeleteAudienceClaim) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeleteAudienceClaim: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeleteAudienceClaim: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Admin", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Admin = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AudHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AudHash = append(m.AudHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.AudHash == nil {
+				m.AudHash = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeleteAudienceClaimResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeleteAudienceClaimResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeleteAudienceClaimResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *MsgCreateAudience) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)

@@ -13,6 +13,9 @@ const (
 	TypeMsgCreateAudience = "create_audience"
 	TypeMsgUpdateAudience = "update_audience"
 	TypeMsgDeleteAudience = "delete_audience"
+
+	TypeMsgCreateAudienceClaim = "create_audience_claim"
+	TypeMsgDeleteAudienceClaim = "delete_audience_claim"
 )
 
 var _ sdk.Msg = &MsgCreateAudience{}
@@ -147,5 +150,89 @@ func (msg *MsgDeleteAudience) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
+	return nil
+}
+
+var _ sdk.Msg = &MsgCreateAudienceClaim{}
+
+func NewMsgCreateAudienceClaim(
+	admin sdk.AccAddress,
+	hash []byte,
+) *MsgCreateAudienceClaim {
+	return &MsgCreateAudienceClaim{
+		Admin:   admin.String(),
+		AudHash: hash,
+	}
+}
+
+func (msg *MsgCreateAudienceClaim) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgCreateAudienceClaim) Type() string {
+	return TypeMsgCreateAudienceClaim
+}
+
+func (msg *MsgCreateAudienceClaim) GetSigners() []sdk.AccAddress {
+	admin, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{admin}
+}
+
+func (msg *MsgCreateAudienceClaim) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgCreateAudienceClaim) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
+	return nil
+}
+
+var _ sdk.Msg = &MsgDeleteAudienceClaim{}
+
+func NewMsgDeleteAudienceClaim(
+	admin sdk.AccAddress,
+	hash []byte,
+) *MsgDeleteAudienceClaim {
+	return &MsgDeleteAudienceClaim{
+		Admin:   admin.String(),
+		AudHash: hash,
+	}
+}
+
+func (msg *MsgDeleteAudienceClaim) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgDeleteAudienceClaim) Type() string {
+	return TypeMsgDeleteAudienceClaim
+}
+
+func (msg *MsgDeleteAudienceClaim) GetSigners() []sdk.AccAddress {
+	admin, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{admin}
+}
+
+func (msg *MsgDeleteAudienceClaim) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgDeleteAudienceClaim) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
 	return nil
 }

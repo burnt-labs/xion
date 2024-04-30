@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -26,6 +27,7 @@ var (
 	DefaultBypassMinFeeMsgTypes = []string{
 		sdk.MsgTypeURL(&xiontypes.MsgSend{}),
 		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
+		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudienceClaim{}),
 	}
 
 	// maxTotalBypassMinFeeMsgGasUsage is the allowed maximum gas usage
