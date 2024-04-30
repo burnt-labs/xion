@@ -24,6 +24,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdQueryParams())
 	cmd.AddCommand(CmdListAudience())
 	cmd.AddCommand(CmdShowAudience())
+	cmd.AddCommand(CmdShowAudienceClaim())
 	cmd.AddCommand(CmdValidateJWT())
 
 	// utils, not sure where best to put this

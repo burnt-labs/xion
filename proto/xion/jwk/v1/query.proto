@@ -18,6 +18,10 @@ service Query {
     option (google.api.http).get = "/xion/jwk/params";
   
   }
+
+  rpc AudienceClaim (QueryGetAudienceClaimRequest) returns (QueryGetAudienceClaimResponse) {
+    option (google.api.http).get = "/xion/jqk/audience_claim/{hash}";
+  }
   
   // Queries a list of Audience items.
   rpc Audience    (QueryGetAudienceRequest) returns (QueryGetAudienceResponse) {
@@ -43,6 +47,14 @@ message QueryParamsResponse {
   
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetAudienceClaimRequest {
+  bytes hash = 1;
+}
+
+message QueryGetAudienceClaimResponse {
+  AudienceClaim claim = 1;
 }
 
 message QueryGetAudienceRequest {

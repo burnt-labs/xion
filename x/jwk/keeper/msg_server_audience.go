@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"context"
-	"encoding/base64"
+	"crypto/sha256"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -28,7 +28,11 @@ func (k msgServer) CreateAudienceClaim(goCtx context.Context, msg *types.MsgCrea
 	// extra gas consumed to dis-incentivize spamming
 	ctx.GasMeter().ConsumeGas(k.GetDeploymentGas(ctx), fmt.Sprintf("gas for audience in jwt verifier %b", msg.AudHash))
 
-	k.SetAudienceClaim(ctx, msg.AudHash, sdk.AccAddress(msg.Admin))
+	addr, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		return nil, err
+	}
+	k.SetAudienceClaim(ctx, msg.AudHash, addr)
 
 	return &types.MsgCreateAudienceClaimResponse{}, nil
 }
@@ -70,12 +74,9 @@ func (k msgServer) CreateAudience(goCtx context.Context, msg *types.MsgCreateAud
 		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "audience already created")
 	}
 
-	audHash, err := base64.URLEncoding.DecodeString(msg.Aud)
-	if err != nil {
-		return nil, errorsmod.Wrapf(err, "invalid base64: %s", msg.Aud)
-	}
+	audHash := sha256.Sum256([]byte(msg.Aud))
 
-	claim, isFound := k.GetAudienceClaim(ctx, audHash)
+	claim, isFound := k.GetAudienceClaim(ctx, audHash[:])
 	if !isFound {
 		return nil, errorsmod.Wrapf(sdkerrors.ErrNotFound, "claim not found for aud %s", msg.Aud)
 	}
@@ -132,12 +133,9 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "audience already created")
 		}
 
-		audHash, err := base64.URLEncoding.DecodeString(msg.Aud)
-		if err != nil {
-			return nil, errorsmod.Wrapf(err, "invalid base64: %s", msg.Aud)
-		}
+		audHash := sha256.Sum256([]byte(msg.Aud))
 
-		claim, isFound := k.GetAudienceClaim(ctx, audHash)
+		claim, isFound := k.GetAudienceClaim(ctx, audHash[:])
 		if !isFound {
 			return nil, errorsmod.Wrapf(sdkerrors.ErrNotFound, "claim not found for aud %s", msg.Aud)
 		}

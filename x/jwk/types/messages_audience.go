@@ -192,6 +192,10 @@ func (msg *MsgCreateAudienceClaim) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 
+	if len(msg.AudHash) != 32 {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "hash must be 32 byte sha256")
+	}
+
 	return nil
 }
 

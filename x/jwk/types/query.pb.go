@@ -113,6 +113,94 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
+type QueryGetAudienceClaimRequest struct {
+	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
+}
+
+func (m *QueryGetAudienceClaimRequest) Reset()         { *m = QueryGetAudienceClaimRequest{} }
+func (m *QueryGetAudienceClaimRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetAudienceClaimRequest) ProtoMessage()    {}
+func (*QueryGetAudienceClaimRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{2}
+}
+func (m *QueryGetAudienceClaimRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetAudienceClaimRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetAudienceClaimRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetAudienceClaimRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetAudienceClaimRequest.Merge(m, src)
+}
+func (m *QueryGetAudienceClaimRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetAudienceClaimRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetAudienceClaimRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetAudienceClaimRequest proto.InternalMessageInfo
+
+func (m *QueryGetAudienceClaimRequest) GetHash() []byte {
+	if m != nil {
+		return m.Hash
+	}
+	return nil
+}
+
+type QueryGetAudienceClaimResponse struct {
+	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
+}
+
+func (m *QueryGetAudienceClaimResponse) Reset()         { *m = QueryGetAudienceClaimResponse{} }
+func (m *QueryGetAudienceClaimResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetAudienceClaimResponse) ProtoMessage()    {}
+func (*QueryGetAudienceClaimResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{3}
+}
+func (m *QueryGetAudienceClaimResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetAudienceClaimResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetAudienceClaimResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetAudienceClaimResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetAudienceClaimResponse.Merge(m, src)
+}
+func (m *QueryGetAudienceClaimResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetAudienceClaimResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetAudienceClaimResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetAudienceClaimResponse proto.InternalMessageInfo
+
+func (m *QueryGetAudienceClaimResponse) GetClaim() *AudienceClaim {
+	if m != nil {
+		return m.Claim
+	}
+	return nil
+}
+
 type QueryGetAudienceRequest struct {
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 }
@@ -121,7 +209,7 @@ func (m *QueryGetAudienceRequest) Reset()         { *m = QueryGetAudienceRequest
 func (m *QueryGetAudienceRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGetAudienceRequest) ProtoMessage()    {}
 func (*QueryGetAudienceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{2}
+	return fileDescriptor_6aa237fef6ed9f02, []int{4}
 }
 func (m *QueryGetAudienceRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -165,7 +253,7 @@ func (m *QueryGetAudienceResponse) Reset()         { *m = QueryGetAudienceRespon
 func (m *QueryGetAudienceResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetAudienceResponse) ProtoMessage()    {}
 func (*QueryGetAudienceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{3}
+	return fileDescriptor_6aa237fef6ed9f02, []int{5}
 }
 func (m *QueryGetAudienceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -209,7 +297,7 @@ func (m *QueryAllAudienceRequest) Reset()         { *m = QueryAllAudienceRequest
 func (m *QueryAllAudienceRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAllAudienceRequest) ProtoMessage()    {}
 func (*QueryAllAudienceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{4}
+	return fileDescriptor_6aa237fef6ed9f02, []int{6}
 }
 func (m *QueryAllAudienceRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -254,7 +342,7 @@ func (m *QueryAllAudienceResponse) Reset()         { *m = QueryAllAudienceRespon
 func (m *QueryAllAudienceResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAllAudienceResponse) ProtoMessage()    {}
 func (*QueryAllAudienceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{5}
+	return fileDescriptor_6aa237fef6ed9f02, []int{7}
 }
 func (m *QueryAllAudienceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -307,7 +395,7 @@ func (m *QueryValidateJWTRequest) Reset()         { *m = QueryValidateJWTRequest
 func (m *QueryValidateJWTRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryValidateJWTRequest) ProtoMessage()    {}
 func (*QueryValidateJWTRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{6}
+	return fileDescriptor_6aa237fef6ed9f02, []int{8}
 }
 func (m *QueryValidateJWTRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -364,7 +452,7 @@ func (m *QueryValidateJWTResponse) Reset()         { *m = QueryValidateJWTRespon
 func (m *QueryValidateJWTResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryValidateJWTResponse) ProtoMessage()    {}
 func (*QueryValidateJWTResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{7}
+	return fileDescriptor_6aa237fef6ed9f02, []int{9}
 }
 func (m *QueryValidateJWTResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -396,6 +484,8 @@ var xxx_messageInfo_QueryValidateJWTResponse proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "xion.jwk.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "xion.jwk.v1.QueryParamsResponse")
+	proto.RegisterType((*QueryGetAudienceClaimRequest)(nil), "xion.jwk.v1.QueryGetAudienceClaimRequest")
+	proto.RegisterType((*QueryGetAudienceClaimResponse)(nil), "xion.jwk.v1.QueryGetAudienceClaimResponse")
 	proto.RegisterType((*QueryGetAudienceRequest)(nil), "xion.jwk.v1.QueryGetAudienceRequest")
 	proto.RegisterType((*QueryGetAudienceResponse)(nil), "xion.jwk.v1.QueryGetAudienceResponse")
 	proto.RegisterType((*QueryAllAudienceRequest)(nil), "xion.jwk.v1.QueryAllAudienceRequest")
@@ -407,44 +497,49 @@ func init() {
 func init() { proto.RegisterFile("xion/jwk/v1/query.proto", fileDescriptor_6aa237fef6ed9f02) }
 
 var fileDescriptor_6aa237fef6ed9f02 = []byte{
-	// 577 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0x41, 0x6f, 0xd3, 0x30,
-	0x18, 0x86, 0x9b, 0x15, 0xaa, 0xce, 0xbd, 0x4c, 0x5e, 0xd1, 0xa2, 0x08, 0x65, 0x95, 0x05, 0x03,
-	0x81, 0x66, 0xab, 0x43, 0x88, 0x2b, 0xed, 0x81, 0x21, 0x4e, 0xa3, 0x20, 0x10, 0x5c, 0x90, 0xd3,
-	0x5a, 0x21, 0x5d, 0x1a, 0x67, 0xb5, 0xd3, 0xae, 0x9a, 0x76, 0xe1, 0x17, 0x80, 0xb8, 0xf2, 0x83,
-	0x76, 0x9c, 0xc4, 0x85, 0x13, 0x42, 0x2d, 0x7f, 0x81, 0x3b, 0x8a, 0xed, 0xb4, 0x0d, 0xc9, 0x34,
-	0x2e, 0x95, 0x6b, 0xbf, 0x7e, 0x9f, 0xd7, 0xdf, 0xf7, 0x29, 0x60, 0xe7, 0x34, 0xe0, 0x11, 0x19,
-	0x4e, 0x8f, 0xc9, 0xa4, 0x4d, 0x4e, 0x12, 0x36, 0x9e, 0xe1, 0x78, 0xcc, 0x25, 0x87, 0x8d, 0xf4,
-	0x00, 0x0f, 0xa7, 0xc7, 0x78, 0xd2, 0x76, 0x9a, 0x3e, 0xf7, 0xb9, 0xda, 0x27, 0xe9, 0x4a, 0x4b,
-	0x9c, 0xdb, 0x3e, 0xe7, 0x7e, 0xc8, 0x08, 0x8d, 0x03, 0x42, 0xa3, 0x88, 0x4b, 0x2a, 0x03, 0x1e,
-	0x09, 0x73, 0xfa, 0xa0, 0xcf, 0xc5, 0x88, 0x0b, 0xe2, 0x51, 0xc1, 0xb4, 0x33, 0x99, 0xb4, 0x3d,
-	0x26, 0x69, 0x9b, 0xc4, 0xd4, 0x0f, 0x22, 0x25, 0x36, 0x5a, 0x7b, 0x3d, 0x45, 0x4c, 0xc7, 0x74,
-	0x94, 0xb9, 0x38, 0xeb, 0x27, 0x34, 0x19, 0x04, 0x2c, 0xea, 0x33, 0x7d, 0x86, 0x9a, 0x00, 0xbe,
-	0x4c, 0x7d, 0x8f, 0xd4, 0x85, 0x1e, 0x3b, 0x49, 0x98, 0x90, 0xe8, 0x39, 0xd8, 0xce, 0xed, 0x8a,
-	0x98, 0x47, 0x82, 0xc1, 0x36, 0xa8, 0x69, 0x63, 0xdb, 0x6a, 0x59, 0xf7, 0x1b, 0x07, 0xdb, 0x78,
-	0xed, 0x81, 0x58, 0x8b, 0xbb, 0x37, 0x2e, 0x7e, 0xee, 0x56, 0x7a, 0x46, 0x88, 0x1e, 0x82, 0x1d,
-	0xe5, 0x74, 0xc8, 0x64, 0xc7, 0x90, 0x0d, 0x04, 0x6e, 0x81, 0x2a, 0x4d, 0x06, 0xca, 0x6a, 0xb3,
-	0x97, 0x2e, 0xd1, 0x2b, 0x60, 0x17, 0xc5, 0x86, 0xfd, 0x04, 0xd4, 0xb3, 0xe8, 0x86, 0x7e, 0x2b,
-	0x47, 0xcf, 0x2e, 0x18, 0xfe, 0x52, 0x8c, 0xa8, 0x49, 0xd0, 0x09, 0xc3, 0x7f, 0x13, 0x3c, 0x03,
-	0x60, 0x55, 0x46, 0xe3, 0xba, 0x87, 0x75, 0xcd, 0x71, 0x5a, 0x73, 0xac, 0xbb, 0x69, 0x6a, 0x8e,
-	0x8f, 0xa8, 0x9f, 0xdd, 0xed, 0xad, 0xdd, 0x44, 0xdf, 0x2c, 0x13, 0x3c, 0xc7, 0x28, 0x0d, 0x5e,
-	0xfd, 0xef, 0xe0, 0xf0, 0x30, 0x97, 0x6e, 0x43, 0xa5, 0xbb, 0x77, 0x6d, 0x3a, 0x4d, 0xcd, 0xc5,
-	0x7b, 0x67, 0x2a, 0xf0, 0x86, 0x86, 0xc1, 0x80, 0x4a, 0xf6, 0xe2, 0xed, 0xeb, 0x2b, 0x7b, 0x90,
-	0xee, 0x88, 0xc4, 0x53, 0xb8, 0xcd, 0x5e, 0xba, 0x84, 0x0e, 0xa8, 0x8b, 0xc0, 0xef, 0xce, 0x24,
-	0x13, 0x76, 0x55, 0x6d, 0x2f, 0xff, 0x23, 0xc7, 0x3c, 0x3c, 0x67, 0xad, 0x23, 0x1c, 0xfc, 0xa9,
-	0x82, 0x9b, 0xea, 0x10, 0x32, 0x50, 0xd3, 0xc3, 0x01, 0x77, 0x73, 0x4f, 0x2f, 0x4e, 0x9e, 0xd3,
-	0xba, 0x5a, 0xa0, 0x6d, 0x91, 0xfd, 0xe9, 0xfb, 0xef, 0xaf, 0x1b, 0x10, 0x6e, 0x91, 0xe5, 0x58,
-	0xeb, 0x59, 0x83, 0x33, 0x50, 0xcf, 0x8a, 0x09, 0xef, 0x14, 0x7d, 0x8a, 0x23, 0xe8, 0xdc, 0xbd,
-	0x46, 0x65, 0x90, 0x2d, 0x85, 0x74, 0xa0, 0xbd, 0x42, 0x66, 0x5d, 0x22, 0x67, 0x34, 0x19, 0x9c,
-	0xc3, 0x09, 0x68, 0x64, 0xb7, 0x3a, 0x61, 0x58, 0x46, 0x2f, 0x8e, 0x5f, 0x19, 0xbd, 0x64, 0x80,
-	0x90, 0xa3, 0xe8, 0x4d, 0x08, 0x8b, 0x74, 0xf8, 0xc5, 0x02, 0x8d, 0xb5, 0xda, 0x97, 0x81, 0x8b,
-	0x5d, 0x2f, 0x03, 0x97, 0x34, 0x10, 0x3d, 0x56, 0x60, 0x02, 0xf7, 0x57, 0xe0, 0x89, 0x91, 0x7d,
-	0x18, 0x4e, 0xa5, 0x7e, 0x3a, 0x39, 0x13, 0x89, 0x97, 0xfe, 0x9a, 0x91, 0x38, 0xef, 0x3e, 0xbd,
-	0x98, 0xbb, 0xd6, 0xe5, 0xdc, 0xb5, 0x7e, 0xcd, 0x5d, 0xeb, 0xf3, 0xc2, 0xad, 0x5c, 0x2e, 0xdc,
-	0xca, 0x8f, 0x85, 0x5b, 0x79, 0xbf, 0xe7, 0x07, 0xf2, 0x63, 0xe2, 0xe1, 0x3e, 0x1f, 0x11, 0x2f,
-	0x19, 0x47, 0x72, 0x3f, 0xa4, 0x9e, 0xd0, 0xee, 0xa7, 0xca, 0x5f, 0xce, 0x62, 0x26, 0xbc, 0x9a,
-	0xfa, 0x36, 0x3d, 0xfa, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x1a, 0xbf, 0xbb, 0xd0, 0x59, 0x05, 0x00,
-	0x00,
+	// 662 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0x4f, 0x6f, 0xd3, 0x3e,
+	0x1c, 0xc6, 0x9b, 0xfd, 0xd3, 0xe6, 0xfe, 0x7e, 0xd2, 0xe4, 0x0d, 0x2d, 0x8a, 0x46, 0x36, 0x2c,
+	0xd8, 0x60, 0x68, 0x31, 0x1d, 0x42, 0x5c, 0xd9, 0x90, 0x18, 0xe2, 0xb4, 0x05, 0x04, 0x82, 0xcb,
+	0xe4, 0xb4, 0x56, 0x96, 0x2d, 0x8d, 0xb3, 0xda, 0xe9, 0x56, 0x4d, 0xbd, 0x70, 0xe1, 0x08, 0x88,
+	0x2b, 0x2f, 0x68, 0xc7, 0x49, 0x5c, 0x38, 0x21, 0xd4, 0xf2, 0x42, 0x50, 0x6c, 0xa7, 0x6d, 0x96,
+	0x94, 0xed, 0x52, 0xb9, 0xf6, 0xe3, 0xe7, 0xf9, 0xd8, 0xfe, 0x7e, 0x03, 0x96, 0xce, 0x02, 0x16,
+	0xe1, 0xa3, 0xd3, 0x63, 0xdc, 0xae, 0xe1, 0x93, 0x84, 0xb6, 0x3a, 0x4e, 0xdc, 0x62, 0x82, 0xc1,
+	0x6a, 0xba, 0xe0, 0x1c, 0x9d, 0x1e, 0x3b, 0xed, 0x9a, 0xb5, 0xe8, 0x33, 0x9f, 0xc9, 0x79, 0x9c,
+	0x8e, 0x94, 0xc4, 0x5a, 0xf6, 0x19, 0xf3, 0x43, 0x8a, 0x49, 0x1c, 0x60, 0x12, 0x45, 0x4c, 0x10,
+	0x11, 0xb0, 0x88, 0xeb, 0xd5, 0x8d, 0x3a, 0xe3, 0x4d, 0xc6, 0xb1, 0x47, 0x38, 0x55, 0xce, 0xb8,
+	0x5d, 0xf3, 0xa8, 0x20, 0x35, 0x1c, 0x13, 0x3f, 0x88, 0xa4, 0x58, 0x6b, 0xcd, 0x51, 0x8a, 0x98,
+	0xb4, 0x48, 0x33, 0x73, 0xb1, 0x46, 0x57, 0x48, 0xd2, 0x08, 0x68, 0x54, 0xa7, 0x6a, 0x0d, 0x2d,
+	0x02, 0xb8, 0x9f, 0xfa, 0xee, 0xc9, 0x0d, 0x2e, 0x3d, 0x49, 0x28, 0x17, 0xe8, 0x25, 0x58, 0xc8,
+	0xcd, 0xf2, 0x98, 0x45, 0x9c, 0xc2, 0x1a, 0x98, 0x51, 0xc6, 0xa6, 0xb1, 0x6a, 0xdc, 0xaf, 0x6e,
+	0x2d, 0x38, 0x23, 0x07, 0x74, 0x94, 0x78, 0x67, 0xea, 0xe2, 0xd7, 0x4a, 0xc5, 0xd5, 0x42, 0xb4,
+	0x05, 0x96, 0xa5, 0xd3, 0x2e, 0x15, 0xdb, 0x3a, 0xf9, 0x79, 0x48, 0x82, 0xa6, 0x4e, 0x82, 0x10,
+	0x4c, 0x1d, 0x12, 0x7e, 0x28, 0x0d, 0xff, 0x73, 0xe5, 0x18, 0xed, 0x83, 0xdb, 0x63, 0xf6, 0x68,
+	0x8e, 0x47, 0x60, 0xba, 0x9e, 0x4e, 0x68, 0x0c, 0x2b, 0x87, 0x91, 0xdf, 0xa2, 0x84, 0xe8, 0x21,
+	0x58, 0xba, 0x6a, 0x99, 0x11, 0xcc, 0x83, 0x49, 0x92, 0x34, 0xa4, 0xd5, 0x9c, 0x9b, 0x0e, 0xd1,
+	0x6b, 0x60, 0x16, 0xc5, 0x3a, 0xfa, 0x29, 0x98, 0xcd, 0x6e, 0x50, 0xa7, 0xdf, 0x2a, 0x4d, 0xd7,
+	0xd7, 0x30, 0x10, 0x23, 0xa2, 0x09, 0xb6, 0xc3, 0xf0, 0x2a, 0xc1, 0x0b, 0x00, 0x86, 0xaf, 0xa9,
+	0x5d, 0xd7, 0x1c, 0xf5, 0xf4, 0x4e, 0xfa, 0xf4, 0x8e, 0x2a, 0x2a, 0xfd, 0xf4, 0xce, 0x1e, 0xf1,
+	0xb3, 0xbd, 0xee, 0xc8, 0x4e, 0xf4, 0xdd, 0xd0, 0xe0, 0xb9, 0x8c, 0x52, 0xf0, 0xc9, 0x1b, 0x83,
+	0xc3, 0xdd, 0x1c, 0xdd, 0x84, 0xa4, 0x5b, 0xbf, 0x96, 0x4e, 0xa5, 0xe6, 0xf0, 0xde, 0xeb, 0x1b,
+	0x78, 0x4b, 0xc2, 0xa0, 0x41, 0x04, 0x7d, 0xf5, 0xee, 0xcd, 0xd8, 0x37, 0x48, 0x67, 0x78, 0xe2,
+	0xc9, 0xb8, 0x39, 0x37, 0x1d, 0x42, 0x0b, 0xcc, 0xf2, 0xc0, 0xdf, 0xe9, 0x08, 0xca, 0xcd, 0x49,
+	0x39, 0x3d, 0xf8, 0x8f, 0x2c, 0x7d, 0xf0, 0x9c, 0xb5, 0x42, 0xd8, 0xfa, 0x34, 0x0d, 0xa6, 0xe5,
+	0x22, 0xa4, 0x60, 0x46, 0xd5, 0x28, 0x5c, 0xc9, 0x1d, 0xbd, 0xd8, 0x00, 0xd6, 0xea, 0x78, 0x81,
+	0xb2, 0x45, 0xe6, 0xc7, 0x1f, 0x7f, 0xbe, 0x4d, 0x40, 0x38, 0x8f, 0x07, 0xdd, 0xa5, 0x4a, 0x1e,
+	0x7e, 0x36, 0xc0, 0xff, 0xb9, 0x22, 0x84, 0x0f, 0x8a, 0x6e, 0x63, 0xfa, 0xc1, 0xda, 0xb8, 0x89,
+	0x54, 0x23, 0xac, 0x4b, 0x84, 0x3b, 0x70, 0x45, 0x23, 0x9c, 0x1c, 0x0f, 0xba, 0xfb, 0x40, 0x96,
+	0x3d, 0x3e, 0x4f, 0xfb, 0xa9, 0x0b, 0x3b, 0x60, 0x36, 0x73, 0x80, 0x77, 0xff, 0x19, 0x90, 0x61,
+	0xdc, 0xbb, 0x46, 0xa5, 0x09, 0x56, 0x25, 0x81, 0x05, 0xcd, 0xe1, 0x25, 0x64, 0x04, 0xf8, 0x9c,
+	0x24, 0x8d, 0x2e, 0x6c, 0x83, 0x6a, 0xb6, 0x6b, 0x3b, 0x0c, 0xcb, 0xd2, 0x8b, 0x0d, 0x51, 0x96,
+	0x5e, 0x52, 0xd2, 0xc8, 0x92, 0xe9, 0x8b, 0x10, 0x16, 0xd3, 0xe1, 0x57, 0x03, 0x54, 0x47, 0xaa,
+	0xa1, 0x2c, 0xb8, 0x58, 0x87, 0x65, 0xc1, 0x25, 0x25, 0x85, 0x9e, 0xc8, 0x60, 0x0c, 0x37, 0x87,
+	0xc1, 0x6d, 0x2d, 0x3b, 0x38, 0x3a, 0x15, 0xea, 0xe8, 0xf8, 0x9c, 0x27, 0x5e, 0xfa, 0xab, 0x8b,
+	0xb4, 0xbb, 0xf3, 0xec, 0xa2, 0x67, 0x1b, 0x97, 0x3d, 0xdb, 0xf8, 0xdd, 0xb3, 0x8d, 0x2f, 0x7d,
+	0xbb, 0x72, 0xd9, 0xb7, 0x2b, 0x3f, 0xfb, 0x76, 0xe5, 0xc3, 0x9a, 0x1f, 0x88, 0xc3, 0xc4, 0x73,
+	0xea, 0xac, 0x89, 0xbd, 0xa4, 0x15, 0x89, 0xcd, 0x90, 0x78, 0x5c, 0xb9, 0x9f, 0x49, 0x7f, 0xd1,
+	0x89, 0x29, 0xf7, 0x66, 0xe4, 0x47, 0xfb, 0xf1, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x34, 0x3e,
+	0x91, 0xb3, 0x72, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -461,6 +556,7 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryGetAudienceClaimResponse, error)
 	// Queries a list of Audience items.
 	Audience(ctx context.Context, in *QueryGetAudienceRequest, opts ...grpc.CallOption) (*QueryGetAudienceResponse, error)
 	AudienceAll(ctx context.Context, in *QueryAllAudienceRequest, opts ...grpc.CallOption) (*QueryAllAudienceResponse, error)
@@ -479,6 +575,15 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
 	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Query/Params", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryGetAudienceClaimResponse, error) {
+	out := new(QueryGetAudienceClaimResponse)
+	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Query/AudienceClaim", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -516,6 +621,7 @@ func (c *queryClient) ValidateJWT(ctx context.Context, in *QueryValidateJWTReque
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	AudienceClaim(context.Context, *QueryGetAudienceClaimRequest) (*QueryGetAudienceClaimResponse, error)
 	// Queries a list of Audience items.
 	Audience(context.Context, *QueryGetAudienceRequest) (*QueryGetAudienceResponse, error)
 	AudienceAll(context.Context, *QueryAllAudienceRequest) (*QueryAllAudienceResponse, error)
@@ -529,6 +635,9 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (*UnimplementedQueryServer) AudienceClaim(ctx context.Context, req *QueryGetAudienceClaimRequest) (*QueryGetAudienceClaimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AudienceClaim not implemented")
 }
 func (*UnimplementedQueryServer) Audience(ctx context.Context, req *QueryGetAudienceRequest) (*QueryGetAudienceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Audience not implemented")
@@ -558,6 +667,24 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_AudienceClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetAudienceClaimRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).AudienceClaim(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.jwk.v1.Query/AudienceClaim",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).AudienceClaim(ctx, req.(*QueryGetAudienceClaimRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -623,6 +750,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "AudienceClaim",
+			Handler:    _Query_AudienceClaim_Handler,
 		},
 		{
 			MethodName: "Audience",
@@ -694,6 +825,71 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetAudienceClaimRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetAudienceClaimRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetAudienceClaimRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Hash) > 0 {
+		i -= len(m.Hash)
+		copy(dAtA[i:], m.Hash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Hash)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetAudienceClaimResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetAudienceClaimResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetAudienceClaimResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Claim != nil {
+		{
+			size, err := m.Claim.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -942,6 +1138,32 @@ func (m *QueryParamsResponse) Size() (n int) {
 	return n
 }
 
+func (m *QueryGetAudienceClaimRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Hash)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetAudienceClaimResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Claim != nil {
+		l = m.Claim.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
 func (m *QueryGetAudienceRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1143,6 +1365,176 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetAudienceClaimRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetAudienceClaimRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetAudienceClaimRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Hash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Hash = append(m.Hash[:0], dAtA[iNdEx:postIndex]...)
+			if m.Hash == nil {
+				m.Hash = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetAudienceClaimResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetAudienceClaimResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetAudienceClaimResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Claim", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Claim == nil {
+				m.Claim = &AudienceClaim{}
+			}
+			if err := m.Claim.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
