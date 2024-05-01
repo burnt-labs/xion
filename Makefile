@@ -149,6 +149,9 @@ test-integration-mint-module-inflation-low-fees: compile_integration_tests
 test-integration-jwt-abstract-account: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestJWTAbstractAccount
 
+test-integration-register-jwt-abstract-account: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionAbstractAccountJWTCLI
+
 test-integration-xion-send-platform-fee: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionSendPlatformFee
 
