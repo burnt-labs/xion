@@ -36,6 +36,7 @@ const (
 	flagAuthenticator   = "authenticator"
 	flagAuthenticatorID = "authenticator-id"
 	flagAudience        = "aud"
+	flagToken           = "token"
 	flagSubject         = "sub"
 )
 
@@ -176,7 +177,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 
 func NewRegisterCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "register [code-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required] --authenticator-id [uint8] --aud [string] --sub [string]",
+		Use:   "register [code-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required] --authenticator-id [uint8] --aud [string] --sub [string] --token [string]",
 		Short: "Register an abstract account",
 		Args:  cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -244,7 +245,22 @@ func NewRegisterCmd() *cobra.Command {
 			var instantiateMsg string
 			switch authenticatorType {
 			case "Jwt":
-				instantiateMsg, err = newInstantiateMsg(authenticatorType, authenticatorID, signature, pubKey.Bytes())
+				sub, err := cmd.Flags().GetString(flagSubject)
+				if err != nil {
+					return fmt.Errorf("Subject: %s", err)
+				}
+
+				aud, err := cmd.Flags().GetString(flagAudience)
+				if err != nil {
+					return fmt.Errorf("Audience: %s", err)
+				}
+
+				token, err := cmd.Flags().GetString(flagToken)
+				if err != nil {
+					return fmt.Errorf("Token: %s", err)
+				}
+
+				instantiateMsg, err = newInstantiateJwtMsg(token, authenticatorType, sub, aud, authenticatorID, signature, pubKey.Bytes())
 				if err != nil {
 					return err
 				}
@@ -259,15 +275,6 @@ func NewRegisterCmd() *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
-			/*
-				msg := &aatypes.MsgRegisterAccount{
-					Sender: clientCtx.GetFromAddress().String(),
-					CodeID: codeID,
-					Msg:    []byte(string(instantiateMsgStr)),
-					Funds:  amount,
-					Salt:   []byte(salt),
-				}
-			*/
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
@@ -281,6 +288,7 @@ func NewRegisterCmd() *cobra.Command {
 	cmd.Flags().String(flagFunds, "", "Coins to send to the account during instantiation")
 	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
 	cmd.Flags().String(flagAudience, "", "Recipient for the token")
+	cmd.Flags().String(flagToken, "", "Pre signed JWT")
 	cmd.Flags().String(flagSubject, "", "Principal for the token")
 
 	return cmd
@@ -458,4 +466,43 @@ func newInstantiateMsg(authenticatorType string, authenticatorID uint8, signatur
 		return "", fmt.Errorf("error signing contract msg : %s", err)
 	}
 	return string(instantiateMsgStr), nil
+}
+
+func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticatorID uint8, signature, pubKey []byte) (string, error) {
+	instantiateMsg := map[string]interface{}{}
+	authenticatorDetails := map[string]interface{}{}
+	authenticator := map[string]interface{}{}
+
+	authenticatorDetails["sub"] = sub
+	authenticatorDetails["aud"] = aud
+	authenticatorDetails["id"] = authenticatorID
+	authenticator[authenticatorType] = authenticatorDetails
+
+	instantiateMsg["authenticator"] = authenticator
+	authenticatorDetails["token"] = []byte(token)
+	instantiateMsgStr, err := json.Marshal(instantiateMsg)
+	if err != nil {
+		return "", err
+	}
+
+	return string(instantiateMsgStr), nil
+
+	/*
+		auds := jwt.ClaimStrings{aud}
+		token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+			"iss":              aud,
+			"sub":              sub,
+			"aud":              auds,
+			"exp":              inFive.Unix(),
+			"nbf":              fiveAgo.Unix(),
+			"iat":              fiveAgo.Unix(),
+			"transaction_hash": signature,
+		})
+		t.Logf("jwt claims: %v", token)
+
+		// sign the JWT with the predefined key
+		output, err := token.SignedString(privateKey)
+		require.NoError(t, err)
+		t.Logf("signed token: %s", output)
+	*/
 }
