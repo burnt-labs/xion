@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/base64"
+
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
