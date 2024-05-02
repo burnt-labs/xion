@@ -50,8 +50,8 @@ func CmdWebAuthNVerifyRegister() *cobra.Command {
 
 func CmdWebAuthNVerifyAuthenticate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "webauthn-register [addr] [challenge] [rp] [credential] [data]",
-		Short: "Test Webauthn Registration",
+		Use:   "webauthn-authenticate [addr] [challenge] [rp] [credential] [data]",
+		Short: "Test Webauthn Authentication",
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			reqAddr := args[0]
