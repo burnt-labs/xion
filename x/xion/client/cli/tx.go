@@ -247,20 +247,20 @@ func NewRegisterCmd() *cobra.Command {
 			case "Jwt":
 				sub, err := cmd.Flags().GetString(flagSubject)
 				if err != nil {
-					return fmt.Errorf("Subject: %s", err)
+					return fmt.Errorf("subject: %s", err)
 				}
 
 				aud, err := cmd.Flags().GetString(flagAudience)
 				if err != nil {
-					return fmt.Errorf("Audience: %s", err)
+					return fmt.Errorf("audience: %s", err)
 				}
 
 				token, err := cmd.Flags().GetString(flagToken)
 				if err != nil {
-					return fmt.Errorf("Token: %s", err)
+					return fmt.Errorf("token: %s", err)
 				}
 
-				instantiateMsg, err = newInstantiateJwtMsg(token, authenticatorType, sub, aud, authenticatorID, signature, pubKey.Bytes())
+				instantiateMsg, err = newInstantiateJwtMsg(token, authenticatorType, sub, aud, authenticatorID)
 				if err != nil {
 					return err
 				}
@@ -443,7 +443,7 @@ func registerMsg(sender, salt, instantiateMsg string, codeID uint64, amount sdk.
 	msg := &aatypes.MsgRegisterAccount{
 		Sender: sender,
 		CodeID: codeID,
-		Msg:    []byte(string(instantiateMsg)),
+		Msg:    []byte(instantiateMsg),
 		Funds:  amount,
 		Salt:   []byte(salt),
 	}
@@ -468,7 +468,7 @@ func newInstantiateMsg(authenticatorType string, authenticatorID uint8, signatur
 	return string(instantiateMsgStr), nil
 }
 
-func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticatorID uint8, signature, pubKey []byte) (string, error) {
+func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticatorID uint8) (string, error) {
 	instantiateMsg := map[string]interface{}{}
 	authenticatorDetails := map[string]interface{}{}
 	authenticator := map[string]interface{}{}
