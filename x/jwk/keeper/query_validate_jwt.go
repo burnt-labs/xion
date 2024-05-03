@@ -49,7 +49,7 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 	privateClaimsMap := token.PrivateClaims()
 	privateClaims := make([]*types.PrivateClaim, len(privateClaimsMap))
 
-	var i = 0
+	i := 0
 	for k, v := range privateClaimsMap {
 		privateClaims[i] = &types.PrivateClaim{
 			Key:   k,
