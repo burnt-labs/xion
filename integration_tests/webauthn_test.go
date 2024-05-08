@@ -77,9 +77,11 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	t.Logf("code response: %s", codeResp)
 
 	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+	require.NoError(t, err)
 
 	return td, deployerAddr, codeHash, codeIDStr, nil
 }
+
 func TestWebAuthNAbstractAccount(t *testing.T) {
 	t.Parallel()
 	if testing.Short() {
