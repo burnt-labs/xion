@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/json"
+	"math/big"
 	"net/url"
 	"strings"
 	"testing"
@@ -15,6 +16,8 @@ import (
 	"github.com/burnt-labs/xion/x/xion/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
+	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/require"
 )
@@ -39,9 +42,20 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 	webAuthn, err := webauthn.New(&webAuthnConfig)
 	require.NoError(t, err)
 
-	privateKey, publicKey, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
+	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
 	require.NoError(t, err)
-	publicKeyJson, err := json.Marshal(publicKey)
+	publicKey := privateKey.PublicKey
+	publicKeyModulus := publicKey.N.Bytes()
+	require.NoError(t, err)
+	pubKeyData := webauthncose.RSAPublicKeyData{
+		PublicKeyData: webauthncose.PublicKeyData{
+			KeyType:   int64(webauthncose.RSAKey),
+			Algorithm: int64(webauthncose.AlgRS256),
+		},
+		Modulus:  publicKeyModulus,
+		Exponent: big.NewInt(int64(publicKey.E)).Bytes(),
+	}
+	publicKeyBuf, err := webauthncbor.Marshal(pubKeyData)
 	require.NoError(t, err)
 
 	credentialID := []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
@@ -52,7 +66,7 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 		Credential: &webauthn.Credential{
 			ID:              credentialID,
 			AttestationType: "none",
-			PublicKey:       publicKeyJson,
+			PublicKey:       publicKeyBuf,
 			Transport:       []protocol.AuthenticatorTransport{protocol.Internal},
 			Flags: webauthn.CredentialFlags{
 				UserPresent:  false,
@@ -88,7 +102,7 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 		AttData: protocol.AttestedCredentialData{
 			AAGUID:              AAGUID,
 			CredentialID:        credentialID,
-			CredentialPublicKey: publicKeyJson,
+			CredentialPublicKey: publicKeyBuf,
 		},
 		Flags: 69,
 	}
@@ -96,11 +110,14 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 	require.NoError(t, err)
 	authenticatorDataBz, err := protocol.URLEncodedBase64.MarshalJSON(authenticatorDataJSON)
 	require.NoError(t, err)
-	authenticatorHash := sha256.Sum256(authenticatorDataBz)
 
-	signHash := sha256.Sum256(append(authenticatorHash[:], clientDataHash[:]...))
+	signData := append(authenticatorDataBz[:], clientDataHash[:]...)
+	signHash := sha256.Sum256(signData)
 	signature, err := privateKey.Sign(rand.Reader, signHash[:], &signOpts{})
 	require.NoError(t, err)
+	verified, err := pubKeyData.Verify(signData[:], signature)
+	require.NoError(t, err)
+	require.True(t, verified)
 
 	ParsedCredentialAssertionData := &protocol.ParsedCredentialAssertionData{
 		ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
