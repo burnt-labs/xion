@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto"
 	cryptoRand "crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"path"
@@ -622,21 +624,11 @@ func (*signOpts) HashFunc() crypto.Hash {
 	return crypto.SHA256
 }
 
-func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
-	webAuthnConfig := webauthn.Config{
-		RPDisplayName:         "Xion",
-		RPID:                  "xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-		RPOrigins:             []string{"https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"},
-		AttestationPreference: "none",
-		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			AuthenticatorAttachment: protocol.Platform,
-			UserVerification:        protocol.VerificationPreferred,
-		},
-	}
-	webAuthn, err := webauthn.New(&webAuthnConfig)
-	require.NoError(t, err)
+var credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
+var AAGUID = []byte("AAGUIDAAGUIDAA==")
 
-	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
+func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
+	privateKey, _, err := wasmbinding.SetupPublicKeys("./testdata/keys/jwtRS256.key")
 	require.NoError(t, err)
 	publicKey := privateKey.PublicKey
 	publicKeyModulus := publicKey.N.Bytes()
@@ -651,12 +643,118 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 	}
 	publicKeyBuf, err := webauthncbor.Marshal(pubKeyData)
 	require.NoError(t, err)
+	return privateKey, publicKeyBuf, pubKeyData
+}
 
-	credentialID := []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
-	AAGUID := []byte("rc4AAjW8xgpkiwsl8fBVAw==")
+func CreateWebAuthn(t *testing.T) (webauthn.Config, *webauthn.WebAuthn, error) {
+	webAuthnConfig := webauthn.Config{
+		RPDisplayName:         "Xion",
+		RPID:                  "xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+		RPOrigins:             []string{"https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"},
+		AttestationPreference: "none",
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			AuthenticatorAttachment: protocol.Platform,
+			UserVerification:        protocol.VerificationPreferred,
+		},
+	}
+	webAuthn, err := webauthn.New(&webAuthnConfig)
+	require.NoError(t, err)
+
+	return webAuthnConfig, webAuthn, nil
+}
+
+func CreateWebAuthNAttestationCred(t *testing.T, challenge string) []byte {
+	webAuthnConfig, _, err := CreateWebAuthn(t)
+	require.NoError(t, err)
+	clientData := protocol.CollectedClientData{
+		Type:      "webauthn.create",
+		Challenge: challenge,
+		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+	}
+
+	_, publicKeyBuf, _ := getWebAuthNKeys(t)
+
+	clientDataJSON, err := json.Marshal(clientData)
+	require.NoError(t, err)
+
+	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
+	authData := protocol.AuthenticatorData{
+		RPIDHash: RPIDHash[:],
+		Counter:  0,
+		AttData: protocol.AttestedCredentialData{
+			AAGUID:              AAGUID,
+			CredentialID:        credentialID,
+			CredentialPublicKey: publicKeyBuf,
+		},
+		Flags: 69,
+	}
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	counterBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(counterBytes, 0)
+	authDataBz = append(authDataBz, counterBytes...)
+
+	var attData []byte
+
+	// Concatenate AAGUID
+	attData = append(attData, AAGUID...)
+
+	// Add CredentialIDLength
+	credentialIDLengthBytes := make([]byte, 2)
+	credentialIDLength := uint16(len(credentialID))
+	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
+	attData = append(attData, credentialIDLengthBytes...)
+
+	// Add CredentialID
+	attData = append(attData, credentialID...)
+
+	// Add CredentialPublicKey
+	attData = append(attData, publicKeyBuf...)
+
+	authDataBz = append(authDataBz, attData...)
+
+	attestationObject := protocol.AttestationObject{
+		AuthData:    authData,
+		RawAuthData: authDataBz,
+		Format:      "none",
+	}
+	attestationObjectJSON, err := webauthncbor.Marshal(attestationObject)
+	require.NoError(t, err)
+
+	attestationResponse := protocol.AuthenticatorAttestationResponse{
+		AuthenticatorResponse: protocol.AuthenticatorResponse{
+			ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
+		},
+		AttestationObject: attestationObjectJSON,
+	}
+	_, err = attestationResponse.Parse()
+	require.NoError(t, err)
+
+	credentialCreationResponse := protocol.CredentialCreationResponse{
+		PublicKeyCredential: protocol.PublicKeyCredential{
+			Credential: protocol.Credential{
+				ID:   string(credentialID),
+				Type: "public-key",
+			},
+			RawID:                   credentialID,
+			AuthenticatorAttachment: string(protocol.Platform),
+		},
+		AttestationResponse: attestationResponse,
+	}
+	_, err = credentialCreationResponse.Parse()
+	require.NoError(t, err)
+
+	credCreationRes, err := json.Marshal(credentialCreationResponse)
+	require.NoError(t, err)
+	return credCreationRes
+}
+
+func CreateWebAuthNSignature(t *testing.T, challenge string, address string) []byte {
+	webAuthnConfig, _, err := CreateWebAuthn(t)
+	require.NoError(t, err)
+	privateKey, publicKeyBuf, pubKeyData := getWebAuthNKeys(t)
 
 	webAuthnUser := types.SmartContractUser{
-		Address: "integration_tests",
+		Address: address,
 		Credential: &webauthn.Credential{
 			ID:              credentialID,
 			AttestationType: "none",
@@ -674,38 +772,41 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 		},
 	}
 
-	sessionData := webauthn.SessionData{
-		Challenge:        string(challenge),
-		UserID:           webAuthnUser.WebAuthnID(),
-		UserVerification: protocol.VerificationPreferred,
-	}
 	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
 	clientData := protocol.CollectedClientData{
 		Type:      "webauthn.get",
-		Challenge: string(challenge),
+		Challenge: challenge,
 		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
 	}
 	clientDataJSON, err := json.Marshal(clientData)
 	require.NoError(t, err)
-	clientDataBz, err := protocol.URLEncodedBase64.MarshalJSON(clientDataJSON)
-	require.NoError(t, err)
-	clientDataHash := sha256.Sum256(clientDataBz)
-	authenticatorData := protocol.AuthenticatorData{
-		RPIDHash: RPIDHash[:],
-		Counter:  1,
-		AttData: protocol.AttestedCredentialData{
-			AAGUID:              AAGUID,
-			CredentialID:        credentialID,
-			CredentialPublicKey: publicKeyBuf,
-		},
-		Flags: 69,
-	}
-	authenticatorDataJSON, err := json.Marshal(authenticatorData)
-	require.NoError(t, err)
-	authenticatorDataBz, err := protocol.URLEncodedBase64.MarshalJSON(authenticatorDataJSON)
+	clientDataHash := sha256.Sum256(clientDataJSON)
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	counterBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(counterBytes, 0)
+	authDataBz = append(authDataBz, counterBytes...)
+
+	var attData []byte
+
+	// Concatenate AAGUID
+	attData = append(attData, AAGUID...)
+
+	// Add CredentialIDLength
+	credentialIDLengthBytes := make([]byte, 2)
+	credentialIDLength := uint16(len(credentialID))
+	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
+	attData = append(attData, credentialIDLengthBytes...)
+
+	// Add CredentialID
+	attData = append(attData, credentialID...)
+
+	// Add CredentialPublicKey
+	attData = append(attData, publicKeyBuf...)
+
+	authDataBz = append(authDataBz, attData...)
 	require.NoError(t, err)
 
-	signData := append(authenticatorDataBz[:], clientDataHash[:]...)
+	signData := append(authDataBz[:], clientDataHash[:]...)
 	signHash := sha256.Sum256(signData)
 	signature, err := privateKey.Sign(cryptoRand.Reader, signHash[:], &signOpts{})
 	require.NoError(t, err)
@@ -713,32 +814,26 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 	require.NoError(t, err)
 	require.True(t, verified)
 
-	ParsedCredentialAssertionData := &protocol.ParsedCredentialAssertionData{
-		ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
-			ParsedCredential: protocol.ParsedCredential{
+	credentialAssertionData := &protocol.CredentialAssertionResponse{
+		PublicKeyCredential: protocol.PublicKeyCredential{
+			Credential: protocol.Credential{
 				ID:   string(credentialID),
 				Type: "public-key",
 			},
 			RawID:                   credentialID,
-			AuthenticatorAttachment: protocol.Platform,
+			AuthenticatorAttachment: string(protocol.Platform),
 		},
-		Response: protocol.ParsedAssertionResponse{
-			CollectedClientData: clientData,
-			AuthenticatorData:   authenticatorData,
-			Signature:           signature,
-			UserHandle:          webAuthnUser.WebAuthnID(),
-		},
-		Raw: protocol.CredentialAssertionResponse{
-			AssertionResponse: protocol.AuthenticatorAssertionResponse{
-				AuthenticatorResponse: protocol.AuthenticatorResponse{
-					ClientDataJSON: protocol.URLEncodedBase64(clientDataBz),
-				},
-				AuthenticatorData: protocol.URLEncodedBase64(authenticatorDataBz),
+		AssertionResponse: protocol.AuthenticatorAssertionResponse{
+			AuthenticatorResponse: protocol.AuthenticatorResponse{
+				ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
 			},
+			AuthenticatorData: authDataBz,
+			Signature:         signature,
+			UserHandle:        webAuthnUser.WebAuthnID(),
 		},
 	}
 	// validate signature
-	_, err = webAuthn.ValidateLogin(webAuthnUser, sessionData, ParsedCredentialAssertionData)
+	assertionResponse, err := json.Marshal(credentialAssertionData)
 	require.NoError(t, err)
-	return signature
+	return assertionResponse
 }
