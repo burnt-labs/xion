@@ -113,6 +113,9 @@ func TestJWTAbstractAccount(t *testing.T) {
 		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
+	audienceQuery, err := ExecQuery(t, ctx, xion.FullNodes[0], "jwk", "list-audience")
+	t.Logf("audiences: \n%s", audienceQuery)
+
 	// retrieve the hash
 	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
 		"wasm", "code-info", codeIDStr)
@@ -140,7 +143,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
-	//b64 the contract address to use as the transaction hash
+	// b64 the contract address to use as the transaction hash
 	signature := base64.StdEncoding.EncodeToString([]byte(predictedAddr.String()))
 
 	now := time.Now()

@@ -3,12 +3,14 @@ package keeper
 import (
 	"context"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRequest) (*types.QueryAllAudienceResponse, error) {
@@ -22,7 +24,7 @@ func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRe
 	store := ctx.KVStore(k.storeKey)
 	audienceStore := prefix.NewStore(store, types.KeyPrefix(types.AudienceKeyPrefix))
 
-	pageRes, err := query.Paginate(audienceStore, req.Pagination, func(key []byte, value []byte) error {
+	pageRes, err := query.Paginate(audienceStore, req.Pagination, func(_ []byte, value []byte) error {
 		var audience types.Audience
 		if err := k.cdc.Unmarshal(value, &audience); err != nil {
 			return err
@@ -31,7 +33,6 @@ func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRe
 		audiences = append(audiences, audience)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

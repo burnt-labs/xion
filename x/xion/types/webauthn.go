@@ -75,7 +75,7 @@ func VerifyAuthentication(rp *url.URL, contractAddr string, challenge string, cr
 		Address:    contractAddr,
 		Credential: credential,
 	}
-	var session = webauthn.SessionData{
+	session := webauthn.SessionData{
 		Challenge:            challenge,
 		UserID:               smartContractUser.WebAuthnID(),
 		UserVerification:     protocol.VerificationPreferred,

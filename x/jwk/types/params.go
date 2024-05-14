@@ -1,6 +1,8 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -44,7 +46,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 func validateDeploymentGas(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
 	}
 
 	return nil
@@ -53,7 +55,7 @@ func validateDeploymentGas(i interface{}) error {
 func validateTimeOffset(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
 	}
 
 	return nil

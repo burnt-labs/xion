@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/burnt-labs/xion/x/mint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 func (s *IntegrationTestSuite) TestUpdateParams() {
