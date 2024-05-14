@@ -17,12 +17,12 @@ func SetupKeys() (*rsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	var privateKey *rsa.PrivateKey
-	err = jwKey.Raw(privateKey)
+	var privateKey rsa.PrivateKey
+	err = jwKey.Raw(&privateKey)
 	if err != nil {
 		return nil, err
 	}
-	return privateKey, nil
+	return &privateKey, nil
 }
 
 func SetupPublicKeys(rsaFile ...string) (*rsa.PrivateKey, jwk.Key, error) {
