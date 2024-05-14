@@ -632,7 +632,7 @@ var credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
 var AAGUID = []byte("AAGUIDAAGUIDAA==")
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
-	privateKey, _, err := wasmbinding.SetupPublicKeys("./testdata/keys/jwtRS256.key")
+	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")
 	require.NoError(t, err)
 	publicKey := privateKey.PublicKey
 	publicKeyModulus := publicKey.N.Bytes()
