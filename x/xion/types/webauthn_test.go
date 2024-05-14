@@ -37,10 +37,6 @@ var (
 	AAGUID       = []byte("AAGUIDAAGUIDAA==")
 )
 
-// []byte("rc4AAjW8xgpkiwsl8fBVAw==")
-
-// []byte("AAGUIDAAGUIDAA==")
-
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
 	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
 	require.NoError(t, err)
@@ -241,11 +237,11 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 	authenticatorDataBz, err := protocol.URLEncodedBase64.MarshalJSON(authDataBz)
 	require.NoError(t, err)
 
-	authenticatorDataBz = append(authenticatorDataBz, clientDataHash[:]...)
-	signHash := sha256.Sum256(authenticatorDataBz)
+	signData := append(authenticatorDataBz, clientDataHash[:]...)
+	signHash := sha256.Sum256(signData)
 	signature, err := privateKey.Sign(rand.Reader, signHash[:], &signOpts{})
 	require.NoError(t, err)
-	verified, err := pubKeyData.Verify(authenticatorDataBz, signature)
+	verified, err := pubKeyData.Verify(signData, signature)
 	require.NoError(t, err)
 	require.True(t, verified)
 
