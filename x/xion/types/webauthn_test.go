@@ -307,7 +307,7 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 func TestGenerateWebAuthNSignature(t *testing.T) {
 	challenge := base64url.Encode([]byte("MfaOZjuIdKFbXkLKWbPghSL8w41RsK2Issp4i0TwzvU="))
 	cred := CreateWebAuthNAttestationCred(t, []byte(challenge))
-	require.Nil(t, cred)
+	require.NotNil(t, cred)
 	signature := CreateWebAuthNSignature(t, []byte(challenge))
 	require.NotNil(t, signature)
 }
