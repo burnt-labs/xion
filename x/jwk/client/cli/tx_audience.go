@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"crypto/sha256"
+
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -13,6 +15,34 @@ import (
 const (
 	FlagNewAdmin = "new-admin"
 )
+
+func CmdCreateAudienceClaim() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-audience-claim [aud]",
+		Short: "Create a new audience claim",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			audStr := args[0]
+
+			audHash := sha256.Sum256([]byte(audStr))
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateAudienceClaim(clientCtx.GetFromAddress(), audHash[:])
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
 
 func CmdCreateAudience() *cobra.Command {
 	cmd := &cobra.Command{

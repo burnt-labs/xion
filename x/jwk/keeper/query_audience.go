@@ -60,3 +60,20 @@ func (k Keeper) Audience(goCtx context.Context, req *types.QueryGetAudienceReque
 
 	return &types.QueryGetAudienceResponse{Audience: val}, nil
 }
+
+func (k Keeper) AudienceClaim(goCtx context.Context, req *types.QueryGetAudienceClaimRequest) (*types.QueryGetAudienceClaimResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	val, found := k.GetAudienceClaim(
+		ctx,
+		req.Hash,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "not found")
+	}
+
+	return &types.QueryGetAudienceClaimResponse{Claim: &val}, nil
+}

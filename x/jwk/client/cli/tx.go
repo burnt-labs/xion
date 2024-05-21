@@ -24,6 +24,7 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	cmd.AddCommand(CmdCreateAudienceClaim())
 	cmd.AddCommand(CmdCreateAudience())
 	cmd.AddCommand(CmdUpdateAudience())
 	cmd.AddCommand(CmdDeleteAudience())

@@ -102,6 +102,20 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 
 	// deploy the key to the jwk module
 	aud := "integration-test-project"
+
+	createAudienceClaimHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"jwk", "create-audience-claim",
+		aud,
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	t.Logf("create audience claim hash: %s", createAudienceClaimHash)
+
+	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", createAudienceClaimHash)
+	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
+
 	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"jwk", "create-audience",

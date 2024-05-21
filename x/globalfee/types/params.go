@@ -28,6 +28,7 @@ var (
 		sdk.MsgTypeURL(&xiontypes.MsgSend{}),
 		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
 		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudience{}),
+		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudienceClaim{}),
 	}
 
 	// maxTotalBypassMinFeeMsgGasUsage is the allowed maximum gas usage
