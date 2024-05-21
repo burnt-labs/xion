@@ -80,6 +80,7 @@ jobs:
         - "XionMinimumFeeDefault"
         - "XionMinimumFeeZero"
         - "XionTokenFactory"
+        - "XionAbstractAccountJWTCLI"
 
     steps:
       - name: Set up Go 1.21
