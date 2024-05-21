@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/burnt-labs/xion/x/jwk/types"
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -21,14 +21,8 @@ func GetQueryCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdQueryParams())
-	cmd.AddCommand(CmdListAudience())
-	cmd.AddCommand(CmdShowAudience())
-	cmd.AddCommand(CmdShowAudienceClaim())
-	cmd.AddCommand(CmdValidateJWT())
-
-	// utils, not sure where best to put this
-	cmd.AddCommand(CmdConvertPemToJSON())
+	cmd.AddCommand(CmdWebAuthNVerifyRegister())
+	cmd.AddCommand(CmdWebAuthNVerifyAuthenticate())
 
 	// this line is used by starport scaffolding # 1
 
