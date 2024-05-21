@@ -18,7 +18,9 @@ message MsgCreateAudience {
   string key   = 3;
 }
 
-message MsgCreateAudienceResponse {}
+message MsgCreateAudienceResponse {
+  Audience audience = 1;
+}
 
 message MsgUpdateAudience {
   string admin = 1;
@@ -27,7 +29,9 @@ message MsgUpdateAudience {
   string key    = 4;
 }
 
-message MsgUpdateAudienceResponse {}
+message MsgUpdateAudienceResponse {
+  Audience audience = 1;
+}
 
 message MsgDeleteAudience {
   string admin = 1;
