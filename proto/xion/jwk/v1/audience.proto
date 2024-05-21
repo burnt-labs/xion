@@ -9,3 +9,6 @@ message Audience {
   string admin = 3;
 }
 
+message AudienceClaim {
+  string signer = 1;
+}

@@ -18,6 +18,10 @@ service Query {
     option (google.api.http).get = "/xion/jwk/params";
   
   }
+
+  rpc AudienceClaim (QueryGetAudienceClaimRequest) returns (QueryGetAudienceClaimResponse) {
+    option (google.api.http).get = "/xion/jqk/audience_claim/{hash}";
+  }
   
   // Queries a list of Audience items.
   rpc Audience    (QueryGetAudienceRequest) returns (QueryGetAudienceResponse) {
@@ -45,6 +49,14 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
+message QueryGetAudienceClaimRequest {
+  bytes hash = 1;
+}
+
+message QueryGetAudienceClaimResponse {
+  AudienceClaim claim = 1;
+}
+
 message QueryGetAudienceRequest {
   string aud = 1;
 }
@@ -66,8 +78,14 @@ message QueryValidateJWTRequest {
   string aud      = 1;
   string sub      = 2;
   string sigBytes = 3;
-//  string txHash   = 4;
 }
 
-message QueryValidateJWTResponse {}
+message PrivateClaim {
+  string key = 1;
+  string value = 2;
+}
+
+message QueryValidateJWTResponse {
+  repeated PrivateClaim privateClaims = 1;
+}
 

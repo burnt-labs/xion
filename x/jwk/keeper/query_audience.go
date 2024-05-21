@@ -18,6 +18,10 @@ func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRe
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
+	if req.Pagination.Limit > 100 {
+		return nil, status.Error(codes.ResourceExhausted, "requests audience page size >100, too large")
+	}
+
 	var audiences []types.Audience
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -55,4 +59,21 @@ func (k Keeper) Audience(goCtx context.Context, req *types.QueryGetAudienceReque
 	}
 
 	return &types.QueryGetAudienceResponse{Audience: val}, nil
+}
+
+func (k Keeper) AudienceClaim(goCtx context.Context, req *types.QueryGetAudienceClaimRequest) (*types.QueryGetAudienceClaimResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	val, found := k.GetAudienceClaim(
+		ctx,
+		req.Hash,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "not found")
+	}
+
+	return &types.QueryGetAudienceClaimResponse{Claim: &val}, nil
 }

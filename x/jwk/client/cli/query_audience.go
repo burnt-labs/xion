@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"encoding/base64"
+
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -66,6 +68,43 @@ func CmdShowAudience() *cobra.Command {
 			}
 
 			res, err := queryClient.Audience(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdShowAudienceClaim() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "show-audience-claim [hash]",
+		Short: "shows an audience claim",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			argAudHashStr := args[0]
+			audHash, err := base64.StdEncoding.DecodeString(argAudHashStr)
+			if err != nil {
+				return err
+			}
+
+			params := &types.QueryGetAudienceClaimRequest{
+				Hash: audHash,
+			}
+
+			res, err := queryClient.AudienceClaim(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

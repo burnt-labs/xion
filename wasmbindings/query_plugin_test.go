@@ -1,6 +1,8 @@
 package wasmbinding_test
 
 import (
+	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -32,6 +34,8 @@ type StargateTestSuite struct {
 	app *xionapp.WasmApp
 }
 
+var admin = "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74"
+
 func (suite *StargateTestSuite) SetupTest() {
 	suite.app = xionapp.Setup(suite.T())
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "xion-1", Time: time.Now().UTC()})
@@ -53,8 +57,14 @@ func SetUpAudience(suite *StargateTestSuite) {
 	pubKeyJSON, err := json.Marshal(pubKey)
 	suite.NoError(err)
 	msgServer := jwkMsgServer.NewMsgServerImpl(suite.app.JwkKeeper)
+	sum := sha256.Sum256([]byte("test-aud"))
+	_, err = msgServer.CreateAudienceClaim(sdk.WrapSDKContext(suite.ctx), &jwktypes.MsgCreateAudienceClaim{
+		Admin:   admin,
+		AudHash: sum[:],
+	})
+	suite.NoError(err)
 	_, err = msgServer.CreateAudience(sdk.WrapSDKContext(suite.ctx), &jwktypes.MsgCreateAudience{
-		Admin: "admin",
+		Admin: admin,
 		Aud:   "test-aud",
 		Key:   string(pubKeyJSON),
 	})
@@ -199,7 +209,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 			},
 			responseProtoStruct: &jwktypes.QueryGetAudienceResponse{
 				Audience: jwktypes.Audience{
-					Admin: "admin",
+					Admin: admin,
 					Aud:   "test-aud",
 					Key:   string(publicKeyJSON),
 				},
@@ -223,7 +233,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 			responseProtoStruct: &jwktypes.QueryAllAudienceResponse{
 				Audience: []jwktypes.Audience{
 					{
-						Admin: "admin",
+						Admin: admin,
 						Aud:   "test-aud",
 						Key:   string(publicKeyJSON),
 					},
@@ -242,7 +252,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 				inFive := now.Add(time.Minute * 5)
 				token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 					"iss":              "test-aud",
-					"sub":              "admin",
+					"sub":              "subject",
 					"aud":              "test-aud",
 					"exp":              inFive.Unix(),
 					"nbf":              fiveAgo.Unix(),
@@ -254,7 +264,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 				suite.NotEmpty(signedToken)
 				bz, err := proto.Marshal(&jwktypes.QueryValidateJWTRequest{
 					Aud:      "test-aud",
-					Sub:      "admin",
+					Sub:      "subject",
 					SigBytes: signedToken,
 				})
 				suite.Require().NoError(err)
