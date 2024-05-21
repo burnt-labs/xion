@@ -12,6 +12,10 @@ import (
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
+const (
+	FlagNewAdmin = "new-admin"
+)
+
 func CmdCreateAudienceClaim() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-audience-claim [aud]",
@@ -84,7 +88,7 @@ func CmdCreateAudience() *cobra.Command {
 
 func CmdUpdateAudience() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-audience [aud] [key]",
+		Use:   "update-audience [aud] [key] --new-admin [new-admin]",
 		Short: "Update a audience",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -99,9 +103,17 @@ func CmdUpdateAudience() *cobra.Command {
 				return err
 			}
 
+			newAdmin, err := cmd.Flags().GetString(FlagNewAdmin)
+			if err != nil {
+				return err
+			}
+			if newAdmin == "" {
+				newAdmin = clientCtx.GetFromAddress().String()
+			}
+
 			msg := types.NewMsgUpdateAudience(
 				clientCtx.GetFromAddress().String(),
-				clientCtx.GetFromAddress().String(),
+				newAdmin,
 				indexAud,
 				argKey,
 			)
@@ -113,6 +125,7 @@ func CmdUpdateAudience() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String(FlagNewAdmin, "", "address to provide as the new admin")
 
 	return cmd
 }

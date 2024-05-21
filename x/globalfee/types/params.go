@@ -27,6 +27,7 @@ var (
 	DefaultBypassMinFeeMsgTypes = []string{
 		sdk.MsgTypeURL(&xiontypes.MsgSend{}),
 		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
+		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudience{}),
 		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudienceClaim{}),
 	}
 
