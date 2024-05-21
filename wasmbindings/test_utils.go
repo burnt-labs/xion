@@ -13,7 +13,7 @@ func SetupKeys() (*rsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	jwKey, err := (jwk.ParseKey(privateKeyBz, jwk.WithPEM(true)))
+	jwKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
 	if err != nil {
 		return nil, err
 	}

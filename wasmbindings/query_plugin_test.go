@@ -1,7 +1,6 @@
 package wasmbinding_test
 
 import (
-	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
