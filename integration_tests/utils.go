@@ -6,15 +6,14 @@ import (
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"embed"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"path"
-
-	"embed"
 	"math/big"
 	"math/rand"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"testing"
@@ -646,8 +645,10 @@ func (*signOpts) HashFunc() crypto.Hash {
 	return crypto.SHA256
 }
 
-var credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
-var AAGUID = []byte("AAGUIDAAGUIDAA==")
+var (
+	credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
+	AAGUID       = []byte("AAGUIDAAGUIDAA==")
+)
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
 	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")

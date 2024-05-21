@@ -4,8 +4,7 @@ import (
 	"crypto/rsa"
 	"os"
 
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 func SetupKeys() (*rsa.PrivateKey, error) {
@@ -14,11 +13,16 @@ func SetupKeys() (*rsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
+	jwKey, err := (jwk.ParseKey(privateKeyBz, jwk.WithPEM(true)))
 	if err != nil {
 		return nil, err
 	}
-	return privateKey, nil
+	var privateKey rsa.PrivateKey
+	err = jwKey.Raw(&privateKey)
+	if err != nil {
+		return nil, err
+	}
+	return &privateKey, nil
 }
 
 func SetupPublicKeys(rsaFile ...string) (*rsa.PrivateKey, jwk.Key, error) {
@@ -30,19 +34,16 @@ func SetupPublicKeys(rsaFile ...string) (*rsa.PrivateKey, jwk.Key, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
+	jwKey, err := jwk.ParseKey(privateKeyBz, jwk.WithPEM(true))
 	if err != nil {
 		return nil, nil, err
 	}
-	jwkPrivKey, err := jwk.New(privateKey)
-	if err != nil {
-		return nil, nil, err
-	}
-	publicKey, err := jwkPrivKey.PublicKey()
-	if err != nil {
-		return nil, nil, err
-	}
-	publicKey.Set("alg", "RS256")
 
-	return privateKey, publicKey, nil
+	var privateKey rsa.PrivateKey
+	err = jwKey.Raw(&privateKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &privateKey, nil, nil
 }

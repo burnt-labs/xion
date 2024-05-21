@@ -14,15 +14,16 @@ import (
 	"testing"
 
 	"github.com/dvsekhvalnov/jose2go/base64url"
-
-	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
-	"github.com/burnt-labs/xion/x/xion/types"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/require"
+
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
+
+	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 type signOpts struct{}
@@ -31,12 +32,10 @@ func (*signOpts) HashFunc() crypto.Hash {
 	return crypto.SHA256
 }
 
-var credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
-var AAGUID = []byte("AAGUIDAAGUIDAA==")
-
-// []byte("rc4AAjW8xgpkiwsl8fBVAw==")
-
-// []byte("AAGUIDAAGUIDAA==")
+var (
+	credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
+	AAGUID       = []byte("AAGUIDAAGUIDAA==")
+)
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
 	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
@@ -99,7 +98,7 @@ func CreateWebAuthNAttestationCred(t *testing.T, challenge []byte) []byte {
 		},
 		Flags: 69,
 	}
-	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()...)
 	counterBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(counterBytes, 0)
 	authDataBz = append(authDataBz, counterBytes...)
@@ -211,7 +210,7 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 		},
 		Flags: 69,
 	}
-	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()...)
 	counterBytes := make([]byte, 4)
 	binary.LittleEndian.PutUint32(counterBytes, 0)
 	authDataBz = append(authDataBz, counterBytes...)
@@ -238,11 +237,11 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 	authenticatorDataBz, err := protocol.URLEncodedBase64.MarshalJSON(authDataBz)
 	require.NoError(t, err)
 
-	signData := append(authenticatorDataBz[:], clientDataHash[:]...)
+	signData := append(authenticatorDataBz, clientDataHash[:]...)
 	signHash := sha256.Sum256(signData)
 	signature, err := privateKey.Sign(rand.Reader, signHash[:], &signOpts{})
 	require.NoError(t, err)
-	verified, err := pubKeyData.Verify(signData[:], signature)
+	verified, err := pubKeyData.Verify(signData, signature)
 	require.NoError(t, err)
 	require.True(t, verified)
 
