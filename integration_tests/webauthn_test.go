@@ -76,7 +76,7 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
-	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+	codeHash, _ := hex.DecodeString(codeResp["data_hash"].(string))
 
 	return td, deployerAddr, codeHash, codeIDStr, nil
 }
@@ -109,7 +109,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 		3. Enter the `predicted address` in the second field within the WebAuthN section (populated with the string "test-challenge" by default)
 		4. Click "Register" and copy the result from the console
 	*/
-	authenticatorDetails["credential"] = []byte(`{"type":"public-key","id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","rawId":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRnVZM2d3WVRCcWJuTjVZWGszZFdSa01ETmhhREpuWmpZME56Y3laekF5Y1hOM2FqVXlPVGsyWkhrNE1IRm1kbWR1YlhweE5tVndiSEZ4Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2V9","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViksGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1FAAAAAK3OAAI1vMYKZIsLJfHwVQMAIFFsWPskXSJbPCE_r8jEupWtWYqhEjgH3-21mfy1ldD4pQECAyYgASFYIBs-8ZhiLYtNYWnyPdNxhka3UM7oGCyWzHZlT_FumMOsIlggjBzL-ZhjwRGxFCw3S0HGsyh9cZ-p_BESG0e6xQPg6ZI","transports":["internal"]},"clientExtensionResults":{}}`)
+	authenticatorDetails["credential"] = []byte(`{"type":"public-key","id":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","rawId":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRXdkbmQ1YmpkcmVYTmtiV1IxT1dGNFpqQnJOelZtTkRKNU5YWTRZemgxYkdFM1pYSndiR1JoZEhWdGVXTXliSFJ0YlRkeGNHMDBialZ1Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2UsIm90aGVyX2tleXNfY2FuX2JlX2FkZGVkX2hlcmUiOiJkbyBub3QgY29tcGFyZSBjbGllbnREYXRhSlNPTiBhZ2FpbnN0IGEgdGVtcGxhdGUuIFNlZSBodHRwczovL2dvby5nbC95YWJQZXgifQ","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViYsGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1dAAAAAAAAAAAAAAAAAAAAAAAAAAAAFLzJEezDjGYCTy7_8DUK1cwHk3FMpQECAyYgASFYIMDKR_7srx1rFpzeuFOitvPb3LekV-LX6o1tnQwComfFIlggw_Vrc3FhDtNbYl-lT44hubZU0bVF_LSBB42SzRm7HIw","transports":["hybrid","internal"]},"clientExtensionResults":{}}`)
 	authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
@@ -234,7 +234,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 		3. Enter the `challenge` in the first field within the WebAuthN section (populated with the string "test-challenge" by default)
 		4. Click "Sign" and copy the result from the console
 	*/
-	signedChallenge := `{"type":"public-key","id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","rawId":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiT1V0UGMyMWpMM3BhWVROd2NFbEJXSEZMYjNkTk1sTmxjR1JRWWs5a09GUlJOMEp6ZGk4elRYb3laejAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZX0","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0FAAAAAA","signature":"MEQCIE0N5DESKA8PeykB1t98815g99XeXpxxZ94UjDuSl85pAiBssBSfcsYJ4c4hxkLoaVj635pBuGI3IBPBia8VJ4HOug","userHandle":"eGlvbjFuY3gwYTBqbnN5YXk3dWRkMDNhaDJnZjY0NzcyZzAycXN3ajUyOTk2ZHk4MHFmdmdubXpxNmVwbHFx"},"clientExtensionResults":{}}`
+	signedChallenge := `{"type":"public-key","id":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","rawId":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiU0VkVWJqRlVUM2hxTmxodE5WTnBSbXBYTkZaalRIVnVNa2xxVVhSYU9XVlBWR05NWkZOcmMycEdhejAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0dAAAAAA","signature":"MEUCIQCpt0GmDPrEa4Dvrgyjb-k6OMBaJLUhs4diMRMtn-Gv2wIgCCN0ljM_sGmIq3raTSAcQBnjpF-hrkUbSbqCS86Y56A","userHandle":"eGlvbjEwdnd5bjdreXNkbWR1OWF4ZjBrNzVmNDJ5NXY4Yzh1bGE3ZXJwbGRhdHVteWMybHRtbTdxcG00bjVu"},"clientExtensionResults":{}}`
 	// add the auth index to the signature
 	signedTokenBz := []byte(signedChallenge)
 	sigBytes := append([]byte{0}, signedTokenBz...)
