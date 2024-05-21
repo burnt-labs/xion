@@ -1,11 +1,9 @@
 package wasmbinding_test
 
 import (
-	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -46,17 +44,9 @@ func TestStargateTestSuite(t *testing.T) {
 	suite.Run(t, new(StargateTestSuite))
 }
 
-func SetupKeys(suite *StargateTestSuite) *rsa.PrivateKey {
-	// CreateAudience
-	privateKeyBz, err := os.ReadFile("./keys/jwtRS256.key")
-	suite.Require().NoError(err)
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
-	suite.Require().NoError(err)
-	return privateKey
-}
-
 func SetUpAudience(suite *StargateTestSuite) {
-	privKey := SetupKeys(suite)
+	privKey, err := wasmbinding.SetupKeys()
+	suite.Require().NoError(err)
 	jwkPrivKey, err := jwk.New(privKey)
 	suite.Require().NoError(err)
 	pubKey, err := jwkPrivKey.PublicKey()
@@ -181,7 +171,8 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 }
 
 func (suite *StargateTestSuite) TestJWKStargateQuerier() {
-	privKey := SetupKeys(suite)
+	privKey, err := wasmbinding.SetupKeys()
+	suite.Require().NoError(err)
 	jwkPrivKey, err := jwk.New(privKey)
 	suite.Require().NoError(err)
 	publicKey, err := jwkPrivKey.PublicKey()

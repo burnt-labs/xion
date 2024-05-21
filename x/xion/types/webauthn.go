@@ -8,16 +8,16 @@ import (
 )
 
 type SmartContractUser struct {
-	address    string
-	credential *webauthn.Credential
+	Address    string
+	Credential *webauthn.Credential
 }
 
 func (s SmartContractUser) WebAuthnID() []byte {
-	return []byte(s.address)
+	return []byte(s.Address)
 }
 
 func (s SmartContractUser) WebAuthnName() string {
-	return s.address
+	return s.Address
 }
 
 func (s SmartContractUser) WebAuthnDisplayName() string {
@@ -25,7 +25,7 @@ func (s SmartContractUser) WebAuthnDisplayName() string {
 }
 
 func (s SmartContractUser) WebAuthnCredentials() []webauthn.Credential {
-	return []webauthn.Credential{*s.credential}
+	return []webauthn.Credential{*s.Credential}
 }
 
 func (s SmartContractUser) WebAuthnIcon() string {
@@ -47,7 +47,7 @@ func VerifyRegistration(rp *url.URL, contractAddr string, challenge string, cred
 		return nil, err
 	}
 
-	smartContractUser := SmartContractUser{address: contractAddr}
+	smartContractUser := SmartContractUser{Address: contractAddr}
 	session := webauthn.SessionData{
 		Challenge:        challenge,
 		UserID:           smartContractUser.WebAuthnID(),
@@ -71,8 +71,8 @@ func VerifyAuthentication(rp *url.URL, contractAddr string, challenge string, cr
 	}
 
 	smartContractUser := SmartContractUser{
-		address:    contractAddr,
-		credential: credential,
+		Address:    contractAddr,
+		Credential: credential,
 	}
 	session := webauthn.SessionData{
 		Challenge:            challenge,
