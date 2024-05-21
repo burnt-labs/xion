@@ -90,7 +90,7 @@ func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
 	return rawMsg
 }
 
-func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey string) []byte {
+func RawJSONMsgExecContractRemoveAuthenticator(sender string, contract string, index uint64) []byte {
 	msg := fmt.Sprintf(`
 {
   "body": {
@@ -100,9 +100,9 @@ func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey stri
         "sender": "%s",
         "contract": "%s",
         "msg": {
-          "update_pubkey": {
-            "new_pubkey": "%s"
-          }
+			"remove_auth_method": {
+				"id": %d
+			}
         },
         "funds": []
       }
@@ -124,7 +124,7 @@ func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey stri
   },
   "signatures": []
 }
-	`, sender, contract, pubkey)
+	`, sender, contract, index)
 	var rawMsg json.RawMessage = []byte(msg)
 	return rawMsg
 }
@@ -545,12 +545,14 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 }
 
 func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
-	stdout, _, err := tn.Exec(ctx, TxCommandOverrideGas(t, tn, keyName, tn.Chain.Config().GasPrices, command...), nil)
+	cmd := TxCommandOverrideGas(t, tn, keyName, tn.Chain.Config().GasPrices, command...)
+	t.Logf("cmd: %s", cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
 	if err != nil {
 		return "", err
 	}
 	output := cosmos.CosmosTx{}
-	err = json.Unmarshal([]byte(stdout), &output)
+	err = json.Unmarshal(stdout, &output)
 	if err != nil {
 		return "", err
 	}
@@ -561,6 +563,22 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 		return "", err
 	}
 	return output.TxHash, nil
+}
+
+func GenerateTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
+	cmd := append([]string{"tx"}, command...)
+	cmd = tn.NodeCommand(append(cmd,
+		"--from", keyName,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"--generate-only",
+	)...)
+	t.Logf("cmd: %s", cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
 }
 
 func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
