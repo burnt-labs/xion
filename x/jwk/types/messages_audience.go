@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	errorsmod "cosmossdk.io/errors"
@@ -56,9 +59,19 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 
-	_, err = jwk.ParseKey([]byte(msg.Key))
+	key, err := jwk.ParseKey([]byte(msg.Key))
 	if err != nil {
 		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
+	}
+
+	var sigAlg jwa.SignatureAlgorithm
+	if err := sigAlg.Accept(key.Algorithm().String()); err != nil {
+		return err
+	}
+
+	switch sigAlg {
+	case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
+		return fmt.Errorf("invalid algorithm: %s", sigAlg.String())
 	}
 
 	return nil
@@ -111,6 +124,22 @@ func (msg *MsgUpdateAudience) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
+
+	key, err := jwk.ParseKey([]byte(msg.Key))
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
+	}
+
+	var sigAlg jwa.SignatureAlgorithm
+	if err := sigAlg.Accept(key.Algorithm().String()); err != nil {
+		return err
+	}
+
+	switch sigAlg {
+	case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
+		return fmt.Errorf("invalid algorithm: %s", sigAlg.String())
+	}
+
 	return nil
 }
 
