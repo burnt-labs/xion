@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/dvsekhvalnov/jose2go/base64url"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -76,7 +77,8 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
-	codeHash, _ := hex.DecodeString(codeResp["data_hash"].(string))
+	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+	require.NoError(t, err)
 
 	return td, deployerAddr, codeHash, codeIDStr, nil
 }
@@ -109,7 +111,8 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 		3. Enter the `predicted address` in the second field within the WebAuthN section (populated with the string "test-challenge" by default)
 		4. Click "Register" and copy the result from the console
 	*/
-	authenticatorDetails["credential"] = []byte(`{"type":"public-key","id":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","rawId":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRXdkbmQ1YmpkcmVYTmtiV1IxT1dGNFpqQnJOelZtTkRKNU5YWTRZemgxYkdFM1pYSndiR1JoZEhWdGVXTXliSFJ0YlRkeGNHMDBialZ1Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAiLCJjcm9zc09yaWdpbiI6ZmFsc2UsIm90aGVyX2tleXNfY2FuX2JlX2FkZGVkX2hlcmUiOiJkbyBub3QgY29tcGFyZSBjbGllbnREYXRhSlNPTiBhZ2FpbnN0IGEgdGVtcGxhdGUuIFNlZSBodHRwczovL2dvby5nbC95YWJQZXgifQ","attestationObject":"o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViYsGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1dAAAAAAAAAAAAAAAAAAAAAAAAAAAAFLzJEezDjGYCTy7_8DUK1cwHk3FMpQECAyYgASFYIMDKR_7srx1rFpzeuFOitvPb3LekV-LX6o1tnQwComfFIlggw_Vrc3FhDtNbYl-lT44hubZU0bVF_LSBB42SzRm7HIw","transports":["hybrid","internal"]},"clientExtensionResults":{}}`)
+	cred := CreateWebAuthNAttestationCred(t, base64url.Encode([]byte(predictedAddr.String())))
+	authenticatorDetails["credential"] = cred
 	authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
@@ -222,7 +225,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	// our signature is the sha256 of the signbytes
 	signatureBz := sha256.Sum256(signBytes)
-	challenge := base64.StdEncoding.EncodeToString(signatureBz[:])
+	challenge := base64url.Encode([]byte(base64.StdEncoding.EncodeToString(signatureBz[:])))
 
 	t.Log("challenge ", challenge)
 
@@ -234,10 +237,8 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 		3. Enter the `challenge` in the first field within the WebAuthN section (populated with the string "test-challenge" by default)
 		4. Click "Sign" and copy the result from the console
 	*/
-	signedChallenge := `{"type":"public-key","id":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","rawId":"vMkR7MOMZgJPLv_wNQrVzAeTcUw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiU0VkVWJqRlVUM2hxTmxodE5WTnBSbXBYTkZaalRIVnVNa2xxVVhSYU9XVlBWR05NWkZOcmMycEdhejAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw0dAAAAAA","signature":"MEUCIQCpt0GmDPrEa4Dvrgyjb-k6OMBaJLUhs4diMRMtn-Gv2wIgCCN0ljM_sGmIq3raTSAcQBnjpF-hrkUbSbqCS86Y56A","userHandle":"eGlvbjEwdnd5bjdreXNkbWR1OWF4ZjBrNzVmNDJ5NXY4Yzh1bGE3ZXJwbGRhdHVteWMybHRtbTdxcG00bjVu"},"clientExtensionResults":{}}`
-	// add the auth index to the signature
-	signedTokenBz := []byte(signedChallenge)
-	sigBytes := append([]byte{0}, signedTokenBz...)
+	signedChallenge := CreateWebAuthNSignature(t, challenge, predictedAddr.String())
+	sigBytes := append([]byte{0}, signedChallenge...)
 
 	sigData = signing.SingleSignatureData{
 		SignMode:  signing.SignMode_SIGN_MODE_DIRECT,

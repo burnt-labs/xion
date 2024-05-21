@@ -2,9 +2,15 @@ package integration_tests
 
 import (
 	"context"
+	"crypto"
+	cryptoRand "crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"embed"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"math/rand"
 	"os"
 	"path"
@@ -14,8 +20,14 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
+	"github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
+	"github.com/go-webauthn/webauthn/protocol/webauthncose"
+	"github.com/go-webauthn/webauthn/webauthn"
 
 	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -625,6 +637,228 @@ func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNo
 	}
 	path := strings.Split(file.Name(), "/")
 	return tn.WriteFile(ctx, content, path[len(path)-1])
+}
+
+type signOpts struct{}
+
+func (*signOpts) HashFunc() crypto.Hash {
+	return crypto.SHA256
+}
+
+var (
+	credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
+	AAGUID       = []byte("AAGUIDAAGUIDAA==")
+)
+
+func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
+	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")
+	require.NoError(t, err)
+	publicKey := privateKey.PublicKey
+	publicKeyModulus := publicKey.N.Bytes()
+	require.NoError(t, err)
+	pubKeyData := webauthncose.RSAPublicKeyData{
+		PublicKeyData: webauthncose.PublicKeyData{
+			KeyType:   int64(webauthncose.RSAKey),
+			Algorithm: int64(webauthncose.AlgRS256),
+		},
+		Modulus:  publicKeyModulus,
+		Exponent: big.NewInt(int64(publicKey.E)).Bytes(),
+	}
+	publicKeyBuf, err := webauthncbor.Marshal(pubKeyData)
+	require.NoError(t, err)
+	return privateKey, publicKeyBuf, pubKeyData
+}
+
+func CreateWebAuthn(t *testing.T) (webauthn.Config, *webauthn.WebAuthn, error) {
+	webAuthnConfig := webauthn.Config{
+		RPDisplayName:         "Xion",
+		RPID:                  "xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+		RPOrigins:             []string{"https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"},
+		AttestationPreference: "none",
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			AuthenticatorAttachment: protocol.Platform,
+			UserVerification:        protocol.VerificationPreferred,
+		},
+	}
+	webAuthn, err := webauthn.New(&webAuthnConfig)
+	require.NoError(t, err)
+
+	return webAuthnConfig, webAuthn, nil
+}
+
+func CreateWebAuthNAttestationCred(t *testing.T, challenge string) []byte {
+	webAuthnConfig, _, err := CreateWebAuthn(t)
+	require.NoError(t, err)
+	clientData := protocol.CollectedClientData{
+		Type:      "webauthn.create",
+		Challenge: challenge,
+		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+	}
+
+	_, publicKeyBuf, _ := getWebAuthNKeys(t)
+
+	clientDataJSON, err := json.Marshal(clientData)
+	require.NoError(t, err)
+
+	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
+	authData := protocol.AuthenticatorData{
+		RPIDHash: RPIDHash[:],
+		Counter:  0,
+		AttData: protocol.AttestedCredentialData{
+			AAGUID:              AAGUID,
+			CredentialID:        credentialID,
+			CredentialPublicKey: publicKeyBuf,
+		},
+		Flags: 69,
+	}
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	counterBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(counterBytes, 0)
+	authDataBz = append(authDataBz, counterBytes...)
+
+	var attData []byte
+
+	// Concatenate AAGUID
+	attData = append(attData, AAGUID...)
+
+	// Add CredentialIDLength
+	credentialIDLengthBytes := make([]byte, 2)
+	credentialIDLength := uint16(len(credentialID))
+	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
+	attData = append(attData, credentialIDLengthBytes...)
+
+	// Add CredentialID
+	attData = append(attData, credentialID...)
+
+	// Add CredentialPublicKey
+	attData = append(attData, publicKeyBuf...)
+
+	authDataBz = append(authDataBz, attData...)
+
+	attestationObject := protocol.AttestationObject{
+		AuthData:    authData,
+		RawAuthData: authDataBz,
+		Format:      "none",
+	}
+	attestationObjectJSON, err := webauthncbor.Marshal(attestationObject)
+	require.NoError(t, err)
+
+	attestationResponse := protocol.AuthenticatorAttestationResponse{
+		AuthenticatorResponse: protocol.AuthenticatorResponse{
+			ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
+		},
+		AttestationObject: attestationObjectJSON,
+	}
+	_, err = attestationResponse.Parse()
+	require.NoError(t, err)
+
+	credentialCreationResponse := protocol.CredentialCreationResponse{
+		PublicKeyCredential: protocol.PublicKeyCredential{
+			Credential: protocol.Credential{
+				ID:   string(credentialID),
+				Type: "public-key",
+			},
+			RawID:                   credentialID,
+			AuthenticatorAttachment: string(protocol.Platform),
+		},
+		AttestationResponse: attestationResponse,
+	}
+	_, err = credentialCreationResponse.Parse()
+	require.NoError(t, err)
+
+	credCreationRes, err := json.Marshal(credentialCreationResponse)
+	require.NoError(t, err)
+	return credCreationRes
+}
+
+func CreateWebAuthNSignature(t *testing.T, challenge string, address string) []byte {
+	webAuthnConfig, _, err := CreateWebAuthn(t)
+	require.NoError(t, err)
+	privateKey, publicKeyBuf, pubKeyData := getWebAuthNKeys(t)
+
+	webAuthnUser := types.SmartContractUser{
+		Address: address,
+		Credential: &webauthn.Credential{
+			ID:              credentialID,
+			AttestationType: "none",
+			PublicKey:       publicKeyBuf,
+			Transport:       []protocol.AuthenticatorTransport{protocol.Internal},
+			Flags: webauthn.CredentialFlags{
+				UserPresent:  false,
+				UserVerified: false,
+			},
+			Authenticator: webauthn.Authenticator{
+				AAGUID:     AAGUID,
+				SignCount:  0,
+				Attachment: protocol.Platform,
+			},
+		},
+	}
+
+	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
+	clientData := protocol.CollectedClientData{
+		Type:      "webauthn.get",
+		Challenge: challenge,
+		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+	}
+	clientDataJSON, err := json.Marshal(clientData)
+	require.NoError(t, err)
+	clientDataHash := sha256.Sum256(clientDataJSON)
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	counterBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(counterBytes, 0)
+	authDataBz = append(authDataBz, counterBytes...)
+
+	var attData []byte
+
+	// Concatenate AAGUID
+	attData = append(attData, AAGUID...)
+
+	// Add CredentialIDLength
+	credentialIDLengthBytes := make([]byte, 2)
+	credentialIDLength := uint16(len(credentialID))
+	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
+	attData = append(attData, credentialIDLengthBytes...)
+
+	// Add CredentialID
+	attData = append(attData, credentialID...)
+
+	// Add CredentialPublicKey
+	attData = append(attData, publicKeyBuf...)
+
+	authDataBz = append(authDataBz, attData...)
+	require.NoError(t, err)
+
+	signData := append(authDataBz[:], clientDataHash[:]...)
+	signHash := sha256.Sum256(signData)
+	signature, err := privateKey.Sign(cryptoRand.Reader, signHash[:], &signOpts{})
+	require.NoError(t, err)
+	verified, err := pubKeyData.Verify(signData[:], signature)
+	require.NoError(t, err)
+	require.True(t, verified)
+
+	credentialAssertionData := &protocol.CredentialAssertionResponse{
+		PublicKeyCredential: protocol.PublicKeyCredential{
+			Credential: protocol.Credential{
+				ID:   string(credentialID),
+				Type: "public-key",
+			},
+			RawID:                   credentialID,
+			AuthenticatorAttachment: string(protocol.Platform),
+		},
+		AssertionResponse: protocol.AuthenticatorAssertionResponse{
+			AuthenticatorResponse: protocol.AuthenticatorResponse{
+				ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
+			},
+			AuthenticatorData: authDataBz,
+			Signature:         signature,
+			UserHandle:        webAuthnUser.WebAuthnID(),
+		},
+	}
+	// validate signature
+	assertionResponse, err := json.Marshal(credentialAssertionData)
+	require.NoError(t, err)
+	return assertionResponse
 }
 
 func CreateTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, subDenomName, feeCoin string) (fullDenom string) {

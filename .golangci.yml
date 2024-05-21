@@ -45,6 +45,9 @@ linters-settings:
   gosec:
     excludes:
       - G404
+  gocritic:
+    disabled-checks:
+      - appendAssign
 
 issues:
   max-issues-per-linter: 0
