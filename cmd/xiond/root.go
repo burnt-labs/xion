@@ -17,7 +17,7 @@ import (
 	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/libs/log"
 
-	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
+	rosettaCmd "github.com/cosmos/rosetta/cmd"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"

@@ -3,7 +3,7 @@ package v3
 import (
 	feeabstypes "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/types"
 
-	store "github.com/cosmos/cosmos-sdk/store/types"
+	store "cosmossdk.io/store/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
 )

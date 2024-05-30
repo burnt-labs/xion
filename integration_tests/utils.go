@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
-	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
+	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"

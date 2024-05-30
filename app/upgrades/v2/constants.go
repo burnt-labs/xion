@@ -6,7 +6,7 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/types"
 
-	store "github.com/cosmos/cosmos-sdk/store/types"
+	store "cosmossdk.io/store/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
 	"github.com/burnt-labs/xion/x/globalfee"
