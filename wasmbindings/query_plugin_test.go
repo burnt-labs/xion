@@ -73,25 +73,19 @@ func SetUpAudience(suite *StargateTestSuite) {
 	suite.NoError(err)
 }
 
-func createAuthzGrants(suite *StargateTestSuite) []byte {
+func createAuthzGrants(suite *StargateTestSuite) {
 	authzKeeper := suite.app.AuthzKeeper
-	grant, err := (&authztypes.GenericAuthorization{
-		Msg: "/cosmos.wasm.MsgExecuteAuthorization",
-	}).Marshal()
+	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{})
 	suite.NoError(err)
 	grantMsg := &authztypes.MsgGrant{
 		Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
 		Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
 		Grant: authztypes.Grant{
-			Authorization: &types.Any{
-				TypeUrl: authztypes.GenericAuthorization{}.MsgTypeURL(),
-				Value:   grant,
-			},
+			Authorization: authorization,
 		},
 	}
 	_, err = authzKeeper.Grant(suite.ctx, grantMsg)
 	suite.NoError(err)
-	return grant
 }
 
 func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
@@ -361,7 +355,7 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 		testSetup              func()
 		path                   string
 		requestData            func() []byte
-		responseProtoStruct    codec.ProtoMarshaler
+		responseProtoStruct    func() codec.ProtoMarshaler
 		expectedQuerierError   bool
 		expectedUnMarshalError bool
 		resendRequest          bool
@@ -373,13 +367,18 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 			testSetup: func() {
 				createAuthzGrants(suite)
 			},
-			responseProtoStruct: &authztypes.QueryGrantsResponse{
-				Grants: []*authztypes.Grant{
-					{Authorization: &types.Any{
-						TypeUrl: authztypes.GenericAuthorization{}.MsgTypeURL(),
-						Value:   createAuthzGrants(suite),
-					}},
-				},
+			responseProtoStruct: func() codec.ProtoMarshaler {
+				authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{})
+				suite.NoError(err)
+				return &authztypes.QueryGrantsResponse{
+					Grants: []*authztypes.Grant{
+						{Authorization: authorization},
+					},
+					Pagination: &query.PageResponse{
+						Total:   1,
+						NextKey: nil,
+					},
+				}
 			},
 			requestData: func() []byte {
 				bz, err := proto.Marshal(&authztypes.QueryGrantsRequest{
@@ -413,16 +412,16 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 				return
 			}
 			if tc.checkResponseStruct {
-				expectedResponse, err := proto.Marshal(tc.responseProtoStruct)
+				expectedResponse, err := proto.Marshal(tc.responseProtoStruct())
 				suite.NoError(err)
-				expJSONResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct, expectedResponse, suite.app.AppCodec())
+				expJSONResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct(), expectedResponse, suite.app.AppCodec())
 				suite.Require().NoError(err)
 				suite.Require().Equal(expJSONResp, stargateResponse)
 			}
 
 			suite.Require().NoError(err)
 
-			protoResponse, ok := tc.responseProtoStruct.(proto.Message)
+			protoResponse, ok := tc.responseProtoStruct().(proto.Message)
 			suite.Require().True(ok)
 
 			// test correctness by unmarshalling json response into proto struct
