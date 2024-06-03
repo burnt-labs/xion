@@ -73,21 +73,6 @@ func SetUpAudience(suite *StargateTestSuite) {
 	suite.NoError(err)
 }
 
-func createAuthzGrants(suite *StargateTestSuite) {
-	authzKeeper := suite.app.AuthzKeeper
-	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{})
-	suite.NoError(err)
-	grantMsg := &authztypes.MsgGrant{
-		Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
-		Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
-		Grant: authztypes.Grant{
-			Authorization: authorization,
-		},
-	}
-	_, err = authzKeeper.Grant(suite.ctx, grantMsg)
-	suite.NoError(err)
-}
-
 func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 	testCases := []struct {
 		name                   string
@@ -347,6 +332,27 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 			}
 		})
 	}
+}
+
+func createAuthzGrants(suite *StargateTestSuite) {
+	authzKeeper := suite.app.AuthzKeeper
+	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{})
+	suite.NoError(err)
+	grantMsg := &authztypes.MsgGrant{
+		Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
+		Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
+		Grant: authztypes.Grant{
+			Authorization: authorization,
+		},
+	}
+	_, err = authzKeeper.Grant(suite.ctx, grantMsg)
+	suite.NoError(err)
+	response, err := authzKeeper.Grants(suite.ctx, &authztypes.QueryGrantsRequest{
+		Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
+		Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
+	})
+	suite.NoError(err)
+	fmt.Println(response.Grants)
 }
 
 func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
