@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	groupcodec "github.com/cosmos/cosmos-sdk/x/group/codec"
 )
@@ -18,6 +19,9 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgSend{}, "xion/MsgSend")
 	legacy.RegisterAminoMsg(cdc, &MsgMultiSend{}, "xion/MsgMultiSend")
 	legacy.RegisterAminoMsg(cdc, &MsgSetPlatformPercentage{}, "xion/MsgSetPlatformPercentage")
+
+	cdc.RegisterConcrete(&AuthzAllowance{}, "xion/AuthzAllowance", nil)
+	cdc.RegisterConcrete(&ContractsAllowance{}, "xion/ContractsAllowance", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -25,6 +29,13 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgSend{},
 		&MsgMultiSend{},
 		&MsgSetPlatformPercentage{},
+	)
+
+	registry.RegisterInterface(
+		"cosmos.feegrant.v1beta1.FeeAllowanceI",
+		(*feegrant.FeeAllowanceI)(nil),
+		&AuthzAllowance{},
+		&ContractsAllowance{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
