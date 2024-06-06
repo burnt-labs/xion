@@ -253,9 +253,10 @@ replace (
 replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
 
 replace  (
-github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.0
-github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v1.1.0
-github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v1.1.0
-github.com/cosmos/cosmos-sdk/x/nft => cosmossdk.io/x/nft v1.1.0
-github.com/cosmos/cosmos-sdk/x/upgrade => cosmossdk.io/x/upgrade v1.1.0
+	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.0
+	github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v0.1.0
+	github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v0.1.1
+	github.com/cosmos/cosmos-sdk/x/nft => cosmossdk.io/x/nft v0.1.1
+	github.com/cosmos/cosmos-sdk/x/upgrade => cosmossdk.io/x/upgrade v0.1.1
+	github.com/cosmos/ibc-go/v7 => github.com/cosmos/ibc-go/v8 v8.3.0
 )
