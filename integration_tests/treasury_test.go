@@ -10,6 +10,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -116,7 +117,7 @@ func TestTreasuryContract(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		path.Join(fp, "testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -167,4 +168,37 @@ func TestTreasuryContract(t *testing.T) {
 	// todo: create a tx that grants an authz grant for the same authorization
 	// as well as a call to this contract requesting a feegrant
 	// validate the feegrant exists on chain
+	granteeKey := "grantee"
+	err = xion.CreateKey(ctx, granteeKey)
+	require.NoError(t, err)
+	granteeAddressBytes, err := xion.GetAddress(ctx, granteeKey)
+	require.NoError(t, err)
+	granteeAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, granteeAddressBytes)
+	require.NoError(t, err)
+
+	granterKey := "granter"
+	err = xion.CreateKey(ctx, granterKey)
+	require.NoError(t, err)
+	granterAddressBytes, err := xion.GetAddress(ctx, granterKey)
+	require.NoError(t, err)
+	granterAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, granterAddressBytes)
+	require.NoError(t, err)
+
+	genericAuthzAuth := authz.GenericAuthorization{
+		Msg: "cosmos-sdk/MsgSend",
+	}
+	authzAny, err := cdctypes.NewAnyWithValue(&genericAuthzAuth)
+	require.NoError(t, err)
+
+	authzGrantMsg, err := authz.NewMsgGrant(types.AccAddress(granterAddress), types.AccAddress(granteeAddress), &genericAuthzAuth, &inFive)
+	require.NoError(t, err)
+
+	executeMsg := map[string]interface{}{}
+	feegrantMsg := map[string]interface{}{}
+	feegrantMsg["authz_granter"] = granterAddress
+	feegrantMsg["authz_grantee"] = granteeAddress
+	feegrantMsg["authorization"] = authzAny
+	executeMsg["deploy_fee_grant"] = feegrantMsg
+	executeMsgStr, err := json.Marshal(executeMsg)
+	require.NoError(t, err)
 }
