@@ -11,6 +11,10 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.0
+	cosmossdk.io/x/evidence v0.1.1
+	cosmossdk.io/x/feegrant v0.1.0
+	cosmossdk.io/x/nft v0.1.0
+	cosmossdk.io/x/upgrade v0.1.1
 	github.com/CosmWasm/wasmd v0.51.0
 	github.com/CosmWasm/wasmvm v1.5.2
 	github.com/armon/go-metrics v0.4.1
@@ -21,6 +25,8 @@ require (
 	github.com/cosmos/cosmos-sdk v0.50.6
 	github.com/cosmos/gogoproto v1.4.12
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2
+	github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 v8.0.0-20240530162148-4827cf263165
+	github.com/cosmos/ibc-go/modules/capability v1.0.0
 	github.com/cosmos/ibc-go/v8 v8.3.1
 	github.com/cosmos/rosetta v0.50.6
 	github.com/dvsekhvalnov/jose2go v1.6.0
@@ -46,22 +52,23 @@ require (
 )
 
 require (
+	cosmossdk.io/client/v2 v2.0.0-beta.1 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
-	cosmossdk.io/x/evidence v0.1.1 // indirect
-	cosmossdk.io/x/feegrant v0.1.0 // indirect
+	cosmossdk.io/x/circuit v0.1.0 // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
-	cosmossdk.io/x/upgrade v0.1.1 // indirect
 	github.com/CosmWasm/wasmvm/v2 v2.0.0 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
+	github.com/PuerkitoBio/purell v1.1.1 // indirect
+	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/bits-and-blooms/bitset v1.8.0 // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
-	github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 v8.0.0-20240530162148-4827cf263165 // indirect
-	github.com/cosmos/ibc-go/modules/capability v1.0.0 // indirect
 	github.com/distribution/reference v0.5.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
+	github.com/gogo/status v1.1.0 // indirect
+	github.com/goware/urlx v0.3.2 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-metrics v0.5.3 // indirect
 	github.com/hashicorp/go-plugin v1.5.2 // indirect
@@ -88,7 +95,6 @@ require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.44.224 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
@@ -103,7 +109,6 @@ require (
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/coinbase/rosetta-sdk-go/types v1.0.0 // indirect
-	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
@@ -111,7 +116,6 @@ require (
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/cosmos/rosetta-sdk-go v0.10.0 // indirect
-	github.com/creachadair/taskgroup v0.4.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
@@ -119,7 +123,6 @@ require (
 	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
-	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -152,8 +155,6 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
-	github.com/gtank/merlin v0.1.1 // indirect
-	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-getter v1.7.3 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
@@ -185,15 +186,12 @@ require (
 	github.com/manifoldco/promptui v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
-	github.com/mimoo/StrobeGo v0.0.0-20210601165009-122bf33a46e0 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/petermattis/goid v0.0.0-20231207134359-e60b3f734c67 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -201,7 +199,6 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.52.2 // indirect
 	github.com/prometheus/procfs v0.13.0 // indirect
-	github.com/rakyll/statik v0.1.7 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
@@ -209,7 +206,6 @@ require (
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
@@ -264,9 +260,8 @@ replace (
 // replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
 
 replace (
-	github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v0.1.0
-	github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v0.1.1
+	// github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v0.1.0
+	// github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v0.1.1
 	github.com/cosmos/cosmos-sdk/x/nft => cosmossdk.io/x/nft v0.1.1
-	github.com/cosmos/cosmos-sdk/x/upgrade => cosmossdk.io/x/upgrade v0.1.1
 	github.com/larry0x/abstract-account => ../abstract-account
 )
