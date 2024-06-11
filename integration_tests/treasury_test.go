@@ -170,35 +170,13 @@ func TestTreasuryContract(t *testing.T) {
 	// todo: create a tx that grants an authz grant for the same authorization
 	// as well as a call to this contract requesting a feegrant
 	// validate the feegrant exists on chain
-	granteeKey := "grantee"
-	err = xion.CreateKey(ctx, granteeKey)
-	require.NoError(t, err)
-	granteeAddressBytes, err := xion.GetAddress(ctx, granteeKey)
-	require.NoError(t, err)
-	granteeAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, granteeAddressBytes)
+	granteeUser, err := xion.BuildWallet(ctx, "grantee", "")
 	require.NoError(t, err)
 
-	granterKey := "granter"
-	err = xion.CreateKey(ctx, granterKey)
-	require.NoError(t, err)
-	granterAddressBytes, err := xion.GetAddress(ctx, granterKey)
-	require.NoError(t, err)
-	granterAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, granterAddressBytes)
+	granterUser, err := xion.BuildWallet(ctx, "granter", "")
 	require.NoError(t, err)
 
-	//genericAuthzAuth := authz.GenericAuthorization{
-	//	Msg: "cosmos-sdk/MsgSend",
-	//}
-	//authzAny, err := cdctypes.NewAnyWithValue(&genericAuthzAuth)
-	//require.NoError(t, err)
-
-	//	authzGrantMsgStr := fmt.Sprintf(`
-	//{
-	//"@type":"/cosmos.authz.v1beta1.MsgGrant",
-	//"grant":
-	//}`)
-
-	authzGrantMsg, err := authz.NewMsgGrant(types.AccAddress(granterAddress), types.AccAddress(granteeAddress), testAuth, &inFive)
+	authzGrantMsg, err := authz.NewMsgGrant(granterUser.Address(), granteeUser.Address(), testAuth, &inFive)
 	require.NoError(t, err)
 	encodingConfig := xionapp.MakeEncodingConfig()
 	authzGrantMsgStr, err := encodingConfig.Marshaler.MarshalInterfaceJSON(authzGrantMsg)
@@ -206,15 +184,15 @@ func TestTreasuryContract(t *testing.T) {
 
 	executeMsg := map[string]interface{}{}
 	feegrantMsg := map[string]interface{}{}
-	feegrantMsg["authz_granter"] = granterAddress
-	feegrantMsg["authz_grantee"] = granteeAddress
+	feegrantMsg["authz_granter"] = granterUser.FormattedAddress()
+	feegrantMsg["authz_grantee"] = granteeUser.FormattedAddress()
 	feegrantMsg["authorization"] = authorizationAny
 	executeMsg["deploy_fee_grant"] = feegrantMsg
 	executeMsgBz, err := json.Marshal(executeMsg)
 	require.NoError(t, err)
 
 	contractMsg := wasmtypes.MsgExecuteContract{
-		Sender:   granterAddress,
+		Sender:   granterUser.FormattedAddress(),
 		Contract: treasuryAddr,
 		Msg:      executeMsgBz,
 		Funds:    nil,
@@ -259,7 +237,7 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 
 	sendFilePath := strings.Split(sendFile.Name(), "/")
-	signedTx, err := ExecBin(t, ctx, xion.FullNodes[0], "tx", "sign", "--from", granterKey, path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]))
+	signedTx, err := ExecBin(t, ctx, xion.FullNodes[0], "tx", "sign", "--from", granterUser.KeyName(), path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]))
 	require.NoError(t, err)
 	t.Logf("signed tx: %s", signedTx)
 
