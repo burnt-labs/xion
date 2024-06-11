@@ -258,4 +258,6 @@ func TestTreasuryContract(t *testing.T) {
 		"--node", fmt.Sprintf("tcp://%s:26657", xion.FullNodes[0].HostName()))
 	require.NoError(t, err)
 	t.Logf("signed tx: %s", signedTx)
+
+	// todo: validate that the feegrant was created correctly
 }
