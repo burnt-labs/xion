@@ -2,15 +2,17 @@ package integration_tests
 
 import (
 	"encoding/json"
+	"fmt"
+	xionapp "github.com/burnt-labs/xion/app"
 	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -117,7 +119,7 @@ func TestTreasuryContract(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "testdata", "contracts", "treasury-aarch64.wasm"))
+		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -184,21 +186,84 @@ func TestTreasuryContract(t *testing.T) {
 	granterAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, granterAddressBytes)
 	require.NoError(t, err)
 
-	genericAuthzAuth := authz.GenericAuthorization{
-		Msg: "cosmos-sdk/MsgSend",
-	}
-	authzAny, err := cdctypes.NewAnyWithValue(&genericAuthzAuth)
-	require.NoError(t, err)
+	//genericAuthzAuth := authz.GenericAuthorization{
+	//	Msg: "cosmos-sdk/MsgSend",
+	//}
+	//authzAny, err := cdctypes.NewAnyWithValue(&genericAuthzAuth)
+	//require.NoError(t, err)
 
-	authzGrantMsg, err := authz.NewMsgGrant(types.AccAddress(granterAddress), types.AccAddress(granteeAddress), &genericAuthzAuth, &inFive)
+	//	authzGrantMsgStr := fmt.Sprintf(`
+	//{
+	//"@type":"/cosmos.authz.v1beta1.MsgGrant",
+	//"grant":
+	//}`)
+
+	authzGrantMsg, err := authz.NewMsgGrant(types.AccAddress(granterAddress), types.AccAddress(granteeAddress), testAuth, &inFive)
+	require.NoError(t, err)
+	encodingConfig := xionapp.MakeEncodingConfig()
+	authzGrantMsgStr, err := encodingConfig.Marshaler.MarshalInterfaceJSON(authzGrantMsg)
 	require.NoError(t, err)
 
 	executeMsg := map[string]interface{}{}
 	feegrantMsg := map[string]interface{}{}
 	feegrantMsg["authz_granter"] = granterAddress
 	feegrantMsg["authz_grantee"] = granteeAddress
-	feegrantMsg["authorization"] = authzAny
+	feegrantMsg["authorization"] = authorizationAny
 	executeMsg["deploy_fee_grant"] = feegrantMsg
-	executeMsgStr, err := json.Marshal(executeMsg)
+	executeMsgBz, err := json.Marshal(executeMsg)
 	require.NoError(t, err)
+
+	contractMsg := wasmtypes.MsgExecuteContract{
+		Sender:   granterAddress,
+		Contract: treasuryAddr,
+		Msg:      executeMsgBz,
+		Funds:    nil,
+	}
+	contractMsgStr, err := encodingConfig.Marshaler.MarshalInterfaceJSON(&contractMsg)
+	require.NoError(t, err)
+
+	txJSONStr := fmt.Sprintf(`
+		{
+		 "body": {
+		   "messages": [
+		     %s,
+			 %s
+		   ],
+		   "memo": "",
+		   "timeout_height": "0",
+		   "extension_options": [],
+		   "non_critical_extension_options": []
+		 },
+		 "auth_info": {
+		   "signer_infos": [],
+		   "fee": {
+		     "amount": [],
+		     "gas_limit": "200000",
+		     "payer": "",
+		     "granter": ""
+		   },
+		   "tip": null
+		 },
+		 "signatures": []
+		}
+			`, authzGrantMsgStr, contractMsgStr)
+	t.Logf("tx: %s", txJSONStr)
+	require.True(t, json.Valid([]byte(txJSONStr)))
+	sendFile, err := os.CreateTemp("", "*-combo-msg-tx.json")
+	require.NoError(t, err)
+	defer os.Remove(sendFile.Name())
+
+	_, err = sendFile.Write([]byte(txJSONStr))
+	require.NoError(t, err)
+	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], sendFile)
+	require.NoError(t, err)
+
+	sendFilePath := strings.Split(sendFile.Name(), "/")
+	signedTx, err := ExecBin(t, ctx, xion.FullNodes[0], "tx", "sign", "--from", granterKey, path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]))
+	require.NoError(t, err)
+	t.Logf("signed tx: %s", signedTx)
+
+	//tx, err := encodingConfig.TxConfig.TxJSONDecoder()([]byte(txJSONStr))
+	//require.NoError(t, err)
+
 }

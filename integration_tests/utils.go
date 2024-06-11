@@ -605,7 +605,7 @@ func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command 
 	return jsonRes, nil
 }
 
-func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (map[string]interface{}, error) {
+func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
 	jsonRes := make(map[string]interface{})
 	output, _, err := tn.ExecBin(ctx, command...)
 	if err != nil {
