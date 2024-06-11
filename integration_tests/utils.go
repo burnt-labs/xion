@@ -616,6 +616,12 @@ func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ..
 	return jsonRes, nil
 }
 
+func ExecBinStr(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (string, error) {
+	output, _, err := tn.ExecBin(ctx, command...)
+	require.NoError(t, err)
+	return string(output), nil
+}
+
 func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
 	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
 		return "", err

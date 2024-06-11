@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	xionapp "github.com/burnt-labs/xion/app"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"os"
 	"path"
 	"strings"
@@ -175,6 +177,12 @@ func TestTreasuryContract(t *testing.T) {
 
 	granterUser, err := xion.BuildWallet(ctx, "granter", "")
 	require.NoError(t, err)
+	err = xion.SendFunds(ctx, xionUser.KeyName(), ibc.WalletAmount{
+		Address: granterUser.FormattedAddress(),
+		Denom:   xion.Config().Denom,
+		Amount:  1000000,
+	})
+	require.NoError(t, err)
 
 	authzGrantMsg, err := authz.NewMsgGrant(granterUser.Address(), granteeUser.Address(), testAuth, &inFive)
 	require.NoError(t, err)
@@ -237,11 +245,17 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 
 	sendFilePath := strings.Split(sendFile.Name(), "/")
-	signedTx, err := ExecBin(t, ctx, xion.FullNodes[0], "tx", "sign", "--from", granterUser.KeyName(), path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]))
+
+	signedTx, err := ExecBinStr(t, ctx, xion.FullNodes[0],
+		"tx", "sign", path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]),
+		"--from", granterUser.KeyName(),
+		"--gas-prices", xion.Config().GasPrices,
+		"--gas-adjustment", fmt.Sprint(xion.Config().GasAdjustment),
+		"--gas", "auto",
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", xion.FullNodes[0].HostName()))
 	require.NoError(t, err)
 	t.Logf("signed tx: %s", signedTx)
-
-	//tx, err := encodingConfig.TxConfig.TxJSONDecoder()([]byte(txJSONStr))
-	//require.NoError(t, err)
-
 }
