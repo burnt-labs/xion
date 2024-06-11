@@ -31,7 +31,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/larry0x/abstract-account v0.0.0-20240202022305-255071ed91ee
 	github.com/lestrrat-go/jwx/v2 v2.0.21
-	github.com/osmosis-labs/fee-abstraction/v7 v7.0.0-20240302094915-ba36778366d0
+	github.com/osmosis-labs/fee-abstraction/v8 v8.0.1
 	github.com/prometheus/client_golang v1.19.0
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
@@ -261,11 +261,12 @@ replace (
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )
 
-replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
+// replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
 
 replace (
 	github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v0.1.0
 	github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v0.1.1
 	github.com/cosmos/cosmos-sdk/x/nft => cosmossdk.io/x/nft v0.1.1
 	github.com/cosmos/cosmos-sdk/x/upgrade => cosmossdk.io/x/upgrade v0.1.1
+	github.com/larry0x/abstract-account => ../abstract-account
 )
