@@ -5,14 +5,14 @@ go 1.22
 toolchain go1.22.4
 
 require (
-	cosmossdk.io/api v0.7.4
+	cosmossdk.io/api v0.7.5
 	cosmossdk.io/core v0.12.0
 	cosmossdk.io/depinject v1.0.0-alpha.4
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.0
 	cosmossdk.io/x/evidence v0.1.1
-	cosmossdk.io/x/feegrant v0.1.0
+	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/nft v0.1.0
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/CosmWasm/wasmd v0.51.0
@@ -259,9 +259,4 @@ replace (
 
 // replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
 
-replace (
-	// github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v0.1.0
-	// github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v0.1.1
-	github.com/cosmos/cosmos-sdk/x/nft => cosmossdk.io/x/nft v0.1.1
-	github.com/larry0x/abstract-account => ../abstract-account
-)
+replace github.com/larry0x/abstract-account => ../abstract-account
