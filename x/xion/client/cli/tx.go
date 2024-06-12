@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -133,7 +134,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 				return err
 			}
 
-			totalAddrs := sdk.NewInt(int64(len(args) - 2))
+			totalAddrs := math.NewInt(int64(len(args) - 2))
 			// coins to be received by the addresses
 			sendCoins := coins
 			if split {
@@ -234,7 +235,11 @@ func NewRegisterCmd() *cobra.Command {
 			}
 			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
-			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()))
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(
+				clientCtx.GetFromAddress(),
+				[]byte(predictedAddr.String()),
+				signMode,
+			)
 			if err != nil {
 				return fmt.Errorf("error signing predicted address : %s", err)
 			}
@@ -346,11 +351,19 @@ func NewSignCmd() *cobra.Command {
 				panic(err)
 			}
 
-			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
+			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(
+				clientCtx.CmdContext,
+				signMode,
+				signerData,
+				txBuilder.GetTx(),
+			)
 			if err != nil {
 				panic(err)
 			}
-			signedBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
+			signedBytes, _, err := clientCtx.Keyring.Sign(
+				clientCtx.GetFromName(), signBytes,
+				signMode,
+			)
 			if err != nil {
 				panic(err)
 			}

@@ -86,6 +86,16 @@ type AppModule struct {
 	globalfeeSubspace paramstypes.Subspace
 }
 
+func (a AppModule) IsOnePerModuleType() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a AppModule) IsAppModule() {
+	//TODO implement me
+	panic("implement me")
+}
+
 // NewAppModule constructor
 func NewAppModule(globalfeeSubspace paramstypes.Subspace) *AppModule {
 	if !globalfeeSubspace.HasKeyTable() {
@@ -122,13 +132,6 @@ func (a AppModule) RegisterServices(cfg module.Configurator) {
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/globalfee from version 1 to 2: %v", err))
 	}
-}
-
-func (a AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
-
-func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return nil
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the
