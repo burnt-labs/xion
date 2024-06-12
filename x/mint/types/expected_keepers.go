@@ -1,6 +1,7 @@
 package types // noalias
 
 import (
+	"context"
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,9 +10,9 @@ import (
 
 // StakingKeeper defines the expected staking keeper
 type StakingKeeper interface {
-	StakingTokenSupply(ctx sdk.Context) math.Int
-	TotalBondedTokens(ctx sdk.Context) math.Int
-	BondedRatio(ctx sdk.Context) math.LegacyDec
+	StakingTokenSupply(ctx context.Context) (math.Int, error)
+	TotalBondedTokens(ctx context.Context) (math.Int, error)
+	BondedRatio(ctx context.Context) (math.LegacyDec, error)
 }
 
 // AccountKeeper defines the contract required for account APIs.

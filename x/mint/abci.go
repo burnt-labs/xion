@@ -23,9 +23,17 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic types.InflationCalculatio
 	collectedFeeCoin := k.CountCollectedFees(ctx, params.MintDenom)
 
 	// recalculate inflation rate
-	bondedRatio := k.BondedRatio(ctx)
+	bondedRatio, err := k.BondedRatio(ctx)
+	if err != nil {
+		panic(err)
+	}
 	minter.Inflation = ic(ctx, minter, params, bondedRatio)
-	minter.AnnualProvisions = minter.NextAnnualProvisions(params, k.BondedTokenSupply(ctx))
+
+	bondedTokenSupply, err := k.BondedTokenSupply(ctx)
+	if err != nil {
+		panic(err)
+	}
+	minter.AnnualProvisions = minter.NextAnnualProvisions(params, bondedTokenSupply)
 	k.SetMinter(ctx, minter)
 
 	// mint coins, update supply
