@@ -2,29 +2,29 @@ package cli
 
 import (
 	"context"
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"os"
 	"strconv"
 
+	signing2 "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/spf13/cobra"
-
-	"github.com/cosmos/gogoproto/proto"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/gogoproto/proto"
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+	"github.com/spf13/cobra"
 
 	"github.com/burnt-labs/xion/x/xion/types"
 )
@@ -323,12 +323,12 @@ func NewSignCmd() *cobra.Command {
 				return err
 			}
 
-			signerData := authsigning.SignerData{
+			signerData := signing2.SignerData{
 				Address:       signerAcc.GetAddress().String(),
 				ChainID:       clientCtx.ChainID,
 				AccountNumber: signerAcc.GetAccountNumber(),
 				Sequence:      signerAcc.GetSequence(),
-				PubKey:        signerAcc.GetPubKey(), // NOTE: NilPubKey
+				PubKey:        nil, // NOTE: NilPubKey
 			}
 
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
@@ -351,11 +351,17 @@ func NewSignCmd() *cobra.Command {
 				panic(err)
 			}
 
+			adaptableTx, ok := txBuilder.GetTx().(authsigning.V2AdaptableTx)
+			if !ok {
+				return fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", txBuilder.GetTx())
+			}
+
+			txData := adaptableTx.GetSigningTxData()
 			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(
 				clientCtx.CmdContext,
-				signMode,
+				signingv1beta1.SignMode_SIGN_MODE_DIRECT,
 				signerData,
-				txBuilder.GetTx(),
+				txData,
 			)
 			if err != nil {
 				panic(err)
@@ -405,7 +411,13 @@ func NewSignCmd() *cobra.Command {
 func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
 	var signerAddr sdk.AccAddress
 	for i, msg := range stdTx.GetMsgs() {
-		signers := msg.GetSigners()
+
+		legacyMsg, ok := msg.(sdk.LegacyMsg)
+		if !ok {
+			return nil, fmt.Errorf("msg %d is not a LegacyMsg", i)
+		}
+
+		signers := legacyMsg.GetSigners()
 		if len(signers) != 1 {
 			return nil, fmt.Errorf("msg %d has more than one signers", i)
 		}

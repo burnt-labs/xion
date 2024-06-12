@@ -280,7 +280,11 @@ func TestJWTAbstractAccount(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
+	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+		signing.SignMode_SIGN_MODE_DIRECT,
+		signerData,
+		txBuilder.GetTx(),
+	)
 	require.NoError(t, err)
 
 	// our signature is the sha256 of the signbytes
