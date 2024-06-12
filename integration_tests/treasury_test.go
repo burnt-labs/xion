@@ -3,14 +3,15 @@ package integration_tests
 import (
 	"encoding/json"
 	"fmt"
-	xionapp "github.com/burnt-labs/xion/app"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 	"os"
 	"path"
 	"strings"
 	"testing"
 	"time"
+
+	xionapp "github.com/burnt-labs/xion/app"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -246,7 +247,7 @@ func TestTreasuryContract(t *testing.T) {
 
 	sendFilePath := strings.Split(sendFile.Name(), "/")
 
-	signedTx, err := ExecBinStr(t, ctx, xion.FullNodes[0],
+	signedTx, err := ExecBinRaw(t, ctx, xion.FullNodes[0],
 		"tx", "sign", path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]),
 		"--from", granterUser.KeyName(),
 		"--gas-prices", xion.Config().GasPrices,
@@ -260,4 +261,20 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("signed tx: %s", signedTx)
 
 	// todo: validate that the feegrant was created correctly
+	res, err := ExecBroadcastWithFlags(t, ctx, xion.FullNodes[0], signedTx,
+		"--from", granterUser.KeyName(),
+		"--gas-prices", xion.Config().GasPrices,
+		"--gas-adjustment", fmt.Sprint(xion.Config().GasAdjustment),
+		"--gas", "auto",
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", xion.FullNodes[0].HostName()))
+
+	require.NoError(t, err)
+	t.Logf("broadcasted tx: %s", res)
+
+	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", res)
+	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
 }

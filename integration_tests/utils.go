@@ -622,6 +622,15 @@ func ExecBinStr(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command
 	return string(output), nil
 }
 
+func ExecBinRaw(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) ([]byte, error) {
+	output, _, err := tn.ExecBin(ctx, command...)
+	if err != nil {
+		return output, err
+	}
+
+	return output, nil
+}
+
 func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
 	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
 		return "", err
@@ -634,6 +643,32 @@ func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx [
 		return "", err
 	}
 	return string(stdout), err
+}
+
+func ExecBroadcastWithFlags(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte, command ...string) (string, error) {
+	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
+		return "", err
+	}
+	c := append([]string{"tx", "broadcast", path.Join(tn.HomeDir(), "tx.json")}, command...)
+	cmd := tn.NodeCommand(c...)
+
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal(stdout, &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, err
 }
 
 func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
