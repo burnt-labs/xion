@@ -99,6 +99,7 @@ func TestTreasuryContract(t *testing.T) {
 		&xiontypes.MsgSetPlatformPercentage{},
 		&xiontypes.MsgSend{},
 		&wasmtypes.MsgInstantiateContract{},
+		&wasmtypes.MsgExecuteContract{},
 		&wasmtypes.MsgStoreCode{},
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
