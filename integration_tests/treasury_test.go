@@ -103,6 +103,7 @@ func TestTreasuryContract(t *testing.T) {
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
 		&jwktypes.MsgCreateAudience{},
+		&authztypes.MsgGrant{},
 	)
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
@@ -238,9 +239,7 @@ func TestTreasuryContract(t *testing.T) {
 	signedTx, err := ExecBinRaw(t, ctx, xion.FullNodes[0],
 		"tx", "sign", path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]),
 		"--from", granterUser.KeyName(),
-		"--gas-prices", xion.Config().GasPrices,
-		"--gas-adjustment", fmt.Sprint(xion.Config().GasAdjustment),
-		"--gas", "auto",
+		"--chain-id", xion.Config().ChainID,
 		"--keyring-backend", keyring.BackendTest,
 		"--output", "json",
 		"--overwrite",
