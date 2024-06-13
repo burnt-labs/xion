@@ -1,12 +1,12 @@
 package keeper
 
 import (
+	"cosmossdk.io/core/store"
 	"fmt"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 
-	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,7 +16,7 @@ import (
 // Keeper of the mint store
 type Keeper struct {
 	cdc              codec.BinaryCodec
-	storeKey         storetypes.StoreKey
+	storeService     store.KVStoreService
 	stakingKeeper    types.StakingKeeper
 	bankKeeper       types.BankKeeper
 	accountKeeper    types.AccountKeeper
@@ -30,7 +30,7 @@ type Keeper struct {
 // NewKeeper creates a new mint Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	key storetypes.StoreKey,
+	storeService store.KVStoreService,
 	sk types.StakingKeeper,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
@@ -44,7 +44,7 @@ func NewKeeper(
 
 	return Keeper{
 		cdc:              cdc,
-		storeKey:         key,
+		storeService:     storeService,
 		stakingKeeper:    sk,
 		bankKeeper:       bk,
 		accountKeeper:    ak,
@@ -65,8 +65,11 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // GetMinter returns the minter.
 func (k Keeper) GetMinter(ctx sdk.Context) (minter types.Minter) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.MinterKey)
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.MinterKey)
+	if err != nil {
+		panic("failed to get minter")
+	}
 	if bz == nil {
 		panic("stored minter should not have been nil")
 	}
@@ -77,9 +80,12 @@ func (k Keeper) GetMinter(ctx sdk.Context) (minter types.Minter) {
 
 // SetMinter sets the minter.
 func (k Keeper) SetMinter(ctx sdk.Context, minter types.Minter) {
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&minter)
-	store.Set(types.MinterKey, bz)
+	err := store.Set(types.MinterKey, bz)
+	if err != nil {
+		panic("failed to set minter")
+	}
 }
 
 // SetParams sets the x/mint module parameters.
@@ -88,7 +94,7 @@ func (k Keeper) SetParams(ctx sdk.Context, p types.Params) error {
 		return err
 	}
 
-	store := ctx.KVStore(k.storeKey)
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&p)
 	store.Set(types.ParamsKey, bz)
 
@@ -97,8 +103,11 @@ func (k Keeper) SetParams(ctx sdk.Context, p types.Params) error {
 
 // GetParams returns the current x/mint module parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ParamsKey)
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.ParamsKey)
+	if err != nil {
+		panic("failed to get params")
+	}
 	if bz == nil {
 		return p
 	}

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -289,7 +290,7 @@ type WasmApp struct {
 
 	// keepers
 	AccountKeeper         authkeeper.AccountKeeper
-	BankKeeper            bankkeeper.Keeper
+	BankKeeper            bankkeeper.BaseKeeper
 	CapabilityKeeper      *capabilitykeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
@@ -561,8 +562,9 @@ func NewWasmApp(
 		app.BankKeeper,
 		app.TransferKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
+		app.IBCKeeper.PortKeeper,
 		scopedFeeabsKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	feeabsModule := feeabs.NewAppModule(appCodec, app.FeeAbsKeeper)
@@ -625,10 +627,14 @@ func NewWasmApp(
 	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
 		appCodec,
 		keys[tokenfactorytypes.StoreKey],
+		maccPerms,
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.DistrKeeper,
 		tokenFactoryCapabilities,
+		func(ctx context.Context, addr string) bool { // TODO decide what to do
+			return false
+		},
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -824,7 +830,7 @@ func NewWasmApp(
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
-		upgrade.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
+		upgrademodule.NewAppModule(app.UpgradeKeeper, app.AccountKeeper.AddressCodec()),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
@@ -1040,7 +1046,7 @@ func NewWasmApp(
 	return app
 }
 
-func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtypes.WasmConfig, txCounterStoreKey storetypes.StoreKey) {
+func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtypes.WasmConfig, txCounterStoreKey *storetypes.KVStoreKey) {
 	anteHandler, err := NewAnteHandler(
 		HandlerOptions{
 			HandlerOptions: ante.HandlerOptions{
@@ -1054,7 +1060,7 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtype
 			AbstractAccountKeeper: app.AbstractAccountKeeper,
 			IBCKeeper:             app.IBCKeeper,
 			WasmConfig:            &wasmConfig,
-			TXCounterStoreKey:     txCounterStoreKey,
+			TXCounterStoreService: runtime.NewKVStoreService(txCounterStoreKey),
 			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
 			StakingKeeper:         app.StakingKeeper,
 			FeeAbsKeeper:          &app.FeeAbsKeeper,

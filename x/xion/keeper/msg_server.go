@@ -125,7 +125,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		outputs = append(outputs, banktypes.NewOutput(feeCollectorAcc, totalPlatformCoins))
 	}
 
-	err := k.bankKeeper.InputOutputCoins(ctx, msg.Inputs, outputs)
+	err := k.bankKeeper.InputOutputCoins(ctx, msg.Inputs[0], outputs) // TODO decide on how to handle multiple inputs
 	if err != nil {
 		return nil, err
 	}

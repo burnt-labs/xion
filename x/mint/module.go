@@ -2,6 +2,7 @@ package mint
 
 import (
 	"context"
+	store2 "cosmossdk.io/core/store"
 	"encoding/json"
 	"fmt"
 
@@ -14,7 +15,6 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/depinject"
 
-	store "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -219,7 +219,7 @@ type Inputs struct {
 
 	ModuleKey              depinject.OwnModuleKey
 	Config                 *modulev1.Module
-	Key                    *store.KVStoreKey
+	Key                    store2.KVStoreService
 	Cdc                    codec.Codec
 	InflationCalculationFn types.InflationCalculationFn `optional:"true"`
 
