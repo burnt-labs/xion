@@ -195,8 +195,6 @@ func TestTreasuryContract(t *testing.T) {
 	authzGrantMsg, err := authz.NewMsgGrant(granterUser.Address(), granteeUser.Address(), testAuth, &inFive)
 	require.NoError(t, err)
 	encodingConfig := xionapp.MakeEncodingConfig()
-	authzGrantMsgStr, err := encodingConfig.Marshaler.MarshalInterfaceJSON(authzGrantMsg)
-	require.NoError(t, err)
 
 	executeMsg := map[string]interface{}{}
 	feegrantMsg := map[string]interface{}{}
@@ -213,34 +211,17 @@ func TestTreasuryContract(t *testing.T) {
 		Msg:      executeMsgBz,
 		Funds:    nil,
 	}
-	contractMsgStr, err := encodingConfig.Marshaler.MarshalInterfaceJSON(&contractMsg)
+
+	// build the tx
+	txBuilder := encodingConfig.TxConfig.NewTxBuilder()
+	err = txBuilder.SetMsgs(authzGrantMsg, &contractMsg)
+	require.NoError(t, err)
+	txBuilder.SetGasLimit(200000)
+	tx := txBuilder.GetTx()
+
+	txJSONStr, err := encodingConfig.TxConfig.TxJSONEncoder()(tx)
 	require.NoError(t, err)
 
-	txJSONStr := fmt.Sprintf(`
-		{
-		 "body": {
-		   "messages": [
-		     %s,
-			 %s
-		   ],
-		   "memo": "",
-		   "timeout_height": "0",
-		   "extension_options": [],
-		   "non_critical_extension_options": []
-		 },
-		 "auth_info": {
-		   "signer_infos": [],
-		   "fee": {
-		     "amount": [],
-		     "gas_limit": "200000",
-		     "payer": "",
-		     "granter": ""
-		   },
-		   "tip": null
-		 },
-		 "signatures": []
-		}
-			`, authzGrantMsgStr, contractMsgStr)
 	t.Logf("tx: %s", txJSONStr)
 	require.True(t, json.Valid([]byte(txJSONStr)))
 	sendFile, err := os.CreateTemp("", "*-combo-msg-tx.json")
