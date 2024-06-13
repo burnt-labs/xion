@@ -1,14 +1,16 @@
 package v2_test
 
 import (
+	"cosmossdk.io/math"
+	metrics2 "cosmossdk.io/store/metrics"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	cometdb "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometdb "github.com/cosmos/cosmos-db"
 
+	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -22,9 +24,11 @@ import (
 
 func TestMigrateStore(t *testing.T) {
 	db := cometdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
+	logger := log.NewNopLogger()
+	metrics := metrics2.NewNoOpMetrics()
+	stateStore := store.NewCommitMultiStore(db, logger, metrics)
 
-	storeKey := sdk.NewKVStoreKey(paramtypes.StoreKey)
+	storeKey := storetypes.NewKVStoreKey(paramtypes.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey("mem_key")
 
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
@@ -53,9 +57,9 @@ func TestMigrateStore(t *testing.T) {
 	require.Equal(t, ok, false)
 
 	// set a minGasPrice different that default value
-	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoin("uatom", sdk.OneInt()))
+	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoin("uatom", math.OneInt()))
 	newSubspace.Set(ctx, globalfeetypes.ParamStoreKeyMinGasPrices, minGasPrices)
-	require.False(t, minGasPrices.IsEqual(globalfeetypes.DefaultMinGasPrices))
+	require.False(t, minGasPrices.Equal(globalfeetypes.DefaultMinGasPrices))
 
 	// check that the new parameters aren't set
 	_, ok = getBypassMsgTypes(newSubspace, ctx)
