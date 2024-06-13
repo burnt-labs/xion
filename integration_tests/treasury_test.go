@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	xionapp "github.com/burnt-labs/xion/app"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	xionapp "github.com/burnt-labs/xion/app"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -173,15 +173,22 @@ func TestTreasuryContract(t *testing.T) {
 	// todo: create a tx that grants an authz grant for the same authorization
 	// as well as a call to this contract requesting a feegrant
 	// validate the feegrant exists on chain
-	granteeUser, err := xion.BuildWallet(ctx, "grantee", "")
+	granteeUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "grantee", "", fundAmount, xion)
 	require.NoError(t, err)
 
-	granterUser, err := xion.BuildWallet(ctx, "granter", "")
+	granterUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "granter", "", fundAmount, xion)
 	require.NoError(t, err)
-	err = xion.SendFunds(ctx, xionUser.KeyName(), ibc.WalletAmount{
-		Address: granterUser.FormattedAddress(),
-		Denom:   xion.Config().Denom,
-		Amount:  1000000,
+	t.Logf("granter: %s %s %s", granterUser.KeyName(), granterUser.FormattedAddress(), granterUser.Address())
+	require.NoError(t, err)
+
+	// wait for user creation
+	err = testutil.WaitForBlocks(ctx, 4, xion)
+	require.NoError(t, err)
+
+	err = xion.SendFunds(ctx, granterUser.KeyName(), ibc.WalletAmount{
+		Address: treasuryAddr,
+		Denom:   "uxion",
+		Amount:  1000,
 	})
 	require.NoError(t, err)
 
@@ -255,21 +262,14 @@ func TestTreasuryContract(t *testing.T) {
 		"--gas", "auto",
 		"--keyring-backend", keyring.BackendTest,
 		"--output", "json",
+		"--overwrite",
 		"-y",
 		"--node", fmt.Sprintf("tcp://%s:26657", xion.FullNodes[0].HostName()))
 	require.NoError(t, err)
 	t.Logf("signed tx: %s", signedTx)
 
 	// todo: validate that the feegrant was created correctly
-	res, err := ExecBroadcastWithFlags(t, ctx, xion.FullNodes[0], signedTx,
-		"--from", granterUser.KeyName(),
-		"--gas-prices", xion.Config().GasPrices,
-		"--gas-adjustment", fmt.Sprint(xion.Config().GasAdjustment),
-		"--gas", "auto",
-		"--keyring-backend", keyring.BackendTest,
-		"--output", "json",
-		"-y",
-		"--node", fmt.Sprintf("tcp://%s:26657", xion.FullNodes[0].HostName()))
+	res, err := ExecBroadcast(t, ctx, xion.FullNodes[0], signedTx)
 
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)

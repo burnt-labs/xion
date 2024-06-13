@@ -19,13 +19,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	jwkMsgServer "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 )
 
 type StargateTestSuite struct {
