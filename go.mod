@@ -11,9 +11,11 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.0
+	cosmossdk.io/tools/confix v0.1.1
 	cosmossdk.io/x/evidence v0.1.1
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/nft v0.1.0
+	cosmossdk.io/x/tx v0.13.3
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/CosmWasm/wasmd v0.51.0
 	github.com/CosmWasm/wasmvm v1.5.2
@@ -55,7 +57,6 @@ require (
 	cosmossdk.io/client/v2 v2.0.0-beta.1 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/x/circuit v0.1.0 // indirect
-	cosmossdk.io/x/tx v0.13.3 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
@@ -63,6 +64,8 @@ require (
 	github.com/bits-and-blooms/bitset v1.8.0 // indirect
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
+	github.com/creachadair/atomicfile v0.3.1 // indirect
+	github.com/creachadair/tomledit v0.0.24 // indirect
 	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/distribution/reference v0.5.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect

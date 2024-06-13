@@ -71,7 +71,13 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// this changes the minGasFees,
 		// and must occur before gas fee checks
-		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, options.StakingKeeper.BondDenom),
+		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, func(context sdk.Context) string {
+			bondDenom, err := options.StakingKeeper.BondDenom(context)
+			if err != nil {
+				panic(err)
+			}
+			return bondDenom
+		}),
 		feeabsante.NewFeeAbstrationMempoolFeeDecorator(*options.FeeAbsKeeper),
 
 		// validation checks
