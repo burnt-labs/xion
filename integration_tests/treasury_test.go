@@ -268,5 +268,5 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("TxDetails: %s", txDetails["raw_log"])
 
 	require.NoError(t, err)
-	require.Equal(t, uint(0), txDetails["code"].(uint))
+	require.Equal(t, float64(0), txDetails["code"].(float64))
 }
