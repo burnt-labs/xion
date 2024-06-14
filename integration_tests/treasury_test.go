@@ -18,9 +18,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -129,7 +131,9 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("deployed code id: %s", codeIDStr)
 
 	inFive := time.Now().Add(time.Minute * 5)
-	testAuth := authz.NewGenericAuthorization("/cosmos.bank.v1beta1/MsgSend")
+	msgSend := banktypes.MsgSend{}
+	msgSendTypeURL := sdktypes.MsgTypeURL(&msgSend)
+	testAuth := authz.NewGenericAuthorization(msgSendTypeURL)
 	testGrant, err := authz.NewGrant(inFive, testAuth, nil)
 	require.NoError(t, err)
 
@@ -261,6 +265,8 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", outputJSON["txhash"].(string))
-	t.Logf("TxDetails: %s", txDetails)
+	t.Logf("TxDetails: %s", txDetails["raw_log"])
+
 	require.NoError(t, err)
+	require.Equal(t, uint(0), txDetails["code"].(uint))
 }
