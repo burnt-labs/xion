@@ -252,11 +252,13 @@ func TestTreasuryContract(t *testing.T) {
 	// todo: validate that the feegrant was created correctly
 	output, err := ExecBroadcast(t, ctx, xion.FullNodes[0], signedTx)
 	require.NoError(t, err)
-	t.Logf("broadcasted tx: %s", output)
 
 	var outputJSON map[string]interface{}
 	require.NoError(t, json.Unmarshal([]byte(output), &outputJSON))
 	t.Logf("tx output: %s", outputJSON)
+
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	require.NoError(t, err)
 
 	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", outputJSON["txhash"].(string))
 	t.Logf("TxDetails: %s", txDetails)
