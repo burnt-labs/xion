@@ -255,11 +255,10 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("broadcasted tx: %s", output)
 
 	var outputJSON map[string]interface{}
-	var txOutputJSON map[string]interface{}
 	require.NoError(t, json.Unmarshal([]byte(output), &outputJSON))
-	require.NoError(t, json.Unmarshal([]byte(outputJSON["tx"].(string)), &txOutputJSON))
+	t.Logf("tx output: %s", outputJSON)
 
-	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", txOutputJSON["txhash"].(string))
+	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", outputJSON["txhash"].(string))
 	t.Logf("TxDetails: %s", txDetails)
 	require.NoError(t, err)
 }
