@@ -161,7 +161,7 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("authorization: %s", authorizationStr)
 
 	instantiateMsg := TreasuryInstantiateMsg{
-		TypeUrls:     []string{testGrant.Authorization.TypeUrl},
+		TypeUrls:     []string{testAuth.Msg},
 		GrantConfigs: []GrantConfig{grantConfig},
 	}
 
@@ -202,7 +202,7 @@ func TestTreasuryContract(t *testing.T) {
 	feegrantMsg := map[string]interface{}{}
 	feegrantMsg["authz_granter"] = granterUser.FormattedAddress()
 	feegrantMsg["authz_grantee"] = granteeUser.FormattedAddress()
-	feegrantMsg["authorization"] = authorizationAny
+	feegrantMsg["msg_type_url"] = testAuth.Msg
 	executeMsg["deploy_fee_grant"] = feegrantMsg
 	executeMsgBz, err := json.Marshal(executeMsg)
 	require.NoError(t, err)
@@ -250,12 +250,16 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("signed tx: %s", signedTx)
 
 	// todo: validate that the feegrant was created correctly
-	res, err := ExecBroadcast(t, ctx, xion.FullNodes[0], signedTx)
-
+	output, err := ExecBroadcast(t, ctx, xion.FullNodes[0], signedTx)
 	require.NoError(t, err)
-	t.Logf("broadcasted tx: %s", res)
+	t.Logf("broadcasted tx: %s", output)
 
-	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", res)
-	require.NoError(t, err)
+	var outputJSON map[string]string
+	var txOutputJSON map[string]string
+	require.NoError(t, json.Unmarshal([]byte(output), &outputJSON))
+	require.NoError(t, json.Unmarshal([]byte(outputJSON["tx"]), &txOutputJSON))
+
+	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", txOutputJSON["txhash"])
 	t.Logf("TxDetails: %s", txDetails)
+	require.NoError(t, err)
 }

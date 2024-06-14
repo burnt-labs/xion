@@ -636,7 +636,7 @@ func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx [
 		return "", err
 	}
 
-	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"))
+	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"), "--output", "json")
 
 	stdout, _, err := tn.Exec(ctx, cmd, nil)
 	if err != nil {
