@@ -87,13 +87,9 @@ type AppModule struct {
 }
 
 func (a AppModule) IsOnePerModuleType() {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (a AppModule) IsAppModule() {
-	//TODO implement me
-	panic("implement me")
 }
 
 // NewAppModule constructor

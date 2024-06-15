@@ -80,13 +80,9 @@ type AppModule struct {
 }
 
 func (am AppModule) IsOnePerModuleType() {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (am AppModule) IsAppModule() {
-	//TODO implement me
-	panic("implement me")
 }
 
 // NewAppModule creates a new 29-fee module
