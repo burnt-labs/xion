@@ -2,28 +2,29 @@ package cli
 
 import (
 	"context"
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"os"
 	"strconv"
 
+	signing2 "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/spf13/cobra"
-
-	"github.com/cosmos/gogoproto/proto"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/gogoproto/proto"
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+	"github.com/spf13/cobra"
 
 	"github.com/burnt-labs/xion/x/xion/types"
 )
@@ -133,7 +134,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 				return err
 			}
 
-			totalAddrs := sdk.NewInt(int64(len(args) - 2))
+			totalAddrs := math.NewInt(int64(len(args) - 2))
 			// coins to be received by the addresses
 			sendCoins := coins
 			if split {
@@ -234,7 +235,11 @@ func NewRegisterCmd() *cobra.Command {
 			}
 			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
-			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()))
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(
+				clientCtx.GetFromAddress(),
+				[]byte(predictedAddr.String()),
+				signMode,
+			)
 			if err != nil {
 				return fmt.Errorf("error signing predicted address : %s", err)
 			}
@@ -318,12 +323,12 @@ func NewSignCmd() *cobra.Command {
 				return err
 			}
 
-			signerData := authsigning.SignerData{
+			signerData := signing2.SignerData{
 				Address:       signerAcc.GetAddress().String(),
 				ChainID:       clientCtx.ChainID,
 				AccountNumber: signerAcc.GetAccountNumber(),
 				Sequence:      signerAcc.GetSequence(),
-				PubKey:        signerAcc.GetPubKey(), // NOTE: NilPubKey
+				PubKey:        nil, // NOTE: NilPubKey
 			}
 
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
@@ -346,11 +351,25 @@ func NewSignCmd() *cobra.Command {
 				panic(err)
 			}
 
-			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
+			adaptableTx, ok := txBuilder.GetTx().(authsigning.V2AdaptableTx)
+			if !ok {
+				return fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", txBuilder.GetTx())
+			}
+
+			txData := adaptableTx.GetSigningTxData()
+			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(
+				clientCtx.CmdContext,
+				signingv1beta1.SignMode_SIGN_MODE_DIRECT,
+				signerData,
+				txData,
+			)
 			if err != nil {
 				panic(err)
 			}
-			signedBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
+			signedBytes, _, err := clientCtx.Keyring.Sign(
+				clientCtx.GetFromName(), signBytes,
+				signMode,
+			)
 			if err != nil {
 				panic(err)
 			}
@@ -392,7 +411,13 @@ func NewSignCmd() *cobra.Command {
 func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
 	var signerAddr sdk.AccAddress
 	for i, msg := range stdTx.GetMsgs() {
-		signers := msg.GetSigners()
+
+		legacyMsg, ok := msg.(sdk.LegacyMsg)
+		if !ok {
+			return nil, fmt.Errorf("msg %d is not a LegacyMsg", i)
+		}
+
+		signers := legacyMsg.GetSigners()
 		if len(signers) != 1 {
 			return nil, fmt.Errorf("msg %d has more than one signers", i)
 		}

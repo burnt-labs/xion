@@ -1,6 +1,7 @@
 package simulation_test
 
 import (
+	"cosmossdk.io/math"
 	"math/rand"
 	"testing"
 
@@ -40,9 +41,9 @@ func TestProposalMsgs(t *testing.T) {
 
 	assert.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Authority)
 	assert.Equal(t, uint64(122877), msgUpdateParams.Params.BlocksPerYear)
-	assert.DeepEqual(t, sdk.NewDecWithPrec(95, 2), msgUpdateParams.Params.GoalBonded)
-	assert.DeepEqual(t, sdk.NewDecWithPrec(94, 2), msgUpdateParams.Params.InflationMax)
-	assert.DeepEqual(t, sdk.NewDecWithPrec(23, 2), msgUpdateParams.Params.InflationMin)
-	assert.DeepEqual(t, sdk.NewDecWithPrec(89, 2), msgUpdateParams.Params.InflationRateChange)
+	assert.DeepEqual(t, math.LegacyNewDecWithPrec(95, 2), msgUpdateParams.Params.GoalBonded)
+	assert.DeepEqual(t, math.LegacyNewDecWithPrec(94, 2), msgUpdateParams.Params.InflationMax)
+	assert.DeepEqual(t, math.LegacyNewDecWithPrec(23, 2), msgUpdateParams.Params.InflationMin)
+	assert.DeepEqual(t, math.LegacyNewDecWithPrec(89, 2), msgUpdateParams.Params.InflationRateChange)
 	assert.Equal(t, "XhhuTSkuxK", msgUpdateParams.Params.MintDenom)
 }

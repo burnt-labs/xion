@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"fmt"
 
-	"github.com/armon/go-metrics"
+	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -54,7 +55,7 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	throughCoins := msg.Amount
 
 	if !percentage.IsZero() {
-		platformCoins := msg.Amount.MulInt(percentage).QuoInt(sdk.NewInt(10000))
+		platformCoins := msg.Amount.MulInt(percentage).QuoInt(math.NewInt(10000))
 		throughCoins = throughCoins.Sub(platformCoins...)
 
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, authtypes.FeeCollectorName, platformCoins); err != nil {
@@ -105,7 +106,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 
 		// if there is a platform fee set, reduce it from each output
 		if !percentage.IsZero() {
-			platformCoins := out.Coins.MulInt(percentage).QuoInt(sdk.NewInt(10000))
+			platformCoins := out.Coins.MulInt(percentage).QuoInt(math.NewInt(10000))
 			throughCoins, wentNegative := out.Coins.SafeSub(platformCoins...)
 			if wentNegative {
 				return nil, fmt.Errorf("unable to subtract %v from %v", platformCoins, throughCoins)
@@ -124,7 +125,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		outputs = append(outputs, banktypes.NewOutput(feeCollectorAcc, totalPlatformCoins))
 	}
 
-	err := k.bankKeeper.InputOutputCoins(ctx, msg.Inputs, outputs)
+	err := k.bankKeeper.InputOutputCoins(ctx, msg.Inputs[0], outputs) // TODO decide on how to handle multiple inputs
 	if err != nil {
 		return nil, err
 	}

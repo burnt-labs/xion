@@ -1,7 +1,7 @@
 package v3
 
 import (
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/types"
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 
 	store "cosmossdk.io/store/types"
 

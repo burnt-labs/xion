@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"fmt"
 	"io"
 
@@ -23,7 +24,7 @@ func (s *CLITestSuite) TestSendTxCmd() {
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin("photon", sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin("photon", math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=test-chain", flags.FlagChainID),
 	}
 
@@ -43,8 +44,8 @@ func (s *CLITestSuite) TestSendTxCmd() {
 			accounts[0].Address,
 			accounts[0].Address,
 			sdk.NewCoins(
-				sdk.NewCoin("stake", sdk.NewInt(10)),
-				sdk.NewCoin("photon", sdk.NewInt(40)),
+				sdk.NewCoin("stake", math.NewInt(10)),
+				sdk.NewCoin("photon", math.NewInt(40)),
 			),
 			extraArgs,
 			false,
@@ -57,8 +58,8 @@ func (s *CLITestSuite) TestSendTxCmd() {
 			accounts[0].Address,
 			sdk.AccAddress{},
 			sdk.NewCoins(
-				sdk.NewCoin("stake", sdk.NewInt(10)),
-				sdk.NewCoin("photon", sdk.NewInt(40)),
+				sdk.NewCoin("stake", math.NewInt(10)),
+				sdk.NewCoin("photon", math.NewInt(40)),
 			),
 			extraArgs,
 			true,
@@ -106,7 +107,7 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin("photon", sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin("photon", math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=test-chain", flags.FlagChainID),
 	}
 
@@ -130,8 +131,8 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 				accounts[2].Address.String(),
 			},
 			sdk.NewCoins(
-				sdk.NewCoin("stake", sdk.NewInt(10)),
-				sdk.NewCoin("photon", sdk.NewInt(40)),
+				sdk.NewCoin("stake", math.NewInt(10)),
+				sdk.NewCoin("photon", math.NewInt(40)),
 			),
 			extraArgs,
 			false,
@@ -147,8 +148,8 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 				accounts[2].Address.String(),
 			},
 			sdk.NewCoins(
-				sdk.NewCoin("stake", sdk.NewInt(10)),
-				sdk.NewCoin("photon", sdk.NewInt(40)),
+				sdk.NewCoin("stake", math.NewInt(10)),
+				sdk.NewCoin("photon", math.NewInt(40)),
 			),
 			extraArgs,
 			true,
@@ -164,8 +165,8 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 				"bar",
 			},
 			sdk.NewCoins(
-				sdk.NewCoin("stake", sdk.NewInt(10)),
-				sdk.NewCoin("photon", sdk.NewInt(40)),
+				sdk.NewCoin("stake", math.NewInt(10)),
+				sdk.NewCoin("photon", math.NewInt(40)),
 			),
 			extraArgs,
 			true,

@@ -5,15 +5,15 @@ import (
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
-	feeabsante "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/ante"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/keeper"
+	feeabsante "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/ante"
+	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/keeper"
 
-	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
+	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
 	errorsmod "cosmossdk.io/errors"
 
-	storetypes "cosmossdk.io/store/types"
+	corestoretypes "cosmossdk.io/core/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -31,7 +31,7 @@ type HandlerOptions struct {
 
 	IBCKeeper             *keeper.Keeper
 	WasmConfig            *wasmTypes.WasmConfig
-	TXCounterStoreKey     storetypes.StoreKey
+	TXCounterStoreService corestoretypes.KVStoreService
 	GlobalFeeSubspace     paramtypes.Subspace
 	StakingKeeper         *stakingkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
@@ -57,8 +57,8 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.GlobalFeeSubspace.Name() == "" {
 		return nil, errorsmod.Wrap(sdkerrors.ErrNotFound, "globalfee param store is required for AnteHandler")
 	}
-	if options.TXCounterStoreKey == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "tx counter key is required for ante builder")
+	if options.TXCounterStoreService == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm store service is required for ante builder")
 	}
 	if options.FeeAbsKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "fee abstraction keeper is required for AnteHandler")
@@ -67,11 +67,17 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		wasmkeeper.NewLimitSimulationGasDecorator(options.WasmConfig.SimulationGasLimit), // after setup context to enforce limits early
-		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreKey),
+		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreService),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// this changes the minGasFees,
 		// and must occur before gas fee checks
-		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, options.StakingKeeper.BondDenom),
+		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, func(context sdk.Context) string {
+			bondDenom, err := options.StakingKeeper.BondDenom(context)
+			if err != nil {
+				panic(err)
+			}
+			return bondDenom
+		}),
 		feeabsante.NewFeeAbstrationMempoolFeeDecorator(*options.FeeAbsKeeper),
 
 		// validation checks
