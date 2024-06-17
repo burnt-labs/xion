@@ -14,8 +14,6 @@ import (
 	jwk "github.com/lestrrat-go/jwx/jwk"
 	"github.com/stretchr/testify/suite"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -36,7 +34,7 @@ type StargateTestSuite struct {
 
 func (suite *StargateTestSuite) SetupTest() {
 	suite.app = xionapp.Setup(suite.T())
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "xion-1", Time: time.Now().UTC()})
+	suite.ctx = suite.app.BaseApp.NewContext(false)
 }
 
 func TestStargateTestSuite(t *testing.T) {

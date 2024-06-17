@@ -2,10 +2,12 @@ package keeper_test
 
 import (
 	gocontext "context"
+	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/testutil"
@@ -30,8 +32,9 @@ type MintTestSuite struct {
 
 func (suite *MintTestSuite) SetupTest() {
 	encCfg := moduletestutil.MakeTestEncodingConfig(mint.AppModuleBasic{})
-	key := sdk.NewKVStoreKey(types.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(suite.T(), key, sdk.NewTransientStoreKey("transient_test"))
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	store := runtime.NewKVStoreService(key)
+	testCtx := testutil.DefaultContextWithDB(suite.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	suite.ctx = testCtx.Ctx
 
 	// gomock initializations
@@ -44,7 +47,7 @@ func (suite *MintTestSuite) SetupTest() {
 
 	suite.mintKeeper = keeper.NewKeeper(
 		encCfg.Codec,
-		key,
+		store,
 		stakingKeeper,
 		accountKeeper,
 		bankKeeper,

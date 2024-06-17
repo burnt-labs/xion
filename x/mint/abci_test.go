@@ -19,24 +19,24 @@ import (
 
 func TestBeginBlocker(t *testing.T) {
 	type expected struct {
-		annualProvisions sdk.Dec
-		bondedRatio      sdk.Dec
+		annualProvisions sdkmath.LegacyDec
+		bondedRatio      sdkmath.LegacyDec
 		burnedAmount     uint64
 		collectedAmount  uint64
-		inflation        sdk.Dec
+		inflation        sdkmath.LegacyDec
 		minted           uint64
 		needed           uint64
 	}
 	type parameters struct {
 		bonded        sdkmath.Int
-		bondedRatio   sdk.Dec
+		bondedRatio   sdkmath.LegacyDec
 		fees          sdk.Coins
 		collectedFees sdk.Coin
 		burn          bool
 		mint          bool
 	}
 
-	stakingTokenSupply := sdk.NewIntFromUint64(100000000000)
+	stakingTokenSupply := sdkmath.NewIntFromUint64(100000000000)
 
 	tt := []struct {
 		name       string
@@ -47,18 +47,18 @@ func TestBeginBlocker(t *testing.T) {
 			name: "full bonded tokens",
 			parameters: parameters{
 				bonded:        stakingTokenSupply,
-				bondedRatio:   sdk.NewDecWithPrec(1, 4),
-				fees:          sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(109))),
-				collectedFees: sdk.NewCoin("stake", sdk.NewInt(1000)),
+				bondedRatio:   sdkmath.LegacyNewDecWithPrec(1, 4),
+				fees:          sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(109))),
+				collectedFees: sdk.NewCoin("stake", sdkmath.NewInt(1000)),
 				mint:          true,
 				burn:          false,
 			},
 			expected: expected{
-				annualProvisions: sdk.NewDecWithPrec(7000000000, 0),
-				bondedRatio:      sdk.NewDecWithPrec(1, 4),
+				annualProvisions: sdkmath.LegacyNewDecWithPrec(7000000000, 0),
+				bondedRatio:      sdkmath.LegacyNewDecWithPrec(1, 4),
 				burnedAmount:     0,
 				collectedAmount:  1000,
-				inflation:        sdk.NewDecWithPrec(7, 2),
+				inflation:        sdkmath.LegacyNewDecWithPrec(7, 2),
 				minted:           109,
 				needed:           1109,
 			},
@@ -66,19 +66,19 @@ func TestBeginBlocker(t *testing.T) {
 		{
 			name: "less than ideal bonded tokens",
 			parameters: parameters{
-				bonded:        sdk.NewInt(int64(100000000000 * 0.33)),
-				bondedRatio:   sdk.NewDecWithPrec(33, 2),
-				fees:          sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(1045))),
-				collectedFees: sdk.NewCoin("stake", sdk.NewInt(0)),
+				bonded:        sdkmath.NewInt(int64(100000000000 * 0.33)),
+				bondedRatio:   sdkmath.LegacyNewDecWithPrec(33, 2),
+				fees:          sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(1045))),
+				collectedFees: sdk.NewCoin("stake", sdkmath.NewInt(0)),
 				mint:          true,
 				burn:          false,
 			},
 			expected: expected{
-				annualProvisions: sdk.NewDec(6600000000),
-				bondedRatio:      sdk.NewDecWithPrec(33, 2),
+				annualProvisions: sdkmath.LegacyNewDec(6600000000),
+				bondedRatio:      sdkmath.LegacyNewDecWithPrec(33, 2),
 				burnedAmount:     0,
 				collectedAmount:  0,
-				inflation:        sdk.NewDecWithPrec(20, 2),
+				inflation:        sdkmath.LegacyNewDecWithPrec(20, 2),
 				minted:           1045,
 				needed:           1045,
 			},
@@ -87,18 +87,18 @@ func TestBeginBlocker(t *testing.T) {
 			name: "above staking threshold, fee collector has values",
 			parameters: parameters{
 				bonded:        stakingTokenSupply,
-				bondedRatio:   sdk.NewDecWithPrec(1, 4),
-				fees:          sdk.NewCoins(sdk.NewCoin("stake", sdk.NewInt(109))),
-				collectedFees: sdk.NewCoin("stake", sdk.NewInt(10000)),
+				bondedRatio:   sdkmath.LegacyNewDecWithPrec(1, 4),
+				fees:          sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(109))),
+				collectedFees: sdk.NewCoin("stake", sdkmath.NewInt(10000)),
 				mint:          false,
 				burn:          true,
 			},
 			expected: expected{
-				annualProvisions: sdk.NewDecWithPrec(7000000000, 0),
-				bondedRatio:      sdk.NewDecWithPrec(1, 4),
+				annualProvisions: sdkmath.LegacyNewDecWithPrec(7000000000, 0),
+				bondedRatio:      sdkmath.LegacyNewDecWithPrec(1, 4),
 				burnedAmount:     8891,
 				collectedAmount:  10000,
-				inflation:        sdk.NewDecWithPrec(7, 2),
+				inflation:        sdkmath.LegacyNewDecWithPrec(7, 2),
 				minted:           0,
 				needed:           1109,
 			},
@@ -128,7 +128,7 @@ func TestBeginBlocker(t *testing.T) {
 			}
 
 			if tc.parameters.burn {
-				c := sdk.NewCoin("stake", sdk.NewInt(int64(tc.expected.needed)))
+				c := sdk.NewCoin("stake", sdkmath.NewInt(int64(tc.expected.needed)))
 				bankKeeper.EXPECT().BurnCoins(ctx, authtypes.FeeCollectorName, sdk.NewCoins(tc.parameters.collectedFees.Sub(c))).Return(nil)
 			}
 
@@ -141,10 +141,10 @@ func TestBeginBlocker(t *testing.T) {
 			assert.Equalf(t, 7, len(event.Attributes), "Expcted 7 attributes but found %d", len(event.Attributes))
 
 			assert.Equal(t, "annual_provisions", event.Attributes[0].Key)
-			assert.Equal(t, tc.expected.annualProvisions, sdk.MustNewDecFromStr(stripValue(t, event.Attributes[0].Value)))
+			assert.Equal(t, tc.expected.annualProvisions, sdkmath.LegacyMustNewDecFromStr(stripValue(t, event.Attributes[0].Value)))
 
 			assert.Equal(t, "bonded_ratio", event.Attributes[1].Key)
-			assert.Equal(t, tc.expected.bondedRatio, sdk.MustNewDecFromStr(stripValue(t, event.Attributes[1].Value)))
+			assert.Equal(t, tc.expected.bondedRatio, sdkmath.LegacyMustNewDecFromStr(stripValue(t, event.Attributes[1].Value)))
 
 			assert.Equal(t, "burned_amount", event.Attributes[2].Key)
 			assert.Equal(t, tc.expected.burnedAmount, stringToU64(t, event.Attributes[2].Value))
@@ -153,7 +153,7 @@ func TestBeginBlocker(t *testing.T) {
 			assert.Equal(t, tc.expected.collectedAmount, stringToU64(t, event.Attributes[3].Value))
 
 			assert.Equal(t, "inflation", event.Attributes[4].Key)
-			assert.Equal(t, tc.expected.inflation, sdk.MustNewDecFromStr(stripValue(t, event.Attributes[4].Value)))
+			assert.Equal(t, tc.expected.inflation, sdkmath.LegacyMustNewDecFromStr(stripValue(t, event.Attributes[4].Value)))
 
 			assert.Equal(t, "minted_amount", event.Attributes[5].Key)
 			assert.Equal(t, tc.expected.minted, stringToU64(t, event.Attributes[5].Value))
