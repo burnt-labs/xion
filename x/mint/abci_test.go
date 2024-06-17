@@ -118,8 +118,8 @@ func TestBeginBlocker(t *testing.T) {
 
 			keeper.SetMinter(ctx, types.InitialMinter(tc.parameters.bondedRatio))
 
-			stakingKeeper.EXPECT().TotalBondedTokens(ctx).Return(tc.parameters.bonded)
-			stakingKeeper.EXPECT().BondedRatio(ctx).Return(tc.parameters.bondedRatio)
+			stakingKeeper.EXPECT().TotalBondedTokens(ctx).Return(tc.parameters.bonded, nil)
+			stakingKeeper.EXPECT().BondedRatio(ctx).Return(tc.parameters.bondedRatio, nil)
 			bankKeeper.EXPECT().GetBalance(ctx, mocks.moduleAccount.GetAddress(), "stake").Return(tc.parameters.collectedFees)
 
 			if tc.parameters.mint {
