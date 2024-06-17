@@ -32,7 +32,6 @@ require (
 	github.com/cosmos/rosetta v0.50.6
 	github.com/dvsekhvalnov/jose2go v1.6.0
 	github.com/go-webauthn/webauthn v0.9.1
-	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -72,6 +71,7 @@ require (
 	github.com/emicklei/dot v1.6.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/gogo/status v1.1.0 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/goware/urlx v0.3.2 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect

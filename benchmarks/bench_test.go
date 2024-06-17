@@ -108,10 +108,11 @@ func BenchmarkTxSending(b *testing.B) {
 					idx := i*blockSize + j
 					bz, err := txEncoder(txs[idx])
 					require.NoError(b, err)
-					rsp := appInfo.App.CheckTx(abci.RequestCheckTx{
+					rsp, err := appInfo.App.CheckTx(&abci.RequestCheckTx{
 						Tx:   bz,
 						Type: abci.CheckTxType_New,
 					})
+					require.NoError(b, err)
 					require.True(b, rsp.IsOK())
 					dRsp := appInfo.App.DeliverTx(abci.RequestDeliverTx{Tx: bz})
 					require.True(b, dRsp.IsOK())
