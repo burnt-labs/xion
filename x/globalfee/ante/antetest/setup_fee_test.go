@@ -1,12 +1,8 @@
 package antetest
 
 import (
-	"fmt"
-
+	"context"
 	"github.com/stretchr/testify/suite"
-
-	tmrand "github.com/cometbft/cometbft/libs/rand"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -38,10 +34,7 @@ var testBondDenom = "uxion"
 
 func (s *IntegrationTestSuite) SetupTest() {
 	app := xionapp.Setup(s.T())
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{
-		ChainID: fmt.Sprintf("test-chain-%s", tmrand.Str(4)),
-		Height:  1,
-	})
+	ctx := app.BaseApp.NewContext(false)
 
 	encodingConfig := testutil.MakeTestEncodingConfig()
 	encodingConfig.Amino.RegisterConcrete(&testdata.TestMsg{}, "testdata.TestMsg", nil)
@@ -90,7 +83,7 @@ func (s *IntegrationTestSuite) CreateTestTx(privs []cryptotypes.PrivKey, accNums
 		sigV2 := signing.SignatureV2{
 			PubKey: priv.PubKey(),
 			Data: &signing.SingleSignatureData{
-				SignMode:  s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+				SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
 				Signature: nil,
 			},
 			Sequence: accSeqs[i],
@@ -111,7 +104,8 @@ func (s *IntegrationTestSuite) CreateTestTx(privs []cryptotypes.PrivKey, accNums
 			Sequence:      accSeqs[i],
 		}
 		sigV2, err := tx.SignWithPrivKey(
-			s.clientCtx.TxConfig.SignModeHandler().DefaultMode(),
+			context.Background(),
+			signing.SignMode_SIGN_MODE_DIRECT,
 			signerData,
 			s.txBuilder,
 			priv,

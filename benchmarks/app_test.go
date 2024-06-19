@@ -14,7 +14,6 @@ import (
 
 	"cosmossdk.io/log"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	dbm "github.com/cosmos/cosmos-db"
 
@@ -123,7 +122,7 @@ func SetupWithGenesisAccountsAndValSet(b testing.TB, db dbm.DB, genAccs []authty
 	)
 
 	wasmApp.Commit()
-	wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: wasmApp.LastBlockHeight() + 1}})
+	//wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: wasmApp.LastBlockHeight() + 1}})
 
 	return wasmApp
 }
@@ -173,7 +172,7 @@ func InitializeWasmApp(b testing.TB, db dbm.DB, numAccounts int) AppInfo {
 	// add wasm contract
 	height := int64(2)
 	txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
-	wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: height, Time: time.Now()}})
+	//wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: height, Time: time.Now()}})
 
 	// upload the code
 	cw20Code, err := os.ReadFile("./testdata/cw20_base.wasm")
@@ -227,8 +226,11 @@ func InitializeWasmApp(b testing.TB, db dbm.DB, numAccounts int) AppInfo {
 	attr := evt.Attributes[0]
 	contractAddr := attr.Value
 
-	wasmApp.EndBlock(abci.RequestEndBlock{Height: height})
-	wasmApp.Commit()
+	_, err = wasmApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: height,
+		Time:   time.Now(),
+	})
+	require.NoError(b, err)
 
 	return AppInfo{
 		App:          wasmApp,

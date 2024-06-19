@@ -16,7 +16,7 @@ digraph "" {
 
     subgraph "cluster_genutil" {
       graph [fontsize="12.0", label="Module: genutil", penwidth="0.5", style="rounded"];
-      "github.com/cosmos/cosmos-sdk/x/genutil.ProvideModule"[color="red", fontcolor="red", penwidth="0.5", shape="box"];
+      "github.com/cosmos/cosmos-sdk/x/genutil.ProvideModule"[color="lightgrey", fontcolor="dimgrey", penwidth="0.5", shape="box"];
     }
 
     subgraph "cluster_mint" {
@@ -112,8 +112,6 @@ digraph "" {
   "github.com/cosmos/cosmos-sdk/x/bank/exported.Subspace"[color="lightgrey", fontcolor="dimgrey", penwidth="0.5"];
   "github.com/cosmos/cosmos-sdk/x/bank/keeper.BaseKeeper"[color="lightgrey", fontcolor="dimgrey", penwidth="0.5"];
   "github.com/cosmos/cosmos-sdk/x/consensus/keeper.Keeper"[color="lightgrey", fontcolor="dimgrey", penwidth="0.5"];
-  "github.com/cosmos/cosmos-sdk/x/genutil/types.AccountKeeper"[color="black", fontcolor="black", penwidth="1.5"];
-  "github.com/cosmos/cosmos-sdk/x/genutil/types.StakingKeeper"[color="red", fontcolor="red", penwidth="0.5"];
   "github.com/cosmos/cosmos-sdk/x/mint/keeper.Keeper"[color="lightgrey", fontcolor="dimgrey", penwidth="0.5"];
   "github.com/cosmos/cosmos-sdk/x/params/keeper.Keeper"[color="black", fontcolor="black", penwidth="1.5"];
   "github.com/cosmos/cosmos-sdk/x/params/types.Subspace"[color="lightgrey", fontcolor="dimgrey", penwidth="0.5"];
