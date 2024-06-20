@@ -20,6 +20,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
@@ -336,7 +337,9 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 
 func createAuthzGrants(suite *StargateTestSuite) {
 	authzKeeper := suite.app.AuthzKeeper
-	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{})
+	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
+		Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+	})
 	suite.NoError(err)
 	grantMsg := &authztypes.MsgGrant{
 		Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
@@ -347,12 +350,6 @@ func createAuthzGrants(suite *StargateTestSuite) {
 	}
 	_, err = authzKeeper.Grant(suite.ctx, grantMsg)
 	suite.NoError(err)
-	response, err := authzKeeper.Grants(suite.ctx, &authztypes.QueryGrantsRequest{
-		Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
-		Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
-	})
-	suite.NoError(err)
-	fmt.Println(response.Grants)
 }
 
 func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
@@ -374,15 +371,13 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 				createAuthzGrants(suite)
 			},
 			responseProtoStruct: func() codec.ProtoMarshaler {
-				authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{})
+				authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
+					Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+				})
 				suite.NoError(err)
 				return &authztypes.QueryGrantsResponse{
 					Grants: []*authztypes.Grant{
 						{Authorization: authorization},
-					},
-					Pagination: &query.PageResponse{
-						Total:   1,
-						NextKey: nil,
 					},
 				}
 			},
@@ -390,6 +385,9 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 				bz, err := proto.Marshal(&authztypes.QueryGrantsRequest{
 					Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
 					Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
+					MsgTypeUrl: authztypes.GenericAuthorization{
+						Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+					}.MsgTypeURL(),
 				})
 				if err != nil {
 					panic(err)
@@ -420,7 +418,7 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 			if tc.checkResponseStruct {
 				expectedResponse, err := proto.Marshal(tc.responseProtoStruct())
 				suite.NoError(err)
-				expJSONResp, err := wasmbinding.ConvertProtoToJSONMarshal(tc.responseProtoStruct(), expectedResponse, suite.app.AppCodec())
+				expJSONResp, err := wasmbinding.ConvertProtoToJSONMarshal(&authztypes.QueryGrantsResponse{}, expectedResponse, suite.app.AppCodec())
 				suite.Require().NoError(err)
 				suite.Require().Equal(expJSONResp, stargateResponse)
 			}
