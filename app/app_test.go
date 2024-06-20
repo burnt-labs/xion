@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/cometbft/cometbft/abci/types"
 	"os"
 	"testing"
 
@@ -23,11 +24,23 @@ func TestWasmdExport(t *testing.T) {
 		DB:      db,
 		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
 	})
-	gapp.Commit()
+	_, err := gapp.FinalizeBlock(&types.RequestFinalizeBlock{
+		Height: 1,
+	})
+	require.NoError(t, err, "FinalizeBlock should not have an error")
+	_, err = gapp.Commit()
+	require.NoError(t, err, "Commit should not have an error")
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newGapp := NewWasmApp(log.NewLogger(os.Stdout), db, nil, true, simtestutil.NewAppOptionsWithFlagHome(t.TempDir()), emptyWasmOpts)
-	_, err := newGapp.ExportAppStateAndValidators(false, []string{}, nil)
+	newGapp := NewWasmApp(
+		log.NewLogger(os.Stdout),
+		db,
+		nil,
+		true,
+		simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
+		emptyWasmOpts,
+	)
+	_, err = newGapp.ExportAppStateAndValidators(false, []string{}, nil)
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }
 
