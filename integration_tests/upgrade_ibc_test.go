@@ -22,6 +22,13 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+const (
+	xionVersionFrom = "v0.3.9"
+	xionVersionTo   = "v6.1.0"
+	xionUpgradeName = "v6"
+	osmosisVersion  = "v25.0.0-rc0"
+)
+
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
 func TestXionUpgradeIBC(t *testing.T) {
 	t.Parallel()
@@ -59,8 +66,8 @@ func TestXionUpgradeIBC(t *testing.T) {
 			},
 			conformance:         conformance.TestChainPair,
 			upgrade:             SoftwareUpgrade,
-			upgradeName:         "v6",
-			upgradeImageVersion: "sha-f7f7132",
+			upgradeName:         xionUpgradeName,
+			upgradeImageVersion: xionVersionTo,
 		},
 		//{
 		//	name: "xion-axelar",
@@ -99,12 +106,12 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:    "xion",
-			Version: "v0.3.8",
+			Version: xionVersionFrom,
 			ChainConfig: ibc.ChainConfig{
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/burnt-labs/xion/xion",
-						Version:    "v0.3.8",
+						Version:    xionVersionFrom,
 						UidGid:     "1025:1025",
 					},
 				},
@@ -125,12 +132,12 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 		},
 		{
 			Name:    "osmosis",
-			Version: "v24.0.0-rc0",
+			Version: osmosisVersion,
 			ChainConfig: ibc.ChainConfig{
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/strangelove-ventures/heighliner/osmosis",
-						Version:    "v24.0.0-rc0",
+						Version:    osmosisVersion,
 						UidGid:     "1025:1025",
 					},
 				},
@@ -146,29 +153,29 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
 		},
-		{
-			Name:    "axelar",
-			Version: "v0.35.3",
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/strangelove-ventures/heighliner/axelar",
-						Version:    "v0.35.3",
-						UidGid:     "1025:1025",
-					},
-				},
-				Type:           "cosmos",
-				Bin:            "axelard",
-				Bech32Prefix:   "axelar",
-				Denom:          "uaxl",
-				GasPrices:      "0.007uaxl",
-				GasAdjustment:  1.3,
-				TrustingPeriod: "336h",
-				NoHostMount:    false,
-			},
-			NumValidators: &numValidators,
-			NumFullNodes:  &numFullNodes,
-		},
+		//{
+		//	Name:    "axelar",
+		//	Version: "v0.35.3",
+		//	ChainConfig: ibc.ChainConfig{
+		//		Images: []ibc.DockerImage{
+		//			{
+		//				Repository: "ghcr.io/strangelove-ventures/heighliner/axelar",
+		//				Version:    "v0.35.3",
+		//				UidGid:     "1025:1025",
+		//			},
+		//		},
+		//		Type:           "cosmos",
+		//		Bin:            "axelard",
+		//		Bech32Prefix:   "axelar",
+		//		Denom:          "uaxl",
+		//		GasPrices:      "0.007uaxl",
+		//		GasAdjustment:  1.3,
+		//		TrustingPeriod: "336h",
+		//		NoHostMount:    false,
+		//	},
+		//	NumValidators: &numValidators,
+		//	NumFullNodes:  &numFullNodes,
+		//},
 	})
 
 	chains, err := cf.Chains(t.Name())
