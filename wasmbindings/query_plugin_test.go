@@ -34,7 +34,7 @@ type StargateTestSuite struct {
 
 func (suite *StargateTestSuite) SetupTest() {
 	suite.app = xionapp.Setup(suite.T())
-	suite.ctx = suite.app.BaseApp.NewContext(false)
+	suite.ctx = suite.app.NewContext(true).WithBlockTime(time.Now())
 }
 
 func TestStargateTestSuite(t *testing.T) {
