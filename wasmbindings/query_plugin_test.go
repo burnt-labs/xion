@@ -16,8 +16,11 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
@@ -38,6 +41,7 @@ var admin = "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74"
 func (suite *StargateTestSuite) SetupTest() {
 	suite.app = xionapp.Setup(suite.T())
 	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "xion-1", Time: time.Now().UTC()})
+	suite.app.Configurator()
 }
 
 func TestStargateTestSuite(t *testing.T) {
@@ -306,6 +310,122 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 			suite.Require().NoError(err)
 
 			protoResponse, ok := tc.responseProtoStruct.(proto.Message)
+			suite.Require().True(ok)
+
+			// test correctness by unmarshalling json response into proto struct
+			err = suite.app.AppCodec().UnmarshalJSON(stargateResponse, protoResponse)
+			if tc.expectedUnMarshalError {
+				suite.Require().Error(err)
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(protoResponse)
+			}
+
+			if tc.resendRequest {
+				stargateQuerier = wasmbinding.StargateQuerier(*suite.app.GRPCQueryRouter(), suite.app.AppCodec())
+				stargateRequest = &wasmvmtypes.StargateQuery{
+					Path: tc.path,
+					Data: tc.requestData(),
+				}
+				resendResponse, err := stargateQuerier(suite.ctx, stargateRequest)
+				suite.Require().NoError(err)
+				suite.Require().Equal(stargateResponse, resendResponse)
+			}
+		})
+	}
+}
+
+func createAuthzGrants(suite *StargateTestSuite) {
+	authzKeeper := suite.app.AuthzKeeper
+	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
+		Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+	})
+	suite.NoError(err)
+	grantMsg := &authztypes.MsgGrant{
+		Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
+		Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
+		Grant: authztypes.Grant{
+			Authorization: authorization,
+		},
+	}
+	_, err = authzKeeper.Grant(suite.ctx, grantMsg)
+	suite.NoError(err)
+}
+
+func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
+	testCases := []struct {
+		name                   string
+		testSetup              func()
+		path                   string
+		requestData            func() []byte
+		responseProtoStruct    func() codec.ProtoMarshaler
+		expectedQuerierError   bool
+		expectedUnMarshalError bool
+		resendRequest          bool
+		checkResponseStruct    bool
+	}{
+		{
+			name: "AuthzGrants",
+			path: "/cosmos.authz.v1beta1.Query/Grants",
+			testSetup: func() {
+				createAuthzGrants(suite)
+			},
+			responseProtoStruct: func() codec.ProtoMarshaler {
+				authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
+					Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+				})
+				suite.NoError(err)
+				return &authztypes.QueryGrantsResponse{
+					Grants: []*authztypes.Grant{
+						{Authorization: authorization},
+					},
+				}
+			},
+			requestData: func() []byte {
+				bz, err := proto.Marshal(&authztypes.QueryGrantsRequest{
+					Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
+					Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
+					MsgTypeUrl: authztypes.GenericAuthorization{
+						Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+					}.MsgTypeURL(),
+				})
+				if err != nil {
+					panic(err)
+				}
+				return bz
+			},
+			checkResponseStruct: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest()
+			if tc.testSetup != nil {
+				tc.testSetup()
+			}
+
+			stargateQuerier := wasmbinding.StargateQuerier(*suite.app.GRPCQueryRouter(), suite.app.AppCodec())
+			stargateRequest := &wasmvmtypes.StargateQuery{
+				Path: tc.path,
+				Data: tc.requestData(),
+			}
+			stargateResponse, err := stargateQuerier(suite.ctx, stargateRequest)
+			if tc.expectedQuerierError {
+				suite.Require().Error(err)
+				return
+			}
+			if tc.checkResponseStruct {
+				expectedResponse, err := proto.Marshal(tc.responseProtoStruct())
+				suite.NoError(err)
+				expJSONResp, err := wasmbinding.ConvertProtoToJSONMarshal(&authztypes.QueryGrantsResponse{}, expectedResponse, suite.app.AppCodec())
+				suite.Require().NoError(err)
+				suite.Require().Equal(expJSONResp, stargateResponse)
+			}
+
+			suite.Require().NoError(err)
+
+			protoResponse, ok := tc.responseProtoStruct().(proto.Message)
 			suite.Require().True(ok)
 
 			// test correctness by unmarshalling json response into proto struct

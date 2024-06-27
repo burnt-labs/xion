@@ -81,6 +81,7 @@ jobs:
         - "XionMinimumFeeZero"
         - "XionTokenFactory"
         - "XionAbstractAccountJWTCLI"
+        - "TreasuryContract"
 
     steps:
       - name: Set up Go 1.21
