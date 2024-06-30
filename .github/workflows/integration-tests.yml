@@ -82,6 +82,7 @@ jobs:
         - "XionTokenFactory"
         - "XionAbstractAccountJWTCLI"
         - "TreasuryContract"
+        - "SingleAbstractAccountMigration"
 
     steps:
       - name: Set up Go 1.21
