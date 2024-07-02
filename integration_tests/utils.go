@@ -141,6 +141,42 @@ func RawJSONMsgExecContractRemoveAuthenticator(sender string, contract string, i
 	return rawMsg
 }
 
+func RawJSONMsgMigrateContract(sender string, codeID string) []byte {
+	msg := fmt.Sprintf(`
+
+{
+  "body": {
+    "messages": [
+    {
+      "@type": "/cosmwasm.wasm.v1.MsgMigrateContract",
+      "sender": "%s",
+      "contract": "%s",
+      "code_id": "%s",
+      "msg": {}
+    }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
+	`, sender, sender, codeID)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
 func ParamChangeProposal(t *testing.T, subspace, key, value, title, description, deposit string) paramsutils.ParamChangeProposalJSON {
 	changes := paramsutils.ParamChangeJSON{
 		Subspace: subspace,
