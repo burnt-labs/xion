@@ -2,15 +2,16 @@ package cli
 
 import (
 	"context"
-	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
-	"cosmossdk.io/math"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"os"
 	"strconv"
+
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
 	signing2 "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -318,7 +319,21 @@ func NewAddAuthenticatorCmd() *cobra.Command {
 
 			contractAddr := args[0]
 
-			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(contractAddr))
+			signMode := signing.SignMode_SIGN_MODE_UNSPECIFIED
+			switch clientCtx.SignModeStr {
+			case flags.SignModeDirect:
+				signMode = signing.SignMode_SIGN_MODE_DIRECT
+			case flags.SignModeLegacyAminoJSON:
+				signMode = signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON
+			case flags.SignModeDirectAux:
+				signMode = signing.SignMode_SIGN_MODE_DIRECT_AUX
+			case flags.SignModeTextual:
+				signMode = signing.SignMode_SIGN_MODE_TEXTUAL
+			case flags.SignModeEIP191:
+				signMode = signing.SignMode_SIGN_MODE_EIP_191
+			}
+
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(contractAddr), signMode)
 			if err != nil {
 				return fmt.Errorf("error signing address : %s", err)
 			}
