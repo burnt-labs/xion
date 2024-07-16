@@ -1,10 +1,15 @@
 # syntax=docker/dockerfile:1
 
+ARG GO_VERSION="1.22"
+ARG ALPINE_VERSION="3.19"
+ARG BUILDPLATFORM=linux/amd64
+ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION}"
+
 # --------------------------------------------------------
 # Builder
 # --------------------------------------------------------
 
-FROM golang:1.21-alpine3.18 AS builder
+FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE} AS builder
 
 RUN apk add --no-cache \
     ca-certificates \
@@ -17,7 +22,7 @@ WORKDIR /xion
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    go mod download
+    go mod download -x
 
 # Cosmwasm - Download correct libwasmvm version
 RUN WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | cut -d ' ' -f 2) && \
@@ -38,7 +43,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Runner
 # --------------------------------------------------------
 
-FROM alpine:3.19.1 AS xion-base
+FROM alpine:3.19 AS xion-base
 COPY --from=builder /xion/build/xiond /usr/bin/xiond
 
 # api

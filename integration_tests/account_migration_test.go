@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"os"
@@ -254,6 +255,8 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 		&wasmtypes.MsgStoreCode{},
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
+		&jwktypes.MsgCreateAudience{},
+		&jwktypes.MsgCreateAudienceClaim{},
 	)
 
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
