@@ -2,9 +2,10 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/cosmos/cosmos-sdk/types/module"
+
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
 // GenesisState of the blockchain is represented here as a map of raw json

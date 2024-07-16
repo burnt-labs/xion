@@ -1,11 +1,17 @@
 package app
 
 import (
-	"cosmossdk.io/log"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	dbm "github.com/cosmos/cosmos-db"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"testing"
+
+	"testing"
+
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+
+	dbm "github.com/cosmos/cosmos-db"
+
+	"cosmossdk.io/log"
+
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	"github.com/burnt-labs/xion/app/params"
 )

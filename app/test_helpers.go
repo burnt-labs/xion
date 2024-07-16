@@ -9,11 +9,14 @@ import (
 	"testing"
 	"time"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	"github.com/stretchr/testify/require"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	cmttypes "github.com/cometbft/cometbft/types"
+
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -41,8 +44,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 )
 
 // SetupOptions defines arguments that are passed into `WasmApp` constructor.

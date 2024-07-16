@@ -1,13 +1,16 @@
 package simulation_test
 
 import (
-	"cosmossdk.io/math"
 	"math/rand"
 	"testing"
+
+	"cosmossdk.io/math"
 
 	"gotest.tools/v3/assert"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"

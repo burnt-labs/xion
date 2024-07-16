@@ -2,9 +2,10 @@ package mint
 
 import (
 	"context"
-	store2 "cosmossdk.io/core/store"
 	"encoding/json"
 	"fmt"
+
+	store2 "cosmossdk.io/core/store"
 
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -13,6 +14,7 @@ import (
 
 	modulev1 "cosmossdk.io/api/cosmos/mint/module/v1"
 	"cosmossdk.io/core/appmodule"
+	store2 "cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 
 	"github.com/cosmos/cosmos-sdk/client"

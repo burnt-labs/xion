@@ -10,6 +10,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+
 	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"

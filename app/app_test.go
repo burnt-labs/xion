@@ -1,15 +1,19 @@
 package app
 
 import (
-	"github.com/cometbft/cometbft/abci/types"
 	"os"
 	"testing"
+
+	"github.com/cometbft/cometbft/abci/types"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/log"
+	"github.com/cometbft/cometbft/abci/types"
+
 	dbm "github.com/cosmos/cosmos-db"
+
+	"cosmossdk.io/log"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"

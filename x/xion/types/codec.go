@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/x/feegrant"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -50,7 +51,7 @@ func init() {
 
 	// Register all Amino interfaces and concrete types on the authz and gov Amino codec so that this can later be
 	// used to properly serialize MsgGrant, MsgExec and MsgSubmitProposal instances
-	//RegisterLegacyAminoCodec(authzcodec.Amino)
+
 	//RegisterLegacyAminoCodec(govcodec.Amino)
 	//RegisterLegacyAminoCodec(groupcodec.Amino)
 }

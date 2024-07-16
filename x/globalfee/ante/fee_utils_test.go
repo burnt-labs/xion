@@ -1,10 +1,12 @@
 package ante
 
 import (
-	"cosmossdk.io/math"
 	"testing"
 
+
 	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

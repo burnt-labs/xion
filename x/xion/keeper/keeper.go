@@ -3,10 +3,10 @@ package keeper
 import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-	"cosmossdk.io/math"
-
 	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"

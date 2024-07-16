@@ -1,14 +1,17 @@
 package antetest
 
 import (
-	"cosmossdk.io/math"
 	"fmt"
 	"testing"
+
+	"cosmossdk.io/math"
 
 	"github.com/stretchr/testify/suite"
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
+	"cosmossdk.io/math"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"

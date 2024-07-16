@@ -1,8 +1,6 @@
 package testutil
 
 import (
-	"cosmossdk.io/depinject"
-	"cosmossdk.io/log"
 	_ "github.com/cosmos/cosmos-sdk/x/auth"           // nolint:blank-imports
 	_ "github.com/cosmos/cosmos-sdk/x/auth/tx/config" // nolint:blank-imports
 	_ "github.com/cosmos/cosmos-sdk/x/bank"           // nolint:blank-imports
@@ -22,6 +20,8 @@ import (
 	stakingmodulev1 "cosmossdk.io/api/cosmos/staking/module/v1"
 	txconfigv1 "cosmossdk.io/api/cosmos/tx/config/v1"
 	"cosmossdk.io/core/appconfig"
+	"cosmossdk.io/depinject"
+	"cosmossdk.io/log"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"

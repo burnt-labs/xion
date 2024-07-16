@@ -1,16 +1,17 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/cosmos-sdk/runtime"
 	"testing"
+
 
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
 	"cosmossdk.io/math"
-
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"

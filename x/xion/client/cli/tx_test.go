@@ -2,9 +2,12 @@ package cli_test
 
 import (
 	"context"
-	"cosmossdk.io/math"
 	"fmt"
 	"io"
+
+	"cosmossdk.io/math"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

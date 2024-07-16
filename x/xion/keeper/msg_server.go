@@ -2,12 +2,13 @@ package keeper
 
 import (
 	"context"
-	"cosmossdk.io/math"
 	"fmt"
+
 
 	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"

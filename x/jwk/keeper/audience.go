@@ -3,6 +3,7 @@ package keeper
 import (
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
