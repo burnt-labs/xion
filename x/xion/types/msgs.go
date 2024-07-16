@@ -96,7 +96,7 @@ func (msg MsgMultiSend) ValidateBasic() error {
 		return banktypes.ErrNoOutputs
 	}
 
-	return banktypes.ValidateInputOutputs(msg.Inputs[0], msg.Outputs) // TODO change to only use one input
+	return banktypes.ValidateInputOutputs(msg.Inputs[0], msg.Outputs)
 }
 
 // GetSignBytes Implements Msg.
