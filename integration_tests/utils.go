@@ -141,6 +141,42 @@ func RawJSONMsgExecContractRemoveAuthenticator(sender string, contract string, i
 	return rawMsg
 }
 
+func RawJSONMsgMigrateContract(sender string, codeID string) []byte {
+	msg := fmt.Sprintf(`
+
+{
+  "body": {
+    "messages": [
+    {
+      "@type": "/cosmwasm.wasm.v1.MsgMigrateContract",
+      "sender": "%s",
+      "contract": "%s",
+      "code_id": "%s",
+      "msg": {}
+    }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
+	`, sender, sender, codeID)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
 func ParamChangeProposal(t *testing.T, subspace, key, value, title, description, deposit string) paramsutils.ParamChangeProposalJSON {
 	changes := paramsutils.ParamChangeJSON{
 		Subspace: subspace,
@@ -605,7 +641,7 @@ func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command 
 	return jsonRes, nil
 }
 
-func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (map[string]interface{}, error) {
+func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
 	jsonRes := make(map[string]interface{})
 	output, _, err := tn.ExecBin(ctx, command...)
 	if err != nil {
@@ -616,18 +652,59 @@ func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName st
 	return jsonRes, nil
 }
 
+func ExecBinStr(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (string, error) {
+	output, _, err := tn.ExecBin(ctx, command...)
+	require.NoError(t, err)
+	return string(output), nil
+}
+
+func ExecBinRaw(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) ([]byte, error) {
+	output, _, err := tn.ExecBin(ctx, command...)
+	if err != nil {
+		return output, err
+	}
+
+	return output, nil
+}
+
 func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
 	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
 		return "", err
 	}
 
-	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"))
+	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"), "--output", "json")
 
 	stdout, _, err := tn.Exec(ctx, cmd, nil)
 	if err != nil {
 		return "", err
 	}
 	return string(stdout), err
+}
+
+func ExecBroadcastWithFlags(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte, command ...string) (string, error) {
+	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
+		return "", err
+	}
+	c := append([]string{"tx", "broadcast", path.Join(tn.HomeDir(), "tx.json")}, command...)
+	cmd := tn.NodeCommand(c...)
+
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal(stdout, &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, err
 }
 
 func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
