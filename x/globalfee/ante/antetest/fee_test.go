@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/math"
-
 	"github.com/stretchr/testify/suite"
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"

@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
-
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"

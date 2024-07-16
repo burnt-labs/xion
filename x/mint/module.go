@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	store2 "cosmossdk.io/core/store"
-
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 

@@ -4,8 +4,6 @@ import (
 	"math/rand"
 	"testing"
 
-	"cosmossdk.io/math"
-
 	"gotest.tools/v3/assert"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
