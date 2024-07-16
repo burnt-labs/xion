@@ -24,8 +24,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/lestrrat-go/jwx/jwk"
-	ibctest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,6 +64,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 		&aatypes.MsgUpdateParams{},
 		&aatypes.MsgRegisterAccount{},
 		&jwktypes.MsgCreateAudience{},
+		&jwktypes.MsgCreateAudienceClaim{},
 	)
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
@@ -96,6 +97,20 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	// deploy the key to the jwk module
 	aud := "integration-test-project"
+
+	createAudienceClaimHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+		xionUser.KeyName(),
+		"jwk", "create-audience-claim",
+		aud,
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	t.Logf("create audience claim hash: %s", createAudienceClaimHash)
+
+	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", createAudienceClaimHash)
+	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
+
 	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
 		xionUser.KeyName(),
 		"jwk", "create-audience",

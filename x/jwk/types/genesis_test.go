@@ -5,6 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
@@ -24,10 +27,12 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				AudienceList: []types.Audience{
 					{
-						Aud: "0",
+						Aud:   "0",
+						Admin: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 					},
 					{
-						Aud: "1",
+						Aud:   "1",
+						Admin: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 					},
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
@@ -39,10 +44,12 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				AudienceList: []types.Audience{
 					{
-						Aud: "0",
+						Aud:   "0",
+						Admin: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 					},
 					{
-						Aud: "0",
+						Aud:   "0",
+						Admin: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 					},
 				},
 			},

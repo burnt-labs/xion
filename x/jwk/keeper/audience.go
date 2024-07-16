@@ -8,6 +8,38 @@ import (
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
+func (k Keeper) SetAudienceClaim(ctx sdk.Context, hash []byte, signer sdk.AccAddress) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AudienceClaimKeyPrefix))
+	audClaim := types.AudienceClaim{Signer: signer.String()}
+	b := k.cdc.MustMarshal(&audClaim)
+	store.Set(types.AudienceClaimKey(hash), b)
+}
+
+func (k Keeper) GetAudienceClaim(ctx sdk.Context, hash []byte) (val types.AudienceClaim, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AudienceClaimKeyPrefix))
+
+	b := store.Get(types.AudienceClaimKey(
+		hash,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+// RemoveAudienceClaim removes an audience claim from the store
+func (k Keeper) RemoveAudienceClaim(
+	ctx sdk.Context,
+	audHash []byte,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AudienceClaimKeyPrefix))
+	store.Delete(types.AudienceClaimKey(
+		audHash,
+	))
+}
+
 // SetAudience set a specific audience in the store from its index
 func (k Keeper) SetAudience(ctx sdk.Context, audience types.Audience) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AudienceKeyPrefix))
@@ -35,7 +67,7 @@ func (k Keeper) GetAudience(
 	return val, true
 }
 
-// RemoveAudience removes a audience from the store
+// RemoveAudience removes an audience from the store
 func (k Keeper) RemoveAudience(
 	ctx sdk.Context,
 	aud string,

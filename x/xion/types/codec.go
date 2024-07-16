@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/x/feegrant"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -15,6 +16,9 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgSend{}, "xion/MsgSend")
 	legacy.RegisterAminoMsg(cdc, &MsgMultiSend{}, "xion/MsgMultiSend")
 	legacy.RegisterAminoMsg(cdc, &MsgSetPlatformPercentage{}, "xion/MsgSetPlatformPercentage")
+
+	cdc.RegisterConcrete(&AuthzAllowance{}, "xion/AuthzAllowance", nil)
+	cdc.RegisterConcrete(&ContractsAllowance{}, "xion/ContractsAllowance", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -22,6 +26,13 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgSend{},
 		&MsgMultiSend{},
 		&MsgSetPlatformPercentage{},
+	)
+
+	registry.RegisterInterface(
+		"cosmos.feegrant.v1beta1.FeeAllowanceI",
+		(*feegrant.FeeAllowanceI)(nil),
+		&AuthzAllowance{},
+		&ContractsAllowance{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
