@@ -2,11 +2,13 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/store/types"
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -207,7 +209,10 @@ func (app *WasmApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs [
 		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
 		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
 		if err != nil {
-			panic("expected validator, not found")
+			if errors.Is(err, collections.ErrNotFound) {
+				panic(fmt.Errorf("expected validator, not found: %w", err))
+			}
+			panic(err)
 		}
 
 		validator.UnbondingHeight = 0
