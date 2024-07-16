@@ -3,8 +3,6 @@ package app
 import (
 	"testing"
 
-	"testing"
-
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 
 	dbm "github.com/cosmos/cosmos-db"

@@ -4,8 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cometbft/cometbft/abci/types"
-
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/stretchr/testify/require"
 
