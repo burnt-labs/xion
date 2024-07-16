@@ -258,10 +258,8 @@ replace (
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )
 
-// replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
-
 replace (
+	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61
 	cosmossdk.io/core => cosmossdk.io/core v0.11.0
 	github.com/CosmWasm/wasmd => github.com/CosmWasm/wasmd v0.50.0
-	github.com/larry0x/abstract-account => ../abstract-account
 )
