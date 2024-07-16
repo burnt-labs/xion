@@ -379,15 +379,16 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 					Grants: []*authztypes.Grant{
 						{Authorization: authorization},
 					},
+					Pagination: &query.PageResponse{
+						Total:   1,
+						NextKey: nil,
+					},
 				}
 			},
 			requestData: func() []byte {
 				bz, err := proto.Marshal(&authztypes.QueryGrantsRequest{
 					Granter: "cosmos1ynu5zu77pjyuj9ueepqw0vveq2fpd2xp6jgx0s7m2rlcguxldxvqag9wce",
 					Grantee: "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74",
-					MsgTypeUrl: authztypes.GenericAuthorization{
-						Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
-					}.MsgTypeURL(),
 				})
 				if err != nil {
 					panic(err)
