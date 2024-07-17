@@ -8,6 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
+	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -29,6 +31,8 @@ var (
 		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
 		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudience{}),
 		sdk.MsgTypeURL(&jwktypes.MsgDeleteAudienceClaim{}),
+		sdk.MsgTypeURL(&authztypes.MsgRevoke{}),
+		sdk.MsgTypeURL(&feegranttypes.MsgRevokeAllowance{}),
 	}
 
 	// maxTotalBypassMinFeeMsgGasUsage is the allowed maximum gas usage
