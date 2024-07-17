@@ -7,13 +7,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"os"
 	"path"
 	"testing"
 	"time"
+
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -350,7 +351,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	authenticatorDetails := map[string]interface{}{}
 	authenticatorDetails["sub"] = sub
 	authenticatorDetails["aud"] = aud
-	//authenticatorDetails["id"] = 0
+	// authenticatorDetails["id"] = 0
 
 	authenticator := map[string]interface{}{}
 	authenticator["Jwt"] = authenticatorDetails
