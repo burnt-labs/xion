@@ -22,6 +22,14 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+const (
+	xionVersionFrom = "v7.0.0"
+	xionVersionTo   = "sha-78a78a1"
+	xionUpgradeName = "v8.0.0"
+	osmosisVersion  = "v25.1.3"
+	axelarVersion   = "v0.35.3"
+)
+
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
 func TestXionUpgradeIBC(t *testing.T) {
 	t.Parallel()
@@ -59,8 +67,8 @@ func TestXionUpgradeIBC(t *testing.T) {
 			},
 			conformance:         conformance.TestChainPair,
 			upgrade:             SoftwareUpgrade,
-			upgradeName:         "v6",
-			upgradeImageVersion: "sha-f7f7132",
+			upgradeName:         xionUpgradeName,
+			upgradeImageVersion: xionVersionTo,
 		},
 		//{
 		//	name: "xion-axelar",
@@ -99,12 +107,12 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:    "xion",
-			Version: "v0.3.8",
+			Version: xionVersionFrom,
 			ChainConfig: ibc.ChainConfig{
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/burnt-labs/xion/xion",
-						Version:    "v0.3.8",
+						Version:    xionVersionFrom,
 						UidGid:     "1025:1025",
 					},
 				},
@@ -125,12 +133,12 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 		},
 		{
 			Name:    "osmosis",
-			Version: "v24.0.0-rc0",
+			Version: osmosisVersion,
 			ChainConfig: ibc.ChainConfig{
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/strangelove-ventures/heighliner/osmosis",
-						Version:    "v24.0.0-rc0",
+						Version:    osmosisVersion,
 						UidGid:     "1025:1025",
 					},
 				},
@@ -148,12 +156,12 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 		},
 		{
 			Name:    "axelar",
-			Version: "v0.35.3",
+			Version: axelarVersion,
 			ChainConfig: ibc.ChainConfig{
 				Images: []ibc.DockerImage{
 					{
 						Repository: "ghcr.io/strangelove-ventures/heighliner/axelar",
-						Version:    "v0.35.3",
+						Version:    axelarVersion,
 						UidGid:     "1025:1025",
 					},
 				},
