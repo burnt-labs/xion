@@ -1,13 +1,16 @@
 ---
-name: Build and Push to Docker Hub
+name: Build and Push Docker Images
 
 on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
     tags:
-      - '*'
-  workflow_dispatch:
+      - 'v*'
 
 jobs:
 
@@ -15,6 +18,9 @@ jobs:
     name: Build Image
     runs-on: ubuntu-latest
     environment: CI
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Check out code
@@ -29,65 +35,76 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Set up docker buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Extract metadata for docker
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          images: burntnetwork/xion
-          tags: |
-            type=semver,pattern={{version}},priority=1000
-            type=sha,priority=700
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
 
-      - name: Build and push release docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: release
-
-  build-dev:
-    name: Build Dev Image
-    runs-on: ubuntu-latest
-    environment: CI
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Login to Amazon ECR
+        if: ${{ github.event_name == 'push' }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set up docker buildx
         uses: docker/setup-buildx-action@v3
 
+      #########################################################################
+      # pr/dispatch only
+      #########################################################################
       - name: Extract metadata for docker
-        id: meta
+        if: ${{ github.event_name != 'push' }}
+        id: meta-dev
         uses: docker/metadata-action@v5
         with:
           images: burntnetwork/xion
           tags: |
-            type=semver,priority=1000,pattern=dev-{{version}}
+            type=semver,priority=1000,pattern={{version}},suffix=-dev
             type=sha,priority=700,suffix=-dev
             type=raw,priority=500,value=dev
 
       - name: Build and push local dev docker image
+        if: ${{ github.event_name != 'push' }}
         uses: docker/build-push-action@v5
         with:
-          context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: dev
+          tags: ${{ env.DOCKER_METADATA_OUTPUT_TAGS }}
+          labels: ${{ env.DOCKER_METADATA_OUTPUT_LABELS }}
+
+      - name: Run Docker Scout
+        if: ${{ github.event_name != 'push' }}
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          only-fixed: true
+          image: ${{ env.DOCKER_METADATA_OUTPUT_TAGS }}
+
+      #########################################################################
+      # push only
+      #########################################################################
+      - name: Extract metadata for docker
+        if: ${{ github.event_name == 'push' }}
+        id: meta-release
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            burntnetwork/xion
+            385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
+          tags: |
+            type=semver,pattern={{version}},priority=1000
+            type=sha,priority=700
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push release docker image
+        if: ${{ github.event_name == 'push' }}
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          target: release
+          tags: ${{ env.DOCKER_METADATA_OUTPUT_TAGS }}
+          labels: ${{ env.DOCKER_METADATA_OUTPUT_LABELS }}
