@@ -494,7 +494,6 @@ func NewWasmApp(
 	*/
 	app.GroupKeeper = groupkeeper.NewKeeper(
 		keys[group.StoreKey],
-		// runtime.NewKVStoreService(keys[group.StoreKey]),
 		appCodec,
 		app.MsgServiceRouter(),
 		app.AccountKeeper,

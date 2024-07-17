@@ -6,6 +6,7 @@ toolchain go1.22.4
 
 require (
 	cosmossdk.io/api v0.7.5
+	cosmossdk.io/collections v0.4.0
 	cosmossdk.io/core v0.12.0
 	cosmossdk.io/depinject v1.0.0-alpha.4
 	cosmossdk.io/errors v1.0.1
@@ -54,7 +55,6 @@ require (
 
 require (
 	cosmossdk.io/client/v2 v2.0.0-beta.1 // indirect
-	cosmossdk.io/collections v0.4.0 // indirect
 	cosmossdk.io/x/circuit v0.1.0 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
@@ -259,7 +259,7 @@ replace (
 )
 
 replace (
-	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61
 	cosmossdk.io/core => cosmossdk.io/core v0.11.0
 	github.com/CosmWasm/wasmd => github.com/CosmWasm/wasmd v0.50.0
+	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61
 )
