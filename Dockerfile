@@ -1,9 +1,10 @@
 # syntax=docker/dockerfile:1
 
 ARG GO_VERSION="1.22"
-ARG ALPINE_VERSION="3.19"
+ARG ALPINE_VERSION_BUILDER="3.18"
+ARG ALPINE_VERSION_RUNNER="3.19"
 ARG BUILDPLATFORM=linux/amd64
-ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION}"
+ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION_BUILDER}"
 
 # --------------------------------------------------------
 # Builder
@@ -43,7 +44,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Runner
 # --------------------------------------------------------
 
-FROM alpine:3.19 AS xion-base
+FROM alpine:${ALPINE_VERSION_RUNNER} AS xion-base
 COPY --from=builder /xion/build/xiond /usr/bin/xiond
 
 # api
