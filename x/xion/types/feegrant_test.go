@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 	"time"
 
@@ -99,6 +100,102 @@ func TestXionAllowanceValidAllow(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestXionMultiAllowance(t *testing.T) {
+	key := sdk.NewKVStoreKey(feegrant.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, sdk.NewTransientStoreKey("transient_test"))
+
+	// msg we will call in the all cases
+	sendMsg := banktypes.MsgSend{}
+
+	cases := map[string]struct {
+		allowanceOne feegrant.FeeAllowanceI
+		allowanceTwo feegrant.FeeAllowanceI
+		fee          sdk.Coins
+		validate     bool
+		accept       bool
+	}{
+		"no allowances deny": {
+			allowanceOne: nil,
+			allowanceTwo: nil,
+			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(10)}},
+			validate:     false,
+			accept:       false,
+		},
+		"one allowance accept": {
+			allowanceOne: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}},
+			allowanceTwo: nil,
+			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(10)}},
+			validate:     true,
+			accept:       true,
+		},
+		"two allowance accept": {
+			allowanceOne: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}},
+			allowanceTwo: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}},
+			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(10)}},
+			validate:     true,
+			accept:       true,
+		},
+		"one allowance deny": {
+			allowanceOne: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}},
+			allowanceTwo: nil,
+			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
+			validate:     true,
+			accept:       false,
+		},
+		"two allowance deny": {
+			allowanceOne: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}},
+			allowanceTwo: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}},
+			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
+			validate:     true,
+			accept:       false,
+		},
+		"basic and periodic accept": {
+			allowanceOne: &feegrant.PeriodicAllowance{
+				Basic:            feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}}},
+				Period:           86400,
+				PeriodSpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}},
+				PeriodCanSpend:   sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}},
+				PeriodReset:      time.Time{},
+			},
+			allowanceTwo: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}},
+			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
+			validate:     true,
+			accept:       true,
+		},
+	}
+
+	for name, stc := range cases {
+		tc := stc // to make scopelint happy
+		t.Run(name, func(t *testing.T) {
+
+			var allowances []feegrant.FeeAllowanceI
+			if tc.allowanceOne != nil {
+				allowances = append(allowances, tc.allowanceOne)
+			}
+			if tc.allowanceTwo != nil {
+				allowances = append(allowances, tc.allowanceTwo)
+			}
+			allowance, err := types.NewMultiAnyAllowance(allowances)
+			require.NoError(t, err)
+
+			err = allowance.ValidateBasic()
+			if tc.validate {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+
+			ctx := testCtx.Ctx
+			_, err = allowance.Accept(ctx, tc.fee, []sdk.Msg{&sendMsg})
+			if tc.accept {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
 		})
 	}
 }

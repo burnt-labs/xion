@@ -25,8 +25,10 @@ const (
 var (
 	_ feegrant.FeeAllowanceI        = (*AuthzAllowance)(nil)
 	_ feegrant.FeeAllowanceI        = (*ContractsAllowance)(nil)
+	_ feegrant.FeeAllowanceI        = (*MultiAnyAllowance)(nil)
 	_ types.UnpackInterfacesMessage = (*AuthzAllowance)(nil)
 	_ types.UnpackInterfacesMessage = (*ContractsAllowance)(nil)
+	_ types.UnpackInterfacesMessage = (*MultiAnyAllowance)(nil)
 )
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
@@ -265,4 +267,143 @@ func (a *ContractsAllowance) ExpiresAt() (*time.Time, error) {
 		return nil, err
 	}
 	return allowance.ExpiresAt()
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (a *MultiAnyAllowance) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+	var allowance feegrant.FeeAllowanceI
+	for _, innerAllowance := range a.Allowances {
+		if err := unpacker.UnpackAny(innerAllowance, &allowance); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func NewMultiAnyAllowance(allowances []feegrant.FeeAllowanceI) (*MultiAnyAllowance, error) {
+	var anyAllowances []*types.Any
+	for _, allowance := range allowances {
+		msg, ok := allowance.(proto.Message)
+		if !ok {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", msg)
+		}
+		anyAllowance, err := types.NewAnyWithValue(msg)
+		if err != nil {
+			return nil, err
+		}
+		anyAllowances = append(anyAllowances, anyAllowance)
+	}
+
+	return &MultiAnyAllowance{
+		Allowances: anyAllowances,
+	}, nil
+}
+
+// GetAllowance returns allowed fee allowance.
+func (a *MultiAnyAllowance) GetAllowance(index int) (feegrant.FeeAllowanceI, error) {
+	allowance, ok := a.Allowances[index].GetCachedValue().(feegrant.FeeAllowanceI)
+	if !ok {
+		return nil, errorsmod.Wrap(feegrant.ErrNoAllowance, "failed to get allowance")
+	}
+
+	return allowance, nil
+}
+
+// SetAllowance sets allowed fee allowance.
+func (a *MultiAnyAllowance) SetAllowance(index int, allowance feegrant.FeeAllowanceI) error {
+	var err error
+	a.Allowances[index], err = types.NewAnyWithValue(allowance.(proto.Message))
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrPackAny, "cannot proto marshal %T", allowance)
+	}
+
+	return nil
+}
+
+func (a *MultiAnyAllowance) Accept(ctx sdk.Context, fee sdk.Coins, msgs []sdk.Msg) (bool, error) {
+
+	// accept and charge first allowance that doesn't error
+	accepted := false
+	for i := range a.Allowances {
+		ctx.GasMeter().ConsumeGas(gasCostPerIteration, "check allowance")
+		allowance, err := a.GetAllowance(i)
+		if err != nil {
+			return false, err
+		}
+
+		remove, err := allowance.Accept(ctx, fee, msgs)
+		if err != nil {
+			// the allowance errored, try the next
+			continue
+		} else {
+			// the allowance was accepted
+			accepted = true
+		}
+		if !remove {
+			// update the allowance state
+			if err = a.SetAllowance(i, allowance); err != nil {
+				return false, err
+			}
+		} else {
+			// if the allowance is complete, remove it from the allowed list
+			a.Allowances = append(a.Allowances[:i], a.Allowances[i+1:]...)
+		}
+		break
+	}
+
+	// if no allowances accepted, the allowance doesn't accept
+	if !accepted {
+		return false, errorsmod.Wrapf(ErrNoValidAllowances, "all allowances errored")
+	}
+
+	// if all the allowances have been removed, remove this allowance as well
+	return len(a.Allowances) == 0, nil
+}
+
+func (a *MultiAnyAllowance) ValidateBasic() error {
+	if len(a.Allowances) == 0 {
+		return errorsmod.Wrap(feegrant.ErrNoAllowance, "allowance list should contain at least one")
+	}
+
+	for i := range a.Allowances {
+		allowance, err := a.GetAllowance(i)
+		if err != nil {
+			return err
+		}
+		if err := allowance.ValidateBasic(); err != nil {
+			return err
+		}
+	}
+
+	if _, err := a.ExpiresAt(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *MultiAnyAllowance) ExpiresAt() (*time.Time, error) {
+	// all allowances must expire at the same time
+	var expiration *time.Time
+	set := false
+	for i := range a.Allowances {
+		allowance, err := a.GetAllowance(i)
+		if err != nil {
+			return nil, err
+		}
+		newExpiration, err := allowance.ExpiresAt()
+		if err != nil {
+			return nil, err
+		}
+		if set {
+			if expiration != newExpiration {
+				return nil, errorsmod.Wrapf(ErrInconsistentExpiry, "allowance 0 had expiration %v while allowance %d had expiration %v", expiration, i, newExpiration)
+			}
+		} else {
+			set = true
+			expiration = newExpiration
+		}
+	}
+	return expiration, nil
 }
