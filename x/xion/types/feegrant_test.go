@@ -1,12 +1,13 @@
 package types_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"testing"
 	"time"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -111,6 +112,8 @@ func TestXionMultiAllowance(t *testing.T) {
 	// msg we will call in the all cases
 	sendMsg := banktypes.MsgSend{}
 
+	now := time.Now()
+
 	cases := map[string]struct {
 		allowanceOne feegrant.FeeAllowanceI
 		allowanceTwo feegrant.FeeAllowanceI
@@ -166,12 +169,24 @@ func TestXionMultiAllowance(t *testing.T) {
 			validate:     true,
 			accept:       true,
 		},
+		"mismatched expiry deny": {
+			allowanceOne: &feegrant.PeriodicAllowance{
+				Basic:            feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}}},
+				Period:           86400,
+				PeriodSpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}},
+				PeriodCanSpend:   sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}},
+				PeriodReset:      time.Time{},
+			},
+			allowanceTwo: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}, Expiration: &now},
+			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
+			validate:     false,
+			accept:       true,
+		},
 	}
 
 	for name, stc := range cases {
 		tc := stc // to make scopelint happy
 		t.Run(name, func(t *testing.T) {
-
 			var allowances []feegrant.FeeAllowanceI
 			if tc.allowanceOne != nil {
 				allowances = append(allowances, tc.allowanceOne)

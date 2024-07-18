@@ -13,6 +13,7 @@ import (
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -58,6 +59,10 @@ func init() {
 	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/Params", &distributiontypes.QueryParamsResponse{})
 	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/DelegatorWithdrawAddress", &distributiontypes.QueryDelegatorWithdrawAddressResponse{})
 	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/ValidatorCommission", &distributiontypes.QueryValidatorCommissionResponse{})
+
+	// feegrant
+	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/Allowance", &feegranttypes.QueryAllowanceResponse{})
+	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/AllowancesByGranter", &feegranttypes.QueryAllowancesByGranterResponse{})
 
 	// gov
 	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Deposit", &govtypesv1.QueryDepositResponse{})

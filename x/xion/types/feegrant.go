@@ -322,7 +322,6 @@ func (a *MultiAnyAllowance) SetAllowance(index int, allowance feegrant.FeeAllowa
 }
 
 func (a *MultiAnyAllowance) Accept(ctx sdk.Context, fee sdk.Coins, msgs []sdk.Msg) (bool, error) {
-
 	// accept and charge first allowance that doesn't error
 	accepted := false
 	for i := range a.Allowances {
@@ -336,10 +335,10 @@ func (a *MultiAnyAllowance) Accept(ctx sdk.Context, fee sdk.Coins, msgs []sdk.Ms
 		if err != nil {
 			// the allowance errored, try the next
 			continue
-		} else {
-			// the allowance was accepted
-			accepted = true
 		}
+		// the allowance was accepted
+		accepted = true
+
 		if !remove {
 			// update the allowance state
 			if err = a.SetAllowance(i, allowance); err != nil {
