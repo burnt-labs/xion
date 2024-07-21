@@ -2,8 +2,6 @@ package simulation
 
 import (
 	"math/rand"
-
-
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
 	feegranttypes "cosmossdk.io/x/feegrant"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"

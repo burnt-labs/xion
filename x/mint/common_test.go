@@ -2,8 +2,6 @@ package mint
 
 import (
 	"testing"
-
-
 	"go.uber.org/mock/gomock"
 
 	storetypes "cosmossdk.io/store/types"

@@ -2,8 +2,6 @@ package v2_test
 
 import (
 	"testing"
-
-
 	"github.com/stretchr/testify/require"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
