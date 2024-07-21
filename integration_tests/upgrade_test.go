@@ -2,17 +2,21 @@ package integration_tests
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"fmt"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	haltHeightDelta    = uint64(10) // will propose upgrade this many blocks in the future
+	haltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = uint64(10)
 )
 
@@ -41,7 +45,7 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	// t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 	chain, ctx, client := td.xionChain, td.ctx, td.client
 
-	fundAmount := int64(10_000_000_000)
+	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
 	chainUser := users[0]
 
@@ -58,13 +62,15 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 		Height:      haltHeight,
 	}
 
-	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), proposal)
+	upgradeTx, err := chain.UpgradeProposal(ctx, chainUser.KeyName(), proposal)
 	require.NoError(t, err, "error submitting software upgrade proposal tx")
+	proposalID, err := strconv.Atoi(upgradeTx.ProposalID)
+	require.NoError(t, err)
 
-	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
+	err = chain.VoteOnProposalAllValidators(ctx, uint64(proposalID), cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, uint64(proposalID), govv1beta1.StatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	height, err = chain.Height(ctx)

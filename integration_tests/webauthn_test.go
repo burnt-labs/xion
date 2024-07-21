@@ -1,11 +1,16 @@
 package integration_tests
 
 import (
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"google.golang.org/protobuf/types/known/anypb"
 	"os"
 	"path"
 	"testing"
@@ -38,7 +43,7 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	// users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	deployerAddr, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
 	require.NoError(t, err)
@@ -156,7 +161,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
-	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: 10_000})
+	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: math.NewInt(10_000)})
 	require.NoError(t, err)
 	// create the raw tx
 	sendMsg := fmt.Sprintf(`
@@ -199,12 +204,18 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
 	// create the sign bytes
-	signerData := authsigning.SignerData{
+	pubKey := account.GetPubKey()
+	anyPk, err := codectypes.NewAnyWithValue(pubKey)
+	require.NoError(t, err)
+	signerData := txsigning.SignerData{
 		Address:       account.GetAddress().String(),
 		ChainID:       xion.Config().ChainID,
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      account.GetSequence(),
-		PubKey:        account.GetPubKey(),
+		PubKey: &anypb.Any{
+			TypeUrl: anyPk.TypeUrl,
+			Value:   anyPk.Value,
+		}, // NOTE: NilPubKey
 	}
 
 	sigData := signing.SingleSignatureData{
@@ -221,7 +232,17 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
+	builtTx := txBuilder.GetTx()
+	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
+	if !ok {
+		panic(fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", builtTx))
+	}
+	txData := adaptableTx.GetSigningTxData()
+
+	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+		ctx,
+		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
+		signerData, txData)
 	require.NoError(t, err)
 	// our signature is the sha256 of the signbytes
 	signatureBz := sha256.Sum256(signBytes)

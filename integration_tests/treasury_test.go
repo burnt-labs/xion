@@ -1,6 +1,7 @@
 package integration_tests
 
 import (
+	"cosmossdk.io/math"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 
+	feegrant "cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xionapp "github.com/burnt-labs/xion/app"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -22,8 +24,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
+	//"github.com/cosmos/cosmos-sdk/x/feegrant"
+	//feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	"github.com/cosmos/gogoproto/proto"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"
@@ -62,7 +64,7 @@ func TestTreasuryContract(t *testing.T) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 	err := testutil.WaitForBlocks(ctx, 2, xion)
@@ -91,8 +93,8 @@ func TestTreasuryContract(t *testing.T) {
 
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
 		"cosmos.feegrant.v1beta1.FeeAllowanceI",
-		(*feegranttypes.FeeAllowanceI)(nil),
-		&feegranttypes.BasicAllowance{},
+		(*feegrant.FeeAllowanceI)(nil),
+		&feegrant.BasicAllowance{},
 	)
 
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
@@ -170,7 +172,7 @@ func TestTreasuryContract(t *testing.T) {
 	err = xion.SendFunds(ctx, granterUser.KeyName(), ibc.WalletAmount{
 		Address: treasuryAddr,
 		Denom:   "uxion",
-		Amount:  1000,
+		Amount:  math.NewInt(1000),
 	})
 	require.NoError(t, err)
 

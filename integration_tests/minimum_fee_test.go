@@ -2,6 +2,7 @@ package integration_tests
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"fmt"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 	t.Parallel()
 	td := BuildXionChain(t, "0.025uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
 
-	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount int64) {
+	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount math.Int) {
 		_, err := ExecTx(t, ctx, xion.FullNodes[0],
 			xionUser.KeyName(),
 			"xion", "send", xionUser.KeyName(),
@@ -36,11 +37,11 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
-		require.Equal(t, fundAmount-2415, balance)
+		require.Equal(t, fundAmount.Sub(math.NewInt(2415)), balance)
 
 		balance, err = xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
 		require.NoError(t, err)
-		require.Equal(t, uint64(100), uint64(balance))
+		require.Equal(t, math.NewInt(100), balance)
 	}
 
 	testMinimumFee(t, &td, assertion)
@@ -54,8 +55,8 @@ func TestXionMinimumFeeZero(t *testing.T) {
 	t.Parallel()
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
 
-	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount int64) {
-		toSend := int64(100)
+	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount math.Int) {
+		toSend := math.NewInt(100)
 
 		_, err := ExecTx(t, ctx, xion.FullNodes[0],
 			xionUser.KeyName(),
@@ -67,11 +68,11 @@ func TestXionMinimumFeeZero(t *testing.T) {
 
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
-		require.Equal(t, fundAmount-toSend, balance)
+		require.Equal(t, fundAmount.Sub(toSend), balance)
 
 		balance, err = xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
 		require.NoError(t, err)
-		require.Equal(t, uint64(toSend), uint64(balance))
+		require.Equal(t, toSend, balance)
 	}
 
 	testMinimumFee(t, &td, assertion)
@@ -82,7 +83,7 @@ func testMinimumFee(t *testing.T, td *TestData, assert assertionFn) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 	currentHeight, _ := xion.Height(ctx)
@@ -111,4 +112,4 @@ func testMinimumFee(t *testing.T, td *TestData, assert assertionFn) {
 	assert(t, ctx, xion, xionUser, recipientKeyAddress, fundAmount)
 }
 
-type assertionFn func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, wallet ibc.Wallet, recipientAddress string, fundAmount int64)
+type assertionFn func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, wallet ibc.Wallet, recipientAddress string, fundAmount math.Int)

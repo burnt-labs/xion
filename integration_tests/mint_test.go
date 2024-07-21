@@ -101,7 +101,9 @@ func sendPeriodicBankTx(t *testing.T, chain *cosmos.CosmosChain, ctx context.Con
 	faucet, err := chain.FullNodes[0].AccountKeyBech32(ctx, "faucet")
 	require.NoError(t, err)
 	// Get the current chain height
-	curHeight, _ := chain.Height(ctx)
+	cHeight, err := chain.Height(ctx)
+	require.NoError(t, err)
+	curHeight := uint64(cHeight)
 
 	for curHeight < chainHeight {
 		// Get the current block provision at some height
@@ -132,11 +134,13 @@ func sendPeriodicBankTx(t *testing.T, chain *cosmos.CosmosChain, ctx context.Con
 			t.Fatal(err)
 		}
 
-		// Save the hash of the send tx for later analysis
+		// Save the hash of the Send tx for later analysis
 		txHashes.TxHashes = append(txHashes.TxHashes, output.TxHash)
 
 		time.Sleep(time.Duration(duration) * time.Second)
-		curHeight, _ = chain.Height(ctx)
+		cHeight, err := chain.Height(ctx)
+		require.NoError(t, err)
+		curHeight = uint64(cHeight)
 	}
 }
 

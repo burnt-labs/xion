@@ -2,14 +2,18 @@ package integration_tests
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"fmt"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 
 	"github.com/docker/docker/client"
+	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/conformance"
 	"github.com/strangelove-ventures/interchaintest/v8/relayer"
 	"github.com/strangelove-ventures/interchaintest/v8/relayer/rly"
@@ -115,17 +119,16 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 						UidGid:     "1025:1025",
 					},
 				},
-				GasPrices:              "0.0uxion",
-				GasAdjustment:          1.3,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				NoHostMount:            false,
-				ModifyGenesis:          ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
-				UsingNewGenesisCommand: true,
+				GasPrices:      "0.0uxion",
+				GasAdjustment:  1.3,
+				Type:           "cosmos",
+				ChainID:        "xion-1",
+				Bin:            "xiond",
+				Bech32Prefix:   "xion",
+				Denom:          "uxion",
+				TrustingPeriod: "336h",
+				NoHostMount:    false,
+				ModifyGenesis:  ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
 			},
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
@@ -231,28 +234,31 @@ func SoftwareUpgrade(
 	ctx := context.Background()
 
 	// fund user
-	fundAmount := int64(10_000_000_000)
+	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
 	chainUser := users[0]
 
 	// build software upgrade govprop
 	height, err := chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height for softwareUpgradeProposal: %v", err)
-	haltHeight := height + haltHeightDelta - 3
+	haltHeight := uint64(height) + haltHeightDelta - 3
 	softwareUpgradeProposal := cosmos.SoftwareUpgradeProposal{
 		Deposit:     fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
 		Title:       fmt.Sprintf("Software Upgrade %s", upgradeName),
 		Name:        upgradeName,
 		Description: fmt.Sprintf("Software Upgrade %s", upgradeName),
-		Height:      haltHeight,
+		Height:      int64(haltHeight),
 	}
 
 	// submit and vote on software upgrade
-	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), softwareUpgradeProposal)
+	upgradeTx, err := chain.UpgradeProposal(ctx, chainUser.KeyName(), softwareUpgradeProposal)
 	require.NoErrorf(t, err, "couldn't submit software upgrade softwareUpgradeProposal tx: %v", err)
-	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
+	proposalID, err := strconv.Atoi(upgradeTx.ProposalID)
+	require.NoError(t, err)
+
+	err = chain.VoteOnProposalAllValidators(ctx, uint64(proposalID), cosmos.ProposalVoteYes)
 	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+int64(haltHeightDelta), uint64(proposalID), govv1beta1.StatusPassed)
 	require.NoErrorf(t, err, "couldn't poll for softwareUpgradeProposal status: %v", err)
 	height, err = chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
@@ -261,7 +267,7 @@ func SoftwareUpgrade(
 	defer timeoutCtxCancel()
 
 	// confirm chain halt
-	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height), chain)
+	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-uint64(height)), chain)
 	height, err = chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height after chain should have halted: %v", err)
 	require.Equalf(t, haltHeight, height, "height: %d is not equal to halt height: %d", height, haltHeight)

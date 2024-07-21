@@ -1,11 +1,17 @@
 package integration_tests
 
 import (
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/golang-jwt/jwt/v4"
+	"google.golang.org/protobuf/types/known/anypb"
 	"os"
 	"path"
 	"reflect"
@@ -48,7 +54,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 	err := testutil.WaitForBlocks(ctx, 8, xion)
@@ -276,13 +282,18 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.NoError(t, err)
 
 	// create the sign bytes
-
-	signerData := authsigning.SignerData{
+	pubKey := account.GetPubKey()
+	anyPk, err := codectypes.NewAnyWithValue(pubKey)
+	require.NoError(t, err)
+	signerData := txsigning.SignerData{
 		Address:       account.GetAddress().String(),
 		ChainID:       xion.Config().ChainID,
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      account.GetSequence(),
-		PubKey:        account.GetPubKey(),
+		PubKey: &anypb.Any{
+			TypeUrl: anyPk.TypeUrl,
+			Value:   anyPk.Value,
+		}, // NOTE: NilPubKey
 	}
 
 	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
@@ -302,7 +313,17 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
+	builtTx := txBuilder.GetTx()
+	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
+	if !ok {
+		panic(fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", builtTx))
+	}
+	txData := adaptableTx.GetSigningTxData()
+
+	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+		ctx,
+		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
+		signerData, txData)
 	require.NoError(t, err)
 
 	// our signature is the sha256 of the signbytes
@@ -390,7 +411,7 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	xionUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
 	require.NoError(t, err)
 	currentHeight, _ := xion.Height(ctx)
@@ -460,7 +481,7 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(100000), uint64(contractBalance))
+	require.Equal(t, math.NewInt(100000), contractBalance)
 
 	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
 	require.NoError(t, err)
@@ -502,7 +523,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	// Confirm the updated balance
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(100000), uint64(balance))
+	require.Equal(t, math.NewInt(100000), balance)
 
 	// Generate Key Rotation Msg
 	account, err = ExecBin(t, ctx, xion.FullNodes[0],

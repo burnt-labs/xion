@@ -1,6 +1,7 @@
 package integration_tests
 
 import (
+	"cosmossdk.io/math"
 	"fmt"
 	"os"
 	"path"
@@ -39,7 +40,7 @@ func TestXionTokenFactory(t *testing.T) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion, xion) // TODO: add a second user
 	// TODO: extract both users
 	xionUser := users[0]
@@ -62,7 +63,7 @@ func TestXionTokenFactory(t *testing.T) {
 	t.Log("minted tfDenom to user")
 	if balance, err := xion.GetBalance(ctx, uaddr, tfDenom); err != nil {
 		t.Fatal(err)
-	} else if balance != 100 {
+	} else if balance != math.NewInt(100) {
 		t.Fatal("balance not 100")
 	}
 
@@ -72,7 +73,7 @@ func TestXionTokenFactory(t *testing.T) {
 	t.Log("minted tfDenom to user")
 	balance, err := xion.GetBalance(ctx, uaddr2, tfDenom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(balance), expectedMint, "balance not 70")
+	require.Equal(t, balance, math.NewInt(int64(expectedMint)), "balance not 70")
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)

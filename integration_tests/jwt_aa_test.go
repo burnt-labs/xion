@@ -277,9 +277,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 
 	pubKey := account.GetPubKey()
 	anyPk, err := codectypes.NewAnyWithValue(pubKey)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 	signerData := txsigning.SignerData{
 		Address:       account.GetAddress().String(),
 		ChainID:       xion.Config().ChainID,
