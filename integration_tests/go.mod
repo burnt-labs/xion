@@ -19,7 +19,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
 	github.com/larry0x/abstract-account v0.0.0-20240202022305-255071ed91ee
-	github.com/lestrrat-go/jwx v1.2.28
+	github.com/lestrrat-go/jwx v1.2.29
 	github.com/strangelove-ventures/interchaintest/v8 v8.5.0
 	github.com/strangelove-ventures/tokenfactory v0.50.1
 	github.com/stretchr/testify v1.9.0
