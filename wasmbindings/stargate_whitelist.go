@@ -6,9 +6,9 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
+	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -84,18 +84,18 @@ func init() {
 
 // GetWhitelistedQuery returns the whitelisted query at the provided path.
 // If the query does not exist, or it was set up wrong by the chain, this returns an error.
-func GetWhitelistedQuery(queryPath string) (codec.ProtoMarshaler, error) {
+func GetWhitelistedQuery(queryPath string) (proto.Message, error) {
 	protoResponseAny, isWhitelisted := stargateWhitelist.Load(queryPath)
 	if !isWhitelisted {
 		return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", queryPath)}
 	}
-	protoResponseType, ok := protoResponseAny.(codec.ProtoMarshaler)
+	protoResponseType, ok := protoResponseAny.(proto.Message)
 	if !ok {
 		return nil, wasmvmtypes.Unknown{}
 	}
 	return protoResponseType, nil
 }
 
-func setWhitelistedQuery(queryPath string, protoType codec.ProtoMarshaler) {
+func setWhitelistedQuery(queryPath string, protoType proto.Message) {
 	stargateWhitelist.Store(queryPath, protoType)
 }
