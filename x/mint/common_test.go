@@ -25,7 +25,7 @@ type mocks struct {
 	minttestutil.MockAccountKeeper
 	minttestutil.MockBankKeeper
 	minttestutil.MockStakingKeeper
-	moduleAccount authtypes.ModuleAccountI
+	moduleAccount sdk.ModuleAccountI
 }
 
 func createTestBaseKeeperAndContextWithMocks(t *testing.T) (testutil.TestContext, *keeper.Keeper, mocks) {

@@ -65,7 +65,7 @@ func SetupWithGenesisAccountsAndValSet(b testing.TB, db dbm.DB, genAccs []authty
 	bondAmt := sdk.DefaultPowerReduction
 
 	for _, val := range valSet.Validators {
-		pk, _ := cryptocodec.FromTmPubKeyInterface(val.PubKey)
+		pk, _ := cryptocodec.FromCmtPubKeyInterface(val.PubKey)
 		pkAny, _ := codectypes.NewAnyWithValue(pk)
 		validator := stakingtypes.Validator{
 			OperatorAddress:   sdk.ValAddress(val.Address).String(),
@@ -115,15 +115,17 @@ func SetupWithGenesisAccountsAndValSet(b testing.TB, db dbm.DB, genAccs []authty
 	consensusParams := simtestutil.DefaultConsensusParams
 	consensusParams.Block.MaxGas = 100 * simtestutil.DefaultGenTxGas
 
-	wasmApp.InitChain(
+	_, err = wasmApp.InitChain(
 		&abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: consensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)
+	require.NoError(b, err)
 
-	wasmApp.Commit()
+	_, err = wasmApp.Commit()
+	require.NoError(b, err)
 	// wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: wasmApp.LastBlockHeight() + 1}})
 
 	return wasmApp

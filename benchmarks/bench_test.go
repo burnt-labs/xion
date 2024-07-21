@@ -118,14 +118,16 @@ func BenchmarkTxSending(b *testing.B) {
 					dRsp, err := appInfo.App.FinalizeBlock(&abci.RequestFinalizeBlock{
 						Txs: [][]byte{bz},
 					})
+					require.NoError(b, err)
 					require.True(b, dRsp.TxResults[0].IsOK())
 				}
 
-				appInfo.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+				_, err := appInfo.App.FinalizeBlock(&abci.RequestFinalizeBlock{
 					Time:   time.Now(),
 					Height: height,
 					Txs:    appendedTxs,
 				})
+				require.NoError(b, err)
 				height++
 			}
 		})
