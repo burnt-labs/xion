@@ -12,6 +12,8 @@ import (
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 
+	"cosmossdk.io/x/feegrant"
+	feegranttypes "cosmossdk.io/x/feegrant"
 	feegrant "cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xionapp "github.com/burnt-labs/xion/app"
@@ -24,8 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	//"github.com/cosmos/cosmos-sdk/x/feegrant"
-	//feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	"github.com/cosmos/gogoproto/proto"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"

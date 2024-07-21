@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
+	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -101,23 +101,31 @@ func BenchmarkTxSending(b *testing.B) {
 
 			b.ResetTimer()
 
+			var appendedTxs [][]byte
 			for i := 0; i < b.N/blockSize; i++ {
-				appInfo.App.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: height, Time: time.Now()}})
-
 				for j := 0; j < blockSize; j++ {
 					idx := i*blockSize + j
 					bz, err := txEncoder(txs[idx])
 					require.NoError(b, err)
-					rsp := appInfo.App.CheckTx(abci.RequestCheckTx{
+					rsp, err := appInfo.App.CheckTx(&abci.RequestCheckTx{
 						Tx:   bz,
 						Type: abci.CheckTxType_New,
 					})
+					require.NoError(b, err)
 					require.True(b, rsp.IsOK())
-					dRsp := appInfo.App.DeliverTx(abci.RequestDeliverTx{Tx: bz})
-					require.True(b, dRsp.IsOK())
+
+					appendedTxs = append(appendedTxs, bz)
+					dRsp, err := appInfo.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+						Txs: [][]byte{bz},
+					})
+					require.True(b, dRsp.TxResults[0].IsOK())
 				}
-				appInfo.App.EndBlock(abci.RequestEndBlock{Height: height})
-				appInfo.App.Commit()
+
+				appInfo.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+					Time:   time.Now(),
+					Height: height,
+					Txs:    appendedTxs,
+				})
 				height++
 			}
 		})

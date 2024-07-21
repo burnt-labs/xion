@@ -3,9 +3,11 @@ package ante
 import (
 	"errors"
 
+
 	tmstrings "github.com/cometbft/cometbft/libs/strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -132,7 +134,7 @@ func (mfd FeeDecorator) DefaultZeroGlobalFee(ctx sdk.Context) ([]sdk.DecCoin, er
 		return nil, errors.New("empty staking bond denomination")
 	}
 
-	return []sdk.DecCoin{sdk.NewDecCoinFromDec(bondDenom, sdk.NewDec(0))}, nil
+	return []sdk.DecCoin{sdk.NewDecCoinFromDec(bondDenom, math.LegacyNewDec(0))}, nil
 }
 
 func (mfd FeeDecorator) getBondDenom(ctx sdk.Context) (bondDenom string) {

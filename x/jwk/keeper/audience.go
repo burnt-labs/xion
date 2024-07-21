@@ -1,7 +1,9 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
@@ -80,7 +82,7 @@ func (k Keeper) RemoveAudience(
 // GetAllAudience returns all audience
 func (k Keeper) GetAllAudience(ctx sdk.Context) (list []types.Audience) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AudienceKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

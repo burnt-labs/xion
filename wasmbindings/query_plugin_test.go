@@ -13,8 +13,6 @@ import (
 	jwk "github.com/lestrrat-go/jwx/jwk"
 	"github.com/stretchr/testify/suite"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,7 +38,7 @@ var admin = "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74"
 
 func (suite *StargateTestSuite) SetupTest() {
 	suite.app = xionapp.Setup(suite.T())
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "xion-1", Time: time.Now().UTC()})
+	suite.ctx = suite.app.NewContext(true).WithBlockTime(time.Now())
 	suite.app.Configurator()
 }
 

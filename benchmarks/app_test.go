@@ -11,11 +11,13 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
 
-	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
+
+	dbm "github.com/cosmos/cosmos-db"
+
+	"cosmossdk.io/log"
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -33,10 +35,10 @@ import (
 )
 
 func setup(db dbm.DB, withGenesis bool, _ uint, _ ...wasmkeeper.Option) (*app.WasmApp, app.GenesisState) { //nolint:unparam
-	wasmApp := app.NewWasmApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
+	wasmApp := app.NewWasmApp(log.NewLogger(os.Stdout), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
 
 	if withGenesis {
-		return wasmApp, app.NewDefaultGenesisState(wasmApp.AppCodec())
+		return wasmApp, app.NewDefaultGenesisState(wasmApp.AppCodec(), wasmApp.BasicModuleManager)
 	}
 	return wasmApp, app.GenesisState{}
 }
@@ -71,15 +73,19 @@ func SetupWithGenesisAccountsAndValSet(b testing.TB, db dbm.DB, genAccs []authty
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
+			DelegatorShares:   math.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			Commission:        stakingtypes.NewCommission(math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec()),
+			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(
+			genAccs[0].GetAddress().String(),
+			val.Address.String(),
+			math.LegacyOneDec(),
+		))
 
 	}
 	// set validators and delegations
@@ -110,7 +116,7 @@ func SetupWithGenesisAccountsAndValSet(b testing.TB, db dbm.DB, genAccs []authty
 	consensusParams.Block.MaxGas = 100 * simtestutil.DefaultGenTxGas
 
 	wasmApp.InitChain(
-		abci.RequestInitChain{
+		&abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: consensusParams,
 			AppStateBytes:   stateBytes,
@@ -118,7 +124,7 @@ func SetupWithGenesisAccountsAndValSet(b testing.TB, db dbm.DB, genAccs []authty
 	)
 
 	wasmApp.Commit()
-	wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: wasmApp.LastBlockHeight() + 1}})
+	// wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: wasmApp.LastBlockHeight() + 1}})
 
 	return wasmApp
 }
@@ -168,7 +174,7 @@ func InitializeWasmApp(b testing.TB, db dbm.DB, numAccounts int) AppInfo {
 	// add wasm contract
 	height := int64(2)
 	txGen := moduletestutil.MakeTestEncodingConfig().TxConfig
-	wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: height, Time: time.Now()}})
+	// wasmApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: height, Time: time.Now()}})
 
 	// upload the code
 	cw20Code, err := os.ReadFile("./testdata/cw20_base.wasm")
@@ -222,8 +228,11 @@ func InitializeWasmApp(b testing.TB, db dbm.DB, numAccounts int) AppInfo {
 	attr := evt.Attributes[0]
 	contractAddr := attr.Value
 
-	wasmApp.EndBlock(abci.RequestEndBlock{Height: height})
-	wasmApp.Commit()
+	_, err = wasmApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: height,
+		Time:   time.Now(),
+	})
+	require.NoError(b, err)
 
 	return AppInfo{
 		App:          wasmApp,
