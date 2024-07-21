@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/strangelove-ventures/interchaintest/v8"
 	"math/big"
 	"math/rand"
 	"os"
@@ -34,11 +35,10 @@ import (
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -52,7 +52,7 @@ const (
 	packetforward    = "0.0"
 )
 
-var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
+var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
 
 // Function type for any function that modify the genesis file
 type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
@@ -217,16 +217,16 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 					},
 				},
 				// GasPrices:              "0.1uxion",
-				GasPrices:              gas,
-				GasAdjustment:          1.3,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesis,
-				UsingNewGenesisCommand: true,
+				GasPrices:      gas,
+				GasAdjustment:  1.3,
+				Type:           "cosmos",
+				ChainID:        "xion-1",
+				Bin:            "xiond",
+				Bech32Prefix:   "xion",
+				Denom:          "uxion",
+				TrustingPeriod: "336h",
+				ModifyGenesis:  modifyGenesis,
+				//UsingNewGenesisCommand: true,
 			},
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
@@ -370,7 +370,9 @@ func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, pa
 func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, denom string, blockHeight uint64) string {
 	if blockHeight == 0 {
 		// No history is required so use the most recent block height
-		blockHeight, _ = xion.Height(ctx)
+		bHeight, err := xion.Height(ctx)
+		require.NoError(t, err)
+		blockHeight = uint64(bHeight)
 		require.Greater(t, blockHeight, 0)
 	}
 
@@ -402,7 +404,9 @@ func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx contex
 // This function gets the bank balance for an address at some particular history denoted by the block height
 func getAddressBankBalanceAtHeight(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, address string, denom string, blockHeight uint64) string {
 	if blockHeight == 0 {
-		blockHeight, _ = xion.Height(ctx)
+		bHeight, err := xion.Height(ctx)
+		require.NoError(t, err)
+		blockHeight = uint64(bHeight)
 		require.Greater(t, blockHeight, 0)
 	}
 
@@ -464,7 +468,9 @@ func GetModuleAddress(t *testing.T, xion *cosmos.CosmosChain, ctx context.Contex
 // Retrieve a block annual provision. This is the minted tokens for the block for validators and delegator
 func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, denom string, blockHeight uint64) math.LegacyDec {
 	if blockHeight == 0 {
-		blockHeight, _ = xion.Height(ctx)
+		bHeight, err := xion.Height(ctx)
+		require.NoError(t, err)
+		blockHeight = uint64(bHeight)
 		require.Greater(t, blockHeight, 0)
 	}
 
