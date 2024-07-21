@@ -103,7 +103,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	// deploy the key to the jwk module
 	aud := "integration-test-project"
 
-	createAudienceClaimHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+	createAudienceClaimHash, err := ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"jwk", "create-audience-claim",
 		aud,
@@ -112,11 +112,11 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("create audience claim hash: %s", createAudienceClaimHash)
 
-	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", createAudienceClaimHash)
+	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", createAudienceClaimHash)
 	require.NoError(t, err)
 	t.Logf("TxDetails: %s", txDetails)
 
-	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+	createAudienceHash, err := ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"jwk", "create-audience",
 		aud,
@@ -133,11 +133,11 @@ func TestJWTAbstractAccount(t *testing.T) {
 		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
-	audienceQuery, err := ExecQuery(t, ctx, xion.FullNodes[0], "jwk", "list-audience")
+	audienceQuery, err := ExecQuery(t, ctx, xion.GetNode(), "jwk", "list-audience")
 	t.Logf("audiences: \n%s", audienceQuery)
 
 	// retrieve the hash
-	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", codeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
@@ -204,11 +204,11 @@ func TestJWTAbstractAccount(t *testing.T) {
 	t.Logf("sender: %s", xionUser.FormattedAddress())
 	t.Logf("register cmd: %s", registerCmd)
 
-	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], xionUser.KeyName(), registerCmd...)
+	txHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), registerCmd...)
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
 
-	contractsResponse, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contracts", codeIDStr)
+	contractsResponse, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contracts", codeIDStr)
 	require.NoError(t, err)
 
 	contract := contractsResponse["contracts"].([]interface{})[0].(string)
@@ -220,7 +220,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.Equal(t, int64(10_000), newBalance)
 
 	// get the account from the chain. there might be a better way to do this
-	accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
 		"account", contract)
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
@@ -364,7 +364,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err = ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
+	output, err = ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 

@@ -381,7 +381,7 @@ func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx contex
 	 * {"supply":[{"denom":"uxion","amount":"110000002059725"}]}
 	 */
 	jsonRes := make(map[string]interface{})
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "bank", "total", "--height", strconv.FormatInt(int64(blockHeight), 10))
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "bank", "total", "--height", strconv.FormatInt(int64(blockHeight), 10))
 	require.NoError(t, err)
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
@@ -415,7 +415,7 @@ func getAddressBankBalanceAtHeight(t *testing.T, xion *cosmos.CosmosChain, ctx c
 	 * {"supply":[{"denom":"uxion","amount":"110000002059725"}]}
 	 */
 	jsonRes := make(map[string]interface{})
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "bank", "balances", address, "--height", strconv.FormatInt(int64(blockHeight), 10))
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "bank", "balances", address, "--height", strconv.FormatInt(int64(blockHeight), 10))
 	require.NoError(t, err)
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
@@ -454,7 +454,7 @@ func GetModuleAddress(t *testing.T, xion *cosmos.CosmosChain, ctx context.Contex
 			}
 	*/
 	jsonRes := make(map[string]interface{})
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "auth", "module-account", moduleName)
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "auth", "module-account", moduleName)
 	require.NoError(t, err)
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
@@ -477,12 +477,12 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
 	// Query the current block provision
 	// Response is a string
 	var annualProvision json.Number
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "mint", "annual-provisions", "--height", strconv.FormatInt(int64(blockHeight), 10))
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "mint", "annual-provisions", "--height", strconv.FormatInt(int64(blockHeight), 10))
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &annualProvision))
 	// Query the block per year
 	params := make(map[string]interface{})
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
+	queryRes, _, err = xion.GetNode().ExecQuery(ctx, "mint", "params")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &params))
 	blocksPerYear, err := dyno.GetInteger(params, "blocks_per_year")
@@ -578,7 +578,7 @@ func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ct
 // Run Mint module test over some txHash
 func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, txHashes []string) {
 	for i, txHash := range txHashes {
-		txResp, err := authTx.QueryTx(xion.FullNodes[0].CliContext(), txHash)
+		txResp, err := authTx.QueryTx(xion.GetNode().CliContext(), txHash)
 		require.NoError(t, err)
 		t.Logf("Bank send msg %d BH: %d", i, txResp.Height)
 		MintModuleTestHarness(t, xion, ctx, int(txResp.Height)+1) // check my block and the next one

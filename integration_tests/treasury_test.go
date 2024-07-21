@@ -151,7 +151,7 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("created treasury instance: %s", treasuryAddr)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
-	contractState, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contract-state", "all", treasuryAddr)
+	contractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "all", treasuryAddr)
 	require.NoError(t, err)
 	t.Logf("Contract State: %s", contractState)
 
@@ -213,37 +213,37 @@ func TestTreasuryContract(t *testing.T) {
 
 	_, err = sendFile.Write([]byte(txJSONStr))
 	require.NoError(t, err)
-	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], sendFile)
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), sendFile)
 	require.NoError(t, err)
 
 	sendFilePath := strings.Split(sendFile.Name(), "/")
 
-	signedTx, err := ExecBinRaw(t, ctx, xion.FullNodes[0],
-		"tx", "sign", path.Join(xion.FullNodes[0].HomeDir(), sendFilePath[len(sendFilePath)-1]),
+	signedTx, err := ExecBinRaw(t, ctx, xion.GetNode(),
+		"tx", "sign", path.Join(xion.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
 		"--from", granterUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
 		"--keyring-backend", keyring.BackendTest,
 		"--output", "json",
 		"--overwrite",
 		"-y",
-		"--node", fmt.Sprintf("tcp://%s:26657", xion.FullNodes[0].HostName()))
+		"--node", fmt.Sprintf("tcp://%s:26657", xion.GetNode().HostName()))
 	require.NoError(t, err)
 	t.Logf("signed tx: %s", signedTx)
 
 	// todo: validate that the feegrant was created correctly
-	res, err := ExecBroadcastWithFlags(t, ctx, xion.FullNodes[0], signedTx, "--output", "json")
+	res, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), signedTx, "--output", "json")
 
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
 
-	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", res)
+	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", res)
 	require.NoError(t, err)
 	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
-	feeGrantDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "feegrant", "grants-by-grantee", granteeUser.FormattedAddress())
+	feeGrantDetails, err := ExecQuery(t, ctx, xion.GetNode(), "feegrant", "grants-by-grantee", granteeUser.FormattedAddress())
 	require.NoError(t, err)
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
 	allowances := feeGrantDetails["allowances"].([]interface{})

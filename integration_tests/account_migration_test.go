@@ -94,7 +94,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	// retrieve the new hash
-	newCodeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	newCodeResp, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", newCodeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %s", newCodeResp)
@@ -102,7 +102,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v6")
 	// todo: validate that verification or tx submission still works
 
-	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.FullNodes[0],
+	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.GetNode(),
 		"wasm", "code-info", newCodeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %+v", newCodeResp)
@@ -111,7 +111,7 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
 	for _, predictedAddr := range predictedAddrs {
-		rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.FullNodes[0],
+		rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.GetNode(),
 			"wasm", "contract", predictedAddr.String())
 		require.NoError(t, err)
 		t.Logf("updated contract info: %s", rawUpdatedContractInfo)
@@ -138,7 +138,7 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 	instantiateMsg["id"] = 0
 	instantiateMsg["authenticator"] = authenticator
 
-	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", codeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
@@ -205,11 +205,11 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		t.Logf("sender: %s", xionUser.FormattedAddress())
 		t.Logf("register cmd: %s", registerCmd)
 
-		txHash, err := ExecTx(t, ctx, xion.FullNodes[0], xionUser.KeyName(), registerCmd...)
+		txHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), registerCmd...)
 		require.NoError(t, err)
 		t.Logf("tx hash: %s", txHash)
 
-		contractsResponse, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contracts", codeIDStr)
+		contractsResponse, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contracts", codeIDStr)
 		require.NoError(t, err)
 
 		contract := contractsResponse["contracts"].([]interface{})[0].(string)
@@ -221,7 +221,7 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		require.Equal(t, int64(10_000), newBalance)
 
 		// get the account from the chain. there might be a better way to do this
-		accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
+		accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
 			"account", contract)
 		require.NoError(t, err)
 		t.Logf("account response: %s", accountResponse)
@@ -311,7 +311,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	// deploy the key to the jwk module
 	aud := "integration-test-project"
 
-	createAudienceClaimHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+	createAudienceClaimHash, err := ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"jwk", "create-audience-claim",
 		aud,
@@ -320,11 +320,11 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("create audience claim hash: %s", createAudienceClaimHash)
 
-	txDetails, err := ExecQuery(t, ctx, xion.FullNodes[0], "tx", createAudienceClaimHash)
+	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", createAudienceClaimHash)
 	require.NoError(t, err)
 	t.Logf("TxDetails: %s", txDetails)
 
-	createAudienceHash, err := ExecTx(t, ctx, xion.FullNodes[0],
+	createAudienceHash, err := ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"jwk", "create-audience",
 		aud,
@@ -346,7 +346,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	// retrieve the hash
-	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", codeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
@@ -415,11 +415,11 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	t.Logf("sender: %s", xionUser.FormattedAddress())
 	t.Logf("register cmd: %s", registerCmd)
 
-	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], xionUser.KeyName(), registerCmd...)
+	txHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), registerCmd...)
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
 
-	contractsResponse, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contracts", codeIDStr)
+	contractsResponse, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contracts", codeIDStr)
 	require.NoError(t, err)
 
 	contract := contractsResponse["contracts"].([]interface{})[0].(string)
@@ -431,7 +431,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.Equal(t, int64(10_000), newBalance)
 
 	// get the account from the chain. there might be a better way to do this
-	accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
 		"account", contract)
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
@@ -542,7 +542,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err = ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
+	output, err = ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
@@ -550,7 +550,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	// confirm the new contract code ID
-	rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.FullNodes[0],
+	rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.GetNode(),
 		"wasm", "contract", account.GetAddress().String())
 	require.NoError(t, err)
 	t.Logf("updated contract info: %s", rawUpdatedContractInfo)

@@ -77,7 +77,7 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	require.NoError(t, err)
 
 	// retrieve the hash
-	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", codeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
@@ -137,17 +137,17 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	}
 	t.Logf("sender: %s", deployerAddr.FormattedAddress())
 
-	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], deployerAddr.KeyName(), registerCmd...)
+	txHash, err := ExecTx(t, ctx, xion.GetNode(), deployerAddr.KeyName(), registerCmd...)
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
 
-	contractsResponse, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contracts", codeIDStr)
+	contractsResponse, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contracts", codeIDStr)
 	require.NoError(t, err)
 
 	contract := contractsResponse["contracts"].([]interface{})[0].(string)
 
 	// get the account from the chain. there might be a better way to do this
-	accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
 		"account", contract)
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
@@ -278,7 +278,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err := ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
+	output, err := ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 

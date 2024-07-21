@@ -59,7 +59,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	)
 	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
 
-	_, err = xion.FullNodes[0].ExecTx(ctx,
+	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
 		"xion", "send", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
@@ -138,7 +138,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, math.NewInt(100), initialReceivingBalance)
 
-	_, err = xion.FullNodes[0].ExecTx(ctx,
+	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
 		"xion", "send", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,

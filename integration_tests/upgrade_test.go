@@ -108,17 +108,17 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
 	// check that the upgrade set the params
-	paramsModResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
+	paramsModResp, err := ExecQuery(t, ctx, chain.GetNode(),
 		"params", "subspace", "jwk", "TimeOffset")
 	require.NoError(t, err)
 	t.Logf("jwk params response: %v", paramsModResp)
 
-	jwkParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
+	jwkParams, err := ExecQuery(t, ctx, chain.GetNode(),
 		"jwk", "params")
 	require.NoError(t, err)
 	t.Logf("jwk params response: %v", jwkParams)
 
-	tokenFactoryParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
+	tokenFactoryParams, err := ExecQuery(t, ctx, chain.GetNode(),
 		"tokenfactory", "params")
 	require.NoError(t, err)
 	t.Logf("tokenfactory params response: %v", tokenFactoryParams)

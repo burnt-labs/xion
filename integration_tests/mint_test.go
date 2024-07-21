@@ -68,7 +68,7 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 // with the chain node binary.
 func feeTxCommand(chain *cosmos.CosmosChain, fee string, sender string, receiver string) []string {
 	command := []string{"tx"}
-	return chain.FullNodes[0].NodeCommand(append(command,
+	return chain.GetNode().NodeCommand(append(command,
 		"bank", "send", sender, receiver,
 		fmt.Sprintf("%s%s", "1000000", chain.Config().Denom),
 		"--from", "faucet",
@@ -95,10 +95,10 @@ func sendPeriodicBankTx(t *testing.T, chain *cosmos.CosmosChain, ctx context.Con
 	err := chain.CreateKey(ctx, "testAccount")
 	require.NoError(t, err)
 	// Retrieve the test wallet address
-	testAccountAddress, err := chain.FullNodes[0].AccountKeyBech32(ctx, "testAccount")
+	testAccountAddress, err := chain.GetNode().AccountKeyBech32(ctx, "testAccount")
 	require.NoError(t, err)
 	// Retrieve the faucet address. Every chain has a faucet account
-	faucet, err := chain.FullNodes[0].AccountKeyBech32(ctx, "faucet")
+	faucet, err := chain.GetNode().AccountKeyBech32(ctx, "faucet")
 	require.NoError(t, err)
 	// Get the current chain height
 	cHeight, err := chain.Height(ctx)
