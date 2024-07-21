@@ -2,6 +2,7 @@ package mint
 
 import (
 	"time"
+
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"

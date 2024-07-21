@@ -2,6 +2,7 @@ package types
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"

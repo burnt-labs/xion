@@ -2,6 +2,7 @@ package ante
 
 import (
 	"errors"
+
 	tmstrings "github.com/cometbft/cometbft/libs/strings"
 
 	errorsmod "cosmossdk.io/errors"

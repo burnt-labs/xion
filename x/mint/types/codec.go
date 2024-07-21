@@ -23,8 +23,7 @@ func init() {
 	// so that this can later be used to properly serialize MsgGrant and MsgExec
 	// instances.
 
-
-	//RegisterLegacyAminoCodec(groupcodec.Amino)
+	// RegisterLegacyAminoCodec(groupcodec.Amino)
 }
 
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec

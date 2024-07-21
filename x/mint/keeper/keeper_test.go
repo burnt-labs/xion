@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
 
