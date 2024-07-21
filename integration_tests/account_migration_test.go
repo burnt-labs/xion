@@ -231,8 +231,8 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		accountJSON, err := json.Marshal(accountResponse)
 		require.NoError(t, err)
 
-		encodingConfig := xionapp.MakeEncodingConfig()
-		err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
+		encodingConfig := xionapp.MakeEncodingConfig(t)
+		err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 		require.NoError(t, err)
 		predictedAddrs = append(predictedAddrs, predictedAddr)
 	}
@@ -441,8 +441,8 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	accountJSON, err := json.Marshal(accountResponse)
 	require.NoError(t, err)
 
-	encodingConfig := xionapp.MakeEncodingConfig()
-	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
+	encodingConfig := xionapp.MakeEncodingConfig(t)
+	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
 	// Generate Msg Send without signatures

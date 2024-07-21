@@ -238,8 +238,8 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	accountJSON, err := json.Marshal(accountResponse)
 	require.NoError(t, err)
 
-	encodingConfig := xionapp.MakeEncodingConfig()
-	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
+	encodingConfig := xionapp.MakeEncodingConfig(t)
+	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
 	// create the raw tx

@@ -241,13 +241,13 @@ func SoftwareUpgrade(
 	// build software upgrade govprop
 	height, err := chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height for softwareUpgradeProposal: %v", err)
-	haltHeight := uint64(height) + haltHeightDelta - 3
+	haltHeight := height + haltHeightDelta - 3
 	softwareUpgradeProposal := cosmos.SoftwareUpgradeProposal{
 		Deposit:     fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
 		Title:       fmt.Sprintf("Software Upgrade %s", upgradeName),
 		Name:        upgradeName,
 		Description: fmt.Sprintf("Software Upgrade %s", upgradeName),
-		Height:      int64(haltHeight),
+		Height:      haltHeight,
 	}
 
 	// submit and vote on software upgrade
@@ -267,7 +267,7 @@ func SoftwareUpgrade(
 	defer timeoutCtxCancel()
 
 	// confirm chain halt
-	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-uint64(height)), chain)
+	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height), chain)
 	height, err = chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height after chain should have halted: %v", err)
 	require.Equalf(t, haltHeight, height, "height: %d is not equal to halt height: %d", height, haltHeight)

@@ -13,8 +13,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 
 	"cosmossdk.io/x/feegrant"
-	feegranttypes "cosmossdk.io/x/feegrant"
-	feegrant "cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xionapp "github.com/burnt-labs/xion/app"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -178,7 +176,7 @@ func TestTreasuryContract(t *testing.T) {
 
 	authzGrantMsg, err := authz.NewMsgGrant(granterUser.Address(), granteeUser.Address(), testAuth, &inFive)
 	require.NoError(t, err)
-	encodingConfig := xionapp.MakeEncodingConfig()
+	encodingConfig := xionapp.MakeEncodingConfig(t)
 
 	executeMsg := map[string]interface{}{}
 	feegrantMsg := map[string]interface{}{}

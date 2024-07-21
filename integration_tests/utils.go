@@ -10,7 +10,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/strangelove-ventures/interchaintest/v8"
 	"math/big"
 	"math/rand"
 	"os"

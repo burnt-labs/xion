@@ -157,8 +157,8 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	accountJSON, err := json.Marshal(accountResponse)
 	require.NoError(t, err)
 
-	encodingConfig := xionapp.MakeEncodingConfig()
-	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
+	encodingConfig := xionapp.MakeEncodingConfig(t)
+	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
 	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: math.NewInt(10_000)})
