@@ -7,4 +7,8 @@ const (
 	DefaultCodespace = ModuleName
 )
 
-var ErrNoAllowedContracts = errorsmod.Register(DefaultCodespace, 2, "no contract addresses specified")
+var (
+	ErrNoAllowedContracts = errorsmod.Register(DefaultCodespace, 2, "no contract addresses specified")
+	ErrNoValidAllowances  = errorsmod.Register(DefaultCodespace, 3, "none of the allowances accepted the msg")
+	ErrInconsistentExpiry = errorsmod.Register(DefaultCodespace, 4, "multi allowances must all expire together")
+)

@@ -34,13 +34,19 @@ import (
 type GrantConfig struct {
 	Description   string                 `json:"description"`
 	Authorization map[string]interface{} `json:"authorization"`
-	Allowance     *ExplicitAny           `json:"allowance"`
+	Optional      bool                   `json:"optional"`
 }
 
+type FeeConfig struct {
+	Description string       `json:"description"`
+	Allowance   *ExplicitAny `json:"allowance,omitempty"`
+	Expiration  int32        `json:"expiration,omitempty"`
+}
 type TreasuryInstantiateMsg struct {
-	Admin        types.AccAddress `json:"admin"`
+	Admin        types.AccAddress `json:"admin,omitempty"`
 	TypeUrls     []string         `json:"type_urls"`
 	GrantConfigs []GrantConfig    `json:"grant_configs"`
+	FeeConfig    *FeeConfig       `json:"fee_config"`
 }
 
 type ExplicitAny struct {
@@ -122,7 +128,6 @@ func TestTreasuryContract(t *testing.T) {
 	}
 	feeGrant, err := feegrant.NewGrant(xionUserAddr, xionUserAddr, &testAllowance)
 	require.NoError(t, err)
-
 	allowanceAny := ExplicitAny{
 		TypeURL: feeGrant.Allowance.TypeUrl,
 		Value:   feeGrant.Allowance.Value,
@@ -135,12 +140,17 @@ func TestTreasuryContract(t *testing.T) {
 	grantConfig := GrantConfig{
 		Description:   "test authorization",
 		Authorization: authorizationAny,
-		Allowance:     &allowanceAny,
+		Optional:      false,
 	}
 
 	instantiateMsg := TreasuryInstantiateMsg{
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
+		FeeConfig: &FeeConfig{
+			Description: "test fee grant",
+			Allowance:   &allowanceAny,
+			Expiration:  int32(18000),
+		},
 	}
 
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
@@ -182,7 +192,6 @@ func TestTreasuryContract(t *testing.T) {
 	feegrantMsg := map[string]interface{}{}
 	feegrantMsg["authz_granter"] = granterUser.FormattedAddress()
 	feegrantMsg["authz_grantee"] = granteeUser.FormattedAddress()
-	feegrantMsg["msg_type_url"] = testAuth.MsgTypeURL()
 	executeMsg["deploy_fee_grant"] = feegrantMsg
 	executeMsgBz, err := json.Marshal(executeMsg)
 	require.NoError(t, err)

@@ -2,9 +2,10 @@ package main
 
 import (
 	"errors"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"io"
 	"os"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"

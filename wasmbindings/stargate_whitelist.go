@@ -9,6 +9,8 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
+	feegranttypes "cosmossdk.io/x/feegrant"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -58,6 +60,10 @@ func init() {
 	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/Params", &distributiontypes.QueryParamsResponse{})
 	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/DelegatorWithdrawAddress", &distributiontypes.QueryDelegatorWithdrawAddressResponse{})
 	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/ValidatorCommission", &distributiontypes.QueryValidatorCommissionResponse{})
+
+	// feegrant
+	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/Allowance", &feegranttypes.QueryAllowanceResponse{})
+	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/AllowancesByGranter", &feegranttypes.QueryAllowancesByGranterResponse{})
 
 	// gov
 	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Deposit", &govtypesv1.QueryDepositResponse{})

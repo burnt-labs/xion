@@ -20,6 +20,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 
 	cdc.RegisterConcrete(&AuthzAllowance{}, "xion/AuthzAllowance", nil)
 	cdc.RegisterConcrete(&ContractsAllowance{}, "xion/ContractsAllowance", nil)
+	cdc.RegisterConcrete(&MultiAnyAllowance{}, "xion/MultiAnyAllowance", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -34,6 +35,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		(*feegrant.FeeAllowanceI)(nil),
 		&AuthzAllowance{},
 		&ContractsAllowance{},
+		&MultiAnyAllowance{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

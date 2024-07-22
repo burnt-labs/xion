@@ -332,6 +332,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 
 func createAuthzGrants(suite *StargateTestSuite) {
 	authzKeeper := suite.app.AuthzKeeper
+
 	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
 		Msg: "/" + string(proto.MessageReflect(&banktypes.MsgSend{}).Descriptor().FullName()),
 	})
