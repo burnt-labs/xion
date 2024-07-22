@@ -37,7 +37,7 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
-		require.Equal(t, fundAmount.Sub(math.NewInt(2415)), balance)
+		require.Equal(t, fundAmount.Sub(math.NewInt(2415)).Int64(), balance.Int64())
 
 		balance, err = xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
 		require.NoError(t, err)
