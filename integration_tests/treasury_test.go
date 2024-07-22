@@ -31,6 +31,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+/* NOTE:
+- Test for different types of feegrants: (AuthZAllowance, ContractsAllowance)
+- Revoke allowance
+*/
+
 type GrantConfig struct {
 	Description   string                 `json:"description"`
 	Authorization map[string]interface{} `json:"authorization"`
@@ -110,7 +115,7 @@ func TestTreasuryContract(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "testdata", "contracts", "treasury-aarch64.wasm"))
+		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -126,6 +131,7 @@ func TestTreasuryContract(t *testing.T) {
 		SpendLimit: types.Coins{},
 		Expiration: &inFive,
 	}
+	// NOTE: Create Feegrant
 	feeGrant, err := feegrant.NewGrant(xionUserAddr, xionUserAddr, &testAllowance)
 	require.NoError(t, err)
 	allowanceAny := ExplicitAny{
@@ -143,6 +149,7 @@ func TestTreasuryContract(t *testing.T) {
 		Optional:      false,
 	}
 
+	//NOTE: Start the Treasury
 	instantiateMsg := TreasuryInstantiateMsg{
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
@@ -184,6 +191,7 @@ func TestTreasuryContract(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// NOTE: Create AuthZGrant
 	authzGrantMsg, err := authz.NewMsgGrant(granterUser.Address(), granteeUser.Address(), testAuth, &inFive)
 	require.NoError(t, err)
 	encodingConfig := xionapp.MakeEncodingConfig()
@@ -196,6 +204,7 @@ func TestTreasuryContract(t *testing.T) {
 	executeMsgBz, err := json.Marshal(executeMsg)
 	require.NoError(t, err)
 
+	// NOTE: Execute in contract
 	contractMsg := wasmtypes.MsgExecuteContract{
 		Sender:   granterUser.FormattedAddress(),
 		Contract: treasuryAddr,
@@ -204,6 +213,7 @@ func TestTreasuryContract(t *testing.T) {
 	}
 
 	require.NoError(t, err)
+
 	// build the tx
 	txBuilder := encodingConfig.TxConfig.NewTxBuilder()
 	err = txBuilder.SetMsgs(authzGrantMsg, &contractMsg)
@@ -259,4 +269,67 @@ func TestTreasuryContract(t *testing.T) {
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["@type"].(string)
 	require.Contains(t, allowanceType, "/cosmos.feegrant.v1beta1.BasicAllowance")
+
+	revokeMsg := map[string]interface{}{}
+	typeURL := map[string]interface{}{}
+	typeURL["msg_type_url"] = allowanceType
+	revokeMsg["revoke_allowance"] = granteeUser.FormattedAddress()
+	revokeMsgBz, err := json.Marshal(revokeMsg)
+	require.NoError(t, err)
+
+	revokeContractMsg := wasmtypes.MsgExecuteContract{
+		Sender:   granterUser.FormattedAddress(),
+		Contract: treasuryAddr,
+		Msg:      revokeMsgBz,
+		Funds:    nil,
+	}
+	newTxBuilder := encodingConfig.TxConfig.NewTxBuilder()
+	err = newTxBuilder.SetMsgs(&revokeContractMsg)
+	require.NoError(t, err)
+	newTxBuilder.SetGasLimit(20000000)
+	newTx := newTxBuilder.GetTx()
+
+	txJSONStr, err = encodingConfig.TxConfig.TxJSONEncoder()(newTx)
+	require.NoError(t, err)
+
+	t.Logf("tx: %s", txJSONStr)
+	require.True(t, json.Valid([]byte(txJSONStr)))
+	revokeSendFile, err := os.CreateTemp("", "*-revoke-combo-msg-tx.json")
+	require.NoError(t, err)
+	defer os.Remove(revokeSendFile.Name())
+
+	_, err = revokeSendFile.Write([]byte(txJSONStr))
+	require.NoError(t, err)
+	err = UploadFileToContainer(t, ctx, xion.FullNodes[0], revokeSendFile)
+	require.NoError(t, err)
+
+	revokeSendFilePath := strings.Split(revokeSendFile.Name(), "/")
+
+	revokeSignedTx, err := ExecBinRaw(t, ctx, xion.FullNodes[0],
+		"tx", "sign", path.Join(xion.FullNodes[0].HomeDir(), revokeSendFilePath[len(revokeSendFilePath)-1]),
+		"--from", granterUser.KeyName(),
+		"--chain-id", xion.Config().ChainID,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"--overwrite",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", xion.FullNodes[0].HostName()))
+	require.NoError(t, err)
+	t.Logf("signed tx: %s", revokeSignedTx)
+
+	// todo: validate that the feegrant was created correctly
+	res, err = ExecBroadcastWithFlags(t, ctx, xion.FullNodes[0], revokeSignedTx, "--output", "json")
+	require.NoError(t, err)
+	t.Logf("broadcasted tx: %s", res)
+
+	txDetails, err = ExecQuery(t, ctx, xion.FullNodes[0], "tx", res)
+	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
+
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	require.NoError(t, err)
+
+	feeGrantDetails, err = ExecQuery(t, ctx, xion.FullNodes[0], "feegrant", "grants-by-grantee", granteeUser.FormattedAddress())
+	require.NoError(t, err)
+	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
 }
