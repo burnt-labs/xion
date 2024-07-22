@@ -16,7 +16,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [linux/amd64, linux/arm64]
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
 
     steps:
       - name: Login to Docker Hub
@@ -27,8 +31,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "PLATFORM=${{ matrix.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
-          echo "DOCKER_FN=docker/${{ matrix.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=docker/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
 
       - name: Download images
         uses: actions/download-artifact@v4
@@ -48,5 +51,5 @@ jobs:
         with:
           command: cves
           only-fixed: true
-          platform: ${{ matrix.platform }}
-          image: xion:${{ env.PLATFORM }}
+          platform: ${{ matrix.os }}/${{ matrix.arch }}
+          image: xion:${{ matrix.os }}-${{ matrix.arch }}
