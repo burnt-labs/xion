@@ -110,7 +110,7 @@ func TestTreasuryContract(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "testdata", "contracts", "treasury-aarch64.wasm"))
+		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
