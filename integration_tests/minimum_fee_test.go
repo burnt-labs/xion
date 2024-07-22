@@ -62,7 +62,7 @@ func TestXionMinimumFeeZero(t *testing.T) {
 			xionUser.KeyName(),
 			"xion", "send", xionUser.KeyName(),
 			"--chain-id", xion.Config().ChainID,
-			recipientAddress, fmt.Sprintf("%d%s", toSend, xion.Config().Denom),
+			recipientAddress, fmt.Sprintf("%d%s", toSend.Int64(), xion.Config().Denom),
 		)
 		require.NoError(t, err)
 
