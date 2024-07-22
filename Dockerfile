@@ -5,11 +5,17 @@ ARG ALPINE_VERSION="3.19"
 ARG BUILDPLATFORM=linux/amd64
 ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION}"
 
-# --------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Builder
-# --------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE} AS builder
+
+ARG GOOS=linux \
+    GOARCH=amd64
+
+ENV GOOS=$GOOS \
+    GOARCH=$GOARCH
 
 RUN apk add --no-cache \
     ca-certificates \
@@ -25,9 +31,12 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go mod download -x
 
 # Cosmwasm - Download correct libwasmvm version
-RUN WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm | cut -d ' ' -f 2) && \
-    wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/libwasmvm_muslc.$(uname -m).a \
-      -O /lib/libwasmvm_muslc.a && \
+RUN set -eux && \
+    WASMVM_REPO="github.com/CosmWasm/wasmvm" && \
+    WASMVM_VERSION=$(go list -m $WASMVM_REPO | cut -d ' ' -f 2) && \
+    WASMVM_RELEASE=$WASMVM_REPO/releases/download/$WASMVM_VERSION && \
+    LIBWASMVM_SOURCE="libwasmvm_muslc.$(uname -m).a" && \
+    wget $WASMVM_RELEASE/$LIBWASMVM_SOURCE -O /lib/libwasmvm_muslc.a && \
     # verify checksum
     wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/checksums.txt -O /tmp/checksums.txt && \
     sha256sum /lib/libwasmvm_muslc.a | grep $(cat /tmp/checksums.txt | grep libwasmvm_muslc.$(uname -m) | cut -d ' ' -f 1)
@@ -39,11 +48,11 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make test-version \
     && LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build
 
-# --------------------------------------------------------
-# Runner
-# --------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Base
+# -----------------------------------------------------------------------------
 
-FROM alpine:3.19 AS xion-base
+FROM alpine:${ALPINE_VERSION} AS xion-base
 COPY --from=builder /xion/build/xiond /usr/bin/xiond
 
 # api
@@ -57,8 +66,7 @@ EXPOSE 26657
 # prometheus
 EXPOSE 26660
 
-RUN set -euxo pipefail \
-  && echo http://dl-cdn.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories \
+RUN set -eux \
   && apk add --no-cache \
     bash \
     openssl \
@@ -68,27 +76,29 @@ RUN set -euxo pipefail \
     lz4 \
     tini
 
-# --------------------------------------------------------
-FROM xion-base AS dev
-
-COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
-WORKDIR /home/xiond/
-
-CMD ["/home/xiond/entrypoint.sh"]
-
-# --------------------------------------------------------
-FROM xion-base AS release
-
-RUN set -euxo pipefail \
+RUN set -eux \
   && addgroup -S xiond \
-  && adduser \
+  && adduser xiond \
     --disabled-password \
     --gecos xiond \
     --ingroup xiond \
-    xiond
-
-RUN set -eux \
   && chown -R xiond:xiond /home/xiond
+
+# -----------------------------------------------------------------------------
+# Development
+# -----------------------------------------------------------------------------
+FROM xion-base AS dev
+
+COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
+WORKDIR /home/xiond/.xiond
+
+ENTRYPOINT ["/home/xiond/entrypoint.sh"]
+CMD ["xiond", "start", "--trace"]
+
+# -----------------------------------------------------------------------------
+# Release
+# -----------------------------------------------------------------------------
+FROM xion-base AS release
 
 USER xiond:xiond
 WORKDIR /home/xiond/.xiond

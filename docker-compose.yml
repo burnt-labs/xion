@@ -13,14 +13,14 @@ services:
       - "26656:26656"
       - "26657:26657"
 
-  release:
-    image: burnt/xion:release
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: release
-    platform: linux/amd64
-    ports:
-      - "1317:1317"
-      - "26656:26656"
-      - "26657:26657"
+  # release:
+  #   image: burnt/xion:release
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: release
+  #   platform: linux/amd64
+  #   ports:
+  #     - "1317:1317"
+  #     - "26656:26656"
+  #     - "26657:26657"

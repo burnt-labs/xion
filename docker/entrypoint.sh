@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eu pipefail
 
 VALIDATOR_MNEMONIC="clinic tube choose fade collect fish original recipe pumpkin fantasy enrich sunny pattern regret blouse organ april carpet guitar skin work moon fatigue hurdle"
 FAUCET_MNEMONIC="decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
@@ -7,9 +8,9 @@ VALIDATOR_KEY_NAME="${VALIDATOR_KEY_NAME:-local-testnet-validator}"
 FAUCET_KEY_NAME="${FAUCET_KEY_NAME:-local-testnet-faucet}"
 
 CHAIN_ID=xion-local-testnet-1
-HOME_DIRECTORY=/xion/chain-data
+HOME_DIRECTORY=/home/xiond/.xiond
 
-if [[ ! -f $HOME_DIRECTORY/data/priv_validator_state.json ]]; then
+if [ ! -f "$HOME_DIRECTORY/data/priv_validator_state.json" ]; then
   xiond init validator --chain-id $CHAIN_ID --default-denom uxion \
     --home $HOME_DIRECTORY;
 
@@ -47,4 +48,4 @@ if [[ ! -f $HOME_DIRECTORY/data/priv_validator_state.json ]]; then
   sed -i '/\[rpc\]/,+8 s/cors_allowed_origins = \[\]/cors_allowed_origins = ["*"]/' $HOME_DIRECTORY/config/config.toml;
 fi
 
-xiond start --trace --home $HOME_DIRECTORY
+exec $@
