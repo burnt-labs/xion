@@ -71,7 +71,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 		balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 		require.NoError(t, err)
 		t.Logf("expected %d, got %d", 100, balance.Int64())
-		return balance == math.NewInt(100)
+		return balance.Equal(math.NewInt(100))
 	},
 		time.Second*20,
 		time.Second*6,
