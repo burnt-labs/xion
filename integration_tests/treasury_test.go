@@ -271,9 +271,9 @@ func TestTreasuryContract(t *testing.T) {
 	require.Contains(t, allowanceType, "/cosmos.feegrant.v1beta1.BasicAllowance")
 
 	revokeMsg := map[string]interface{}{}
-	typeURL := map[string]interface{}{}
-	typeURL["msg_type_url"] = allowanceType
-	revokeMsg["revoke_allowance"] = granteeUser.FormattedAddress()
+	grantee := map[string]interface{}{}
+	grantee["grantee"] = granteeUser.FormattedAddress()
+	revokeMsg["revoke_allowance"] = grantee
 	revokeMsgBz, err := json.Marshal(revokeMsg)
 	require.NoError(t, err)
 
