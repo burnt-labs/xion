@@ -565,7 +565,7 @@ func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.C
 func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context) {
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, currentBlockHeight, uint64(12))
+	require.GreaterOrEqual(t, currentBlockHeight, int64(12))
 	// Get a random number from 1 to the (currentBlockHeight - 10)
 	randomHeight := rand.Intn(int(currentBlockHeight)-11) + 2 // we start from 2 because we need at least 2 blocks to run the test
 
