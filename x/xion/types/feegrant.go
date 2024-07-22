@@ -348,7 +348,6 @@ func (a *MultiAnyAllowance) Accept(ctx sdk.Context, fee sdk.Coins, msgs []sdk.Ms
 			// if the allowance is complete, remove it from the allowed list
 			a.Allowances = append(a.Allowances[:i], a.Allowances[i+1:]...)
 		}
-		// since we have found an allowance that accepted the msgs, halt iteration
 		break
 	}
 
