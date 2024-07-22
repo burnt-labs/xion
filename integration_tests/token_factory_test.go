@@ -103,5 +103,5 @@ func TestXionTokenFactory(t *testing.T) {
 	balance, err = xion.GetBalance(ctx, uaddr2, tfDenom)
 	require.NoError(t, err)
 	fmt.Println(balance)
-	require.Equal(t, balance, int64(101))
+	require.Equal(t, balance.Int64(), int64(101))
 }
