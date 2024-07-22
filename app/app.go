@@ -486,6 +486,7 @@ func NewWasmApp(
 		app.MsgServiceRouter(),
 		app.AccountKeeper,
 	)
+	app.AuthzKeeper = app.AuthzKeeper.SetBankKeeper(app.BankKeeper)
 
 	groupConfig := group.DefaultConfig()
 	/*
