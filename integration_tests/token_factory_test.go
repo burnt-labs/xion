@@ -61,19 +61,17 @@ func TestXionTokenFactory(t *testing.T) {
 	// mint
 	MintTokenFactoryDenom(t, ctx, xion, xionUser, 100, tfDenom)
 	t.Log("minted tfDenom to user")
-	if balance, err := xion.GetBalance(ctx, uaddr, tfDenom); err != nil {
-		t.Fatal(err)
-	} else if balance != math.NewInt(100) {
-		t.Fatalf("balance not 100, got %d", balance.Int64())
-	}
+	balance, err := xion.GetBalance(ctx, uaddr, tfDenom)
+	require.NoError(t, err)
+	require.Equal(t, math.NewInt(100).Int64(), balance.Int64())
 
 	// mint-to
 	expectedMint := uint64(70)
 	MintToTokenFactoryDenom(t, ctx, xion, xionUser, xionUser2, expectedMint, tfDenom)
 	t.Log("minted tfDenom to user")
-	balance, err := xion.GetBalance(ctx, uaddr2, tfDenom)
+	balance, err = xion.GetBalance(ctx, uaddr2, tfDenom)
 	require.NoError(t, err)
-	require.Equal(t, balance, math.NewInt(int64(expectedMint)), "balance not 70")
+	require.Equal(t, balance.Int64(), int64(expectedMint), "balance not 70")
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)
