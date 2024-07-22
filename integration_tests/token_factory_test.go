@@ -64,7 +64,7 @@ func TestXionTokenFactory(t *testing.T) {
 	if balance, err := xion.GetBalance(ctx, uaddr, tfDenom); err != nil {
 		t.Fatal(err)
 	} else if balance != math.NewInt(100) {
-		t.Fatal("balance not 100")
+		t.Fatalf("balance not 100, got %d", balance.Int64())
 	}
 
 	// mint-to
