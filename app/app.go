@@ -143,7 +143,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
-	v8 "github.com/burnt-labs/xion/app/upgrades/v8"
+	v9 "github.com/burnt-labs/xion/app/upgrades/v9"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
@@ -171,7 +171,7 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v8.Upgrade}
+	Upgrades                = []upgrades.Upgrade{v9.Upgrade}
 )
 
 // These constants are derived from the above variables.
