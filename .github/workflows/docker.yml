@@ -57,23 +57,23 @@ jobs:
           echo "COMMIT=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
 
       #########################################################################
-      # build dev on pr/dispatch only
+      # docker scout on pr/dispatch only
       #########################################################################
       - name: Extract metadata for docker
         if: ${{ github.event_name != 'push' }}
         id: meta-scout
         uses: docker/metadata-action@v5
         with:
-          images: burnt/xion
+          images: |
+            burntnetwork/xion
           tags: |
-            type=sha,priority=700,suffix=-dev
             type=raw,priority=500,value=scout
 
       - name: Build and push local dev docker image
         if: ${{ github.event_name != 'push' }}
         uses: docker/build-push-action@v5
         with:
-          push: true
+          push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: dev
