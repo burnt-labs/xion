@@ -278,7 +278,7 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 
 	revokeContractMsg := wasmtypes.MsgExecuteContract{
-		Sender:   granterUser.FormattedAddress(),
+		Sender:   xionUser.FormattedAddress(),
 		Contract: treasuryAddr,
 		Msg:      revokeMsgBz,
 		Funds:    nil,
@@ -307,7 +307,7 @@ func TestTreasuryContract(t *testing.T) {
 
 	revokeSignedTx, err := ExecBinRaw(t, ctx, xion.FullNodes[0],
 		"tx", "sign", path.Join(xion.FullNodes[0].HomeDir(), revokeSendFilePath[len(revokeSendFilePath)-1]),
-		"--from", granterUser.KeyName(),
+		"--from", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
 		"--keyring-backend", keyring.BackendTest,
 		"--output", "json",
@@ -332,4 +332,7 @@ func TestTreasuryContract(t *testing.T) {
 	feeGrantDetails, err = ExecQuery(t, ctx, xion.FullNodes[0], "feegrant", "grants-by-grantee", granteeUser.FormattedAddress())
 	require.NoError(t, err)
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
+
+	finalAllowances := feeGrantDetails["allowances"].([]interface{})
+	require.Equal(t, 0, len(finalAllowances))
 }
