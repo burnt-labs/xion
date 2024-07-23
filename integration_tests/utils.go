@@ -459,7 +459,7 @@ func GetModuleAddress(t *testing.T, xion *cosmos.CosmosChain, ctx context.Contex
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
 
-	moduleAddress, err := dyno.GetString(jsonRes, "account", "base_account", "address")
+	moduleAddress, err := dyno.GetString(jsonRes, "account", "value", "address")
 	require.NoError(t, err)
 	t.Logf("%s module address: %s", moduleName, moduleAddress)
 	return moduleAddress
