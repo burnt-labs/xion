@@ -2,13 +2,15 @@ package integration_tests
 
 import (
 	"context"
-	"cosmossdk.io/math"
 	"fmt"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"os"
 	"strconv"
 	"testing"
 	"time"
+
+	"cosmossdk.io/math"
+
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 

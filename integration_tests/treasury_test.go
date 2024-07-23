@@ -1,7 +1,6 @@
 package integration_tests
 
 import (
-	"cosmossdk.io/math"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"cosmossdk.io/math"
 
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 

@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -31,6 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -214,7 +213,7 @@ func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.Ba
 	return cmd
 }
 
-func queryCommand(manager module.BasicManager) *cobra.Command {
+func queryCommand(_ module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
 		Aliases:                    []string{"q"},

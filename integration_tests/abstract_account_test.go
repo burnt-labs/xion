@@ -1,23 +1,25 @@
 package integration_tests
 
 import (
-	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
-	"cosmossdk.io/math"
-	txsigning "cosmossdk.io/x/tx/signing"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/golang-jwt/jwt/v4"
-	"google.golang.org/protobuf/types/known/anypb"
 	"os"
 	"path"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/golang-jwt/jwt/v4"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
