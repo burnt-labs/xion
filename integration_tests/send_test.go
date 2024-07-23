@@ -1,12 +1,13 @@
 package integration_tests
 
 import (
-	"cosmossdk.io/math"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
 	"time"
+
+	"cosmossdk.io/math"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"

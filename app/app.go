@@ -55,6 +55,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+
 	//nolint:staticcheck
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -606,7 +607,7 @@ func NewWasmApp(
 		app.BankKeeper,
 		app.DistrKeeper,
 		tokenFactoryCapabilities,
-		func(ctx context.Context, addr string) bool { // TODO decide what to do
+		func(_ context.Context, _ string) bool {
 			return false
 		},
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),

@@ -1,11 +1,12 @@
 package integration_tests
 
 import (
-	"cosmossdk.io/math"
 	"fmt"
 	"os"
 	"path"
 	"testing"
+
+	"cosmossdk.io/math"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"

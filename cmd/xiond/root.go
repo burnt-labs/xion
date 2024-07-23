@@ -213,7 +213,7 @@ func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.Ba
 	return cmd
 }
 
-func queryCommand(manager module.BasicManager) *cobra.Command {
+func queryCommand(_ module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",
 		Aliases:                    []string{"q"},

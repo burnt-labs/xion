@@ -226,7 +226,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				Denom:          "uxion",
 				TrustingPeriod: "336h",
 				ModifyGenesis:  modifyGenesis,
-				//UsingNewGenesisCommand: true,
+				// UsingNewGenesisCommand: true,
 			},
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,

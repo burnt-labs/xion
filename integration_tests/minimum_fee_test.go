@@ -2,9 +2,10 @@ package integration_tests
 
 import (
 	"context"
-	"cosmossdk.io/math"
 	"fmt"
 	"testing"
+
+	"cosmossdk.io/math"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
