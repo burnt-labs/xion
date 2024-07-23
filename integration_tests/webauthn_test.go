@@ -150,7 +150,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 
 	// get the account from the chain. there might be a better way to do this
 	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
-		"account", contract)
+		"auth", "account", contract)
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
 
