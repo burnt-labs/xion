@@ -43,7 +43,7 @@ jobs:
 
       - name: Build Heighliner image
         id: heighliner
-        uses: strangelove-ventures/heighliner-build-action@v1.0.3
+        uses: burnt-labs/heighliner-action@v1.0.0-alpha10
         with:
           local: true
           tag: ${{ steps.shell_meta.outputs.sha }}
