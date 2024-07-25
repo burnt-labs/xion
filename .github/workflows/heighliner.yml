@@ -55,7 +55,6 @@ jobs:
           binaries: '["/go/bin/xiond"]'
           build-env: '["BUILD_TAGS=muslc"]'
 
-
       - name: Push Heighliner image
         run: |
           docker tag ${{ steps.heighliner.outputs.tag }} ghcr.io/burnt-labs/xion/${{ steps.heighliner.outputs.tag }}
