@@ -13,8 +13,16 @@ echo "Generating Protobuf Openapi"
 # work in docs directory
 cd $base_dir/client/docs
 
-# convert swagger to openapi
+# Create the directory
 mkdir -p static/openapi
+
+# Generate OpenAPI spec using Swagger2Openapi
+# Install required dependencies if not already installed
 npm install swagger2openapi @redocly/cli
 npx swagger2openapi static/swagger/swagger.yaml --yaml --outfile static/openapi/openapi.yaml
-npx @redocly/cli build-docs static/openapi/openapi.yaml --output static/openapi/index.html
+
+
+# Generate documentation using ReDoc
+# Install ReDoc if not already installed
+# @redocly/cli
+# npx @redocly/cli build-docs static/openapi/openapi.yaml --output static/openapi/index.html
