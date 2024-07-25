@@ -157,7 +157,7 @@ apis:
         Params: IBCFeeParams
     tags:
       rename:
-        Query: IBC
+        Query: IBC/Apps
   - url: ./tmp-swagger-gen/ibc/applications/interchain_accounts/controller/v1/query.swagger.json
     operationIds:
       rename:
@@ -178,14 +178,14 @@ apis:
         Params: IBCTransferParams
     tags:
       rename:
-        Query: IBC
+        Query: IBC/Apps
   - url: ./tmp-swagger-gen/ibc/core/channel/v1/query.swagger.json
     operationIds:
       rename:
         Params: IBCChannelParams
     tags:
       rename:
-        Query: IBC
+        Query: IBC/Core
   - url: ./tmp-swagger-gen/ibc/core/client/v1/query.swagger.json
     operationIds:
       rename:
@@ -193,21 +193,21 @@ apis:
         UpgradedConsensusState: IBCUpgradedConsensusState
     tags:
       rename:
-        Query: IBC
+        Query: IBC/Core
   - url: ./tmp-swagger-gen/ibc/core/connection/v1/query.swagger.json
     operationIds:
       rename:
         Params: IBCConnectionParams
     tags:
       rename:
-        Query: IBC
+        Query: IBC/Core
   - url: ./tmp-swagger-gen/packetforward/v1/query.swagger.json
     operationIds:
       rename:
         Params: IBCPacketforwardParams
     tags:
       rename:
-        Query: IBC
+        Query: IBC/Core
   - url: ./tmp-swagger-gen/xion/globalfee/v1/query.swagger.json
     operationIds:
       rename:

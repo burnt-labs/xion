@@ -37535,7 +37535,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets":
     get:
       summary: Gets all incentivized packets for a specific channel
@@ -37897,7 +37897,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/counterparty_payee":
     get:
       summary: CounterpartyPayee returns the registered counterparty payee for forward
@@ -38102,7 +38102,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/fee/v1/channels/{channel_id}/relayers/{relayer}/payee":
     get:
       summary: Payee returns the registered payee address for a specific channel given
@@ -38306,7 +38306,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/incentivized_packet":
     get:
       summary: IncentivizedPacket returns all packet fees for a packet given its
@@ -38617,7 +38617,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_ack_fees":
     get:
       summary: TotalAckFees returns the total acknowledgement fees for a packet given
@@ -38843,7 +38843,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_recv_fees":
     get:
       summary: TotalRecvFees returns the total receive fees for a packet given its
@@ -39069,7 +39069,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/fee/v1/channels/{packet_id.channel_id}/ports/{packet_id.port_id}/sequences/{packet_id.sequence}/total_timeout_fees":
     get:
       summary: TotalTimeoutFees returns the total timeout fees for a packet given its
@@ -39295,7 +39295,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Apps
   /ibc/apps/fee/v1/fee_enabled:
     get:
       summary: FeeEnabledChannels returns a list of all fee enabled channels
@@ -39563,7 +39563,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Apps
   /ibc/apps/fee/v1/incentivized_packets:
     get:
       summary: IncentivizedPackets returns all incentivized packets and their
@@ -39916,7 +39916,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}":
     get:
       summary: InterchainAccount returns the interchain account address for a given
@@ -40127,7 +40127,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/transfer/v1/denom_hashes/{trace}":
     get:
       summary: DenomHash queries a denomination hash information.
@@ -40180,7 +40180,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Apps
   /ibc/apps/transfer/v1/denom_traces:
     get:
       summary: DenomTraces queries all denomination traces.
@@ -40324,7 +40324,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/transfer/v1/denom_traces/{hash}":
     get:
       summary: DenomTrace queries a denomination trace information.
@@ -40393,7 +40393,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Apps
   "/ibc/apps/transfer/v1/denoms/{denom}/total_escrow":
     get:
       summary: TotalEscrowForDenom returns the total amount of tokens in escrow based
@@ -40454,7 +40454,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Apps
   /ibc/apps/transfer/v1/params:
     get:
       summary: Params queries all parameters of the ibc-transfer module.
@@ -40512,7 +40512,7 @@ paths:
                           type: string
                           format: byte
       tags:
-        - IBC
+        - IBC/Apps
   /ibc/core/channel/v1/channels:
     get:
       summary: Channels queries all the IBC channels of a chain.
@@ -40892,7 +40892,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}":
     get:
       summary: Channel queries an IBC Channel.
@@ -41198,7 +41198,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/client_state":
     get:
       summary: >-
@@ -41602,7 +41602,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/consensus_state/revision/{revision_number}/height/{revision_height}":
     get:
       summary: |-
@@ -42009,7 +42009,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/next_sequence":
     get:
       summary: NextSequenceReceive returns the next receive sequence for a given
@@ -42245,7 +42245,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acknowledgements":
     get:
       summary: >-
@@ -42603,7 +42603,7 @@ paths:
               type: string
               format: uint64
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}":
     get:
       summary: PacketAcknowledgement queries a stored packet acknowledgement hash.
@@ -42849,7 +42849,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments":
     get:
       summary: |-
@@ -43195,7 +43195,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks":
     get:
       summary: >-
@@ -43443,7 +43443,7 @@ paths:
               format: uint64
             minItems: 1
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{packet_commitment_sequences}/unreceived_packets":
     get:
       summary: >-
@@ -43691,7 +43691,7 @@ paths:
               format: uint64
             minItems: 1
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_commitments/{sequence}":
     get:
       summary: PacketCommitment queries a stored packet commitment hash.
@@ -43937,7 +43937,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_receipts/{sequence}":
     get:
       summary: >-
@@ -44186,7 +44186,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/channel/v1/connections/{connection}/channels":
     get:
       summary: |-
@@ -44575,7 +44575,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   /ibc/core/client/v1/client_states:
     get:
       summary: ClientStates queries all the IBC light clients of a chain.
@@ -45027,7 +45027,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/client/v1/client_states/{client_id}":
     get:
       summary: ClientState queries an IBC light client.
@@ -45413,7 +45413,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/client/v1/client_status/{client_id}":
     get:
       summary: Status queries the status of an IBC client.
@@ -45613,7 +45613,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/client/v1/consensus_states/{client_id}":
     get:
       summary: |-
@@ -46093,7 +46093,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/client/v1/consensus_states/{client_id}/heights":
     get:
       summary: ConsensusStateHeights queries the height of every consensus states
@@ -46414,7 +46414,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}":
     get:
       summary: >-
@@ -46831,7 +46831,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   /ibc/core/client/v1/params:
     get:
       summary: ClientParams queries all parameters of the ibc client submodule.
@@ -47037,7 +47037,7 @@ paths:
                               "value": "1.212s"
                             }
       tags:
-        - IBC
+        - IBC/Core
   /ibc/core/client/v1/upgraded_client_states:
     get:
       summary: UpgradedClientState queries an Upgraded IBC light client.
@@ -47383,7 +47383,7 @@ paths:
                               "value": "1.212s"
                             }
       tags:
-        - IBC
+        - IBC/Core
   /ibc/core/client/v1/upgraded_consensus_states:
     get:
       summary: UpgradedConsensusState queries an Upgraded IBC consensus state.
@@ -47731,7 +47731,7 @@ paths:
                               "value": "1.212s"
                             }
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/connection/v1/client_connections/{client_id}":
     get:
       summary: |-
@@ -47963,7 +47963,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   /ibc/core/connection/v1/connections:
     get:
       summary: Connections queries all the IBC connections of a chain.
@@ -48353,7 +48353,7 @@ paths:
           schema:
             type: boolean
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/connection/v1/connections/{connection_id}":
     get:
       summary: Connection queries an IBC connection end.
@@ -48671,7 +48671,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/connection/v1/connections/{connection_id}/client_state":
     get:
       summary: |-
@@ -49069,7 +49069,7 @@ paths:
           schema:
             type: string
       tags:
-        - IBC
+        - IBC/Core
   "/ibc/core/connection/v1/connections/{connection_id}/consensus_state/revision/{revision_number}/height/{revision_height}":
     get:
       summary: |-
@@ -49470,7 +49470,7 @@ paths:
             type: string
             format: uint64
       tags:
-        - IBC
+        - IBC/Core
   /ibc/core/connection/v1/params:
     get:
       summary: ConnectionParams queries all parameters of the ibc connection submodule.
@@ -49673,7 +49673,7 @@ paths:
                               "value": "1.212s"
                             }
       tags:
-        - IBC
+        - IBC/Core
   /ibc/apps/packetforward/v1/params:
     get:
       summary: Params queries all parameters of the packetforward module.
@@ -49719,7 +49719,7 @@ paths:
                           type: string
                           format: byte
       tags:
-        - IBC
+        - IBC/Core
   /xion/globalfee/v1/params:
     get:
       operationId: GlobalFeeParams
