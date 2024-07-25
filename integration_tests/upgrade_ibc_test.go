@@ -2,9 +2,10 @@ package integration_tests
 
 import (
 	"context"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"os"
-	"strconv"
 	"testing"
 	"time"
 
@@ -33,6 +34,8 @@ const (
 	xionUpgradeName = "v8.0.0"
 	osmosisVersion  = "v25.1.3"
 	axelarVersion   = "v0.35.3"
+
+	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
 
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
@@ -244,23 +247,45 @@ func SoftwareUpgrade(
 	height, err := chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height for softwareUpgradeProposal: %v", err)
 	haltHeight := height + haltHeightDelta - 3
-	softwareUpgradeProposal := cosmos.SoftwareUpgradeProposal{
-		Deposit:     fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
-		Title:       fmt.Sprintf("Software Upgrade %s", upgradeName),
-		Name:        upgradeName,
-		Description: fmt.Sprintf("Software Upgrade %s", upgradeName),
-		Height:      haltHeight,
-	}
 
 	// submit and vote on software upgrade
-	upgradeTx, err := chain.UpgradeProposal(ctx, chainUser.KeyName(), softwareUpgradeProposal)
-	require.NoErrorf(t, err, "couldn't submit software upgrade softwareUpgradeProposal tx: %v", err)
-	proposalID, err := strconv.Atoi(upgradeTx.ProposalID)
+	plan := upgradetypes.Plan{
+		Name:   upgradeName,
+		Height: haltHeight,
+		Info:   fmt.Sprintf("Software Upgrade %s", upgradeName),
+	}
+	upgrade := upgradetypes.MsgSoftwareUpgrade{
+		Authority: authority,
+		Plan:      plan,
+	}
+
+	address, err := chain.GetAddress(ctx, chainUser.KeyName())
 	require.NoError(t, err)
 
-	err = chain.VoteOnProposalAllValidators(ctx, uint64(proposalID), cosmos.ProposalVoteYes)
+	addrString, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, address)
+	require.NoError(t, err)
+
+	proposal, err := chain.BuildProposal(
+		[]cosmos.ProtoMessage{&upgrade},
+		fmt.Sprintf("Software Upgrade %s", upgradeName),
+		"upgrade chain E2E test",
+		"",
+		fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
+		addrString,
+		true,
+	)
+	require.NoError(t, err)
+
+	_, err = chain.SubmitProposal(ctx, chainUser.KeyName(), proposal)
+	require.NoError(t, err)
+
+	prop, err := chain.GovQueryProposal(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
+
+	err = chain.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
 	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+int64(haltHeightDelta), uint64(proposalID), govv1beta1.StatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+int64(haltHeightDelta), uint64(prop.ProposalId), govv1beta1.StatusPassed)
 	require.NoErrorf(t, err, "couldn't poll for softwareUpgradeProposal status: %v", err)
 	height, err = chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
