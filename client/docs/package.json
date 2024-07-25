@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@redocly/cli": "^1.18.1",
+    "redoc-cli": "^0.13.21",
+    "swagger2openapi": "^7.0.8"
+  }
+}

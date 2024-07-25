@@ -1,37 +1,26 @@
 #!/usr/bin/env bash
+# Use `make protogen` to run this script
 
-# How to run manually:
-# docker build --pull --rm -f "contrib/devtools/Dockerfile" -t xiond-proto:latest "contrib/devtools"
-# docker run --rm -v $(pwd):/workspace --workdir /workspace xiond-proto sh ./scripts/protocgen.sh
+set -eo pipefail
 
-set -e
+# Get the directory of this script, used to source other scripts
+scripts_dir="$(realpath $(dirname $0))"
+base_dir="$(dirname $scripts_dir)"
+proto_dir="$base_dir/proto"
 
-echo "Generating gogo proto code"
-cd proto
-proto_dirs=$(find ./xion -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
+# sets $proto_dirs
+source $scripts_dir/protoc-common.sh
+
 for dir in $proto_dirs; do
   for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
-    # this regex checks if a proto file has its go_package set to cosmossdk.io/api/...
-    # gogo proto files SHOULD ONLY be generated if this is false
-    # we don't want gogo proto to run for proto files which are natively built for google.golang.org/protobuf
-    if grep -q "option go_package" "$file" && grep -H -o -c 'option go_package.*cosmossdk.io/api' "$file" | grep -q ':0$'; then
-      buf generate --template buf.gen.gogo.yaml $file
+    if grep "option go_package" $file &> /dev/null ; then
+      buf generate --template $proto_dir/buf.gen.gogo.yaml $file
     fi
   done
 done
 
-cd ..
-
-# generate codec/testdata proto code
-(cd testutil/testdata; buf generate)
-
-# generate baseapp test messages
-(cd baseapp/testutil; buf generate)
-
 # move proto files to the right places
-cp -r github.com/cosmos/xion/* ./
-rm -rf github.com
-
-go mod tidy
-
-./scripts/protocgen-pulsar.sh
+if [ -e "github.com/burnt-labs/xion" ]; then
+  cp -rv github.com/burnt-labs/xion/* ./
+  rm -rf github.com
+fi

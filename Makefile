@@ -11,8 +11,6 @@ XION_IMAGE=xion:local
 
 # for dockerized protobuf tools
 DOCKER := $(shell which docker)
-BUF_IMAGE=bufbuild/buf@sha256:3cb1f8a4b48bd5ad8f09168f10f607ddc318af202f5c057d52a45216793d85e5 #v1.4.0
-DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(BUF_IMAGE)
 HTTPS_GIT := https://github.com/burnt-labs/xiond.git
 
 export GO111MODULE = on
@@ -118,16 +116,6 @@ distclean: clean
 ###############################################################################
 ###                              Documentation                              ###
 ###############################################################################
-
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=client/docs/swagger-ui -dest=client/docs -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-		echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-		exit 1;\
-	else \
-		echo "\033[92mSwagger docs are in sync\033[0m";\
-	fi
-.PHONY: update-swagger-docs
 
 ########################################
 ### Testing
@@ -252,24 +240,20 @@ proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/protocgen.sh
 
-proto-gen:
-	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/protocgen.sh
-
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
 	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
-	$(MAKE) update-swagger-docs
+	$(BINDIR)/statik -src=client/docs/static -dest=client/docs -f -m
 
 proto-format:
 	@echo "Formatting Protobuf files"
 	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
 
 proto-lint:
-	@$(DOCKER_BUF) lint --error-format=json
+	@$(protoImage) lint --error-format=json
 
 proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
+	@$(protoImage) breaking --against $(HTTPS_GIT)#branch=main
 
 .PHONY: all install install-debug \
 	go-mod-cache draw-deps clean build format \
