@@ -9,74 +9,82 @@ apis:
       rename:
         Params: AuthParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Auth
+        - Cosmos/Auth
   - url: ./tmp-swagger-gen/cosmos/authz/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: AuthzParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Authz
+        - Cosmos/Authz
   - url: ./tmp-swagger-gen/cosmos/bank/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: BankParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Bank
+        - Cosmos/Bank
   - url: ./tmp-swagger-gen/cosmos/base/tendermint/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: BaseParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Base
-        - Tendermint
+        - Cosmos/Base
   - url: ./tmp-swagger-gen/cosmos/consensus/v1/query.swagger.json
     operationIds:
       rename:
         Params: ConsensusParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Consensus
+        - Cosmos/Consensus
   - url: ./tmp-swagger-gen/cosmos/distribution/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: DistributionParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Distribution
+        - Cosmos/Distribution
   - url: ./tmp-swagger-gen/cosmos/evidence/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: EvidenceParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Evidence
+        - Cosmos/Evidence
   - url: ./tmp-swagger-gen/cosmos/feegrant/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: FeegrantParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Feegrant
+        - Cosmos/Feegrant
   - url: ./tmp-swagger-gen/cosmos/gov/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: GovParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Gov
+        - Cosmos/Gov
   - url: ./tmp-swagger-gen/cosmos/gov/v1/query.swagger.json
     operationIds:
       rename:
@@ -89,9 +97,10 @@ apis:
         Deposits: GovV1Deposit
         TallyResult: GovV1TallyResult
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Gov
+        - Cosmos/Gov
   - url: ./tmp-swagger-gen/cosmos/group/v1/query.swagger.json
     operationIds:
       rename:
@@ -99,9 +108,10 @@ apis:
         Proposal: GroupProposal
         TallyResult: GroupTallyResult
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Group
+        - Cosmos/Group
   - url: ./tmp-swagger-gen/cosmos/mint/v1beta1/query.swagger.json
     operationIds:
       rename:
@@ -111,71 +121,81 @@ apis:
         - /cosmos/mint/v1beta1/annual_provisions
         - /cosmos/mint/v1beta1/inflation
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Mint
+        - Cosmos/Mint
   - url: ./tmp-swagger-gen/cosmos/nft/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: NftParams
         Balance: NftBalance
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Nft
+        - Cosmos/Nft
   - url: ./tmp-swagger-gen/cosmos/params/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: Params
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Params
+        - Cosmos/Params
   - url: ./tmp-swagger-gen/cosmos/slashing/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: SlashingParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Slashing
+        - Cosmos/Slashing
   - url: ./tmp-swagger-gen/cosmos/staking/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: StakingParams
         DelegatorValidators: StakingDelegatorValidators
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Staking
+        - Cosmos/Staking
   - url: ./tmp-swagger-gen/cosmos/tx/v1beta1/service.swagger.json
     dereference:
       circular: ignore
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Tx
+        - Cosmos/Tx
   - url: ./tmp-swagger-gen/cosmos/upgrade/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: UpgradeParams
     tags:
+      remove:
+        - Query
       add:
-        - Cosmos
-        - Upgrade
+        - Cosmos/Upgrade
   - url: ./tmp-swagger-gen/cosmwasm/wasm/v1/query.swagger.json
     operationIds:
       rename:
         Params: WasmParams
     tags:
+      remove:
+        - Query
       add:
         - CosmWasm
-        - Wasm
   - url: ./tmp-swagger-gen/ibc/applications/fee/v1/query.swagger.json
     operationIds:
       rename:
         Params: IBCFeeParams
     tags:
+      remove:
+        - Query
       add:
         - IBC
   - url: ./tmp-swagger-gen/ibc/applications/interchain_accounts/controller/v1/query.swagger.json
@@ -183,22 +203,26 @@ apis:
       rename:
         Params: ICAControllerParams
     tags:
+      remove:
+        - Query
       add:
-        - IBC
         - ICA
   - url: ./tmp-swagger-gen/ibc/applications/interchain_accounts/host/v1/query.swagger.json
     operationIds:
       rename:
         Params: ICAHostParams
     tags:
+      remove:
+        - Query
       add:
-        - IBC
         - ICA
   - url: ./tmp-swagger-gen/ibc/applications/transfer/v1/query.swagger.json
     operationIds:
       rename:
         Params: IBCTransferParams
     tags:
+      remove:
+        - Query
       add:
         - IBC
   - url: ./tmp-swagger-gen/ibc/core/channel/v1/query.swagger.json
@@ -206,6 +230,8 @@ apis:
       rename:
         Params: IBCChannelParams
     tags:
+      remove:
+        - Query
       add:
         - IBC
   - url: ./tmp-swagger-gen/ibc/core/client/v1/query.swagger.json
@@ -214,6 +240,8 @@ apis:
         Params: IBCClientParams
         UpgradedConsensusState: IBCUpgradedConsensusState
     tags:
+      remove:
+        - Query
       add:
         - IBC
   - url: ./tmp-swagger-gen/ibc/core/connection/v1/query.swagger.json
@@ -221,6 +249,8 @@ apis:
       rename:
         Params: IBCConnectionParams
     tags:
+      remove:
+        - Query
       add:
         - IBC
   - url: ./tmp-swagger-gen/packetforward/v1/query.swagger.json
@@ -228,6 +258,8 @@ apis:
       rename:
         Params: IBCPacketforwardParams
     tags:
+      remove:
+        - Query
       add:
         - IBC
   - url: ./tmp-swagger-gen/xion/globalfee/v1/query.swagger.json
@@ -235,26 +267,31 @@ apis:
       rename:
         Params: GlobalFeeParams
     tags:
+      remove:
+        - Query
       add:
-        - Xion
-        - GlobalFee
+        - Xion/GlobalFee
   - url: ./tmp-swagger-gen/xion/jwk/v1/query.swagger.json
     operationIds:
       rename:
         Params: JWKParams
     tags:
+      remove:
+        - Query
       add:
-        - Xion
-        - JWK
+        - Xion/JWK
   - url: ./tmp-swagger-gen/xion/mint/v1/query.swagger.json
     operationIds:
       rename:
         Params: XionMintParams
     tags:
+      remove:
+        - Query
       add:
-        - Xion
-        - Mint
+        - Xion/Mint
   - url: ./tmp-swagger-gen/xion/v1/query.swagger.json
     tags:
+      remove:
+        - Query
       add:
         - Xion
