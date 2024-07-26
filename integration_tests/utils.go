@@ -619,6 +619,27 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 	return output.TxHash, nil
 }
 
+func ExecTxWithGas(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, gas string, command ...string) (string, error) {
+	cmd := TxCommandOverrideGas(t, tn, keyName, gas, command...)
+	t.Logf("cmd: %s", cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal(stdout, &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, nil
+}
+
 func GenerateTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
 	cmd := append([]string{"tx"}, command...)
 	cmd = tn.NodeCommand(append(cmd,
