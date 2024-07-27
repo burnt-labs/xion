@@ -29,15 +29,17 @@ done
 # combine swagger files
 # uses nodejs package `swagger-combine`.
 # all the individual swagger files need to be configured in `config.json` for merging
-mkdir -p static/swagger
+mkdir -p static
 swagger-combine config.yaml \
-  --format "yaml" \
-  --output static/swagger/swagger.yaml \
+  --format "json" \
+  --output static/swagger.json \
   --includeDefinitions true \
   --continueOnConflictingPaths true
 
+# Generate OpenAPI spec using Swagger2Openapi
+# Install required dependencies if not already installed
+npm install --prefix tmp-swagger-gen  swagger2openapi
+npm exec --prefix tmp-swagger-gen  -- swagger2openapi static/swagger.json --outfile static/openapi.json
+
 # clean swagger files
 rm -rf tmp-swagger-gen
-
-# generate openapi files
-source $scripts_dir/protoc-openapi-gen.sh

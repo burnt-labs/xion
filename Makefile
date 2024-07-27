@@ -239,7 +239,6 @@ proto-gen:
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
 	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
-	$(BINDIR)/statik -src=client/docs/static -dest=client/docs -f -m
 
 proto-format:
 	@echo "Formatting Protobuf files"

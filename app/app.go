@@ -17,6 +17,7 @@ import (
 	"github.com/CosmosContracts/juno/v21/x/tokenfactory/bindings"
 	tokenfactorykeeper "github.com/CosmosContracts/juno/v21/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
+	"github.com/gorilla/mux"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -157,11 +158,8 @@ import (
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 
-	// imports for swagger UI support
-	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
-	_ "github.com/burnt-labs/xion/client/docs/statik"
-
+	// imports for swagger UI
+	"github.com/burnt-labs/xion/client/docs"
 )
 
 const appName = "XionApp"
@@ -1197,21 +1195,22 @@ func (app *WasmApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICo
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
-	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
-		panic(err)
+	if apiConfig.Swagger {
+		RegisterSwaggerAPI(apiSvr.Router)
 	}
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(rtr *mux.Router) {
-	statikFS, err := fs.New()
-	if err != nil {
-		panic(err)
-	}
+func RegisterSwaggerAPI(router *mux.Router) {
+	docsServer := http.FileServer(http.FS(docs.Docs))
+	router.Handle("/static", docsServer)
+	router.Handle("/static/", docsServer)
+	router.Handle("/static/swagger.json", docsServer)
+	router.Handle("/static/openapi.json", docsServer)
 
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
-	rtr.PathPrefix("/swagger/").Handler(staticServer)
+  router.PathPrefix("/").Handler(http.RedirectHandler("/static/", http.StatusMovedPermanently))
+	router.PathPrefix("/static").Handler(http.StripPrefix("/static/", docsServer))
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", docsServer))
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
