@@ -1208,9 +1208,12 @@ func RegisterSwaggerAPI(router *mux.Router) {
 	router.Handle("/static/swagger.json", docsServer)
 	router.Handle("/static/openapi.json", docsServer)
 
-  router.PathPrefix("/").Handler(http.RedirectHandler("/static/", http.StatusMovedPermanently))
 	router.PathPrefix("/static").Handler(http.StripPrefix("/static/", docsServer))
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", docsServer))
+
+  router.PathPrefix("/").Handler(http.RedirectHandler("/static/", http.StatusMovedPermanently))
+  router.PathPrefix("/swagger").Handler(http.RedirectHandler("/static/", http.StatusMovedPermanently))
+  router.PathPrefix("/swagger/").Handler(http.RedirectHandler("/static/", http.StatusMovedPermanently))
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
