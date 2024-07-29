@@ -11,7 +11,7 @@ XION_IMAGE=xion:local
 
 # for dockerized protobuf tools
 DOCKER := $(shell which docker)
-HTTPS_GIT := https://github.com/burnt-labs/xiond.git
+HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
 export GO111MODULE = on
 
@@ -245,10 +245,10 @@ proto-format:
 	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
 
 proto-lint:
-	@$(protoImage) lint --error-format=json
+	@$(protoImage) buf lint --error-format=json
 
 proto-check-breaking:
-	@$(protoImage) breaking --against $(HTTPS_GIT)#branch=main
+	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
 .PHONY: all install install-debug \
 	go-mod-cache draw-deps clean build format \
