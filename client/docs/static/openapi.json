@@ -26753,9 +26753,86 @@
                 ]
             }
         },
+        "/xion/jqk/audience_claim/{hash}": {
+            "get": {
+                "operationId": "AudienceClaim",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "claim": {
+                                            "type": "object",
+                                            "properties": {
+                                                "signer": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "format": "int32"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type_url": {
+                                                        "type": "string"
+                                                    },
+                                                    "value": {
+                                                        "type": "string",
+                                                        "format": "byte"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "byte"
+                        }
+                    }
+                ],
+                "tags": [
+                    "XionJWK"
+                ]
+            }
+        },
         "/xion/jwk/audience": {
             "get": {
-                "summary": "Queries a list of Audience items.",
                 "operationId": "AudienceAll",
                 "responses": {
                     "200": {
@@ -26972,85 +27049,6 @@
                         "required": true,
                         "schema": {
                             "type": "string"
-                        }
-                    }
-                ],
-                "tags": [
-                    "XionJWK"
-                ]
-            }
-        },
-        "/xion/jwk/audience_claim/{hash}": {
-            "get": {
-                "summary": "Queries an audience claim by hash",
-                "operationId": "AudienceClaim",
-                "responses": {
-                    "200": {
-                        "description": "A successful response.",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "claim": {
-                                            "type": "object",
-                                            "properties": {
-                                                "signer": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "description": "An unexpected error response.",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        },
-                                        "code": {
-                                            "type": "integer",
-                                            "format": "int32"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "details": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "type_url": {
-                                                        "type": "string"
-                                                    },
-                                                    "value": {
-                                                        "type": "string",
-                                                        "format": "byte"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "hash",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "byte"
                         }
                     }
                 ],
