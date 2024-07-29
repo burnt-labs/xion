@@ -342,10 +342,12 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
 		"integration_tests", "testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
 	require.NoError(t, err)
+	t.Logf("loaded previous contract at ID %s", codeIDStr)
 
 	migrateTargetCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
 		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
+	t.Logf("loaded new contract at ID %s", migrateTargetCodeIDStr)
 
 	// retrieve the hash
 	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
