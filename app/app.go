@@ -1193,25 +1193,28 @@ func (app *WasmApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICo
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
-	if apiConfig.Swagger {
-		RegisterSwaggerAPI(apiSvr.Router)
+	if err := server.RegisterSwaggerAPI(clientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
+		panic(err)
 	}
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(router *mux.Router) {
-	docsServer := http.FileServer(http.FS(docs.Docs))
-	router.Handle("/static", docsServer)
-	router.Handle("/static/", docsServer)
-	router.Handle("/static/swagger.json", docsServer)
-	router.Handle("/static/openapi.json", docsServer)
+func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router, swaggerEnabled bool) error {
+	if swaggerEnabled {
+		docsServer := http.FileServer(http.FS(docs.Docs))
+		rtr.Handle("/static", docsServer)
+		rtr.Handle("/static/", docsServer)
+		rtr.Handle("/static/swagger.json", docsServer)
+		rtr.Handle("/static/openapi.json", docsServer)
 
-	router.PathPrefix("/static").Handler(http.StripPrefix("/static/", docsServer))
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", docsServer))
+		rtr.PathPrefix("/static").Handler(http.StripPrefix("/static/", docsServer))
+		rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", docsServer))
 
-	router.Handle("/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
-	router.Handle("/swagger", http.RedirectHandler("/static/", http.StatusMovedPermanently))
-	router.Handle("/swagger/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
+		rtr.Handle("/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
+		rtr.Handle("/swagger", http.RedirectHandler("/static/", http.StatusMovedPermanently))
+		rtr.Handle("/swagger/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
+	}
+	return nil
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
