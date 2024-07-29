@@ -146,6 +146,7 @@ import (
 
 	"github.com/burnt-labs/xion/app/upgrades"
 	v9 "github.com/burnt-labs/xion/app/upgrades/v9"
+	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
@@ -157,9 +158,6 @@ import (
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-
-	// imports for swagger UI
-	"github.com/burnt-labs/xion/client/docs"
 )
 
 const appName = "XionApp"
@@ -1215,7 +1213,6 @@ func RegisterSwaggerAPI(router *mux.Router) {
 	router.Handle("/swagger", http.RedirectHandler("/static/", http.StatusMovedPermanently))
 	router.Handle("/swagger/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
 }
-
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *WasmApp) RegisterTxService(clientCtx client.Context) {
