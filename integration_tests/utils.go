@@ -2,6 +2,7 @@ package integration_tests
 
 import (
 	"context"
+	"cosmossdk.io/x/upgrade"
 	"crypto"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
@@ -10,6 +11,25 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	minttypes "github.com/burnt-labs/xion/x/mint/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/ibc-go/modules/capability"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"math/big"
 	"math/rand"
 	"os"
@@ -22,6 +42,7 @@ import (
 	"cosmossdk.io/math"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/xion/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/go-webauthn/webauthn/protocol"
@@ -203,31 +224,65 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
+	// config
+	cfg := ibc.ChainConfig{
+		Images: []ibc.DockerImage{
+			{
+				Repository: imageTagComponents[0],
+				Version:    imageTagComponents[1],
+				UidGid:     "1025:1025",
+			},
+		},
+		//GasPrices:              "0.1uxion",
+		GasPrices:      gas,
+		GasAdjustment:  2.0,
+		Type:           "cosmos",
+		ChainID:        "xion-1",
+		Bin:            "xiond",
+		Bech32Prefix:   "xion",
+		Denom:          "uxion",
+		TrustingPeriod: "336h",
+		ModifyGenesis:  modifyGenesis,
+		//UsingNewGenesisCommand: true,
+		EncodingConfig: func() *moduletestutil.TestEncodingConfig {
+			cfg := moduletestutil.MakeTestEncodingConfig(
+				auth.AppModuleBasic{},
+				genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				bank.AppModuleBasic{},
+				capability.AppModuleBasic{},
+				staking.AppModuleBasic{},
+				distr.AppModuleBasic{},
+				gov.NewAppModuleBasic(
+					[]govclient.ProposalHandler{
+						paramsclient.ProposalHandler,
+					},
+				),
+				params.AppModuleBasic{},
+				slashing.AppModuleBasic{},
+				upgrade.AppModuleBasic{},
+				consensus.AppModuleBasic{},
+				transfer.AppModuleBasic{},
+				//ibccore.AppModuleBasic{},
+				//ibctm.AppModuleBasic{},
+				//ibcwasm.AppModuleBasic{},
+			)
+			// TODO: add encoding types here for the modules you want to use
+			wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			tokenfactorytypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			xiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			jwktypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			aatypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			return &cfg
+		}(),
+	}
+
 	// Chain factory
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
-			Name:    imageTagComponents[0],
-			Version: imageTagComponents[1],
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: imageTagComponents[0],
-						Version:    imageTagComponents[1],
-						UidGid:     "1025:1025",
-					},
-				},
-				// GasPrices:              "0.1uxion",
-				GasPrices:      gas,
-				GasAdjustment:  1.3,
-				Type:           "cosmos",
-				ChainID:        "xion-1",
-				Bin:            "xiond",
-				Bech32Prefix:   "xion",
-				Denom:          "uxion",
-				TrustingPeriod: "336h",
-				ModifyGenesis:  modifyGenesis,
-				// UsingNewGenesisCommand: true,
-			},
+			Name:          imageTagComponents[0],
+			Version:       imageTagComponents[1],
+			ChainConfig:   cfg,
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
 		},

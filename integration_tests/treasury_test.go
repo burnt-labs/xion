@@ -15,7 +15,6 @@ import (
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionapp "github.com/burnt-labs/xion/app"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -187,7 +186,6 @@ func TestTreasuryContract(t *testing.T) {
 
 	authzGrantMsg, err := authz.NewMsgGrant(granterUser.Address(), granteeUser.Address(), testAuth, &inFive)
 	require.NoError(t, err)
-	encodingConfig := xionapp.MakeEncodingConfig(t)
 
 	executeMsg := map[string]interface{}{}
 	feegrantMsg := map[string]interface{}{}
@@ -206,13 +204,13 @@ func TestTreasuryContract(t *testing.T) {
 
 	require.NoError(t, err)
 	// build the tx
-	txBuilder := encodingConfig.TxConfig.NewTxBuilder()
+	txBuilder := xion.Config().EncodingConfig.TxConfig.NewTxBuilder()
 	err = txBuilder.SetMsgs(authzGrantMsg, &contractMsg)
 	require.NoError(t, err)
 	txBuilder.SetGasLimit(200000)
 	tx := txBuilder.GetTx()
 
-	txJSONStr, err := encodingConfig.TxConfig.TxJSONEncoder()(tx)
+	txJSONStr, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(tx)
 	require.NoError(t, err)
 
 	t.Logf("tx: %s", txJSONStr)
@@ -258,6 +256,6 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
-	allowanceType := allowance["@type"].(string)
-	require.Contains(t, allowanceType, "/cosmos.feegrant.v1beta1.BasicAllowance")
+	allowanceType := allowance["type"].(string)
+	require.Contains(t, allowanceType, "cosmos-sdk/BasicAllowance")
 }
