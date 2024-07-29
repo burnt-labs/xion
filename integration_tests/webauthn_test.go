@@ -19,7 +19,6 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionapp "github.com/burnt-labs/xion/app"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -167,8 +166,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	var account aatypes.AbstractAccount
-	encodingConfig := xionapp.MakeEncodingConfig(t)
-	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
+	err = xion.Config().EncodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
 	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: math.NewInt(10_000)})

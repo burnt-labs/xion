@@ -26,7 +26,6 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionapp "github.com/burnt-labs/xion/app"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -241,8 +240,7 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		require.NoError(t, err)
 
 		var account aatypes.AbstractAccount
-		encodingConfig := xionapp.MakeEncodingConfig(t)
-		err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
+		err = xion.Config().EncodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 		require.NoError(t, err)
 		predictedAddrs = append(predictedAddrs, predictedAddr)
 	}
@@ -461,8 +459,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	var account aatypes.AbstractAccount
-	encodingConfig := xionapp.MakeEncodingConfig(t)
-	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
+	err = xion.Config().EncodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
 	// Generate Msg Send without signatures

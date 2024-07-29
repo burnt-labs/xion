@@ -21,7 +21,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	xionapp "github.com/burnt-labs/xion/app"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -248,8 +247,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.NoError(t, err)
 
 	var account aatypes.AbstractAccount
-	encodingConfig := xionapp.MakeEncodingConfig(t)
-	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
+	err = xion.Config().EncodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
 	// create the raw tx
