@@ -389,7 +389,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.NoError(t, err)
 	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, int64(10_000-1337), newBalance)
+	require.Equal(t, int64(10_000-1337), newBalance.Int64())
 }
 
 func TestXionAbstractAccount(t *testing.T) {
