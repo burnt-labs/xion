@@ -519,6 +519,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		xionUser.KeyName(),
 		path.Join(xion.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
+		"--sign-mode", "textual",
 	)
 	require.NoError(t, err)
 
@@ -622,19 +623,13 @@ func TestXionAbstractAccount(t *testing.T) {
 }
 
 func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string {
-	logs, ok := txDetails["logs"].([]interface{})
+	logs, ok := txDetails["events"].([]interface{})
 	require.True(t, ok)
 
-	log, ok := logs[0].(map[string]interface{})
+	log, ok := logs[9].(map[string]interface{})
 	require.True(t, ok)
 
-	events, ok := log["events"].([]interface{})
-	require.True(t, ok)
-
-	event, ok := events[4].(map[string]interface{})
-	require.True(t, ok)
-
-	attributes, ok := event["attributes"].([]interface{})
+	attributes, ok := log["attributes"].([]interface{})
 	require.True(t, ok)
 
 	attribute, ok := attributes[0].(map[string]interface{})
