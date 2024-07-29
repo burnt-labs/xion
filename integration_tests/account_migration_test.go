@@ -430,7 +430,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, int64(10_000), newBalance)
+	require.Equal(t, int64(10_000), newBalance.Int64())
 
 	// get the account from the chain. there might be a better way to do this
 	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),

@@ -28,21 +28,24 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 	td := BuildXionChain(t, "0.025uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
 
 	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount math.Int) {
-		_, err := ExecTx(t, ctx, xion.GetNode(),
+		// NOTE: Tx should be rejected inssufficient gas
+		_, err := ExecTxWithGas(t, ctx, xion.GetNode(),
+			xionUser.KeyName(),
+			"0.024uxion",
+			"xion", "send", xionUser.KeyName(),
+			"--chain-id", xion.Config().ChainID,
+			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+		)
+		require.Error(t, err)
+
+		// NOTE: Uses default Gas
+		_, err = ExecTx(t, ctx, xion.GetNode(),
 			xionUser.KeyName(),
 			"xion", "send", xionUser.KeyName(),
 			"--chain-id", xion.Config().ChainID,
 			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
 		)
 		require.NoError(t, err)
-
-		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
-		require.NoError(t, err)
-		require.Equal(t, fundAmount.Sub(math.NewInt(2415)).Int64(), balance.Int64())
-
-		balance, err = xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
-		require.NoError(t, err)
-		require.Equal(t, math.NewInt(100), balance)
 	}
 
 	testMinimumFee(t, &td, assertion)

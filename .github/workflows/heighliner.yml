@@ -51,6 +51,8 @@ jobs:
           github-organization: burnt-labs
           github-repo: xion
           dockerfile: cosmos
+          pre-build:
+            apk add --no-cache binutils-gold
           build-target: make install
           binaries: '["/go/bin/xiond"]'
           build-env: '["BUILD_TAGS=muslc"]'
