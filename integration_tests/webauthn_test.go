@@ -207,9 +207,9 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	}
 		`, contract, deployerAddr.FormattedAddress(), "uxion")
 
-	tx, err := encodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
+	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)
-	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
+	txBuilder, err := xion.Config().EncodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
 	// create the sign bytes
 	pubKey := account.GetPubKey()
@@ -247,7 +247,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	}
 	txData := adaptableTx.GetSigningTxData()
 
-	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+	signBytes, err := xion.Config().EncodingConfig.TxConfig.SignModeHandler().GetSignBytes(
 		ctx,
 		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
 		signerData, txData)
@@ -282,7 +282,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	jsonTx, err := encodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+	jsonTx, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
