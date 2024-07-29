@@ -228,11 +228,19 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		require.NoError(t, err)
 		t.Logf("account response: %s", accountResponse)
 
-		delete(accountResponse, "@type")
-		var account aatypes.AbstractAccount
-		accountJSON, err := json.Marshal(accountResponse)
+		ac, ok := accountResponse["account"]
+		require.True(t, ok)
+
+		ac2, ok := ac.(map[string]interface{})
+		require.True(t, ok)
+
+		acData, ok := ac2["value"]
+		require.True(t, ok)
+
+		accountJSON, err := json.Marshal(acData)
 		require.NoError(t, err)
 
+		var account aatypes.AbstractAccount
 		encodingConfig := xionapp.MakeEncodingConfig(t)
 		err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 		require.NoError(t, err)
