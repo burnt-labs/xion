@@ -15,7 +15,7 @@ option go_package = "github.com/burnt-labs/xion/x/xion/types";
 message AuthzAllowance {
   option (gogoproto.goproto_getters)         = false;
   option (cosmos_proto.implements_interface) = "cosmos.feegrant.v1beta1.FeeAllowanceI";
-  option (amino.name)                        = "cosmos-sdk/AuthzAllowance";
+  option (amino.name)                        = "xion/AuthzAllowance";
 
   // allowance can be any of basic and periodic fee allowance.
   google.protobuf.Any allowance = 1 [(cosmos_proto.accepts_interface) = "cosmos.feegrant.v1beta1.FeeAllowanceI"];
@@ -27,10 +27,20 @@ message AuthzAllowance {
 message ContractsAllowance {
   option (gogoproto.goproto_getters)         = false;
   option (cosmos_proto.implements_interface) = "cosmos.feegrant.v1beta1.FeeAllowanceI";
-  option (amino.name)                        = "cosmos-sdk/AuthzAllowance";
+  option (amino.name)                        = "xion/ContractsAllowance";
 
-  // allowance can be any of basic and periodic fee allowance.
+  // allowance can be any allowance interface type.
   google.protobuf.Any allowance = 1 [(cosmos_proto.accepts_interface) = "cosmos.feegrant.v1beta1.FeeAllowanceI"];
 
   repeated string contract_addresses = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MultiAnyAllowance creates an allowance that pays if any of the internal allowances are met
+message MultiAnyAllowance {
+  option (gogoproto.goproto_getters)         = false;
+  option (cosmos_proto.implements_interface) = "cosmos.feegrant.v1beta1.FeeAllowanceI";
+  option (amino.name)                        = "xion/MultiAnyAllowance";
+
+  // allowance can be any allowance interface type.
+  repeated google.protobuf.Any allowances = 1 [(cosmos_proto.accepts_interface) = "cosmos.feegrant.v1beta1.FeeAllowanceI"];
 }
