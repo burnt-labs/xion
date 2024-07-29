@@ -467,7 +467,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, json.Valid(jsonMsg))
 
-	tx, err := encodingConfig.TxConfig.TxJSONDecoder()([]byte(jsonMsg))
+	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(jsonMsg))
 	require.NoError(t, err)
 
 	pubKey := account.GetPubKey()
@@ -484,7 +484,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 		}, // NOTE: NilPubKey
 	}
 
-	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
+	txBuilder, err := xion.Config().EncodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
 
 	sigData := signing.SingleSignatureData{
@@ -508,7 +508,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	}
 	txData := adaptableTx.GetSigningTxData()
 
-	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+	signBytes, err := xion.Config().EncodingConfig.TxConfig.SignModeHandler().GetSignBytes(
 		ctx,
 		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
 		signerData, txData)
@@ -555,7 +555,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	jsonTx, err := encodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+	jsonTx, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
