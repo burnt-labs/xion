@@ -46,7 +46,7 @@ jobs:
             type=semver,pattern=v{{version}}
       - name: Heighliner build and push
         id: heighlinerbuild
-        uses: burnt-labs/heighliner-action@v1.0.0-alpha10
+        uses: strangelove-ventures/heighliner-build-action@v1.0.3
         with:
           local: true
           tag: ${{ steps.meta.outputs.version }}
@@ -55,7 +55,8 @@ jobs:
           github-repo: xion
           dockerfile: cosmos
           build-target: make install
-          binaries: "[\"/go/bin/xiond\"]"
+          binaries: |
+            - /go/bin/xiond
           build-env: "[\"BUILD_TAGS=muslc\"]"
       - name: Push docker image
         run: |
