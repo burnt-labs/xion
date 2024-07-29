@@ -519,7 +519,6 @@ func TestXionAbstractAccount(t *testing.T) {
 		xionUser.KeyName(),
 		path.Join(xion.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
-		"--sign-mode", "textual",
 	)
 	require.NoError(t, err)
 
