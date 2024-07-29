@@ -14,7 +14,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 	"github.com/burnt-labs/xion/x/xion/keeper"
@@ -79,15 +78,17 @@ type AppModule struct {
 	keeper keeper.Keeper
 }
 
+func (am AppModule) IsOnePerModuleType() {
+}
+
+func (am AppModule) IsAppModule() {
+}
+
 // NewAppModule creates a new 29-fee module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
-}
-
-// RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 }
 
 // RegisterServices registers module services.
@@ -120,27 +121,3 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
-
-// BeginBlock implements the AppModule interface
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
-
-// EndBlock implements the AppModule interface
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
-}
-
-// AppModuleSimulation functions
-
-// GenerateGenesisState creates a randomized GenState of the 29-fee module.
-func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
-}
-
-// RegisterStoreDecoder registers a decoder for 29-fee module's types
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {
-}
-
-// WeightedOperations returns the all the 29-fee module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
-	return nil
-}

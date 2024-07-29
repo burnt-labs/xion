@@ -2,22 +2,28 @@ package integration_tests
 
 import (
 	"context"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"cosmossdk.io/math"
+
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 
 	"github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v7/conformance"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer"
-	"github.com/strangelove-ventures/interchaintest/v7/relayer/rly"
+	"github.com/strangelove-ventures/interchaintest/v8/conformance"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer/rly"
 
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -28,6 +34,8 @@ const (
 	xionUpgradeName = "v8.0.0"
 	osmosisVersion  = "v25.1.3"
 	axelarVersion   = "v0.35.3"
+
+	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
 
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
@@ -116,17 +124,16 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 						UidGid:     "1025:1025",
 					},
 				},
-				GasPrices:              "0.0uxion",
-				GasAdjustment:          1.3,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				NoHostMount:            false,
-				ModifyGenesis:          ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
-				UsingNewGenesisCommand: true,
+				GasPrices:      "0.0uxion",
+				GasAdjustment:  1.3,
+				Type:           "cosmos",
+				ChainID:        "xion-1",
+				Bin:            "xiond",
+				Bech32Prefix:   "xion",
+				Denom:          "uxion",
+				TrustingPeriod: "336h",
+				NoHostMount:    false,
+				ModifyGenesis:  ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
 			},
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
@@ -232,7 +239,7 @@ func SoftwareUpgrade(
 	ctx := context.Background()
 
 	// fund user
-	fundAmount := int64(10_000_000_000)
+	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
 	chainUser := users[0]
 
@@ -240,20 +247,45 @@ func SoftwareUpgrade(
 	height, err := chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height for softwareUpgradeProposal: %v", err)
 	haltHeight := height + haltHeightDelta - 3
-	softwareUpgradeProposal := cosmos.SoftwareUpgradeProposal{
-		Deposit:     fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
-		Title:       fmt.Sprintf("Software Upgrade %s", upgradeName),
-		Name:        upgradeName,
-		Description: fmt.Sprintf("Software Upgrade %s", upgradeName),
-		Height:      haltHeight,
-	}
 
 	// submit and vote on software upgrade
-	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), softwareUpgradeProposal)
-	require.NoErrorf(t, err, "couldn't submit software upgrade softwareUpgradeProposal tx: %v", err)
-	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
+	plan := upgradetypes.Plan{
+		Name:   upgradeName,
+		Height: haltHeight,
+		Info:   fmt.Sprintf("Software Upgrade %s", upgradeName),
+	}
+	upgrade := upgradetypes.MsgSoftwareUpgrade{
+		Authority: authority,
+		Plan:      plan,
+	}
+
+	address, err := chain.GetAddress(ctx, chainUser.KeyName())
+	require.NoError(t, err)
+
+	addrString, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, address)
+	require.NoError(t, err)
+
+	proposal, err := chain.BuildProposal(
+		[]cosmos.ProtoMessage{&upgrade},
+		fmt.Sprintf("Software Upgrade %s", upgradeName),
+		"upgrade chain E2E test",
+		"",
+		fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
+		addrString,
+		true,
+	)
+	require.NoError(t, err)
+
+	_, err = chain.SubmitProposal(ctx, chainUser.KeyName(), proposal)
+	require.NoError(t, err)
+
+	prop, err := chain.GovQueryProposal(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
+
+	err = chain.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
 	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+int64(haltHeightDelta), uint64(prop.ProposalId), govv1beta1.StatusPassed)
 	require.NoErrorf(t, err, "couldn't poll for softwareUpgradeProposal status: %v", err)
 	height, err = chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height: %v", err)

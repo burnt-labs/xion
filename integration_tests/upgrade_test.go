@@ -2,18 +2,24 @@ package integration_tests
 
 import (
 	"context"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"cosmossdk.io/math"
+
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	haltHeightDelta    = uint64(10) // will propose upgrade this many blocks in the future
+	haltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = uint64(10)
 )
 
@@ -42,7 +48,7 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	// t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
 	chain, ctx, client := td.xionChain, td.ctx, td.client
 
-	fundAmount := int64(10_000_000_000)
+	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
 	chainUser := users[0]
 
@@ -51,21 +57,44 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 
 	haltHeight := height + haltHeightDelta - 3
 
-	proposal := cosmos.SoftwareUpgradeProposal{
-		Deposit:     "500000000" + chain.Config().Denom, // greater than min deposit
-		Title:       "Chain Upgrade 1",
-		Name:        upgradeName,
-		Description: "First chain software upgrade",
-		Height:      haltHeight,
+	plan := upgradetypes.Plan{
+		Name:   upgradeName,
+		Height: haltHeight,
+		Info:   fmt.Sprintf("Software Upgrade %s", upgradeName),
+	}
+	upgrade := upgradetypes.MsgSoftwareUpgrade{
+		Authority: authority,
+		Plan:      plan,
 	}
 
-	upgradeTx, err := chain.LegacyUpgradeProposal(ctx, chainUser.KeyName(), proposal)
-	require.NoError(t, err, "error submitting software upgrade proposal tx")
+	address, err := chain.GetAddress(ctx, chainUser.KeyName())
+	require.NoError(t, err)
 
-	err = chain.VoteOnProposalAllValidators(ctx, upgradeTx.ProposalID, cosmos.ProposalVoteYes)
+	addrString, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, address)
+	require.NoError(t, err)
+
+	proposal, err := chain.BuildProposal(
+		[]cosmos.ProtoMessage{&upgrade},
+		"Chain Upgrade 1",
+		"First chain software upgrade",
+		"",
+		"500000000"+chain.Config().Denom, // greater than min deposit
+		addrString,
+		false,
+	)
+	require.NoError(t, err)
+
+	_, err = chain.SubmitProposal(ctx, chainUser.KeyName(), proposal)
+	require.NoError(t, err)
+
+	prop, err := chain.GovQueryProposal(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
+
+	err = chain.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, upgradeTx.ProposalID, cosmos.ProposalStatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, prop.ProposalId, govv1beta1.StatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	height, err = chain.Height(ctx)
@@ -103,17 +132,17 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
 	// check that the upgrade set the params
-	paramsModResp, err := ExecQuery(t, ctx, chain.FullNodes[0],
+	paramsModResp, err := ExecQuery(t, ctx, chain.GetNode(),
 		"params", "subspace", "jwk", "TimeOffset")
 	require.NoError(t, err)
 	t.Logf("jwk params response: %v", paramsModResp)
 
-	jwkParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
+	jwkParams, err := ExecQuery(t, ctx, chain.GetNode(),
 		"jwk", "params")
 	require.NoError(t, err)
 	t.Logf("jwk params response: %v", jwkParams)
 
-	tokenFactoryParams, err := ExecQuery(t, ctx, chain.FullNodes[0],
+	tokenFactoryParams, err := ExecQuery(t, ctx, chain.GetNode(),
 		"tokenfactory", "params")
 	require.NoError(t, err)
 	t.Logf("tokenfactory params response: %v", tokenFactoryParams)
