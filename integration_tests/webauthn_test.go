@@ -154,11 +154,19 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
 
-	delete(accountResponse, "@type")
-	var account aatypes.AbstractAccount
-	accountJSON, err := json.Marshal(accountResponse)
+	ac, ok := accountResponse["account"]
+	require.True(t, ok)
+
+	ac2, ok := ac.(map[string]interface{})
+	require.True(t, ok)
+
+	acData, ok := ac2["value"]
+	require.True(t, ok)
+
+	accountJSON, err := json.Marshal(acData)
 	require.NoError(t, err)
 
+	var account aatypes.AbstractAccount
 	encodingConfig := xionapp.MakeEncodingConfig(t)
 	err = encodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
@@ -288,5 +296,5 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, int64(10_000-1337), newBalance)
+	require.True(t, math.NewInt(10_000-1337).Equal(newBalance))
 }
