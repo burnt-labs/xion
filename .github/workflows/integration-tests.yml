@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: container-login
@@ -44,7 +46,7 @@ jobs:
             type=semver,pattern=v{{version}}
       - name: Heighliner build and push
         id: heighlinerbuild
-        uses: strangelove-ventures/heighliner-build-action@v1.0.3
+        uses: burnt-labs/heighliner-action@v1.0.0-alpha10
         with:
           local: true
           tag: ${{ steps.meta.outputs.version }}
@@ -52,12 +54,9 @@ jobs:
           github-organization: burnt-labs
           github-repo: xion
           dockerfile: cosmos
-          pre-build:
-            apk add --no-cache binutils-gold
           build-target: make install
-          binaries: |
-            - /go/bin/xiond
-#          build-env: "[\"BUILD_TAGS=muslc\"]"
+          binaries: "[\"/go/bin/xiond\"]"
+          build-env: "[\"BUILD_TAGS=muslc\"]"
       - name: Push docker image
         run: |
           docker tag ${{ steps.heighlinerbuild.outputs.tag }} ghcr.io/burnt-labs/xion/${{ steps.heighlinerbuild.outputs.tag }}
