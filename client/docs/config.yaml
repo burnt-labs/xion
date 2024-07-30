@@ -1,0 +1,235 @@
+swagger: "2.0"
+info:
+  title: XION - gRPC Gateway docs
+  description: A REST interface for state queries
+  version: 9.0.0
+apis:
+  - url: ./tmp-swagger-gen/cosmos/auth/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: AuthParams
+    tags:
+      rename:
+        Query: Auth
+  - url: ./tmp-swagger-gen/cosmos/authz/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: AuthzParams
+    tags:
+      rename:
+        Query: Authz
+  - url: ./tmp-swagger-gen/cosmos/bank/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: BankParams
+    tags:
+      rename:
+        Query: Bank
+  - url: ./tmp-swagger-gen/cosmos/base/tendermint/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: BaseParams
+    tags:
+      rename:
+        Service: Base
+  - url: ./tmp-swagger-gen/cosmos/consensus/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: ConsensusParams
+    tags:
+      rename:
+        Query: Consensus
+  - url: ./tmp-swagger-gen/cosmos/distribution/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: DistributionParams
+    tags:
+      rename:
+        Query: Distribution
+  - url: ./tmp-swagger-gen/cosmos/evidence/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: EvidenceParams
+    tags:
+      rename:
+        Query: Evidence
+  - url: ./tmp-swagger-gen/cosmos/feegrant/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: FeegrantParams
+    tags:
+      rename:
+        Query: Feegrant
+  - url: ./tmp-swagger-gen/cosmos/gov/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: GovParams
+    tags:
+      rename:
+        Query: Gov
+  - url: ./tmp-swagger-gen/cosmos/gov/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: GovV1Params
+        Proposal: GovV1Proposal
+        Proposals: GovV1Proposal
+        Vote: GovV1Vote
+        Votes: GovV1Votes
+        Deposit: GovV1Deposit
+        Deposits: GovV1Deposit
+        TallyResult: GovV1TallyResult
+    tags:
+      rename:
+        Query: Gov
+  - url: ./tmp-swagger-gen/cosmos/group/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: GroupParams
+        Proposal: GroupProposal
+        TallyResult: GroupTallyResult
+    tags:
+      rename:
+        Query: Group
+  - url: ./tmp-swagger-gen/cosmos/mint/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: MintParams
+    paths:
+      exclude:
+        - /cosmos/mint/v1beta1/annual_provisions
+        - /cosmos/mint/v1beta1/inflation
+    tags:
+      rename:
+        Query: Mint
+  - url: ./tmp-swagger-gen/cosmos/nft/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: NftParams
+        Balance: NftBalance
+    tags:
+      rename:
+        Query: Nft
+  - url: ./tmp-swagger-gen/cosmos/params/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: Params
+    tags:
+      rename:
+        Query: Params
+  - url: ./tmp-swagger-gen/cosmos/slashing/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: SlashingParams
+    tags:
+      rename:
+        Query: Slashing
+  - url: ./tmp-swagger-gen/cosmos/staking/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: StakingParams
+        DelegatorValidators: StakingDelegatorValidators
+    tags:
+      rename:
+        Query: Staking
+  - url: ./tmp-swagger-gen/cosmos/tx/v1beta1/service.swagger.json
+    dereference:
+      circular: ignore
+    tags:
+      rename:
+        Service: Tx
+  - url: ./tmp-swagger-gen/cosmos/upgrade/v1beta1/query.swagger.json
+    operationIds:
+      rename:
+        Params: UpgradeParams
+    tags:
+      rename:
+        Query: Upgrade
+  - url: ./tmp-swagger-gen/cosmwasm/wasm/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: WasmParams
+    tags:
+      rename:
+        Query: CosmWasm
+  - url: ./tmp-swagger-gen/ibc/applications/fee/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: IBCFeeParams
+    tags:
+      rename:
+        Query: IBC/Apps
+  - url: ./tmp-swagger-gen/ibc/applications/interchain_accounts/controller/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: ICAControllerParams
+    tags:
+      rename:
+        Query: ICA
+  - url: ./tmp-swagger-gen/ibc/applications/interchain_accounts/host/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: ICAHostParams
+    tags:
+      rename:
+        Query: ICA
+  - url: ./tmp-swagger-gen/ibc/applications/transfer/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: IBCTransferParams
+    tags:
+      rename:
+        Query: IBC/Apps
+  - url: ./tmp-swagger-gen/ibc/core/channel/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: IBCChannelParams
+    tags:
+      rename:
+        Query: IBC/Core
+  - url: ./tmp-swagger-gen/ibc/core/client/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: IBCClientParams
+        UpgradedConsensusState: IBCUpgradedConsensusState
+    tags:
+      rename:
+        Query: IBC/Core
+  - url: ./tmp-swagger-gen/ibc/core/connection/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: IBCConnectionParams
+    tags:
+      rename:
+        Query: IBC/Core
+  - url: ./tmp-swagger-gen/packetforward/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: IBCPacketforwardParams
+    tags:
+      rename:
+        Query: IBC/Core
+  - url: ./tmp-swagger-gen/xion/globalfee/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: GlobalFeeParams
+    tags:
+      rename:
+        Query: XionGlobalFee
+  - url: ./tmp-swagger-gen/xion/jwk/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: JWKParams
+    tags:
+      rename:
+        Query: XionJWK
+  - url: ./tmp-swagger-gen/xion/mint/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: XionMintParams
+    tags:
+      rename:
+        Query: XionMint
+  - url: ./tmp-swagger-gen/xion/v1/query.swagger.json
+    tags:
+      rename:
+        Query: Xion
