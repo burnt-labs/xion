@@ -6,6 +6,7 @@ COMMIT ?= $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
+BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
 XION_IMAGE=xion:local
 
@@ -85,8 +86,28 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xiond ./cmd/xiond
 endif
 
- build-windows-client: go.sum
+build-windows-client: go.sum
 	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
+
+.PHONY: build-binary-amd64
+build-binary-amd64: go.sum
+	$(DOCKER) buildx create --name xiond-build-amd64 || true
+	$(DOCKER) buildx use xiond-build-amd64
+	$(DOCKER) buildx build --load --tag xiond:amd64 ./
+	$(DOCKER) create --name xiond-amd64 xiond:amd64
+	$(DOCKER) cp xiond-amd64:/usr/bin/xiond $(BUILDDIR)/xiond-$(VERSION)-linux-amd64
+	$(DOCKER) rm -f xiond-amd64
+	$(DOCKER) buildx rm xiond-build-amd64
+
+.PHONY: build-binary-arm64
+build-binary-arm64: go.sum
+	$(DOCKER) buildx create --name xiond-build-arm64 || true
+	$(DOCKER) buildx use xiond-build-arm64
+	$(DOCKER) buildx build --load --tag xiond:arm64 ./
+	$(DOCKER) create --name xiond-arm64 xiond:rm64
+	$(DOCKER) cp xiond-arm64:/usr/bin/xiond $(BUILDDIR)/xiond-$(VERSION)-linux-rm64
+	$(DOCKER) rm -f xiond-arm64
+	$(DOCKER) buildx rm xiond-build-arm64
 
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
