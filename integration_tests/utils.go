@@ -2,7 +2,6 @@ package integration_tests
 
 import (
 	"context"
-	"cosmossdk.io/x/upgrade"
 	"crypto"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
@@ -11,6 +10,17 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"math/rand"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
+	"cosmossdk.io/x/upgrade"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
@@ -30,14 +40,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"math/big"
-	"math/rand"
-	"os"
-	"path"
-	"strconv"
-	"strings"
-	"testing"
-	"time"
 
 	"cosmossdk.io/math"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
@@ -233,7 +235,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				UidGid:     "1025:1025",
 			},
 		},
-		//GasPrices:              "0.1uxion",
+		// GasPrices:              "0.1uxion",
 		GasPrices:      gas,
 		GasAdjustment:  2.0,
 		Type:           "cosmos",
@@ -243,7 +245,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 		Denom:          "uxion",
 		TrustingPeriod: "336h",
 		ModifyGenesis:  modifyGenesis,
-		//UsingNewGenesisCommand: true,
+		// UsingNewGenesisCommand: true,
 		EncodingConfig: func() *moduletestutil.TestEncodingConfig {
 			cfg := moduletestutil.MakeTestEncodingConfig(
 				auth.AppModuleBasic{},
@@ -262,9 +264,9 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				upgrade.AppModuleBasic{},
 				consensus.AppModuleBasic{},
 				transfer.AppModuleBasic{},
-				//ibccore.AppModuleBasic{},
-				//ibctm.AppModuleBasic{},
-				//ibcwasm.AppModuleBasic{},
+				// ibccore.AppModuleBasic{},
+				// ibctm.AppModuleBasic{},
+				// ibcwasm.AppModuleBasic{},
 			)
 			// TODO: add encoding types here for the modules you want to use
 			wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)

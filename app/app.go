@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/gorilla/mux"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -146,6 +148,7 @@ import (
 
 	"github.com/burnt-labs/xion/app/upgrades"
 	v9 "github.com/burnt-labs/xion/app/upgrades/v9"
+	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
@@ -1221,9 +1224,28 @@ func (app *WasmApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICo
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
-	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
+	if err := server.RegisterSwaggerAPI(clientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
+}
+
+// RegisterSwaggerAPI registers swagger route with API Server
+func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router, swaggerEnabled bool) error {
+	if swaggerEnabled {
+		docsServer := http.FileServer(http.FS(docs.Docs))
+		rtr.Handle("/static", docsServer)
+		rtr.Handle("/static/", docsServer)
+		rtr.Handle("/static/swagger.json", docsServer)
+		rtr.Handle("/static/openapi.json", docsServer)
+
+		rtr.PathPrefix("/static").Handler(http.StripPrefix("/static/", docsServer))
+		rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", docsServer))
+
+		rtr.Handle("/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
+		rtr.Handle("/swagger", http.RedirectHandler("/static/", http.StatusMovedPermanently))
+		rtr.Handle("/swagger/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
+	}
+	return nil
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.

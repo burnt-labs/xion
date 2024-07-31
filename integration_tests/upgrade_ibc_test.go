@@ -2,12 +2,14 @@ package integration_tests
 
 import (
 	"context"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"os"
 	"testing"
 	"time"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"cosmossdk.io/math"
 
