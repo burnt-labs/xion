@@ -30,7 +30,7 @@ WORKDIR /go/src/github.com/burnt-labs/xion
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/pkg/mod \
-    go mod download -x
+    go mod download
 
 # setup environment
 ENV PROFILE=/root/.profile
@@ -49,7 +49,7 @@ RUN set -eux; \
     esac; \
     source ${PROFILE}; \
     if [ "${GOARCH}" != "$(uname -m)" ]; then \
-        wget -c "https://musl.cc/${ARCH}-linux-musl-cross.tgz" -O - | tar -xzv --strip-components 1 -C /usr; \
+        wget -c "https://musl.cc/${ARCH}-linux-musl-cross.tgz" -O - | tar -xz --strip-components 1 -C /usr; \
     fi;
 
 # Cosmwasm - Download correct libwasmvm version

@@ -89,7 +89,7 @@ endif
 	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
 
 install: go.sum
-	go install -x -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
 
 ########################################
 ### Tools & dependencies
