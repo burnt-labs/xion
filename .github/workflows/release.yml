@@ -1,64 +1,54 @@
-name: Create Release and Publish Binary
+name: Create Release and Publish Binaries
+# Run for new release tags only
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - '*'
-  workflow_dispatch:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+'
+
+env:
+  GHCR: ghcr.io/${{ github.repository }}
+  PLATFORMS: linux/amd64
 
 jobs:
+  build-docker:
+    name: Build Docker Images
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
+    secrets: inherit
 
-  build-amd64:
+  docker-scout:
+    needs: build-docker
+    name: Docker Scout
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
+
+  build-heighliner:
+    needs: build-docker
+    name: Heighliner Build
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
+    secrets: inherit
+
+  interchain-tests:
+    needs: build-heighliner
+    name: Interchain tests
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf1
+    secrets: inherit
+
+  build-release-binaries:
+    needs: interchain-tests
     runs-on: ubuntu-latest
     environment: CI
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-
-      - name: Get the version and sanitize
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Set up docker buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Extract metadata for docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: burntnetwork/xion
-          tags: |
-            type=semver,pattern={{version}},priority=1000
-            type=sha,priority=700
-
-      - name: Build docker image for linux/amd64
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: release
-
       - name: Copy xiond binary from linux/amd64 container
         id: copy-binary-amd64
         run: |
-          docker create --name temp_container-amd64 $(echo ${{ steps.meta.outputs.tags }} | awk '{print $1}')
+          IMAGE_VERSION=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels["org.opencontainers.image.version"]')
+          docker create --platform linux/amd64 --name temp_container-amd64 ${GHCR}:${IMAGE_VERSION}
           docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
           ./xiond-linux-amd64 version --long
           docker rm -v temp_container-amd64
@@ -66,129 +56,58 @@ jobs:
       - name: Upload binary
         uses: actions/upload-artifact@v3
         with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
+          name: xiond-linux-amd64
           path: ./xiond-linux-amd64
 
-  build-zip:
+  build-release:
+    needs: build-release-binaries
     runs-on: ubuntu-latest
     environment: CI
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
+      - name: Create release directory
+        run: mkdir -p build/release
 
-      - name: Get the version and sanitize
-        id: get_version
+      - name: Download artifacts
+        working-directory: release
+        run: gh release download ${{ github.ref_name }} -p 'xiond' -p '*.tar.gz' --repo ${{ github.repository }}
+
+      - name: List files in workspace
+        working-directory: release
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
+          ls -R
 
-      - name: Zip source
+      - name: Create checksums
+        working-directory: release
         run: |
-          zip -r xiond.src.zip . -x 'docker/**\*' '.github/**\*' 'xiond.src.zip'
+          sha256sum * > checksum.txt
 
-      - name: Upload zip
-        uses: actions/upload-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
-          path: xiond.src.zip
-          if-no-files-found: error
-
-  build-tgz:
-    runs-on: ubuntu-latest
-    environment: CI
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Get the version and sanitize
-        id: get_version
+      - name: Display checksums
+        working-directory: release
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
-
-      - name: Create tgz
-        run: |
-          tar --exclude='./.github' --exclude='./docker' -czvf /tmp/xiond.src.tgz .
-
-      - name: Upload tgz
-        uses: actions/upload-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
-          path: /tmp/xiond.src.tgz
-          if-no-files-found: error
-
-  release:
-    runs-on: ubuntu-latest
-    environment: CI
-    needs:
-      - build-amd64
-      - build-zip
-      - build-tgz
-
-    steps:
-      - name: Get the version and sanitize
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
-
-      - name: Download xiond-linux-amd64
-        uses: actions/download-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
-
-      - name: Download zip
-        uses: actions/download-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
-
-      - name: Download tgz
-        uses: actions/download-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
+          cat checksum.txt
 
       - name: Build Changelog
         id: changelog
         uses: mikepenz/release-changelog-builder-action@v4
         with:
-          token: ${{ secrets.GH_RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Output Changelog
         run: echo "${{steps.changelog.outputs.changelog}}"
 
-      - name: List files in workspace
-        run: ls -R
-
-      - name: Rename files in workspace
-        run: |
-          mv -vf xiond-linux-amd64 xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
-          mv -vf xiond.src.tgz xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
-          mv -vf xiond.src.zip xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
 
       - name: Create and Update Release
         id: create-release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifactContentType: application/octet-stream
-          artifacts: |
-            ./xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
-            ./xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
-            ./xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
           name: Release ${{ steps.get_version.outputs.VERSION }}
-          prerelease: false
+          prerelease: true
           tag: ${{ github.ref }}
-          token: ${{ secrets.GH_RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload the artifacts to release
+        run: gh release upload ${{github.ref_name}} build/release/* --repo ${{github.repository}}

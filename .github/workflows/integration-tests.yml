@@ -1,11 +1,10 @@
 name: Interchain tests
+# triggered from pull-request.yml
+# triggered from release.yaml
 
 on:
+  workflow_call:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Build and Push Docker Images]
-    types:
-      - completed
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,52 +12,58 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  go-build:
-    permissions:
-      contents: read
-      packages: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
+  # only on dispatch, if using from another workflow call the docker build from that workflow
+  build-heighliner:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    name: Heighliner Build
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
+    secrets: inherit
 
   interchain-tests:
+    if: ${{ always() }}
+    needs: build-heighliner
     environment: CI
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         test_type:
-        - "DungeonTransferBlock"
-        - "XionSendPlatformFee"
-        - "MintModuleNoInflationNoFees"
-        - "MintModuleInflationHighFees"
-        - "MintModuleInflationLowFees"
-        - "JWTAbstractAccount"
-        - "XionSendPlatformFee"
-        - "XionAbstractAccount"
-        - "WebAuthNAbstractAccount"
-        - "XionMinimumFeeDefault"
-        - "XionMinimumFeeZero"
-        - "XionTokenFactory"
-        - "XionAbstractAccountJWTCLI"
-        - "TreasuryContract"
-        - "SingleAbstractAccountMigration"
+          - "DungeonTransferBlock"
+          - "XionSendPlatformFee"
+          - "MintModuleNoInflationNoFees"
+          - "MintModuleInflationHighFees"
+          - "MintModuleInflationLowFees"
+          - "JWTAbstractAccount"
+          - "XionSendPlatformFee"
+          - "XionAbstractAccount"
+          - "WebAuthNAbstractAccount"
+          - "XionMinimumFeeDefault"
+          - "XionMinimumFeeZero"
+          - "XionTokenFactory"
+          - "XionAbstractAccountJWTCLI"
+          - "TreasuryContract"
+          - "SingleAbstractAccountMigration"
 
     steps:
-      - name: Set up Go 1.21
-        uses: actions/setup-go@v4
-        with:
-          go-version: ^1.21
-
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: docker xion metadata
-        id: meta-xion
+      - name: Metadata for heighliner
+        id: meta-heighliner
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ghcr.io/burnt-labs/xion/heighliner
+          tags: |
+            type=sha
+
+      - name: Set Go Version
+        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ^${{ env.GO_VERSION }}
 
       - name: build go test binary
         run: cd integration_tests && go test -c
@@ -67,4 +72,4 @@ jobs:
         run: ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: ${{ steps.meta-xion.outputs.tags }}
+          XION_IMAGE: ${{ steps.meta-heighliner.outputs.tags }}
