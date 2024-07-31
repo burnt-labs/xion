@@ -19,6 +19,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+
       - name: Get the version and sanitize
         id: get_version
         run: |

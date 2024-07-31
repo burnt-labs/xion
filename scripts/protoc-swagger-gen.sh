@@ -1,47 +1,45 @@
 #!/usr/bin/env bash
 
+# Use `make proto-swagger-gen` to run this script
 set -eo pipefail
 
-# change to the root folder
-cd "$(dirname $(realpath "$0"))/.."
+# Get the directory of this script, used to source other scripts
+: ${scripts_dir:="$(realpath $(dirname $0))"}
+: ${base_dir:="$(dirname $scripts_dir)"}
+: ${proto_dir:="$base_dir/proto"}
 
-mkdir -p ./tmp-swagger-gen
+# sets $proto_dirs
+source $scripts_dir/protoc-common.sh
 
-# Get the path of the cosmos-sdk repo from go/pkg/mod
-proto_paths=$(go list -f '{{ .Dir }}' -m \
-  github.com/gogo/protobuf \
-  github.com/cosmos/cosmos-sdk \
-  github.com/cosmos/ibc-go/v7 \
-  github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 \
-  github.com/CosmWasm/wasmd \
-  github.com/cosmos/cosmos-proto \
-  | sed "s/$/\/proto/"
-)
+# work in docs directory
+cd $base_dir/client/docs
 
-proto_dirs=$(
-  printf "./proto\n$proto_paths" \
-  | while read path; do
-    find $path -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname
-  done | sort -u
-)
+# Create a temporary directory
+mkdir -p tmp-swagger-gen
 
-set -x
-printf "$proto_dirs" | while read dir; do
+# Generate swagger for each path
+for dir in $proto_dirs; do
   # generate swagger files (filter query files)
   query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
+  [[ -n "$query_file" ]] || continue
 
-  if [[ ! -z "$query_file" ]]; then
-    #buf generate --template proto/buf.gen.swagger.yaml $query_file
-    protoc -I ./proto $(printf "$proto_paths" | sed 's/^/ -I /') $query_file \
-    --swagger_out ./tmp-swagger-gen \
-    --swagger_opt logtostderr=true \
-    --swagger_opt fqn_for_swagger_name=true \
-    --swagger_opt simple_operation_ids=true
-  fi
+  buf generate --template $proto_dir/buf.gen.swagger.yaml $query_file
 done
 
-npm install -g swagger-combine
-npx swagger-combine ./client/docs/config.json -o ./client/docs/swagger-ui/swagger.yaml -f yaml --continueOnConflictingPaths true --includeDefinitions true
+# combine swagger files
+# uses nodejs package `swagger-combine`.
+# all the individual swagger files need to be configured in `config.json` for merging
+mkdir -p static
+swagger-combine config.yaml \
+  --format "json" \
+  --output static/swagger.json \
+  --includeDefinitions true \
+  --continueOnConflictingPaths true
+
+# Generate OpenAPI spec using Swagger2Openapi
+# Install required dependencies if not already installed
+npm install --prefix tmp-swagger-gen  swagger2openapi
+npm exec --prefix tmp-swagger-gen  -- swagger2openapi static/swagger.json --outfile static/openapi.json
 
 # clean swagger files
-rm -rf ./tmp-swagger-gen
+rm -rf tmp-swagger-gen

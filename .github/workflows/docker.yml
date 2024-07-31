@@ -10,10 +10,10 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+'
 
 jobs:
-
   build:
     name: Build Image
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Set env variables
-        if: ${{ github.ref_type != 'tag' }}
+        if: ${{ github.ref_type == 'tag' }}
         shell: bash
         run: |
           echo "VERSION=$(echo ${GITHUB_REF_NAME} | sed -E 's/\bv([0-9]+)\.([0-9]+)\.([0-9]+)\b/\1.\2.\3/g')" >> $GITHUB_ENV
@@ -59,26 +59,15 @@ jobs:
       #########################################################################
       # docker scout on pr/dispatch only
       #########################################################################
-      - name: Extract metadata for docker
-        if: ${{ github.event_name != 'push' }}
-        id: meta-scout
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            burntnetwork/xion
-          tags: |
-            type=raw,priority=500,value=scout
 
-      - name: Build and push local dev docker image
+      - name: Build local docker image
         if: ${{ github.event_name != 'push' }}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          target: dev
-          tags: ${{ steps.meta-scout.outputs.tags }}
-          labels: ${{ steps.meta-scout.outputs.labels }}
+          tags: local/xion:scout
 
       - name: Run Docker Scout
         if: ${{ github.event_name != 'push' }}
@@ -86,45 +75,18 @@ jobs:
         with:
           command: cves
           only-fixed: true
-          image: ${{ steps.meta-scout.outputs.tags }}
-
-      #########################################################################
-      # build dev on push/dispatch only
-      #########################################################################
-      - name: Extract metadata for docker
-        if: ${{ github.event_name != 'pull_request' }}
-        id: meta-dev
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            burntnetwork/xion
-            385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
-          tags: |
-            type=semver,priority=1000,pattern={{version}},suffix=-dev
-            type=sha,priority=700,suffix=-dev
-            type=raw,priority=500,value=dev
-
-      - name: Build and push local dev docker image
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: dev
-          tags: ${{ steps.meta-dev.outputs.tags }}
-          labels: ${{ steps.meta-dev.outputs.labels }}
+          image: image://local/xion:scout
 
       #########################################################################
       # build release on push/dispatch only
       #########################################################################
       - name: Extract metadata for docker
-        if: ${{ github.event_name != 'pull_request' }}
         id: meta-release
         uses: docker/metadata-action@v5
         with:
           images: |
             burntnetwork/xion
+            ghcr.io/burnt-labs/xion
             385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
           tags: |
             type=semver,pattern={{version}},priority=1000
@@ -132,10 +94,9 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push release docker image
-        if: ${{ github.event_name != 'pull_request' }}
         uses: docker/build-push-action@v5
         with:
-          push: true
+          push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: release

@@ -2,57 +2,92 @@
 
 ARG GO_VERSION="1.22"
 ARG ALPINE_VERSION="3.18"
-ARG BUILDPLATFORM=linux/amd64
 ARG BASE_IMAGE="golang:${GO_VERSION}-alpine${ALPINE_VERSION}"
 
+# --------------------------------------------------------
 # Builder
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------
 
 FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE} AS builder
 
-ARG GOOS=linux \
-    GOARCH=amd64
+ARG BUILDPLATFORM
 
-ENV GOOS=$GOOS \
-    GOARCH=$GOARCH
+ARG TARGETARCH
+ENV TARGETARCH=${TARGETARCH}
 
+# Install dependencies
 RUN apk add --no-cache \
     ca-certificates \
     build-base \
     linux-headers \
+    binutils-gold \
     git
 
+# Set the workdir
+WORKDIR /go/src/github.com/burnt-labs/xion
+
 # Download go dependencies
-WORKDIR /xion
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=type=cache,target=/root/pkg/mod \
     go mod download -x
 
+# setup environment
+ENV PROFILE=/root/.profile
+RUN set -eux; \
+    case "${BUILDPLATFORM}" in \
+        linux/amd64) \
+            echo "export GOOS=linux GOARCH=${TARGETARCH:-amd64} ARCH=x86_64" >> ${PROFILE}; \
+            ;; \
+        linux/arm64) \
+            echo "export GOOS=linux GOARCH=${TARGETARCH:-arm64} ARCH=aarch64" >> ${PROFILE}; \
+            ;; \
+        *) \
+            echo "Could not identify architecture"; \
+            exit 1; \
+            ;; \
+    esac; \
+    source ${PROFILE}; \
+    if [ "${GOARCH}" != "$(uname -m)" ]; then \
+        wget -c "https://musl.cc/${ARCH}-linux-musl-cross.tgz" -O - | tar -xzv --strip-components 1 -C /usr; \
+    fi;
+
 # Cosmwasm - Download correct libwasmvm version
-RUN set -eux && \
-    WASMVM_REPO="github.com/CosmWasm/wasmvm" && \
-    WASMVM_VERSION=$(go list -m $WASMVM_REPO | cut -d ' ' -f 2) && \
-    WASMVM_RELEASE=$WASMVM_REPO/releases/download/$WASMVM_VERSION && \
-    LIBWASMVM_SOURCE="libwasmvm_muslc.$(uname -m).a" && \
-    wget $WASMVM_RELEASE/$LIBWASMVM_SOURCE -O /lib/libwasmvm_muslc.a && \
+RUN set -eux; \
+    source ${PROFILE}; \
+    LIBWASM="libwasmvm_muslc.${ARCH}.a"; \
+    WASMVM_REPO="github.com/CosmWasm/wasmvm"; \
+    WASMVM_VERSION="$(go list -m github.com/CosmWasm/wasmvm | cut -d ' ' -f 2)"; \
+    wget "https://${WASMVM_REPO}/releases/download/${WASMVM_VERSION}/${LIBWASM}" -O "/lib/${LIBWASM}"; \
     # verify checksum
-    wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/checksums.txt -O /tmp/checksums.txt && \
-    sha256sum /lib/libwasmvm_muslc.a | grep $(cat /tmp/checksums.txt | grep libwasmvm_muslc.$(uname -m) | cut -d ' ' -f 1)
+    EXPECTED=$(wget -q "https://${WASMVM_REPO}/releases/download/${WASMVM_VERSION}/checksums.txt" -O- | grep "${LIBWASM}" | awk '{print $1}'); \
+    sha256sum "/lib/${LIBWASM}" | grep "${EXPECTED}"; \
+    cp /lib/${LIBWASM} /lib/libwasmvm_muslc.a;
+
+# Copy local files
+COPY . .
 
 # Build xiond binary
-COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/root/go/pkg/mod \
-    make test-version \
-    && LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build
+    --mount=type=cache,target=/root/pkg/mod \
+    set -eux; \
+    source ${PROFILE}; \
+    if [ "${GOARCH}" != "$(uname -m)" ]; then \
+        LIBDIR=/usr/${ARCH}-linux-musl/lib; \
+        mkdir -p /usr/${ARCH}-linux-musl/lib; \
+        cp -a /lib/libwasmvm* /usr/${ARCH}-linux-musl/lib/; \
+        export CC="${ARCH}-linux-musl-gcc" CXX="${ARCH}-linux-musl-g++"; \
+    fi; \
+    export CGO_ENABLED=1 LINK_STATICALLY=true BUILD_TAGS=muslc; \
+    make test-version; \
+    make install;
 
-# -----------------------------------------------------------------------------
-# Base
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------
+# Runner
+# --------------------------------------------------------
 
-FROM alpine:${ALPINE_VERSION} AS xion-base
-COPY --from=builder /xion/build/xiond /usr/bin/xiond
+FROM --platform=${BUILDPLATFORM} alpine:${ALPINE_VERSION} AS release
+COPY --from=builder /go/bin/xiond /usr/bin/xiond
 
 # api
 EXPOSE 1317
@@ -65,41 +100,26 @@ EXPOSE 26657
 # prometheus
 EXPOSE 26660
 
-RUN set -eux \
-  && apk add --no-cache \
-    bash \
-    openssl \
-    curl \
-    htop \
-    jq \
-    lz4 \
-    tini
-
-RUN set -eux \
-  && addgroup -S xiond \
-  && adduser xiond \
-    --disabled-password \
-    --gecos xiond \
-    --ingroup xiond \
-  && chown -R xiond:xiond /home/xiond
-
-# -----------------------------------------------------------------------------
-# Development
-# -----------------------------------------------------------------------------
-FROM xion-base AS dev
-
-COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
-WORKDIR /home/xiond/.xiond
-
-ENTRYPOINT ["/home/xiond/entrypoint.sh"]
-CMD ["xiond", "start", "--trace"]
-
-# -----------------------------------------------------------------------------
-# Release
-# -----------------------------------------------------------------------------
-FROM xion-base AS release
+RUN set -euxo pipefail; \
+    apk add --no-cache bash openssl curl htop jq lz4 tini; \
+    addgroup --gid 1000 -S xiond; \
+    adduser --uid 1000 -S xiond \
+        --disabled-password \
+        --gecos xiond \
+        --ingroup xiond; \
+    mkdir -p /home/xiond; \
+    chown -R xiond:xiond /home/xiond
 
 USER xiond:xiond
 WORKDIR /home/xiond/.xiond
+CMD ["/usr/bin/xiond"]
 
-CMD ["/usr/bin/xiond", "version"]
+# # --------------------------------------------------------
+# FROM release AS dev
+
+# COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
+
+# USER root:root
+# WORKDIR /home/xiond/
+
+# ENTRYPOINT ["/home/xiond/entrypoint.sh"]
