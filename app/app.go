@@ -4,12 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-
-	wasmapp "github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -24,6 +18,9 @@ import (
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings"
 	tokenfactorykeeper "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
+	"io"
+	"os"
+	"path/filepath"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmos "github.com/cometbft/cometbft/libs/os"
@@ -600,7 +597,6 @@ func NewWasmApp(
 	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
 		appCodec,
 		keys[tokenfactorytypes.StoreKey],
-		maccPerms,
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.DistrKeeper,
@@ -697,7 +693,7 @@ func NewWasmApp(
 	// if we want to allow any custom callbacks
 	// See https://github.com/CosmWasm/cosmwasm/blob/main/docs/CAPABILITIES-BUILT-IN.md
 
-	availableCapabilities := strings.Join(append(wasmapp.AllCapabilities(), "token_factory"), ",")
+	availableCapabilities := append(wasmkeeper.BuiltInCapabilities(), "token_factory")
 
 	tokenFactoryOpts := bindings.RegisterCustomPlugins(app.BankKeeper, &app.TokenFactoryKeeper)
 	wasmOpts = append(owasm.RegisterStargateQueries(*app.GRPCQueryRouter(), appCodec), wasmOpts...)

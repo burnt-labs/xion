@@ -21,11 +21,12 @@ require (
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/CosmWasm/wasmd v0.51.0
 	github.com/CosmWasm/wasmvm v1.5.2
-	github.com/cometbft/cometbft v0.38.7
+	github.com/CosmWasm/wasmvm/v2 v2.0.0
+	github.com/cometbft/cometbft v0.38.9
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.50.7
-	github.com/cosmos/gogoproto v1.4.12
+	github.com/cosmos/cosmos-sdk v0.50.8
+	github.com/cosmos/gogoproto v1.5.0
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2
 	github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 v8.0.0-20240530162148-4827cf263165
 	github.com/cosmos/ibc-go/modules/capability v1.0.0
@@ -44,7 +45,7 @@ require (
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	github.com/strangelove-ventures/tokenfactory v0.50.1
+	github.com/strangelove-ventures/tokenfactory v0.50.3
 	github.com/stretchr/testify v1.9.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	go.uber.org/mock v0.4.0
@@ -56,7 +57,6 @@ require (
 
 require (
 	cosmossdk.io/x/circuit v0.1.0 // indirect
-	github.com/CosmWasm/wasmvm/v2 v2.0.0 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
@@ -73,13 +73,13 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
-	github.com/gogo/status v1.1.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/goware/urlx v0.3.2 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-plugin v1.5.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
@@ -263,6 +263,9 @@ replace (
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )
 
-//cosmossdk.io/core => cosmossdk.io/core v0.11.0
 //github.com/CosmWasm/wasmd => github.com/CosmWasm/wasmd v0.50.0
-replace github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61
+replace (
+	cosmossdk.io/core => cosmossdk.io/core v0.11.0
+	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61
+	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.0.0-20240313005346-067e66fb2ee5
+)

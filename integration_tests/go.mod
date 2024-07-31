@@ -24,7 +24,7 @@ require (
 	github.com/larry0x/abstract-account v0.0.0-20240202022305-255071ed91ee
 	github.com/lestrrat-go/jwx v1.2.29
 	github.com/strangelove-ventures/interchaintest/v8 v8.6.1
-	github.com/strangelove-ventures/tokenfactory v0.50.1
+	github.com/strangelove-ventures/tokenfactory v0.50.3
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/protobuf v1.33.0
@@ -140,7 +140,7 @@ require (
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-getter v1.7.4 // indirect
+	github.com/hashicorp/go-getter v1.7.5 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-metrics v0.5.3 // indirect
