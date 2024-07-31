@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"cosmossdk.io/x/upgrade"
-
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
