@@ -15,10 +15,10 @@ import (
 // StargateQuerier dispatches whitelisted stargate queries
 func StargateQuerier(queryRouter baseapp.GRPCQueryRouter, cdc codec.Codec) func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
-		protoResponseType, err := GetWhitelistedQuery(request.Path)
-		if err != nil {
-			return nil, err
-		}
+		// protoResponseType, err := GetWhitelistedQuery(request.Path)
+		// if err != nil {
+		// 	return nil, err
+		// }
 
 		route := queryRouter.Route(request.Path)
 		if route == nil {
@@ -37,12 +37,12 @@ func StargateQuerier(queryRouter baseapp.GRPCQueryRouter, cdc codec.Codec) func(
 			return nil, fmt.Errorf("res returned from abci query route is nil")
 		}
 
-		bz, err := ConvertProtoToJSONMarshal(protoResponseType, res.Value, cdc)
-		if err != nil {
-			return nil, err
-		}
+		// bz, err := ConvertProtoToJSONMarshal(protoResponseType, res.Value, cdc)
+		// if err != nil {
+		// 	return nil, err
+		// }
 
-		return bz, nil
+		return res.Value, nil
 	}
 }
 
