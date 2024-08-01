@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
+# Use `make protogen` to run this script
 
 set -eo pipefail
 
-echo "Generating gogo proto code"
-cd proto
-proto_dirs=$(find ./xion -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
+# Get the directory of this script, used to source other scripts
+scripts_dir="$(realpath $(dirname $0))"
+base_dir="$(dirname $scripts_dir)"
+proto_dir="$base_dir/proto"
+
+# sets $proto_dirs
+source $scripts_dir/protoc-common.sh
+
 for dir in $proto_dirs; do
   for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
     if grep "option go_package" $file &> /dev/null ; then
-      buf generate --template buf.gen.gogo.yml $file
+      buf generate --template $proto_dir/buf.gen.gogo.yaml $file
     fi
   done
 done
 
-cd ..
-
 # move proto files to the right places
-cp -r github.com/burnt-labs/xion/* ./
-rm -rf github.com
+if [ -e "github.com/burnt-labs/xion" ]; then
+  cp -rv github.com/burnt-labs/xion/* ./
+  rm -rf github.com
+fi
