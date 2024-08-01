@@ -1,13 +1,17 @@
 name: Interchain tests
-# triggered after docker build complete successfully
-# docker build runs only on pull-request
+# trigger on pull requests to main and workflow call from release.yml
+# triggers docker build before run
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Build and Push Docker Images]
-    types:
-      - completed
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+    inputs:
+      tags:
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,7 +19,29 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  build-tags:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set tag types
+        id: metatags
+        run: |
+          if [ -z "${{ inputs.metatags }}" ]; then
+            echo "METATAGS=type=sha" >> $GITHUB_OUTPUT
+          else
+            echo METATAGS=${{ inputs.metatags }} >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      metatags: ${{ steps.metatags.outputs.test }}
+
+  build-docker-images:
+    needs: build-tags
+    uses: burnt-labs/xion/.github/workflows/docker.yml
+    with:
+      tags: ${{ needs.build-tags.outputs.metatags }}
+    secrets: inherit
+
   interchain-tests:
+    needs: build-docker-images
     environment: CI
     runs-on: ubuntu-latest
     strategy:

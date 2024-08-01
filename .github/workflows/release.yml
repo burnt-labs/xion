@@ -10,10 +10,19 @@ on:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}
+  PLATFORMS: linux/amd64
 
 jobs:
-  build:
-    name: Build Image
+  build-release-docker:
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml
+    with:
+      tags: |
+        type=semver,pattern={{version}}
+        type=raw,value=latest,enable={{is_default_branch}}
+    secrets: inherit
+
+  build-release-binaries:
+    needs: build-release-docker
     runs-on: ubuntu-latest
     environment: CI
     permissions:
@@ -21,62 +30,11 @@ jobs:
       contents: read
 
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: us-east-1
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          fetch-tags: true
-
-      #########################################################################
-      # build docker images
-      #########################################################################
-
-      - name: Set up docker buildx for push
-        uses: docker/setup-buildx-action@v3
-
-      - name: Metadata for xion container
-        id: meta-xion
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            burntnetwork/xion
-            ${{ env.GHCR }}/xion
-            385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
-          tags: |
-            type=sha
-
-      - name: Build and push xion image
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: release
-          platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta-xion.outputs.tags }}
-          labels: ${{ steps.meta-xion.outputs.labels }}
-
       - name: Copy xiond binary from linux/amd64 container
         id: copy-binary-amd64
         run: |
-          SHA_VERSION=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels["org.opencontainers.image.version"]')
-          docker create --platform linux/amd64 --name temp_container-amd64 ${GHCR}:${SHA_VERSION}
+          IMAGE_VERSION=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels["org.opencontainers.image.version"]')
+          docker create --platform linux/amd64 --name temp_container-amd64 ${GHCR}:${IMAGE_VERSION}
           docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
           ./xiond-linux-amd64 version --long
           docker rm -v temp_container-amd64
@@ -84,69 +42,58 @@ jobs:
       - name: Upload binary
         uses: actions/upload-artifact@v3
         with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
+          name: xiond-linux-amd64
           path: ./xiond-linux-amd64
 
-  release:
+  build-release:
+    needs: build-release-binaries
     runs-on: ubuntu-latest
     environment: CI
-    needs:
-      - build-amd64
 
     steps:
-      - name: Get the version and sanitize
-        id: get_version
+      - name: Create release directory
+        run: mkdir -p build/release
+
+      - name: Download artifacts
+        working-directory: release
+        run: gh release download ${{ github.ref_name }} -p 'xiond' -p '*.tar.gz' --repo ${{ github.repository }}
+
+      - name: List files in workspace
+        working-directory: release
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
+          ls -R
 
-      - name: Download xiond-linux-amd64
-        uses: actions/download-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
+      - name: Create checksums
+        working-directory: release
+        run: |
+          sha256sum * > checksum.txt
 
-      - name: Download zip
-        uses: actions/download-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
-
-      - name: Download tgz
-        uses: actions/download-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
+      - name: Display checksums
+        working-directory: release
+        run: |
+          cat checksum.txt
 
       - name: Build Changelog
         id: changelog
         uses: mikepenz/release-changelog-builder-action@v4
         with:
-          token: ${{ secrets.GH_RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Output Changelog
         run: echo "${{steps.changelog.outputs.changelog}}"
 
-      - name: List files in workspace
-        run: ls -R
-
-      - name: Rename files in workspace
-        run: |
-          mv -vf xiond-linux-amd64 xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
-          mv -vf xiond.src.tgz xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
-          mv -vf xiond.src.zip xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
 
       - name: Create and Update Release
         id: create-release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifactContentType: application/octet-stream
-          artifacts: |
-            ./xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
-            ./xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
-            ./xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
           name: Release ${{ steps.get_version.outputs.VERSION }}
-          prerelease: false
+          prerelease: true
           tag: ${{ github.ref }}
-          token: ${{ secrets.GH_RELEASE_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload the artifacts to release
+        run: gh release upload ${{github.ref_name}} build/release/* --repo ${{github.repository}}
