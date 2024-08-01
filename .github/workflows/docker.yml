@@ -10,6 +10,7 @@ on:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}
+  platforms: linux/amd64
 
 jobs:
   docker-scout:
@@ -43,11 +44,6 @@ jobs:
           fetch-depth: 1
           fetch-tags: true
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: linux/amd64,linux/arm64
-
       - name: Set up docker buildx for push
         uses: docker/setup-buildx-action@v3
 
@@ -69,7 +65,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: release
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.PLATFORMS }}
           tags: ${{ steps.meta-xion.outputs.tags }}
           labels: ${{ steps.meta-xion.outputs.labels }}
 
@@ -101,7 +97,7 @@ jobs:
           dockerfile: heighliner/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.PLATFORMS }}
           tags: ${{ steps.meta-heighliner.outputs.tags }}
           labels: ${{ steps.meta-heighliner.outputs.labels }}
           build-args: |
@@ -115,12 +111,4 @@ jobs:
           command: cves
           only-fixed: true
           platform: linux/amd64
-          image: ${{ env.GHCR }}/xion:${{ env.SHA_VERSION }}
-
-      - name: Run Docker Scout arm64
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          only-fixed: true
-          platform: linux/arm64
           image: ${{ env.GHCR }}/xion:${{ env.SHA_VERSION }}
