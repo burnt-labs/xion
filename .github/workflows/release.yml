@@ -1,31 +1,35 @@
-name: Create Release and Publish Binary
+name: Create Release and Publish Binaries
+# Run for new release tags only
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - '*'
-  workflow_dispatch:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+'
+
+env:
+  GHCR: ghcr.io/${{ github.repository }}
 
 jobs:
-
-  build-amd64:
+  build:
+    name: Build Image
     runs-on: ubuntu-latest
     environment: CI
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          fetch-depth: 0
-          fetch-tags: true
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
 
-
-      - name: Get the version and sanitize
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -33,32 +37,46 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Set up docker buildx
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          fetch-tags: true
+
+      #########################################################################
+      # build docker images
+      #########################################################################
+
+      - name: Set up docker buildx for push
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract metadata for docker
-        id: meta
+      - name: Metadata for xion container
+        id: meta-xion
         uses: docker/metadata-action@v5
         with:
-          images: burntnetwork/xion
+          images: |
+            burntnetwork/xion
+            ${{ env.GHCR }}/xion
+            385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
           tags: |
-            type=semver,pattern={{version}},priority=1000
-            type=sha,priority=700
+            type=sha
 
-      - name: Build docker image for linux/amd64
+      - name: Build and push xion image
         uses: docker/build-push-action@v5
         with:
-          context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: release
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta-xion.outputs.tags }}
+          labels: ${{ steps.meta-xion.outputs.labels }}
 
       - name: Copy xiond binary from linux/amd64 container
         id: copy-binary-amd64
         run: |
-          docker create --name temp_container-amd64 $(echo ${{ steps.meta.outputs.tags }} | awk '{print $1}')
+          SHA_VERSION=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels["org.opencontainers.image.version"]')
+          docker create --platform linux/amd64 --name temp_container-amd64 ${GHCR}:${SHA_VERSION}
           docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
           ./xiond-linux-amd64 version --long
           docker rm -v temp_container-amd64
@@ -69,71 +87,11 @@ jobs:
           name: xiond-${{ steps.get_version.outputs.VERSION }}-linux-amd64
           path: ./xiond-linux-amd64
 
-  build-zip:
-    runs-on: ubuntu-latest
-    environment: CI
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Get the version and sanitize
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
-
-      - name: Zip source
-        run: |
-          zip -r xiond.src.zip . -x 'docker/**\*' '.github/**\*' 'xiond.src.zip'
-
-      - name: Upload zip
-        uses: actions/upload-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.zip
-          path: xiond.src.zip
-          if-no-files-found: error
-
-  build-tgz:
-    runs-on: ubuntu-latest
-    environment: CI
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Get the version and sanitize
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          SANITIZED_VERSION=$(echo $VERSION | sed 's|/|-|g')
-          echo "::set-output name=VERSION::$SANITIZED_VERSION"
-
-      - name: Create tgz
-        run: |
-          tar --exclude='./.github' --exclude='./docker' -czvf /tmp/xiond.src.tgz .
-
-      - name: Upload tgz
-        uses: actions/upload-artifact@v3
-        with:
-          name: xiond-${{ steps.get_version.outputs.VERSION }}.src.tgz
-          path: /tmp/xiond.src.tgz
-          if-no-files-found: error
-
   release:
     runs-on: ubuntu-latest
     environment: CI
     needs:
       - build-amd64
-      - build-zip
-      - build-tgz
 
     steps:
       - name: Get the version and sanitize

@@ -1,20 +1,18 @@
----
 name: Build and Push Docker Images
+
+# build for pull requests to main, releases are handled in release.yml
 
 on:
   workflow_dispatch:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
-    tags:
-      - 'v[0-9]+\.[0-9]+\.[0-9]+'
-      - 'v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+'
+
+env:
+  GHCR: ghcr.io/${{ github.repository }}
 
 jobs:
-  build:
+  docker-scout:
     name: Build Image
     runs-on: ubuntu-latest
     environment: CI
@@ -36,71 +34,35 @@ jobs:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
 
       - name: Login to Amazon ECR
-        if: ${{ github.event_name == 'push' }}
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           fetch-tags: true
 
-      - name: Set up docker buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
         with:
-          driver: docker
-
-      - name: Set env variables
-        shell: bash
-        run: |
-          echo "VERSION=$(echo ${GITHUB_REF_NAME} | sed -E 's/\bv([0-9]+)\.([0-9]+)\.([0-9]+)\b/\1.\2.\3/g')" >> $GITHUB_ENV
-          echo "COMMIT=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
-
-      #########################################################################
-      # docker scout
-      #########################################################################
-
-      - name: Set up docker buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build docker image locally
-        uses: docker/build-push-action@v6
-        with:
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: release
           platforms: linux/amd64,linux/arm64
-          tags: local/xion:scout
 
-      - name: Run Docker Scout
-        if: ${{ github.event_name != 'push' }}
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          only-fixed: true
-          platform: linux/amd64
-          image: local://local/xion:scout
+      - name: Set up docker buildx for push
+        uses: docker/setup-buildx-action@v3
 
-      #########################################################################
-      # build release on push/dispatch only
-      #########################################################################
-
-      - name: Extract metadata for docker
-        id: meta-release
+      - name: Metadata for xion container
+        id: meta-xion
         uses: docker/metadata-action@v5
         with:
           images: |
             burntnetwork/xion
-            ghcr.io/burnt-labs/xion
+            ${{ env.GHCR }}/xion
             385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
           tags: |
-            type=semver,pattern={{version}},priority=1000
-            type=sha,priority=700
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
 
-      - name: Build and push docker image
+      - name: Build and push xion image
         uses: docker/build-push-action@v5
         with:
           push: true
@@ -108,5 +70,57 @@ jobs:
           cache-to: type=gha,mode=max
           target: release
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta-release.outputs.tags }}
-          labels: ${{ steps.meta-release.outputs.labels }}
+          tags: ${{ steps.meta-xion.outputs.tags }}
+          labels: ${{ steps.meta-xion.outputs.labels }}
+
+      - name: Prepare heighliner build
+        run: |
+          mkdir -p ./heighliner
+          curl -sSL https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ./heighliner/Dockerfile
+          echo ""
+
+      - name: Metadata for heighliner
+        id: meta-heighliner
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GHCR }}/heighliner
+          tags: |
+            type=sha
+
+      - name: Prepare heighliner build
+        run: |
+          mkdir -p ./heighliner
+          curl -sSL https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ./heighliner/Dockerfile
+          echo "SHA_VERSION=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels["org.opencontainers.image.version"]')" | >> $GITHUB_ENV
+
+      - name: Build and push heighliner image
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          dockerfile: heighliner/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta-heighliner.outputs.tags }}
+          labels: ${{ steps.meta-heighliner.outputs.labels }}
+          build-args: |
+            BASE_IMAGE=${{ env.GHCR }}/xion
+            VERSION=${{ env.SHA_VERSION }}
+            BINARIES=/usr/bin/xiond
+
+      - name: Run Docker Scout amd64
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          only-fixed: true
+          platform: linux/amd64
+          image: ${{ env.GHCR }}/xion:${{ env.SHA_VERSION }}
+
+      - name: Run Docker Scout arm64
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          only-fixed: true
+          platform: linux/arm64
+          image: ${{ env.GHCR }}/xion:${{ env.SHA_VERSION }}
