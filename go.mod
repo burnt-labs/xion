@@ -20,7 +20,6 @@ require (
 	cosmossdk.io/x/tx v0.13.3
 	cosmossdk.io/x/upgrade v0.1.1
 	github.com/CosmWasm/wasmd v0.51.0
-	github.com/CosmWasm/wasmvm v1.5.2
 	github.com/CosmWasm/wasmvm/v2 v2.0.0
 	github.com/cometbft/cometbft v0.38.9
 	github.com/cosmos/cosmos-db v1.0.2
@@ -56,7 +55,6 @@ require (
 )
 
 require (
-	cosmossdk.io/x/circuit v0.1.0 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect

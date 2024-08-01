@@ -50,7 +50,7 @@ require (
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/ChainSafe/go-schnorrkel/1 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/ComposableFi/go-subkey/v2 v2.0.0-tm03420 // indirect
-	github.com/CosmWasm/wasmvm v1.5.2 // indirect
+	github.com/CosmWasm/wasmvm/v2 v2.0.0 // indirect
 	github.com/DataDog/datadog-go v3.2.0+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
@@ -286,7 +286,7 @@ replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.0
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
-	github.com/CosmWasm/wasmd => github.com/CosmWasm/wasmd v0.50.0
+	//github.com/CosmWasm/wasmd => github.com/CosmWasm/wasmd v0.50.0
 	github.com/burnt-labs/xion => ../
 	//github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
