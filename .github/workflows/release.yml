@@ -57,7 +57,7 @@ jobs:
       - name: Copy xiond binary from linux/amd64 container
         id: copy-binary-amd64
         run: |
-          docker create --platform linux/amd64 --name temp_container-amd64 ${{ steps.meta-heighliner.outputs.tags }}
+          docker create --platform linux/amd64 --name temp_container-amd64 $DOCKER_METADATA_OUTPUT_TAGS
           docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
           ./xiond-linux-amd64 version --long
           docker rm -v temp_container-amd64
