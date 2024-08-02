@@ -3,12 +3,8 @@ name: Build and Push Docker Images
 # trigger on pull requests to main and workflow call from release.yml
 
 on:
-  workflow_dispatch:
   workflow_call:
-    inputs:
-      tags:
-        type: string
-        required: true
+  workflow_dispatch:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}
@@ -61,10 +57,10 @@ jobs:
 
       - name: Set tag types
         run: |
-          if [ -z "${{ inputs.metatags }}" ]; then
-            echo "METATAGS=type=sha" >> $GITHUB_ENV
+          if [ ${{ github.event_name }} == "push" ]; then
+            echo 'METATAGS=type=semver,pattern={{version}} type=raw,value=latest,enable={{is_default_branch}}" >> $GITHUB_ENV
           else
-            echo METATAGS=${{ inputs.metatags }} >> $GITHUB_ENV
+            echo "METATAGS=type=sha" >> $GITHUB_ENV
           fi
 
       - name: Metadata for xion container
