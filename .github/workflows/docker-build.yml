@@ -45,9 +45,6 @@ jobs:
 
       - name: Check out code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          fetch-tags: true
 
       - name: Set up docker buildx for push
         uses: docker/setup-buildx-action@v3
