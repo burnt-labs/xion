@@ -117,14 +117,15 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          body: ${{ steps.changelog.outputs.changelog }}
           draft: true
+          generateReleaseNotes: true
           name: Release ${{ steps.get_version.outputs.VERSION }}
           prerelease: true
+          replacesArtifacts: true
           tag: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload the artifacts to release
-        run: gh release upload ${{github.ref_name}} release/* --repo ${{github.repository}}
-        env:
-          GH_TOKEN: ${{ github.token }}
+      # - name: Upload the artifacts to release
+      #   run: gh release upload ${{github.ref_name}} release/* --repo ${{github.repository}}
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
