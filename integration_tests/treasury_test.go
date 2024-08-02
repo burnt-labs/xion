@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -415,12 +416,12 @@ func TestTreasuryMulti(t *testing.T) {
 	*/
 
 	testAllowanceA := &feegrant.BasicAllowance{
-		SpendLimit: types.Coins{},
+		SpendLimit: types.Coins{types.Coin{Denom: "uxion", Amount: sdkmath.NewInt(10)}},
 		Expiration: &inFive,
 	}
 
 	testAllowanceB := &feegrant.BasicAllowance{
-		SpendLimit: types.Coins{},
+		SpendLimit: types.Coins{types.Coin{Denom: "uxion", Amount: sdkmath.NewInt(10)}},
 		Expiration: &inFive,
 	}
 
@@ -430,6 +431,7 @@ func TestTreasuryMulti(t *testing.T) {
 
 	bz, err := proto.Marshal(testMultiAllowance)
 	require.NoError(t, err)
+	require.NoError(t, testMultiAllowance.ValidateBasic())
 
 	allowanceAny := ExplicitAny{
 		TypeURL: "/" + proto.MessageName(testMultiAllowance),
@@ -565,7 +567,7 @@ func TestTreasuryMulti(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["@type"].(string)
-	require.Contains(t, allowanceType, "/cosmos.feegrant.v1beta1.BasicAllowance")
+	require.Contains(t, allowanceType, "/"+proto.MessageName(testMultiAllowance))
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
