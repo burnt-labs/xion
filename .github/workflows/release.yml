@@ -8,6 +8,10 @@ on:
       - 'v[0-9]+\.[0-9]+\.[0-9]+'
       - 'v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   GHCR: ghcr.io/${{ github.repository }}
   PLATFORMS: linux/amd64
@@ -78,7 +82,7 @@ jobs:
         run: mkdir -p release
 
       - name: Download artifacts
-        uses: actions/artifact-artifact@v4
+        uses: actions/download-artifact@v4
         with:
           path: release
 
