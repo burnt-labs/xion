@@ -116,14 +116,16 @@ jobs:
         id: create-release
         uses: ncipollo/release-action@v1
         with:
+          name: Release ${{ github.ref_name }}
           allowUpdates: true
           draft: true
+          artifacts: release/*
           generateReleaseNotes: true
-          name: Release ${{ steps.get_version.outputs.VERSION }}
           prerelease: true
           replacesArtifacts: true
           tag: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          updateOnlyUnreleased: true
 
       # - name: Upload the artifacts to release
       #   run: gh release upload ${{github.ref_name}} release/* --repo ${{github.repository}}
