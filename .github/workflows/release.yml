@@ -63,7 +63,7 @@ jobs:
           docker rm -v temp_container-amd64
 
       - name: Upload binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: xiond-linux-amd64
           path: ./xiond-linux-amd64
@@ -75,11 +75,12 @@ jobs:
 
     steps:
       - name: Create release directory
-        run: mkdir -p build/release
+        run: mkdir -p release
 
       - name: Download artifacts
-        working-directory: release
-        run: gh release download ${{ github.ref_name }} -p 'xiond' -p '*.tar.gz' --repo ${{ github.repository }}
+        uses: actions/artifact-artifact@v4
+        with:
+          path: ${{ env.GITHUB_WORKSPACE }}/relaese
 
       - name: List files in workspace
         working-directory: release
