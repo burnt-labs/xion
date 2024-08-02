@@ -1,5 +1,6 @@
 name: Heighliner Build
 
+# reusable workflow, do not add triggers
 on:
   workflow_call:
 

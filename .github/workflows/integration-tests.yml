@@ -1,5 +1,6 @@
 name: Interchain tests
 
+# reusable workflow, do not add triggers
 on:
   workflow_call:
 

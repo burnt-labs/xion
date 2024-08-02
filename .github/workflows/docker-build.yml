@@ -1,7 +1,6 @@
 name: Build and Push Docker Images
 
-# trigger on pull requests to main and workflow call from release.yml
-
+# reusable workflow, do not add triggers
 on:
   workflow_call:
   workflow_dispatch:
