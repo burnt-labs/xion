@@ -17,31 +17,31 @@ env:
   PLATFORMS: linux/amd64
 
 jobs:
-  # build-docker:
-  #   name: Build Docker Images
-  #   uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
-  #   secrets: inherit
+  build-docker:
+    name: Build Docker Images
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
+    secrets: inherit
 
-  # docker-scout:
-  #   needs: build-docker
-  #   name: Docker Scout
-  #   uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
-  #   secrets: inherit
+  docker-scout:
+    needs: build-docker
+    name: Docker Scout
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
+    secrets: inherit
 
-  # build-heighliner:
-  #   needs: build-docker
-  #   name: Heighliner Build
-  #   uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
-  #   secrets: inherit
+  build-heighliner:
+    needs: build-docker
+    name: Heighliner Build
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
+    secrets: inherit
 
-  # interchain-tests:
-  #   needs: build-heighliner
-  #   name: Interchain tests
-  #   uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf1
-  #   secrets: inherit
+  interchain-tests:
+    needs: build-heighliner
+    name: Interchain tests
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf1
+    secrets: inherit
 
   build-release-binaries:
-    #needs: interchain-tests
+    needs: interchain-tests
     runs-on: ubuntu-latest
     environment: CI
     permissions:
@@ -126,8 +126,3 @@ jobs:
           tag: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           updateOnlyUnreleased: true
-
-      # - name: Upload the artifacts to release
-      #   run: gh release upload ${{github.ref_name}} release/* --repo ${{github.repository}}
-      #   env:
-      #     GH_TOKEN: ${{ github.token }}
