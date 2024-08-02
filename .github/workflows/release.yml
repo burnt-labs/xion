@@ -80,7 +80,7 @@ jobs:
       - name: Download artifacts
         uses: actions/artifact-artifact@v4
         with:
-          path: ${{ env.GITHUB_WORKSPACE }}/relaese
+          path: release
 
       - name: List files in workspace
         working-directory: release
