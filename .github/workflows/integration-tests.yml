@@ -82,6 +82,7 @@ jobs:
         - "XionTokenFactory"
         - "XionAbstractAccountJWTCLI"
         - "TreasuryContract"
+        - "TreasuryMulti"
         - "SingleAbstractAccountMigration"
 
     steps:
