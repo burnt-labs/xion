@@ -1,9 +1,11 @@
+# This module represents buf.build/cosmos/cosmos-sdk
 version: v1
-name: buf.build/cosmwasm/xiond
+name: buf.build/cosmos/xion
 deps:
+  - buf.build/cosmos/cosmos-sdk:v0.47.10
   - buf.build/cosmos/cosmos-proto
-  - buf.build/cosmos/cosmos-sdk:v0.47.0
   - buf.build/cosmos/gogo-proto
+  - buf.build/googleapis/googleapis
 breaking:
   use:
     - FILE
@@ -18,4 +20,3 @@ lint:
     - SERVICE_SUFFIX
     - PACKAGE_VERSION_SUFFIX
     - RPC_REQUEST_STANDARD_NAME
-    - PACKAGE_DIRECTORY_MATCH
