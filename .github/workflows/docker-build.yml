@@ -46,6 +46,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
+          fetch-depth: 1
+          fetch-tags: true
           ref: ${{ github.ref }}
 
       - name: Set up docker buildx for push
