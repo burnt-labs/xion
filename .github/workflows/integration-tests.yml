@@ -1,10 +1,7 @@
 name: Interchain tests
-# triggered from pull-request.yml
-# triggered from release.yaml
 
 on:
   workflow_call:
-  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -12,16 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # only on dispatch, if using from another workflow call the docker build from that workflow
-  build-heighliner:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
-    secrets: inherit
-
   interchain-tests:
-    if: ${{ always() }}
-    needs: build-heighliner
     environment: CI
     runs-on: ubuntu-latest
     strategy:

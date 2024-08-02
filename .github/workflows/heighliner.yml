@@ -1,26 +1,14 @@
 name: Heighliner Build
 
-# trigger on pull requests to main and workflow call from release.yml
-
 on:
   workflow_call:
-  workflow_dispatch:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}
   PLATFORMS: linux/amd64
 
 jobs:
-  # only on dispatch, if using from another workflow call the docker build from that workflow
-  build-docker-images:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    name: Build and Push Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
-    secrets: inherit
-
   build-heighliner:
-    if: ${{ always() }}
-    needs: build-docker-images
     name: Heighliner Build
     runs-on: ubuntu-latest
     environment: CI

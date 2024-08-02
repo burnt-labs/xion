@@ -1,26 +1,11 @@
 name: Docker Scout
 
-# trigger on pull requests to main and workflow call from release.yml
-
 on:
-  workflow_call:
   workflow_dispatch:
 
-env:
-  GHCR: ghcr.io/${{ github.repository }}
-
 jobs:
-  # only on dispatch, if using from another workflow call the docker build from that workflow
-  build-docker-images:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    name: Build and Push Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
-    secrets: inherit
-
   docker-scout:
-    if: ${{ always() }}
     name: Docker Scout
-    needs: build-docker-images
     runs-on: ubuntu-latest
     environment: CI
     permissions:
@@ -41,7 +26,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.GHCR }}/xion
+            burntnetwork/xion
           tags: |
             type=sha
       - name: Run Docker Scout amd64
