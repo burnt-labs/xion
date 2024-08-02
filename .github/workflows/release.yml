@@ -125,6 +125,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload the artifacts to release
-        run: gh release upload ${{github.ref_name}} build/release/* --repo ${{github.repository}}
+        run: gh release upload ${{github.ref_name}} release/* --repo ${{github.repository}}
         env:
           GH_TOKEN: ${{ github.token }}
