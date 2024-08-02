@@ -57,7 +57,7 @@ jobs:
       - name: Set tag types
         run: |
           if [ "${{ github.event_name }}" == "push" ]; then
-            echo "METATAGS=type=semver,pattern={{version}} type=raw,value=latest,enable={{is_default_branch}}" >> $GITHUB_ENV
+            echo "METATAGS=\ntype=semver,pattern={{version}}\ntype=raw,value=latest,enable={{is_default_branch}}\n" >> $GITHUB_ENV
           else
             echo "METATAGS=type=sha" >> $GITHUB_ENV
           fi
