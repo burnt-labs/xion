@@ -368,7 +368,6 @@ func TestTreasuryMulti(t *testing.T) {
 		(*types.Msg)(nil),
 		&xiontypes.MsgSetPlatformPercentage{},
 		&xiontypes.MsgSend{},
-		&xiontypes.MultiAnyAllowance{},
 		&wasmtypes.MsgInstantiateContract{},
 		&wasmtypes.MsgExecuteContract{},
 		&wasmtypes.MsgStoreCode{},
