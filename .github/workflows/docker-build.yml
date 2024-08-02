@@ -48,18 +48,11 @@ jobs:
         with:
           fetch-depth: 1
           fetch-tags: true
+          ref: ${{ github.ref }}
 
       - name: Set up docker buildx for push
         uses: docker/setup-buildx-action@v3
 
-
-      - name: Set tag types
-        run: |
-          if [ "${{ github.event_name }}" == "push" ]; then
-            echo "METATAGS=type=semver,pattern={{version}} type=raw,value=latest,enable={{is_default_branch}}" >> $GITHUB_ENV
-          else
-            echo "METATAGS=type=sha" >> $GITHUB_ENV
-          fi
 
       - name: Metadata for xion container
         id: meta-xion
@@ -69,7 +62,10 @@ jobs:
             burntnetwork/xion
             ${{ env.GHCR }}/xion
             385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
-          tags: ${{ env.METATAGS }}
+          tags: |
+            type=sha
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'push' }}
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Prepare xion build environment
         run: |

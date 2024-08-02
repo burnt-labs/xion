@@ -22,6 +22,7 @@ jobs:
     needs: build-docker
     name: Docker Scout
     uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
+    secrets: inherit
 
   build-heighliner:
     needs: build-docker
