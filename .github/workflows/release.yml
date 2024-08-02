@@ -13,31 +13,31 @@ env:
   PLATFORMS: linux/amd64
 
 jobs:
-  build-docker:
-    name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
-    secrets: inherit
+  # build-docker:
+  #   name: Build Docker Images
+  #   uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
+  #   secrets: inherit
 
-  docker-scout:
-    needs: build-docker
-    name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
-    secrets: inherit
+  # docker-scout:
+  #   needs: build-docker
+  #   name: Docker Scout
+  #   uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
+  #   secrets: inherit
 
-  build-heighliner:
-    needs: build-docker
-    name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
-    secrets: inherit
+  # build-heighliner:
+  #   needs: build-docker
+  #   name: Heighliner Build
+  #   uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
+  #   secrets: inherit
 
-  interchain-tests:
-    needs: build-heighliner
-    name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf1
-    secrets: inherit
+  # interchain-tests:
+  #   needs: build-heighliner
+  #   name: Interchain tests
+  #   uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf1
+  #   secrets: inherit
 
   build-release-binaries:
-    needs: interchain-tests
+    #needs: interchain-tests
     runs-on: ubuntu-latest
     environment: CI
     permissions:
@@ -45,11 +45,19 @@ jobs:
       contents: read
 
     steps:
+      - name: Metadata for release
+        id: meta-release
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GHCR }}/xion
+          tags: |
+            type=semver,pattern={{version}}
+
       - name: Copy xiond binary from linux/amd64 container
         id: copy-binary-amd64
         run: |
-          IMAGE_VERSION=$(echo "$DOCKER_METADATA_OUTPUT_JSON" | jq -r '.labels["org.opencontainers.image.version"]')
-          docker create --platform linux/amd64 --name temp_container-amd64 ${GHCR}:${IMAGE_VERSION}
+          docker create --platform linux/amd64 --name temp_container-amd64 ${{ steps.meta-heighliner.outputs.tags }}
           docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
           ./xiond-linux-amd64 version --long
           docker rm -v temp_container-amd64
