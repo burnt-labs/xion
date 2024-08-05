@@ -25,7 +25,6 @@ import (
 	tokenfactorykeeper "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 
-
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmos "github.com/cometbft/cometbft/libs/os"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -602,6 +601,7 @@ func NewWasmApp(
 	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
 		appCodec,
 		keys[tokenfactorytypes.StoreKey],
+		maccPerms,
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.DistrKeeper,

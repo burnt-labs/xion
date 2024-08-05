@@ -71,6 +71,7 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/emicklei/dot v1.6.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
+	github.com/gogo/status v1.1.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/goware/urlx v0.3.2 // indirect
@@ -160,7 +161,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-getter v1.7.4 // indirect
+	github.com/hashicorp/go-getter v1.7.5 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
@@ -265,5 +266,5 @@ replace (
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.0
 	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61
-	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.0.0-20240313005346-067e66fb2ee5
+	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.3-wasmvm2
 )
