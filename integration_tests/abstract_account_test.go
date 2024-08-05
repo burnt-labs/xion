@@ -523,6 +523,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
+		aaContractAddr,
 		path.Join(xion.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
@@ -568,6 +569,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
+		aaContractAddr,
 		path.Join(xion.GetNode().HomeDir(), rotateFilePath[len(rotateFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
@@ -606,6 +608,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
+		aaContractAddr,
 		path.Join(xion.GetNode().HomeDir(), removeFilePath[len(removeFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 		"--authenticator-id", "1",
