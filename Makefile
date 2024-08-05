@@ -1,11 +1,13 @@
 #!/usr/bin/make -f
 
-PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
-VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
-COMMIT := $(shell git log -1 --format='%H')
+PACKAGES_SIMTEST = $(shell go list ./... | grep '/simulation')
+VERSION ?= $(shell echo $(shell git describe --tags) | sed 's/^v//')
+COMMIT ?= $(shell git log -1 --format='%H')
+TAG_VERSION ?= $(shell git rev-parse --short HEAD)
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
+BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
 XION_IMAGE=xion:local
 
@@ -77,6 +79,9 @@ include contrib/devtools/Makefile
 
 all: install lint test
 
+install: go.sum
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
+
 build: go.sum
 ifeq ($(OS),Windows_NT)
 	$(error wasmd server not supported. Use "make build-windows-client" for client)
@@ -88,11 +93,54 @@ endif
 build-windows-client: go.sum
 	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
 
-install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
+build-binaries: build-binary-amd64
+build-binaries: build-binary-arm64
 
-########################################
-### Tools & dependencies
+build-binary-amd64: TARGETOS = linux
+build-binary-amd64: TARGETARCH = amd64
+build-binary-amd64: --build-binary
+
+build-binary-arm64: TARGETOS = linux
+build-binary-arm64: TARGETARCH = arm64
+build-binary-arm64: --build-binary
+
+.PHONY: --build-binary
+--build-binary:
+	mkdir -p build
+	$(DOCKER) buildx create --name xiond-build-ctx || true
+	$(DOCKER) buildx use xiond-build-ctx
+	$(DOCKER) buildx build --platform $(TARGETOS)/$(TARGETARCH) --load --tag xiond:$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH) ./
+	$(DOCKER) container create --rm --name xiond-build-ctr xiond:$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH)
+	$(DOCKER) cp xiond-build-ctr:/usr/bin/xiond $(BUILDDIR)/xiond-$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH)
+	$(DOCKER) rm -f xiond-build-ctr
+	$(DOCKER) buildx rm xiond-build-ctx
+
+.PHONY: build-heighliner
+build-heighliner: DOCKER_BUILDKIT=0
+build-heighliner:
+	mkdir -p ./heighliner
+	curl -sSL https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ./heighliner/Dockerfile
+	$(DOCKER) image rm -f xiond:binary || true
+  ifdef IMAGE
+		$(info Using $(IMAGE) for source Image")
+		$(DOCKER) image pull $(IMAGE)
+		$(DOCKER) tag $(IMAGE) xiond:binary
+  else
+		$(info Building source Image")
+		$(DOCKER) build --tag xiond:binary ./
+  endif
+	$(DOCKER) build \
+		--progress=plain \
+		--build-arg BASE_IMAGE=xiond \
+	  --build-arg VERSION=binary \
+	  --build-arg BINARIES=/use/bin/xiond \
+	  --tag $(XION_IMAGE) ./heighliner
+	$(DOCKER) image rm -f xiond:binary || true
+	rm -rf ./heighliner
+
+################################################################################
+###                         Tools & dependencies                             ###
+################################################################################
 
 go-mod-cache: go.sum
 	@echo "--> Download go modules to local cache"
@@ -113,8 +161,9 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
-########################################
-### Testing
+###############################################################################
+###                                Testing                                  ###
+###############################################################################
 
 test: test-unit
 test-all: check test-race test-cover
@@ -206,9 +255,9 @@ test-sim-deterministic: runsim
 	@echo "Running short multi-seed application simulation. This may take awhile!"
 	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 1 1 TestAppStateDeterminism
 
-###############################################################################
-###                                Linting                                  ###
-###############################################################################
+################################################################################
+###                                 Linting                                  ###
+################################################################################
 
 format-tools:
 	go install mvdan.cc/gofumpt@v0.4.0
@@ -226,9 +275,9 @@ format: format-tools
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
 
 
-###############################################################################
-###                                Protobuf                                 ###
-###############################################################################
+################################################################################
+###                                 Protobuf                                 ###
+################################################################################
 protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)

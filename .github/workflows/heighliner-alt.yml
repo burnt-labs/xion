@@ -2,7 +2,7 @@ name: Heighliner Build
 
 # reusable workflow, do not add triggers
 on:
-  workflow_call:
+  workflow_dispatch:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}
@@ -41,21 +41,18 @@ jobs:
             type=semver,pattern={{version}},enable=${{ github.event_name == 'push' }}
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Prepare heighliner build
-        run: |
-          curl -vL https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ${{ runner.temp }}/Dockerfile.heighliner
-
-      - name: Build and push heighliner image
-        uses: docker/build-push-action@v5
+      - name: Build Heighliner image
+        id: heighliner
+        uses: burnt-labs/heighliner-action@v1.0.0-alpha10
         with:
-          push: true
-          file: ${{ runner.temp }}/Dockerfile.heighliner
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: ${{ env.PLATFORMS }}
-          tags: ${{ steps.meta-heighliner.outputs.tags }}
-          labels: ${{ steps.meta-heighliner.outputs.labels }}
-          build-args: |
-            BASE_IMAGE=${{ env.GHCR }}/xion
-            VERSION=${{ fromJSON(steps.meta-heighliner.outputs.json).labels['org.opencontainers.image.version'] }}
-            BINARIES=/usr/bin/xiond
+          local: true
+          tag: ${{ steps.meta-heighliner.outputs.tags }}
+          chain: xion
+          dockerfile: import
+          platform: ${{ env.PLATFORMS }}
+          binaries: '["/usr/bin/xiond"]'
+          build-env: "[\"BUILD_TAGS=muslc\", \"BASE_IMAGE=${{ env.GHCR }}/xion\", \"VERSION=${{ fromJSON(steps.meta-heighliner.outputs.json).labels['org.opencontainers.image.version'] }}\"]"
+
+      - name: Push Heighliner image
+        run: |
+          docker push ghcr.io/burnt-labs/xion/${{ steps.heighliner.outputs.tag }}
