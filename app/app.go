@@ -8,9 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
-	wasmapp "github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -700,7 +698,7 @@ func NewWasmApp(
 	// if we want to allow any custom callbacks
 	// See https://github.com/CosmWasm/cosmwasm/blob/main/docs/CAPABILITIES-BUILT-IN.md
 
-	availableCapabilities := strings.Join(append(wasmapp.AllCapabilities(), "token_factory"), ",")
+	availableCapabilities := append(wasmkeeper.BuiltInCapabilities(), "token_factory")
 
 	tokenFactoryOpts := bindings.RegisterCustomPlugins(app.BankKeeper, &app.TokenFactoryKeeper)
 	wasmOpts = append(owasm.RegisterStargateQueries(*app.GRPCQueryRouter(), appCodec), wasmOpts...)
