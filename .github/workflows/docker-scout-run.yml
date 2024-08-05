@@ -1,0 +1,15 @@
+name: Docker Scout
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-docker-scout:
+    name: Build and Push Docker Images
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
+    secrets: inherit
+
+  docker-scout:
+    needs: build-docker-scout
+    name: Docker Scout
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
