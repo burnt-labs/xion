@@ -332,8 +332,11 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
 
-	finalAllowances := feeGrantDetails["allowances"].([]interface{})
-	require.Equal(t, 0, len(finalAllowances))
+	finalAllowancesStr, ok := feeGrantDetails["allowances"]
+	if ok {
+		finalAllowances := finalAllowancesStr.([]interface{})
+		require.Equal(t, 0, len(finalAllowances))
+	}
 }
 
 func TestTreasuryMulti(t *testing.T) {
