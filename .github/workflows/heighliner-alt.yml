@@ -1,4 +1,4 @@
-name: Heighliner Build
+name: Heighliner Action Build
 
 # reusable workflow, do not add triggers
 on:

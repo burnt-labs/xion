@@ -3,6 +3,7 @@ name: Heighliner Build
 # reusable workflow, do not add triggers
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}

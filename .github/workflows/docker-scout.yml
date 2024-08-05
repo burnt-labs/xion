@@ -3,6 +3,7 @@ name: Docker Scout
 # reusable workflow, do not add triggers
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   docker-scout:
