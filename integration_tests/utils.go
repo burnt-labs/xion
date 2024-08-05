@@ -19,6 +19,8 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/x/feegrant"
+
 	"cosmossdk.io/x/upgrade"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -274,6 +276,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 			minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			jwktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			aatypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			feegrant.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}

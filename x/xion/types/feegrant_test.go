@@ -114,6 +114,7 @@ func TestXionMultiAllowance(t *testing.T) {
 	sendMsg := banktypes.MsgSend{}
 
 	now := time.Now()
+	inFive := time.Now().Add(time.Minute * 5)
 
 	cases := map[string]struct {
 		allowanceOne feegrant.FeeAllowanceI
@@ -171,14 +172,14 @@ func TestXionMultiAllowance(t *testing.T) {
 			accept:       true,
 		},
 		"mismatched expiry deny": {
-			allowanceOne: &feegrant.PeriodicAllowance{
-				Basic:            feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}}},
+			allowanceTwo: &feegrant.PeriodicAllowance{
+				Basic:            feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}}, Expiration: &inFive},
 				Period:           86400,
 				PeriodSpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}},
 				PeriodCanSpend:   sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(200)}},
 				PeriodReset:      time.Time{},
 			},
-			allowanceTwo: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}, Expiration: &now},
+			allowanceOne: &feegrant.BasicAllowance{SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(20)}}, Expiration: &now},
 			fee:          sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
 			validate:     false,
 			accept:       true,
