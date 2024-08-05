@@ -11,27 +11,28 @@ env:
 
 jobs:
   interchain-tests:
-    environment: CI
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         test_type:
-          - "DungeonTransferBlock"
-          - "XionSendPlatformFee"
-          - "MintModuleNoInflationNoFees"
-          - "MintModuleInflationHighFees"
-          - "MintModuleInflationLowFees"
-          - "JWTAbstractAccount"
-          - "XionSendPlatformFee"
-          - "XionAbstractAccount"
-          - "WebAuthNAbstractAccount"
-          - "XionMinimumFeeDefault"
-          - "XionMinimumFeeZero"
-          - "XionTokenFactory"
-          - "XionAbstractAccountJWTCLI"
-          - "TreasuryContract"
-          - "SingleAbstractAccountMigration"
+        - "DungeonTransferBlock"
+        - "XionSendPlatformFee"
+        - "MintModuleNoInflationNoFees"
+        - "MintModuleInflationHighFees"
+        - "MintModuleInflationLowFees"
+        - "JWTAbstractAccount"
+        - "XionSendPlatformFee"
+        - "XionAbstractAccount"
+        - "WebAuthNAbstractAccount"
+        - "XionMinimumFeeDefault"
+        - "XionMinimumFeeZero"
+        - "XionTokenFactory"
+        - "XionAbstractAccountJWTCLI"
+        - "TreasuryContract"
+        - "TreasuryMulti"
+        - "SingleAbstractAccountMigration"
+
 
     steps:
       - name: checkout
