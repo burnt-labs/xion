@@ -1,9 +1,8 @@
-name: Test
+name: Unit Tests
 
+# reusable workflow, do not add triggers
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_call:
 
 jobs:
   build:

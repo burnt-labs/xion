@@ -3,6 +3,7 @@ name: Heighliner Build
 # reusable workflow, do not add triggers
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}
@@ -12,7 +13,6 @@ jobs:
   build-heighliner:
     name: Heighliner Build
     runs-on: ubuntu-latest
-    environment: CI
     permissions:
       id-token: write
       contents: read
