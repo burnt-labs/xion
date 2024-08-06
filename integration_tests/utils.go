@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	"math/big"
 	"math/rand"
 	"os"
@@ -277,6 +278,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 			jwktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			aatypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			feegrant.RegisterInterfaces(cfg.InterfaceRegistry)
+			authztypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}

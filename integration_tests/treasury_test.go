@@ -364,40 +364,6 @@ func TestTreasuryMulti(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	// register any needed msg types
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-	//	(*types.Msg)(nil),
-	//	&xiontypes.MsgSetPlatformPercentage{},
-	//	&xiontypes.MsgSend{},
-	//	&wasmtypes.MsgInstantiateContract{},
-	//	&wasmtypes.MsgExecuteContract{},
-	//	&wasmtypes.MsgStoreCode{},
-	//	&aatypes.MsgUpdateParams{},
-	//	&aatypes.MsgRegisterAccount{},
-	//	&jwktypes.MsgCreateAudience{},
-	//	&authztypes.MsgGrant{},
-	//)
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
-	//
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-	//	"cosmos.feegrant.v1beta1.FeeAllowanceI",
-	//	(*feegranttypes.FeeAllowanceI)(nil),
-	//	&feegranttypes.BasicAllowance{},
-	//)
-	//
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-	//	"xion.v1.MultiAnyAllowance",
-	//	(*feegranttypes.FeeAllowanceI)(nil),
-	//	&xiontypes.MultiAnyAllowance{},
-	//)
-	//
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-	//	"cosmos.authz.v1beta1.Authorization",
-	//	(*authztypes.Authorization)(nil),
-	//	&authztypes.GenericAuthorization{},
-	//)
-
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
