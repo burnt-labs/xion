@@ -19,25 +19,25 @@ env:
 jobs:
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.ymlmain
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
     secrets: inherit
 
   docker-scout:
     needs: build-docker
     name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.ymlmain
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
     secrets: inherit
 
   build-heighliner:
     needs: build-docker
     name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.ymlmain
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@main
     secrets: inherit
 
   interchain-tests:
     needs: build-heighliner
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.ymlmain
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
     secrets: inherit
 
   build-release-binaries:
