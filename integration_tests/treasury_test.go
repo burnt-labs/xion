@@ -531,8 +531,8 @@ func TestTreasuryMulti(t *testing.T) {
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
-	allowanceType := allowance["@type"].(string)
-	require.Contains(t, allowanceType, "/"+proto.MessageName(testMultiAllowance))
+	allowanceType := allowance["type"].(string)
+	require.Contains(t, allowanceType, "xion/MultiAnyAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
