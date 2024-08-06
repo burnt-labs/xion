@@ -11,6 +11,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    name: Golang CI Lint
+    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@wf1
+    secrets: inherit
+
+  unit-tests:
+    name: Go Unit Tests
+    uses: burnt-labs/xion/.github/workflows/tests.yml@wf1
+    secrets: inherit
+
   build-docker:
     name: Build Docker Images
     uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
