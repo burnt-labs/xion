@@ -1,19 +1,11 @@
----
 name: golangci-lint
+
+# reusable workflow, do not add triggers
 on:
-  push:
-    tags:
-      - v*
-    branches:
-      - main
-  pull_request:
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   GO_VERSION: 1.21
