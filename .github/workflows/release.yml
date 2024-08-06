@@ -1,4 +1,4 @@
-name: Create Release and Publish Binaries
+name: Create Release
 # Run for new release tags only
 
 on:
