@@ -1,4 +1,4 @@
-name: Create Release and Publish Binaries
+name: Create Release
 # Run for new release tags only
 
 on:
@@ -43,7 +43,6 @@ jobs:
   build-release-binaries:
     needs: interchain-tests
     runs-on: ubuntu-latest
-    environment: CI
     permissions:
       id-token: write
       contents: read
@@ -75,7 +74,6 @@ jobs:
   build-release:
     needs: build-release-binaries
     runs-on: ubuntu-latest
-    environment: CI
 
     steps:
       - name: Create release directory
