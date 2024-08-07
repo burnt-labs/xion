@@ -36,9 +36,9 @@ import (
 */
 
 type GrantConfig struct {
-	Description   string                 `json:"description"`
-	Authorization map[string]interface{} `json:"authorization"`
-	Optional      bool                   `json:"optional"`
+	Description   string      `json:"description"`
+	Authorization ExplicitAny `json:"authorization"`
+	Optional      bool        `json:"optional"`
 }
 
 type FeeConfig struct {
@@ -139,9 +139,10 @@ func TestTreasuryContract(t *testing.T) {
 		Value:   feeGrant.Allowance.Value,
 	}
 
-	authorizationAny := map[string]interface{}{}
-	authorizationAny["@type"] = testGrant.Authorization.TypeUrl
-	authorizationAny["msg"] = testAuth.MsgTypeURL()
+	authorizationAny := ExplicitAny{
+		TypeURL: testGrant.Authorization.TypeUrl,
+		Value:   testGrant.Authorization.Value,
+	}
 
 	grantConfig := GrantConfig{
 		Description:   "test authorization",
@@ -365,38 +366,38 @@ func TestTreasuryMulti(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// register any needed msg types
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-	//	(*types.Msg)(nil),
-	//	&xiontypes.MsgSetPlatformPercentage{},
-	//	&xiontypes.MsgSend{},
-	//	&wasmtypes.MsgInstantiateContract{},
-	//	&wasmtypes.MsgExecuteContract{},
-	//	&wasmtypes.MsgStoreCode{},
-	//	&aatypes.MsgUpdateParams{},
-	//	&aatypes.MsgRegisterAccount{},
-	//	&jwktypes.MsgCreateAudience{},
-	//	&authztypes.MsgGrant{},
-	//)
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
-	//
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-	//	"cosmos.feegrant.v1beta1.FeeAllowanceI",
-	//	(*feegranttypes.FeeAllowanceI)(nil),
-	//	&feegranttypes.BasicAllowance{},
-	//)
-	//
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-	//	"xion.v1.MultiAnyAllowance",
-	//	(*feegranttypes.FeeAllowanceI)(nil),
-	//	&xiontypes.MultiAnyAllowance{},
-	//)
-	//
-	//xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-	//	"cosmos.authz.v1beta1.Authorization",
-	//	(*authztypes.Authorization)(nil),
-	//	&authztypes.GenericAuthorization{},
-	//)
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
+		(*types.Msg)(nil),
+		&xiontypes.MsgSetPlatformPercentage{},
+		&xiontypes.MsgSend{},
+		&wasmtypes.MsgInstantiateContract{},
+		&wasmtypes.MsgExecuteContract{},
+		&wasmtypes.MsgStoreCode{},
+		&aatypes.MsgUpdateParams{},
+		&aatypes.MsgRegisterAccount{},
+		&jwktypes.MsgCreateAudience{},
+		&authztypes.MsgGrant{},
+	)
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
+
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
+		"cosmos.feegrant.v1beta1.FeeAllowanceI",
+		(*feegrant.FeeAllowanceI)(nil),
+		&feegrant.BasicAllowance{},
+	)
+
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
+		"xion.v1.MultiAnyAllowance",
+		(*feegrant.FeeAllowanceI)(nil),
+		&xiontypes.MultiAnyAllowance{},
+	)
+
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
+		"cosmos.authz.v1beta1.Authorization",
+		(*authztypes.Authorization)(nil),
+		&authztypes.GenericAuthorization{},
+	)
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)
@@ -438,9 +439,10 @@ func TestTreasuryMulti(t *testing.T) {
 		Value:   bz,
 	}
 
-	authorizationAny := map[string]interface{}{}
-	authorizationAny["@type"] = testGrant.Authorization.TypeUrl
-	authorizationAny["msg"] = testAuth.MsgTypeURL()
+	authorizationAny := ExplicitAny{
+		TypeURL: testGrant.Authorization.TypeUrl,
+		Value:   testGrant.Authorization.Value,
+	}
 
 	grantConfig := GrantConfig{
 		Description:   "test authorization",
@@ -565,7 +567,7 @@ func TestTreasuryMulti(t *testing.T) {
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
-	allowanceType := allowance["@type"].(string)
+	allowanceType := allowance["type"].(string)
 	require.Contains(t, allowanceType, "/"+proto.MessageName(testMultiAllowance))
 
 	revokeMsg := map[string]interface{}{}
