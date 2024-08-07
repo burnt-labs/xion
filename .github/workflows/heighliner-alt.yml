@@ -1,4 +1,4 @@
-name: Heighliner Build
+name: Heighliner Action Build
 
 # reusable workflow, do not add triggers
 on:
@@ -12,7 +12,6 @@ jobs:
   build-heighliner:
     name: Heighliner Build
     runs-on: ubuntu-latest
-    environment: CI
     permissions:
       id-token: write
       contents: read

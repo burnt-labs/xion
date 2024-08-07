@@ -1,4 +1,4 @@
-name: Create Release and Publish Binaries
+name: Create Release
 # Run for new release tags only
 
 on:
@@ -19,31 +19,30 @@ env:
 jobs:
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf1
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
     secrets: inherit
 
   docker-scout:
     needs: build-docker
     name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf1
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
     secrets: inherit
 
   build-heighliner:
     needs: build-docker
     name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@wf1
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@main
     secrets: inherit
 
   interchain-tests:
     needs: build-heighliner
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf1
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
     secrets: inherit
 
   build-release-binaries:
     needs: interchain-tests
     runs-on: ubuntu-latest
-    environment: CI
     permissions:
       id-token: write
       contents: read
@@ -75,7 +74,6 @@ jobs:
   build-release:
     needs: build-release-binaries
     runs-on: ubuntu-latest
-    environment: CI
 
     steps:
       - name: Create release directory

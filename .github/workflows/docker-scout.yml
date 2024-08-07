@@ -3,12 +3,12 @@ name: Docker Scout
 # reusable workflow, do not add triggers
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   docker-scout:
     name: Docker Scout
     runs-on: ubuntu-latest
-    environment: CI
     permissions:
       contents: read
       pull-requests: write

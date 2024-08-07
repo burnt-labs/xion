@@ -1,0 +1,45 @@
+services:
+  xion:
+    image: burnt/xion:develop
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    command: >
+      /usr/bin/xiond start \
+        --api.address tcp://0.0.0.0:1317 \
+        --api.enable true \
+        --api.enabled-unsafe-cors true \
+        --api.swagger true \
+        --grpc.enable true \
+        --grpc.address 0.0.0.0:9090 \
+        --grpc-web.address 0.0.0.0:9091
+        --grpc-web.enable \
+        --minimum-gas-prices 0.025uxion \
+        --rpc.laddr tcp://0.0.0.0:26657
+    entrypoint: /usr/local/bin/entrypoint.sh
+    deploy:
+      replicas: ${NUM_VALIDATORS:-3}
+    environment:
+      DENOM: uxion
+      HOME: /home/xiond
+      CHAINNAME: xion-devnet-1
+      NUM_VALIDATORS: ${NUM_VALIDATORS:-3}
+    networks:
+      - default
+    ports:
+      - 1317
+      - 26656
+      - 26657
+    user: root
+    volumes:
+      - /home/xiond
+      - shared:/home/xiond/.shared
+      - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
+      - ./mnemonics.json:/home/xiond/mnemonics.json
+    working_dir: /home/xiond
+
+networks:
+  default:
+
+volumes:
+  shared:
