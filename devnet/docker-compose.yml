@@ -12,7 +12,6 @@ services:
         --api.swagger true \
         --grpc.enable true \
         --grpc.address 0.0.0.0:9090 \
-        --grpc-web.address 0.0.0.0:9091
         --grpc-web.enable \
         --minimum-gas-prices 0.025uxion \
         --rpc.laddr tcp://0.0.0.0:26657
