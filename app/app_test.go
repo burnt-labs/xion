@@ -7,8 +7,11 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/stretchr/testify/require"
 
-	dbm "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/abci/types"
+
+	dbm "github.com/cosmos/cosmos-db"
+
+	"cosmossdk.io/log"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,15 +22,27 @@ var emptyWasmOpts []wasmkeeper.Option
 func TestWasmdExport(t *testing.T) {
 	db := dbm.NewMemDB()
 	gapp := NewWasmAppWithCustomOptions(t, false, SetupOptions{
-		Logger:  log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
+		Logger:  log.NewLogger(os.Stdout),
 		DB:      db,
 		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
 	})
-	gapp.Commit()
+	_, err := gapp.FinalizeBlock(&types.RequestFinalizeBlock{
+		Height: 1,
+	})
+	require.NoError(t, err, "FinalizeBlock should not have an error")
+	_, err = gapp.Commit()
+	require.NoError(t, err, "Commit should not have an error")
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newGapp := NewWasmApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, simtestutil.NewAppOptionsWithFlagHome(t.TempDir()), emptyWasmOpts)
-	_, err := newGapp.ExportAppStateAndValidators(false, []string{}, nil)
+	newGapp := NewWasmApp(
+		log.NewLogger(os.Stdout),
+		db,
+		nil,
+		true,
+		simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
+		emptyWasmOpts,
+	)
+	_, err = newGapp.ExportAppStateAndValidators(false, []string{}, nil)
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }
 

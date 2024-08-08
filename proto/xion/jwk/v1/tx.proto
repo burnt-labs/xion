@@ -3,6 +3,7 @@ syntax = "proto3";
 package xion.jwk.v1;
 
 import "xion/jwk/v1/audience.proto";
+import "cosmos/msg/v1/msg.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
@@ -16,6 +17,8 @@ service Msg {
 }
 
 message MsgCreateAudienceClaim {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   bytes aud_hash = 2;
 }
@@ -23,6 +26,8 @@ message MsgCreateAudienceClaim {
 message MsgCreateAudienceClaimResponse {}
 
 message MsgDeleteAudienceClaim {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   bytes aud_hash = 2;
 }
@@ -31,6 +36,8 @@ message MsgDeleteAudienceClaimResponse {}
 
 
 message MsgCreateAudience {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   string aud   = 2;
   string key   = 3;
@@ -41,6 +48,8 @@ message MsgCreateAudienceResponse {
 }
 
 message MsgUpdateAudience {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   string new_admin  = 2;
   string aud    = 3;
@@ -52,6 +61,8 @@ message MsgUpdateAudienceResponse {
 }
 
 message MsgDeleteAudience {
+  option (cosmos.msg.v1.signer) = "admin";
+
   string admin = 1;
   string aud   = 2;
 }

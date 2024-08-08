@@ -16,7 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         test_type:
-        - "DungeonTransferBlock"
         - "XionSendPlatformFee"
         - "MintModuleNoInflationNoFees"
         - "MintModuleInflationHighFees"

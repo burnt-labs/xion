@@ -7,15 +7,12 @@ import (
 	"testing"
 	"time"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 	"github.com/golang-jwt/jwt/v5"
 	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
 	jwk "github.com/lestrrat-go/jwx/jwk"
 	"github.com/stretchr/testify/suite"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -40,7 +37,7 @@ var admin = "cosmos1e2fuwe3uhq8zd9nkkk876nawrwdulgv4cxkq74"
 
 func (suite *StargateTestSuite) SetupTest() {
 	suite.app = xionapp.Setup(suite.T())
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "xion-1", Time: time.Now().UTC()})
+	suite.ctx = suite.app.NewContext(true).WithBlockTime(time.Now())
 	suite.app.Configurator()
 }
 
@@ -61,12 +58,12 @@ func SetUpAudience(suite *StargateTestSuite) {
 	suite.NoError(err)
 	msgServer := jwkMsgServer.NewMsgServerImpl(suite.app.JwkKeeper)
 	sum := sha256.Sum256([]byte("test-aud"))
-	_, err = msgServer.CreateAudienceClaim(sdk.WrapSDKContext(suite.ctx), &jwktypes.MsgCreateAudienceClaim{
+	_, err = msgServer.CreateAudienceClaim(suite.ctx, &jwktypes.MsgCreateAudienceClaim{
 		Admin:   admin,
 		AudHash: sum[:],
 	})
 	suite.NoError(err)
-	_, err = msgServer.CreateAudience(sdk.WrapSDKContext(suite.ctx), &jwktypes.MsgCreateAudience{
+	_, err = msgServer.CreateAudience(suite.ctx, &jwktypes.MsgCreateAudience{
 		Admin: admin,
 		Aud:   "test-aud",
 		Key:   string(pubKeyJSON),
@@ -80,7 +77,7 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 		testSetup              func()
 		path                   string
 		requestData            func() []byte
-		responseProtoStruct    codec.ProtoMarshaler
+		responseProtoStruct    proto.Message
 		expectedQuerierError   bool
 		expectedUnMarshalError bool
 		resendRequest          bool
@@ -148,8 +145,7 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 
 			suite.Require().NoError(err)
 
-			protoResponse, ok := tc.responseProtoStruct.(proto.Message)
-			suite.Require().True(ok)
+			protoResponse := tc.responseProtoStruct
 
 			// test correctness by unmarshalling json response into proto struct
 			err = suite.app.AppCodec().UnmarshalJSON(stargateResponse, protoResponse)
@@ -191,7 +187,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 		testSetup              func()
 		path                   string
 		requestData            func() []byte
-		responseProtoStruct    codec.ProtoMarshaler
+		responseProtoStruct    proto.Message
 		expectedQuerierError   bool
 		expectedUnMarshalError bool
 		resendRequest          bool
@@ -309,8 +305,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 
 			suite.Require().NoError(err)
 
-			protoResponse, ok := tc.responseProtoStruct.(proto.Message)
-			suite.Require().True(ok)
+			protoResponse := tc.responseProtoStruct
 
 			// test correctness by unmarshalling json response into proto struct
 			err = suite.app.AppCodec().UnmarshalJSON(stargateResponse, protoResponse)
@@ -359,7 +354,7 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 		testSetup              func()
 		path                   string
 		requestData            func() []byte
-		responseProtoStruct    func() codec.ProtoMarshaler
+		responseProtoStruct    func() proto.Message
 		expectedQuerierError   bool
 		expectedUnMarshalError bool
 		resendRequest          bool
@@ -371,7 +366,7 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 			testSetup: func() {
 				createAuthzGrants(suite)
 			},
-			responseProtoStruct: func() codec.ProtoMarshaler {
+			responseProtoStruct: func() proto.Message {
 				authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
 					Msg: "/" + string(proto.MessageReflect(&banktypes.MsgSend{}).Descriptor().FullName()),
 				})
@@ -427,8 +422,7 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 
 			suite.Require().NoError(err)
 
-			protoResponse, ok := tc.responseProtoStruct().(proto.Message)
-			suite.Require().True(ok)
+			protoResponse := tc.responseProtoStruct()
 
 			// test correctness by unmarshalling json response into proto struct
 			err = suite.app.AppCodec().UnmarshalJSON(stargateResponse, protoResponse)
