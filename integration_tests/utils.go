@@ -2,7 +2,6 @@ package integration_tests
 
 import (
 	"context"
-	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"crypto"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
@@ -11,7 +10,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"math/big"
 	"math/rand"
 	"os"
@@ -20,6 +18,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
+
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 
 	"cosmossdk.io/x/upgrade"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
