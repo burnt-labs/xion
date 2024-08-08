@@ -290,7 +290,7 @@ proto-gen:
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
+	@$(protoImage) sh 'scripts/protoc-swagger-gen.sh'
 
 proto-format:
 	@echo "Formatting Protobuf files"
@@ -306,3 +306,9 @@ proto-check-breaking:
 	go-mod-cache draw-deps clean build format \
 	test test-all test-build test-cover test-unit test-race \
 	test-sim-import-export build-windows-client \
+
+################################################################################
+###                                   Info                                   ###
+################################################################################
+
+version-json:

@@ -14,40 +14,70 @@ concurrency:
 
 env:
   GHCR: ghcr.io/${{ github.repository }}
-  PLATFORMS: linux/amd64
 
 jobs:
+  lint:
+    name: Golang CI Lint
+    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@v9.0.1-rc2
+    secrets: inherit
+
+  update-swagger:
+    name: Update Swagger
+    uses: burnt-labs/xion/.github/workflows/update-swagger.yml@v9.0.1-rc2
+    secrets: inherit
+
+  unit-tests:
+    name: Go Unit Tests
+    uses: burnt-labs/xion/.github/workflows/tests.yml@v9.0.1-rc2
+    secrets: inherit
+
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@v9.0.1-rc2
     secrets: inherit
 
   docker-scout:
     needs: build-docker
     name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@v9.0.1-rc2
     secrets: inherit
 
   build-heighliner:
     needs: build-docker
     name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@main
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@v9.0.1-rc2
     secrets: inherit
 
   interchain-tests:
     needs: build-heighliner
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@v9.0.1-rc2
     secrets: inherit
 
   build-release-binaries:
-    needs: interchain-tests
+    needs: build-docker
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
 
     steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Metadata for release
         id: meta-release
         uses: docker/metadata-action@v5
@@ -57,48 +87,108 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
 
-      - name: Copy xiond binary from linux/amd64 container
-        id: copy-binary-amd64
+      - name: Prepare environment
         run: |
-          docker create --platform linux/amd64 --name temp_container-amd64 $DOCKER_METADATA_OUTPUT_TAGS
-          docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
-          ./xiond-linux-amd64 version --long
-          docker rm -v temp_container-amd64
+          mkdir -p release
+          echo "XIOND_FN=$(echo xiond-${{ github.ref_name }}-${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
+
+      - name: Copy xiond binary from container
+        id: copy-binary
+        working-directory: release
+        run: |
+          tmpname=container-${{ env.XIOND_FN }}
+          docker create --platform ${{ matrix.platform }} --name ${tmpname} ${DOCKER_METADATA_OUTPUT_TAGS}
+          docker cp ${tmpname}:/usr/bin/xiond ${{ env.XIOND_FN }}
+          docker rm -v ${tmpname}
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: xiond-linux-amd64
-          path: ./xiond-linux-amd64
+          name: ${{ env.XIOND_FN }}
+          path: release/${{ env.XIOND_FN }}
 
-  build-release:
-    needs: build-release-binaries
+  build-release-info:
+    needs:
+      - build-release-binaries
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
 
     steps:
-      - name: Create release directory
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare environment
         run: mkdir -p release
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: release
+          pattern: xiond-${{ github.ref_name }}-*
           merge-multiple: true
 
-      - name: List files in workspace
+      - name: Create binaries.json
         working-directory: release
+        id: binaries-json
         run: |
-          ls -R
+          set -Eeuo pipefail
+          ls xiond-* | while read -r file; do
+            platform=$(echo $file | cut -d- -f3- | sed -E 's/^rc[0-9]*-//g; s/\//-/g')
+            checksum=$(sha256sum "$file" | awk '{ print $1 }')
+            echo "$platform: https://github.com/burnt-labs/xion/releases/download/${{ github.ref_name }}/$file?checksum=sha256:$checksum"
+          done | yq '{"binaries": .}' -o json | tee binaries.json
 
-      - name: Create checksums
-        working-directory: release
-        run: |
-          sha256sum * > checksum.txt
+      - name: Upload binaries.json file
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries.json
+          path: release/binaries.json
+          retention-days: 1
 
-      - name: Display checksums
+      - name: Create version.json
         working-directory: release
-        run: |
-          cat checksum.txt
+        run : |
+          set -Eeuo pipefail
+          upgrade_name=$(echo $GITHUB_REF_NAME | cut -d. -f1)
+          jq -s '.[0] * .[1]' <(go mod edit -json | jq --arg name $upgrade_name '{
+              name: $name,
+              tag: "${{ github.ref_name }}",
+              height: 0,
+              proposal: 0,
+              go_version: .Go,
+              cosmos_sdk_version: (.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version),
+              cosmwasm_enabled: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") != null),
+              cosmwasm_version: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version),
+              ibc_go_version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v7") | .Version),
+              consensus: {
+                type: "cometbft",
+                version: (.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version)
+              }
+            }') binaries.json | tee version.json
+
+      - name: Upload version.json files
+        uses: actions/upload-artifact@v4
+        with:
+          name: version.json
+          path: release/version.json
+          retention-days: 1
+
+  build-release:
+    needs:
+      - lint
+      - update-swagger
+      - unit-tests
+      - docker-scout
+      - interchain-tests
+      - build-release-binaries
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Create release directory
+        run: mkdir -p release
 
       - name: Build Changelog
         id: changelog
@@ -109,18 +199,179 @@ jobs:
       - name: Output Changelog
         run: echo "${{steps.changelog.outputs.changelog}}"
 
-
-      - name: Create and Update Release
-        id: create-release
+      - name: Create release for ${{ github.ref_name }}
+        id: update-release
         uses: ncipollo/release-action@v1
         with:
           name: Release ${{ github.ref_name }}
           allowUpdates: true
-          draft: true
-          artifacts: release/*
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
           generateReleaseNotes: true
           prerelease: true
-          replacesArtifacts: true
-          tag: ${{ github.ref }}
+          removeArtifacts: true
+          tag: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
           updateOnlyUnreleased: true
+
+      - name: Download release archives
+        working-directory: release
+        run: |
+          gh release download ${{ github.ref_name }} \
+            --repo=${{ github.repository }} \
+            --archive=tar.gz
+          gh release download ${{ github.ref_name }} \
+            --repo=${{ github.repository }} \
+            --archive=zip
+          ls
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          pattern: xiond-${{ github.ref_name }}-*
+          merge-multiple: true
+
+      - name: Create checksums
+        working-directory: release
+        run: |
+          sha256sum * | tee checksum.txt
+
+      - name: Remove release archives
+        working-directory: release
+        run: |
+          rm -f *.zip *.tar.gz
+          ls
+
+      - name: Upload release assets
+        working-directory: release
+        run: |
+          gh release upload ${{ github.ref_name }} * \
+            --repo ${{ github.repository }}
+
+  update-networks:
+    runs-on: ubuntu-latest
+    needs:
+      - build-release
+      - build-release-info
+    permissions:
+      contents: write
+    steps:
+      - name: Prepare environment
+        run: |
+          BASE_PATH=testnets/xion-testnet-1
+          BINARIES_PATH=${BASE_PATH}/governance-proposals/software-upgrades/binaries
+          METADATA_PATH=${BASE_PATH}/governance-proposals/software-upgrades/metadata
+          PROPOSAL_PATH=${BASE_PATH}/governance-proposals/software-upgrades/proposal
+          UPGRADE_NAME=$(echo ${GITHUB_REF_NAME} | cut -d. -f1)
+          echo "BASE_PATH=${BASE_PATH}" >> ${GITHUB_ENV}
+          echo "BINARIES_PATH=${BINARIES_PATH}" >> ${GITHUB_ENV}
+          echo "METADATA_PATH=${METADATA_PATH}" >> ${GITHUB_ENV}
+          echo "PROPOSAL_PATH=${PROPOSAL_PATH}" >> ${GITHUB_ENV}
+          echo "UPGRADE_NAME=${UPGRADE_NAME}" >> ${GITHUB_ENV}
+          echo "NETWORKS_REPO=burnt-labs/burnt-networks" >> ${GITHUB_ENV}
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          name: id_ed25519
+          key: ${{ secrets.BURNT_NETWORKS_SSH_KEY }}
+          known_hosts: |
+            github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+
+      - name: Check out code (use ssh)
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+          git clone git@github.com:${{ env.NETWORKS_REPO }}.git ./
+
+      - name: Download json artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*.json'
+          path: /tmp
+          merge-multiple: true
+
+      - name: Rename binaries.json
+        working-directory: ${{ env.BINARIES_PATH }}
+        run: |
+          cp /tmp/binaries.json ${UPGRADE_NAME}.json
+
+      - name: Add version to chain.json
+        run: |
+          set -Eeuo pipefail
+          CHAIN_JSON=${BASE_PATH}/chain-registry/chain.json
+          VERSION_JSON=/tmp/version.json
+          cp ${CHAIN_JSON} /tmp/chain.json
+          jq --slurpfile version ${VERSION_JSON} '
+            .codebase.versions |= (
+              map(
+                if .name == $version[0].name then
+                  ($version[0] + {height: .height, proposal: .proposal})
+                else
+                  .
+                end
+              ) +
+              if any(.[]; .name == $version[0].name) then [] else $version end
+            )
+          ' /tmp/chain.json | tee ${CHAIN_JSON}
+
+      - name: Add metadata json
+        working-directory: ${{ env.METADATA_PATH }}
+        run: |
+          set -Eeuo pipefail
+          [[ -f ${UPGRADE_NAME}.json ]] || \
+          jq -n --arg version ${UPGRADE_NAME} '{
+            title: "Software Upgrade \($version)",
+            authors: [
+            ],
+            summary: "Software Upgrade \($version)",
+            details: "Software Upgrade \($version) at block height <TBD>",
+            proposal_forum_url: "",
+            vote_option_context: "YES to approve the upgrade, NO to reject the upgrade."
+          }' | tee ${UPGRADE_NAME}.json
+
+      - name: Add proposal json
+        working-directory: ${{ env.PROPOSAL_PATH }}
+        run: |
+          set -Eeuo pipefail
+          [[ -f ${UPGRADE_NAME}.json ]] || \
+          jq -n \
+            --arg version ${UPGRADE_NAME} \
+            --arg binaries_url https://raw.githubusercontent.com/${NETWORKS_REPO}/main/${BINARIES_PATH}/${UPGRADE_NAME}.json \
+            --arg metadata_url https://raw.githubusercontent.com/${NETWORKS_REPO}/main/${METADATA_PATH}/${UPGRADE_NAME}.json \
+          '{
+            messages: [
+              {
+                "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+                authority: "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc",
+                plan: {
+                  name: $version,
+                  height: "<TBD>",
+                  info: $binaries_url,
+                  upgraded_client_state: null
+                }
+              }
+            ],
+            metadata: $metadata_url,
+            deposit: "10000000uxion",
+            title: "Software Upgrade \($version)",
+            summary: "Software Upgrade \($version)"
+          }' | tee ${UPGRADE_NAME}.json
+
+      - name: Create PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add -A
+          git commit --message "Update for xion release ${{ github.ref_name }}"
+          echo "Pushing git commit"
+          git push -f -u origin "HEAD:release/${{ github.ref_name }}"
+          git checkout "release/${{ github.ref_name }}"
+          echo "Creating a pull request"
+          git request-pull main origin release/v9.0.1-rc2
+          # gh pr create -B main \
+          #   -H release/${{ github.ref_name }} \
+          #   -t release/${{ github.ref_name }} \
+          #   -b release/${{ github.ref_name }} \
+          #   -r 2xburnt

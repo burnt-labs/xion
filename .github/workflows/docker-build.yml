@@ -16,16 +16,14 @@ jobs:
       contents: read
       packages: write
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         runner:
-          - name: X64
+          - selector: ubuntu-latest
             platform: linux/amd64
-          - name: ARM64
+          - selector: [self-hosted, linux, ARM64]
             platform: linux/arm64
-    runs-on:
-      - self-hosted
-      - ${{ matrix.runner.name }}
+    runs-on: ${{ matrix.runner.selector }}
 
     steps:
       - name: Login to GitHub Container Registry
@@ -38,20 +36,20 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
-          fetch-tags: true
           ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up docker buildx for push
         uses: docker/setup-buildx-action@v3
 
       - name: Prepare xion build environment
         run: |
-          echo "PLATFORM=${{ matrix.runner.platform }} | sed 's/\//-/'" >> $GITHUB_ENV
-          echo "TAG_SUFFIX=${{ matrix.runner.platform }} | sed 's/.*\///'" >> $GITHUB_ENV
-          echo "VERSION=$(echo $(git describe --tags) | sed 's/^v//')" >> $GITHUB_ENV
-          echo "COMMIT=$(git log -1 --format='%H')" >> $GITHUB_ENV
-          echo "TAG_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "PLATFORM=$(echo ${{ matrix.runner.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
+          echo "TAG_VERSION=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
 
       - name: Metadata for platform container
         id: meta-digest
@@ -59,24 +57,24 @@ jobs:
         with:
           images: |
             ${{ env.GHCR }}/xion
+          tags: |
+            type=sha
 
-      #- name: Build and push xion image
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v5
         with:
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          target: release
-          platforms: ${{ matrix.platform }}
-          tags: ${{ steps.meta-digest.outputs.tags }}
-          labels: ${{ steps.meta-digest.outputs.labels }}
-          outputs: type=image,name=${{ env.GHCR }}/xion,push-by-digest=true,name-canonical=true,push=true
           build-args: |
-            COMMIT=${{ env.COMMIT }}
+            COMMIT=${{ github.sha }}
             VERSION=${{ env.VERSION }}
             TAG_VERSION=${{ env.TAG_VERSION }}
+          cache-from: type=gha,scope=${{ github.ref_name }}-${{ env.PLATFORM }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ env.PLATFORM }}
+          labels: ${{ steps.meta-digest.outputs.labels }}
+          platforms: ${{ matrix.platform }}
+          push: true
+          outputs: type=image,name=${{ env.GHCR }}/xion,push-by-digest=true,name-canonical=true,push=true
+          target: release
 
       - name: Export digest
         run: |
@@ -87,13 +85,18 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ env.PLATFORM }}
+          name: xion-digests-${{ env.PLATFORM }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
 
   merge:
+    name: Create registry manifests
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
     needs:
       - build-docker
     steps:
@@ -101,7 +104,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: xion-digests-*
           merge-multiple: true
 
       - name: Configure AWS credentials
@@ -127,6 +130,9 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -151,4 +157,5 @@ jobs:
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.GHCR }}/xion:${{ steps.meta-xion.outputs.version }}
+           jq -cr '.tags | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON" | \
+           xargs -n1 docker buildx imagetools inspect
