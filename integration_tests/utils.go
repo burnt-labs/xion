@@ -2,6 +2,7 @@ package integration_tests
 
 import (
 	"context"
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"crypto"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
@@ -10,7 +11,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"math/big"
 	"math/rand"
 	"os"
@@ -19,8 +20,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"cosmossdk.io/x/feegrant"
 
 	"cosmossdk.io/x/upgrade"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -266,6 +265,8 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				upgrade.AppModuleBasic{},
 				consensus.AppModuleBasic{},
 				transfer.AppModuleBasic{},
+				feegrantmodule.AppModuleBasic{},
+				authz.AppModuleBasic{},
 				// ibccore.AppModuleBasic{},
 				// ibctm.AppModuleBasic{},
 				// ibcwasm.AppModuleBasic{},
@@ -277,8 +278,6 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 			minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			jwktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			aatypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			feegrant.RegisterInterfaces(cfg.InterfaceRegistry)
-			authztypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}

@@ -8,12 +8,8 @@ import (
 
 	"cosmossdk.io/math"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
-	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,18 +22,6 @@ func TestXionTokenFactory(t *testing.T) {
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&tokenfactorytypes.MsgMint{},
-		&tokenfactorytypes.MsgCreateDenom{},
-		&tokenfactorytypes.MsgChangeAdmin{},
-		&wasmtypes.MsgStoreCode{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgExecuteContract{},
-	)
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")

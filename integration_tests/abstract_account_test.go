@@ -21,8 +21,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -31,11 +29,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
@@ -65,20 +60,6 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
-
-	// register any needed msg types
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgStoreCode{},
-		&aatypes.MsgUpdateParams{},
-		&aatypes.MsgRegisterAccount{},
-		&jwktypes.MsgCreateAudience{},
-	)
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
 	// load the test private key
 	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
@@ -401,21 +382,6 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
-
-	// Register All messages we are interacting.
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgExecuteContract{},
-		&wasmtypes.MsgStoreCode{},
-		&aatypes.MsgUpdateParams{},
-		&aatypes.MsgRegisterAccount{},
-	)
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
