@@ -19,25 +19,25 @@ env:
 jobs:
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@v9.0.1-rc2
     secrets: inherit
 
   docker-scout:
     needs: build-docker
     name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@v9.0.1-rc2
     secrets: inherit
 
   build-heighliner:
     needs: build-docker
     name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@main
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@v9.0.1-rc2
     secrets: inherit
 
   interchain-tests:
     needs: build-heighliner
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@v9.0.1-rc2
     secrets: inherit
 
   build-release-binaries:
@@ -46,6 +46,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
 
     steps:
       - name: Metadata for release
@@ -57,19 +60,25 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
 
-      - name: Copy xiond binary from linux/amd64 container
-        id: copy-binary-amd64
+      - name: Prepare environment
         run: |
-          docker create --platform linux/amd64 --name temp_container-amd64 $DOCKER_METADATA_OUTPUT_TAGS
-          docker cp temp_container-amd64:/usr/bin/xiond ./xiond-linux-amd64
-          ./xiond-linux-amd64 version --long
-          docker rm -v temp_container-amd64
+          mkdir -p release
+          echo "XIOND_FN=$(echo xiond-${{ github.ref_name }}-${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
+
+      - name: Copy xiond binary from container
+        id: copy-binary
+        working-directory: release
+        run: |
+          tmpname=$(cat /dev/urandom | LC_ALL=C tr -dc '[:alnum:]' | fold -w 20 | head -n 1)
+          docker create --platform ${{ matrix.platform }} --name ${tmpname} ${DOCKER_METADATA_OUTPUT_TAGS}
+          docker cp ${tmpname}:/usr/bin/xiond ${{ env.XIOND_FN }}
+          docker rm -v ${tmpname}
 
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: xiond-linux-amd64
-          path: ./xiond-linux-amd64
+          name: xiond-${{ env.XIOND_FN }}
+          path: release
 
   build-release:
     needs: build-release-binaries
@@ -78,27 +87,6 @@ jobs:
     steps:
       - name: Create release directory
         run: mkdir -p release
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release
-          merge-multiple: true
-
-      - name: List files in workspace
-        working-directory: release
-        run: |
-          ls -R
-
-      - name: Create checksums
-        working-directory: release
-        run: |
-          sha256sum * > checksum.txt
-
-      - name: Display checksums
-        working-directory: release
-        run: |
-          cat checksum.txt
 
       - name: Build Changelog
         id: changelog
@@ -109,7 +97,6 @@ jobs:
       - name: Output Changelog
         run: echo "${{steps.changelog.outputs.changelog}}"
 
-
       - name: Create and Update Release
         id: create-release
         uses: ncipollo/release-action@v1
@@ -117,10 +104,47 @@ jobs:
           name: Release ${{ github.ref_name }}
           allowUpdates: true
           draft: true
-          artifacts: release/*
           generateReleaseNotes: true
           prerelease: true
           replacesArtifacts: true
           tag: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           updateOnlyUnreleased: true
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Create binaries.json
+        working-directory: release
+        id: binaries-json
+        run: |
+          ls xiond-* | while read -r file; do
+            platform=$(echo $file cut -d- -f3- | tr '-' '/' ))
+            checksum=$(sha256sum "$file" | awk '{ print $1 }')
+            echo "$platform: \"https://github.com/burnt-labs/xion/releases/download/${{ github.ref_name }}/$file?checksum=sha256:$checksum\"
+          done | yq '{"binaries": .}' > binaries.json
+
+      - name: Download release archives
+        run: |
+          gh release download ${{ github.ref_name }} \
+            --repo ${{ github.repository }}
+            --pattern '*.tar.gz' \
+            --dir release
+
+      - name: Create checksums
+        working-directory: release
+        run: |
+          sha256sum * | grep -v binaries.json | tee checksum.txt
+
+      - name: Remove release archives
+        run: rm -f *.tar.gz
+
+      - name: Upload release assets
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            --repo ${{ github.repository }}
+            --pattern '*' \
+            --dir release

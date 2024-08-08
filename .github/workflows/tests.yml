@@ -3,6 +3,7 @@ name: Unit Tests
 # reusable workflow, do not add triggers
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   build:
