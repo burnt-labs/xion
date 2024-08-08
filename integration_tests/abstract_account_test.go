@@ -498,7 +498,7 @@ func TestXionAbstractAccount(t *testing.T) {
 	// Confirm the updated balance
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, math.NewInt(100000), balance)
+	require.Equal(t, math.NewInt(100000).Uint64(), balance.Uint64())
 
 	// Generate Key Rotation Msg
 	account, err = ExecBin(t, ctx, xion.GetNode(),
