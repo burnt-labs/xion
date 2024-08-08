@@ -11,7 +11,6 @@ env:
 
 jobs:
   interchain-tests:
-    environment: CI
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
