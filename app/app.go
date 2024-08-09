@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -56,7 +57,6 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcclientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -1269,6 +1269,9 @@ func (app *WasmApp) RegisterNodeService(clientCtx client.Context, cfg config.Con
 }
 
 func (app *WasmApp) setupUpgradeHandlers() {
+	// Set the upgrade handler for the IBC module
+	v10.SetIBCClientKeeper(app.IBCKeeper.ClientKeeper)
+
 	for _, upgrade := range Upgrades {
 		app.UpgradeKeeper.SetUpgradeHandler(
 			upgrade.UpgradeName,
@@ -1295,16 +1298,6 @@ func (app *WasmApp) setupUpgradeStoreLoaders() {
 		if upgradeInfo.Name == upgrade.UpgradeName {
 			upgrade := upgrade
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
-
-			// migrate IBC client parameters before BeginBlocker
-			app.SetStoreLoader(func(ms storetypes.CommitMultiStore) error {
-				ctx := app.BaseApp.NewContext(true)
-				migrator := ibcclientkeeper.NewMigrator(app.IBCKeeper.ClientKeeper)
-				if err := migrator.MigrateParams(ctx); err != nil {
-					return fmt.Errorf("failed to migrate IBC client parameters: %w", err)
-				}
-				return nil
-			})
 		}
 	}
 }
