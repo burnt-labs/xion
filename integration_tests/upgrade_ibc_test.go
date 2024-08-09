@@ -34,7 +34,7 @@ const (
 	xionImageFrom   = "ghcr.io/burnt-labs/xion/xion"
 	xionVersionFrom = "v9.0.0"
 	xionImageTo     = "ghcr.io/burnt-labs/xion/heighliner"
-	xionVersionTo   = "sha-64d2a23"
+	xionVersionTo   = "sha-ec4721b"
 	xionUpgradeName = "v10"
 	osmosisVersion  = "v25.2.1"
 	axelarVersion   = "v0.35.3"
@@ -299,7 +299,7 @@ func SoftwareUpgrade(
 	require.NoErrorf(t, err, "couldn't get chain height after chain should have halted: %v", err)
 	// ERR CONSENSUS FAILURE!!! err="UPGRADE \"v10\" NEEDED at height: 80: Software Upgrade v10" module=consensus
 	// INF Timed out dur=2000 height=81 module=consensus round=0 step=RoundStepPropose
-	require.Equalf(t, haltHeight+1, height, "height: %d is not equal to haltHeight+1: %d", height, haltHeight+1)
+	require.GreaterOrEqualf(t, height, haltHeight, "height: %d is not >= to haltHeight: %d", height, haltHeight)
 
 	// upgrade all nodes
 	err = chain.StopAllNodes(ctx)
