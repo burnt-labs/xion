@@ -45,13 +45,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
           fetch-tags: true
           ref: ${{ github.ref }}
 
       - name: Set up docker buildx for push
         uses: docker/setup-buildx-action@v3
-
 
       - name: Metadata for xion container
         id: meta-xion
@@ -68,16 +67,12 @@ jobs:
 
       - name: Prepare xion build environment
         run: |
-          echo "VERSION=$(shell echo $(shell git describe --tags) | sed 's/^v//')" >> $GITHUB_ENV
-          echo "COMMIT=$(shell git log -1 --format='%H')" >> $GITHUB_ENV
-          echo "TAG_VERSION=$(shell git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "VERSION=$(echo $(git describe --tags) | sed 's/^v//')" >> $GITHUB_ENV
+          echo "COMMIT=$(git log -1 --format='%H')" >> $GITHUB_ENV
+          echo "TAG_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Build and push xion image
         uses: docker/build-push-action@v5
-        env:
-          COMMIT: ${{ env.COMMIT }}
-          VERSION: ${{ env.VERSION }}
-          TAG_VERSION: ${{ env.TAG_VERSION }}
         with:
           push: true
           cache-from: type=gha
@@ -86,3 +81,7 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           tags: ${{ steps.meta-xion.outputs.tags }}
           labels: ${{ steps.meta-xion.outputs.labels }}
+          build-args: |
+            VERSION=${{ env.VERSION }}
+            COMMIT=${{ env.COMMIT }}
+            TAG_VERSION=${{ env.TAG_VERSION }}

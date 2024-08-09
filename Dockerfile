@@ -13,6 +13,9 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG TARGETOS
+ARG VERSION
+ARG COMMIT
+ARG TAG_VERSION
 
 # Install dependencies
 RUN apk add --no-cache \
@@ -54,6 +57,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     set -eux; \
     export GOOS=${TARGETOS} GOARCH=${TARGETARCH}; \
     export CGO_ENABLED=1 LINK_STATICALLY=true BUILD_TAGS=muslc; \
+    export VERSION=${VERSION} COMMIT=${COMMIT} TAG_VERSION=${TAG_VERSION}; \
     make test-version; \
     make install;
 
