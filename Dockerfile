@@ -14,6 +14,16 @@ ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG TARGETOS
 
+# needed in makefile
+ARG COMMIT
+ARG VERSION
+
+# Consume Args to env
+ENV COMMIT=${COMMIT} \
+    VERSION=${VERSION} \
+    GOOS=${TARGETOS} \
+    GOARCH=${TARGETARCH}
+
 # Install dependencies
 RUN apk add --no-cache \
     build-base \
@@ -29,6 +39,7 @@ WORKDIR /go/src/github.com/burnt-labs/xion
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/pkg/mod \
+    go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.5.0; \
     go mod download
 
 # Cosmwasm - Download correct libwasmvm version
@@ -52,7 +63,6 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/pkg/mod \
     set -eux; \
-    export GOOS=${TARGETOS} GOARCH=${TARGETARCH}; \
     export CGO_ENABLED=1 LINK_STATICALLY=true BUILD_TAGS=muslc; \
     make test-version; \
     make install;
@@ -63,6 +73,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM alpine:${ALPINE_VERSION} AS release
 COPY --from=builder /go/bin/xiond /usr/bin/xiond
+COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
 
 # api
 EXPOSE 1317
