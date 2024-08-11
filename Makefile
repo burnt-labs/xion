@@ -306,9 +306,3 @@ proto-check-breaking:
 	go-mod-cache draw-deps clean build format \
 	test test-all test-build test-cover test-unit test-race \
 	test-sim-import-export build-windows-client \
-
-################################################################################
-###                                   Info                                   ###
-################################################################################
-
-version-json:

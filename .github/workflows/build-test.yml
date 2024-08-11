@@ -14,38 +14,38 @@ concurrency:
 jobs:
   lint:
     name: Golang CI Lint
-    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@main
+    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@v9.0.1-rc2
     secrets: inherit
 
   update-swagger:
     name: Update Swagger
-    uses: burnt-labs/xion/.github/workflows/update-swagger.yml@main
+    uses: burnt-labs/xion/.github/workflows/update-swagger.yml@v9.0.1-rc2
     secrets: inherit
 
   unit-tests:
     name: Go Unit Tests
-    uses: burnt-labs/xion/.github/workflows/tests.yml@main
+    uses: burnt-labs/xion/.github/workflows/tests.yml@v9.0.1-rc2
     secrets: inherit
 
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@v9.0.1-rc2
     secrets: inherit
 
   docker-scout:
     needs: build-docker
     name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@v9.0.1-rc2
     secrets: inherit
 
   build-heighliner:
     needs: build-docker
     name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@main
+    uses: burnt-labs/xion/.github/workflows/heighliner.yml@v9.0.1-rc2
     secrets: inherit
 
   interchain-tests:
     needs: build-heighliner
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@v9.0.1-rc2
     secrets: inherit
