@@ -13,9 +13,16 @@ FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG TARGETOS
-ARG VERSION
+
+# needed in makefile
 ARG COMMIT
-ARG TAG_VERSION
+ARG VERSION
+
+# Consume Args to env
+ENV COMMIT=${COMMIT} \
+    VERSION=${VERSION} \
+    GOOS=${TARGETOS} \
+    GOARCH=${TARGETARCH}
 
 # needed in makefile
 ARG COMMIT
@@ -68,7 +75,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/pkg/mod \
     set -eux; \
     export CGO_ENABLED=1 LINK_STATICALLY=true BUILD_TAGS=muslc; \
-    export VERSION=${VERSION} COMMIT=${COMMIT} TAG_VERSION=${TAG_VERSION}; \
     make test-version; \
     make install;
 
