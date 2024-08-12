@@ -1,0 +1,39 @@
+name: Update Swagger
+
+# runs on push to any branch
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  gen-swagger:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Generate Swagger
+        env:
+          DOCKER_IMAGE: ghcr.io/cosmos/proto-builder:0.14.0
+        run: |
+          # runs as runner:docker (1001:121)
+          chmod -R o+wX client/docs
+          make proto-swagger-gen
+          chmod -R o-w client/docs/*
+
+      # Need to sort out using signed commits to use
+      # - name: Commit if Changed
+      #   uses: stefanzweifel/git-auto-commit-action@v5
+      #   with:
+      #     commit_message: Update swagger
+
+      - name: Fail on changed
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git status --porcelain 1>&2
+            echo 'Please run `make proto-swagger-gen`' 1>&2
+            exit 1
+          fi

@@ -3,6 +3,7 @@ name: Interchain tests
 # reusable workflow, do not add triggers
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,6 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        runner:
+          - ubuntu-latest
+          - [self-hosted, linux, ARM64]
         test_type:
         - "XionSendPlatformFee"
         - "MintModuleNoInflationNoFees"
