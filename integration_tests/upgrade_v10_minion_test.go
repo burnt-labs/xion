@@ -1,12 +1,13 @@
 package integration_tests
 
 import (
+	"os"
+	"testing"
+
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	dbm "github.com/cosmos/cosmos-db"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/require"
-	"os"
-	"testing"
 
 	"cosmossdk.io/log"
 	"github.com/burnt-labs/xion/app"

@@ -3,6 +3,7 @@ package v10
 import (
 	store "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	"github.com/burnt-labs/xion/app/upgrades"

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/burnt-labs/xion/app/upgrades"
 	"io"
 	"net/http"
 	"os"
@@ -147,6 +146,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/burnt-labs/xion/app/upgrades"
 	currentupgrade "github.com/burnt-labs/xion/app/upgrades/v10"
 	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
