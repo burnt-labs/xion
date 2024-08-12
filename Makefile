@@ -290,7 +290,7 @@ proto-gen:
 
 proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
+	@$(protoImage) sh 'scripts/protoc-swagger-gen.sh'
 
 proto-format:
 	@echo "Formatting Protobuf files"
