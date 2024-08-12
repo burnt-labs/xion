@@ -37,7 +37,6 @@ const (
 	xionVersionTo   = "sha-ec4721b"
 	xionUpgradeName = "v10"
 	osmosisVersion  = "v25.2.1"
-	axelarVersion   = "v0.35.3"
 
 	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
@@ -78,17 +77,6 @@ func TestXionUpgradeIBC(t *testing.T) {
 			conformance: conformance.TestChainPair,
 			upgrade:     SoftwareUpgrade,
 		},
-		//{
-		//	name: "xion-axelar",
-		//	setup: func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, ibc.Relayer) {
-		//		xion, axelar := chains[0].(*cosmos.CosmosChain), chains[2].(*cosmos.CosmosChain)
-		//		r := rf.Build(t, dockerClient, dockerNetwork)
-		//		ic := SetupInterchain(t, xion, axelar, path, r, eRep, dockerClient, dockerNetwork)
-		//		return xion, axelar, ic, r
-		//	},
-		//	conformance: conformance.TestChainPair,
-		//	upgrade:     SoftwareUpgrade,
-		//},
 	}
 
 	// Run tests
@@ -107,8 +95,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 
 // ConfigureChains creates a slice of ibc.Chain with the given number of full nodes and validators.
 func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain {
-	// must override Axelar's default override NoHostMount in yaml
-	// otherwise fails on `cp` on heighliner img as it's not available in the container
+	// Override default embedded configuredChains.yaml
 	f := OverrideConfiguredChainsYaml(t)
 	defer os.Remove(f.Name())
 
@@ -154,29 +141,6 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 				Bech32Prefix:   "osmo",
 				Denom:          "uosmo",
 				GasPrices:      "0.025uosmo",
-				GasAdjustment:  1.3,
-				TrustingPeriod: "336h",
-				NoHostMount:    false,
-			},
-			NumValidators: &numValidators,
-			NumFullNodes:  &numFullNodes,
-		},
-		{
-			Name:    "axelar",
-			Version: axelarVersion,
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: "ghcr.io/strangelove-ventures/heighliner/axelar",
-						Version:    axelarVersion,
-						UidGid:     "1025:1025",
-					},
-				},
-				Type:           "cosmos",
-				Bin:            "axelard",
-				Bech32Prefix:   "axelar",
-				Denom:          "uaxl",
-				GasPrices:      "0.007uaxl",
 				GasAdjustment:  1.3,
 				TrustingPeriod: "336h",
 				NoHostMount:    false,
