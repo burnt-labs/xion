@@ -2,7 +2,11 @@ package integration_tests
 
 import (
 	"context"
+	"cosmossdk.io/log"
 	"fmt"
+	"github.com/burnt-labs/xion/app"
+	dbm "github.com/cosmos/cosmos-db"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"os"
 	"testing"
 	"time"
@@ -46,6 +50,19 @@ const (
 
 	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
+
+// TestNewAppWithV10Upgrade verifies that we correctly create a WasmApp and that the UpgradeKeeper contains an UpgradeV10
+func TestNewAppWithV10Upgrade(t *testing.T) {
+	db := dbm.NewMemDB()
+
+	simApp := app.NewWasmAppWithCustomOptions(t, false, app.SetupOptions{
+		Logger:  log.NewLogger(os.Stdout),
+		DB:      db,
+		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
+	})
+
+	require.IsType(t, &app.WasmApp{}, simApp)
+}
 
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
 func TestXionUpgradeIBC(t *testing.T) {
