@@ -4,16 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	ibcclientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
+
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-var (
-	ibcClientKeeper ibcclientkeeper.Keeper
-)
+var ibcClientKeeper ibcclientkeeper.Keeper
 
 func SetIBCClientKeeper(k ibcclientkeeper.Keeper) {
 	ibcClientKeeper = k
