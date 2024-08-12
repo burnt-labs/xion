@@ -21,12 +21,7 @@ import (
 
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/golang-jwt/jwt/v4"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -59,21 +54,6 @@ func TestJWTAbstractAccount(t *testing.T) {
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
-
-	// register any needed msg types
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgStoreCode{},
-		&aatypes.MsgUpdateParams{},
-		&aatypes.MsgRegisterAccount{},
-		&jwktypes.MsgCreateAudience{},
-		&jwktypes.MsgCreateAudienceClaim{},
-	)
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
 
 	// load the test private key
 	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")

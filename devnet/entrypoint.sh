@@ -18,14 +18,9 @@ if [ -f ${HOME}/.env ]; then
     . ${HOME}/.env
 fi
 
-# Cosmos SDK v0.47 settings
-if ${BIN_NAME} version --long | grep 'cosmos_sdk_version: v0.47'; then
-    GENESIS="genesis"
-    ADD_INIT_FLAGS="--default-denom=${DENOM}"
-else
-    GENESIS="${GENESIS:-""}"
-    ADD_INIT_FLAGS=""
-fi
+# cosmos_sdk_version > v0.47 genesis commands are moved under app genesis cmd
+GENESIS="genesis"
+ADD_INIT_FLAGS="--default-denom=${DENOM}"
 
 sleep_random(){
     random_number=$((RANDOM % 3000))

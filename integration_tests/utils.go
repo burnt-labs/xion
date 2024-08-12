@@ -19,7 +19,9 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/x/feegrant"
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
+
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 
 	"cosmossdk.io/x/upgrade"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -265,6 +267,8 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				upgrade.AppModuleBasic{},
 				consensus.AppModuleBasic{},
 				transfer.AppModuleBasic{},
+				feegrantmodule.AppModuleBasic{},
+				authz.AppModuleBasic{},
 				// ibccore.AppModuleBasic{},
 				// ibctm.AppModuleBasic{},
 				// ibcwasm.AppModuleBasic{},
@@ -276,7 +280,6 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 			minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			jwktypes.RegisterInterfaces(cfg.InterfaceRegistry)
 			aatypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			feegrant.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}

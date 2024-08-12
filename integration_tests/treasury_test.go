@@ -14,17 +14,12 @@ import (
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
@@ -82,34 +77,6 @@ func TestTreasuryContract(t *testing.T) {
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
-
-	// register any needed msg types
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgExecuteContract{},
-		&wasmtypes.MsgStoreCode{},
-		&aatypes.MsgUpdateParams{},
-		&aatypes.MsgRegisterAccount{},
-		&jwktypes.MsgCreateAudience{},
-		&authztypes.MsgGrant{},
-	)
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-		"cosmos.feegrant.v1beta1.FeeAllowanceI",
-		(*feegrant.FeeAllowanceI)(nil),
-		&feegrant.BasicAllowance{},
-	)
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-		"cosmos.authz.v1beta1.Authorization",
-		(*authztypes.Authorization)(nil),
-		&authztypes.GenericAuthorization{},
-	)
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)
@@ -365,40 +332,6 @@ func TestTreasuryMulti(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	// register any needed msg types
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgExecuteContract{},
-		&wasmtypes.MsgStoreCode{},
-		&aatypes.MsgUpdateParams{},
-		&aatypes.MsgRegisterAccount{},
-		&jwktypes.MsgCreateAudience{},
-		&authztypes.MsgGrant{},
-	)
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-		"cosmos.feegrant.v1beta1.FeeAllowanceI",
-		(*feegrant.FeeAllowanceI)(nil),
-		&feegrant.BasicAllowance{},
-	)
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-		"xion.v1.MultiAnyAllowance",
-		(*feegrant.FeeAllowanceI)(nil),
-		&xiontypes.MultiAnyAllowance{},
-	)
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterInterface(
-		"cosmos.authz.v1beta1.Authorization",
-		(*authztypes.Authorization)(nil),
-		&authztypes.GenericAuthorization{},
-	)
-
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
@@ -568,7 +501,7 @@ func TestTreasuryMulti(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["type"].(string)
-	require.Contains(t, allowanceType, "/"+proto.MessageName(testMultiAllowance))
+	require.Contains(t, allowanceType, "xion/MultiAnyAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
@@ -633,6 +566,9 @@ func TestTreasuryMulti(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
 
-	finalAllowances := feeGrantDetails["allowances"].([]interface{})
-	require.Equal(t, 0, len(finalAllowances))
+	finalAllowancesStr, ok := feeGrantDetails["allowances"]
+	if ok {
+		finalAllowances := finalAllowancesStr.([]interface{})
+		require.Equal(t, 0, len(finalAllowances))
+	}
 }

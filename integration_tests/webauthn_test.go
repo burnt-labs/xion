@@ -18,13 +18,9 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"
@@ -56,19 +52,6 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	// register any needed msg types
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgStoreCode{},
-		&aatypes.MsgUpdateParams{},
-		&aatypes.MsgRegisterAccount{},
-	)
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
-	// t.Log(xion.Config().EncodingConfig.InterfaceRegistry.ListImplementations("/xion.v1.Msg/Send"))
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 

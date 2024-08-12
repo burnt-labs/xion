@@ -7,7 +7,6 @@ import (
 
 	"cosmossdk.io/math"
 
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -106,12 +105,6 @@ func testMinimumFee(t *testing.T, td *TestData, assert assertionFn) {
 	require.NoError(t, err)
 	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
 	require.NoError(t, err)
-
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-	)
 
 	assert(t, ctx, xion, xionUser, recipientKeyAddress, fundAmount)
 }
