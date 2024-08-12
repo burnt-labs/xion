@@ -36,7 +36,13 @@ const (
 	xionImageTo     = "ghcr.io/burnt-labs/xion/heighliner"
 	xionVersionTo   = "sha-ec4721b"
 	xionUpgradeName = "v10"
-	osmosisVersion  = "v25.2.1"
+
+	osmosisImage   = "ghcr.io/strangelove-ventures/heighliner/osmosis"
+	osmosisVersion = "v25.2.1"
+
+	relayerImage   = "ghcr.io/cosmos/relayer"
+	relayerVersion = "main"
+	relayerImpl    = ibc.CosmosRly
 
 	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
@@ -53,8 +59,8 @@ func TestXionUpgradeIBC(t *testing.T) {
 	eRep := rep.RelayerExecReporter(t)
 
 	// Build RelayerFactory
-	rlyImage := relayer.CustomDockerImage("ghcr.io/cosmos/relayer", "main", rly.RlyDefaultUidGid)
-	rf := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t), rlyImage)
+	rlyImage := relayer.CustomDockerImage(relayerImage, relayerVersion, rly.RlyDefaultUidGid)
+	rf := interchaintest.NewBuiltinRelayerFactory(relayerImpl, zaptest.NewLogger(t), rlyImage)
 
 	// Configure Chains
 	chains := ConfigureChains(t, 1, 2)
@@ -64,7 +70,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 		name        string
 		setup       func(t *testing.T, path string, dockerClient *client.Client, dockerNetwork string) (ibc.Chain, ibc.Chain, *interchaintest.Interchain, ibc.Relayer)
 		conformance func(t *testing.T, ctx context.Context, client *client.Client, network string, srcChain, dstChain ibc.Chain, rf interchaintest.RelayerFactory, rep *testreporter.Reporter, relayerImpl ibc.Relayer, pathNames ...string)
-		upgrade     func(t *testing.T, chain *cosmos.CosmosChain, upgradeName string, dockerClient *client.Client, dockerImageRepo, dockerImageVersion string)
+		upgrade     func(t *testing.T, chain *cosmos.CosmosChain, dockerClient *client.Client)
 	}{
 		{
 			name: "xion-osmosis",
@@ -87,7 +93,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 			defer ichain.Close()
 			tc.conformance(t, ctx, dockerClient, dockerNetwork, xion, counterparty, rf, rep, rlyr, tc.name)
 			x := xion.(*cosmos.CosmosChain)
-			tc.upgrade(t, x, xionUpgradeName, dockerClient, xionImageTo, xionVersionTo)
+			tc.upgrade(t, x, dockerClient)
 			tc.conformance(t, ctx, dockerClient, dockerNetwork, xion, counterparty, rf, rep, rlyr, tc.name)
 		})
 	}
@@ -131,7 +137,7 @@ func ConfigureChains(t *testing.T, numFullNodes, numValidators int) []ibc.Chain 
 			ChainConfig: ibc.ChainConfig{
 				Images: []ibc.DockerImage{
 					{
-						Repository: "ghcr.io/strangelove-ventures/heighliner/osmosis",
+						Repository: osmosisImage,
 						Version:    osmosisVersion,
 						UidGid:     "1025:1025",
 					},
@@ -196,9 +202,7 @@ func SetupInterchain(
 func SoftwareUpgrade(
 	t *testing.T,
 	chain *cosmos.CosmosChain,
-	upgradeName string,
 	dockerClient *client.Client,
-	dockerImageRepo, dockerImageVersion string,
 ) {
 	ctx := context.Background()
 
@@ -214,9 +218,9 @@ func SoftwareUpgrade(
 
 	// submit and vote on software upgrade
 	plan := upgradetypes.Plan{
-		Name:   upgradeName,
+		Name:   xionUpgradeName,
 		Height: haltHeight,
-		Info:   fmt.Sprintf("Software Upgrade %s", upgradeName),
+		Info:   fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
 	}
 	upgrade := upgradetypes.MsgSoftwareUpgrade{
 		Authority: authority,
@@ -231,7 +235,7 @@ func SoftwareUpgrade(
 
 	proposal, err := chain.BuildProposal(
 		[]cosmos.ProtoMessage{&upgrade},
-		fmt.Sprintf("Software Upgrade %s", upgradeName),
+		fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
 		"upgrade chain E2E test",
 		"",
 		fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
@@ -268,7 +272,7 @@ func SoftwareUpgrade(
 	// upgrade all nodes
 	err = chain.StopAllNodes(ctx)
 	require.NoErrorf(t, err, "couldn't stop nodes: %v", err)
-	chain.UpgradeVersion(ctx, dockerClient, dockerImageRepo, dockerImageVersion)
+	chain.UpgradeVersion(ctx, dockerClient, xionImageTo, xionVersionTo)
 
 	// reboot nodes
 	err = chain.StartAllNodes(ctx)
