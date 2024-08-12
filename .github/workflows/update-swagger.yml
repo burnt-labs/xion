@@ -17,7 +17,7 @@ jobs:
 
       - name: Generate Swagger
         env:
-          DOCKER_IMAGE: ghcr.io/cosmos/proto-builder:0.14.0
+          DOCKER_IMAGE: ghcr.io/cosmos/proto-builder:0.14.1
         run: |
           # runs as runner:docker (1001:121)
           chmod -R o+wX client/docs
