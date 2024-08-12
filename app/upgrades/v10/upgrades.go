@@ -12,15 +12,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-var ibcClientKeeper ibcclientkeeper.Keeper
+type UpgradeMinion struct {
+	IBCClientKeeper ibcclientkeeper.Keeper
+}
 
-func SetIBCClientKeeper(k ibcclientkeeper.Keeper) {
-	ibcClientKeeper = k
+func NewUpgradeMinion(
+	ibcClientKeeper ibcclientkeeper.Keeper,
+) *UpgradeMinion {
+	return &UpgradeMinion{
+		IBCClientKeeper: ibcClientKeeper,
+	}
 }
 
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
+	minion *UpgradeMinion,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -31,7 +38,7 @@ func CreateUpgradeHandler(
 			return vm, err
 		}
 
-		migrator := ibcclientkeeper.NewMigrator(ibcClientKeeper)
+		migrator := ibcclientkeeper.NewMigrator(minion.IBCClientKeeper)
 		if err := migrator.MigrateParams(sdkCtx); err != nil {
 			sdkCtx.Logger().Error(fmt.Sprintf("failed to migrate IBC Client params: %s", err.Error()))
 		}

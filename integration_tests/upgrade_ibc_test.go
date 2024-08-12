@@ -47,6 +47,10 @@ const (
 	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
 
+func TestUpgradeMinionV10(t *testing.T) {
+
+}
+
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
 func TestXionUpgradeIBC(t *testing.T) {
 	t.Parallel()

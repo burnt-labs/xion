@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/burnt-labs/xion/app/upgrades"
 	"io"
 	"net/http"
 	"os"
@@ -146,8 +147,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/burnt-labs/xion/app/upgrades"
-	v10 "github.com/burnt-labs/xion/app/upgrades/v10"
+	currentupgrade "github.com/burnt-labs/xion/app/upgrades/v10"
 	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
@@ -169,6 +169,8 @@ var (
 	NodeDir      = ".xiond"
 	Bech32Prefix = "xion"
 
+	Upgrades = []upgrades.Upgrade{currentupgrade.Upgrade}
+
 	// If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
 	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
 	ProposalsEnabled = "true"
@@ -176,7 +178,6 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v10.Upgrade}
 )
 
 // These constants are derived from the above variables.
@@ -1268,9 +1269,24 @@ func (app *WasmApp) RegisterNodeService(clientCtx client.Context, cfg config.Con
 }
 
 func (app *WasmApp) setupUpgradeHandlers() {
-	// Set the upgrade handler for the IBC module
-	v10.SetIBCClientKeeper(app.IBCKeeper.ClientKeeper)
+	ibcClientKeeper := app.IBCKeeper.ClientKeeper
 
+	// UpgradeV10 override to insert a minion for v50 hijinks
+	// this const is always true for v10, always false otherwise
+	if currentupgrade.UpgradeName == "v10" {
+		minion := currentupgrade.NewUpgradeMinion(ibcClientKeeper)
+		upgrade := currentupgrade.NewUpgradeV10(minion)
+		app.UpgradeKeeper.SetUpgradeHandler(
+			upgrade.UpgradeName,
+			upgrade.CreateUpgradeHandler(
+				app.ModuleManager,
+				app.configurator,
+			),
+		)
+		return
+	}
+
+	// regular upgrade codepath
 	for _, upgrade := range Upgrades {
 		app.UpgradeKeeper.SetUpgradeHandler(
 			upgrade.UpgradeName,
