@@ -1269,30 +1269,47 @@ func (app *WasmApp) RegisterNodeService(clientCtx client.Context, cfg config.Con
 }
 
 func (app *WasmApp) setupUpgradeHandlers() {
-	ibcClientKeeper := app.IBCKeeper.ClientKeeper
-
-	// UpgradeV10 override to insert a minion for v50 hijinks
-	// this const is always true for v10, always false otherwise
-	if currentupgrade.UpgradeName == "v10" {
-		minion := currentupgrade.NewUpgradeMinion(ibcClientKeeper)
-		upgrade := currentupgrade.NewUpgradeV10(minion)
+	for _, u := range Upgrades {
 		app.UpgradeKeeper.SetUpgradeHandler(
-			upgrade.UpgradeName,
-			upgrade.CreateUpgradeHandler(
+			u.UpgradeName,
+			u.CreateUpgradeHandler(
 				app.ModuleManager,
 				app.configurator,
-			),
-		)
-		return
-	}
+				&upgrades.UpgradeKeepers{
+					AccountKeeper:         app.AccountKeeper,
+					BankKeeper:            app.BankKeeper,
+					CapabilityKeeper:      app.CapabilityKeeper,
+					StakingKeeper:         app.StakingKeeper,
+					SlashingKeeper:        app.SlashingKeeper,
+					MintKeeper:            app.MintKeeper,
+					DistrKeeper:           app.DistrKeeper,
+					GovKeeper:             app.GovKeeper,
+					CrisisKeeper:          app.CrisisKeeper,
+					UpgradeKeeper:         app.UpgradeKeeper,
+					ParamsKeeper:          app.ParamsKeeper,
+					AuthzKeeper:           app.AuthzKeeper,
+					EvidenceKeeper:        app.EvidenceKeeper,
+					FeeGrantKeeper:        app.FeeGrantKeeper,
+					GroupKeeper:           app.GroupKeeper,
+					NFTKeeper:             app.NFTKeeper,
+					ConsensusParamsKeeper: app.ConsensusParamsKeeper,
 
-	// regular upgrade codepath
-	for _, upgrade := range Upgrades {
-		app.UpgradeKeeper.SetUpgradeHandler(
-			upgrade.UpgradeName,
-			upgrade.CreateUpgradeHandler(
-				app.ModuleManager,
-				app.configurator,
+					IBCKeeper:             app.IBCKeeper,
+					IBCFeeKeeper:          app.IBCFeeKeeper,
+					ICAControllerKeeper:   app.ICAControllerKeeper,
+					ICAHostKeeper:         app.ICAHostKeeper,
+					TransferKeeper:        app.TransferKeeper,
+					WasmKeeper:            app.WasmKeeper,
+					AbstractAccountKeeper: app.AbstractAccountKeeper,
+					IBCHooksKeeper:        app.IBCHooksKeeper,
+					ContractKeeper:        app.ContractKeeper,
+					PacketForwardKeeper:   app.PacketForwardKeeper,
+					FeeAbsKeeper:          app.FeeAbsKeeper,
+
+					XionKeeper:         app.XionKeeper,
+					JwkKeeper:          app.JwkKeeper,
+					TokenFactoryKeeper: app.TokenFactoryKeeper,
+				},
 			),
 		)
 	}
