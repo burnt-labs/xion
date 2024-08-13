@@ -35,7 +35,7 @@ services:
       - shared:/home/xiond/.shared
       - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
       - ./mnemonics.json:/home/xiond/mnemonics.json
-      - ./wasm-genesis.json.json:/home/xiond/wasm-genesis.json
+      - ./wasm-genesis.json:/home/xiond/wasm-genesis.json
     working_dir: /home/xiond
 
 networks:
