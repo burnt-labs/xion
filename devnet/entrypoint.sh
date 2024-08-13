@@ -111,6 +111,10 @@ initialize_genesis(){
     sed -e "s/stake/${DENOM}/g" \
         -i ${HOME}/.*/config/genesis.json
 
+    # modify the genesis.json
+    jq -s '.[0] + .[1]' ${HOME}/wasm-genesis.json ${HOME}/.*/config/genesis.json > /tmp/genesis.json
+    mv /tmp/genesis.json ${HOME}/.${APP_NAME}*/config/genesis.json
+
     cp -a ${HOME}/.${APP_NAME}*/config/genesis.json ${HOME}/.shared/genesis.json
 }
 
