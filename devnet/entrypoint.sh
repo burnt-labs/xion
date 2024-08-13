@@ -112,10 +112,11 @@ initialize_genesis(){
         -i ${HOME}/.*/config/genesis.json
 
     # modify the genesis.json
-    jq -s '.[0] + .[1]' ${HOME}/wasm-genesis.json ${HOME}/.*/config/genesis.json > /tmp/genesis.json
-    mv /tmp/genesis.json ${HOME}/.${APP_NAME}*/config/genesis.json
+    jq --slurpfile wasm ${HOME}/wasm-genesis.json '.app_state.wasm |= $wasm[0].wasm' ${HOME}/.*/config/genesis.json \
+    > ${HOME}/.shared/genesis.json
 
-    cp -a ${HOME}/.${APP_NAME}*/config/genesis.json ${HOME}/.shared/genesis.json
+    # copu=y final genesis back to config
+    cp -a ${HOME}/.shared/genesis.json ${HOME}/.${APP_NAME}*/config/genesis.json
 }
 
 wait_for_genesis(){
