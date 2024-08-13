@@ -7,11 +7,14 @@ VALIDATOR_KEY_NAME="${VALIDATOR_KEY_NAME:-local-testnet-validator}"
 FAUCET_KEY_NAME="${FAUCET_KEY_NAME:-local-testnet-faucet}"
 
 CHAIN_ID=xion-local-testnet-1
-HOME_DIRECTORY=/xion/chain-data
+HOME_DIRECTORY=./xion/chain-data
 
 if [[ ! -f $HOME_DIRECTORY/data/priv_validator_state.json ]]; then
   xiond init validator --chain-id $CHAIN_ID --default-denom uxion \
-    --home $HOME_DIRECTORY;
+    --home $HOME_DIRECTORY 2>/dev/null;
+
+  jq --argfile bytes wasm_code_bytes.json --argfile seq wasm_seq.json '.app_state.wasm.codes = $bytes | .app_state.wasm.sequences = $seq' $HOME_DIRECTORY/config/genesis.json  > temp.json;
+  mv ./temp.json $HOME_DIRECTORY/config/genesis.json;
 
   echo $FAUCET_MNEMONIC | xiond keys add $FAUCET_KEY_NAME --recover \
     --home $HOME_DIRECTORY \
@@ -35,7 +38,8 @@ if [[ ! -f $HOME_DIRECTORY/data/priv_validator_state.json ]]; then
     --home $HOME_DIRECTORY \
     --keyring-backend test;
 
-  xiond genesis collect-gentxs --home $HOME_DIRECTORY;
+  # The output here is very verbose
+  xiond genesis collect-gentxs --home $HOME_DIRECTORY 2>/dev/null;
 
   # Enable the API.
   sed -i '/\[api\]/,+3 s/enable = false/enable = true/' $HOME_DIRECTORY/config/app.toml;
