@@ -12,7 +12,6 @@ services:
         --api.swagger true \
         --grpc.enable true \
         --grpc.address 0.0.0.0:9090 \
-        --grpc-web.address 0.0.0.0:9091
         --grpc-web.enable \
         --minimum-gas-prices 0.025uxion \
         --rpc.laddr tcp://0.0.0.0:26657
@@ -36,6 +35,7 @@ services:
       - shared:/home/xiond/.shared
       - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
       - ./mnemonics.json:/home/xiond/mnemonics.json
+      - ./wasm-genesis.json.json:/home/xiond/wasm-genesis.json
     working_dir: /home/xiond
 
 networks:
