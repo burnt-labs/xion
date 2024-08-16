@@ -2,14 +2,16 @@ package integration_tests
 
 import (
 	"context"
-	"cosmossdk.io/log"
 	"fmt"
-	"github.com/burnt-labs/xion/app"
-	dbm "github.com/cosmos/cosmos-db"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	"os"
 	"testing"
 	"time"
+
+	"cosmossdk.io/log"
+
+	"github.com/burnt-labs/xion/app"
+	dbm "github.com/cosmos/cosmos-db"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 

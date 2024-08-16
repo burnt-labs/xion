@@ -146,8 +146,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/burnt-labs/xion/app/upgrades"
-	currentupgrade "github.com/burnt-labs/xion/app/upgrades/v10"
 	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
@@ -168,8 +166,6 @@ const appName = "XionApp"
 var (
 	NodeDir      = ".xiond"
 	Bech32Prefix = "xion"
-
-	Upgrades = []upgrades.Upgrade{currentupgrade.Upgrade}
 
 	// If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
 	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
@@ -964,7 +960,7 @@ func NewWasmApp(
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
-	// app.RegisterUpgradeHandlers()
+	app.RegisterUpgradeHandlers()
 
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.ModuleManager.Modules))
 
@@ -1040,10 +1036,6 @@ func NewWasmApp(
 	// likely to be a state-machine breaking change, which needs a coordinated
 	// upgrade.
 	app.setPostHandler()
-
-	/* upgrade network */
-	app.setupUpgradeHandlers()
-	app.setupUpgradeStoreLoaders()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -1266,72 +1258,6 @@ func (app *WasmApp) RegisterTendermintService(clientCtx client.Context) {
 
 func (app *WasmApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
-}
-
-func (app *WasmApp) setupUpgradeHandlers() {
-	for _, u := range Upgrades {
-		app.UpgradeKeeper.SetUpgradeHandler(
-			u.UpgradeName,
-			u.CreateUpgradeHandler(
-				app.ModuleManager,
-				app.configurator,
-				&upgrades.UpgradeKeepers{
-					AccountKeeper:         app.AccountKeeper,
-					BankKeeper:            app.BankKeeper,
-					CapabilityKeeper:      app.CapabilityKeeper,
-					StakingKeeper:         app.StakingKeeper,
-					SlashingKeeper:        app.SlashingKeeper,
-					MintKeeper:            app.MintKeeper,
-					DistrKeeper:           app.DistrKeeper,
-					GovKeeper:             app.GovKeeper,
-					CrisisKeeper:          app.CrisisKeeper,
-					UpgradeKeeper:         app.UpgradeKeeper,
-					ParamsKeeper:          app.ParamsKeeper,
-					AuthzKeeper:           app.AuthzKeeper,
-					EvidenceKeeper:        app.EvidenceKeeper,
-					FeeGrantKeeper:        app.FeeGrantKeeper,
-					GroupKeeper:           app.GroupKeeper,
-					NFTKeeper:             app.NFTKeeper,
-					ConsensusParamsKeeper: app.ConsensusParamsKeeper,
-
-					IBCKeeper:             app.IBCKeeper,
-					IBCFeeKeeper:          app.IBCFeeKeeper,
-					ICAControllerKeeper:   app.ICAControllerKeeper,
-					ICAHostKeeper:         app.ICAHostKeeper,
-					TransferKeeper:        app.TransferKeeper,
-					WasmKeeper:            app.WasmKeeper,
-					AbstractAccountKeeper: app.AbstractAccountKeeper,
-					IBCHooksKeeper:        app.IBCHooksKeeper,
-					ContractKeeper:        app.ContractKeeper,
-					PacketForwardKeeper:   app.PacketForwardKeeper,
-					FeeAbsKeeper:          app.FeeAbsKeeper,
-
-					XionKeeper:         app.XionKeeper,
-					JwkKeeper:          app.JwkKeeper,
-					TokenFactoryKeeper: app.TokenFactoryKeeper,
-				},
-			),
-		)
-	}
-}
-
-// configure store loader that checks if version == upgradeHeight and applies store upgrades
-func (app *WasmApp) setupUpgradeStoreLoaders() {
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		return
-	}
-
-	for _, upgrade := range Upgrades {
-		if upgradeInfo.Name == upgrade.UpgradeName {
-			upgrade := upgrade
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
-		}
-	}
 }
 
 // GetMaccPerms returns a copy of the module account permissions
