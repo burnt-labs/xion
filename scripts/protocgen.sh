@@ -9,7 +9,9 @@ base_dir="$(dirname $scripts_dir)"
 proto_dir="$base_dir/proto"
 
 # sets $proto_dirs
-source $scripts_dir/protoc-common.sh
+cd $proto_dir
+#source $scripts_dir/protoc-common.sh
+proto_dirs=$(find ./xion -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 
 for dir in $proto_dirs; do
   for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
@@ -19,8 +21,10 @@ for dir in $proto_dirs; do
   done
 done
 
+cd $base_dir
+
 # move proto files to the right places
-if [ -e "github.com/burnt-labs/xion" ]; then
-  cp -rv github.com/burnt-labs/xion/* ./
-  rm -rf github.com
+if [ -e "$base_dir/github.com/burnt-labs/xion" ]; then
+  cp -rv $base_dir/github.com/burnt-labs/xion/* $base_dir/
+  rm -rf $base_dir/github.com
 fi
