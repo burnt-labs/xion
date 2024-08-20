@@ -43,7 +43,7 @@ func TestXionUpgradeNetwork(t *testing.T) {
 	t.Parallel()
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
-	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v7")
+	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v10")
 }
 
 func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
