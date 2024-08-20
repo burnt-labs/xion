@@ -55,6 +55,8 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -144,8 +146,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/burnt-labs/xion/app/upgrades"
-	v9 "github.com/burnt-labs/xion/app/upgrades/v9"
 	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
@@ -174,7 +174,6 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v9.Upgrade}
 )
 
 // These constants are derived from the above variables.
@@ -961,7 +960,7 @@ func NewWasmApp(
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
-	// app.RegisterUpgradeHandlers()
+	app.RegisterUpgradeHandlers()
 
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.ModuleManager.Modules))
 
@@ -1037,10 +1036,6 @@ func NewWasmApp(
 	// likely to be a state-machine breaking change, which needs a coordinated
 	// upgrade.
 	app.setPostHandler()
-
-	/* upgrade network */
-	app.setupUpgradeHandlers()
-	app.setupUpgradeStoreLoaders()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -1265,37 +1260,6 @@ func (app *WasmApp) RegisterNodeService(clientCtx client.Context, cfg config.Con
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
-func (app *WasmApp) setupUpgradeHandlers() {
-	for _, upgrade := range Upgrades {
-		app.UpgradeKeeper.SetUpgradeHandler(
-			upgrade.UpgradeName,
-			upgrade.CreateUpgradeHandler(
-				app.ModuleManager,
-				app.configurator,
-			),
-		)
-	}
-}
-
-// configure store loader that checks if version == upgradeHeight and applies store upgrades
-func (app *WasmApp) setupUpgradeStoreLoaders() {
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		return
-	}
-
-	for _, upgrade := range Upgrades {
-		if upgradeInfo.Name == upgrade.UpgradeName {
-			upgrade := upgrade
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
-		}
-	}
-}
-
 // GetMaccPerms returns a copy of the module account permissions
 //
 // NOTE: This is solely to be used for testing purposes.
@@ -1334,10 +1298,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName)
 	paramsKeeper.Subspace(crisistypes.ModuleName)
-	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(ibcexported.ModuleName)
-	paramsKeeper.Subspace(icahosttypes.SubModuleName)
-	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(tokenfactorytypes.ModuleName)
 	paramsKeeper.Subspace(globalfee.ModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
@@ -1346,6 +1306,15 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(feeabstypes.ModuleName)
+
+	// IBC params migration - legacySubspace to selfManaged
+	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/11-v7-to-v8.md#params-migration
+	keyTable := ibcclienttypes.ParamKeyTable()
+	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
+	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
+	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
+	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
 
 	return paramsKeeper
 }

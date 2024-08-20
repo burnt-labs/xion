@@ -24,6 +24,16 @@ ENV COMMIT=${COMMIT} \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH}
 
+# needed in makefile
+ARG COMMIT
+ARG VERSION
+
+# Consume Args to env
+ENV COMMIT=${COMMIT} \
+    VERSION=${VERSION} \
+    GOOS=${TARGETOS} \
+    GOARCH=${TARGETARCH}
+
 # Install dependencies
 RUN apk add --no-cache \
     build-base \
