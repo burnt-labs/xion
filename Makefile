@@ -133,7 +133,7 @@ build-heighliner:
 		--progress=plain \
 		--build-arg BASE_IMAGE=xiond \
 	  --build-arg VERSION=binary \
-	  --build-arg BINARIES=/use/bin/xiond \
+	  --build-arg BINARIES=/usr/bin/xiond \
 	  --tag $(XION_IMAGE) ./heighliner
 	$(DOCKER) image rm -f xiond:binary || true
 	rm -rf ./heighliner
