@@ -208,6 +208,7 @@ func SubmitIBCSoftwareUpgradeProposal(
 	haltHeight int64,
 ) (error error) {
 	ctx := context.Background()
+	upgradeInfo := fmt.Sprintf("Software Upgrade %s", xionUpgradeName)
 
 	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
 	// This will make the chain commit to the correct upgraded (self) client state
@@ -221,18 +222,30 @@ func SubmitIBCSoftwareUpgradeProposal(
 	// (such as TrustingPeriod).
 
 	upgradedClientState := &ibctm.ClientState{
-		ChainId: chain.Config().ChainID,
+		ChainId:                      chain.Config().ChainID,
+		AllowUpdateAfterExpiry:       true,
+		AllowUpdateAfterMisbehaviour: true,
 	}
 	upgradedClientStateAny, err := ibcclienttypes.PackClientState(upgradedClientState)
 	require.NoError(t, err, "couldn't pack upgraded client state: %v", err)
 
-	// Build IBCSoftwareUpgrade message
+	// Set upgrade plan
 	plan := upgradetypes.Plan{
 		Name:   xionUpgradeName,
 		Height: haltHeight,
-		Info:   fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
+		Info:   upgradeInfo,
 	}
-	upgrade := ibcclienttypes.MsgIBCSoftwareUpgrade{
+
+	// Legacy upgrade / ibc-go v7 and earlier
+	//upgrade := &ibcclienttypes.UpgradeProposal{
+	//	Title:               upgradeInfo,
+	//	Description:         upgradeInfo,
+	//	Plan:                plan,
+	//	UpgradedClientState: upgradedClientStateAny,
+	//}
+
+	// IBCSoftwareUpgrade / ibc-go v8 and later
+	upgrade := &ibcclienttypes.MsgIBCSoftwareUpgrade{
 		Plan:                plan,
 		UpgradedClientState: upgradedClientStateAny,
 		Signer:              authority,
@@ -247,9 +260,9 @@ func SubmitIBCSoftwareUpgradeProposal(
 
 	// Build govprop
 	proposal, err := chain.BuildProposal(
-		[]cosmos.ProtoMessage{&upgrade},
-		fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
-		"upgrade chain E2E test",
+		[]cosmos.ProtoMessage{upgrade},
+		upgradeInfo,
+		upgradeInfo,
 		"",
 		fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
 		proposerAddr,
@@ -273,6 +286,7 @@ func SubmitSoftwareUpgradeProposal(
 	haltHeight int64,
 ) (error error) {
 	ctx := context.Background()
+	upgradeInfo := fmt.Sprintf("Software Upgrade %s", xionUpgradeName)
 
 	// Get proposer addr and keyname
 	proposerKeyname := chainUser.KeyName()
@@ -285,7 +299,7 @@ func SubmitSoftwareUpgradeProposal(
 	plan := upgradetypes.Plan{
 		Name:   xionUpgradeName,
 		Height: haltHeight,
-		Info:   fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
+		Info:   upgradeInfo,
 	}
 	upgrade := upgradetypes.MsgSoftwareUpgrade{
 		Authority: authority,
@@ -295,8 +309,8 @@ func SubmitSoftwareUpgradeProposal(
 	// Build govprop
 	proposal, err := chain.BuildProposal(
 		[]cosmos.ProtoMessage{&upgrade},
-		fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
-		"upgrade chain E2E test",
+		upgradeInfo,
+		upgradeInfo,
 		"",
 		fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
 		proposerAddr,
@@ -364,11 +378,11 @@ func UpgradeXion(
 	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
 	haltHeight := currentHeight + haltHeightDelta - 3
 
-	// submit IBC upgrade proposal
+	// submit ibc upgrade govprop
 	err = SubmitIBCSoftwareUpgradeProposal(t, chain, chainUser, haltHeight, currentHeight)
 	require.NoErrorf(t, err, "couldn't submit IBC upgrade proposal: %v", err)
 
-	// submit SoftwareUpgrade proposal
+	// submit chain upgrade govprop
 	err = SubmitSoftwareUpgradeProposal(t, chain, chainUser, haltHeight, currentHeight)
 	require.NoErrorf(t, err, "couldn't submit UpgradeXion proposal: %v", err)
 
