@@ -867,7 +867,7 @@ func NewWasmApp(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	// NOTE: capability module's beginblocker must come before any modules using capabilities (e.g. IBC)
 	app.ModuleManager.SetOrderBeginBlockers(
-		upgradetypes.ModuleName, capabilitytypes.ModuleName,
+		capabilitytypes.ModuleName,
 		minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		evidencetypes.ModuleName, stakingtypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
@@ -991,6 +991,7 @@ func NewWasmApp(
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
+	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	app.setAnteHandler(txConfig, wasmConfig, keys[wasmtypes.StoreKey])

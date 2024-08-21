@@ -69,7 +69,7 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	height, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
-	haltHeight := height + haltHeightDelta - 3
+	haltHeight := height + haltHeightDelta
 
 	plan := upgradetypes.Plan{
 		Name:   upgradeName,
