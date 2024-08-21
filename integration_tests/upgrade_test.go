@@ -3,6 +3,8 @@ package integration_tests
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -39,11 +41,21 @@ As of Aug 17 2023 this is the necessary process to run this test, this is due to
 current-testnet: v6
 upgrade-version: v7
 */
+
 func TestXionUpgradeNetwork(t *testing.T) {
 	t.Parallel()
 
+	// pull "recent" version, that is the ugprade target
+	imageTag := os.Getenv("XION_IMAGE")
+	imageTagComponents := strings.Split(imageTag, ":")
+
+	// set "previous" to the value in the test const
+	err := os.Setenv("XION_IMAGE", fmt.Sprintf("%s:%s", xionImageFrom, xionVersionFrom))
+	require.NoError(t, err)
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
-	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v10")
+
+	// issue the upgrade with "recent" again
+	CosmosChainUpgradeTest(t, &td, imageTagComponents[0], imageTagComponents[1], xionUpgradeName)
 }
 
 func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
@@ -117,7 +129,6 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	// bring down nodes to prepare for upgrade
 	err = chain.StopAllNodes(ctx)
 	require.NoError(t, err, "error stopping node(s)")
-
 	// upgrade version on all nodes
 	chain.UpgradeVersion(ctx, client, upgradeContainerRepo, upgradeVersion)
 

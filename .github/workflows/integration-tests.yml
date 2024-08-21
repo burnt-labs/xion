@@ -36,7 +36,7 @@ jobs:
         - "TreasuryContract"
         - "TreasuryMulti"
         - "SingleAbstractAccountMigration"
-
+        - "TestXionUpgradeNetwork"
 
     steps:
       - name: checkout
