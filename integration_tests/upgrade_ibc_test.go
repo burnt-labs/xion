@@ -3,17 +3,18 @@ package integration_tests
 import (
 	"context"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 
 	"cosmossdk.io/math"
-
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 
@@ -81,7 +82,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 				return xion, osmosis, ic, r
 			},
 			conformance: conformance.TestChainPair,
-			upgrade:     SoftwareUpgrade,
+			upgrade:     UpgradeXion,
 		},
 	}
 
@@ -198,25 +199,89 @@ func SetupInterchain(
 	return ic
 }
 
-// SoftwareUpgrade submits, votes and performs a software upgrade govprop on the given chain.
-func SoftwareUpgrade(
+// SubmitIBCSoftwareUpgradeProposal submits and passes an IBCSoftwareUpgrade govprop.
+func SubmitIBCSoftwareUpgradeProposal(
 	t *testing.T,
 	chain *cosmos.CosmosChain,
-	dockerClient *client.Client,
-) {
+	chainUser ibc.Wallet,
+	currentHeight int64,
+	haltHeight int64,
+) (error error) {
 	ctx := context.Background()
 
-	// fund user
-	fundAmount := math.NewInt(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
-	chainUser := users[0]
+	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
+	// This will make the chain commit to the correct upgraded (self) client state
+	// before the upgrade occurs, so that connecting chains can verify that the
+	// new upgraded client is valid by verifying a proof on the previous version
+	// of the chain.
 
-	// build software upgrade govprop
-	height, err := chain.Height(ctx)
-	require.NoErrorf(t, err, "couldn't get chain height for softwareUpgradeProposal: %v", err)
-	haltHeight := height + haltHeightDelta - 3
+	// The UpgradePlan must specify an upgrade height only (no upgrade time),
+	// and the ClientState should only include the fields common to all valid clients
+	// (chain-specified parameters) and zero out any client-customizable fields
+	// (such as TrustingPeriod).
 
-	// submit and vote on software upgrade
+	upgradedClientState := &ibctm.ClientState{
+		ChainId: chain.Config().ChainID,
+	}
+	upgradedClientStateAny, err := ibcclienttypes.PackClientState(upgradedClientState)
+	require.NoError(t, err, "couldn't pack upgraded client state: %v", err)
+
+	// Build IBCSoftwareUpgrade message
+	plan := upgradetypes.Plan{
+		Name:   xionUpgradeName,
+		Height: haltHeight,
+		Info:   fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
+	}
+	upgrade := ibcclienttypes.MsgIBCSoftwareUpgrade{
+		Plan:                plan,
+		UpgradedClientState: upgradedClientStateAny,
+		Signer:              authority,
+	}
+
+	// Get proposer addr and keyname
+	address, err := chain.GetAddress(ctx, chainUser.KeyName())
+	require.NoError(t, err)
+	proposerAddr, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, address)
+	require.NoError(t, err)
+	proposerKeyname := chainUser.KeyName()
+
+	// Build govprop
+	proposal, err := chain.BuildProposal(
+		[]cosmos.ProtoMessage{&upgrade},
+		fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
+		"upgrade chain E2E test",
+		"",
+		fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
+		proposerAddr,
+		true,
+	)
+	require.NoError(t, err)
+
+	// Submit govprop
+	err = submitGovprop(t, chain, proposerKeyname, proposal, currentHeight)
+	require.NoError(t, err, "couldn't submit govprop: %v", err)
+
+	return err
+}
+
+// SubmitSoftwareUpgradeProposal submits and passes a SoftwareUpgrade govprop.
+func SubmitSoftwareUpgradeProposal(
+	t *testing.T,
+	chain *cosmos.CosmosChain,
+	chainUser ibc.Wallet,
+	currentHeight int64,
+	haltHeight int64,
+) (error error) {
+	ctx := context.Background()
+
+	// Get proposer addr and keyname
+	proposerKeyname := chainUser.KeyName()
+	address, err := chain.GetAddress(ctx, proposerKeyname)
+	require.NoError(t, err)
+	proposerAddr, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, address)
+	require.NoError(t, err)
+
+	// Build SoftwareUpgrade message
 	plan := upgradetypes.Plan{
 		Name:   xionUpgradeName,
 		Height: haltHeight,
@@ -227,47 +292,93 @@ func SoftwareUpgrade(
 		Plan:      plan,
 	}
 
-	address, err := chain.GetAddress(ctx, chainUser.KeyName())
-	require.NoError(t, err)
-
-	addrString, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, address)
-	require.NoError(t, err)
-
+	// Build govprop
 	proposal, err := chain.BuildProposal(
 		[]cosmos.ProtoMessage{&upgrade},
 		fmt.Sprintf("Software Upgrade %s", xionUpgradeName),
 		"upgrade chain E2E test",
 		"",
 		fmt.Sprintf("%d%s", 10_000_000, chain.Config().Denom),
-		addrString,
+		proposerAddr,
 		true,
 	)
 	require.NoError(t, err)
 
-	_, err = chain.SubmitProposal(ctx, chainUser.KeyName(), proposal)
+	// Submit govprop
+	err = submitGovprop(t, chain, proposerKeyname, proposal, currentHeight)
+	require.NoError(t, err, "couldn't submit govprop: %v", err)
+
+	return err
+}
+
+// submitGovprop submits a cosmos.TxProposalv1 and ensures it passes.
+func submitGovprop(
+	t *testing.T,
+	chain *cosmos.CosmosChain,
+	proposerKeyname string,
+	proposal cosmos.TxProposalv1,
+	currentHeight int64,
+) (err error) {
+	ctx := context.Background()
+
+	// Submit govprop
+	tx, err := chain.SubmitProposal(ctx, proposerKeyname, proposal)
 	require.NoError(t, err)
 
-	prop, err := chain.GovQueryProposal(ctx, 1)
-	require.NoError(t, err)
+	// Ensure prop exists and is vote-able
+	propId, err := strconv.Atoi(tx.ProposalID)
+	require.NoError(t, err, "couldn't convert proposal ID to int: %v", err)
+	prop, err := chain.GovQueryProposal(ctx, uint64(propId))
+	require.NoError(t, err, "couldn't query proposal: %v", err)
 	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
 
+	// Vote on govprop
 	err = chain.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
 	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, prop.ProposalId, govv1beta1.StatusPassed)
-	require.NoErrorf(t, err, "couldn't poll for softwareUpgradeProposal status: %v", err)
-	height, err = chain.Height(ctx)
-	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
+
+	// Ensure govprop passed
+	_, err = cosmos.PollForProposalStatus(ctx, chain, currentHeight, currentHeight+haltHeightDelta, prop.ProposalId, govv1beta1.StatusPassed)
+	require.NoErrorf(t, err, "couldn't poll for proposal status: %v", err)
+
+	return err
+}
+
+// UpgradeXion attempts to upgrade a chain, and optionally handle breaking IBC changes.
+func UpgradeXion(
+	t *testing.T,
+	chain *cosmos.CosmosChain,
+	dockerClient *client.Client,
+) {
+	ctx := context.Background()
 
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
 	defer timeoutCtxCancel()
 
+	// Fund proposer
+	fundAmount := math.NewInt(20_000_000_000)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
+	chainUser := users[0]
+
+	// determine halt height
+	currentHeight, err := chain.Height(ctx)
+	require.NoErrorf(t, err, "couldn't get chain height: %v", err)
+	haltHeight := currentHeight + haltHeightDelta - 3
+
+	// submit IBC upgrade proposal
+	err = SubmitIBCSoftwareUpgradeProposal(t, chain, chainUser, haltHeight, currentHeight)
+	require.NoErrorf(t, err, "couldn't submit IBC upgrade proposal: %v", err)
+
+	// submit SoftwareUpgrade proposal
+	err = SubmitSoftwareUpgradeProposal(t, chain, chainUser, haltHeight, currentHeight)
+	require.NoErrorf(t, err, "couldn't submit UpgradeXion proposal: %v", err)
+
 	// confirm chain halt
-	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height), chain)
-	height, err = chain.Height(ctx)
+	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-currentHeight), chain)
+	currentHeight, err = chain.Height(ctx)
 	require.NoErrorf(t, err, "couldn't get chain height after chain should have halted: %v", err)
 	// ERR CONSENSUS FAILURE!!! err="UPGRADE \"v10\" NEEDED at height: 80: Software Upgrade v10" module=consensus
 	// INF Timed out dur=2000 height=81 module=consensus round=0 step=RoundStepPropose
-	require.GreaterOrEqualf(t, height, haltHeight, "height: %d is not >= to haltHeight: %d", height, haltHeight)
+	require.GreaterOrEqualf(t, currentHeight, haltHeight, "height: %d is not >= to haltHeight: %d", currentHeight, haltHeight)
 
 	// upgrade all nodes
 	err = chain.StopAllNodes(ctx)
