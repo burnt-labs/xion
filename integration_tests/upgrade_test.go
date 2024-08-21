@@ -45,7 +45,7 @@ upgrade-version: v7
 func TestXionUpgradeNetwork(t *testing.T) {
 	t.Parallel()
 
-	// pull "recent" version, that is the ugprade target
+	// pull "recent" version, that is the upgrade target
 	imageTag := os.Getenv("XION_IMAGE")
 	imageTagComponents := strings.Split(imageTag, ":")
 
