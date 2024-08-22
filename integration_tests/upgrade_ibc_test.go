@@ -2,24 +2,25 @@ package integration_tests
 
 import (
 	"context"
+	"cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"fmt"
+	cmtmath "github.com/cometbft/cometbft/libs/math"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	"github.com/docker/docker/api/types"
 	"github.com/strangelove-ventures/interchaintest/v8/conformance"
 	"github.com/strangelove-ventures/interchaintest/v8/relayer"
 	"github.com/strangelove-ventures/interchaintest/v8/relayer/rly"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"os"
 	"strconv"
 	"testing"
 	"time"
-
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-
-	"cosmossdk.io/math"
-
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 
 	"github.com/docker/docker/client"
 	"github.com/strangelove-ventures/interchaintest/v8"
@@ -28,6 +29,18 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+)
+
+type IBCUpgradeType int
+
+func (u IBCUpgradeType) String() string {
+	return [...]string{"Ancestral", "Legacy", "Current"}[u]
+}
+
+const (
+	IBCUpgradeTypeAncestral IBCUpgradeType = iota
+	IBCUpgradeTypeLegacy
+	IBCUpgradeTypeCurrent
 )
 
 const (
@@ -55,10 +68,12 @@ const (
 	ibcChannelOrder           = ibc.Unordered
 	ibcChannelVersion         = "ics20-1"
 
+	ibcUpgradeType = IBCUpgradeTypeAncestral
+
 	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
 
-// XionTestMinion likes bananas
+// XionTestMinion likes bananas 🍌🍌🍌
 type XionTestMinion struct {
 	ctx context.Context
 
@@ -98,9 +113,19 @@ func NewXionTestMinion(t *testing.T, name string) *XionTestMinion {
 	}
 }
 
+func (x *XionTestMinion) Cleanup(t *testing.T) {
+	err := x.Interchain.Close()
+	require.NoError(t, err, "couldn't close interchain: %v", err)
+
+	containers, err := x.DockerClient.ContainerList(x.ctx, types.ContainerListOptions{All: true})
+	for _, container := range containers {
+		err = x.DockerClient.ContainerRemove(x.ctx, container.ID, types.ContainerRemoveOptions{Force: true})
+		require.NoError(t, err, "couldn't remove container: %v", err)
+	}
+}
+
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
 func TestXionUpgradeIBC(t *testing.T) {
-
 	// Define Test cases
 	testCases := []struct {
 		name             string
@@ -156,19 +181,19 @@ func TestXionUpgradeIBC(t *testing.T) {
 		},
 	}
 
+	// run the tests
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Override default embedded configuredChains.yaml
+			// override default embedded configuredChains.yaml
 			f := OverrideConfiguredChainsYaml(t)
 			defer os.Remove(f.Name())
 
 			// spawn a minion
 			x := NewXionTestMinion(t, tc.name)
-
-			// feed the minion
+			// who's a good minion
+			t.Cleanup(func() { x.Cleanup(t) })
+			// weaponize the minion
 			x.SetupInterchain(t, tc.xionSpec, tc.counterpartySpec)
-			defer x.Interchain.Close()
-			defer x.DockerClient.Close()
 
 			// check for IBC conformance prior to the upgrade
 			x.IBCConformance(t)
@@ -199,7 +224,7 @@ func (x *XionTestMinion) SetupInterchain(t *testing.T, xionSpec, counterpartySpe
 
 	// create chains
 	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err, "error creating chains")
+	require.NoError(t, err, "coudn't create chains: %v", err)
 
 	// feed configured chains to the minion
 	x.Xion, x.Counterparty = chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
@@ -228,7 +253,7 @@ func (x *XionTestMinion) SetupInterchain(t *testing.T, xionSpec, counterpartySpe
 	x.RelayerFactory = interchaintest.NewBuiltinRelayerFactory(relayerImpl, zaptest.NewLogger(t), rlyImage)
 	x.Relayer = x.RelayerFactory.Build(t, x.DockerClient, x.DockerNetwork)
 
-	// configure interchain
+	// feed the interchain to the minion
 	x.Interchain = interchaintest.NewInterchain().
 		AddChain(x.Xion).
 		AddChain(x.Counterparty).
@@ -272,10 +297,10 @@ func (x *XionTestMinion) IBCConformance(t *testing.T) {
 // XionUpgrade attempts to upgrade a chain, and optionally handles breaking IBC changes.
 func (x *XionTestMinion) XionUpgrade(t *testing.T) {
 	// waiting on blocks with finite context
-	ctxTimeout, ctxTimeoutCancel := context.WithTimeout(x.ctx, time.Second*45)
+	ctxTimeout, ctxTimeoutCancel := context.WithTimeout(x.ctx, time.Second*15)
 	defer ctxTimeoutCancel()
 
-	// Fund proposer
+	// fund proposer
 	fundAmount := math.NewInt(20_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, x.ctx, "default", fundAmount, x.Xion)
 	chainUser := users[0]
@@ -320,15 +345,16 @@ func (x *XionTestMinion) XionUpgrade(t *testing.T) {
 	// banana?? 🍌🍌🍌
 	err = testutil.WaitForBlocks(ctxTimeout, int(blocksAfterUpgrade), x.Xion)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
+	t.Logf("Chain Upgrade successful. Have a banana 🍌🍌🍌")
 }
 
 // submitIBCSoftwareUpgradeProposal submits and passes an IBCSoftwareUpgrade govprop.
 func (x *XionTestMinion) submitIBCSoftwareUpgradeProposal(
 	t *testing.T,
 	chainUser ibc.Wallet,
-	currentHeight int64,
 	haltHeight int64,
-) (error error) {
+	currentHeight int64,
+) error {
 	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/01-ibc/05-upgrades/01-quick-guide.md#step-by-step-upgrade-process-for-sdk-chains
 
 	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
@@ -344,37 +370,6 @@ func (x *XionTestMinion) submitIBCSoftwareUpgradeProposal(
 
 	upgradeInfo := fmt.Sprintf("Software Upgrade %s", xionUpgradeName)
 
-	upgradedClientState := &ibctm.ClientState{
-		ChainId:                      x.Xion.Config().ChainID,
-		UpgradePath:                  x.IBCClientUpgradePath,
-		AllowUpdateAfterExpiry:       true,
-		AllowUpdateAfterMisbehaviour: true,
-	}
-	upgradedClientStateAny, err := ibcclienttypes.PackClientState(upgradedClientState)
-	require.NoError(t, err, "couldn't pack upgraded client state: %v", err)
-
-	// Set upgrade plan
-	plan := upgradetypes.Plan{
-		Name:   xionUpgradeName,
-		Height: haltHeight,
-		Info:   upgradeInfo,
-	}
-
-	// Legacy upgrade / ibc-go v7 and earlier
-	upgrade := &ibcclienttypes.UpgradeProposal{
-		Title:               upgradeInfo,
-		Description:         upgradeInfo,
-		Plan:                plan,
-		UpgradedClientState: upgradedClientStateAny,
-	}
-
-	// IBCSoftwareUpgrade / ibc-go v8 and later
-	//upgrade := &ibcclienttypes.MsgIBCSoftwareUpgrade{
-	//	Plan:                plan,
-	//	UpgradedClientState: upgradedClientStateAny,
-	//	Signer:              authority,
-	//}
-
 	// Get proposer addr and keyname
 	address, err := x.Xion.GetAddress(x.ctx, chainUser.KeyName())
 	require.NoError(t, err)
@@ -382,21 +377,110 @@ func (x *XionTestMinion) submitIBCSoftwareUpgradeProposal(
 	require.NoError(t, err)
 	proposerKeyname := chainUser.KeyName()
 
-	// Build govprop
-	proposal, err := x.Xion.BuildProposal(
-		[]cosmos.ProtoMessage{upgrade},
-		upgradeInfo,
-		upgradeInfo,
-		"",
-		fmt.Sprintf("%d%s", 10_000_000, x.Xion.Config().Denom),
-		proposerAddr,
-		true,
+	// build upgraded client state
+	trustPeriod, err := time.ParseDuration(x.Xion.Config().TrustingPeriod)
+	require.NoError(t, err, "couldn't parse trusting period: %v", err)
+	unbondingPeriod := trustPeriod * 3 / 2
+	clockDrift, err := time.ParseDuration(x.RelayerClientOpts.MaxClockDrift)
+	require.NoError(t, err, "couldn't parse max clock drift: %v", err)
+	clientState := ibctm.NewClientState(
+		x.Xion.Config().ChainID,
+		ibctm.NewFractionFromTm(cmtmath.Fraction{Numerator: 2, Denominator: 3}),
+		trustPeriod,
+		unbondingPeriod,
+		clockDrift,
+		ibcclienttypes.NewHeight(0, uint64(haltHeight)),
+		commitmenttypes.GetSDKSpecs(),
+		x.IBCClientUpgradePath,
 	)
-	require.NoError(t, err)
+	zeroedUpgradedClientState := clientState.ZeroCustomFields()
+	clientStateAny, err := codectypes.NewAnyWithValue(zeroedUpgradedClientState)
+	require.NoError(t, err, "couldn't pack upgraded client state: %v", err)
 
-	// Submit govprop
-	err = x.submitGovprop(t, proposerKeyname, proposal, currentHeight)
-	require.NoError(t, err, "couldn't submit govprop: %v", err)
+	// build upgrade plan
+	plan := upgradetypes.Plan{
+		Name:   xionUpgradeName,
+		Height: haltHeight,
+		Info:   upgradeInfo,
+	}
+
+	var upgrade cosmos.ProtoMessage
+	var propId uint64
+
+	switch ibcUpgradeType {
+
+	// IBCUpgradeTypeAncestral / ibc-go prior to v7
+	case IBCUpgradeTypeAncestral:
+		upgrade = nil
+
+		// fetch our worker node
+		workerNode := x.Xion.GetNode()
+
+		// write-out the upgraded client state to a tempfile on the worker node
+		jsonBytes, err := x.Xion.GetCodec().MarshalJSON(clientStateAny)
+		require.NoError(t, err, "couldn't marshal upgraded client state: %v", err)
+		jsonFile := fmt.Sprintf("upgradedClientState-%s.json", xionUpgradeName)
+		err = workerNode.WriteFile(x.ctx, jsonBytes, jsonFile)
+		require.NoError(t, err, "couldn't write %s to node: %v", jsonFile, err)
+		err = os.WriteFile(fmt.Sprintf("/tmp/%s", jsonFile), jsonBytes, 0644)
+		require.NoError(t, err, "couldn't write %s to localhost: %v", jsonFile, err)
+
+		// submit proposal via CLI
+		nodeJsonPath := fmt.Sprintf("%s/%s", workerNode.HomeDir(), jsonFile)
+		txhash, err := workerNode.ExecTx(
+			x.ctx, chainUser.KeyName(),
+			"gov", "submit-legacy-proposal", "ibc-upgrade",
+			"IBCUpgradeTypeAncestral", strconv.FormatInt(haltHeight, 10), nodeJsonPath,
+		)
+		require.NoError(t, err, "couldn't submit ancestral govprop: %v", err)
+
+		// fetch ancestral tx
+		tx, err := workerNode.GetTransaction(workerNode.CliContext(), txhash)
+		require.NoError(t, err, "couldn't get transaction: %v", err)
+
+		t.Logf("tx: %v", tx)
+
+	// IBCUpgradeTypeLegacy / ibc-go v7
+	case IBCUpgradeTypeLegacy:
+		upgrade = &ibcclienttypes.UpgradeProposal{
+			Title:               upgradeInfo,
+			Description:         upgradeInfo,
+			Plan:                plan,
+			UpgradedClientState: clientStateAny,
+		}
+
+	// IBCUpgradeTypeCurrent / ibc-go v8 and later
+	case IBCUpgradeTypeCurrent:
+		upgrade = &ibcclienttypes.MsgIBCSoftwareUpgrade{
+			Plan:                plan,
+			UpgradedClientState: clientStateAny,
+			Signer:              authority,
+		}
+
+	default:
+		panic(fmt.Sprintf("unknown IBCUpgradeType: %v", ibcUpgradeType))
+	}
+
+	// Build govprop
+	if upgrade != nil {
+		proposal, err := x.Xion.BuildProposal(
+			[]cosmos.ProtoMessage{upgrade},
+			upgradeInfo,
+			upgradeInfo,
+			"",
+			fmt.Sprintf("%d%s", 10_000_000, x.Xion.Config().Denom),
+			proposerAddr,
+			true,
+		)
+		require.NoError(t, err)
+
+		// Submit govprop
+		propId, err = x.submitGovprop(t, proposerKeyname, proposal)
+		require.NoError(t, err, "couldn't submit govprop: %v", err)
+	}
+
+	err = x.voteAllValidators(t, propId, cosmos.ProposalVoteYes, currentHeight)
+	require.NoError(t, err, "couldn't vote on proposal: %v", err)
 
 	// Upon passing the governance proposal, the upgrade module will commit the
 	// UpgradedClient under the key:
@@ -420,8 +504,8 @@ func (x *XionTestMinion) submitIBCSoftwareUpgradeProposal(
 func (x *XionTestMinion) submitSoftwareUpgradeProposal(
 	t *testing.T,
 	chainUser ibc.Wallet,
-	currentHeight int64,
 	haltHeight int64,
+	currentHeight int64,
 ) (error error) {
 	upgradeInfo := fmt.Sprintf("Software Upgrade %s", xionUpgradeName)
 
@@ -456,8 +540,12 @@ func (x *XionTestMinion) submitSoftwareUpgradeProposal(
 	require.NoError(t, err)
 
 	// Submit govprop
-	err = x.submitGovprop(t, proposerKeyname, proposal, currentHeight)
+	propId, err := x.submitGovprop(t, proposerKeyname, proposal)
 	require.NoError(t, err, "couldn't submit govprop: %v", err)
+
+	// Vote on govprop
+	err = x.voteAllValidators(t, propId, cosmos.ProposalVoteYes, currentHeight)
+	require.NoError(t, err, "couldn't vote on proposal: %v", err)
 
 	return err
 }
@@ -467,26 +555,40 @@ func (x *XionTestMinion) submitGovprop(
 	t *testing.T,
 	proposerKeyname string,
 	proposal cosmos.TxProposalv1,
-	currentHeight int64,
-) (err error) {
-
+) (
+	propId uint64,
+	err error,
+) {
 	// Submit govprop
 	tx, err := x.Xion.SubmitProposal(x.ctx, proposerKeyname, proposal)
 	require.NoError(t, err)
 
-	// Ensure prop exists and is vote-able
-	propId, err := strconv.Atoi(tx.ProposalID)
+	// get proposal id
+	_id, err := strconv.Atoi(tx.ProposalID)
 	require.NoError(t, err, "couldn't convert proposal ID to int: %v", err)
-	prop, err := x.Xion.GovQueryProposal(x.ctx, uint64(propId))
+	propId = uint64(_id)
+
+	// ensure prop can be voted on
+	prop, err := x.Xion.GovQueryProposal(x.ctx, propId)
 	require.NoError(t, err, "couldn't query proposal: %v", err)
 	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
 
+	return propId, err
+}
+
+// voteAllValidators votes on a proposalId with all validators.
+func (x *XionTestMinion) voteAllValidators(
+	t *testing.T,
+	propId uint64,
+	option string,
+	currentHeight int64,
+) (err error) {
 	// Vote on govprop
-	err = x.Xion.VoteOnProposalAllValidators(x.ctx, prop.ProposalId, cosmos.ProposalVoteYes)
+	err = x.Xion.VoteOnProposalAllValidators(x.ctx, propId, option)
 	require.NoErrorf(t, err, "couldn't submit votes: %v", err)
 
 	// Ensure govprop passed
-	_, err = cosmos.PollForProposalStatus(x.ctx, x.Xion, currentHeight, currentHeight+haltHeightDelta, prop.ProposalId, govv1beta1.StatusPassed)
+	_, err = cosmos.PollForProposalStatus(x.ctx, x.Xion, currentHeight, currentHeight+haltHeightDelta, propId, govv1beta1.StatusPassed)
 	require.NoErrorf(t, err, "couldn't poll for proposal status: %v", err)
 
 	return err
