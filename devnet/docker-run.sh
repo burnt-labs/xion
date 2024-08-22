@@ -22,4 +22,4 @@ exec docker run \
   --publish 1317:1317 \
   --publish 9090:9090 \
   --publish 26657:26657 \
-  burnt/xiond:develop xiond start
+  burnt/xiond:develop cosmovisor run start

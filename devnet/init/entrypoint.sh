@@ -4,11 +4,11 @@ set -Eeuo pipefail
 # This script is used to initialize the chain
 
 # The following environment variables are required:
-APP_NAME=${APP_NAME:="xion"}
-BIN_NAME=${BIN_NAME:="xiond"}
-CHAIN_NAME=${CHAIN_NAME:="${APP_NAME}-devnet-1"}
-DENOM=${DENOM:="u$(echo ${APP_NAME} | head -c 4)"}
-MNEMONICS_JSON=${MNEMONICS_JSON:="mnemonics.json"}
+DAEMON_NAME=${DAEMON_NAME:="xiond"}
+DAEMON_HOME=${DAEMON_HOME:="/home/${DAEMON_NAME}/.${DAEMON_NAME}"}
+CHAIN_NAME=${CHAIN_NAME:="xion-devnet-1"}
+DENOM=${DENOM:="u$(echo ${DAEMON_NAME} | head -c 4)"}
+MNEMONICS_JSON=${MNEMONICS_JSON:="init/mnemonics.json"}
 MASTER=$(jq -r '.mnemonics[0].name' ${MNEMONICS_JSON})
 NUM_VALIDATORS=${NUM_VALIDATORS:=1}
 VALIDATOR_ID=0
@@ -48,7 +48,7 @@ initialize_chain(){
     # initialize the chain
     echo "Initializing chain ${CHAIN_NAME}..."
 
-    ${BIN_NAME} init ${validator} --chain-id=${CHAIN_NAME} \
+    ${DAEMON_NAME} init ${validator} --chain-id=${CHAIN_NAME} \
     ${ADD_INIT_FLAGS} > /dev/null 2>&1
 }
 
@@ -57,8 +57,8 @@ initialize_account(){
     local validator="$1"
     echo "Initializing account ${validator}..."
     jq -r ".mnemonics | .[] |select(.name ==\"${validator}\") | .mnemonic" ${MNEMONICS_JSON} |
-    ${BIN_NAME} keys add ${validator} --keyring-backend test --recover --output json >> ${HOME}/keys.json
-    ${BIN_NAME} ${GENESIS} add-genesis-account ${validator} 1000000000000${DENOM} --keyring-backend test
+    ${DAEMON_NAME} keys add ${validator} --keyring-backend test --recover --output json >> ${HOME}/keys.json
+    ${DAEMON_NAME} ${GENESIS} add-genesis-account ${validator} 1000000000000${DENOM} --keyring-backend test
 }
 
 initialize_all_accounts(){
@@ -72,7 +72,7 @@ create_gentx(){
     local validator="$1"
     echo "Creating Gentx for ${validator}..."
     # create a gentx for the validator and add it to the genesis file
-    ${BIN_NAME} ${GENESIS} gentx ${validator} 10000000000${DENOM} \
+    ${DAEMON_NAME} ${GENESIS} gentx ${validator} 10000000000${DENOM} \
         --keyring-backend test \
         --chain-id=${CHAIN_NAME}
     mkdir -p ${HOME}/.shared/gentxs
@@ -103,7 +103,7 @@ initialize_genesis(){
     done
 
     echo "Generating Genesis..."
-    ${BIN_NAME} ${GENESIS} collect-gentxs \
+    ${DAEMON_NAME} ${GENESIS} collect-gentxs \
     --gentx-dir=${HOME}/.shared/gentxs \
     > /dev/null 2>&1
 
@@ -112,11 +112,11 @@ initialize_genesis(){
         -i ${HOME}/.*/config/genesis.json
 
     # modify the genesis.json
-    jq --slurpfile wasm ${HOME}/wasm-genesis.json '.app_state.wasm |= $wasm[0].wasm' ${HOME}/.*/config/genesis.json \
+    jq --slurpfile wasm ${HOME}/init/wasm-genesis.json '.app_state.wasm |= $wasm[0].wasm' ${HOME}/.*/config/genesis.json \
     > ${HOME}/.shared/genesis.json
 
     # copu=y final genesis back to config
-    cp -a ${HOME}/.shared/genesis.json ${HOME}/.${APP_NAME}*/config/genesis.json
+    cp -a ${HOME}/.shared/genesis.json ${DAEMON_HOME}/config/genesis.json
 }
 
 wait_for_genesis(){
@@ -125,7 +125,7 @@ wait_for_genesis(){
         echo "Waiting for genesis.json to be created..."
         sleep 1
     done
-    cp -a ${HOME}/.shared/genesis.json ${HOME}/.${APP_NAME}*/config/genesis.json
+    cp -a ${HOME}/.shared/genesis.json ${DAEMON_HOME}/config/genesis.json
 }
 
 is_sourced() {
@@ -138,10 +138,10 @@ is_sourced() {
 init(){
     # genesis.json in shared
     if [ -f ${HOME}/.shared/genesis.json ]; then
-        cp -a ${HOME}/.shared/genesis.json ${HOME}/.${APP_NAME}*/config/genesis.json
+        cp -a ${HOME}/.shared/genesis.json ${DAEMON_HOME}/config/genesis.json
     fi
 
-    if [ ! -f ${HOME}/.${APP_NAME}*/config/genesis.json ]; then
+    if [ ! -f ${DAEMON_HOME}/config/genesis.json ]; then
         mkdir -p ${HOME}/.shared/claims
         select_num
         initialize_validator ${VALIDATOR_ID}
@@ -153,6 +153,18 @@ init(){
     fi
 }
 
+init_cosmovisor(){
+    export DAEMON_NAME
+    export DAEMON_HOME
+    export DAEMON_ALLOW_DOWNLOAD_BINARIES=true
+    export DAEMON_DOWNLOAD_MUST_HAVE_CHECKSUM=true
+    export UNSAFE_SKIP_BACKUP=true
+    cosmovisor init /usr/bin/xiond
+}
+
 if ! is_sourced; then
+    if grep -q cosmovisor <<<$1; then
+        init_cosmovisor
+    fi
 	init && exec "$@"
 fi
