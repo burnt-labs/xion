@@ -59,7 +59,6 @@ func (k Keeper) Logger(ctx sdktypes.Context) log.Logger {
 }
 
 // Platform Percentage
-
 func (k Keeper) GetPlatformPercentage(ctx sdktypes.Context) math.Int {
 	bz := ctx.KVStore(k.storeKey).Get(types.PlatformPercentageKey)
 	percentage := sdktypes.BigEndianToUint64(bz)

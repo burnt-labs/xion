@@ -54,8 +54,8 @@ func (m Minter) NextInflationRate(params Params, bondedRatio sdk.Dec) math.Legac
 	inflationRateChangePerYear := math.LegacyOneDec().
 		Sub(bondedRatio.Quo(params.GoalBonded)).
 		Mul(params.InflationRateChange)
-	blocksPerYear := math.NewUint(params.BlocksPerYear).BigInt().Int64()
-	inflationRateChange := inflationRateChangePerYear.Quo(math.LegacyNewDec(blocksPerYear))
+	blocksPerYear := math.NewIntFromUint64(params.BlocksPerYear).ToLegacyDec()
+	inflationRateChange := inflationRateChangePerYear.Quo(blocksPerYear)
 
 	// adjust the new annual inflation for this next cycle
 	inflation := m.Inflation.Add(inflationRateChange) // note inflationRateChange may be negative
@@ -78,7 +78,7 @@ func (m Minter) NextAnnualProvisions(_ Params, totalSupply math.Int) math.Legacy
 // BlockProvision returns the provisions for a block based on the annual
 // provisions rate.
 func (m Minter) BlockProvision(params Params) sdk.Coin {
-	blocksPerYear := math.NewUint(params.BlocksPerYear).BigInt().Int64()
-	provisionAmt := m.AnnualProvisions.QuoInt(sdk.NewInt(blocksPerYear))
+	blocksPerYear := math.NewIntFromUint64(params.BlocksPerYear)
+	provisionAmt := m.AnnualProvisions.QuoInt(blocksPerYear)
 	return sdk.NewCoin(params.MintDenom, provisionAmt.TruncateInt())
 }
