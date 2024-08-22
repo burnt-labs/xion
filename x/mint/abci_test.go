@@ -128,7 +128,7 @@ func TestBeginBlocker(t *testing.T) {
 			}
 
 			if tc.parameters.burn {
-				c := sdk.NewCoin("stake", sdkmath.NewInt(int64(tc.expected.needed)))
+				c := sdk.NewCoin("stake", sdkmath.NewIntFromUint64(tc.expected.needed))
 				bankKeeper.EXPECT().BurnCoins(ctx, authtypes.FeeCollectorName, sdk.NewCoins(tc.parameters.collectedFees.Sub(c))).Return(nil)
 			}
 

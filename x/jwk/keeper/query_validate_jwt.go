@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	sdkmath "cosmossdk.io/math"
 	"sort"
 	"time"
 
@@ -10,6 +9,8 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

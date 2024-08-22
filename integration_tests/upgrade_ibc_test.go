@@ -2,9 +2,15 @@ package integration_tests
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strconv"
+	"testing"
+	"time"
+
 	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"fmt"
+
 	cmtmath "github.com/cometbft/cometbft/libs/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,10 +23,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/relayer"
 	"github.com/strangelove-ventures/interchaintest/v8/relayer/rly"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
-	"os"
-	"strconv"
-	"testing"
-	"time"
 
 	"github.com/docker/docker/client"
 	"github.com/strangelove-ventures/interchaintest/v8"
@@ -430,7 +432,7 @@ func (x *XionTestMinion) submitIBCSoftwareUpgradeProposal(
 		jsonFile := fmt.Sprintf("upgradedClientState-%s.json", xionUpgradeName)
 		err = workerNode.WriteFile(x.ctx, jsonBytes, jsonFile)
 		require.NoError(t, err, "couldn't write %s to node: %v", jsonFile, err)
-		err = os.WriteFile(fmt.Sprintf("/tmp/%s", jsonFile), jsonBytes, 0644)
+		err = os.WriteFile(fmt.Sprintf("/tmp/%s", jsonFile), jsonBytes, 0o644)
 		require.NoError(t, err, "couldn't write %s to localhost: %v", jsonFile, err)
 
 		// submit proposal via CLI
