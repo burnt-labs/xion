@@ -31,25 +31,30 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+// IBCUpgradeType is a custom enum for IBC upgrade types.
 type IBCUpgradeType int
 
+// String returns the string representation of an IBCUpgradeType.
 func (u IBCUpgradeType) String() string {
 	return [...]string{"Ancestral", "Legacy", "Current"}[u]
 }
 
 const (
+	// ibc-go prior to v7
 	IBCUpgradeTypeAncestral IBCUpgradeType = iota
+	// ibc-go/v7
 	IBCUpgradeTypeLegacy
+	// ibc-go/v8 and later
 	IBCUpgradeTypeCurrent
 )
 
 const (
 	breaksIBC = true
 
-	xionImageFrom   = "ghcr.io/burnt-labs/xion/xion"
-	xionVersionFrom = "v9.0.0"
+	xionImageFrom   = "ghcr.io/burnt-labs/xion/heighliner"
+	xionVersionFrom = "9.0.1-rc2"
 	xionImageTo     = "ghcr.io/burnt-labs/xion/heighliner"
-	xionVersionTo   = "sha-962b654"
+	xionVersionTo   = "sha-cd026e4"
 	xionUpgradeName = "v10"
 
 	osmosisImage   = "ghcr.io/strangelove-ventures/heighliner/osmosis"
@@ -60,7 +65,7 @@ const (
 	relayerImpl    = ibc.CosmosRly
 
 	ibcClientTrustingPeriod           = "336h"
-	ibcClienttrustingPeriodPercentage = 66
+	ibcClientTrustingPeriodPercentage = 66
 	ibcClientMaxClockDrift            = "5s"
 
 	ibcChannelSourcePort      = "transfer"
@@ -68,7 +73,7 @@ const (
 	ibcChannelOrder           = ibc.Unordered
 	ibcChannelVersion         = "ics20-1"
 
-	ibcUpgradeType = IBCUpgradeTypeAncestral
+	ibcUpgradeType = IBCUpgradeTypeCurrent
 
 	authority = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
@@ -113,6 +118,7 @@ func NewXionTestMinion(t *testing.T, name string) *XionTestMinion {
 	}
 }
 
+// Cleanup wipes out the Docker containers for the next run
 func (x *XionTestMinion) Cleanup(t *testing.T) {
 	err := x.Interchain.Close()
 	require.NoError(t, err, "couldn't close interchain: %v", err)
@@ -232,7 +238,7 @@ func (x *XionTestMinion) SetupInterchain(t *testing.T, xionSpec, counterpartySpe
 	// set relayer client options
 	x.RelayerClientOpts = ibc.CreateClientOptions{
 		TrustingPeriod:           ibcClientTrustingPeriod,
-		TrustingPeriodPercentage: ibcClienttrustingPeriodPercentage,
+		TrustingPeriodPercentage: ibcClientTrustingPeriodPercentage,
 		MaxClockDrift:            ibcClientMaxClockDrift,
 	}
 	err = x.RelayerClientOpts.Validate()
@@ -280,6 +286,7 @@ func (x *XionTestMinion) SetupInterchain(t *testing.T, xionSpec, counterpartySpe
 
 // IBCConformance explodes the XionTestMinion and sends chunks downstream to ICT.
 func (x *XionTestMinion) IBCConformance(t *testing.T) {
+	// banana?? 🍌🍌🍌
 	conformance.TestChainPair(
 		t,
 		x.ctx,
@@ -292,6 +299,7 @@ func (x *XionTestMinion) IBCConformance(t *testing.T) {
 		x.Relayer,
 		x.Name,
 	)
+	t.Logf("IBC Conformance successful. Have a banana 🍌🍌🍌")
 }
 
 // XionUpgrade attempts to upgrade a chain, and optionally handles breaking IBC changes.
@@ -301,7 +309,7 @@ func (x *XionTestMinion) XionUpgrade(t *testing.T) {
 	defer ctxTimeoutCancel()
 
 	// fund proposer
-	fundAmount := math.NewInt(20_000_000_000)
+	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, x.ctx, "default", fundAmount, x.Xion)
 	chainUser := users[0]
 
