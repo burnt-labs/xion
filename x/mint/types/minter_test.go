@@ -14,7 +14,7 @@ import (
 func TestNextInflation(t *testing.T) {
 	minter := DefaultInitialMinter()
 	params := DefaultParams()
-	blocksPerYr := math.LegacyNewDec(int64(params.BlocksPerYear))
+	blocksPerYr := math.NewIntFromUint64(params.BlocksPerYear).ToLegacyDec()
 
 	// Governing Mechanism:
 	//    inflationRateChangePerYear = (1- BondedRatio/ GoalBonded) * MaxInflationRateChange
