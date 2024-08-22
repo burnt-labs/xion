@@ -20,6 +20,8 @@ tools-stamp
 docs/node_modules
 client/docs/node_modules/
 client/docs/tmp-swagger-gen/
+devnet/.xiond
+devnet/.shared
 
 # Data - ideally these don't exist
 baseapp/data/*
