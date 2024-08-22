@@ -38,7 +38,8 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		jwt.WithSubject(req.Sub),
 		jwt.WithClock(jwt.ClockFunc(func() time.Time {
 			// adjust the time from the block-height due to lagging reported time
-			return ctx.BlockTime().Add(time.Duration(k.GetTimeOffsetInt64(ctx)))
+			timeOffset := sdk.NewUint(k.GetTimeOffset(ctx)).BigInt().Int64()
+			return ctx.BlockTime().Add(time.Duration(timeOffset))
 		})),
 		jwt.WithValidate(true),
 	)
