@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/burnt-labs/xion/x/xion/types"
@@ -13,10 +14,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState *types.GenesisState) {
 
 // ExportGenesis returns the bank module's genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+	platformPercentage := k.GetPlatformPercentage(ctx).Uint64()
 	rv := types.NewGenesisState(
-		//integer overflow conversion uint64 -> uint32 (gosec)
-		//nolint:gosec
-		uint32(k.GetPlatformPercentage(ctx).Uint64()),
+		uint32(platformPercentage),
 	)
 	return rv
 }
