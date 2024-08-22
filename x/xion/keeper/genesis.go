@@ -14,6 +14,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState *types.GenesisState) {
 // ExportGenesis returns the bank module's genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	rv := types.NewGenesisState(
+		//integer overflow conversion uint64 -> uint32 (gosec)
 		//nolint:gosec
 		uint32(k.GetPlatformPercentage(ctx).Uint64()),
 	)
