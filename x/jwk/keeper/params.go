@@ -22,6 +22,12 @@ func (k Keeper) GetTimeOffset(ctx sdk.Context) uint64 {
 	return to
 }
 
+func (k Keeper) GetTimeOffsetInt64(ctx sdk.Context) int64 {
+	var to int64
+	k.paramspace.Get(ctx, types.ParamStoreKeyTimeOffset, &to)
+	return to
+}
+
 func (k Keeper) GetDeploymentGas(ctx sdk.Context) uint64 {
 	var dg uint64
 	k.paramspace.Get(ctx, types.ParamStoreKeyDeploymentGas, &dg)
