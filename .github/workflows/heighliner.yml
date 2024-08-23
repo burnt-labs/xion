@@ -1,4 +1,5 @@
 name: Heighliner Build
+# Name: Push Docker images
 
 # reusable workflow, do not add triggers
 on:
@@ -9,76 +10,6 @@ env:
   GHCR: ghcr.io/${{ github.repository }}
 
 jobs:
-  build-heighliner:
-    name: Heighliner Build
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-      packages: write
-      pull-requests: write
-
-    strategy:
-      matrix:
-        platform: [linux/amd64, linux/arm64]
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up docker buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Metadata for digest container
-        id: meta-digest
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.GHCR }}/heighliner
-          tags: |
-            type=sha
-
-      - name: Prepare heighliner build
-        run: |
-          echo "PLATFORM=$(echo ${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
-          curl -L https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ${{ runner.temp }}/Dockerfile.heighliner
-
-      - name: Build and push by digest
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          build-args: |
-            BASE_IMAGE=${{ env.GHCR }}/xion
-            VERSION=${{ steps.meta-digest.outputs.version }}
-            BINARIES=/usr/bin/xiond
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          file: ${{ runner.temp }}/Dockerfile.heighliner
-          labels: ${{ steps.meta-digest.outputs.labels }}
-          platforms: ${{ matrix.platform }}
-          push: true
-          outputs: type=image,name=${{ env.GHCR }}/heighliner,push-by-digest=true,name-canonical=true,push=true
-
-      - name: Export digest
-        run: |
-          mkdir -p /tmp/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: heighliner-digests-${{ env.PLATFORM }}
-          path: /tmp/digests/*
-          if-no-files-found: error
-          retention-days: 1
-
   merge:
     name: Create registry manifests
     runs-on: ubuntu-latest
@@ -86,15 +17,22 @@ jobs:
       id-token: write
       contents: read
       packages: write
-    needs:
-      - build-heighliner
     steps:
-      - name: Download digests
-        uses: actions/download-artifact@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          path: /tmp/digests
-          pattern: heighliner-digests-*
-          merge-multiple: true
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -109,24 +47,41 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Metadata for heighliner container
-        id: meta-xion
+      - name: Prepare environment
+        run: |
+          echo "TAG_VERSION=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+
+      - name: Metadata for xion container
+        id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.GHCR }}/heighliner
+            burntnetwork/xion
+            ${{ env.GHCR }}/xion
+            385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
           tags: |
-            type=sha
+            type=raw,value=${{ env.TAG_VERSION }}
             type=semver,pattern={{version}},enable=${{ github.event_name == 'push' }}
             type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Download images
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}
+          pattern: docker*
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          ls | xargs docker load -i
+
       - name: Create manifest list and push
-        working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.GHCR }}/heighliner@sha256:%s ' *)
+            $(docker image ls | awk '/^xion/{print $1}')
 
       - name: Inspect image
         run: |
            jq -cr '.tags | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON" | \
-           xargs -n1 docker buildx imagetools inspect
+           xargs -n1 docker buildx imagetools inspect%
