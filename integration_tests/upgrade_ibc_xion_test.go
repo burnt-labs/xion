@@ -2,12 +2,11 @@ package integration_tests
 
 import (
 	"context"
-	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	minttypes "github.com/burnt-labs/xion/x/mint/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	"github.com/CosmWasm/wasmd/x/wasm"
+	"github.com/burnt-labs/xion/x/jwk"
+	"github.com/burnt-labs/xion/x/mint"
+	"github.com/burnt-labs/xion/x/xion"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
@@ -24,15 +23,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
+	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	aa "github.com/larry0x/abstract-account/x/abstractaccount"
+	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
+	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 	"strconv"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/conformance"
@@ -41,6 +45,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
+
 	"go.uber.org/zap/zaptest"
 )
 
@@ -73,6 +78,7 @@ func TestXionUpgradeIBC2(t *testing.T) {
 			bank.AppModuleBasic{},
 			capability.AppModuleBasic{},
 			staking.AppModuleBasic{},
+			mint.AppModuleBasic{},
 			distr.AppModuleBasic{},
 			gov.NewAppModuleBasic(
 				[]govclient.ProposalHandler{
@@ -84,22 +90,26 @@ func TestXionUpgradeIBC2(t *testing.T) {
 			upgrade.AppModuleBasic{},
 			consensus.AppModuleBasic{},
 			transfer.AppModuleBasic{},
-			feegrantmodule.AppModuleBasic{},
-			authz.AppModuleBasic{},
-			//ibccore.AppModuleBasic{},
+			ibccore.AppModuleBasic{},
 			ibctm.AppModuleBasic{},
-			//ibcwasm.AppModuleBasic{},
+			ibcwasm.AppModuleBasic{},
+			ccvprovider.AppModuleBasic{},
+			ibcsolomachine.AppModuleBasic{},
+
+			// custom
+			wasm.AppModuleBasic{},
+			authz.AppModuleBasic{},
+			tokenfactory.AppModuleBasic{},
+			xion.AppModuleBasic{},
+			jwk.AppModuleBasic{},
+			aa.AppModuleBasic{},
 		)
 		// TODO: add encoding types here for the modules you want to use
-		wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		tokenfactorytypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		xiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		jwktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		aatypes.RegisterInterfaces(cfg.InterfaceRegistry)
-		ibctm.RegisterInterfaces(cfg.InterfaceRegistry)
+		ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 		return &cfg
 	}
+	//enc := cosmos.DefaultEncoding()
+	enc := encodingConfigFn()
 
 	chains := interchaintest.CreateChainsWithChainSpecs(t, []*interchaintest.ChainSpec{
 		{
@@ -123,7 +133,7 @@ func TestXionUpgradeIBC2(t *testing.T) {
 				TrustingPeriod: ibcClientTrustingPeriod,
 				NoHostMount:    false,
 				ModifyGenesis:  ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
-				EncodingConfig: encodingConfigFn(),
+				EncodingConfig: enc,
 			},
 		},
 		{
@@ -145,7 +155,7 @@ func TestXionUpgradeIBC2(t *testing.T) {
 				GasAdjustment:  1.3,
 				TrustingPeriod: ibcClientTrustingPeriod,
 				NoHostMount:    false,
-				EncodingConfig: encodingConfigFn(),
+				EncodingConfig: enc,
 			},
 		},
 	})

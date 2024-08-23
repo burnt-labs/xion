@@ -10,6 +10,18 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/CosmWasm/wasmd/x/wasm"
+	"github.com/burnt-labs/xion/x/jwk"
+	"github.com/burnt-labs/xion/x/mint"
+	"github.com/burnt-labs/xion/x/xion"
+	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
+	aa "github.com/larry0x/abstract-account/x/abstractaccount"
+	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
+	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 	"math/big"
 	"math/rand"
 	"os"
@@ -19,16 +31,16 @@ import (
 	"testing"
 	"time"
 
-	feegrantmodule "cosmossdk.io/x/feegrant/module"
-
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 
+	"cosmossdk.io/math"
 	"cosmossdk.io/x/upgrade"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	minttypes "github.com/burnt-labs/xion/x/mint/types"
+	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
+	"github.com/burnt-labs/xion/x/xion/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
@@ -42,14 +54,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/ibc-go/modules/capability"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-
-	"cosmossdk.io/math"
-	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
-	"github.com/burnt-labs/xion/x/xion/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
@@ -256,6 +260,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				bank.AppModuleBasic{},
 				capability.AppModuleBasic{},
 				staking.AppModuleBasic{},
+				mint.AppModuleBasic{},
 				distr.AppModuleBasic{},
 				gov.NewAppModuleBasic(
 					[]govclient.ProposalHandler{
@@ -267,19 +272,22 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				upgrade.AppModuleBasic{},
 				consensus.AppModuleBasic{},
 				transfer.AppModuleBasic{},
-				feegrantmodule.AppModuleBasic{},
+				ibccore.AppModuleBasic{},
+				ibctm.AppModuleBasic{},
+				ibcwasm.AppModuleBasic{},
+				ccvprovider.AppModuleBasic{},
+				ibcsolomachine.AppModuleBasic{},
+
+				// custom
+				wasm.AppModuleBasic{},
 				authz.AppModuleBasic{},
-				// ibccore.AppModuleBasic{},
-				// ibctm.AppModuleBasic{},
-				// ibcwasm.AppModuleBasic{},
+				tokenfactory.AppModuleBasic{},
+				xion.AppModuleBasic{},
+				jwk.AppModuleBasic{},
+				aa.AppModuleBasic{},
 			)
 			// TODO: add encoding types here for the modules you want to use
-			wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			tokenfactorytypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			xiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			minttypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			jwktypes.RegisterInterfaces(cfg.InterfaceRegistry)
-			aatypes.RegisterInterfaces(cfg.InterfaceRegistry)
+			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}
