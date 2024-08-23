@@ -69,11 +69,10 @@ jobs:
             BASE_IMAGE=${{ env.GHCR }}/xion
             VERSION=${{ env.TAG_VERSION }}
             BINARIES=/usr/bin/xiond
-          file: ${{ runner.temp }}/Dockerfile.heighliner
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.runner.platform }}
           target: heighliner
-          outputs: type=docker,name=${{ env.GHCR }}/heighliner:,name-canonical=true
+          outputs: name=${{ env.GHCR }}/heighliner:,name-canonical=true
 
       - name: Build Integration test Image
         id: build-integration
@@ -84,10 +83,9 @@ jobs:
             VERSION=${{ env.VERSION }}
             TAG_VERSION=${{ env.TAG_VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.platform }}
-          push: false
+          platforms: ${{ matrix.runner.platform }}
           target: test-integration
-          outputs: type=docker,name=${{ env.GHCR }}/intergration:,name-canonical=true
+          outputs: name=${{ env.GHCR }}/intergration:,name-canonical=true
 
       - name: Build Docker Image
         id: build-docker
@@ -98,10 +96,10 @@ jobs:
             VERSION=${{ env.VERSION }}
             TAG_VERSION=${{ env.TAG_VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.platform }}
+          platforms: ${{ matrix.runner.platform }}
           push: false
           target: release
-          outputs: type=docker,name=${{ env.GHCR }}/xion:,name-canonical=true
+          outputs: name=${{ env.GHCR }}/xion:,name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
