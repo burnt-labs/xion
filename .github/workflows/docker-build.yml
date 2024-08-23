@@ -73,7 +73,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.runner.platform }}
           target: heighliner
-          outputs: name=${{ env.GHCR }}/heighliner:,name-canonical=true
+          outputs: type=docker,name=${{ env.GHCR }}/heighliner:,name-canonical=true
 
       - name: Build Integration test Image
         id: build-integration
@@ -87,7 +87,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: false
           target: test-integration
-          outputs: name=${{ env.GHCR }}/intergration:,name-canonical=true
+          outputs: type=docker,name=${{ env.GHCR }}/intergration:,name-canonical=true
 
       - name: Build Docker Image
         id: build-docker
@@ -101,7 +101,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: false
           target: release
-          outputs: name=${{ env.GHCR }}/xion:,name-canonical=true
+          outputs: type=docker,name=${{ env.GHCR }}/xion:,name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
