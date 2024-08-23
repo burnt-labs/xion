@@ -25,6 +25,7 @@ import (
 const (
 	haltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = uint64(10)
+	authority          = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
 
 /*
