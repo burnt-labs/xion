@@ -60,7 +60,34 @@ jobs:
           echo "HEIGHLINER_FN=heighliner-$PLATFORM.tar" >> $GITHUB_ENV
           echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
           echo "TAG_VERSION=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
-          curl -L https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ${{ runner.temp }}/Dockerfile.heighliner
+
+      - name: Build Heighliner Image
+        id: build-heighliner
+        uses: docker/build-push-action@v5
+        with:
+          build-args: |
+            BASE_IMAGE=${{ env.GHCR }}/xion
+            VERSION=${{ env.TAG_VERSION }}
+            BINARIES=/usr/bin/xiond
+          file: ${{ runner.temp }}/Dockerfile.heighliner
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.runner.platform }}
+          target: heighliner
+          outputs: name=${{ env.GHCR }}/heighliner:,name-canonical=true
+
+      - name: Build Integration test Image
+        id: build-integration
+        uses: docker/build-push-action@v5
+        with:
+          build-args: |
+            COMMIT=${{ github.sha }}
+            VERSION=${{ env.VERSION }}
+            TAG_VERSION=${{ env.TAG_VERSION }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.platform }}
+          push: false
+          target: test-integration
+          outputs: name=${{ env.GHCR }}/intergration:,name-canonical=true
 
       - name: Build Docker Image
         id: build-docker
@@ -75,19 +102,6 @@ jobs:
           push: false
           target: release
           outputs: name=${{ env.GHCR }}/xion:,name-canonical=true
-
-      - name: Build Heighliner Image
-        id: build-heighliner
-        uses: docker/build-push-action@v5
-        with:
-          build-args: |
-            BASE_IMAGE=${{ env.GHCR }}/xion
-            VERSION=${{ env.TAG_VERSION }}
-            BINARIES=/usr/bin/xiond
-          file: ${{ runner.temp }}/Dockerfile.heighliner
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.runner.platform }}
-          outputs: name=${{ env.GHCR }}/heighliner:,name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}

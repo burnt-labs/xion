@@ -116,27 +116,11 @@ build-binary-arm64: --build-binary
 	$(DOCKER) buildx rm xiond-build-ctx
 
 .PHONY: build-heighliner
-build-heighliner: DOCKER_BUILDKIT=0
 build-heighliner:
-	mkdir -p ./heighliner
-	curl -sSL https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ./heighliner/Dockerfile
-	$(DOCKER) image rm -f xiond:binary || true
-  ifdef IMAGE
-		$(info Using $(IMAGE) for source Image")
-		$(DOCKER) image pull $(IMAGE)
-		$(DOCKER) tag $(IMAGE) xiond:binary
-  else
-		$(info Building source Image")
-		$(DOCKER) build --tag xiond:binary ./
-  endif
 	$(DOCKER) build \
+	  --target=heighliner \
 		--progress=plain \
-		--build-arg BASE_IMAGE=xiond \
-	  --build-arg VERSION=binary \
-	  --build-arg BINARIES=/usr/bin/xiond \
-	  --tag $(XION_IMAGE) ./heighliner
-	$(DOCKER) image rm -f xiond:binary || true
-	rm -rf ./heighliner
+	  --tag $(XION_IMAGE) .
 
 ################################################################################
 ###                         Tools & dependencies                             ###

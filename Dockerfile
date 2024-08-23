@@ -42,6 +42,11 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.5.0; \
     go mod download
 
+# --------------------------------------------------------
+# xiond builder
+# --------------------------------------------------------
+FROM builder AS xiond-builder
+
 # Cosmwasm - Download correct libwasmvm version
 RUN set -eux; \
     WASMVM_REPO="github.com/CosmWasm/wasmvm"; \
@@ -87,16 +92,25 @@ RUN set -eux; \
 FROM scratch AS heighliner
 
 WORKDIR /bin
+ENV PATH=/bin
+
+# Install busybox
+COPY --from=busybox:1.36-musl /bin/busybox ./
+
+# users and groups
+COPY --from=busybox:1.36-musl /etc/passwd /etc/group /etc/
 
 # Install trusted CA certificates
 COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
 
-# Install busybox
-COPY --from=builder /bin/busybox /bin/busybox
+# Install xiond
+COPY --from=xiond-builder /go/bin/xiond /bin/xiond
 
-SHELL [ "/bin/busybox" ]
+# Install jq
+COPY --from=ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 /usr/local/bin/jq /bin/jq
 
-RUN ln busybox sh
+# link shell
+RUN ["busybox", "ln", "/bin/busybox", "sh"]
 
 # Add hard links for read-only utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
@@ -124,10 +138,14 @@ RUN for bin in \
   tr \
   watch \
   which \
-  ; do /bin/busybox ln /bin/busybox $bin; done
+  ; do busybox ln /bin/busybox $bin; \
+  done;
 
-RUN /bin/busybox addgroup --gid 1025 -S heighliner; \
-    /bin/busybox adduser --uid 1025 -S heighliner -G heighliner;
+RUN \
+  busybox mkdir -p /home/heighliner; \
+  busybox addgroup --gid 1025 -S heighliner; \
+  busybox adduser --uid 1025 -h /home/heighliner -S heighliner -G heighliner; \
+  busybox unlink busybox;
 
 WORKDIR /home/heighliner
 USER heighliner
@@ -137,8 +155,8 @@ USER heighliner
 # --------------------------------------------------------
 
 FROM alpine:${ALPINE_VERSION} AS release
-COPY --from=builder /go/bin/xiond /usr/bin/xiond
-COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
+COPY --from=xiond-builder /go/bin/xiond /usr/bin/xiond
+COPY --from=xiond-builder /go/bin/cosmovisor /usr/bin/cosmovisor
 
 # api
 EXPOSE 1317
