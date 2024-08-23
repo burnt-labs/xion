@@ -14,28 +14,29 @@ import (
 const UpgradeName = "v10"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
+	app.WrapSetUpgradeHandler(UpgradeName)
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 	app.Logger().Info("upgrade info", "name", upgradeInfo.Name, "height", upgradeInfo.Height)
 
-	if !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		app.Logger().Info("setting upgrade store loaders")
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storetypes.StoreUpgrades{}))
-	}
+	if upgradeInfo.Name == UpgradeName {
+		if !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+			app.Logger().Info("setting upgrade store loaders")
+			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storetypes.StoreUpgrades{}))
+		}
 
-	// make this conditional for v10?
-	app.Logger().Info("setting upgrade handler", "name", upgradeInfo.Name)
-	app.V10SetUpgradeHandler(upgradeInfo)
+		app.Logger().Info("setting upgrade handler", "name", upgradeInfo.Name)
+	}
 }
 
-func (app *WasmApp) V10SetUpgradeHandler(upgradeInfo upgradetypes.Plan) {
+func (app *WasmApp) WrapSetUpgradeHandler(upgradeName string) {
 	// ensure legacy params exist here -- query legacy paramspace
 	// ensure self-managed params exist -- query module self-managed
 	// direct params manipulation -- set default params in module until migration runs?
 
-	app.UpgradeKeeper.SetUpgradeHandler(upgradeInfo.Name, func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
+	app.UpgradeKeeper.SetUpgradeHandler(upgradeName, func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 		sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
