@@ -61,8 +61,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 				Bech32Prefix:   "xion",
 				Denom:          "uxion",
 				TrustingPeriod: ibcClientTrustingPeriod,
-				//NoHostMount:    false,
-				ModifyGenesis: ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
+				ModifyGenesis:  ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
 			},
 		},
 		{
@@ -83,7 +82,6 @@ func TestXionUpgradeIBC(t *testing.T) {
 				GasPrices:      "0.025uosmo",
 				GasAdjustment:  1.3,
 				TrustingPeriod: ibcClientTrustingPeriod,
-				//NoHostMount:    false,
 			},
 		},
 	})
