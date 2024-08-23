@@ -2,6 +2,10 @@ package integration_tests
 
 import (
 	"context"
+	"strconv"
+	"testing"
+	"time"
+
 	"cosmossdk.io/x/upgrade"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/burnt-labs/xion/x/jwk"
@@ -30,9 +34,6 @@ import (
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
-	"strconv"
-	"testing"
-	"time"
 
 	"cosmossdk.io/math"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -108,7 +109,7 @@ func TestXionUpgradeIBC2(t *testing.T) {
 		ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 		return &cfg
 	}
-	//enc := cosmos.DefaultEncoding()
+	// enc := cosmos.DefaultEncoding()
 	enc := encodingConfigFn()
 
 	chains := interchaintest.CreateChainsWithChainSpecs(t, []*interchaintest.ChainSpec{
