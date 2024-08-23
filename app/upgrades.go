@@ -27,7 +27,6 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storetypes.StoreUpgrades{}))
 		}
 
-		app.Logger().Info("setting upgrade handler", "name", upgradeInfo.Name)
 	}
 }
 
@@ -36,6 +35,7 @@ func (app *WasmApp) WrapSetUpgradeHandler(upgradeName string) {
 	// ensure self-managed params exist -- query module self-managed
 	// direct params manipulation -- set default params in module until migration runs?
 
+	app.Logger().Info("setting upgrade handler", "name", upgradeName)
 	app.UpgradeKeeper.SetUpgradeHandler(upgradeName, func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 
