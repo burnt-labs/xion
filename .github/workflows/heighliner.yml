@@ -79,7 +79,7 @@ jobs:
       - name: Create manifest list and push
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(docker image ls | awk '/^xion/{print $1}')
+            $(docker image ls -q)
 
       - name: Inspect image
         run: |

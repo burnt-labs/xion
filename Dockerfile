@@ -69,6 +69,70 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make install;
 
 # --------------------------------------------------------
+# Integration test builder
+# --------------------------------------------------------
+FROM builder AS test-builder
+
+WORKDIR  /go/src/github.com/burnt-labs/xion/integration_tests
+
+RUN set -eux; \
+    go test -c; \
+    cp -a integration_tests.test /go/bin
+
+# --------------------------------------------------------
+# Heighliner
+# --------------------------------------------------------
+
+# Build final image from scratch
+FROM scratch AS heighliner
+
+WORKDIR /bin
+
+# Install trusted CA certificates
+COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
+
+# Install busybox
+COPY --from=builder /bin/busybox /bin/busybox
+
+SHELL [ "/bin/busybox" ]
+
+RUN ln busybox sh
+
+# Add hard links for read-only utils
+# Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
+RUN for bin in \
+  cat \
+  date \
+  df \
+  du \
+  env \
+  grep \
+  head \
+  less \
+  ls \
+  md5sum \
+  pwd \
+  sha1sum \
+  sha256sum \
+  sha3sum \
+  sha512sum \
+  sleep \
+  stty \
+  tail \
+  tar \
+  tee \
+  tr \
+  watch \
+  which \
+  ; do /bin/busybox ln /bin/busybox $bin; done
+
+RUN /bin/busybox addgroup --gid 1025 -S heighliner; \
+    /bin/busybox adduser --uid 1025 -S heighliner -G heighliner;
+
+WORKDIR /home/heighliner
+USER heighliner
+
+# --------------------------------------------------------
 # Runner
 # --------------------------------------------------------
 

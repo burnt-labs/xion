@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  gen-swagger:
+  main:
     runs-on: ubuntu-latest
     permissions:
       contents: write

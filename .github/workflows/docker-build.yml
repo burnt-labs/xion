@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-docker:
-    name: Build Docker Images
+    name: main
     permissions:
       id-token: write
       contents: read
@@ -73,8 +73,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.platform }}
           push: false
-          tags: ${{ env.GHCR }}/xion:${{ env.TAG_VERSION }}
           target: release
+          outputs: name=${{ env.GHCR }}/xion:,name-canonical=true
 
       - name: Build Heighliner Image
         id: build-heighliner
@@ -87,7 +87,7 @@ jobs:
           file: ${{ runner.temp }}/Dockerfile.heighliner
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.runner.platform }}
-          tags: ${{ env.GHCR }}/heighliner:${{ env.TAG_VERSION }}
+          outputs: name=${{ env.GHCR }}/heighliner:,name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}

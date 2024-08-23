@@ -5,15 +5,19 @@ on:
   workflow_call:
   workflow_dispatch:
 
+env:
+  GHCR: ghcr.io/${{ github.repository }}
+
 jobs:
   docker-scout:
-    name: Docker Scout
+    name: main
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
 
     strategy:
+      fail-fast: false
       matrix:
         platform: [linux/amd64, linux/arm64]
 
@@ -26,21 +30,22 @@ jobs:
 
       - name: Prepare environment
         run: |
-          PLATFORM=$(echo ${{ matrix.runner.platform }} | sed 's/\//-/g')
-          echo "DOCKER_FN=docker-$PLATFORM.tar" >> $GITHUB_ENV
-          echo "TAG_VERSION=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+          PLATFORM=$(echo ${{ matrix.platform }} | sed 's/\//-/g')
+          echo "DOCKER_FN=docker-$PLATFORM.tar" | tee -a $GITHUB_ENV
+          echo "TAG_VERSION=$(git rev-parse --short ${{ github.sha }})" | tee -a $GITHUB_ENV
 
       - name: Download images
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}
-          pattern: docker*
+          pattern: ${{ env.DOCKER_FN }}
           merge-multiple: true
 
       - name: Load images
         working-directory: ${{ runner.temp }}
         run: |
-          for image in docker*.tar; do docker load < $image; done;
+          ls -la
+          docker load < ${{ env.DOCKER_FN }}
 
       - name: Run Docker Scout
         uses: docker/scout-action@v1

@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   golangci:
-    name: lint
+    name: main
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
