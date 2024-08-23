@@ -26,7 +26,6 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 			app.Logger().Info("setting upgrade store loaders")
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storetypes.StoreUpgrades{}))
 		}
-
 	}
 }
 
