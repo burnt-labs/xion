@@ -61,32 +61,6 @@ jobs:
           echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
           echo "TAG_VERSION=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
 
-      - name: Build Heighliner Image
-        id: build-heighliner
-        uses: docker/build-push-action@v5
-        with:
-          build-args: |
-            BASE_IMAGE=${{ env.GHCR }}/xion
-            VERSION=${{ env.TAG_VERSION }}
-            BINARIES=/usr/bin/xiond
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.runner.platform }}
-          target: heighliner
-          outputs: type=docker,name=${{ env.GHCR }}/heighliner,name-canonical=true
-
-      - name: Build Integration test Image
-        id: build-integration
-        uses: docker/build-push-action@v5
-        with:
-          build-args: |
-            COMMIT=${{ github.sha }}
-            VERSION=${{ env.VERSION }}
-            TAG_VERSION=${{ env.TAG_VERSION }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.runner.platform }}
-          target: test-integration
-          outputs: type=docker,name=${{ env.GHCR }}/intergration,name-canonical=true
-
       - name: Build Docker Image
         id: build-docker
         uses: docker/build-push-action@v5
@@ -100,6 +74,19 @@ jobs:
           push: false
           target: release
           outputs: type=docker,name=${{ env.GHCR }}/xion,name-canonical=true
+
+      - name: Build Heighliner Image
+        id: build-heighliner
+        uses: docker/build-push-action@v5
+        with:
+          build-args: |
+            BASE_IMAGE=${{ env.GHCR }}/xion
+            VERSION=${{ env.TAG_VERSION }}
+            BINARIES=/usr/bin/xiond
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.runner.platform }}
+          target: heighliner
+          outputs: type=docker,name=${{ env.GHCR }}/heighliner,name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
@@ -132,7 +119,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           tmpname=ctr-${{ env.XIOND_FN }}
-          docker create --platform ${{ matrix.runner.platform }} --name ${tmpname} ${{ env.GHCR }}/xion:${{ env.TAG_VERSION }}
+          docker create --platform ${{ matrix.runner.platform }} --name ${tmpname} ${{ env.GHCR }}/xion
           docker cp ${tmpname}:/usr/bin/xiond ${{ env.XIOND_FN }}
           docker rm -v ${tmpname}
 

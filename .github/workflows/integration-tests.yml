@@ -11,8 +11,36 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  build-integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set Go Version
+        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^${{ env.GO_VERSION }}
+
+      - name: build go test binary
+        working-directory: integration_tests
+        run: go test -c
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration_tests.test
+          path: integration_tests/integration_tests.test
+          retention-days: 3
+
   interchain-tests:
     runs-on: ubuntu-latest
+    needs: build-integration-tests
     strategy:
       fail-fast: false
       matrix:
@@ -55,16 +83,12 @@ jobs:
         run: |
           for image in heighliner*.tar; do docker load < $image; done;
 
-      - name: Set Go Version
-        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Download images
+        uses: actions/download-artifact@v4
         with:
-          go-version: ^${{ env.GO_VERSION }}
-
-      - name: build go test binary
-        run: cd integration_tests && go test -c
+          path: integration_tests
+          pattern: integration_tests.test
+          merge-multiple: true
 
       - name: Run all up ci test
         run: ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}

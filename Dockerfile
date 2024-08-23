@@ -25,12 +25,13 @@ ENV COMMIT=${COMMIT} \
     GOARCH=${TARGETARCH}
 
 # Install dependencies
-RUN apk add --no-cache \
-    build-base \
-    ca-certificates \
-    linux-headers \
-    binutils-gold \
-    git
+RUN set -eux; \
+        apk add --no-cache \
+        build-base \
+        ca-certificates \
+        linux-headers \
+        #binutils-gold \
+        git
 
 # Set the workdir
 WORKDIR /go/src/github.com/burnt-labs/xion
@@ -39,13 +40,9 @@ WORKDIR /go/src/github.com/burnt-labs/xion
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/pkg/mod \
+    set -eux; \
     go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.5.0; \
     go mod download
-
-# --------------------------------------------------------
-# xiond builder
-# --------------------------------------------------------
-FROM builder AS xiond-builder
 
 # Cosmwasm - Download correct libwasmvm version
 RUN set -eux; \
@@ -74,17 +71,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make install;
 
 # --------------------------------------------------------
-# Integration test builder
-# --------------------------------------------------------
-FROM builder AS test-builder
-
-WORKDIR  /go/src/github.com/burnt-labs/xion/integration_tests
-
-RUN set -eux; \
-    go test -c; \
-    cp -a integration_tests.test /go/bin
-
-# --------------------------------------------------------
 # Heighliner
 # --------------------------------------------------------
 
@@ -97,14 +83,14 @@ ENV PATH=/bin
 # Install busybox
 COPY --from=busybox:1.36-musl /bin/busybox ./
 
-# users and groups
+# users and group
 COPY --from=busybox:1.36-musl /etc/passwd /etc/group /etc/
 
 # Install trusted CA certificates
 COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install xiond
-COPY --from=xiond-builder /go/bin/xiond /bin/xiond
+COPY --from=builder /go/bin/xiond /bin/xiond
 
 # Install jq
 COPY --from=ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 /usr/local/bin/jq /bin/jq
@@ -114,34 +100,35 @@ RUN ["busybox", "ln", "/bin/busybox", "sh"]
 
 # Add hard links for read-only utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
-RUN for bin in \
-  cat \
-  date \
-  df \
-  du \
-  env \
-  grep \
-  head \
-  less \
-  ls \
-  md5sum \
-  pwd \
-  sha1sum \
-  sha256sum \
-  sha3sum \
-  sha512sum \
-  sleep \
-  stty \
-  tail \
-  tar \
-  tee \
-  tr \
-  watch \
-  which \
+RUN set -eux \
+  for bin in \
+    cat \
+    date \
+    df \
+    du \
+    env \
+    grep \
+    head \
+    less \
+    ls \
+    md5sum \
+    pwd \
+    sha1sum \
+    sha256sum \
+    sha3sum \
+    sha512sum \
+    sleep \
+    stty \
+    tail \
+    tar \
+    tee \
+    tr \
+    watch \
+    which \
   ; do busybox ln /bin/busybox $bin; \
-  done;
+done;
 
-RUN \
+RUN set -eux; \
   busybox mkdir -p /home/heighliner; \
   busybox addgroup --gid 1025 -S heighliner; \
   busybox adduser --uid 1025 -h /home/heighliner -S heighliner -G heighliner; \
@@ -155,8 +142,8 @@ USER heighliner
 # --------------------------------------------------------
 
 FROM alpine:${ALPINE_VERSION} AS release
-COPY --from=xiond-builder /go/bin/xiond /usr/bin/xiond
-COPY --from=xiond-builder /go/bin/cosmovisor /usr/bin/cosmovisor
+COPY --from=builder /go/bin/xiond /usr/bin/xiond
+COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
 
 # api
 EXPOSE 1317
