@@ -74,7 +74,7 @@ jobs:
       - name: Load images
         working-directory: ${{ runner.temp }}
         run: |
-          ls | xargs docker load -i
+          for image in docker*.tar; do docker load < $image; done;
 
       - name: Create manifest list and push
         run: |

@@ -37,21 +37,23 @@ jobs:
         - "TreasuryMulti"
         - "SingleAbstractAccountMigration"
 
-
     steps:
       - name: checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
-      - name: Metadata for heighliner
-        id: meta-heighliner
-        uses: docker/metadata-action@v5
+      - name: Download images
+        uses: actions/download-artifact@v4
         with:
-          images: |
-            ghcr.io/burnt-labs/xion/heighliner
-          tags: |
-            type=sha
+          path: ${{ runner.temp }}
+          pattern: heighliner*
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          for image in heighliner*.tar; do docker load < $image; done;
 
       - name: Set Go Version
         run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
