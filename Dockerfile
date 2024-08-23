@@ -81,7 +81,7 @@ WORKDIR /bin
 ENV PATH=/bin
 
 # Install busybox
-COPY --from=busybox:1.36-musl /bin/busybox ./
+COPY --from=busybox:1.36-musl /bin/busybox /bin/busybox
 
 # users and group
 COPY --from=busybox:1.36-musl /etc/passwd /etc/group /etc/
@@ -100,7 +100,7 @@ RUN ["busybox", "ln", "/bin/busybox", "sh"]
 
 # Add hard links for read-only utils
 # Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
-RUN set -eux \
+RUN set -eux; \
   for bin in \
     cat \
     date \
