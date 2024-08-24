@@ -21,7 +21,7 @@ jobs:
       fail-fast: true
       matrix:
         runner:
-          - selector: burnt-labs-amd64
+          - selector: ubuntu-latest
             platform: linux/amd64
           - selector: burnt-labs-arm64
             platform: linux/arm64
@@ -93,7 +93,7 @@ jobs:
 
   merge:
     name: Create registry manifests
-    runs-on: burnt-labs-amd64
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
@@ -142,3 +142,4 @@ jobs:
         run: |
            jq -cr '.tags | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON" | \
            xargs -n1 docker buildx imagetools inspect
+

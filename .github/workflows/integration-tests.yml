@@ -12,12 +12,11 @@ env:
 
 jobs:
   interchain-tests:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         runner:
-          - ubuntu-latest
+          - burnt-labs-amd64
           - burnt-labs-arm64
         test_type:
         - "DungeonTransferBlock"
@@ -37,6 +36,7 @@ jobs:
         - "TreasuryMulti"
         - "SingleAbstractAccountMigration"
         - "TestXionUpgradeNetwork"
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: checkout
