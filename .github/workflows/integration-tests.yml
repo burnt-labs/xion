@@ -18,7 +18,7 @@ jobs:
       matrix:
         runner:
           - ubuntu-latest
-          - [self-hosted, linux, ARM64]
+          - burnt-labs-arm64
         test_type:
         - "DungeonTransferBlock"
         - "XionSendPlatformFee"

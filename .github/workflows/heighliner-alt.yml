@@ -11,12 +11,21 @@ env:
 jobs:
   build-heighliner:
     name: Heighliner Build
-    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
       packages: write
       pull-requests: write
+
+    strategy:
+      fail-fast: true
+      matrix:
+        runner:
+          - selector: ubuntu-latest
+            platform: linux/amd64
+          - selector: burnt-labs-arm64
+            platform: linux/arm64
+    runs-on: ${{ matrix.runner.selector }}
 
     steps:
       - name: Login to GitHub Container Registry
@@ -48,7 +57,7 @@ jobs:
           tag: ${{ steps.meta-heighliner.outputs.tags }}
           chain: xion
           dockerfile: import
-          platform: ${{ env.PLATFORMS }}
+          platform: ${{ matrix.platform }}
           binaries: '["/usr/bin/xiond"]'
           build-env: "[\"BUILD_TAGS=muslc\", \"BASE_IMAGE=${{ env.GHCR }}/xion\", \"VERSION=${{ fromJSON(steps.meta-heighliner.outputs.json).labels['org.opencontainers.image.version'] }}\"]"
 

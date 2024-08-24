@@ -21,7 +21,7 @@ jobs:
         runner:
           - selector: ubuntu-latest
             platform: linux/amd64
-          - selector: [self-hosted, linux, ARM64]
+          - selector: burnt-labs-arm64
             platform: linux/arm64
     runs-on: ${{ matrix.runner.selector }}
 
