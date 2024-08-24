@@ -21,7 +21,7 @@ jobs:
       fail-fast: true
       matrix:
         runner:
-          - selector: ubuntu-latest
+          - selector: burnt-labs-amd64
             platform: linux/amd64
           - selector: burnt-labs-arm64
             platform: linux/arm64
@@ -52,8 +52,14 @@ jobs:
 
       - name: Prepare heighliner build
         run: |
-          echo "PLATFORM=$(echo ${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
-          curl -L https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile -o ${{ runner.temp }}/Dockerfile.heighliner
+          echo "PLATFORM=$(echo ${{ matrix.runner.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
+          
+          # ?! curl: No such file or directory :(
+          heighliner_file="https://raw.githubusercontent.com/strangelove-ventures/heighliner/main/dockerfile/imported/Dockerfile"
+          cid=$(docker create curlimages/curl sh -c "curl -L $heighliner_file -o /tmp/Dockerfile.heighliner")
+          docker start -a $cid
+          docker cp $cid:/tmp/Dockerfile.heighliner ${{ runner.temp }}/Dockerfile.heighliner
+          docker rm $cid
 
       - name: Build and push by digest
         id: build
@@ -87,7 +93,7 @@ jobs:
 
   merge:
     name: Create registry manifests
-    runs-on: ubuntu-latest
+    runs-on: burnt-labs-amd64
     permissions:
       id-token: write
       contents: read
