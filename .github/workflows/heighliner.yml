@@ -80,6 +80,7 @@ jobs:
             docker image tag ${{ env.GHCR }}/xion:latest ${{ env.GHCR }}/xion:${TAG}
             docker rmi ${{ env.GHCR }}/xion:latest
           done;
+          docker image ls
 
       - name: Create manifest list and push
         run: |
