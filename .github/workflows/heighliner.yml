@@ -81,8 +81,8 @@ jobs:
 
       - name: Prepare mainfest vars
         run: |
-          echo "IMAGE_TAGS=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON)" | tee -a $GITHUB_ENV
-          echo "IMAGE_SOURCES=$(docker image ls xion --digests --format json | jq -r 'select(.Digest != "<none>") | "\(.Repository)@\(.Digest)"')" | tee -a $GITHUB_ENV
+          echo "IMAGE_TAGS=$(jq -cr '.tags | map(\"-t \" + .) | join(\" \")' <<< $DOCKER_METADATA_OUTPUT_JSON)" | tee -a $GITHUB_ENV
+          echo "IMAGE_SOURCES=$(docker image ls xion --digests --format json | jq -r 'select(.Digest != \"<none>\") | \"\(.Repository)@\(.Digest)\"')\" | tee -a $GITHUB_ENV
 
       - name: Create manifest list and push
         run: |
