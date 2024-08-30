@@ -78,12 +78,15 @@ jobs:
             PLATFORM=$(basename $image .tar | cut -d- -f2)
             docker load < $image;
           done;
-          docker image ls
+
+      - name: Prepare mainfest vars
+        run: |
+          echo "IMAGE_TAGS=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON)" | tee -a $GITHUB_ENV
+          echo "IMAGE_SOURCES=$(docker image ls xion --digests --format json | jq -r 'select(.Digest != "<none>") | "\(.Repository)@\(.Digest)"')" | tee -a $GITHUB_ENV
 
       - name: Create manifest list and push
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(docker image ls xion --digests --format json | jq -r 'select(.Digest != "<none>") | "\(.Repository)@\(.Digest)"')
+          docker buildx imagetools create ${IMAGE_TAGS} ${IMAGE_SOURCES}
 
       - name: Inspect image
         run: |
