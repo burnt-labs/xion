@@ -53,14 +53,12 @@ jobs:
 
       - name: Prepare environment
         run: |
-          PLATFORM=$(echo ${{ matrix.runner.platform }} | sed 's/\//-/g')
-          echo "PLATFORM=${PLATFORM}" | tee -a $GITHUB_ENV
-          echo "XIOND_FN=xiond" | tee -a $GITHUB_ENV
-          echo "DOCKER_FN=xion.image.tar" | tee -a $GITHUB_ENV
-          echo "HEIGHLINER_FN=heighliner.image.tar" | tee -a $GITHUB_ENV
-          echo "TMPPATH=${{ runner.temp }}/${PLATFORM}" | tee -a $GITHUB_ENV
+          echo "XIOND_FN=${{ matrix.runner.platform }}/xiond" | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=${{ matrix.runner.platform }}/xion.image.tar" | tee -a $GITHUB_ENV
+          echo "HEIGHLINER_FN=${{ matrix.runner.platform }}/heighliner.image.tar" | tee -a $GITHUB_ENV
           echo "VERSION=$(git describe --tags | sed 's/^v//')" | tee -a $GITHUB_ENV
           echo "TAG_VERSION=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
+          mkdir -p ${{ runner.temp }}/${{ matrix.runner.platform }}
 
       - name: Build Docker Image
         id: build-docker
@@ -90,44 +88,44 @@ jobs:
           outputs: type=docker,name=${{ env.GHCR }}/heighliner,name-canonical=true
 
       - name: Save Docker Image
-        working-directory: ${{ env.TMPPATH }}
+        working-directory: ${{ runner.temp }}
         run: |
           docker save ${{ env.GHCR }}/xion > ${{ env.DOCKER_FN }}
 
       - name: Upload Docker Image
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PLATFORM }}/${{ env.DOCKER_FN }}
-          path: ${{ env.TMPPATH }}/${{ env.DOCKER_FN }}
+          name: ${{ env.DOCKER_FN }}
+          path: ${{ runner.temp }}/${{ env.DOCKER_FN }}
           if-no-files-found: error
           retention-days: 3
 
       - name: Save Heighliner Image
-        working-directory: ${{ env.TMPPATH }}
+        working-directory: ${{ runner.temp }}
         run: |
           docker save ${{ env.GHCR }}/heighliner > ${{ env.HEIGHLINER_FN }}
 
       - name: Upload Heighliner Image
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PLATFORM }}/${{ env.HEIGHLINER_FN }}
-          path: ${{ env.TMPPATH }}/${{ env.HEIGHLINER_FN }}
+          name: ${{ env.HEIGHLINER_FN }}
+          path: ${{ runner.temp }}/${{ env.HEIGHLINER_FN }}
           if-no-files-found: error
           retention-days: 3
 
       - name: Copy xiond binary from container
         # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
-        working-directory: ${{ env.TMPPATH }}
+        working-directory: ${{ runner.temp }}
         run: |
-          tmpname=ctr-${{ env.XIOND_FN }}
-          docker create --platform ${{ matrix.runner.platform }} --name ${tmpname} ${{ env.GHCR }}/xion
-          docker cp ${tmpname}:/usr/bin/xiond ${{ env.XIOND_FN }}
-          docker rm -v ${tmpname}
+          tmpname="ctr-$(basename $XIOND_FN)"
+          docker create --platform ${{ matrix.runner.platform }} --name "${tmpname}" "${GHCR}/xion"
+          docker cp "${tmpname}:/usr/bin/xiond" "${XIOND_FN}"
+          docker rm -v "${tmpname}"
 
       - name: Upload binary
         # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PLATFORM }}${{ env.XIOND_FN }}
-          path: ${{ env.TMPPATH }}/${{ env.XIOND_FN }}
+          name: ${{ env.XIOND_FN }}
+          path: ${{ runner.temp }}/${{ env.XIOND_FN }}
           retention-days: 3
