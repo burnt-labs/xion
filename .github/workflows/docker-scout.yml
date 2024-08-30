@@ -53,4 +53,4 @@ jobs:
           command: cves
           only-fixed: true
           platform: ${{ matrix.platform }}
-          image: ${{ env.GHCR }}/xion:${{ env.TAG_VERSION }}
+          image: ${{ env.GHCR }}/xion:

@@ -91,7 +91,7 @@ jobs:
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
         run: |
-          docker save ${{ env.GHCR }}/xion:${{ env.TAG_VERSION }} > ${{ env.DOCKER_FN }}
+          docker save ${{ env.GHCR }}/xion > ${{ env.DOCKER_FN }}
 
       - name: Upload Docker Image
         uses: actions/upload-artifact@v4
@@ -104,7 +104,7 @@ jobs:
       - name: Save Heighliner Image
         working-directory: ${{ runner.temp }}
         run: |
-          docker save ${{ env.GHCR }}/heighliner:${{ env.TAG_VERSION }} > ${{ env.HEIGHLINER_FN }}
+          docker save ${{ env.GHCR }}/heighliner > ${{ env.HEIGHLINER_FN }}
 
       - name: Upload Heighliner Image
         uses: actions/upload-artifact@v4

@@ -83,7 +83,7 @@ jobs:
         run: |
           for image in heighliner*.tar; do docker load < $image; done;
 
-      - name: Download images
+      - name: Download integration test binary
         uses: actions/download-artifact@v4
         with:
           path: integration_tests
