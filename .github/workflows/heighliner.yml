@@ -7,7 +7,10 @@ on:
   workflow_dispatch:
 
 env:
-  GHCR: ghcr.io/${{ github.repository }}
+  REPOS: |
+    burntnetwork/xion
+    ghcr.io/${{ github.repository }}/xion
+    385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
 
 jobs:
   merge:
@@ -55,10 +58,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |
-            burntnetwork/xion
-            ${{ env.GHCR }}/xion
-            385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
+          images: ${{ env.REPOS }}
           tags: |
             type=raw,value=${{ env.TAG_VERSION }}
             type=semver,pattern={{version}},enable=${{ github.event_name == 'push' }}
@@ -77,18 +77,24 @@ jobs:
           for image in docker*.tar; do
             PLATFORM=$(basename $image .tar | cut -d- -f2)
             docker load < $image;
+            for tag in DOCKER_METADATA_OUTPUT_JSON
           done;
 
       - name: Prepare mainfest vars
         run: |
-          echo "IMAGE_TAGS=$(jq -cr '.tags | map(\"-t \" + .) | join(\" \")' <<< $DOCKER_METADATA_OUTPUT_JSON)" | tee -a $GITHUB_ENV
-          echo "IMAGE_SOURCES=$(docker image ls xion --digests --format json | jq -r 'select(.Digest != \"<none>\") | \"\(.Repository)@\(.Digest)\"')\" | tee -a $GITHUB_ENV
+          IMAGE_TAGS=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< $DOCKER_METADATA_OUTPUT_JSON)
+          IMAGE_DIGESTS=$(docker image ls xion --digests --format json | jq -r 'select(.Digest != "<none>") | .Digest' | tr '\n' ' ')
+          echo "IMAGE_TAGS=$IMAGE_TAGS" | tee -a $GITHUB_ENV
+          echo "IMAGE_DIGESTS=${IMAGE_DIGESTS}" | tee -a $GITHUB_ENV
 
-      - name: Create manifest list and push
-        run: |
-          docker buildx imagetools create ${IMAGE_TAGS} ${IMAGE_SOURCES}
+      # - name: Create manifest list and push
+      #   run: |
+      #     for REPO in $REPOS; do
+      #       for DIGEST in $IMAGE_DIGESTS; do
+      #         docker tag xion@$DIGEST $REPO/$SOURCE
+      #     docker buildx imagetools create ${IMAGE_TAGS} ${IMAGE_DIGESTS}
 
-      - name: Inspect image
-        run: |
-           jq -cr '.tags | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON" | \
-           xargs -n1 docker buildx imagetools inspect%
+      # - name: Inspect image
+      #   run: |
+      #      jq -cr '.tags | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON" | \
+      #      xargs -n1 docker buildx imagetools inspect%
