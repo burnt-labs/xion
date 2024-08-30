@@ -1,5 +1,4 @@
-name: Build and Push Docker Images
-# name: Build Docker Images and Binaries
+name: Build Docker Images and Binaries
 
 # reusable workflow, do not add triggers
 on:

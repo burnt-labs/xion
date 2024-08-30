@@ -24,24 +24,24 @@ jobs:
 
   unit-tests:
     name: Go Unit Tests
-    uses: burnt-labs/xion/.github/workflows/tests.yml@fix/docker_pull_error
+    uses: burnt-labs/xion/.github/workflows/tests.yml@main
     secrets: inherit
 
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@fix/docker_pull_error
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
+    secrets: inherit
+
+  push-docker:
+    needs: build-docker
+    name: Heighliner Build
+    uses: burnt-labs/xion/.github/workflows/docker-push.yml@main
     secrets: inherit
 
   docker-scout:
     needs: build-docker
     name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@fix/docker_pull_error
-    secrets: inherit
-
-  build-heighliner:
-    needs: build-docker
-    name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@fix/docker_pull_error
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
     secrets: inherit
 
   interchain-tests:
