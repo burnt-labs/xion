@@ -74,7 +74,12 @@ jobs:
       - name: Load images
         working-directory: ${{ runner.temp }}
         run: |
-          for image in docker*.tar; do docker load < $image; done;
+          for image in docker*.tar; do
+            TAG=$(basename $image)
+            docker load < $image;
+            docker image tag ${{ env.GHCR }}/xion:latest ${{ env.GHCR }}/xion:${TAG}
+            docker rmi ${{ env.GHCR }}/xion:latest
+          done;
 
       - name: Create manifest list and push
         run: |
