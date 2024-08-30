@@ -48,9 +48,9 @@ jobs:
 
       - name: find wasmvm lib
         run: |
-          WASM_PATH=$(find /home/runner/go/pkg/mod -name libwasmvm.*.so 2>/dev/null | head -n 1)"
-          echo WASM_PATH=$WASM_PATH | tee -a $GITHUB_ENV
-          echo WASM_FILE=$(basename $WASM_PATH) | tee -a $GITHUB_ENV
+          WASM_PATH="$(find /home/runner/go/pkg/mod -name libwasmvm.*.so 2>/dev/null | head -n 1)"
+          echo "WASM_PATH=$WASM_PATH" | tee -a $GITHUB_ENV
+          echo "WASM_FILE=$(basename $WASM_PATH)" | tee -a $GITHUB_ENV
 
       - name: Upload wasmvm lib
         uses: actions/upload-artifact@v4
