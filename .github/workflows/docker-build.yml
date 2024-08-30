@@ -53,7 +53,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          PLATFORM="$(echo ${{ matrix.runner.platform }}" | sed 's/\//-/g')
+          PLATFORM=$(echo ${{ matrix.runner.platform }} | sed 's/\//-/g')
           echo "PLATFORM=${PLATFORM}" >> $GITHUB_ENV
           echo "XIOND_FN=xiond-$PLATFORM" >> $GITHUB_ENV
           echo "DOCKER_FN=docker-$PLATFORM.tar" >> $GITHUB_ENV
