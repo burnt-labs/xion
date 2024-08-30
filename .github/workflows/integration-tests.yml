@@ -42,17 +42,20 @@ jobs:
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PLATFORM }}/test
+          name: test-${{ env.PLATFORM }}
           path: integration_tests/integration_tests.test
           retention-days: 3
 
       - name: find wasmvm lib
-        run: echo "WASM_PATH=$(find /home/runner/go/pkg/mod -name libwasmvm.x86_64.so 2>/dev/null | head -n 1)" >> $GITHUB_ENV
+        run: |
+          WASM_PATH=$(find /home/runner/go/pkg/mod -name libwasmvm.*.so 2>/dev/null | head -n 1)"
+          echo WASM_PATH=$WASM_PATH | tee -a $GITHUB_ENV
+          echo WASM_FILE=$(basename $WASM_PATH) | tee -a $GITHUB_ENV
 
       - name: Upload wasmvm lib
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PLATFORM }}/libwasmvm.x86_64.so
+          name: ${{ env.WASM_FILE }}
           path: ${{ env.WASM_PATH }}
           retention-days: 3
 
@@ -91,38 +94,39 @@ jobs:
 
       - name: Prepare Environment
         run: |
+          mkdir -p lib
           echo "PLATFORM=$(echo ${{ matrix.runner }} | cut -d- -f2-)" | tee -a $GITHUB_ENV
 
       - name: Download integration test binary
         uses: actions/download-artifact@v4
         with:
           path: integration_tests
-          pattern: ${{ env.PLATFORM }}/test
+          pattern: test-${{ env.PLATFORM }}
           merge-multiple: true
 
       - name: Download wasm vm lib
         uses: actions/download-artifact@v4
         with:
-          path: integration_tests
-          pattern: ${{ env.PLATFORM }}/libwasmvm.x86_64.so
+          path: lib
+          pattern: libwasmvm.*
           merge-multiple: true
 
-      - name: Download heighliner images
+      - name: Download heighliner image
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}
-          pattern: heighliner*
+          pattern: heighliner-${{ env.PLATFORM }}.tar
           merge-multiple: true
 
       - name: Load images
         working-directory: ${{ runner.temp }}
         run: |
-          for image in heighliner*.tar; do docker load < $image; done;
+          docker load < "heighliner-${PLATFORM}.tar"
 
       - name: Run all up ci test
         run: |
-          chmod a+x ./integration_tests/integration_tests.test
-          ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
+          chmod a+x "integration_tests/test-${PLATFORM}"
+          ./integration_tests/test-${PLATFORM} -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: ${{ env.GHCR }}/xion
+          XION_IMAGE: ${{ env.GHCR }}/heighliner

@@ -30,8 +30,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "DOCKER_FN=xion.image.tar" | tee -a $GITHUB_ENV
-          echo "TAG_VERSION=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=docker/${{ matrix.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
 
       - name: Download images
         uses: actions/download-artifact@v4
