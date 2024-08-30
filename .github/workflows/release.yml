@@ -211,12 +211,12 @@ jobs:
           METADATA_PATH=${BASE_PATH}/governance-proposals/software-upgrades/metadata
           PROPOSAL_PATH=${BASE_PATH}/governance-proposals/software-upgrades/proposal
           UPGRADE_NAME=$(echo ${GITHUB_REF_NAME} | cut -d. -f1)
-          echo "BASE_PATH=${BASE_PATH}" >> ${GITHUB_ENV}
-          echo "BINARIES_PATH=${BINARIES_PATH}" >> ${GITHUB_ENV}
-          echo "METADATA_PATH=${METADATA_PATH}" >> ${GITHUB_ENV}
-          echo "PROPOSAL_PATH=${PROPOSAL_PATH}" >> ${GITHUB_ENV}
-          echo "UPGRADE_NAME=${UPGRADE_NAME}" >> ${GITHUB_ENV}
-          echo "NETWORKS_REPO=burnt-labs/burnt-networks" >> ${GITHUB_ENV}
+          echo "BASE_PATH=${BASE_PATH}" | tee -a ${GITHUB_ENV}
+          echo "BINARIES_PATH=${BINARIES_PATH}" | tee -a ${GITHUB_ENV}
+          echo "METADATA_PATH=${METADATA_PATH}" | tee -a ${GITHUB_ENV}
+          echo "PROPOSAL_PATH=${PROPOSAL_PATH}" | tee -a ${GITHUB_ENV}
+          echo "UPGRADE_NAME=${UPGRADE_NAME}" | tee -a ${GITHUB_ENV}
+          echo "NETWORKS_REPO=burnt-labs/burnt-networks" | tee -a ${GITHUB_ENV}
 
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2

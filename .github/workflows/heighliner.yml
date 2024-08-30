@@ -49,7 +49,7 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "TAG_VERSION=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+          echo "TAG_VERSION=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
 
       - name: Metadata for xion container
         id: meta
