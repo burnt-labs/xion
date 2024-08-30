@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
+  GHCR: ghcr.io
   CARGO_TERM_COLOR: always
-  REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
       matrix:
         runner:
           - ubuntu-latest
-          - [self-hosted, linux, ARM64]
+          - burnt-labs-arm64
         test_type:
         - "DungeonTransferBlock"
         - "XionSendPlatformFee"
@@ -91,7 +91,9 @@ jobs:
           merge-multiple: true
 
       - name: Run all up ci test
-        run: ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
+        run: |
+          chmod a+x ./integration_tests/integration_tests.test
+          ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: ${{ steps.meta-heighliner.outputs.tags }}
+          XION_IMAGE: ${{ env.GHCR }}/xion

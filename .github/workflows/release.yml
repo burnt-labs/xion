@@ -54,63 +54,9 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
     secrets: inherit
 
-  build-release-binaries:
-    needs: build-docker
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    strategy:
-      matrix:
-        platform: [linux/amd64, linux/arm64]
-
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Metadata for release
-        id: meta-release
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.GHCR }}/xion
-          tags: |
-            type=semver,pattern={{version}}
-
-      - name: Prepare environment
-        run: |
-          mkdir -p release
-          echo "XIOND_FN=$(echo xiond-${{ github.ref_name }}-${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
-
-      - name: Copy xiond binary from container
-        id: copy-binary
-        working-directory: release
-        run: |
-          tmpname=container-${{ env.XIOND_FN }}
-          docker create --platform ${{ matrix.platform }} --name ${tmpname} ${DOCKER_METADATA_OUTPUT_TAGS}
-          docker cp ${tmpname}:/usr/bin/xiond ${{ env.XIOND_FN }}
-          docker rm -v ${tmpname}
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.XIOND_FN }}
-          path: release/${{ env.XIOND_FN }}
-
   build-release-info:
-    needs:
-      - build-release-binaries
     runs-on: ubuntu-latest
+    needs: build-docker
     env:
       GH_TOKEN: ${{ github.token }}
 
@@ -181,7 +127,7 @@ jobs:
       - unit-tests
       - docker-scout
       - interchain-tests
-      - build-release-binaries
+      - build-release-info
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
