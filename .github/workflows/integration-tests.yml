@@ -27,7 +27,7 @@ jobs:
       - name: Prepare Environment
         run: |
           sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
-          echo "PLATFORM=$(echo ${{ matrix.runner }} | cut -d- -f2-)" | tee -a $GITHUB_ENV
+          echo "PLATFORM=linux-$(echo ${{ matrix.runner }} | cut -d- -f3-)" | tee -a $GITHUB_ENV
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -92,10 +92,17 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
+      - id: string
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ runner.os }}
+
       - name: Prepare Environment
+        env:
+          OS: ${{ steps.string.outputs.lowercase }}
         run: |
           mkdir -p lib
-          echo "PLATFORM=$(echo ${{ matrix.runner }} | cut -d- -f2-)" | tee -a $GITHUB_ENV
+          echo "PLATFORM=${OS}-$(echo ${{ matrix.runner }} | cut -d- -f3-)" | tee -a $GITHUB_ENV
 
       - name: Download integration test binary
         uses: actions/download-artifact@v4
