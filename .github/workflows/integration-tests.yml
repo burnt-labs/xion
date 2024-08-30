@@ -137,4 +137,4 @@ jobs:
           ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: heighliner:$PLATFORM
+          XION_IMAGE: heighliner:${{ env.PLATFORM }}
