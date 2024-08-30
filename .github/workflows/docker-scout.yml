@@ -5,9 +5,6 @@ on:
   workflow_call:
   workflow_dispatch:
 
-env:
-  GHCR: ghcr.io/${{ github.repository }}
-
 jobs:
   docker-scout:
     name: main
@@ -30,6 +27,7 @@ jobs:
 
       - name: Prepare environment
         run: |
+          echo "PLATFORM=${{ matrix.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "DOCKER_FN=docker/${{ matrix.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
 
       - name: Download images
@@ -51,4 +49,4 @@ jobs:
           command: cves
           only-fixed: true
           platform: ${{ matrix.platform }}
-          image: ${{ env.GHCR }}/xion
+          image: xion:${{ env.PLATFORM }}

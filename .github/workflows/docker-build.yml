@@ -6,9 +6,6 @@ on:
   workflow_call:
   workflow_dispatch:
 
-env:
-  GHCR: ghcr.io/${{ github.repository }}
-
 jobs:
   build-docker:
     name: main
@@ -42,17 +39,9 @@ jobs:
           driver: docker
           platforms: ${{ matrix.runner.platform }}
 
-      - name: Metadata for container
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.GHCR }}/xion
-          tags: |
-            type=sha
-
       - name: Prepare environment
         run: |
+          echo "PLATFORM=${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "XIOND_FN=xiond/${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "DOCKER_FN=docker/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "HEIGHLINER_FN=heighliner/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
@@ -70,25 +59,25 @@ jobs:
           platforms: ${{ matrix.runner.platform }}
           push: false
           target: release
-          outputs: type=docker,name=${{ env.GHCR }}/xion,name-canonical=true
+          outputs: type=docker,name=xion:${{ env.PLATFORM }},name-canonical=true
 
       - name: Build Heighliner Image
         id: build-heighliner
         uses: docker/build-push-action@v5
         with:
           build-args: |
-            BASE_IMAGE=${{ env.GHCR }}/xion
-            VERSION="${GITHUB_SHA:0:7}"
+            BASE_IMAGE=xion
+            VERSION=${{ env.PLATFORM }}
             BINARIES=/usr/bin/xiond
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.runner.platform }}
           target: heighliner
-          outputs: type=docker,name=${{ env.GHCR }}/heighliner,name-canonical=true
+          outputs: type=docker,name=heighliner:${{ env.PLATFORM }},name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
         run: |
-          docker save ${{ env.GHCR }}/xion > ${{ env.DOCKER_FN }}
+          docker save xion:${{ env.PLATFORM }} > ${{ env.DOCKER_FN }}
 
       - name: Upload Docker Image
         uses: actions/upload-artifact@v4
@@ -101,7 +90,7 @@ jobs:
       - name: Save Heighliner Image
         working-directory: ${{ runner.temp }}
         run: |
-          docker save ${{ env.GHCR }}/heighliner > ${{ env.HEIGHLINER_FN }}
+          docker save heighliner:${{ env.PLATFORM }} > ${{ env.HEIGHLINER_FN }}
 
       - name: Upload Heighliner Image
         uses: actions/upload-artifact@v4
@@ -116,7 +105,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           tmpname="ctr-$(basename $XIOND_FN)"
-          docker create --platform ${{ matrix.runner.platform }} --name "${tmpname}" "${GHCR}/xion"
+          docker create --platform ${{ matrix.runner.platform }} --name "${tmpname}" "xion:${PLATFORM}"
           docker cp "${tmpname}:/usr/bin/xiond" "${XIOND_FN}"
           docker rm -v "${tmpname}"
 

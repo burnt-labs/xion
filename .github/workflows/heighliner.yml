@@ -75,17 +75,15 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           for image in docker*.tar; do
-            TAG=$(basename $image)
+            PLATFORM=$(basename $image .tar | cut -d- -f2)
             docker load < $image;
-            docker image tag ${{ env.GHCR }}/xion:latest ${{ env.GHCR }}/xion:${TAG}
-            docker rmi ${{ env.GHCR }}/xion:latest
           done;
           docker image ls
 
       - name: Create manifest list and push
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(docker image ls -q)
+            $(docker image ls xion --digests --format json | jq -r .Digest)
 
       - name: Inspect image
         run: |

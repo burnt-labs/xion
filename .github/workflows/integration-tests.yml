@@ -7,7 +7,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  GHCR: ghcr.io/${{ github.repository }}
 
 jobs:
   build-integration-tests:
@@ -138,4 +137,4 @@ jobs:
           ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: ${{ env.GHCR }}/heighliner
+          XION_IMAGE: heighliner:$PLATFORM
