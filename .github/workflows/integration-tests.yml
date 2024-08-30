@@ -132,7 +132,9 @@ jobs:
 
       - name: Run all up ci test
         run: |
-          chmod a+x "integration_tests/test-${PLATFORM}"
+          ls -l lib integration_tests
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
+          chmod a+x ./integration_tests/test-${PLATFORM}
           ./integration_tests/test-${PLATFORM} -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
