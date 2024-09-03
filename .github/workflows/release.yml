@@ -315,8 +315,8 @@ jobs:
           echo "Pushing git commit"
           git push -f -u origin "HEAD:release/${{ github.ref_name }}"
           git checkout "release/${{ github.ref_name }}"
-          echo "Creating a pull request"
-          git request-pull main origin release/v9.0.1-rc2
+          # echo "Creating a pull request"
+          # git request-pull main origin release/v9.0.1-rc2
           # gh pr create -B main \
           #   -H release/${{ github.ref_name }} \
           #   -t release/${{ github.ref_name }} \
