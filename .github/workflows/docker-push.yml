@@ -74,7 +74,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           for image in docker*.tar; do
-            PLATFORM=$(basename $image .tar | cut -d- -f2)
+            PLATFORM=$(basename $image .tar | cut -d- -f2-)
             docker load < $image;
             docker tag xion:$PLATFORM burntnetwork/xion:$PLATFORM
             docker push burntnetwork/xion:$PLATFORM;
