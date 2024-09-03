@@ -14,12 +14,12 @@ concurrency:
 jobs:
   lint:
     name: Golang CI Lint
-    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@fix/docker_pull_error
+    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@wf2
     secrets: inherit
 
   update-swagger:
     name: Update Swagger
-    uses: burnt-labs/xion/.github/workflows/update-swagger.yml@fix/docker_pull_error
+    uses: burnt-labs/xion/.github/workflows/update-swagger.yml@wf2
     secrets: inherit
 
   unit-tests:
