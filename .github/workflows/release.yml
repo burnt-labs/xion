@@ -36,81 +36,27 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
     secrets: inherit
 
+  push-docker:
+    needs: build-docker
+    name: Heighliner Build
+    uses: burnt-labs/xion/.github/workflows/docker-push.yml@main
+    secrets: inherit
+
   docker-scout:
     needs: build-docker
     name: Docker Scout
     uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
     secrets: inherit
 
-  build-heighliner:
-    needs: build-docker
-    name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/heighliner.yml@main
-    secrets: inherit
-
   interchain-tests:
-    needs: build-heighliner
+    needs: build-docker
     name: Interchain tests
     uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
     secrets: inherit
 
-  build-release-binaries:
-    needs: build-docker
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    strategy:
-      matrix:
-        platform: [linux/amd64, linux/arm64]
-
-    steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Metadata for release
-        id: meta-release
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.GHCR }}/xion
-          tags: |
-            type=semver,pattern={{version}}
-
-      - name: Prepare environment
-        run: |
-          mkdir -p release
-          echo "XIOND_FN=$(echo xiond-${{ github.ref_name }}-${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_ENV
-
-      - name: Copy xiond binary from container
-        id: copy-binary
-        working-directory: release
-        run: |
-          tmpname=container-${{ env.XIOND_FN }}
-          docker create --platform ${{ matrix.platform }} --name ${tmpname} ${DOCKER_METADATA_OUTPUT_TAGS}
-          docker cp ${tmpname}:/usr/bin/xiond ${{ env.XIOND_FN }}
-          docker rm -v ${tmpname}
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.XIOND_FN }}
-          path: release/${{ env.XIOND_FN }}
-
   build-release-info:
-    needs:
-      - build-release-binaries
     runs-on: ubuntu-latest
+    needs: build-docker
     env:
       GH_TOKEN: ${{ github.token }}
 
@@ -181,7 +127,7 @@ jobs:
       - unit-tests
       - docker-scout
       - interchain-tests
-      - build-release-binaries
+      - build-release-info
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -265,12 +211,12 @@ jobs:
           METADATA_PATH=${BASE_PATH}/governance-proposals/software-upgrades/metadata
           PROPOSAL_PATH=${BASE_PATH}/governance-proposals/software-upgrades/proposal
           UPGRADE_NAME=$(echo ${GITHUB_REF_NAME} | cut -d. -f1)
-          echo "BASE_PATH=${BASE_PATH}" >> ${GITHUB_ENV}
-          echo "BINARIES_PATH=${BINARIES_PATH}" >> ${GITHUB_ENV}
-          echo "METADATA_PATH=${METADATA_PATH}" >> ${GITHUB_ENV}
-          echo "PROPOSAL_PATH=${PROPOSAL_PATH}" >> ${GITHUB_ENV}
-          echo "UPGRADE_NAME=${UPGRADE_NAME}" >> ${GITHUB_ENV}
-          echo "NETWORKS_REPO=burnt-labs/burnt-networks" >> ${GITHUB_ENV}
+          echo "BASE_PATH=${BASE_PATH}" | tee -a ${GITHUB_ENV}
+          echo "BINARIES_PATH=${BINARIES_PATH}" | tee -a ${GITHUB_ENV}
+          echo "METADATA_PATH=${METADATA_PATH}" | tee -a ${GITHUB_ENV}
+          echo "PROPOSAL_PATH=${PROPOSAL_PATH}" | tee -a ${GITHUB_ENV}
+          echo "UPGRADE_NAME=${UPGRADE_NAME}" | tee -a ${GITHUB_ENV}
+          echo "NETWORKS_REPO=burnt-labs/burnt-networks" | tee -a ${GITHUB_ENV}
 
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
