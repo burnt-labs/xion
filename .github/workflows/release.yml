@@ -175,7 +175,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: release
-          pattern: xiond-${{ github.ref_name }}-*
+          pattern: xiond-*
           merge-multiple: true
 
       - name: Create checksums
