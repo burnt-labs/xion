@@ -18,40 +18,40 @@ env:
 jobs:
   lint:
     name: Golang CI Lint
-    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@wf2
+    uses: burnt-labs/xion/.github/workflows/golangci-lint.yml@main
     secrets: inherit
 
   update-swagger:
     name: Update Swagger
-    uses: burnt-labs/xion/.github/workflows/update-swagger.yml@wf2
+    uses: burnt-labs/xion/.github/workflows/update-swagger.yml@main
     secrets: inherit
 
   unit-tests:
     name: Go Unit Tests
-    uses: burnt-labs/xion/.github/workflows/tests.yml@wf2
+    uses: burnt-labs/xion/.github/workflows/tests.yml@main
     secrets: inherit
 
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yml@wf2
+    uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
     secrets: inherit
 
   push-docker:
     needs: build-docker
     name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/docker-push.yml@wf2
+    uses: burnt-labs/xion/.github/workflows/docker-push.yml@main
     secrets: inherit
 
   docker-scout:
     needs: build-docker
     name: Docker Scout
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@wf2
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yml@main
     secrets: inherit
 
   interchain-tests:
     needs: build-docker
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf2
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
     secrets: inherit
 
   build-release-info:
