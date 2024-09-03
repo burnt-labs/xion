@@ -47,5 +47,5 @@ jobs:
   interchain-tests:
     needs: build-docker
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@fix/docker_pull_error
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@wf2
     secrets: inherit
