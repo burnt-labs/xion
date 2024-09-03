@@ -7,18 +7,66 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  interchain-tests:
-    runs-on: ubuntu-latest
+  build-integration-tests:
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         runner:
-          - ubuntu-latest
-          - [self-hosted, linux, ARM64]
+          - burnt-labs-amd64
+          - burnt-labs-arm64
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Prepare Environment
+        run: |
+          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
+          echo "PLATFORM=linux-$(echo ${{ matrix.runner }} | cut -d- -f3-)" | tee -a $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^${{ env.GO_VERSION }}
+
+      - name: build go test binary
+        working-directory: integration_tests
+        run: |
+          go test -c
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-${{ env.PLATFORM }}
+          path: integration_tests/integration_tests.test
+          retention-days: 3
+
+      - name: find wasmvm lib
+        run: |
+          WASM_PATH="$(find /home/runner/go/pkg/mod -name libwasmvm.$(uname -m).so 2>/dev/null | head -n 1)"
+          echo "WASM_PATH=$WASM_PATH" | tee -a $GITHUB_ENV
+          echo "WASM_FILE=$(basename $WASM_PATH)" | tee -a $GITHUB_ENV
+
+      - name: Upload wasmvm lib
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.WASM_FILE }}
+          path: ${{ env.WASM_PATH }}
+          retention-days: 3
+
+  interchain-tests:
+    runs-on: ${{ matrix.runner }}
+    needs: build-integration-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - burnt-labs-amd64
+          - burnt-labs-arm64
         test_type:
         - "DungeonTransferBlock"
         - "XionSendPlatformFee"
@@ -37,35 +85,56 @@ jobs:
         - "TreasuryMulti"
         - "SingleAbstractAccountMigration"
 
-
     steps:
       - name: checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
 
-      - name: Metadata for heighliner
-        id: meta-heighliner
-        uses: docker/metadata-action@v5
+      - id: string
+        uses: ASzc/change-string-case-action@v6
         with:
-          images: |
-            ghcr.io/burnt-labs/xion/heighliner
-          tags: |
-            type=sha
+          string: ${{ runner.os }}
 
-      - name: Set Go Version
-        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
+      - name: Prepare Environment
+        env:
+          OS: ${{ steps.string.outputs.lowercase }}
+        run: |
+          mkdir -p lib
+          echo "PLATFORM=${OS}-$(echo ${{ matrix.runner }} | cut -d- -f3-)" | tee -a $GITHUB_ENV
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Download integration test binary
+        uses: actions/download-artifact@v4
         with:
-          go-version: ^${{ env.GO_VERSION }}
+          path: integration_tests
+          pattern: test-${{ env.PLATFORM }}
+          merge-multiple: true
 
-      - name: build go test binary
-        run: cd integration_tests && go test -c
+      - name: Download wasm vm lib
+        uses: actions/download-artifact@v4
+        with:
+          path: lib
+          pattern: libwasmvm.*
+          merge-multiple: true
+
+      - name: Download heighliner image
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}
+          pattern: heighliner-${{ env.PLATFORM }}.tar
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          docker load < "heighliner-${PLATFORM}.tar"
 
       - name: Run all up ci test
-        run: ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
+        run: |
+          ls -l lib integration_tests
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
+          chmod a+x ./integration_tests/integration_tests.test
+          ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: ${{ steps.meta-heighliner.outputs.tags }}
+          XION_IMAGE: heighliner:${{ env.PLATFORM }}

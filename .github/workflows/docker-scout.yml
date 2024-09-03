@@ -7,33 +7,46 @@ on:
 
 jobs:
   docker-scout:
-    name: Docker Scout
+    name: main
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
 
     strategy:
+      fail-fast: false
       matrix:
         platform: [linux/amd64, linux/arm64]
+
     steps:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-      - name: Get Docker Image
-        id: meta-scout
-        uses: docker/metadata-action@v5
+
+      - name: Prepare environment
+        run: |
+          echo "PLATFORM=${{ matrix.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=docker/${{ matrix.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+
+      - name: Download images
+        uses: actions/download-artifact@v4
         with:
-          images: |
-            burntnetwork/xion
-          tags: |
-            type=sha
-      - name: Run Docker Scout amd64
+          path: ${{ runner.temp }}
+          pattern: ${{ env.DOCKER_FN }}
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          ls -la
+          docker load < ${{ env.DOCKER_FN }}
+
+      - name: Run Docker Scout
         uses: docker/scout-action@v1
         with:
           command: cves
           only-fixed: true
           platform: ${{ matrix.platform }}
-          image: ${{ steps.meta-scout.outputs.tags }}
+          image: xion:${{ env.PLATFORM }}

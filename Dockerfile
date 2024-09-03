@@ -25,12 +25,13 @@ ENV COMMIT=${COMMIT} \
     GOARCH=${TARGETARCH}
 
 # Install dependencies
-RUN apk add --no-cache \
-    build-base \
-    ca-certificates \
-    linux-headers \
-    binutils-gold \
-    git
+RUN set -eux; \
+        apk add --no-cache \
+        build-base \
+        ca-certificates \
+        linux-headers \
+        #binutils-gold \
+        git
 
 # Set the workdir
 WORKDIR /go/src/github.com/burnt-labs/xion
@@ -39,6 +40,7 @@ WORKDIR /go/src/github.com/burnt-labs/xion
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/pkg/mod \
+    set -eux; \
     go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.5.0; \
     go mod download
 
@@ -67,6 +69,73 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     export CGO_ENABLED=1 LINK_STATICALLY=true BUILD_TAGS=muslc; \
     make test-version; \
     make install;
+
+# --------------------------------------------------------
+# Heighliner
+# --------------------------------------------------------
+
+# Build final image from scratch
+FROM scratch AS heighliner
+
+WORKDIR /bin
+ENV PATH=/bin
+
+# Install busybox
+COPY --from=busybox:1.36-musl /bin/busybox /bin/busybox
+
+# users and group
+COPY --from=busybox:1.36-musl /etc/passwd /etc/group /etc/
+
+# Install trusted CA certificates
+COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
+
+# Install xiond
+COPY --from=builder /go/bin/xiond /bin/xiond
+
+# Install jq
+COPY --from=ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 /usr/local/bin/jq /bin/jq
+
+# link shell
+RUN ["busybox", "ln", "/bin/busybox", "sh"]
+
+# Add hard links for read-only utils
+# Will then only have one copy of the busybox minimal binary file with all utils pointing to the same underlying inode
+RUN set -eux; \
+  for bin in \
+    cat \
+    date \
+    df \
+    du \
+    env \
+    grep \
+    head \
+    less \
+    ls \
+    md5sum \
+    pwd \
+    sha1sum \
+    sha256sum \
+    sha3sum \
+    sha512sum \
+    sleep \
+    stty \
+    tail \
+    tar \
+    tee \
+    tr \
+    watch \
+    which \
+  ; do busybox ln /bin/busybox $bin; \
+done;
+
+RUN set -eux; \
+  busybox mkdir -p /home/heighliner; \
+  busybox addgroup --gid 1025 -S heighliner; \
+  busybox adduser --uid 1025 -h /home/heighliner -S heighliner -G heighliner; \
+  busybox unlink busybox;
+
+WORKDIR /home/heighliner
+USER heighliner
 
 # --------------------------------------------------------
 # Runner
