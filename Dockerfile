@@ -132,6 +132,7 @@ RUN set -eux; \
   busybox mkdir -p /tmp /home/heighliner; \
   busybox addgroup --gid 1025 -S heighliner; \
   busybox adduser --uid 1025 -h /home/heighliner -S heighliner -G heighliner; \
+  busybox chown 1025:1025 /tmp /home/heighliner; \
   busybox unlink busybox;
 
 WORKDIR /home/heighliner
