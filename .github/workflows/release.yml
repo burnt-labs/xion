@@ -38,7 +38,7 @@ jobs:
 
   push-docker:
     needs: build-docker
-    name: Heighliner Build
+    name: Push Docker Images
     uses: burnt-labs/xion/.github/workflows/docker-push.yml@main
     secrets: inherit
 
