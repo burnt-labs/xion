@@ -68,8 +68,10 @@ jobs:
       fail-fast: false
       matrix:
         runner:
-          - burnt-labs-amd64
-          - burnt-labs-arm64
+          - selector: ubuntu-latest
+            platform: linux/amd64
+          # - selector: burnt-labs-arm64
+          #   platform: linux/arm64
         test_type:
         - "DungeonTransferBlock"
         - "XionSendPlatformFee"
