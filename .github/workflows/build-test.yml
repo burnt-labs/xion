@@ -32,12 +32,6 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
     secrets: inherit
 
-  push-docker:
-    needs: build-docker
-    name: Push Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-push.yml@main
-    secrets: inherit
-
   docker-scout:
     needs: build-docker
     name: Docker Scout
@@ -47,5 +41,5 @@ jobs:
   interchain-tests:
     needs: build-docker
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@chore/ict-v8
     secrets: inherit
