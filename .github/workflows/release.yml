@@ -97,7 +97,7 @@ jobs:
         run : |
           set -Eeuo pipefail
           upgrade_name=$(echo $GITHUB_REF_NAME | cut -d. -f1)
-          jq -s '.[0] * .[1]' <(go mod edit -json | jq --arg name $upgrade_name '{
+          jq -s '.[0] * (.[1] // {})' <(go mod edit -json | jq --arg name $upgrade_name '{
               name: $name,
               tag: "${{ github.ref_name }}",
               height: 0,
