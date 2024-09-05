@@ -41,5 +41,5 @@ jobs:
   interchain-tests:
     needs: build-docker
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@chore/ict-v8
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
     secrets: inherit
