@@ -10,8 +10,8 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,7 +68,7 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 // with the chain node binary.
 func feeTxCommand(chain *cosmos.CosmosChain, fee string, sender string, receiver string) []string {
 	command := []string{"tx"}
-	return chain.FullNodes[0].NodeCommand(append(command,
+	return chain.GetNode().NodeCommand(append(command,
 		"bank", "send", sender, receiver,
 		fmt.Sprintf("%s%s", "1000000", chain.Config().Denom),
 		"--from", "faucet",
@@ -95,13 +95,15 @@ func sendPeriodicBankTx(t *testing.T, chain *cosmos.CosmosChain, ctx context.Con
 	err := chain.CreateKey(ctx, "testAccount")
 	require.NoError(t, err)
 	// Retrieve the test wallet address
-	testAccountAddress, err := chain.FullNodes[0].AccountKeyBech32(ctx, "testAccount")
+	testAccountAddress, err := chain.GetNode().AccountKeyBech32(ctx, "testAccount")
 	require.NoError(t, err)
 	// Retrieve the faucet address. Every chain has a faucet account
-	faucet, err := chain.FullNodes[0].AccountKeyBech32(ctx, "faucet")
+	faucet, err := chain.GetNode().AccountKeyBech32(ctx, "faucet")
 	require.NoError(t, err)
 	// Get the current chain height
-	curHeight, _ := chain.Height(ctx)
+	cHeight, err := chain.Height(ctx)
+	require.NoError(t, err)
+	curHeight := uint64(cHeight)
 
 	for curHeight < chainHeight {
 		// Get the current block provision at some height
@@ -132,11 +134,13 @@ func sendPeriodicBankTx(t *testing.T, chain *cosmos.CosmosChain, ctx context.Con
 			t.Fatal(err)
 		}
 
-		// Save the hash of the send tx for later analysis
+		// Save the hash of the Send tx for later analysis
 		txHashes.TxHashes = append(txHashes.TxHashes, output.TxHash)
 
 		time.Sleep(time.Duration(duration) * time.Second)
-		curHeight, _ = chain.Height(ctx)
+		cHeight, err := chain.Height(ctx)
+		require.NoError(t, err)
+		curHeight = uint64(cHeight)
 	}
 }
 

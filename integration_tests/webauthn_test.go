@@ -10,20 +10,22 @@ import (
 	"path"
 	"testing"
 
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"google.golang.org/protobuf/types/known/anypb"
+
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xionapp "github.com/burnt-labs/xion/app"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	ibctest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,7 +40,7 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	// users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	deployerAddr, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
 	require.NoError(t, err)
@@ -50,19 +52,6 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	// register any needed msg types
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgStoreCode{},
-		&aatypes.MsgUpdateParams{},
-		&aatypes.MsgRegisterAccount{},
-	)
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &aatypes.AbstractAccount{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &aatypes.NilPubKey{})
-	// t.Log(xion.Config().EncodingConfig.InterfaceRegistry.ListImplementations("/xion.v1.Msg/Send"))
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 
@@ -72,7 +61,7 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	require.NoError(t, err)
 
 	// retrieve the hash
-	codeResp, err := ExecQuery(t, ctx, xion.FullNodes[0],
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", codeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
@@ -132,31 +121,38 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	}
 	t.Logf("sender: %s", deployerAddr.FormattedAddress())
 
-	txHash, err := ExecTx(t, ctx, xion.FullNodes[0], deployerAddr.KeyName(), registerCmd...)
+	txHash, err := ExecTx(t, ctx, xion.GetNode(), deployerAddr.KeyName(), registerCmd...)
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
 
-	contractsResponse, err := ExecQuery(t, ctx, xion.FullNodes[0], "wasm", "contracts", codeIDStr)
+	contractsResponse, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contracts", codeIDStr)
 	require.NoError(t, err)
 
 	contract := contractsResponse["contracts"].([]interface{})[0].(string)
 
 	// get the account from the chain. there might be a better way to do this
-	accountResponse, err := ExecQuery(t, ctx, xion.FullNodes[0],
-		"account", contract)
+	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
+		"auth", "account", contract)
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
 
-	delete(accountResponse, "@type")
+	ac, ok := accountResponse["account"]
+	require.True(t, ok)
+
+	ac2, ok := ac.(map[string]interface{})
+	require.True(t, ok)
+
+	acData, ok := ac2["value"]
+	require.True(t, ok)
+
+	accountJSON, err := json.Marshal(acData)
+	require.NoError(t, err)
+
 	var account aatypes.AbstractAccount
-	accountJSON, err := json.Marshal(accountResponse)
+	err = xion.Config().EncodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
-	encodingConfig := xionapp.MakeEncodingConfig()
-	err = encodingConfig.Marshaler.UnmarshalJSON(accountJSON, &account)
-	require.NoError(t, err)
-
-	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: 10_000})
+	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: math.NewInt(10_000)})
 	require.NoError(t, err)
 	// create the raw tx
 	sendMsg := fmt.Sprintf(`
@@ -194,17 +190,23 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	}
 		`, contract, deployerAddr.FormattedAddress(), "uxion")
 
-	tx, err := encodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
+	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)
-	txBuilder, err := encodingConfig.TxConfig.WrapTxBuilder(tx)
+	txBuilder, err := xion.Config().EncodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
 	// create the sign bytes
-	signerData := authsigning.SignerData{
+	pubKey := account.GetPubKey()
+	anyPk, err := codectypes.NewAnyWithValue(pubKey)
+	require.NoError(t, err)
+	signerData := txsigning.SignerData{
 		Address:       account.GetAddress().String(),
 		ChainID:       xion.Config().ChainID,
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      account.GetSequence(),
-		PubKey:        account.GetPubKey(),
+		PubKey: &anypb.Any{
+			TypeUrl: anyPk.TypeUrl,
+			Value:   anyPk.Value,
+		}, // NOTE: NilPubKey
 	}
 
 	sigData := signing.SingleSignatureData{
@@ -221,7 +223,17 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	signBytes, err := encodingConfig.TxConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
+	builtTx := txBuilder.GetTx()
+	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
+	if !ok {
+		panic(fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", builtTx))
+	}
+	txData := adaptableTx.GetSigningTxData()
+
+	signBytes, err := xion.Config().EncodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+		ctx,
+		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
+		signerData, txData)
 	require.NoError(t, err)
 	// our signature is the sha256 of the signbytes
 	signatureBz := sha256.Sum256(signBytes)
@@ -253,11 +265,11 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	jsonTx, err := encodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+	jsonTx, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err := ExecBroadcast(t, ctx, xion.FullNodes[0], jsonTx)
+	output, err := ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
@@ -265,5 +277,5 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, int64(10_000-1337), newBalance)
+	require.True(t, math.NewInt(10_000-1337).Equal(newBalance))
 }

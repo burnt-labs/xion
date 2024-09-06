@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Use `make proto-swagger-gen` to run this script
-set -exo pipefail
+set -eo pipefail
 
 # Get the directory of this script, used to source other scripts
 : ${scripts_dir:="$(realpath $(dirname $0))"}
