@@ -266,6 +266,6 @@ replace (
 
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.1
-	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240904201714-f31e8234ed64
+	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240910230035-f7173ca8866a
 	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.3-wasmvm2
 )
