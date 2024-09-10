@@ -89,6 +89,7 @@ jobs:
         - "TreasuryContract"
         - "TreasuryMulti"
         - "SingleAbstractAccountMigration"
+        - "Simulate"
 
     steps:
       - name: checkout
