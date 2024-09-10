@@ -33,7 +33,10 @@ func GrpcQuerier(queryRouter baseapp.GRPCQueryRouter) func(ctx sdk.Context, requ
 		if res.Value == nil {
 			return nil, fmt.Errorf("res returned from abci query route is nil")
 		}
-		proto.Unmarshal(res.Value, protoResponse)
+		err = proto.Unmarshal(res.Value, protoResponse)
+		if err != nil {
+			return nil, err
+		}
 
 		return protoResponse, nil
 	}

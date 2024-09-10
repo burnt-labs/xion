@@ -38,7 +38,7 @@ func createAuthzGrantsGrpc(suite *GrpcTestSuite) {
 	authzKeeper := suite.app.AuthzKeeper
 
 	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
-		Msg: "/" + string(proto.MessageName(&banktypes.MsgSend{})),
+		Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
 	})
 	suite.NoError(err)
 	grantMsg := &authztypes.MsgGrant{
@@ -72,7 +72,7 @@ func (suite *GrpcTestSuite) TestAuthzGrpcQuerier() {
 			},
 			responseProtoStruct: func() proto.Message {
 				authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
-					Msg: "/" + string(proto.MessageName(&banktypes.MsgSend{})),
+					Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
 				})
 				suite.NoError(err)
 				return &authztypes.QueryGrantsResponse{
