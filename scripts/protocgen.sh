@@ -21,6 +21,9 @@ for dir in $proto_dirs; do
   done
 done
 
+echo "Generating pulsar proto code"
+buf generate --template $proto_dir/buf.gen.pulsar.yaml
+
 cd $base_dir
 
 # move proto files to the right places

@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
 	wasmapp "github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -25,13 +24,11 @@ import (
 	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/keeper"
 	feeabstypes "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/types"
 	"github.com/spf13/cast"
-
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmos "github.com/cometbft/cometbft/libs/os"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
@@ -60,10 +57,8 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -143,7 +138,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	"github.com/burnt-labs/xion/app/upgrades"
 	v9 "github.com/burnt-labs/xion/app/upgrades/v9"
 	"github.com/burnt-labs/xion/client/docs"
@@ -158,6 +152,9 @@ import (
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	dkim "github.com/burnt-labs/xion/x/dkim"
+	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
 )
 
 const appName = "XionApp"
@@ -343,6 +340,7 @@ type WasmApp struct {
 	// IBC middleware wrappers
 	Ics20WasmHooks   *ibchooks.WasmHooks
 	HooksICS4Wrapper ibchooks.ICS4Middleware
+	DkimKeeper dkimkeeper.Keeper
 
 	// the module manager
 	ModuleManager *module.Manager
@@ -388,6 +386,7 @@ func NewWasmApp(
 		icacontrollertypes.StoreKey, globalfee.StoreKey, xiontypes.StoreKey,
 		ibchookstypes.StoreKey, packetforwardtypes.StoreKey, feeabstypes.StoreKey,
 		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
+		dkimtypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -604,6 +603,14 @@ func NewWasmApp(
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
+
+	// Create the dkim Keeper
+	app.DkimKeeper = dkimkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[dkimtypes.StoreKey]),
+		logger,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	app.JwkKeeper = jwkkeeper.NewKeeper(
 		appCodec,
@@ -843,6 +850,8 @@ func NewWasmApp(
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		feeabsModule,
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
+		dkim.NewAppModule(appCodec, app.DkimKeeper),
+
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -872,6 +881,7 @@ func NewWasmApp(
 		xiontypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -896,6 +906,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -928,6 +939,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
@@ -1317,6 +1329,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(feeabstypes.ModuleName)
+	paramsKeeper.Subspace(dkimtypes.ModuleName)
 
 	return paramsKeeper
 }

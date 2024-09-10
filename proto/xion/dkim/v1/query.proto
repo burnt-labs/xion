@@ -1,0 +1,40 @@
+syntax = "proto3";
+package xion.dkim.v1;
+
+import "google/api/annotations.proto";
+import "xion/dkim/v1/genesis.proto";
+import "xion/dkim/v1/state.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/dkim/types";
+
+// Query provides defines the gRPC querier service.
+service Query {
+  // Params queries all parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dkim/v1/params";
+  }
+
+  rpc DkimPubKeys(QueryDkimPubKeysRequest) returns (QueryDkimPubKeysResponse) {
+    option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
+  }
+}
+
+// QueryParamsRequest is the request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params defines the parameters of the module.
+  Params params = 1;
+}
+
+// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC method.
+message QueryDkimPubKeysRequest {
+  string domain = 1;
+}
+
+// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC method.
+message QueryDkimPubKeysResponse {
+  DkimPubKeys dkim_pubkeys = 1;
+  string hash = 2; // the poseidon hash of the response
+}
