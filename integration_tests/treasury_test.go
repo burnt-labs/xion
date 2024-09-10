@@ -31,9 +31,9 @@ import (
 */
 
 type GrantConfig struct {
-	Description   string                 `json:"description"`
-	Authorization map[string]interface{} `json:"authorization"`
-	Optional      bool                   `json:"optional"`
+	Description   string      `json:"description"`
+	Authorization ExplicitAny `json:"authorization"`
+	Optional      bool        `json:"optional"`
 }
 
 type FeeConfig struct {
@@ -106,9 +106,10 @@ func TestTreasuryContract(t *testing.T) {
 		Value:   feeGrant.Allowance.Value,
 	}
 
-	authorizationAny := map[string]interface{}{}
-	authorizationAny["@type"] = testGrant.Authorization.TypeUrl
-	authorizationAny["msg"] = testAuth.MsgTypeURL()
+	authorizationAny := ExplicitAny{
+		TypeURL: testGrant.Authorization.TypeUrl,
+		Value:   testGrant.Authorization.Value,
+	}
 
 	grantConfig := GrantConfig{
 		Description:   "test authorization",
@@ -371,9 +372,10 @@ func TestTreasuryMulti(t *testing.T) {
 		Value:   bz,
 	}
 
-	authorizationAny := map[string]interface{}{}
-	authorizationAny["@type"] = testGrant.Authorization.TypeUrl
-	authorizationAny["msg"] = testAuth.MsgTypeURL()
+	authorizationAny := ExplicitAny{
+		TypeURL: testGrant.Authorization.TypeUrl,
+		Value:   testGrant.Authorization.Value,
+	}
 
 	grantConfig := GrantConfig{
 		Description:   "test authorization",
