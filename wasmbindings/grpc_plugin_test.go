@@ -6,15 +6,18 @@ import (
 	"time"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
-	xionapp "github.com/burnt-labs/xion/app"
-	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
-	"github.com/stretchr/testify/suite"
+
+	xionapp "github.com/burnt-labs/xion/app"
+	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 )
 
 type GrpcTestSuite struct {
