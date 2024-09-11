@@ -340,13 +340,13 @@ func TestSimulate(t *testing.T) {
 		Signature: sigBytes,
 	}
 
-	sig = signing.SignatureV2{
-		PubKey:   account.GetPubKey(),
-		Data:     &sigData,
-		Sequence: account.GetSequence(),
-	}
-	err = txBuilder.SetSignatures(sig)
-	require.NoError(t, err)
+	//sig = signing.SignatureV2{
+	//	PubKey:   account.GetPubKey(),
+	//	Data:     &sigData,
+	//	Sequence: account.GetSequence(),
+	//}
+	//err = txBuilder.SetSignatures(sig)
+	//require.NoError(t, err)
 
 	jsonTx, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
