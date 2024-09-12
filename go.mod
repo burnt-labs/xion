@@ -58,6 +58,7 @@ require (
 require (
 	cosmossdk.io/client/v2 v2.0.0-beta.4 // indirect
 	cosmossdk.io/collections v0.4.0 // indirect
+	cosmossdk.io/orm v1.0.0-beta.3 // indirect
 	cosmossdk.io/store v1.1.0 // indirect
 	cosmossdk.io/x/feegrant v0.1.1 // indirect
 	cosmossdk.io/x/tx v0.13.3 // indirect
