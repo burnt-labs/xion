@@ -269,3 +269,5 @@ replace (
 	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240911164801-9a0dcb4a06b1
 	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.3-wasmvm2
 )
+
+replace github.com/cosmos/cosmos-sdk => github.com/burnt-labs/cosmos-sdk v0.50.10-0.20240913131614-c907ee00a35d
