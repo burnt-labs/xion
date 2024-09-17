@@ -38,7 +38,7 @@ jobs:
 
   push-docker:
     needs: build-docker
-    name: Heighliner Build
+    name: Push Docker Images
     uses: burnt-labs/xion/.github/workflows/docker-push.yml@main
     secrets: inherit
 
@@ -97,7 +97,7 @@ jobs:
         run : |
           set -Eeuo pipefail
           upgrade_name=$(echo $GITHUB_REF_NAME | cut -d. -f1)
-          jq -s '.[0] * .[1]' <(go mod edit -json | jq --arg name $upgrade_name '{
+          jq -s '.[0] * (.[1] // {})' <(go mod edit -json | jq --arg name $upgrade_name '{
               name: $name,
               tag: "${{ github.ref_name }}",
               height: 0,
