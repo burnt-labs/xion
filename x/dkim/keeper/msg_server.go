@@ -27,3 +27,10 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 
 	return nil, ms.k.Params.Set(ctx, msg.Params)
 }
+
+// AddDkimPubKey implements types.MsgServer.
+func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubKey) (*types.MsgAddDkimPubKeyResponse, error) {
+	if ms.k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
+	}
+}

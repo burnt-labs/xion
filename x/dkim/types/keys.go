@@ -21,7 +21,7 @@ const (
 
 var ORMModuleSchema = ormv1alpha1.ModuleSchemaDescriptor{
 	SchemaFile: []*ormv1alpha1.ModuleSchemaDescriptor_FileEntry{
-		{Id: 1, ProtoFileName: "dkim/v1/state.proto"},
+		{Id: 1, ProtoFileName: "xion/dkim/v1/state.proto"},
 	},
 	Prefix: []byte{0},
 }

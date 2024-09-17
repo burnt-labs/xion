@@ -16,7 +16,7 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
 
-	modulev1 "github.com/burnt-labs/xion/api/dkim/module/v1"
+	modulev1 "github.com/burnt-labs/xion/api/xion/dkim/module/v1"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 )
 

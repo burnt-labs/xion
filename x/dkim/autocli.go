@@ -2,7 +2,7 @@ package module
 
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
-	modulev1 "github.com/burnt-labs/xion/api/dkim/v1"
+	modulev1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 )
 
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.

@@ -28,3 +28,8 @@ func (k Querier) Params(c context.Context, req *types.QueryParamsRequest) (*type
 
 	return &types.QueryParamsResponse{Params: &p}, nil
 }
+
+// DkimPubKeys implements types.QueryServer.
+func (k Querier) DkimPubKeys(context.Context, *types.QueryDkimPubKeysRequest) (*types.QueryDkimPubKeysResponse, error) {
+	panic("unimplemented")
+}
