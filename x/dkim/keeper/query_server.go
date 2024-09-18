@@ -30,6 +30,14 @@ func (k Querier) Params(c context.Context, req *types.QueryParamsRequest) (*type
 }
 
 // DkimPubKeys implements types.QueryServer.
-func (k Querier) DkimPubKeys(context.Context, *types.QueryDkimPubKeyRequest) (*types.QueryDkimPubKeyResponse, error) {
-	panic("unimplemented")
+func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeyRequest) (*types.QueryDkimPubKeyResponse, error) {
+	dkimPubKey, err := k.OrmDB.DkimPubKeyTable().Get(ctx, msg.Selector, msg.Domain)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryDkimPubKeyResponse{DkimPubkey: &types.DkimPubKey{
+		Domain:   dkimPubKey.Domain,
+		PubKey:   dkimPubKey.PubKey,
+		Selector: dkimPubKey.Selector,
+	}, PoseidonHash: []byte(dkimPubKey.PubKey)}, nil
 }

@@ -105,7 +105,8 @@ func TestAddDkimPubKey(t *testing.T) {
 				require.NoError(err)
 
 				r, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeyRequest{
-					Domain: tc.request.DkimPubkeys[0].Domain,
+					Domain:   tc.request.DkimPubkeys[0].Domain,
+					Selector: tc.request.DkimPubkeys[0].Selector,
 				})
 				require.NoError(err)
 

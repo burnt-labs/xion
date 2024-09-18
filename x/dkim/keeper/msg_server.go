@@ -6,6 +6,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"cosmossdk.io/errors"
+	dkimv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
@@ -33,5 +34,14 @@ func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubK
 	if ms.k.authority != msg.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
-	return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
+	for _, dkimPubKey := range msg.DkimPubkeys {
+		if err := ms.k.OrmDB.DkimPubKeyTable().Save(ctx, &dkimv1.DkimPubKey{
+			Domain:   dkimPubKey.Domain,
+			PubKey:   dkimPubKey.PubKey,
+			Selector: dkimPubKey.Selector,
+		}); err != nil {
+			return nil, err
+		}
+	}
+	return &types.MsgAddDkimPubKeyResponse{}, nil
 }
