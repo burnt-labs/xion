@@ -112,22 +112,23 @@ func (m *QueryParamsResponse) GetParams() *Params {
 }
 
 // QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC method.
-type QueryDkimPubKeysRequest struct {
-	Domain string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
+type QueryDkimPubKeyRequest struct {
+	Selector string `protobuf:"bytes,1,opt,name=selector,proto3" json:"selector,omitempty"`
+	Domain   string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
 }
 
-func (m *QueryDkimPubKeysRequest) Reset()         { *m = QueryDkimPubKeysRequest{} }
-func (m *QueryDkimPubKeysRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryDkimPubKeysRequest) ProtoMessage()    {}
-func (*QueryDkimPubKeysRequest) Descriptor() ([]byte, []int) {
+func (m *QueryDkimPubKeyRequest) Reset()         { *m = QueryDkimPubKeyRequest{} }
+func (m *QueryDkimPubKeyRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDkimPubKeyRequest) ProtoMessage()    {}
+func (*QueryDkimPubKeyRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ef31cf4588a86e6f, []int{2}
 }
-func (m *QueryDkimPubKeysRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryDkimPubKeyRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryDkimPubKeysRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDkimPubKeyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryDkimPubKeysRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDkimPubKeyRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -137,19 +138,26 @@ func (m *QueryDkimPubKeysRequest) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *QueryDkimPubKeysRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryDkimPubKeysRequest.Merge(m, src)
+func (m *QueryDkimPubKeyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDkimPubKeyRequest.Merge(m, src)
 }
-func (m *QueryDkimPubKeysRequest) XXX_Size() int {
+func (m *QueryDkimPubKeyRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryDkimPubKeysRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryDkimPubKeysRequest.DiscardUnknown(m)
+func (m *QueryDkimPubKeyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDkimPubKeyRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryDkimPubKeysRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryDkimPubKeyRequest proto.InternalMessageInfo
 
-func (m *QueryDkimPubKeysRequest) GetDomain() string {
+func (m *QueryDkimPubKeyRequest) GetSelector() string {
+	if m != nil {
+		return m.Selector
+	}
+	return ""
+}
+
+func (m *QueryDkimPubKeyRequest) GetDomain() string {
 	if m != nil {
 		return m.Domain
 	}
@@ -157,23 +165,23 @@ func (m *QueryDkimPubKeysRequest) GetDomain() string {
 }
 
 // QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC method.
-type QueryDkimPubKeysResponse struct {
-	DkimPubkeys *DkimPubKeys `protobuf:"bytes,1,opt,name=dkim_pubkeys,json=dkimPubkeys,proto3" json:"dkim_pubkeys,omitempty"`
-	Hash        string       `protobuf:"bytes,2,opt,name=hash,proto3" json:"hash,omitempty"`
+type QueryDkimPubKeyResponse struct {
+	DkimPubkey   *DkimPubKey `protobuf:"bytes,1,opt,name=dkim_pubkey,json=dkimPubkey,proto3" json:"dkim_pubkey,omitempty"`
+	PoseidonHash []byte      `protobuf:"bytes,2,opt,name=poseidon_hash,json=poseidonHash,proto3" json:"poseidon_hash,omitempty"`
 }
 
-func (m *QueryDkimPubKeysResponse) Reset()         { *m = QueryDkimPubKeysResponse{} }
-func (m *QueryDkimPubKeysResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryDkimPubKeysResponse) ProtoMessage()    {}
-func (*QueryDkimPubKeysResponse) Descriptor() ([]byte, []int) {
+func (m *QueryDkimPubKeyResponse) Reset()         { *m = QueryDkimPubKeyResponse{} }
+func (m *QueryDkimPubKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDkimPubKeyResponse) ProtoMessage()    {}
+func (*QueryDkimPubKeyResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ef31cf4588a86e6f, []int{3}
 }
-func (m *QueryDkimPubKeysResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryDkimPubKeyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryDkimPubKeysResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDkimPubKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryDkimPubKeysResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDkimPubKeyResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -183,67 +191,69 @@ func (m *QueryDkimPubKeysResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *QueryDkimPubKeysResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryDkimPubKeysResponse.Merge(m, src)
+func (m *QueryDkimPubKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDkimPubKeyResponse.Merge(m, src)
 }
-func (m *QueryDkimPubKeysResponse) XXX_Size() int {
+func (m *QueryDkimPubKeyResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryDkimPubKeysResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryDkimPubKeysResponse.DiscardUnknown(m)
+func (m *QueryDkimPubKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDkimPubKeyResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryDkimPubKeysResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryDkimPubKeyResponse proto.InternalMessageInfo
 
-func (m *QueryDkimPubKeysResponse) GetDkimPubkeys() *DkimPubKeys {
+func (m *QueryDkimPubKeyResponse) GetDkimPubkey() *DkimPubKey {
 	if m != nil {
-		return m.DkimPubkeys
+		return m.DkimPubkey
 	}
 	return nil
 }
 
-func (m *QueryDkimPubKeysResponse) GetHash() string {
+func (m *QueryDkimPubKeyResponse) GetPoseidonHash() []byte {
 	if m != nil {
-		return m.Hash
+		return m.PoseidonHash
 	}
-	return ""
+	return nil
 }
 
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "xion.dkim.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "xion.dkim.v1.QueryParamsResponse")
-	proto.RegisterType((*QueryDkimPubKeysRequest)(nil), "xion.dkim.v1.QueryDkimPubKeysRequest")
-	proto.RegisterType((*QueryDkimPubKeysResponse)(nil), "xion.dkim.v1.QueryDkimPubKeysResponse")
+	proto.RegisterType((*QueryDkimPubKeyRequest)(nil), "xion.dkim.v1.QueryDkimPubKeyRequest")
+	proto.RegisterType((*QueryDkimPubKeyResponse)(nil), "xion.dkim.v1.QueryDkimPubKeyResponse")
 }
 
 func init() { proto.RegisterFile("xion/dkim/v1/query.proto", fileDescriptor_ef31cf4588a86e6f) }
 
 var fileDescriptor_ef31cf4588a86e6f = []byte{
-	// 376 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x4d, 0x4b, 0xc3, 0x30,
-	0x1c, 0xc6, 0xd7, 0xa1, 0x05, 0xb3, 0x81, 0x18, 0xa7, 0xab, 0x45, 0xcb, 0x2c, 0xf8, 0x72, 0xd0,
-	0x96, 0xcd, 0xab, 0x17, 0x5f, 0x6e, 0x5e, 0xe6, 0x8e, 0x5e, 0x24, 0x75, 0xb1, 0x0b, 0x5b, 0x93,
-	0xae, 0x49, 0xc7, 0x8a, 0x37, 0x3f, 0x81, 0xe0, 0x97, 0xf2, 0x38, 0xf0, 0xe2, 0x51, 0x36, 0x8f,
-	0x7e, 0x08, 0x69, 0xd2, 0x8d, 0x96, 0x89, 0xde, 0x92, 0xfc, 0x9f, 0x3c, 0xbf, 0x87, 0x87, 0x3f,
-	0x30, 0xc6, 0x84, 0x51, 0xb7, 0xdb, 0x27, 0x81, 0x3b, 0x6a, 0xba, 0xc3, 0x18, 0x47, 0x89, 0x13,
-	0x46, 0x4c, 0x30, 0x58, 0x4d, 0x27, 0x4e, 0x3a, 0x71, 0x46, 0x4d, 0x73, 0xd7, 0x67, 0xcc, 0x1f,
-	0x60, 0x17, 0x85, 0xc4, 0x45, 0x94, 0x32, 0x81, 0x04, 0x61, 0x94, 0x2b, 0xad, 0x69, 0x16, 0x5c,
-	0x7c, 0x4c, 0x31, 0x27, 0xf3, 0x59, 0x91, 0xc0, 0x05, 0x12, 0x58, 0x4d, 0xec, 0x1a, 0x80, 0xb7,
-	0x29, 0xb0, 0x8d, 0x22, 0x14, 0xf0, 0x0e, 0x1e, 0xc6, 0x98, 0x0b, 0xfb, 0x0a, 0x6c, 0x16, 0x5e,
-	0x79, 0xc8, 0x28, 0xc7, 0xf0, 0x04, 0xe8, 0xa1, 0x7c, 0x31, 0xb4, 0x86, 0x76, 0x5c, 0x69, 0xd5,
-	0x9c, 0x7c, 0x3e, 0x27, 0x53, 0x67, 0x1a, 0xbb, 0x09, 0xea, 0xd2, 0xe4, 0xba, 0x4f, 0x82, 0x76,
-	0xec, 0xdd, 0xe0, 0x64, 0xee, 0x0f, 0xb7, 0x81, 0xde, 0x65, 0x01, 0x22, 0x54, 0x1a, 0xad, 0x75,
-	0xb2, 0x9b, 0x3d, 0x00, 0xc6, 0xf2, 0x97, 0x0c, 0x7e, 0x0e, 0xaa, 0x29, 0xe8, 0x3e, 0x8c, 0xbd,
-	0x3e, 0x4e, 0xe6, 0x11, 0x76, 0x8a, 0x11, 0xf2, 0x1f, 0x2b, 0x5d, 0x75, 0x49, 0xd5, 0x10, 0x82,
-	0x95, 0x1e, 0xe2, 0x3d, 0xa3, 0x2c, 0x79, 0xf2, 0xdc, 0xfa, 0xd6, 0xc0, 0xaa, 0xc4, 0xc1, 0x47,
-	0xa0, 0xab, 0xf0, 0xb0, 0x51, 0xf4, 0x5b, 0xee, 0xc6, 0xdc, 0xff, 0x43, 0xa1, 0xa2, 0xda, 0xf5,
-	0xe7, 0xf7, 0xaf, 0xd7, 0xf2, 0x06, 0x5c, 0x5f, 0x54, 0xae, 0x2a, 0x81, 0x4f, 0xa0, 0x92, 0x4b,
-	0x08, 0x0f, 0x7e, 0xb1, 0x5a, 0x6e, 0xcb, 0x3c, 0xfc, 0x4f, 0x96, 0x61, 0xf7, 0x24, 0xb6, 0x0e,
-	0xb7, 0x16, 0xd8, 0x7c, 0x61, 0x97, 0x17, 0x6f, 0x53, 0x4b, 0x9b, 0x4c, 0x2d, 0xed, 0x73, 0x6a,
-	0x69, 0x2f, 0x33, 0xab, 0x34, 0x99, 0x59, 0xa5, 0x8f, 0x99, 0x55, 0xba, 0x3b, 0xf2, 0x89, 0xe8,
-	0xc5, 0x9e, 0xf3, 0xc0, 0x02, 0xd7, 0x8b, 0x23, 0x2a, 0x4e, 0x07, 0xc8, 0xe3, 0xae, 0x5c, 0x9a,
-	0xb1, 0x32, 0x13, 0x49, 0x88, 0xb9, 0xa7, 0xcb, 0xa5, 0x39, 0xfb, 0x09, 0x00, 0x00, 0xff, 0xff,
-	0xc3, 0x08, 0x64, 0xa3, 0xb2, 0x02, 0x00, 0x00,
+	// 409 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x4f, 0x4f, 0xa3, 0x40,
+	0x18, 0xc6, 0x4b, 0x93, 0x25, 0xbb, 0xd3, 0x6e, 0x36, 0x3b, 0xdb, 0x6d, 0x09, 0xd9, 0x25, 0x5d,
+	0x56, 0xa3, 0x07, 0x85, 0xb4, 0x9e, 0x3c, 0xfa, 0xe7, 0x60, 0xa2, 0x87, 0xda, 0xa3, 0x97, 0x66,
+	0x28, 0x23, 0x4c, 0x28, 0x33, 0x94, 0x19, 0x9a, 0x72, 0xf5, 0x13, 0x98, 0xf8, 0xa5, 0x3c, 0x36,
+	0xf1, 0xe2, 0xd1, 0xb4, 0x9e, 0xfc, 0x14, 0x86, 0x81, 0xd6, 0x92, 0x1a, 0xbd, 0x31, 0xef, 0xf3,
+	0xf0, 0x7b, 0x1e, 0x5e, 0x06, 0x68, 0x53, 0xc2, 0xa8, 0xed, 0x06, 0x24, 0xb4, 0x27, 0x1d, 0x7b,
+	0x9c, 0xe0, 0x38, 0xb5, 0xa2, 0x98, 0x09, 0x06, 0xeb, 0x99, 0x62, 0x65, 0x8a, 0x35, 0xe9, 0xe8,
+	0x7f, 0x3c, 0xc6, 0xbc, 0x11, 0xb6, 0x51, 0x44, 0x6c, 0x44, 0x29, 0x13, 0x48, 0x10, 0x46, 0x79,
+	0xee, 0xd5, 0xf5, 0x12, 0xc5, 0xc3, 0x14, 0x73, 0xb2, 0xd4, 0xca, 0x09, 0x5c, 0x20, 0x81, 0x73,
+	0xc5, 0x6c, 0x00, 0x78, 0x99, 0x05, 0xf6, 0x50, 0x8c, 0x42, 0xde, 0xc7, 0xe3, 0x04, 0x73, 0x61,
+	0x9e, 0x80, 0x5f, 0xa5, 0x29, 0x8f, 0x18, 0xe5, 0x18, 0xee, 0x01, 0x35, 0x92, 0x13, 0x4d, 0x69,
+	0x2b, 0xbb, 0xb5, 0x6e, 0xc3, 0x5a, 0xef, 0x67, 0x15, 0xee, 0xc2, 0x63, 0x5e, 0x80, 0xa6, 0x84,
+	0x9c, 0x06, 0x24, 0xec, 0x25, 0xce, 0x39, 0x4e, 0x0b, 0x3c, 0xd4, 0xc1, 0x57, 0x8e, 0x47, 0x78,
+	0x28, 0x58, 0x2c, 0x49, 0xdf, 0xfa, 0xab, 0x33, 0x6c, 0x02, 0xd5, 0x65, 0x21, 0x22, 0x54, 0xab,
+	0x4a, 0xa5, 0x38, 0x99, 0x29, 0x68, 0x6d, 0xd0, 0x8a, 0x5a, 0x87, 0xa0, 0x96, 0x55, 0x18, 0x44,
+	0x89, 0x13, 0xe0, 0xb4, 0xe8, 0xa6, 0x95, 0xbb, 0xad, 0xbd, 0x06, 0xdc, 0xfc, 0x39, 0xc0, 0x29,
+	0xfc, 0x0f, 0xbe, 0x47, 0x8c, 0x63, 0xe2, 0x32, 0x3a, 0xf0, 0x11, 0xf7, 0x65, 0x68, 0xbd, 0x5f,
+	0x5f, 0x0e, 0xcf, 0x10, 0xf7, 0xbb, 0x2f, 0x0a, 0xf8, 0x22, 0xb3, 0xe1, 0x35, 0x50, 0xf3, 0x8f,
+	0x84, 0xed, 0x32, 0x7e, 0x73, 0x87, 0xfa, 0xbf, 0x0f, 0x1c, 0x79, 0x71, 0xb3, 0x75, 0xf3, 0xf0,
+	0x7c, 0x57, 0xfd, 0x09, 0x7f, 0xac, 0x7e, 0x4d, 0xbe, 0x3a, 0x98, 0x82, 0xda, 0x5b, 0x61, 0x0e,
+	0xb7, 0xde, 0x41, 0x6d, 0x6c, 0x55, 0xdf, 0xfe, 0xc4, 0x55, 0x84, 0xfe, 0x95, 0xa1, 0x2d, 0xf8,
+	0x7b, 0x15, 0xba, 0xb6, 0x3c, 0x7e, 0x7c, 0x74, 0x3f, 0x37, 0x94, 0xd9, 0xdc, 0x50, 0x9e, 0xe6,
+	0x86, 0x72, 0xbb, 0x30, 0x2a, 0xb3, 0x85, 0x51, 0x79, 0x5c, 0x18, 0x95, 0xab, 0x1d, 0x8f, 0x08,
+	0x3f, 0x71, 0xac, 0x21, 0x0b, 0x6d, 0x27, 0x89, 0xa9, 0xd8, 0x1f, 0x21, 0x87, 0xdb, 0xf2, 0x6a,
+	0x4d, 0x73, 0x98, 0x48, 0x23, 0xcc, 0x1d, 0x55, 0x5e, 0xad, 0x83, 0xd7, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x40, 0x93, 0xbb, 0x13, 0xd8, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -260,7 +270,7 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Params queries all parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error)
+	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
 }
 
 type queryClient struct {
@@ -280,8 +290,8 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error) {
-	out := new(QueryDkimPubKeysResponse)
+func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error) {
+	out := new(QueryDkimPubKeyResponse)
 	err := c.cc.Invoke(ctx, "/xion.dkim.v1.Query/DkimPubKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -293,7 +303,7 @@ func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysReque
 type QueryServer interface {
 	// Params queries all parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error)
+	DkimPubKeys(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -303,7 +313,7 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (*UnimplementedQueryServer) DkimPubKeys(ctx context.Context, req *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error) {
+func (*UnimplementedQueryServer) DkimPubKeys(ctx context.Context, req *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKeys not implemented")
 }
 
@@ -330,7 +340,7 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 }
 
 func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryDkimPubKeysRequest)
+	in := new(QueryDkimPubKeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -342,7 +352,7 @@ func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/xion.dkim.v1.Query/DkimPubKeys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).DkimPubKeys(ctx, req.(*QueryDkimPubKeysRequest))
+		return srv.(QueryServer).DkimPubKeys(ctx, req.(*QueryDkimPubKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -422,7 +432,7 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryDkimPubKeysRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryDkimPubKeyRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -432,12 +442,12 @@ func (m *QueryDkimPubKeysRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryDkimPubKeysRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDkimPubKeyRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryDkimPubKeysRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDkimPubKeyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -447,12 +457,19 @@ func (m *QueryDkimPubKeysRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		copy(dAtA[i:], m.Domain)
 		i = encodeVarintQuery(dAtA, i, uint64(len(m.Domain)))
 		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Selector) > 0 {
+		i -= len(m.Selector)
+		copy(dAtA[i:], m.Selector)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Selector)))
+		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryDkimPubKeysResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryDkimPubKeyResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -462,26 +479,26 @@ func (m *QueryDkimPubKeysResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryDkimPubKeysResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDkimPubKeyResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryDkimPubKeysResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDkimPubKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Hash) > 0 {
-		i -= len(m.Hash)
-		copy(dAtA[i:], m.Hash)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Hash)))
+	if len(m.PoseidonHash) > 0 {
+		i -= len(m.PoseidonHash)
+		copy(dAtA[i:], m.PoseidonHash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.PoseidonHash)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.DkimPubkeys != nil {
+	if m.DkimPubkey != nil {
 		{
-			size, err := m.DkimPubkeys.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.DkimPubkey.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -527,12 +544,16 @@ func (m *QueryParamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryDkimPubKeysRequest) Size() (n int) {
+func (m *QueryDkimPubKeyRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	l = len(m.Selector)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	l = len(m.Domain)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
@@ -540,17 +561,17 @@ func (m *QueryDkimPubKeysRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryDkimPubKeysResponse) Size() (n int) {
+func (m *QueryDkimPubKeyResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.DkimPubkeys != nil {
-		l = m.DkimPubkeys.Size()
+	if m.DkimPubkey != nil {
+		l = m.DkimPubkey.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
-	l = len(m.Hash)
+	l = len(m.PoseidonHash)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
@@ -699,7 +720,7 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryDkimPubKeysRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryDkimPubKeyRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -722,13 +743,45 @@ func (m *QueryDkimPubKeysRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryDkimPubKeysRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDkimPubKeyRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryDkimPubKeysRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDkimPubKeyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Selector", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Selector = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Domain", wireType)
 			}
@@ -781,7 +834,7 @@ func (m *QueryDkimPubKeysRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryDkimPubKeysResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryDkimPubKeyResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -804,15 +857,15 @@ func (m *QueryDkimPubKeysResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryDkimPubKeysResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDkimPubKeyResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryDkimPubKeysResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDkimPubKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DkimPubkeys", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field DkimPubkey", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -839,18 +892,18 @@ func (m *QueryDkimPubKeysResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.DkimPubkeys == nil {
-				m.DkimPubkeys = &DkimPubKeys{}
+			if m.DkimPubkey == nil {
+				m.DkimPubkey = &DkimPubKey{}
 			}
-			if err := m.DkimPubkeys.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.DkimPubkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Hash", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PoseidonHash", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowQuery
@@ -860,23 +913,25 @@ func (m *QueryDkimPubKeysResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthQuery
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthQuery
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Hash = string(dAtA[iNdEx:postIndex])
+			m.PoseidonHash = append(m.PoseidonHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.PoseidonHash == nil {
+				m.PoseidonHash = []byte{}
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

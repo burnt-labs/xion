@@ -7,13 +7,13 @@ option go_package = "github.com/burnt-labs/xion/x/dkim/types";
 
 // https://github.com/cosmos/cosmos-sdk/blob/main/orm/README.md
 
-message DkimPubKeys {
+message DkimPubKey {
     option (cosmos.orm.v1.table) = {
       id: 1;
-      primary_key: { fields: "domain" }
-      index: { id: 1 fields: "pub_key" unique: true }
+      primary_key: { fields: "selector,domain" }
     };
 
     string domain = 1;
     string pub_key  = 2;
+    string selector = 3;
 }

@@ -68,8 +68,13 @@ func TestAddDkimPubKey(t *testing.T) {
 			name: "fail; invalid authority",
 			request: &types.MsgAddDkimPubKey{
 				Authority: f.addrs[0].String(),
-				Domain:    "xion.burnt.com",
-				PubKey:    "xion",
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:   "xion.burnt.com",
+						PubKey:   "xion",
+						Selector: "zkemail",
+					},
+				},
 			},
 			err: true,
 		},
@@ -77,8 +82,13 @@ func TestAddDkimPubKey(t *testing.T) {
 			name: "success",
 			request: &types.MsgAddDkimPubKey{
 				Authority: f.govModAddr,
-				Domain:    "xion.burnt.com",
-				PubKey:    "xion",
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:   "xion.burnt.com",
+						PubKey:   "xion",
+						Selector: "zkemail",
+					},
+				},
 			},
 			err: false,
 		},
@@ -94,12 +104,12 @@ func TestAddDkimPubKey(t *testing.T) {
 			} else {
 				require.NoError(err)
 
-				r, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeysRequest{
-					Domain: tc.request.Domain,
+				r, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeyRequest{
+					Domain: tc.request.DkimPubkeys[0].Domain,
 				})
 				require.NoError(err)
 
-				require.EqualValues(tc.request.PubKey, r.DkimPubkeys.PubKey)
+				require.EqualValues(tc.request.DkimPubkeys[0].PubKey, r.DkimPubkey.PubKey)
 			}
 
 		})

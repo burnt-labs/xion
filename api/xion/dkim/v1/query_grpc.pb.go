@@ -29,7 +29,7 @@ const (
 type QueryClient interface {
 	// Params queries all parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error)
+	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
 }
 
 type queryClient struct {
@@ -49,8 +49,8 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error) {
-	out := new(QueryDkimPubKeysResponse)
+func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error) {
+	out := new(QueryDkimPubKeyResponse)
 	err := c.cc.Invoke(ctx, Query_DkimPubKeys_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysReque
 type QueryServer interface {
 	// Params queries all parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error)
+	DkimPubKeys(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -75,7 +75,7 @@ type UnimplementedQueryServer struct {
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (UnimplementedQueryServer) DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error) {
+func (UnimplementedQueryServer) DkimPubKeys(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKeys not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
@@ -110,7 +110,7 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 }
 
 func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryDkimPubKeysRequest)
+	in := new(QueryDkimPubKeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: Query_DkimPubKeys_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).DkimPubKeys(ctx, req.(*QueryDkimPubKeysRequest))
+		return srv.(QueryServer).DkimPubKeys(ctx, req.(*QueryDkimPubKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

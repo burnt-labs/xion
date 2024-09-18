@@ -33,4 +33,5 @@ func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubK
 	if ms.k.authority != msg.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
+	return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 }

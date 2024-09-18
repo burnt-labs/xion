@@ -23,23 +23,24 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type DkimPubKeys struct {
-	Domain string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
-	PubKey string `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
+type DkimPubKey struct {
+	Domain   string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
+	PubKey   string `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
+	Selector string `protobuf:"bytes,3,opt,name=selector,proto3" json:"selector,omitempty"`
 }
 
-func (m *DkimPubKeys) Reset()         { *m = DkimPubKeys{} }
-func (m *DkimPubKeys) String() string { return proto.CompactTextString(m) }
-func (*DkimPubKeys) ProtoMessage()    {}
-func (*DkimPubKeys) Descriptor() ([]byte, []int) {
+func (m *DkimPubKey) Reset()         { *m = DkimPubKey{} }
+func (m *DkimPubKey) String() string { return proto.CompactTextString(m) }
+func (*DkimPubKey) ProtoMessage()    {}
+func (*DkimPubKey) Descriptor() ([]byte, []int) {
 	return fileDescriptor_50cc02dd86df3648, []int{0}
 }
-func (m *DkimPubKeys) XXX_Unmarshal(b []byte) error {
+func (m *DkimPubKey) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DkimPubKeys) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DkimPubKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DkimPubKeys.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DkimPubKey.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -49,57 +50,65 @@ func (m *DkimPubKeys) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *DkimPubKeys) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DkimPubKeys.Merge(m, src)
+func (m *DkimPubKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DkimPubKey.Merge(m, src)
 }
-func (m *DkimPubKeys) XXX_Size() int {
+func (m *DkimPubKey) XXX_Size() int {
 	return m.Size()
 }
-func (m *DkimPubKeys) XXX_DiscardUnknown() {
-	xxx_messageInfo_DkimPubKeys.DiscardUnknown(m)
+func (m *DkimPubKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_DkimPubKey.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DkimPubKeys proto.InternalMessageInfo
+var xxx_messageInfo_DkimPubKey proto.InternalMessageInfo
 
-func (m *DkimPubKeys) GetDomain() string {
+func (m *DkimPubKey) GetDomain() string {
 	if m != nil {
 		return m.Domain
 	}
 	return ""
 }
 
-func (m *DkimPubKeys) GetPubKey() string {
+func (m *DkimPubKey) GetPubKey() string {
 	if m != nil {
 		return m.PubKey
 	}
 	return ""
 }
 
+func (m *DkimPubKey) GetSelector() string {
+	if m != nil {
+		return m.Selector
+	}
+	return ""
+}
+
 func init() {
-	proto.RegisterType((*DkimPubKeys)(nil), "xion.dkim.v1.DkimPubKeys")
+	proto.RegisterType((*DkimPubKey)(nil), "xion.dkim.v1.DkimPubKey")
 }
 
 func init() { proto.RegisterFile("xion/dkim/v1/state.proto", fileDescriptor_50cc02dd86df3648) }
 
 var fileDescriptor_50cc02dd86df3648 = []byte{
-	// 219 bytes of a gzipped FileDescriptorProto
+	// 230 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xa8, 0xc8, 0xcc, 0xcf,
 	0xd3, 0x4f, 0xc9, 0xce, 0xcc, 0xd5, 0x2f, 0x33, 0xd4, 0x2f, 0x2e, 0x49, 0x2c, 0x49, 0xd5, 0x2b,
 	0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x01, 0xc9, 0xe8, 0x81, 0x64, 0xf4, 0xca, 0x0c, 0xa5, 0xc4,
 	0x93, 0xf3, 0x8b, 0x73, 0xf3, 0x8b, 0xf5, 0xf3, 0x8b, 0xc0, 0x0a, 0xf3, 0x8b, 0x72, 0x21, 0xca,
-	0x94, 0x12, 0xb9, 0xb8, 0x5d, 0xb2, 0x33, 0x73, 0x03, 0x4a, 0x93, 0xbc, 0x53, 0x2b, 0x8b, 0x85,
-	0xc4, 0xb8, 0xd8, 0x52, 0xf2, 0x73, 0x13, 0x33, 0xf3, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83,
-	0xa0, 0x3c, 0x21, 0x71, 0x2e, 0xf6, 0x82, 0xd2, 0xa4, 0xf8, 0xec, 0xd4, 0x4a, 0x09, 0x26, 0x88,
-	0x44, 0x01, 0x58, 0x87, 0x95, 0xe2, 0xa7, 0x79, 0x97, 0xfb, 0x98, 0xa5, 0xb9, 0x38, 0x60, 0x1a,
-	0x85, 0x78, 0xe1, 0x4a, 0x05, 0x18, 0x25, 0x18, 0x25, 0x18, 0x9d, 0x1c, 0x4f, 0x3c, 0x92, 0x63,
-	0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96,
-	0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0x4a, 0x3d, 0x3d, 0xb3, 0x24, 0xa3, 0x34, 0x49, 0x2f, 0x39,
-	0x3f, 0x57, 0x3f, 0xa9, 0xb4, 0x28, 0xaf, 0x44, 0x37, 0x27, 0x31, 0xa9, 0x58, 0x1f, 0xec, 0xa7,
-	0x0a, 0x88, 0xaf, 0x4a, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8, 0xc0, 0x8e, 0x35, 0x06, 0x04, 0x00,
-	0x00, 0xff, 0xff, 0xc0, 0xcf, 0x9e, 0x49, 0xef, 0x00, 0x00, 0x00,
+	0x94, 0xca, 0xb8, 0xb8, 0x5c, 0xb2, 0x33, 0x73, 0x03, 0x4a, 0x93, 0xbc, 0x53, 0x2b, 0x85, 0xc4,
+	0xb8, 0xd8, 0x52, 0xf2, 0x73, 0x13, 0x33, 0xf3, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0xa0,
+	0x3c, 0x21, 0x71, 0x2e, 0xf6, 0x82, 0xd2, 0xa4, 0xf8, 0xec, 0xd4, 0x4a, 0x09, 0x26, 0x88, 0x44,
+	0x01, 0x44, 0x83, 0x14, 0x17, 0x47, 0x71, 0x6a, 0x4e, 0x6a, 0x72, 0x49, 0x7e, 0x91, 0x04, 0x33,
+	0x58, 0x06, 0xce, 0xb7, 0x92, 0xfe, 0x34, 0xef, 0x72, 0x1f, 0xb3, 0x28, 0x97, 0x20, 0x17, 0x3f,
+	0x4c, 0x4c, 0x07, 0x66, 0xba, 0x93, 0xe3, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e,
+	0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1, 0x1c, 0xc3, 0x85, 0xc7, 0x72, 0x0c, 0x37, 0x1e, 0xcb, 0x31,
+	0x44, 0xa9, 0xa7, 0x67, 0x96, 0x64, 0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0x27, 0x95, 0x16,
+	0xe5, 0x95, 0xe8, 0xe6, 0x24, 0x26, 0x15, 0xeb, 0x83, 0x3d, 0x5a, 0x01, 0xf1, 0x6a, 0x49, 0x65,
+	0x41, 0x6a, 0x71, 0x12, 0x1b, 0xd8, 0x07, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0xc1, 0x53,
+	0x4e, 0x55, 0x04, 0x01, 0x00, 0x00,
 }
 
-func (m *DkimPubKeys) Marshal() (dAtA []byte, err error) {
+func (m *DkimPubKey) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -109,16 +118,23 @@ func (m *DkimPubKeys) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DkimPubKeys) MarshalTo(dAtA []byte) (int, error) {
+func (m *DkimPubKey) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DkimPubKeys) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DkimPubKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if len(m.Selector) > 0 {
+		i -= len(m.Selector)
+		copy(dAtA[i:], m.Selector)
+		i = encodeVarintState(dAtA, i, uint64(len(m.Selector)))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.PubKey) > 0 {
 		i -= len(m.PubKey)
 		copy(dAtA[i:], m.PubKey)
@@ -147,7 +163,7 @@ func encodeVarintState(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *DkimPubKeys) Size() (n int) {
+func (m *DkimPubKey) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -161,6 +177,10 @@ func (m *DkimPubKeys) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovState(uint64(l))
 	}
+	l = len(m.Selector)
+	if l > 0 {
+		n += 1 + l + sovState(uint64(l))
+	}
 	return n
 }
 
@@ -170,7 +190,7 @@ func sovState(x uint64) (n int) {
 func sozState(x uint64) (n int) {
 	return sovState(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *DkimPubKeys) Unmarshal(dAtA []byte) error {
+func (m *DkimPubKey) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -193,10 +213,10 @@ func (m *DkimPubKeys) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DkimPubKeys: wiretype end group for non-group")
+			return fmt.Errorf("proto: DkimPubKey: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DkimPubKeys: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DkimPubKey: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -262,6 +282,38 @@ func (m *DkimPubKeys) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.PubKey = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Selector", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowState
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthState
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthState
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Selector = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

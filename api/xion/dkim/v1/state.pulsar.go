@@ -14,27 +14,29 @@ import (
 )
 
 var (
-	md_DkimPubKeys         protoreflect.MessageDescriptor
-	fd_DkimPubKeys_domain  protoreflect.FieldDescriptor
-	fd_DkimPubKeys_pub_key protoreflect.FieldDescriptor
+	md_DkimPubKey          protoreflect.MessageDescriptor
+	fd_DkimPubKey_domain   protoreflect.FieldDescriptor
+	fd_DkimPubKey_pub_key  protoreflect.FieldDescriptor
+	fd_DkimPubKey_selector protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_xion_dkim_v1_state_proto_init()
-	md_DkimPubKeys = File_xion_dkim_v1_state_proto.Messages().ByName("DkimPubKeys")
-	fd_DkimPubKeys_domain = md_DkimPubKeys.Fields().ByName("domain")
-	fd_DkimPubKeys_pub_key = md_DkimPubKeys.Fields().ByName("pub_key")
+	md_DkimPubKey = File_xion_dkim_v1_state_proto.Messages().ByName("DkimPubKey")
+	fd_DkimPubKey_domain = md_DkimPubKey.Fields().ByName("domain")
+	fd_DkimPubKey_pub_key = md_DkimPubKey.Fields().ByName("pub_key")
+	fd_DkimPubKey_selector = md_DkimPubKey.Fields().ByName("selector")
 }
 
-var _ protoreflect.Message = (*fastReflection_DkimPubKeys)(nil)
+var _ protoreflect.Message = (*fastReflection_DkimPubKey)(nil)
 
-type fastReflection_DkimPubKeys DkimPubKeys
+type fastReflection_DkimPubKey DkimPubKey
 
-func (x *DkimPubKeys) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_DkimPubKeys)(x)
+func (x *DkimPubKey) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_DkimPubKey)(x)
 }
 
-func (x *DkimPubKeys) slowProtoReflect() protoreflect.Message {
+func (x *DkimPubKey) slowProtoReflect() protoreflect.Message {
 	mi := &file_xion_dkim_v1_state_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -46,43 +48,43 @@ func (x *DkimPubKeys) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_DkimPubKeys_messageType fastReflection_DkimPubKeys_messageType
-var _ protoreflect.MessageType = fastReflection_DkimPubKeys_messageType{}
+var _fastReflection_DkimPubKey_messageType fastReflection_DkimPubKey_messageType
+var _ protoreflect.MessageType = fastReflection_DkimPubKey_messageType{}
 
-type fastReflection_DkimPubKeys_messageType struct{}
+type fastReflection_DkimPubKey_messageType struct{}
 
-func (x fastReflection_DkimPubKeys_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_DkimPubKeys)(nil)
+func (x fastReflection_DkimPubKey_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_DkimPubKey)(nil)
 }
-func (x fastReflection_DkimPubKeys_messageType) New() protoreflect.Message {
-	return new(fastReflection_DkimPubKeys)
+func (x fastReflection_DkimPubKey_messageType) New() protoreflect.Message {
+	return new(fastReflection_DkimPubKey)
 }
-func (x fastReflection_DkimPubKeys_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_DkimPubKeys
+func (x fastReflection_DkimPubKey_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_DkimPubKey
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_DkimPubKeys) Descriptor() protoreflect.MessageDescriptor {
-	return md_DkimPubKeys
+func (x *fastReflection_DkimPubKey) Descriptor() protoreflect.MessageDescriptor {
+	return md_DkimPubKey
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_DkimPubKeys) Type() protoreflect.MessageType {
-	return _fastReflection_DkimPubKeys_messageType
+func (x *fastReflection_DkimPubKey) Type() protoreflect.MessageType {
+	return _fastReflection_DkimPubKey_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_DkimPubKeys) New() protoreflect.Message {
-	return new(fastReflection_DkimPubKeys)
+func (x *fastReflection_DkimPubKey) New() protoreflect.Message {
+	return new(fastReflection_DkimPubKey)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_DkimPubKeys) Interface() protoreflect.ProtoMessage {
-	return (*DkimPubKeys)(x)
+func (x *fastReflection_DkimPubKey) Interface() protoreflect.ProtoMessage {
+	return (*DkimPubKey)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -90,16 +92,22 @@ func (x *fastReflection_DkimPubKeys) Interface() protoreflect.ProtoMessage {
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_DkimPubKeys) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_DkimPubKey) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.Domain != "" {
 		value := protoreflect.ValueOfString(x.Domain)
-		if !f(fd_DkimPubKeys_domain, value) {
+		if !f(fd_DkimPubKey_domain, value) {
 			return
 		}
 	}
 	if x.PubKey != "" {
 		value := protoreflect.ValueOfString(x.PubKey)
-		if !f(fd_DkimPubKeys_pub_key, value) {
+		if !f(fd_DkimPubKey_pub_key, value) {
+			return
+		}
+	}
+	if x.Selector != "" {
+		value := protoreflect.ValueOfString(x.Selector)
+		if !f(fd_DkimPubKey_selector, value) {
 			return
 		}
 	}
@@ -116,17 +124,19 @@ func (x *fastReflection_DkimPubKeys) Range(f func(protoreflect.FieldDescriptor, 
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_DkimPubKeys) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_DkimPubKey) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "xion.dkim.v1.DkimPubKeys.domain":
+	case "xion.dkim.v1.DkimPubKey.domain":
 		return x.Domain != ""
-	case "xion.dkim.v1.DkimPubKeys.pub_key":
+	case "xion.dkim.v1.DkimPubKey.pub_key":
 		return x.PubKey != ""
+	case "xion.dkim.v1.DkimPubKey.selector":
+		return x.Selector != ""
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKeys"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
 		}
-		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKeys does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKey does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -136,17 +146,19 @@ func (x *fastReflection_DkimPubKeys) Has(fd protoreflect.FieldDescriptor) bool {
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_DkimPubKeys) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_DkimPubKey) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "xion.dkim.v1.DkimPubKeys.domain":
+	case "xion.dkim.v1.DkimPubKey.domain":
 		x.Domain = ""
-	case "xion.dkim.v1.DkimPubKeys.pub_key":
+	case "xion.dkim.v1.DkimPubKey.pub_key":
 		x.PubKey = ""
+	case "xion.dkim.v1.DkimPubKey.selector":
+		x.Selector = ""
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKeys"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
 		}
-		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKeys does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKey does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -156,19 +168,22 @@ func (x *fastReflection_DkimPubKeys) Clear(fd protoreflect.FieldDescriptor) {
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_DkimPubKeys) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_DkimPubKey) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "xion.dkim.v1.DkimPubKeys.domain":
+	case "xion.dkim.v1.DkimPubKey.domain":
 		value := x.Domain
 		return protoreflect.ValueOfString(value)
-	case "xion.dkim.v1.DkimPubKeys.pub_key":
+	case "xion.dkim.v1.DkimPubKey.pub_key":
 		value := x.PubKey
+		return protoreflect.ValueOfString(value)
+	case "xion.dkim.v1.DkimPubKey.selector":
+		value := x.Selector
 		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKeys"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
 		}
-		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKeys does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKey does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -182,17 +197,19 @@ func (x *fastReflection_DkimPubKeys) Get(descriptor protoreflect.FieldDescriptor
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_DkimPubKeys) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_DkimPubKey) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "xion.dkim.v1.DkimPubKeys.domain":
+	case "xion.dkim.v1.DkimPubKey.domain":
 		x.Domain = value.Interface().(string)
-	case "xion.dkim.v1.DkimPubKeys.pub_key":
+	case "xion.dkim.v1.DkimPubKey.pub_key":
 		x.PubKey = value.Interface().(string)
+	case "xion.dkim.v1.DkimPubKey.selector":
+		x.Selector = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKeys"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
 		}
-		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKeys does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKey does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -206,44 +223,48 @@ func (x *fastReflection_DkimPubKeys) Set(fd protoreflect.FieldDescriptor, value 
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_DkimPubKeys) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_DkimPubKey) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "xion.dkim.v1.DkimPubKeys.domain":
-		panic(fmt.Errorf("field domain of message xion.dkim.v1.DkimPubKeys is not mutable"))
-	case "xion.dkim.v1.DkimPubKeys.pub_key":
-		panic(fmt.Errorf("field pub_key of message xion.dkim.v1.DkimPubKeys is not mutable"))
+	case "xion.dkim.v1.DkimPubKey.domain":
+		panic(fmt.Errorf("field domain of message xion.dkim.v1.DkimPubKey is not mutable"))
+	case "xion.dkim.v1.DkimPubKey.pub_key":
+		panic(fmt.Errorf("field pub_key of message xion.dkim.v1.DkimPubKey is not mutable"))
+	case "xion.dkim.v1.DkimPubKey.selector":
+		panic(fmt.Errorf("field selector of message xion.dkim.v1.DkimPubKey is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKeys"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
 		}
-		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKeys does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKey does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_DkimPubKeys) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_DkimPubKey) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "xion.dkim.v1.DkimPubKeys.domain":
+	case "xion.dkim.v1.DkimPubKey.domain":
 		return protoreflect.ValueOfString("")
-	case "xion.dkim.v1.DkimPubKeys.pub_key":
+	case "xion.dkim.v1.DkimPubKey.pub_key":
+		return protoreflect.ValueOfString("")
+	case "xion.dkim.v1.DkimPubKey.selector":
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKeys"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
 		}
-		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKeys does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message xion.dkim.v1.DkimPubKey does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_DkimPubKeys) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_DkimPubKey) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in xion.dkim.v1.DkimPubKeys", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in xion.dkim.v1.DkimPubKey", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -251,7 +272,7 @@ func (x *fastReflection_DkimPubKeys) WhichOneof(d protoreflect.OneofDescriptor) 
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_DkimPubKeys) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_DkimPubKey) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -262,7 +283,7 @@ func (x *fastReflection_DkimPubKeys) GetUnknown() protoreflect.RawFields {
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_DkimPubKeys) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_DkimPubKey) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -274,7 +295,7 @@ func (x *fastReflection_DkimPubKeys) SetUnknown(fields protoreflect.RawFields) {
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_DkimPubKeys) IsValid() bool {
+func (x *fastReflection_DkimPubKey) IsValid() bool {
 	return x != nil
 }
 
@@ -284,9 +305,9 @@ func (x *fastReflection_DkimPubKeys) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_DkimPubKeys) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_DkimPubKey) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*DkimPubKeys)
+		x := input.Message.Interface().(*DkimPubKey)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -306,6 +327,10 @@ func (x *fastReflection_DkimPubKeys) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		l = len(x.Selector)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -316,7 +341,7 @@ func (x *fastReflection_DkimPubKeys) ProtoMethods() *protoiface.Methods {
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*DkimPubKeys)
+		x := input.Message.Interface().(*DkimPubKey)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -334,6 +359,13 @@ func (x *fastReflection_DkimPubKeys) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Selector) > 0 {
+			i -= len(x.Selector)
+			copy(dAtA[i:], x.Selector)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Selector)))
+			i--
+			dAtA[i] = 0x1a
 		}
 		if len(x.PubKey) > 0 {
 			i -= len(x.PubKey)
@@ -360,7 +392,7 @@ func (x *fastReflection_DkimPubKeys) ProtoMethods() *protoiface.Methods {
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*DkimPubKeys)
+		x := input.Message.Interface().(*DkimPubKey)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -392,10 +424,10 @@ func (x *fastReflection_DkimPubKeys) ProtoMethods() *protoiface.Methods {
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: DkimPubKeys: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: DkimPubKey: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: DkimPubKeys: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: DkimPubKey: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -462,6 +494,38 @@ func (x *fastReflection_DkimPubKeys) ProtoMethods() *protoiface.Methods {
 				}
 				x.PubKey = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Selector", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Selector = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -510,17 +574,18 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type DkimPubKeys struct {
+type DkimPubKey struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Domain string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
-	PubKey string `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
+	Domain   string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
+	PubKey   string `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
+	Selector string `protobuf:"bytes,3,opt,name=selector,proto3" json:"selector,omitempty"`
 }
 
-func (x *DkimPubKeys) Reset() {
-	*x = DkimPubKeys{}
+func (x *DkimPubKey) Reset() {
+	*x = DkimPubKey{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_xion_dkim_v1_state_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -528,27 +593,34 @@ func (x *DkimPubKeys) Reset() {
 	}
 }
 
-func (x *DkimPubKeys) String() string {
+func (x *DkimPubKey) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DkimPubKeys) ProtoMessage() {}
+func (*DkimPubKey) ProtoMessage() {}
 
-// Deprecated: Use DkimPubKeys.ProtoReflect.Descriptor instead.
-func (*DkimPubKeys) Descriptor() ([]byte, []int) {
+// Deprecated: Use DkimPubKey.ProtoReflect.Descriptor instead.
+func (*DkimPubKey) Descriptor() ([]byte, []int) {
 	return file_xion_dkim_v1_state_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *DkimPubKeys) GetDomain() string {
+func (x *DkimPubKey) GetDomain() string {
 	if x != nil {
 		return x.Domain
 	}
 	return ""
 }
 
-func (x *DkimPubKeys) GetPubKey() string {
+func (x *DkimPubKey) GetPubKey() string {
 	if x != nil {
 		return x.PubKey
+	}
+	return ""
+}
+
+func (x *DkimPubKey) GetSelector() string {
+	if x != nil {
+		return x.Selector
 	}
 	return ""
 }
@@ -560,24 +632,25 @@ var file_xion_dkim_v1_state_proto_rawDesc = []byte{
 	0x74, 0x61, 0x74, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0c, 0x78, 0x69, 0x6f, 0x6e,
 	0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x1a, 0x17, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
 	0x2f, 0x6f, 0x72, 0x6d, 0x2f, 0x76, 0x31, 0x2f, 0x6f, 0x72, 0x6d, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x22, 0x61, 0x0a, 0x0b, 0x44, 0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x73,
-	0x12, 0x16, 0x0a, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x70, 0x75, 0x62, 0x5f,
-	0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x75, 0x62, 0x4b, 0x65,
-	0x79, 0x3a, 0x21, 0xf2, 0x9e, 0xd3, 0x8e, 0x03, 0x1b, 0x0a, 0x08, 0x0a, 0x06, 0x64, 0x6f, 0x6d,
-	0x61, 0x69, 0x6e, 0x12, 0x0d, 0x0a, 0x07, 0x70, 0x75, 0x62, 0x5f, 0x6b, 0x65, 0x79, 0x10, 0x01,
-	0x18, 0x01, 0x18, 0x01, 0x42, 0xa4, 0x01, 0x0a, 0x10, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f,
-	0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x53, 0x74, 0x61, 0x74, 0x65,
-	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x32, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78,
-	0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x64, 0x6b, 0x69,
-	0x6d, 0x2f, 0x76, 0x31, 0x3b, 0x64, 0x6b, 0x69, 0x6d, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x44,
-	0x58, 0xaa, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x44, 0x6b, 0x69, 0x6d, 0x2e, 0x56, 0x31,
-	0xca, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d, 0x5c, 0x56, 0x31, 0xe2,
-	0x02, 0x18, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d, 0x5c, 0x56, 0x31, 0x5c, 0x47,
-	0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0e, 0x58, 0x69, 0x6f,
-	0x6e, 0x3a, 0x3a, 0x44, 0x6b, 0x69, 0x6d, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x6f, 0x22, 0x76, 0x0a, 0x0a, 0x44, 0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x12,
+	0x16, 0x0a, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x70, 0x75, 0x62, 0x5f, 0x6b,
+	0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x75, 0x62, 0x4b, 0x65, 0x79,
+	0x12, 0x1a, 0x0a, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x3a, 0x1b, 0xf2, 0x9e,
+	0xd3, 0x8e, 0x03, 0x15, 0x0a, 0x11, 0x0a, 0x0f, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72,
+	0x2c, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01, 0x42, 0xa4, 0x01, 0x0a, 0x10, 0x63, 0x6f,
+	0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x42, 0x0a,
+	0x53, 0x74, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x32, 0x67, 0x69,
+	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c,
+	0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f,
+	0x6e, 0x2f, 0x64, 0x6b, 0x69, 0x6d, 0x2f, 0x76, 0x31, 0x3b, 0x64, 0x6b, 0x69, 0x6d, 0x76, 0x31,
+	0xa2, 0x02, 0x03, 0x58, 0x44, 0x58, 0xaa, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x44, 0x6b,
+	0x69, 0x6d, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69,
+	0x6d, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x18, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d,
+	0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
+	0x02, 0x0e, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x44, 0x6b, 0x69, 0x6d, 0x3a, 0x3a, 0x56, 0x31,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -594,7 +667,7 @@ func file_xion_dkim_v1_state_proto_rawDescGZIP() []byte {
 
 var file_xion_dkim_v1_state_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_xion_dkim_v1_state_proto_goTypes = []interface{}{
-	(*DkimPubKeys)(nil), // 0: xion.dkim.v1.DkimPubKeys
+	(*DkimPubKey)(nil), // 0: xion.dkim.v1.DkimPubKey
 }
 var file_xion_dkim_v1_state_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -611,7 +684,7 @@ func file_xion_dkim_v1_state_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_xion_dkim_v1_state_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DkimPubKeys); i {
+			switch v := v.(*DkimPubKey); i {
 			case 0:
 				return &v.state
 			case 1:

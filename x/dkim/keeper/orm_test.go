@@ -10,21 +10,23 @@ import (
 func TestORM(t *testing.T) {
 	f := SetupTest(t)
 
-	dt := f.k.OrmDB.DkimPubKeysTable()
+	dt := f.k.OrmDB.DkimPubKeyTable()
 	domain := "xion.burnt.com"
-	pubKey := "xion"
+	pubKey := "xion1234567890"
+	selector := "zkemail"
 
-	err := dt.Insert(f.ctx, &apiv1.DkimPubKeys{
-		Domain: domain,
-		PubKey: pubKey,
+	err := dt.Insert(f.ctx, &apiv1.DkimPubKey{
+		Domain:   domain,
+		PubKey:   pubKey,
+		Selector: selector,
 	})
 	require.NoError(t, err)
 
-	d, err := dt.Has(f.ctx, domain)
+	d, err := dt.Has(f.ctx, selector, domain)
 	require.NoError(t, err)
 	require.True(t, d)
 
-	res, err := dt.Get(f.ctx, domain)
+	res, err := dt.Get(f.ctx, selector, domain)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.EqualValues(t, pubKey, res.PubKey)

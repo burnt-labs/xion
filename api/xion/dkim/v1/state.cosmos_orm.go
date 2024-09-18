@@ -9,168 +9,137 @@ import (
 	ormerrors "cosmossdk.io/orm/types/ormerrors"
 )
 
-type DkimPubKeysTable interface {
-	Insert(ctx context.Context, dkimPubKeys *DkimPubKeys) error
-	Update(ctx context.Context, dkimPubKeys *DkimPubKeys) error
-	Save(ctx context.Context, dkimPubKeys *DkimPubKeys) error
-	Delete(ctx context.Context, dkimPubKeys *DkimPubKeys) error
-	Has(ctx context.Context, domain string) (found bool, err error)
+type DkimPubKeyTable interface {
+	Insert(ctx context.Context, dkimPubKey *DkimPubKey) error
+	Update(ctx context.Context, dkimPubKey *DkimPubKey) error
+	Save(ctx context.Context, dkimPubKey *DkimPubKey) error
+	Delete(ctx context.Context, dkimPubKey *DkimPubKey) error
+	Has(ctx context.Context, selector string, domain string) (found bool, err error)
 	// Get returns nil and an error which responds true to ormerrors.IsNotFound() if the record was not found.
-	Get(ctx context.Context, domain string) (*DkimPubKeys, error)
-	HasByPubKey(ctx context.Context, pub_key string) (found bool, err error)
-	// GetByPubKey returns nil and an error which responds true to ormerrors.IsNotFound() if the record was not found.
-	GetByPubKey(ctx context.Context, pub_key string) (*DkimPubKeys, error)
-	List(ctx context.Context, prefixKey DkimPubKeysIndexKey, opts ...ormlist.Option) (DkimPubKeysIterator, error)
-	ListRange(ctx context.Context, from, to DkimPubKeysIndexKey, opts ...ormlist.Option) (DkimPubKeysIterator, error)
-	DeleteBy(ctx context.Context, prefixKey DkimPubKeysIndexKey) error
-	DeleteRange(ctx context.Context, from, to DkimPubKeysIndexKey) error
+	Get(ctx context.Context, selector string, domain string) (*DkimPubKey, error)
+	List(ctx context.Context, prefixKey DkimPubKeyIndexKey, opts ...ormlist.Option) (DkimPubKeyIterator, error)
+	ListRange(ctx context.Context, from, to DkimPubKeyIndexKey, opts ...ormlist.Option) (DkimPubKeyIterator, error)
+	DeleteBy(ctx context.Context, prefixKey DkimPubKeyIndexKey) error
+	DeleteRange(ctx context.Context, from, to DkimPubKeyIndexKey) error
 
 	doNotImplement()
 }
 
-type DkimPubKeysIterator struct {
+type DkimPubKeyIterator struct {
 	ormtable.Iterator
 }
 
-func (i DkimPubKeysIterator) Value() (*DkimPubKeys, error) {
-	var dkimPubKeys DkimPubKeys
-	err := i.UnmarshalMessage(&dkimPubKeys)
-	return &dkimPubKeys, err
+func (i DkimPubKeyIterator) Value() (*DkimPubKey, error) {
+	var dkimPubKey DkimPubKey
+	err := i.UnmarshalMessage(&dkimPubKey)
+	return &dkimPubKey, err
 }
 
-type DkimPubKeysIndexKey interface {
+type DkimPubKeyIndexKey interface {
 	id() uint32
 	values() []interface{}
-	dkimPubKeysIndexKey()
+	dkimPubKeyIndexKey()
 }
 
 // primary key starting index..
-type DkimPubKeysPrimaryKey = DkimPubKeysDomainIndexKey
+type DkimPubKeyPrimaryKey = DkimPubKeySelectorDomainIndexKey
 
-type DkimPubKeysDomainIndexKey struct {
+type DkimPubKeySelectorDomainIndexKey struct {
 	vs []interface{}
 }
 
-func (x DkimPubKeysDomainIndexKey) id() uint32            { return 0 }
-func (x DkimPubKeysDomainIndexKey) values() []interface{} { return x.vs }
-func (x DkimPubKeysDomainIndexKey) dkimPubKeysIndexKey()  {}
+func (x DkimPubKeySelectorDomainIndexKey) id() uint32            { return 0 }
+func (x DkimPubKeySelectorDomainIndexKey) values() []interface{} { return x.vs }
+func (x DkimPubKeySelectorDomainIndexKey) dkimPubKeyIndexKey()   {}
 
-func (this DkimPubKeysDomainIndexKey) WithDomain(domain string) DkimPubKeysDomainIndexKey {
-	this.vs = []interface{}{domain}
+func (this DkimPubKeySelectorDomainIndexKey) WithSelector(selector string) DkimPubKeySelectorDomainIndexKey {
+	this.vs = []interface{}{selector}
 	return this
 }
 
-type DkimPubKeysPubKeyIndexKey struct {
-	vs []interface{}
-}
-
-func (x DkimPubKeysPubKeyIndexKey) id() uint32            { return 1 }
-func (x DkimPubKeysPubKeyIndexKey) values() []interface{} { return x.vs }
-func (x DkimPubKeysPubKeyIndexKey) dkimPubKeysIndexKey()  {}
-
-func (this DkimPubKeysPubKeyIndexKey) WithPubKey(pub_key string) DkimPubKeysPubKeyIndexKey {
-	this.vs = []interface{}{pub_key}
+func (this DkimPubKeySelectorDomainIndexKey) WithSelectorDomain(selector string, domain string) DkimPubKeySelectorDomainIndexKey {
+	this.vs = []interface{}{selector, domain}
 	return this
 }
 
-type dkimPubKeysTable struct {
+type dkimPubKeyTable struct {
 	table ormtable.Table
 }
 
-func (this dkimPubKeysTable) Insert(ctx context.Context, dkimPubKeys *DkimPubKeys) error {
-	return this.table.Insert(ctx, dkimPubKeys)
+func (this dkimPubKeyTable) Insert(ctx context.Context, dkimPubKey *DkimPubKey) error {
+	return this.table.Insert(ctx, dkimPubKey)
 }
 
-func (this dkimPubKeysTable) Update(ctx context.Context, dkimPubKeys *DkimPubKeys) error {
-	return this.table.Update(ctx, dkimPubKeys)
+func (this dkimPubKeyTable) Update(ctx context.Context, dkimPubKey *DkimPubKey) error {
+	return this.table.Update(ctx, dkimPubKey)
 }
 
-func (this dkimPubKeysTable) Save(ctx context.Context, dkimPubKeys *DkimPubKeys) error {
-	return this.table.Save(ctx, dkimPubKeys)
+func (this dkimPubKeyTable) Save(ctx context.Context, dkimPubKey *DkimPubKey) error {
+	return this.table.Save(ctx, dkimPubKey)
 }
 
-func (this dkimPubKeysTable) Delete(ctx context.Context, dkimPubKeys *DkimPubKeys) error {
-	return this.table.Delete(ctx, dkimPubKeys)
+func (this dkimPubKeyTable) Delete(ctx context.Context, dkimPubKey *DkimPubKey) error {
+	return this.table.Delete(ctx, dkimPubKey)
 }
 
-func (this dkimPubKeysTable) Has(ctx context.Context, domain string) (found bool, err error) {
-	return this.table.PrimaryKey().Has(ctx, domain)
+func (this dkimPubKeyTable) Has(ctx context.Context, selector string, domain string) (found bool, err error) {
+	return this.table.PrimaryKey().Has(ctx, selector, domain)
 }
 
-func (this dkimPubKeysTable) Get(ctx context.Context, domain string) (*DkimPubKeys, error) {
-	var dkimPubKeys DkimPubKeys
-	found, err := this.table.PrimaryKey().Get(ctx, &dkimPubKeys, domain)
+func (this dkimPubKeyTable) Get(ctx context.Context, selector string, domain string) (*DkimPubKey, error) {
+	var dkimPubKey DkimPubKey
+	found, err := this.table.PrimaryKey().Get(ctx, &dkimPubKey, selector, domain)
 	if err != nil {
 		return nil, err
 	}
 	if !found {
 		return nil, ormerrors.NotFound
 	}
-	return &dkimPubKeys, nil
+	return &dkimPubKey, nil
 }
 
-func (this dkimPubKeysTable) HasByPubKey(ctx context.Context, pub_key string) (found bool, err error) {
-	return this.table.GetIndexByID(1).(ormtable.UniqueIndex).Has(ctx,
-		pub_key,
-	)
-}
-
-func (this dkimPubKeysTable) GetByPubKey(ctx context.Context, pub_key string) (*DkimPubKeys, error) {
-	var dkimPubKeys DkimPubKeys
-	found, err := this.table.GetIndexByID(1).(ormtable.UniqueIndex).Get(ctx, &dkimPubKeys,
-		pub_key,
-	)
-	if err != nil {
-		return nil, err
-	}
-	if !found {
-		return nil, ormerrors.NotFound
-	}
-	return &dkimPubKeys, nil
-}
-
-func (this dkimPubKeysTable) List(ctx context.Context, prefixKey DkimPubKeysIndexKey, opts ...ormlist.Option) (DkimPubKeysIterator, error) {
+func (this dkimPubKeyTable) List(ctx context.Context, prefixKey DkimPubKeyIndexKey, opts ...ormlist.Option) (DkimPubKeyIterator, error) {
 	it, err := this.table.GetIndexByID(prefixKey.id()).List(ctx, prefixKey.values(), opts...)
-	return DkimPubKeysIterator{it}, err
+	return DkimPubKeyIterator{it}, err
 }
 
-func (this dkimPubKeysTable) ListRange(ctx context.Context, from, to DkimPubKeysIndexKey, opts ...ormlist.Option) (DkimPubKeysIterator, error) {
+func (this dkimPubKeyTable) ListRange(ctx context.Context, from, to DkimPubKeyIndexKey, opts ...ormlist.Option) (DkimPubKeyIterator, error) {
 	it, err := this.table.GetIndexByID(from.id()).ListRange(ctx, from.values(), to.values(), opts...)
-	return DkimPubKeysIterator{it}, err
+	return DkimPubKeyIterator{it}, err
 }
 
-func (this dkimPubKeysTable) DeleteBy(ctx context.Context, prefixKey DkimPubKeysIndexKey) error {
+func (this dkimPubKeyTable) DeleteBy(ctx context.Context, prefixKey DkimPubKeyIndexKey) error {
 	return this.table.GetIndexByID(prefixKey.id()).DeleteBy(ctx, prefixKey.values()...)
 }
 
-func (this dkimPubKeysTable) DeleteRange(ctx context.Context, from, to DkimPubKeysIndexKey) error {
+func (this dkimPubKeyTable) DeleteRange(ctx context.Context, from, to DkimPubKeyIndexKey) error {
 	return this.table.GetIndexByID(from.id()).DeleteRange(ctx, from.values(), to.values())
 }
 
-func (this dkimPubKeysTable) doNotImplement() {}
+func (this dkimPubKeyTable) doNotImplement() {}
 
-var _ DkimPubKeysTable = dkimPubKeysTable{}
+var _ DkimPubKeyTable = dkimPubKeyTable{}
 
-func NewDkimPubKeysTable(db ormtable.Schema) (DkimPubKeysTable, error) {
-	table := db.GetTable(&DkimPubKeys{})
+func NewDkimPubKeyTable(db ormtable.Schema) (DkimPubKeyTable, error) {
+	table := db.GetTable(&DkimPubKey{})
 	if table == nil {
-		return nil, ormerrors.TableNotFound.Wrap(string((&DkimPubKeys{}).ProtoReflect().Descriptor().FullName()))
+		return nil, ormerrors.TableNotFound.Wrap(string((&DkimPubKey{}).ProtoReflect().Descriptor().FullName()))
 	}
-	return dkimPubKeysTable{table}, nil
+	return dkimPubKeyTable{table}, nil
 }
 
 type StateStore interface {
-	DkimPubKeysTable() DkimPubKeysTable
+	DkimPubKeyTable() DkimPubKeyTable
 
 	doNotImplement()
 }
 
 type stateStore struct {
-	dkimPubKeys DkimPubKeysTable
+	dkimPubKey DkimPubKeyTable
 }
 
-func (x stateStore) DkimPubKeysTable() DkimPubKeysTable {
-	return x.dkimPubKeys
+func (x stateStore) DkimPubKeyTable() DkimPubKeyTable {
+	return x.dkimPubKey
 }
 
 func (stateStore) doNotImplement() {}
@@ -178,12 +147,12 @@ func (stateStore) doNotImplement() {}
 var _ StateStore = stateStore{}
 
 func NewStateStore(db ormtable.Schema) (StateStore, error) {
-	dkimPubKeysTable, err := NewDkimPubKeysTable(db)
+	dkimPubKeyTable, err := NewDkimPubKeyTable(db)
 	if err != nil {
 		return nil, err
 	}
 
 	return stateStore{
-		dkimPubKeysTable,
+		dkimPubKeyTable,
 	}, nil
 }
