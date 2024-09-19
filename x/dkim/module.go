@@ -105,7 +105,6 @@ func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
 */
 
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
 }
 
 func (a AppModuleBasic) RegisterInterfaces(r codectypes.InterfaceRegistry) {

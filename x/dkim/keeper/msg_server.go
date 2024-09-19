@@ -45,3 +45,23 @@ func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubK
 	}
 	return &types.MsgAddDkimPubKeyResponse{}, nil
 }
+
+// RemoveDkimPubKey implements types.MsgServer.
+func (ms msgServer) RemoveDkimPubKey(ctx context.Context, msg *types.MsgRemoveDkimPubKey) (*types.MsgRemoveDkimPubKeyResponse, error) {
+	if ms.k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
+	}
+	dkimPubKey, err := ms.k.OrmDB.DkimPubKeyTable().Get(ctx, msg.Selector, msg.Domain)
+	if err != nil {
+		return nil, err
+	}
+	if err := ms.k.OrmDB.DkimPubKeyTable().Delete(ctx, &dkimv1.DkimPubKey{
+		Domain:   dkimPubKey.Domain,
+		PubKey:   dkimPubKey.PubKey,
+		Selector: dkimPubKey.Selector,
+	}); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRemoveDkimPubKeyResponse{}, nil
+}

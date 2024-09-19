@@ -26,11 +26,6 @@ func (msg MsgUpdateParams) Route() string { return ModuleName }
 // Type returns the the action
 func (msg MsgUpdateParams) Type() string { return "update_params" }
 
-// GetSignBytes implements the LegacyMsg interface.
-func (msg MsgUpdateParams) GetSignBytes() []byte {
-	return sdk.MustSortJSON(AminoCdc.MustMarshalJSON(&msg))
-}
-
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
