@@ -308,8 +308,8 @@ github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce h1:YtWJF7RHm2pY
 github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce/go.mod h1:0DVlHczLPewLcPGEIeUEzfOJhqGPQ0mJJRDBtD307+o=
 github.com/bufbuild/protocompile v0.6.0 h1:Uu7WiSQ6Yj9DbkdnOe7U4mNKp58y9WDMKDn28/ZlunY=
 github.com/bufbuild/protocompile v0.6.0/go.mod h1:YNP35qEYoYGme7QMtz5SBCoN4kL4g12jTtjuzRNdjpE=
-github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61 h1:6ETx4S34z319fyNOUawwKRCB/9WbncO50CAbKjbj24o=
-github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61/go.mod h1:jh8tpsvbmSHPfNFh+jnyHkomjFDet/fMQ+t8vHQpRmU=
+github.com/burnt-labs/abstract-account v0.0.0-20240911164801-9a0dcb4a06b1 h1:zhebc72UZSCqCkebfXbgxe9RmxY2FmD1f4nYMsdtXZg=
+github.com/burnt-labs/abstract-account v0.0.0-20240911164801-9a0dcb4a06b1/go.mod h1:0q/LBlPChRsvsub88tL4wgvx7RuWGrjcAXFiZf4uSjo=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=

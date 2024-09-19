@@ -305,7 +305,7 @@ replace (
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/burnt-labs/xion => ../
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240716155814-118fea774a61
+	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240911164801-9a0dcb4a06b1
 	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.3-wasmvm2
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
