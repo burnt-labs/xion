@@ -14,9 +14,9 @@ type DkimPubKeyTable interface {
 	Update(ctx context.Context, dkimPubKey *DkimPubKey) error
 	Save(ctx context.Context, dkimPubKey *DkimPubKey) error
 	Delete(ctx context.Context, dkimPubKey *DkimPubKey) error
-	Has(ctx context.Context, selector string, domain string) (found bool, err error)
+	Has(ctx context.Context, domain string, selector string) (found bool, err error)
 	// Get returns nil and an error which responds true to ormerrors.IsNotFound() if the record was not found.
-	Get(ctx context.Context, selector string, domain string) (*DkimPubKey, error)
+	Get(ctx context.Context, domain string, selector string) (*DkimPubKey, error)
 	List(ctx context.Context, prefixKey DkimPubKeyIndexKey, opts ...ormlist.Option) (DkimPubKeyIterator, error)
 	ListRange(ctx context.Context, from, to DkimPubKeyIndexKey, opts ...ormlist.Option) (DkimPubKeyIterator, error)
 	DeleteBy(ctx context.Context, prefixKey DkimPubKeyIndexKey) error
@@ -42,23 +42,23 @@ type DkimPubKeyIndexKey interface {
 }
 
 // primary key starting index..
-type DkimPubKeyPrimaryKey = DkimPubKeySelectorDomainIndexKey
+type DkimPubKeyPrimaryKey = DkimPubKeyDomainSelectorIndexKey
 
-type DkimPubKeySelectorDomainIndexKey struct {
+type DkimPubKeyDomainSelectorIndexKey struct {
 	vs []interface{}
 }
 
-func (x DkimPubKeySelectorDomainIndexKey) id() uint32            { return 0 }
-func (x DkimPubKeySelectorDomainIndexKey) values() []interface{} { return x.vs }
-func (x DkimPubKeySelectorDomainIndexKey) dkimPubKeyIndexKey()   {}
+func (x DkimPubKeyDomainSelectorIndexKey) id() uint32            { return 0 }
+func (x DkimPubKeyDomainSelectorIndexKey) values() []interface{} { return x.vs }
+func (x DkimPubKeyDomainSelectorIndexKey) dkimPubKeyIndexKey()   {}
 
-func (this DkimPubKeySelectorDomainIndexKey) WithSelector(selector string) DkimPubKeySelectorDomainIndexKey {
-	this.vs = []interface{}{selector}
+func (this DkimPubKeyDomainSelectorIndexKey) WithDomain(domain string) DkimPubKeyDomainSelectorIndexKey {
+	this.vs = []interface{}{domain}
 	return this
 }
 
-func (this DkimPubKeySelectorDomainIndexKey) WithSelectorDomain(selector string, domain string) DkimPubKeySelectorDomainIndexKey {
-	this.vs = []interface{}{selector, domain}
+func (this DkimPubKeyDomainSelectorIndexKey) WithDomainSelector(domain string, selector string) DkimPubKeyDomainSelectorIndexKey {
+	this.vs = []interface{}{domain, selector}
 	return this
 }
 
@@ -82,13 +82,13 @@ func (this dkimPubKeyTable) Delete(ctx context.Context, dkimPubKey *DkimPubKey) 
 	return this.table.Delete(ctx, dkimPubKey)
 }
 
-func (this dkimPubKeyTable) Has(ctx context.Context, selector string, domain string) (found bool, err error) {
-	return this.table.PrimaryKey().Has(ctx, selector, domain)
+func (this dkimPubKeyTable) Has(ctx context.Context, domain string, selector string) (found bool, err error) {
+	return this.table.PrimaryKey().Has(ctx, domain, selector)
 }
 
-func (this dkimPubKeyTable) Get(ctx context.Context, selector string, domain string) (*DkimPubKey, error) {
+func (this dkimPubKeyTable) Get(ctx context.Context, domain string, selector string) (*DkimPubKey, error) {
 	var dkimPubKey DkimPubKey
-	found, err := this.table.PrimaryKey().Get(ctx, &dkimPubKey, selector, domain)
+	found, err := this.table.PrimaryKey().Get(ctx, &dkimPubKey, domain, selector)
 	if err != nil {
 		return nil, err
 	}

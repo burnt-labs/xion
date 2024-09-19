@@ -51,7 +51,7 @@ func (ms msgServer) RemoveDkimPubKey(ctx context.Context, msg *types.MsgRemoveDk
 	if ms.k.authority != msg.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
-	dkimPubKey, err := ms.k.OrmDB.DkimPubKeyTable().Get(ctx, msg.Selector, msg.Domain)
+	dkimPubKey, err := ms.k.OrmDB.DkimPubKeyTable().Get(ctx, msg.Domain, msg.Selector)
 	if err != nil {
 		return nil, err
 	}

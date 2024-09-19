@@ -10,7 +10,7 @@ option go_package = "github.com/burnt-labs/xion/x/dkim/types";
 message DkimPubKey {
     option (cosmos.orm.v1.table) = {
       id: 1;
-      primary_key: { fields: "selector,domain" }
+      primary_key: { fields: "domain,selector" }
     };
 
     string domain = 1;
