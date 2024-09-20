@@ -290,8 +290,10 @@ github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1 h1:q0rUy8C/TYNBQS1+CGKw68tLOF
 github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1/go.mod h1:7SFka0XMvUgj3hfZtydOrQY2mwhPclbT2snogU7SQQc=
 github.com/bufbuild/protocompile v0.6.0 h1:Uu7WiSQ6Yj9DbkdnOe7U4mNKp58y9WDMKDn28/ZlunY=
 github.com/bufbuild/protocompile v0.6.0/go.mod h1:YNP35qEYoYGme7QMtz5SBCoN4kL4g12jTtjuzRNdjpE=
-github.com/burnt-labs/abstract-account v0.0.0-20240904201714-f31e8234ed64 h1:zMOoSAjumhsaUR0J1vUlN+Zw3oiU2iYkv0pQkbw28S8=
-github.com/burnt-labs/abstract-account v0.0.0-20240904201714-f31e8234ed64/go.mod h1:0q/LBlPChRsvsub88tL4wgvx7RuWGrjcAXFiZf4uSjo=
+github.com/burnt-labs/abstract-account v0.0.0-20240911164801-9a0dcb4a06b1 h1:zhebc72UZSCqCkebfXbgxe9RmxY2FmD1f4nYMsdtXZg=
+github.com/burnt-labs/abstract-account v0.0.0-20240911164801-9a0dcb4a06b1/go.mod h1:0q/LBlPChRsvsub88tL4wgvx7RuWGrjcAXFiZf4uSjo=
+github.com/burnt-labs/cosmos-sdk v0.50.10-0.20240913131614-c907ee00a35d h1:0NKvtND8uPT3Z5tO9W5eg1lvv+WjQOdLvbD3EV8Vm+g=
+github.com/burnt-labs/cosmos-sdk v0.50.10-0.20240913131614-c907ee00a35d/go.mod h1:TMH6wpoYBcg7Cp5BEg8fneLr+8XloNQkf2MRNF9V6JE=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
@@ -362,8 +364,6 @@ github.com/cosmos/cosmos-db v1.0.2 h1:hwMjozuY1OlJs/uh6vddqnk9j7VamLv+0DBlbEXbAK
 github.com/cosmos/cosmos-db v1.0.2/go.mod h1:Z8IXcFJ9PqKK6BIsVOB3QXtkKoqUOp1vRvPT39kOXEA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
-github.com/cosmos/cosmos-sdk v0.50.9 h1:gt2usjz0H0qW6KwAxWw7ZJ3XU8uDwmhN+hYG3nTLeSg=
-github.com/cosmos/cosmos-sdk v0.50.9/go.mod h1:TMH6wpoYBcg7Cp5BEg8fneLr+8XloNQkf2MRNF9V6JE=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
 github.com/cosmos/go-bip39 v1.0.0/go.mod h1:RNJv0H/pOIVgxw6KS7QeX2a0Uo0aKUlfhZ4xuwvCdJw=
 github.com/cosmos/gogogateway v1.2.0 h1:Ae/OivNhp8DqBi/sh2A8a1D0y638GpL3tkmLQAiKxTE=
