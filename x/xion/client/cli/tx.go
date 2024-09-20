@@ -424,7 +424,7 @@ func NewSignCmd() *cobra.Command {
 
 			queryClient := authtypes.NewQueryClient(clientCtx)
 
-			signerAcc, err := getSignerOfTx(queryClient, signerAddr)
+			signerAcc, err := GetSignerOfTx(queryClient, signerAddr)
 			if err != nil {
 				return err
 			}
@@ -514,7 +514,7 @@ func NewSignCmd() *cobra.Command {
 	return cmd
 }
 
-func getSignerOfTx(queryClient authtypes.QueryClient, address sdk.AccAddress) (*aatypes.AbstractAccount, error) {
+func GetSignerOfTx(queryClient authtypes.QueryClient, address sdk.AccAddress) (*aatypes.AbstractAccount, error) {
 	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: address.String()})
 	if err != nil {
 		return nil, err

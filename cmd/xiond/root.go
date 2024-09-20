@@ -43,6 +43,7 @@ import (
 
 	"github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/app/params"
+	"github.com/burnt-labs/xion/prover"
 )
 
 // NewRootCmd creates a new root command for xiond. It is called once in the
@@ -190,6 +191,7 @@ func initRootCmd(rootCmd *cobra.Command,
 		genesisCommand(encodingConfig, basicManager),
 		queryCommand(basicManager),
 		txCommand(basicManager),
+		prover.ProveCommand(basicManager),
 		keys.Commands(),
 	)
 	// add rosetta
