@@ -105,7 +105,7 @@ func TestAddDkimPubKey(t *testing.T) {
 			} else {
 				require.NoError(err)
 
-				r, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeyRequest{
+				r, err := f.queryServer.DkimPubKey(f.ctx, &types.QueryDkimPubKeyRequest{
 					Domain:   tc.request.DkimPubkeys[0].Domain,
 					Selector: tc.request.DkimPubkeys[0].Selector,
 				})
@@ -185,7 +185,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 			} else {
 				require.NoError(err)
 
-				r, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeyRequest{
+				r, err := f.queryServer.DkimPubKey(f.ctx, &types.QueryDkimPubKeyRequest{
 					Domain:   tc.request.Domain,
 					Selector: tc.request.Selector,
 				})

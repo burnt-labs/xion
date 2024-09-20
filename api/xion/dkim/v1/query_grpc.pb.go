@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Params_FullMethodName      = "/xion.dkim.v1.Query/Params"
-	Query_DkimPubKeys_FullMethodName = "/xion.dkim.v1.Query/DkimPubKeys"
+	Query_Params_FullMethodName     = "/xion.dkim.v1.Query/Params"
+	Query_DkimPubKey_FullMethodName = "/xion.dkim.v1.Query/DkimPubKey"
 )
 
 // QueryClient is the client API for Query service.
@@ -29,7 +29,7 @@ const (
 type QueryClient interface {
 	// Params queries all parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
+	DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
 }
 
 type queryClient struct {
@@ -49,9 +49,9 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error) {
+func (c *queryClient) DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error) {
 	out := new(QueryDkimPubKeyResponse)
-	err := c.cc.Invoke(ctx, Query_DkimPubKeys_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Query_DkimPubKey_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeyReques
 type QueryServer interface {
 	// Params queries all parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	DkimPubKeys(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
+	DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -75,8 +75,8 @@ type UnimplementedQueryServer struct {
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (UnimplementedQueryServer) DkimPubKeys(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKeys not implemented")
+func (UnimplementedQueryServer) DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKey not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -109,20 +109,20 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Query_DkimPubKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryDkimPubKeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).DkimPubKeys(ctx, in)
+		return srv.(QueryServer).DkimPubKey(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Query_DkimPubKeys_FullMethodName,
+		FullMethod: Query_DkimPubKey_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).DkimPubKeys(ctx, req.(*QueryDkimPubKeyRequest))
+		return srv.(QueryServer).DkimPubKey(ctx, req.(*QueryDkimPubKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -139,8 +139,8 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Query_Params_Handler,
 		},
 		{
-			MethodName: "DkimPubKeys",
-			Handler:    _Query_DkimPubKeys_Handler,
+			MethodName: "DkimPubKey",
+			Handler:    _Query_DkimPubKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

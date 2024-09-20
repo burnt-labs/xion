@@ -16,6 +16,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "params",
 					Short:     "Query the current consensus parameters",
 				},
+				{
+					RpcMethod: "DkimPubKey",
+					Use:       "dkim-pub-key <domain> <selector>",
+					Short:     "Query the DKIM module for a public key by domain and selector",
+				},
 			},
 		},
 		Tx: &autocliv1.ServiceCommandDescriptor{
@@ -23,7 +28,13 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 				{
 					RpcMethod: "UpdateParams",
-					Skip:      false, // set to true if authority gated
+					Skip:      true, // set to true if authority gated
+				},
+				{
+					RpcMethod:      "AddDkimPubKey",
+					Use:            "add-dkim-pub-key <domain selector public-key>...",
+					Short:          "Add a DKIM public key",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "domain"}, {ProtoField: "selector"}, {ProtoField: "public_key"}},
 				},
 			},
 		},

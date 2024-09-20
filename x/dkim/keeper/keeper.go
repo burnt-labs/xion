@@ -86,6 +86,15 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		return err
 	}
 
+	for _, dkimPubKey := range data.DkimPubkeys {
+		if err := k.OrmDB.DkimPubKeyTable().Save(ctx, &apiv1.DkimPubKey{
+			Domain:   dkimPubKey.Domain,
+			PubKey:   dkimPubKey.PubKey,
+			Selector: dkimPubKey.Selector,
+		}); err != nil {
+			return err
+		}
+	}
 	return k.Params.Set(ctx, data.Params)
 }
 

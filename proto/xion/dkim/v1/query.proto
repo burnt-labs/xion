@@ -14,7 +14,7 @@ service Query {
     option (google.api.http).get = "/dkim/v1/params";
   }
 
-  rpc DkimPubKeys(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
+  rpc DkimPubKey(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
 }
