@@ -11,8 +11,7 @@ BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
 XION_IMAGE=xion:local
 
-GORELEASER_CROSS_VERSION = v1.21.9
-GORELEASER_VERSION = v2.3.2
+GORELEASER_VERSION = v1.22.7
 
 # for dockerized protobuf tools
 DOCKER := $(shell which docker)
@@ -105,38 +104,40 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xiond ./cmd/xiond
 endif
 
+build-binary:
+	$(DOCKER) run --rm \
+		--workdir /code \
+		--volume $(CURDIR):/code \
+		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		goreleaser/goreleaser-cross:$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
+
 build-all: go.sum
-ifeq ($(OS),Windows_NT)
-	echo unable to build on windows systems
-	exit 1
-else
-	docker run --rm -v "$(CURDIR)":/code -w /code -e LIBWASM_VERSION=$(LIBWASM_VERSION) goreleaser/goreleaser:$(GORELEASER_VERSION) build --clean
-endif
+	$(DOCKER) run --rm \
+		--workdir /code \
+		--volume $(CURDIR):/code \
+		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		goreleaser/goreleaser-cross:$(GORELEASER_VERSION) \
+		build --clean --skip validate
 
 build-windows-client: go.sum
 	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
 
-build-binaries: build-binary-amd64
-build-binaries: build-binary-arm64
+build-linux-amd64: GOOS = linux
+build-linux-amd64: GOARCH = amd64
+build-linux-amd64: build-binary
 
-build-binary-amd64: TARGETOS = linux
-build-binary-amd64: TARGETARCH = amd64
-build-binary-amd64: --build-binary
+build-linux-arm64: GOOS = linux
+build-linux-arm64: GOARCH = arm64
+build-linux-arm64: build-binary
 
-build-binary-arm64: TARGETOS = linux
-build-binary-arm64: TARGETARCH = arm64
-build-binary-arm64: --build-binary
+build-darwin-amd64: GOOS = darwin
+build-darwin-amd64: GOARCH = amd64
+build-darwin-amd64: build-binary
 
-.PHONY: --build-binary
---build-binary:
-	mkdir -p build
-	$(DOCKER) buildx create --name xiond-build-ctx || true
-	$(DOCKER) buildx use xiond-build-ctx
-	$(DOCKER) buildx build --platform $(TARGETOS)/$(TARGETARCH) --load --tag xiond:$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH) ./
-	$(DOCKER) container create --rm --name xiond-build-ctr xiond:$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH)
-	$(DOCKER) cp xiond-build-ctr:/usr/bin/xiond $(BUILDDIR)/xiond-$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH)
-	$(DOCKER) rm -f xiond-build-ctr
-	$(DOCKER) buildx rm xiond-build-ctx
+build-darwin-arm64: GOOS = darwin
+build-darwin-arm64: GOARCH = arm64
+build-darwin-arm64: build-binary
 
 .PHONY: build-heighliner
 build-heighliner:
