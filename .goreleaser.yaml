@@ -1,0 +1,103 @@
+---
+before:
+  hooks:
+    - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvm_muslc.x86_64.a -O /lib/libwasmvm_muslc.a
+    - apk add musl-dev
+env:
+  - CGO_ENABLED=1
+
+git:
+  # What should be used to sort tags when gathering the current and previous
+  # tags if there are more than one tag in the same commit.
+  #
+  # Default: '-version:refname'
+  # Source: https://goreleaser.com/customization/git/
+  tag_sort: -version:creatordate
+
+builds:
+  - id: xiond-linux-amd64
+    main: ./cmd/xiond
+    binary: xiond
+    goos:
+      - linux
+    goarch:
+      - amd64
+    flags:
+      - -mod=readonly
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.commit={{.Commit}}
+      - -X main.date={{ .CommitDate }}
+      - -X github.com/cosmos/cosmos-sdk/version.Name=xion
+      - -X github.com/cosmos/cosmos-sdk/version.AppName=xion
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -linkmode=external
+      - -extldflags '-Wl,-z,muldefs --static -lm'
+    tags:
+      - netgo
+      - muslc
+release:
+  skip_upload: '{{ if eq .Env.RELEASE "true" }}false{{else}}true{{end}}'
+archives:
+  - id: w/version
+    builds:
+      - xiond-linux-amd64
+    name_template: '{{ .ProjectName }}d_v{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    wrap_in_directory: false
+    format: zip
+    files:
+      - none*
+  - id: wo/version
+    builds:
+      - xiond-linux-amd64
+    name_template: '{{ .ProjectName }}d_{{ .Os }}_{{ .Arch }}'
+    wrap_in_directory: false
+    format: zip
+    files:
+      - none*
+  - id: binary
+    builds:
+      - xiond-linux-amd64
+    name_template: '{{ .ProjectName }}d_{{ .Os }}_{{ .Arch }}'
+    wrap_in_directory: false
+    format: binary
+    files:
+      - none*
+checksum:
+  name_template: '{{ .ProjectName }}d_v{{ .Version }}_checksums.txt'
+dockers:
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - 'ghcr.io/burnt-labs/{{ .ProjectName }}d:{{if eq .Env.RELEASE "true"}}v{{ .Version }}-amd64{{else}}{{ .ShortCommit }}-amd64{{end}}'
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}d"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}d"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+  - use: buildx
+    goos: linux
+    goarch: amd64
+    dockerfile: Dockerfile.dev
+    image_templates:
+      - 'ghcr.io/burnt-labs/{{ .ProjectName }}d-dev:{{if eq .Env.RELEASE "true"}}v{{ .Version }}{{else}}{{ .ShortCommit }}{{end}}-amd64'
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}d"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}d"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"

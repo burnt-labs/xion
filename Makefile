@@ -11,9 +11,24 @@ BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
 XION_IMAGE=xion:local
 
+GORELEASER_CROSS_VERSION = v1.21.9
+GORELEASER_VERSION = v2.3.2
+
 # for dockerized protobuf tools
 DOCKER := $(shell which docker)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
+CURRENT_DIR := $(shell pwd)
+SHORT_SHA := $(shell git rev-parse --short HEAD)
+LATEST_TAG := $(shell git describe --tags --abbrev=0)
+
+# library versions
+WASMVM_REPO = "github.com/CosmWasm/wasmvm"
+WASMVM_MOD_VERSION = $(shell grep ${WASMVM_REPO} go.mod | cut -d ' ' -f 1)
+LIBWASM_VERSION = $(shell go list -m ${WASMVM_MOD_VERSION} | cut -d ' ' -f 2)
+
+# Release environment variable
+RELEASE ?= false
+GORELEASER_SKIP_VALIDATE ?= false
 
 export GO111MODULE = on
 
@@ -90,6 +105,14 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xiond ./cmd/xiond
 endif
 
+build-all: go.sum
+ifeq ($(OS),Windows_NT)
+	echo unable to build on windows systems
+	exit 1
+else
+	docker run --rm -v "$(CURDIR)":/code -w /code -e LIBWASM_VERSION=$(LIBWASM_VERSION) goreleaser/goreleaser:$(GORELEASER_VERSION) build --clean
+endif
+
 build-windows-client: go.sum
 	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
 
@@ -121,6 +144,60 @@ build-heighliner:
 	  --target=heighliner \
 		--progress=plain \
 	  --tag $(XION_IMAGE) .
+
+docker-build:
+	$(DOCKER) run \
+		--rm \
+		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		-e RELEASE=$(RELEASE) \
+		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/github.com/archway-network/archway \
+		-w /go/src/github.com/archway-network/archway \
+		goreleaser/goreleaser:$(GORELEASER_VERSION) \
+		--clean
+		--snapshot
+
+release-dryrun:
+	$(DOCKER) run \
+		--rm \
+		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		-e RELEASE=$(RELEASE) \
+		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/github.com/archway-network/archway \
+		-w /go/src/github.com/archway-network/archway \
+		goreleaser/goreleaser:$(GORELEASER_VERSION) \
+		--skip-publish \
+		--clean \
+		--skip-validate
+
+release:
+	$(DOCKER) run \
+		--rm \
+		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		-e RELEASE=$(RELEASE) \
+		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/github.com/archway-network/archway \
+		-w /go/src/github.com/archway-network/archway \
+		goreleaser/goreleaser:$(GORELEASER_VERSION) \
+		--clean \
+		--skip-validate=$(GORELEASER_SKIP_VALIDATE)
+
+release-cross:
+	$(DOCKER) run \
+		--rm \
+		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		-e RELEASE=$(RELEASE) \
+		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v `pwd`:/go/src/github.com/archway-network/archway \
+		-w /go/src/github.com/archway-network/archway \
+		goreleaser/goreleaser-cross:$(GORELEASER_CROSS_VERSION) \
+		-f .goreleaser-cross.yaml \
+		--clean \
+		--skip-validate=$(GORELEASER_SKIP_VALIDATE)
 
 ################################################################################
 ###                         Tools & dependencies                             ###

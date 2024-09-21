@@ -1,4 +1,4 @@
-name: Create Release
+t pname: Create Release
 # Run for new release tags only
 
 on:
@@ -94,7 +94,7 @@ jobs:
 
       - name: Create version.json
         working-directory: release
-        run : |
+        run: |
           set -Eeuo pipefail
           upgrade_name=$(echo $GITHUB_REF_NAME | cut -d. -f1)
           jq -s '.[0] * (.[1] // {})' <(go mod edit -json | jq --arg name $upgrade_name '{
@@ -235,7 +235,7 @@ jobs:
       - name: Download json artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: '*.json'
+          pattern: "*.json"
           path: /tmp
           merge-multiple: true
 
