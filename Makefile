@@ -11,23 +11,19 @@ BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
 XION_IMAGE=xion:local
 
-GORELEASER_VERSION = v1.22.7
-
-# for dockerized protobuf tools
+# docker and goreleaser
 DOCKER := $(shell which docker)
-HTTPS_GIT := https://github.com/burnt-labs/xion.git
-CURRENT_DIR := $(shell pwd)
-SHORT_SHA := $(shell git rev-parse --short HEAD)
-LATEST_TAG := $(shell git describe --tags --abbrev=0)
+GORELEASER_IMAGE = goreleaser/goreleaser-cross
+GORELEASER_VERSION = v1.23.1
+GORELEASER_RELEASE ?= false
+GORELEASER_SKIP_FLAGS ?= ""
 
 # library versions
-WASMVM_REPO = "github.com/CosmWasm/wasmvm"
-WASMVM_MOD_VERSION = $(shell grep ${WASMVM_REPO} go.mod | cut -d ' ' -f 1)
-LIBWASM_VERSION = $(shell go list -m ${WASMVM_MOD_VERSION} | cut -d ' ' -f 2)
+LIBWASM_REPO = github.com/CosmWasm/wasmvm
+LIBWASM_MOD_VERSION = $(shell grep ${LIBWASM_REPO} go.mod | cut -d ' ' -f 1)
+LIBWASM_VERSION = $(shell go list -m ${LIBWASM_MOD_VERSION} | cut -d ' ' -f 2)
 
 # Release environment variable
-RELEASE ?= false
-GORELEASER_SKIP_VALIDATE ?= false
 
 export GO111MODULE = on
 
@@ -104,40 +100,70 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xiond ./cmd/xiond
 endif
 
-build-binary:
-	$(DOCKER) run --rm \
-		--workdir /code \
-		--volume $(CURDIR):/code \
-		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		goreleaser/goreleaser-cross:$(GORELEASER_VERSION) \
-		build --clean --single-target --skip validate
-
 build-all: go.sum
 	$(DOCKER) run --rm \
-		--workdir /code \
-		--volume $(CURDIR):/code \
+		--workdir /go/src/xion \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/go/src/xion \
 		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		goreleaser/goreleaser-cross:$(GORELEASER_VERSION) \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --skip validate
+
+build-local:
+	$(DOCKER) run --rm \
+		--env GOOS=$(shell go env -json | jq -r '.GOOS') \
+		--env GOARCH=$(shell go env -json | jq -r '.GOARCH') \
+		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
+
+build-linux-amd64:
+	$(DOCKER) run --rm \
+		--env GOOS=linux \
+		--env GOARCH=amd64 \
+		--env LIBWASM_NAME=libwasmvm_muslc.x86_64.a \
+		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
+
+build-linux-arm64:
+	$(DOCKER) run --rm \
+		--env GOOS=linux \
+		--env GOARCH=arm64 \
+		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
+
+build-darwin-amd64:
+	$(DOCKER) run --rm \
+		--env GOOS=darwin \
+		--env GOARCH=amd64 \
+		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
+
+build-darwin-arm64:
+	$(DOCKER) run --rm \
+		--env GOOS=darwin \
+		--env GOARCH=arm64 \
+		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
 
 build-windows-client: go.sum
 	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
-
-build-linux-amd64: GOOS = linux
-build-linux-amd64: GOARCH = amd64
-build-linux-amd64: build-binary
-
-build-linux-arm64: GOOS = linux
-build-linux-arm64: GOARCH = arm64
-build-linux-arm64: build-binary
-
-build-darwin-amd64: GOOS = darwin
-build-darwin-amd64: GOARCH = amd64
-build-darwin-amd64: build-binary
-
-build-darwin-arm64: GOOS = darwin
-build-darwin-arm64: GOARCH = arm64
-build-darwin-arm64: build-binary
 
 .PHONY: build-heighliner
 build-heighliner:
@@ -147,58 +173,42 @@ build-heighliner:
 	  --tag $(XION_IMAGE) .
 
 docker-build:
-	$(DOCKER) run \
-		--rm \
+	$(DOCKER) run --rm \
 		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		-e RELEASE=$(RELEASE) \
+		-e RELEASE=$(GORELEASER_RELEASE) \
 		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/archway-network/archway \
 		-w /go/src/github.com/archway-network/archway \
-		goreleaser/goreleaser:$(GORELEASER_VERSION) \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		--clean
 		--snapshot
 
 release-dryrun:
-	$(DOCKER) run \
-		--rm \
+	$(DOCKER) run --rm \
 		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		-e RELEASE=$(RELEASE) \
+		-e RELEASE=$(GORELEASER_RELEASE) \
 		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/archway-network/archway \
 		-w /go/src/github.com/archway-network/archway \
-		goreleaser/goreleaser:$(GORELEASER_VERSION) \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		--skip-publish \
 		--clean \
 		--skip-validate
 
 release:
-	$(DOCKER) run \
-		--rm \
+	$(DOCKER) run --rm \
 		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		-e RELEASE=$(RELEASE) \
+		-e RELEASE=$(GORELEASER_RELEASE) \
 		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/archway-network/archway \
 		-w /go/src/github.com/archway-network/archway \
-		goreleaser/goreleaser:$(GORELEASER_VERSION) \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		--clean \
 		--skip-validate=$(GORELEASER_SKIP_VALIDATE)
 
-release-cross:
-	$(DOCKER) run \
-		--rm \
-		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		-e RELEASE=$(RELEASE) \
-		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/github.com/archway-network/archway \
-		-w /go/src/github.com/archway-network/archway \
-		goreleaser/goreleaser-cross:$(GORELEASER_CROSS_VERSION) \
-		-f .goreleaser-cross.yaml \
-		--clean \
-		--skip-validate=$(GORELEASER_SKIP_VALIDATE)
 
 ################################################################################
 ###                         Tools & dependencies                             ###
@@ -346,6 +356,7 @@ format: format-tools
 protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
 proto-all: proto-format proto-lint proto-gen format
 
