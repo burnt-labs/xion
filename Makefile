@@ -123,7 +123,6 @@ build-linux-amd64:
 	$(DOCKER) run --rm \
 		--env GOOS=linux \
 		--env GOARCH=amd64 \
-		--env LIBWASM_NAME=libwasmvm_muslc.x86_64.a \
 		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/go/src/xion \

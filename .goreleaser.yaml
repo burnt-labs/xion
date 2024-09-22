@@ -2,6 +2,10 @@
 version: 2
 project_name: xiond
 
+# before:
+#   hooks:
+#     - apt update && apt install -y musl-tools=1.2.3-1
+
 env:
   - CGO_ENABLED=1
   - GO111MODULE=on
@@ -10,113 +14,166 @@ metadata:
   mod_timestamp: "{{ .CommitTimestamp }}"
 
 git:
-  # sort tags in same commit
+  # sort more than one tag in the same commit.
   # Source: https://goreleaser.com/customization/git/
   tag_sort: -version:creatordate
 
 builds:
-  - id: xiond
+  - id: xiond-linux-arm64
     main: ./cmd/xiond
-    binary: xiond
+    binary: xiond-linux-arm64
     goos:
       - linux
+    goarch:
+      - arm64
+    env:
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++;
+    flags:
+      - -mod=readonly
+      - -trimpath
+    hooks:
+      pre:
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvm_muslc.aarch64.a -O /lib/libwasmvm_muslc.aarch64.a
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc,osusergo
+      - -w -s
+      - -linkmode=external
+      - -extldflags '-Wl,-z,muldefs -static -lm'
+    no_unique_dist_dir: true
+    tags:
+      - netgo
+      - ledger
+      - muslc
+      - osusergo
+
+  - id: xiond-linux-amd64
+    main: ./cmd/xiond
+    binary: xiond-linux-amd64
+    goos:
+      - linux
+    goarch:
+      - amd64
+    flags:
+      - -mod=readonly
+      - -trimpath
+    hooks:
+      pre:
+        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvm_muslc.x86_64.a -O /lib/libwasmvm_muslc.x86_64.a
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc
+      - -w -s
+      - -linkmode=external
+      - -extldflags '-Wl,-z,muldefs -static -lm'
+    no_unique_dist_dir: true
+    tags:
+      - netgo
+      - ledger
+      - muslc
+
+  - id: xiond-darwin-arm64
+    main: ./cmd/xiond
+    binary: xiond-darwin-arm64
+    goos:
       - darwin
     goarch:
       - arm64
-      - amd64
+    env:
+      - CC=oa64-clang
+      - CGO_LDFLAGS=-L/lib
+    flags:
+      - -mod=readonly
+      - -trimpath
     hooks:
       pre:
-        - >-
-          {{- if eq .Os "darwin" }}
-            wget -q https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a
-          {{- else if eq .Os "linux" }}
-            {{- if eq .Arch "amd64"}}
-              wget -q https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvm_muslc.x86_64.a -O /lib/libwasmvm_muslc.x86_64.a
-            {{- else if eq .Arch "arm64"}}
-              wget -q https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvm_muslc.aarch64.a -O /lib/libwasmvm_muslc.aarch64.a
-            {{- end }}
-          {{- end }}
-    overrides:
-      - goos: linux
-        goarch: arm64
-        env:
-          - CC=aarch64-linux-gnu-gcc
-          - CXX=aarch64-linux-gnu-g++;
-        flags:
-          - -mod=readonly
-          - -trimpath
-        ldflags:
-          - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
-          - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
-          - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc,osusergo
-          - -w -s
-          - -linkmode=external
-          - -extldflags '-Wl,-z,muldefs -static -lm'
-        tags:
-          - netgo
-          - ledger
-          - muslc
-          - osusergo
-      - goos: linux
-        goarch: amd64
-        flags:
-          - -mod=readonly
-          - -trimpath
-        ldflags:
-          - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
-          - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
-          - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc
-          - -w -s
-          - -linkmode=external
-          - -extldflags '-Wl,-z,muldefs -static -lm'
-        tags:
-          - netgo
-          - ledger
-          - muslc
-      - goos: darwin
-        goarch: arm64
-        env:
-          - CC=oa64-clang
-          - CGO_LDFLAGS=-L/lib
-        flags:
-          - -mod=readonly
-          - -trimpath
-        ldflags:
-          - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
-          - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
-          - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
-          - -w -s
-          - -linkmode=external
-        tags:
-          - netgo
-          - ledger
-          - static_wasm
-      - goos: darwin
-        goarch: amd64
-        env:
-          - CC=o64-clang
-          - CGO_LDFLAGS=-L/lib
-        flags:
-          - -mod=readonly
-          - -trimpath
-        ldflags:
-          - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
-          - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
-          - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
-          - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
-          - -w -s
-          - -linkmode=external
-        tags:
-          - netgo
-          - ledger
-          - static_wasm
+        - wget -nc https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvmstatic_darwin.a -O /usr/lib/libwasmvmstatic_darwin.a
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
+      - -w -s
+      - -linkmode=external
+    no_unique_dist_dir: true
+    tags:
+      - netgo
+      - ledger
+      - static_wasm
+
+  - id: xiond-darwin-amd64
+    main: ./cmd/xiond
+    binary: xiond-darwin-amd64
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    env:
+      - CC=o64-clang
+      - CGO_LDFLAGS=-L/lib
+    hooks:
+      pre:
+        - wget -nc https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a
+    flags:
+      - -mod=readonly
+      - -trimpath
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
+      - -w -s
+      - -linkmode=external
+    no_unique_dist_dir: true
+    tags:
+      - netgo
+      - ledger
+      - static_wasm
+
 universal_binaries:
-  - id: xiond
+  - id: xiond-darwin-all
+    ids:
+      - xiond-darwin-amd64
+      - xiond-darwin-arm64
     replace: false
+    hooks:
+      post:
+        - mv dist/xiond-darwin-all_darwin_all/xiond dist/xiond-darwin-all
+        - rmdir dist/xiond-darwin-all_darwin_all
+
+checksum:
+  name_template: "sha256sum.txt"
+  algorithm: sha256
+
+# Docs: https://goreleaser.com/customization/changelog/
+changelog:
+  # disable: "{{ .Env.CREATE_CHANGELOG }}"
+  use: github
+  groups:
+  - title: Features
+    regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+    order: 0
+  - title: "Bug fixes"
+    regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
+    order: 1
+  - title: Others
+    order: 999
+  filters:
+    exclude:
+      - '^revert:'
+    #include:
+
+# Docs: https://goreleaser.com/customization/homebrew/
+#brews:
+
+# Docs: https://goreleaser.com/customization/release/
+#release:
