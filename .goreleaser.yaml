@@ -2,9 +2,10 @@
 version: 2
 project_name: xiond
 
-# before:
-#   hooks:
-#     - apt update && apt install -y musl-tools=1.2.3-1
+before:
+  hooks:
+    - apt update && apt install -y musl-tools=1.2.3-1
+    - mkdir -p build/v{{ .Version }}
 
 env:
   - CGO_ENABLED=1
@@ -21,20 +22,24 @@ git:
 builds:
   - id: xiond-linux-arm64
     main: ./cmd/xiond
-    binary: xiond-linux-arm64
+    binary: "{{ .ShortCommit }}/xiond-linux-arm64/xiond"
     goos:
       - linux
     goarch:
       - arm64
     env:
+      - BUILD_ID=xiond-linux-arm64
       - CC=aarch64-linux-gnu-gcc
       - CXX=aarch64-linux-gnu-g++;
+      - CGO_LDFLAGS='-L /lib'
     flags:
       - -mod=readonly
       - -trimpath
     hooks:
       pre:
-        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvm_muslc.aarch64.a -O /lib/libwasmvm_muslc.aarch64.a
+        - sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.aarch64.a -O /lib/libwasmvm_muslc.aarch64.a'
+      post:
+        - cp -f {{ .Path }} build/v{{ .Version }}/xiond-linux-arm64
     ldflags:
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
       - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
@@ -53,17 +58,24 @@ builds:
 
   - id: xiond-linux-amd64
     main: ./cmd/xiond
-    binary: xiond-linux-amd64
+    binary: "{{ .ShortCommit }}/xiond-linux-amd64/xiond"
     goos:
       - linux
     goarch:
       - amd64
+    env:
+    # can only build on linux/amd64, use default gcc/g++
+    #   - CC=x86_64-linux-gnu-gcc
+    #   - CXX=x86_64-linux-gnu-g++
+       - CGO_LDFLAGS='-L /lib'
     flags:
       - -mod=readonly
       - -trimpath
     hooks:
       pre:
-        - wget https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvm_muslc.x86_64.a -O /lib/libwasmvm_muslc.x86_64.a
+        - sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.x86_64.a -O /lib/libwasmvm_muslc.x86_64.a'
+      post:
+        - cp -f {{ .Path }} build/v{{ .Version }}/xiond-linux-amd64
     ldflags:
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
       - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
@@ -81,20 +93,23 @@ builds:
 
   - id: xiond-darwin-arm64
     main: ./cmd/xiond
-    binary: xiond-darwin-arm64
+    binary: "{{ .ShortCommit }}/xiond-darwin-arm64/xiond"
     goos:
       - darwin
     goarch:
       - arm64
     env:
       - CC=oa64-clang
-      - CGO_LDFLAGS=-L/lib
+      - CXX=oa64-clang++
+      - CGO_LDFLAGS='-L /lib'
     flags:
       - -mod=readonly
       - -trimpath
     hooks:
       pre:
-        - wget -nc https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvmstatic_darwin.a -O /usr/lib/libwasmvmstatic_darwin.a
+        - sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a'
+      post:
+        - cp -f {{ .Path }} build/v{{ .Version }}/xiond-darwin-arm64
     ldflags:
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
       - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
@@ -111,17 +126,20 @@ builds:
 
   - id: xiond-darwin-amd64
     main: ./cmd/xiond
-    binary: xiond-darwin-amd64
+    binary: "{{ .ShortCommit }}-xiond-darwin-amd64/xiond"
     goos:
       - darwin
     goarch:
       - amd64
     env:
       - CC=o64-clang
-      - CGO_LDFLAGS=-L/lib
+      - CXX=o64-clang++
+      - CGO_LDFLAGS='-L /lib'
     hooks:
       pre:
-        - wget -nc https://github.com/CosmWasm/wasmvm/releases/download/{{ .Env.LIBWASM_VERSION }}/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a
+        - sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a'
+      post:
+        - cp -f {{ .Path }} build/v{{ .Version }}/xiond-darwin-amd64
     flags:
       - -mod=readonly
       - -trimpath
@@ -145,13 +163,14 @@ universal_binaries:
       - xiond-darwin-amd64
       - xiond-darwin-arm64
     replace: false
-    hooks:
-      post:
-        - mv dist/xiond-darwin-all_darwin_all/xiond dist/xiond-darwin-all
-        - rmdir dist/xiond-darwin-all_darwin_all
+    name_template: xiond
+    # hooks:
+    #   post:
+    #     - mv dist/xiond-darwin-all_darwin_all/xiond dist/xiond-darwin-all
+    #     - rmdir dist/xiond-darwin-all_darwin_all
 
 checksum:
-  name_template: "sha256sum.txt"
+  name_template: "xiond_v{{ .Version }}_checksums.txt"
   algorithm: sha256
 
 # Docs: https://goreleaser.com/customization/changelog/

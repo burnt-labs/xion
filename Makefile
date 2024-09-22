@@ -14,21 +14,11 @@ XION_IMAGE=xion:local
 # docker and goreleaser
 DOCKER := $(shell which docker)
 GORELEASER_IMAGE = goreleaser/goreleaser-cross
-GORELEASER_VERSION = v1.23.1
+GORELEASER_VERSION = v1.22.7
 GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 
-# library versions
-LIBWASM_REPO = github.com/CosmWasm/wasmvm
-LIBWASM_MOD_VERSION = $(shell grep ${LIBWASM_REPO} go.mod | cut -d ' ' -f 1)
-LIBWASM_VERSION = $(shell go list -m ${LIBWASM_MOD_VERSION} | cut -d ' ' -f 2)
-
-# Release environment variable
-
-export GO111MODULE = on
-
 # process build tags
-
 build_tags = netgo
 ifeq ($(LEDGER_ENABLED),true)
   ifeq ($(OS),Windows_NT)
@@ -102,10 +92,9 @@ endif
 
 build-all: go.sum
 	$(DOCKER) run --rm \
-		--workdir /go/src/xion \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/go/src/xion \
-		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--workdir /go/src/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --skip validate
 
@@ -113,17 +102,6 @@ build-local:
 	$(DOCKER) run --rm \
 		--env GOOS=$(shell go env -json | jq -r '.GOOS') \
 		--env GOARCH=$(shell go env -json | jq -r '.GOARCH') \
-		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		build --clean --single-target --skip validate
-
-build-linux-amd64:
-	$(DOCKER) run --rm \
-		--env GOOS=linux \
-		--env GOARCH=amd64 \
-		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/go/src/xion \
 		--workdir /go/src/xion \
@@ -134,7 +112,16 @@ build-linux-arm64:
 	$(DOCKER) run --rm \
 		--env GOOS=linux \
 		--env GOARCH=arm64 \
-		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
+
+build-linux-amd64:
+	$(DOCKER) run --rm \
+		--env GOOS=linux \
+		--env GOARCH=amd64 \
+		--platform linux/amd64 \
 		--volume $(CURDIR):/go/src/xion \
 		--workdir /go/src/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
@@ -144,7 +131,6 @@ build-darwin-amd64:
 	$(DOCKER) run --rm \
 		--env GOOS=darwin \
 		--env GOARCH=amd64 \
-		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/go/src/xion \
 		--workdir /go/src/xion \
@@ -155,50 +141,40 @@ build-darwin-arm64:
 	$(DOCKER) run --rm \
 		--env GOOS=darwin \
 		--env GOARCH=arm64 \
-		--env LIBWASM_VERSION=$(LIBWASM_VERSION) \
+		--platform linux/amd64 \
 		--volume $(CURDIR):/go/src/xion \
 		--workdir /go/src/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --single-target --skip validate
 
-build-windows-client: go.sum
-	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
-
-.PHONY: build-heighliner
 build-heighliner:
 	$(DOCKER) build \
 	  --target=heighliner \
 		--progress=plain \
 	  --tag $(XION_IMAGE) .
 
-docker-build:
+build-docker:
 	$(DOCKER) run --rm \
-		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
-		-e RELEASE=$(GORELEASER_RELEASE) \
-		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/github.com/archway-network/archway \
-		-w /go/src/github.com/archway-network/archway \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		--clean
-		--snapshot
+		--clean --snapshot --skip validate
 
 release-dryrun:
 	$(DOCKER) run --rm \
-		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
 		-e RELEASE=$(GORELEASER_RELEASE) \
 		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v `pwd`:/go/src/github.com/archway-network/archway \
 		-w /go/src/github.com/archway-network/archway \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		--skip-publish \
 		--clean \
-		--skip-validate
+		--skip publish \
+		--skip validate
 
 release:
 	$(DOCKER) run --rm \
-		-e LIBWASM_VERSION=$(LIBWASM_VERSION) \
 		-e RELEASE=$(GORELEASER_RELEASE) \
 		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
 		-v /var/run/docker.sock:/var/run/docker.sock \
