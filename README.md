@@ -11,6 +11,7 @@ compatibility with the latest cosmos-sdk and CosmWasm releases.
 - [Build](#build)
 - [Testing Prerequisites](#testing-prerequisites)
 - [Testing](#testing)
+- [Specific Integration Tests](#specific-integration-tests)
 - [Tools & Dependencies](#tools--dependencies)
 - [Linting](#linting)
 - [Protobuf](#protobuf)
