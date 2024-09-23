@@ -9,7 +9,8 @@ SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
 BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
-XION_IMAGE=xion:local
+XION_IMAGE = xiond:local
+XION_TEST_IMAGE = xiond:heighliner
 
 # docker and goreleaser
 DOCKER := $(shell which docker)
@@ -147,42 +148,34 @@ build-darwin-arm64:
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --single-target --skip validate
 
+build-docker:
+	$(DOCKER) build \
+	  --target=release \
+	  --progress=plain \
+	  --tag $(XION_IMAGE) .
+
 build-heighliner:
 	$(DOCKER) build \
 	  --target=heighliner \
-		--progress=plain \
-	  --tag $(XION_IMAGE) .
+	  --progress=plain \
+	  --tag $(XION_TEST_IMAGE) .
 
-build-docker:
+release-dryrun:
 	$(DOCKER) run --rm \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/go/src/xion \
 		--workdir /go/src/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		--clean --snapshot --skip validate
-
-release-dryrun:
-	$(DOCKER) run --rm \
-		-e RELEASE=$(GORELEASER_RELEASE) \
-		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/github.com/archway-network/archway \
-		-w /go/src/github.com/archway-network/archway \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		--clean \
-		--skip publish \
-		--skip validate
+		--clean --skip publish --skip validate
 
 release:
 	$(DOCKER) run --rm \
-		-e RELEASE=$(GORELEASER_RELEASE) \
-		-e GITHUB_TOKEN="$(GITHUB_TOKEN)" \
-		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/github.com/archway-network/archway \
-		-w /go/src/github.com/archway-network/archway \
+	$(DOCKER) run --rm \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/go/src/xion \
+		--workdir /go/src/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		--clean \
-		--skip-validate=$(GORELEASER_SKIP_VALIDATE)
+		--clean --skip validate
 
 
 ################################################################################
@@ -225,64 +218,64 @@ compile_integration_tests:
 	@cd integration_tests && go test -c
 
 test-integration:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
 
 test-integration-dungeon-transfer-block: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestDungeonTransferBlock
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestDungeonTransferBlock
 
 test-integration-mint-module-no-inflation-no-fees: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleNoInflationNoFees
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleNoInflationNoFees
 
 test-integration-mint-module-inflation-high-fees: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationHighFees
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationHighFees
 
 test-integration-mint-module-inflation-low-fees: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationLowFees
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationLowFees
 
 test-integration-jwt-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestJWTAbstractAccount
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestJWTAbstractAccount
 
 test-integration-register-jwt-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionAbstractAccountJWTCLI
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionAbstractAccountJWTCLI
 
 test-integration-xion-send-platform-fee: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionSendPlatformFee
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionSendPlatformFee
 
 test-integration-xion-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
 
 test-integration-xion-min-default: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeDefault
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeDefault
 
 test-integration-xion-min-zero: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeZero
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeZero
 
 test-integration-xion-token-factory: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionTokenFactory
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionTokenFactory
 
 test-integration-xion-treasury-grants: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryContract
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryContract
 
 test-integration-xion-treasury-multi: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryMulti
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryMulti
 
 test-integration-min:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run  TestXionMinimumFeeDefault -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -v -run  TestXionMinimumFeeDefault -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-web-auth-n-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run WebAuthNAbstractAccount
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run WebAuthNAbstractAccount
 
 test-integration-upgrade:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-upgrade-network:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeNetwork -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeNetwork -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-xion-mig: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestAbstractAccountMigration
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestAbstractAccountMigration
 
 test-integration-simulate: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestSimulate
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestSimulate
 
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...

@@ -19,21 +19,24 @@ ENV GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH}
 
 # Set the workdir
-WORKDIR /go/bin
+WORKDIR /root/go/bin
 
 # Get cosmovisor
 RUN set -eux; \
     go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.5.0;
 
 # Set the workdir
-WORKDIR /go/src/github.com/burnt-labs/xion
+WORKDIR /root/go/src/github.com/burnt-labs/xion
 
 COPY . .
 
 # run goreleaser
 RUN set -eux; \
-    /entrypoint.sh build --clean --single-target --skip validate; \
-    cp dist/xiond-${TARGETOS}-${TARGETARCH}/xiond /go/bin/xiond
+    SHORT_SHA=$(git rev-parse --short HEAD); \
+    if [ ! -f "dist/${SHORT_SHA}/xiond-${TARGETOS}-${TARGETARCH}/xiond" ]; then \
+        /entrypoint.sh build --clean --single-target --skip validate; \
+    fi; \
+    cp dist/${SHORT_SHA}/xiond-${TARGETOS}-${TARGETARCH}/xiond /root/go/bin/xiond;
 
 # --------------------------------------------------------
 # Heighliner
@@ -45,6 +48,11 @@ FROM scratch AS heighliner
 WORKDIR /bin
 ENV PATH=/bin
 
+ARG ALPINE_VERSION
+
+# Install xiond
+COPY --from=builder /root/go/bin/xiond /bin/xiond
+
 # Install busybox
 COPY --from=busybox:1.36-musl /bin/busybox /bin/busybox
 
@@ -52,10 +60,7 @@ COPY --from=busybox:1.36-musl /bin/busybox /bin/busybox
 COPY --from=busybox:1.36-musl /etc/passwd /etc/group /etc/
 
 # Install trusted CA certificates
-COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
-
-# Install xiond
-COPY --from=builder /go/bin/xiond /bin/xiond
+COPY --from=alpine:3.20 /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install jq
 COPY --from=ghcr.io/strangelove-ventures/infra-toolkit:v0.1.4 /usr/local/bin/jq /bin/jq
@@ -108,7 +113,7 @@ USER heighliner
 # --------------------------------------------------------
 
 FROM alpine:${ALPINE_VERSION} AS release
-COPY --from=builder /go/bin/xiond /usr/bin/xiond
+COPY --from=builder /root/go/bin/xiond /usr/bin/xiond
 COPY --from=builder /root/go/bin/cosmovisor /usr/bin/cosmovisor
 
 # api
