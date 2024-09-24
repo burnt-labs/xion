@@ -118,6 +118,7 @@ require (
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/goware/urlx v0.3.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
+	github.com/iden3/go-iden3-crypto v0.0.17 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/onsi/gomega v1.27.10 // indirect
 	github.com/shamaton/msgpack/v2 v2.2.0 // indirect

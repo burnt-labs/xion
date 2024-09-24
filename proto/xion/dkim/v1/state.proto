@@ -14,6 +14,15 @@ message DkimPubKey {
     };
 
     string domain = 1;
-    string pub_key  = 2;
+    string pub_key  = 2; // base64 encoded public key
     string selector = 3;
+    Version version = 4;
+    KeyType key_type = 5;
+}
+
+enum Version {
+  DKIM1 = 0;
+}
+enum KeyType {
+  RSA = 0;
 }

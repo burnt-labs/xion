@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/base64"
 	"net/url"
 
 	"cosmossdk.io/errors"
@@ -13,6 +14,9 @@ func (pubKey *DkimPubKey) Validate() error {
 	if _, err := url.ParseRequestURI(pubKey.Domain); err != nil {
 		return errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
 	}
-	// TODO: pass the public key - what kind of public key can be passed here?
+	// make sure the public key is base64 encoded
+	if _, err := base64.StdEncoding.DecodeString(pubKey.PubKey); err != nil {
+		return errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
+	}
 	return nil
 }

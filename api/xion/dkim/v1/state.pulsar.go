@@ -18,6 +18,8 @@ var (
 	fd_DkimPubKey_domain   protoreflect.FieldDescriptor
 	fd_DkimPubKey_pub_key  protoreflect.FieldDescriptor
 	fd_DkimPubKey_selector protoreflect.FieldDescriptor
+	fd_DkimPubKey_version  protoreflect.FieldDescriptor
+	fd_DkimPubKey_key_type protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -26,6 +28,8 @@ func init() {
 	fd_DkimPubKey_domain = md_DkimPubKey.Fields().ByName("domain")
 	fd_DkimPubKey_pub_key = md_DkimPubKey.Fields().ByName("pub_key")
 	fd_DkimPubKey_selector = md_DkimPubKey.Fields().ByName("selector")
+	fd_DkimPubKey_version = md_DkimPubKey.Fields().ByName("version")
+	fd_DkimPubKey_key_type = md_DkimPubKey.Fields().ByName("key_type")
 }
 
 var _ protoreflect.Message = (*fastReflection_DkimPubKey)(nil)
@@ -111,6 +115,18 @@ func (x *fastReflection_DkimPubKey) Range(f func(protoreflect.FieldDescriptor, p
 			return
 		}
 	}
+	if x.Version != 0 {
+		value := protoreflect.ValueOfEnum((protoreflect.EnumNumber)(x.Version))
+		if !f(fd_DkimPubKey_version, value) {
+			return
+		}
+	}
+	if x.KeyType != 0 {
+		value := protoreflect.ValueOfEnum((protoreflect.EnumNumber)(x.KeyType))
+		if !f(fd_DkimPubKey_key_type, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -132,6 +148,10 @@ func (x *fastReflection_DkimPubKey) Has(fd protoreflect.FieldDescriptor) bool {
 		return x.PubKey != ""
 	case "xion.dkim.v1.DkimPubKey.selector":
 		return x.Selector != ""
+	case "xion.dkim.v1.DkimPubKey.version":
+		return x.Version != 0
+	case "xion.dkim.v1.DkimPubKey.key_type":
+		return x.KeyType != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
@@ -154,6 +174,10 @@ func (x *fastReflection_DkimPubKey) Clear(fd protoreflect.FieldDescriptor) {
 		x.PubKey = ""
 	case "xion.dkim.v1.DkimPubKey.selector":
 		x.Selector = ""
+	case "xion.dkim.v1.DkimPubKey.version":
+		x.Version = 0
+	case "xion.dkim.v1.DkimPubKey.key_type":
+		x.KeyType = 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
@@ -179,6 +203,12 @@ func (x *fastReflection_DkimPubKey) Get(descriptor protoreflect.FieldDescriptor)
 	case "xion.dkim.v1.DkimPubKey.selector":
 		value := x.Selector
 		return protoreflect.ValueOfString(value)
+	case "xion.dkim.v1.DkimPubKey.version":
+		value := x.Version
+		return protoreflect.ValueOfEnum((protoreflect.EnumNumber)(value))
+	case "xion.dkim.v1.DkimPubKey.key_type":
+		value := x.KeyType
+		return protoreflect.ValueOfEnum((protoreflect.EnumNumber)(value))
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
@@ -205,6 +235,10 @@ func (x *fastReflection_DkimPubKey) Set(fd protoreflect.FieldDescriptor, value p
 		x.PubKey = value.Interface().(string)
 	case "xion.dkim.v1.DkimPubKey.selector":
 		x.Selector = value.Interface().(string)
+	case "xion.dkim.v1.DkimPubKey.version":
+		x.Version = (Version)(value.Enum())
+	case "xion.dkim.v1.DkimPubKey.key_type":
+		x.KeyType = (KeyType)(value.Enum())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
@@ -231,6 +265,10 @@ func (x *fastReflection_DkimPubKey) Mutable(fd protoreflect.FieldDescriptor) pro
 		panic(fmt.Errorf("field pub_key of message xion.dkim.v1.DkimPubKey is not mutable"))
 	case "xion.dkim.v1.DkimPubKey.selector":
 		panic(fmt.Errorf("field selector of message xion.dkim.v1.DkimPubKey is not mutable"))
+	case "xion.dkim.v1.DkimPubKey.version":
+		panic(fmt.Errorf("field version of message xion.dkim.v1.DkimPubKey is not mutable"))
+	case "xion.dkim.v1.DkimPubKey.key_type":
+		panic(fmt.Errorf("field key_type of message xion.dkim.v1.DkimPubKey is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
@@ -250,6 +288,10 @@ func (x *fastReflection_DkimPubKey) NewField(fd protoreflect.FieldDescriptor) pr
 		return protoreflect.ValueOfString("")
 	case "xion.dkim.v1.DkimPubKey.selector":
 		return protoreflect.ValueOfString("")
+	case "xion.dkim.v1.DkimPubKey.version":
+		return protoreflect.ValueOfEnum(0)
+	case "xion.dkim.v1.DkimPubKey.key_type":
+		return protoreflect.ValueOfEnum(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.DkimPubKey"))
@@ -331,6 +373,12 @@ func (x *fastReflection_DkimPubKey) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
+		if x.Version != 0 {
+			n += 1 + runtime.Sov(uint64(x.Version))
+		}
+		if x.KeyType != 0 {
+			n += 1 + runtime.Sov(uint64(x.KeyType))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -359,6 +407,16 @@ func (x *fastReflection_DkimPubKey) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.KeyType != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.KeyType))
+			i--
+			dAtA[i] = 0x28
+		}
+		if x.Version != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Version))
+			i--
+			dAtA[i] = 0x20
 		}
 		if len(x.Selector) > 0 {
 			i -= len(x.Selector)
@@ -526,6 +584,44 @@ func (x *fastReflection_DkimPubKey) ProtoMethods() *protoiface.Methods {
 				}
 				x.Selector = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
+			case 4:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+				}
+				x.Version = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Version |= Version(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 5:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field KeyType", wireType)
+				}
+				x.KeyType = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.KeyType |= KeyType(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -574,14 +670,102 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Version int32
+
+const (
+	Version_DKIM1 Version = 0
+)
+
+// Enum value maps for Version.
+var (
+	Version_name = map[int32]string{
+		0: "DKIM1",
+	}
+	Version_value = map[string]int32{
+		"DKIM1": 0,
+	}
+)
+
+func (x Version) Enum() *Version {
+	p := new(Version)
+	*p = x
+	return p
+}
+
+func (x Version) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Version) Descriptor() protoreflect.EnumDescriptor {
+	return file_xion_dkim_v1_state_proto_enumTypes[0].Descriptor()
+}
+
+func (Version) Type() protoreflect.EnumType {
+	return &file_xion_dkim_v1_state_proto_enumTypes[0]
+}
+
+func (x Version) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Version.Descriptor instead.
+func (Version) EnumDescriptor() ([]byte, []int) {
+	return file_xion_dkim_v1_state_proto_rawDescGZIP(), []int{0}
+}
+
+type KeyType int32
+
+const (
+	KeyType_RSA KeyType = 0
+)
+
+// Enum value maps for KeyType.
+var (
+	KeyType_name = map[int32]string{
+		0: "RSA",
+	}
+	KeyType_value = map[string]int32{
+		"RSA": 0,
+	}
+)
+
+func (x KeyType) Enum() *KeyType {
+	p := new(KeyType)
+	*p = x
+	return p
+}
+
+func (x KeyType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (KeyType) Descriptor() protoreflect.EnumDescriptor {
+	return file_xion_dkim_v1_state_proto_enumTypes[1].Descriptor()
+}
+
+func (KeyType) Type() protoreflect.EnumType {
+	return &file_xion_dkim_v1_state_proto_enumTypes[1]
+}
+
+func (x KeyType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use KeyType.Descriptor instead.
+func (KeyType) EnumDescriptor() ([]byte, []int) {
+	return file_xion_dkim_v1_state_proto_rawDescGZIP(), []int{1}
+}
+
 type DkimPubKey struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Domain   string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
-	PubKey   string `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`
-	Selector string `protobuf:"bytes,3,opt,name=selector,proto3" json:"selector,omitempty"`
+	Domain   string  `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
+	PubKey   string  `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"` // base64 encoded public key
+	Selector string  `protobuf:"bytes,3,opt,name=selector,proto3" json:"selector,omitempty"`
+	Version  Version `protobuf:"varint,4,opt,name=version,proto3,enum=xion.dkim.v1.Version" json:"version,omitempty"`
+	KeyType  KeyType `protobuf:"varint,5,opt,name=key_type,json=keyType,proto3,enum=xion.dkim.v1.KeyType" json:"key_type,omitempty"`
 }
 
 func (x *DkimPubKey) Reset() {
@@ -625,6 +809,20 @@ func (x *DkimPubKey) GetSelector() string {
 	return ""
 }
 
+func (x *DkimPubKey) GetVersion() Version {
+	if x != nil {
+		return x.Version
+	}
+	return Version_DKIM1
+}
+
+func (x *DkimPubKey) GetKeyType() KeyType {
+	if x != nil {
+		return x.KeyType
+	}
+	return KeyType_RSA
+}
+
 var File_xion_dkim_v1_state_proto protoreflect.FileDescriptor
 
 var file_xion_dkim_v1_state_proto_rawDesc = []byte{
@@ -632,25 +830,34 @@ var file_xion_dkim_v1_state_proto_rawDesc = []byte{
 	0x74, 0x61, 0x74, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0c, 0x78, 0x69, 0x6f, 0x6e,
 	0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x1a, 0x17, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
 	0x2f, 0x6f, 0x72, 0x6d, 0x2f, 0x76, 0x31, 0x2f, 0x6f, 0x72, 0x6d, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x22, 0x76, 0x0a, 0x0a, 0x44, 0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x12,
-	0x16, 0x0a, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x70, 0x75, 0x62, 0x5f, 0x6b,
-	0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x75, 0x62, 0x4b, 0x65, 0x79,
-	0x12, 0x1a, 0x0a, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x3a, 0x1b, 0xf2, 0x9e,
-	0xd3, 0x8e, 0x03, 0x15, 0x0a, 0x11, 0x0a, 0x0f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x2c, 0x73,
-	0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x18, 0x01, 0x42, 0xa4, 0x01, 0x0a, 0x10, 0x63, 0x6f,
-	0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x42, 0x0a,
-	0x53, 0x74, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x32, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c,
-	0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f,
-	0x6e, 0x2f, 0x64, 0x6b, 0x69, 0x6d, 0x2f, 0x76, 0x31, 0x3b, 0x64, 0x6b, 0x69, 0x6d, 0x76, 0x31,
-	0xa2, 0x02, 0x03, 0x58, 0x44, 0x58, 0xaa, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x44, 0x6b,
-	0x69, 0x6d, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69,
-	0x6d, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x18, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d,
-	0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
-	0x02, 0x0e, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x44, 0x6b, 0x69, 0x6d, 0x3a, 0x3a, 0x56, 0x31,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x22, 0xd9, 0x01, 0x0a, 0x0a, 0x44, 0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79,
+	0x12, 0x16, 0x0a, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x70, 0x75, 0x62, 0x5f,
+	0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x75, 0x62, 0x4b, 0x65,
+	0x79, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x12, 0x2f, 0x0a,
+	0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x15,
+	0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x65,
+	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x30,
+	0x0a, 0x08, 0x6b, 0x65, 0x79, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0e,
+	0x32, 0x15, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x2e,
+	0x4b, 0x65, 0x79, 0x54, 0x79, 0x70, 0x65, 0x52, 0x07, 0x6b, 0x65, 0x79, 0x54, 0x79, 0x70, 0x65,
+	0x3a, 0x1b, 0xf2, 0x9e, 0xd3, 0x8e, 0x03, 0x15, 0x0a, 0x11, 0x0a, 0x0f, 0x64, 0x6f, 0x6d, 0x61,
+	0x69, 0x6e, 0x2c, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x18, 0x01, 0x2a, 0x14, 0x0a,
+	0x07, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x09, 0x0a, 0x05, 0x44, 0x4b, 0x49, 0x4d,
+	0x31, 0x10, 0x00, 0x2a, 0x12, 0x0a, 0x07, 0x4b, 0x65, 0x79, 0x54, 0x79, 0x70, 0x65, 0x12, 0x07,
+	0x0a, 0x03, 0x52, 0x53, 0x41, 0x10, 0x00, 0x42, 0xa4, 0x01, 0x0a, 0x10, 0x63, 0x6f, 0x6d, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x53, 0x74,
+	0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x32, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62,
+	0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f,
+	0x64, 0x6b, 0x69, 0x6d, 0x2f, 0x76, 0x31, 0x3b, 0x64, 0x6b, 0x69, 0x6d, 0x76, 0x31, 0xa2, 0x02,
+	0x03, 0x58, 0x44, 0x58, 0xaa, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x44, 0x6b, 0x69, 0x6d,
+	0x2e, 0x56, 0x31, 0xca, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d, 0x5c,
+	0x56, 0x31, 0xe2, 0x02, 0x18, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d, 0x5c, 0x56,
+	0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0e,
+	0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x44, 0x6b, 0x69, 0x6d, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -665,16 +872,21 @@ func file_xion_dkim_v1_state_proto_rawDescGZIP() []byte {
 	return file_xion_dkim_v1_state_proto_rawDescData
 }
 
+var file_xion_dkim_v1_state_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_xion_dkim_v1_state_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_xion_dkim_v1_state_proto_goTypes = []interface{}{
-	(*DkimPubKey)(nil), // 0: xion.dkim.v1.DkimPubKey
+	(Version)(0),       // 0: xion.dkim.v1.Version
+	(KeyType)(0),       // 1: xion.dkim.v1.KeyType
+	(*DkimPubKey)(nil), // 2: xion.dkim.v1.DkimPubKey
 }
 var file_xion_dkim_v1_state_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: xion.dkim.v1.DkimPubKey.version:type_name -> xion.dkim.v1.Version
+	1, // 1: xion.dkim.v1.DkimPubKey.key_type:type_name -> xion.dkim.v1.KeyType
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_xion_dkim_v1_state_proto_init() }
@@ -701,13 +913,14 @@ func file_xion_dkim_v1_state_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_xion_dkim_v1_state_proto_rawDesc,
-			NumEnums:      0,
+			NumEnums:      2,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_xion_dkim_v1_state_proto_goTypes,
 		DependencyIndexes: file_xion_dkim_v1_state_proto_depIdxs,
+		EnumInfos:         file_xion_dkim_v1_state_proto_enumTypes,
 		MessageInfos:      file_xion_dkim_v1_state_proto_msgTypes,
 	}.Build()
 	File_xion_dkim_v1_state_proto = out.File

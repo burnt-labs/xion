@@ -10,7 +10,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"cosmossdk.io/client/v2/autocli"
-	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -76,10 +75,7 @@ func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEn
 	if err != nil {
 		return err
 	}
-	if err := data.Params.Validate(); err != nil {
-		return errorsmod.Wrap(err, "params")
-	}
-	return nil
+	return data.Validate()
 }
 
 func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
@@ -117,6 +113,10 @@ func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, messa
 	marshaler.MustUnmarshalJSON(message, &genesisState)
 
 	if err := a.keeper.Params.Set(ctx, genesisState.Params); err != nil {
+		panic(err)
+	}
+
+	if isSaved, err := keeper.SaveDkimPubKeys(ctx, genesisState.DkimPubkeys, a.keeper.OrmDB); !isSaved {
 		panic(err)
 	}
 

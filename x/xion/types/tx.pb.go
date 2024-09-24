@@ -488,6 +488,7 @@ func _Msg_SetPlatformPercentage_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.v1.Msg",
 	HandlerType: (*MsgServer)(nil),

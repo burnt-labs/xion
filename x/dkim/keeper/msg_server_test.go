@@ -112,6 +112,8 @@ func TestAddDkimPubKey(t *testing.T) {
 				require.NoError(err)
 
 				require.EqualValues(tc.request.DkimPubkeys[0].PubKey, r.DkimPubkey.PubKey)
+				require.EqualValues(types.Version_DKIM1, r.DkimPubkey.Version)
+				require.EqualValues(types.KeyType_RSA, r.DkimPubkey.KeyType)
 			}
 
 		})

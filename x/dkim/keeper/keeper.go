@@ -105,9 +105,29 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	allDkimPubKeys, err := k.OrmDB.DkimPubKeyTable().List(ctx, apiv1.DkimPubKeyDomainSelectorIndexKey{})
+	if err != nil {
+		panic(err)
+	}
+	var dkimPubKeys []types.DkimPubKey
+
+	for allDkimPubKeys.Next() {
+		dkimPubKey, err := allDkimPubKeys.Value()
+		if err != nil {
+			panic(err)
+		}
+		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
+			Domain:   dkimPubKey.Domain,
+			PubKey:   dkimPubKey.PubKey,
+			Selector: dkimPubKey.Selector,
+			Version:  types.Version(dkimPubKey.Version),
+			KeyType:  types.KeyType(dkimPubKey.KeyType),
+		})
+	}
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return &types.GenesisState{
-		Params: params,
+		Params:      params,
+		DkimPubkeys: dkimPubKeys,
 	}
 }
