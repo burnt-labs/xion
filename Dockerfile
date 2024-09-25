@@ -7,7 +7,9 @@ ARG ALPINE_VERSION="3.18"
 # Builder
 # --------------------------------------------------------
 
-FROM goreleaser/goreleaser-cross:v${GORELEASER_VERSION} AS builder
+FROM --platform=linux/amd64 goreleaser/goreleaser-cross:v${GORELEASER_VERSION} AS builder
+
+ARG CALLER
 
 # Always set by buildkit
 ARG TARGETPLATFORM
@@ -32,11 +34,16 @@ COPY . .
 
 # run goreleaser
 RUN set -eux; \
-    SHORT_SHA=$(git rev-parse --short HEAD); \
-    if [ ! -f "dist/${SHORT_SHA}/xiond-${TARGETOS}-${TARGETARCH}/xiond" ]; then \
-        /entrypoint.sh build --clean --single-target --skip validate; \
-    fi; \
-    cp dist/${SHORT_SHA}/xiond-${TARGETOS}-${TARGETARCH}/xiond /root/go/bin/xiond;
+    if [ "${CALLER}" = "goreleaser" ]; then \
+        cp $(find . -name xiond | grep ${TARGETARCH}) /root/go/bin/xiond; \
+    else \
+        # use the binary from goreleaser if it exists
+        SHORT_SHA=$(git rev-parse --short HEAD); \
+        if [ ! -f "dist/${SHORT_SHA}/xiond_${TARGETOS}_${TARGETARCH}/xiond" ]; then \
+            /entrypoint.sh build --clean --single-target --skip validate --config=.goreleaser-build.yml; \
+        fi; \
+        cp dist/${SHORT_SHA}/xiond_${TARGETOS}_${TARGETARCH}/xiond /root/go/bin/xiond; \
+    fi;
 
 # --------------------------------------------------------
 # Heighliner

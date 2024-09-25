@@ -80,7 +80,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           ls xiond-* | while read -r file; do
-            platform=$(echo $file | awk -F- -vOFS='/' '{print $2,$3}')
+            platform=$(echo $file | cut -d- -f3- | sed -E 's/^rc[0-9]*-//g; s/\//-/g')
             checksum=$(sha256sum "$file" | awk '{ print $1 }')
             echo "$platform: https://github.com/burnt-labs/xion/releases/download/${{ github.ref_name }}/$file?checksum=sha256:$checksum"
           done | yq '{"binaries": .}' -o json | tee binaries.json

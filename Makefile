@@ -14,8 +14,8 @@ XION_TEST_IMAGE = xiond:heighliner
 
 # docker and goreleaser
 DOCKER := $(shell which docker)
-GORELEASER_IMAGE = goreleaser/goreleaser-cross
-GORELEASER_VERSION = v1.22.7
+GORELEASER_IMAGE = ghcr.io/burnt-labs/goreleaser-cross
+GORELEASER_VERSION = 1.22.7
 GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 
@@ -94,8 +94,8 @@ endif
 build-all: go.sum
 	$(DOCKER) run --rm \
 		--platform linux/amd64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --skip validate
 
@@ -104,8 +104,8 @@ build-local:
 		--env GOOS=$(shell go env -json | jq -r '.GOOS') \
 		--env GOARCH=$(shell go env -json | jq -r '.GOARCH') \
 		--platform linux/amd64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --single-target --skip validate
 
@@ -113,8 +113,8 @@ build-linux-arm64:
 	$(DOCKER) run --rm \
 		--env GOOS=linux \
 		--env GOARCH=arm64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --single-target --skip validate
 
@@ -123,8 +123,8 @@ build-linux-amd64:
 		--env GOOS=linux \
 		--env GOARCH=amd64 \
 		--platform linux/amd64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --single-target --skip validate
 
@@ -133,8 +133,8 @@ build-darwin-amd64:
 		--env GOOS=darwin \
 		--env GOARCH=amd64 \
 		--platform linux/amd64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --single-target --skip validate
 
@@ -143,8 +143,8 @@ build-darwin-arm64:
 		--env GOOS=darwin \
 		--env GOARCH=arm64 \
 		--platform linux/amd64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		build --clean --single-target --skip validate
 
@@ -163,17 +163,18 @@ build-heighliner:
 release-dryrun:
 	$(DOCKER) run --rm \
 		--platform linux/amd64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--volume /var/run/docker.sock:/var/run/docker.sock \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		--clean --skip publish --skip validate
+		--clean --skip validate --skip publish
 
 release:
 	$(DOCKER) run --rm \
-	$(DOCKER) run --rm \
 		--platform linux/amd64 \
-		--volume $(CURDIR):/go/src/xion \
-		--workdir /go/src/xion \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--volume /var/run/docker.sock:/var/run/docker.sock \
+		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		--clean --skip validate
 
