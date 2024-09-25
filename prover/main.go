@@ -176,7 +176,7 @@ func ProveZKEmailCmd() *cobra.Command {
 			// created the salted identifier from the sender and hash
 			sender := email.Header.Get("From")
 			emailSalt := string(emailComponents[2])
-			emailHash, err := poseidonHash(strings.Join([]string{sender, emailSalt}, ""))
+			_, err = poseidonHash(strings.Join([]string{sender, emailSalt}, ""))
 			if err != nil {
 				return err
 			}
