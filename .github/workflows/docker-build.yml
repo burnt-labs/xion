@@ -20,6 +20,8 @@ jobs:
           fetch-depth: 0
 
       - name: Run GoReleaser
+        env:
+          INCLUDE: ""
         run: |
           make build-all
 
