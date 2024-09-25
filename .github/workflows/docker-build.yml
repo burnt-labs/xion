@@ -19,6 +19,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: set up make
+        run: |
+          sudo apt-get update
+          sudo apt-get install make
+
       - name: Run GoReleaser
         run: |
           make build-all
