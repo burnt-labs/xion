@@ -91,7 +91,7 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xiond ./cmd/xiond
 endif
 
-build-all: go.sum
+build-all:
 	$(DOCKER) run --rm \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
