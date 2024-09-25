@@ -5,11 +5,14 @@ on:
   workflow_call:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+  packages: write
+
 jobs:
   goreleaser:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/burnt-labs/goreleaser-cross:1.22.7
+    runs-on: burnt-labs-amd64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,26 +20,17 @@ jobs:
           fetch-depth: 0
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: "~> v2"
-          args: build --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
-          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+        run: |
+          make build-all
+
   build-docker:
     name: main
-    permissions:
-      id-token: write
-      contents: read
-      packages: write
+    needs: goreleaser
     strategy:
       fail-fast: false
       matrix:
         runner:
-          - selector: ubuntu-latest
+          - selector: burnt-labs-amd64
             platform: linux/amd64
           - selector: burnt-labs-arm64
             platform: linux/arm64
