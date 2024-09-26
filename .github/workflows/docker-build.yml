@@ -5,13 +5,15 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-  packages: write
+env:
 
 jobs:
-  goreleaser:
+  build-docker:
+    name: main
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -23,23 +25,11 @@ jobs:
     runs-on: burnt-labs-${{ matrix.arch }}
 
     steps:
-      - name: Checkout
+      - name: Check out code
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref }}
           fetch-depth: 0
-
-      - name: Prepare environment
-        run: |
-          echo "SHORT_SHA=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
-          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Run GoReleaser
-        run: |
-          make build-${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -52,53 +42,36 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "PLATFORM=${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "XIOND_FN=xiond/${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "DOCKER_FN=docker/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "HEIGHLINER_FN=heighliner/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "VERSION=$(git describe --tags | sed 's/^v//')" | tee -a $GITHUB_ENV
-          echo "SHORT_SHA=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
-
-      - uses: int128/docker-build-cache-config-action@v1
-        id: cache
-        with:
-          image: ghcr.io/${{ github.repository }}/cache
 
       - name: Build Docker Image
         id: build-docker
         uses: docker/build-push-action@v5
         with:
-          target: release
           build-args: |
             COMMIT="${GITHUB_SHA}"
             VERSION=${{ env.VERSION }}
-            TAG_VERSION="${SHORT_SHA}"
-            CALLER=goreleaser
-          file: ${{ Env.GITHUB_WORKSPACE }}/Dockerfile
-          context: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}
+            TAG_VERSION="${GITHUB_SHA:0:7}"
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: false
-          cache-from: ${{ steps.cache.outputs.cache-from }}
-          cache-to: ${{ steps.cache.outputs.cache-to }}
+          target: release
           outputs: type=docker,name=xion:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Build Heighliner Image
         id: build-heighliner
         uses: docker/build-push-action@v5
         with:
-          target: heighliner
           build-args: |
             BASE_IMAGE=xion
             VERSION=${{ matrix.os }}-${{ matrix.arch }}
             BINARIES=/usr/bin/xiond
-            CALLER=goreleaser
-          file: ${{ Env.GITHUB_WORKSPACE }}/Dockerfile
-          context: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
-          cache-from: ${{ steps.cache.outputs.cache-from }}
-          cache-to: ${{ steps.cache.outputs.cache-to }}
+          target: heighliner
           outputs: type=docker,name=heighliner:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Save Docker Image
@@ -127,9 +100,19 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+      - name: Copy xiond binary from container
+        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
+        working-directory: ${{ runner.temp }}
+        run: |
+          tmpname="ctr-$(basename $XIOND_FN)"
+          docker create --platform ${{ matrix.os }}/${{ matrix.arch }} --name "${tmpname}" "xion:${PLATFORM}"
+          docker cp "${tmpname}:/usr/bin/xiond" "${XIOND_FN}"
+          docker rm -v "${tmpname}"
+
       - name: Upload binary
+        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
         uses: actions/upload-artifact@v4
         with:
-          name: xiond-${{ matrix.os}}-${{ matrix.arch }}
-          path: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
+          name: ${{ env.XIOND_FN }}
+          path: ${{ runner.temp }}/${{ env.XIOND_FN }}
           retention-days: 3
