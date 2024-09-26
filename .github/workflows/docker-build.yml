@@ -5,8 +5,6 @@ on:
   workflow_call:
   workflow_dispatch:
 
-env:
-
 jobs:
   build-docker:
     name: main
