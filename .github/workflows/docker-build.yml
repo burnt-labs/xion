@@ -19,18 +19,39 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set Go Version
-        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
+      - name: Prepare environment
+        run: |
+          echo "SHORT_SHA=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
+          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a  $GITHUB_ENV
 
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Run GoReleaser
-        env:
-          INCLUDE: ""
         run: |
           make build-all
+
+      - name: Upload linux-amd64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-linux-amd64
+          path: dist/${{ env.SHORT_SHA }}/xiond_linux_amd64/xiond
+          retention-days: 3
+
+      - name: Upload linux-arm64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-linux-amd64
+          path: dist/${{ env.SHORT_SHA }}/xiond_linux_arm64/xiond
+          retention-days: 3
+
+      - name: Upload darwin-all binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-darwin-all
+          path: dist/${{ env.SHORT_SHA }}/xiond_darwin_all/xiond
+          retention-days: 3
 
   build-docker:
     name: main
@@ -46,12 +67,6 @@ jobs:
     runs-on: ${{ matrix.runner.selector }}
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-          fetch-depth: 0
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -68,6 +83,17 @@ jobs:
           echo "DOCKER_FN=docker/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "HEIGHLINER_FN=heighliner/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "VERSION=$(git describe --tags | sed 's/^v//')" | tee -a $GITHUB_ENV
+          echo "SHORT_SHA=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: xiond-${{ env.PLATFORM }}
+          merge-multiple: true
+
+      - name: Rename xiond binary
+        run: |
+          mv xiond-${{ env.PLATFORM }} xiond
 
       - uses: int128/docker-build-cache-config-action@v1
         id: cache
@@ -81,7 +107,8 @@ jobs:
           build-args: |
             COMMIT="${GITHUB_SHA}"
             VERSION=${{ env.VERSION }}
-            TAG_VERSION="${GITHUB_SHA:0:7}"
+            TAG_VERSION="${SHORT_SHA}"
+            CALLER=goreleaser
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.runner.platform }}
           push: false
@@ -98,6 +125,7 @@ jobs:
             BASE_IMAGE=xion
             VERSION=${{ env.PLATFORM }}
             BINARIES=/usr/bin/xiond
+            CALLER=goreleaser
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.runner.platform }}
           target: heighliner
@@ -127,21 +155,4 @@ jobs:
           name: ${{ env.HEIGHLINER_FN }}
           path: ${{ runner.temp }}/${{ env.HEIGHLINER_FN }}
           if-no-files-found: error
-          retention-days: 3
-
-      - name: Copy xiond binary from container
-        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
-        working-directory: ${{ runner.temp }}
-        run: |
-          tmpname="ctr-$(basename $XIOND_FN)"
-          docker create --platform ${{ matrix.runner.platform }} --name "${tmpname}" "xion:${PLATFORM}"
-          docker cp "${tmpname}:/usr/bin/xiond" "${XIOND_FN}"
-          docker rm -v "${tmpname}"
-
-      - name: Upload binary
-        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.XIOND_FN }}
-          path: ${{ runner.temp }}/${{ env.XIOND_FN }}
           retention-days: 3
