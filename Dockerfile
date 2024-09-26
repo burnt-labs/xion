@@ -7,7 +7,7 @@ ARG ALPINE_VERSION="3.18"
 # Builder
 # --------------------------------------------------------
 
-FROM ghcr.io/burnt-labs/goreleaser-cross:v${GORELEASER_VERSION} AS builder
+FROM goreleaser/goreleaser-cross:v${GORELEASER_VERSION} AS builder
 
 ARG CALLER
 
