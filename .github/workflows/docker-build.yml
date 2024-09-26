@@ -86,12 +86,6 @@ jobs:
           name: xiond-${{ matrix.os }}-${{ matrix.arch }}
           merge-multiple: true
 
-      - name: Rename xiond binary
-        run: |
-          ls -la
-          find / -name "*xiond*"
-          mv xiond-${{ matrix.os }}-${{ matrix.arch }} xiond
-
       - uses: int128/docker-build-cache-config-action@v1
         id: cache
         with:
