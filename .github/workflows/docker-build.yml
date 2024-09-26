@@ -42,7 +42,7 @@ jobs:
       - name: Upload linux-arm64 binary
         uses: actions/upload-artifact@v4
         with:
-          name: xiond-linux-amd64
+          name: xiond-linux-arm64
           path: dist/${{ env.SHORT_SHA }}/xiond_linux_arm64/xiond
           retention-days: 3
 
