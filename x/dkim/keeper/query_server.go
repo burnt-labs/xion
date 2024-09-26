@@ -35,9 +35,6 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	return &types.QueryDkimPubKeyResponse{DkimPubkey: &types.DkimPubKey{
 		Domain:   dkimPubKey.Domain,
 		PubKey:   dkimPubKey.PubKey,

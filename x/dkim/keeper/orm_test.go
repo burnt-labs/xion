@@ -45,19 +45,10 @@ func TestORM(t *testing.T) {
 	require.EqualValues(t, types.KeyType_RSA, res.KeyType)
 }
 
-func TestORMMultipleInsert(t *testing.T) {
-	f := SetupTest(t)
-
-	dt := f.k.OrmDB.DkimPubKeyTable()
-	count := 10
+func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyType types.KeyType, count int) []types.DkimPubKey {
 	var dkimPubKeys []types.DkimPubKey
 	for i := 0; i < count; i++ {
-		domain := "xion.burnt.com"
-		pubKey := "xion1234567890"
 		selector := uuid.NewString()
-		version := types.Version_DKIM1
-		keyType := types.KeyType_RSA
-
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
 			Domain:   domain,
 			PubKey:   pubKey,
@@ -66,6 +57,14 @@ func TestORMMultipleInsert(t *testing.T) {
 			KeyType:  keyType,
 		})
 	}
+	return dkimPubKeys
+}
+func TestORMMultipleInsert(t *testing.T) {
+	f := SetupTest(t)
+
+	dt := f.k.OrmDB.DkimPubKeyTable()
+	count := 10
+	dkimPubKeys := CreateNDkimPubKey("xion.burnt.com", "xion1234567890", types.Version_DKIM1, types.KeyType_RSA, count)
 	isSaved, err := dkimKeeper.SaveDkimPubKeys(f.ctx, dkimPubKeys, f.k.OrmDB)
 	require.NoError(t, err)
 	require.True(t, isSaved)

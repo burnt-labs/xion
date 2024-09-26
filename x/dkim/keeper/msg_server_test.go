@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"cosmossdk.io/orm/types/ormerrors"
@@ -72,8 +73,53 @@ func TestAddDkimPubKey(t *testing.T) {
 				DkimPubkeys: []types.DkimPubKey{
 					{
 						Domain:   "xion.burnt.com",
-						PubKey:   "xion",
+						PubKey:   base64.RawStdEncoding.EncodeToString([]byte("test-pub-key")),
 						Selector: "zkemail",
+					},
+				},
+			},
+			err: true,
+		},
+		{
+			name: "fail; invalid keytype",
+			request: &types.MsgAddDkimPubKey{
+				Authority: f.addrs[0].String(),
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:   "xion.burnt.com",
+						PubKey:   base64.RawStdEncoding.EncodeToString([]byte("test-pub-key")),
+						Selector: "zkemail",
+						KeyType:  2,
+					},
+				},
+			},
+			err: true,
+		},
+		{
+			name: "fail; invalid version",
+			request: &types.MsgAddDkimPubKey{
+				Authority: f.addrs[0].String(),
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:   "xion.burnt.com",
+						PubKey:   base64.RawStdEncoding.EncodeToString([]byte("test-pub-key")),
+						Selector: "zkemail",
+						Version:  2,
+					},
+				},
+			},
+			err: true,
+		},
+		{
+			name: "fail; invalid pubkey",
+			request: &types.MsgAddDkimPubKey{
+				Authority: f.govModAddr,
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:   "xion.burnt.com",
+						PubKey:   "123456789",
+						Selector: "zkemail",
+						Version:  2,
 					},
 				},
 			},
@@ -86,7 +132,7 @@ func TestAddDkimPubKey(t *testing.T) {
 				DkimPubkeys: []types.DkimPubKey{
 					{
 						Domain:   "xion.burnt.com",
-						PubKey:   "xion",
+						PubKey:   base64.RawStdEncoding.EncodeToString([]byte("test-pub-key")),
 						Selector: "zkemail",
 					},
 				},
@@ -125,7 +171,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 	require := require.New(t)
 
 	domain := "xion.burnt.com"
-	pubKey := "xion"
+	pubKey := base64.RawStdEncoding.EncodeToString([]byte("test-pub-key"))
 	selector := "zkemail"
 
 	_, err := f.msgServer.AddDkimPubKey(f.ctx, &types.MsgAddDkimPubKey{
@@ -155,6 +201,15 @@ func TestRemoveDkimPubKey(t *testing.T) {
 			err: true,
 		},
 		{
+			name: "fail: remove non existing key",
+			request: &types.MsgRemoveDkimPubKey{
+				Authority: f.govModAddr,
+				Domain:    domain,
+				Selector:  "non-existing",
+			},
+			err: true,
+		},
+		{
 			name: "success",
 			request: &types.MsgRemoveDkimPubKey{
 				Authority: f.govModAddr,
@@ -162,15 +217,6 @@ func TestRemoveDkimPubKey(t *testing.T) {
 				Selector:  selector,
 			},
 			err: false,
-		},
-		{
-			name: "success: remove non existing key",
-			request: &types.MsgRemoveDkimPubKey{
-				Authority: f.govModAddr,
-				Domain:    domain,
-				Selector:  "non-existing",
-			},
-			err: true,
 		},
 	}
 

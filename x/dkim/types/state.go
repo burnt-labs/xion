@@ -11,7 +11,7 @@ import (
 // ValidateBasic does a sanity check on the provided data.
 func (pubKey *DkimPubKey) Validate() error {
 	// url pass the pubkey domain
-	if _, err := url.ParseRequestURI(pubKey.Domain); err != nil {
+	if _, err := url.Parse(pubKey.Domain); err != nil {
 		return errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
 	}
 	// make sure the public key is base64 encoded
