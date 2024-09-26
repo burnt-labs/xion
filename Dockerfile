@@ -9,12 +9,12 @@ ARG ALPINE_VERSION="3.18"
 
 FROM ghcr.io/burnt-labs/goreleaser-cross:${GORELEASER_VERSION} AS builder
 
-ARG CALLER
 
 # Always set by buildkit
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG TARGETOS
+ARG CALLER
 
 # Consume Args to env
 ENV GOOS=${TARGETOS} \
@@ -34,7 +34,7 @@ COPY . .
 
 # run goreleaser
 RUN set -eux; \
-    if [ "${CALLER}" = "goreleaser" ]; then \
+    if [ "${CALLER:-}" = "goreleaser" ]; then \
         cp $(find . -name xiond | grep ${TARGETARCH}) /root/go/bin/xiond; \
     else \
         # use the binary from goreleaser if it exists
