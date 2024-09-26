@@ -27,7 +27,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-          fetch-depth: 0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -53,6 +52,7 @@ jobs:
             COMMIT="${GITHUB_SHA}"
             VERSION=${{ env.VERSION }}
             TAG_VERSION="${GITHUB_SHA:0:7}"
+
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: false
