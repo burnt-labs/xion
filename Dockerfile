@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG GORELEASER_VERSION="1.23.1"
+ARG GORELEASER_VERSION="1.22.7"
 ARG ALPINE_VERSION="3.18"
 
 # --------------------------------------------------------

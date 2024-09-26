@@ -41,27 +41,6 @@ jobs:
         run: |
           make build-${{ matrix.os }}-${{ matrix.arch }}
 
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: xiond-${{ matrix.os}}-${{ matrix.arch }}
-          path: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
-          retention-days: 3
-
-  build-docker:
-    name: main
-    needs: goreleaser
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - linux
-        arch:
-          - amd64
-          - arm64
-    runs-on: burnt-labs-${{ matrix.arch }}
-
-    steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -95,15 +74,17 @@ jobs:
         id: build-docker
         uses: docker/build-push-action@v5
         with:
+          target: release
           build-args: |
             COMMIT="${GITHUB_SHA}"
             VERSION=${{ env.VERSION }}
             TAG_VERSION="${SHORT_SHA}"
             CALLER=goreleaser
+          file: ${{ Env.GITHUB_WORKSPACE }}/Dockerfile
+          context: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: false
-          target: release
           cache-from: ${{ steps.cache.outputs.cache-from }}
           cache-to: ${{ steps.cache.outputs.cache-to }}
           outputs: type=docker,name=xion:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
@@ -112,14 +93,18 @@ jobs:
         id: build-heighliner
         uses: docker/build-push-action@v5
         with:
+          target: heighliner
           build-args: |
             BASE_IMAGE=xion
             VERSION=${{ matrix.os }}-${{ matrix.arch }}
             BINARIES=/usr/bin/xiond
             CALLER=goreleaser
+          file: ${{ Env.GITHUB_WORKSPACE }}/Dockerfile
+          context: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
-          target: heighliner
+          cache-from: ${{ steps.cache.outputs.cache-from }}
+          cache-to: ${{ steps.cache.outputs.cache-to }}
           outputs: type=docker,name=heighliner:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Save Docker Image
@@ -146,4 +131,11 @@ jobs:
           name: ${{ env.HEIGHLINER_FN }}
           path: ${{ runner.temp }}/${{ env.HEIGHLINER_FN }}
           if-no-files-found: error
+          retention-days: 3
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-${{ matrix.os}}-${{ matrix.arch }}
+          path: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
           retention-days: 3
