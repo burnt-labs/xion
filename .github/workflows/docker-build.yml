@@ -12,7 +12,16 @@ permissions:
 
 jobs:
   goreleaser:
-    runs-on: burnt-labs-amd64
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
+    runs-on: burnt-labs-${{ matrix.arch }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +31,7 @@ jobs:
       - name: Prepare environment
         run: |
           echo "SHORT_SHA=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
-          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a  $GITHUB_ENV
+          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
 
       - uses: actions/setup-go@v5
         with:
@@ -30,27 +39,13 @@ jobs:
 
       - name: Run GoReleaser
         run: |
-          make build-all
+          make build-${{ matrix.os }}-${{ matrix.arch }}
 
-      - name: Upload linux-amd64 binary
+      - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: xiond-linux-amd64
-          path: dist/${{ env.SHORT_SHA }}/xiond_linux_amd64/xiond
-          retention-days: 3
-
-      - name: Upload linux-arm64 binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: xiond-linux-arm64
-          path: dist/${{ env.SHORT_SHA }}/xiond_linux_arm64/xiond
-          retention-days: 3
-
-      - name: Upload darwin-all binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: xiond-darwin-all
-          path: dist/${{ env.SHORT_SHA }}/xiond_darwin_all/xiond
+          name: xiond-${{ matrix.os}}-${{ matrix.arch }}
+          path: dist/${{ env.SHORT_SHA }}/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
           retention-days: 3
 
   build-docker:
@@ -59,12 +54,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner:
-          - selector: burnt-labs-amd64
-            platform: linux/amd64
-          - selector: burnt-labs-arm64
-            platform: linux/arm64
-    runs-on: ${{ matrix.runner.selector }}
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
+    runs-on: burnt-labs-${{ matrix.arch }}
 
     steps:
       - name: Set up QEMU
@@ -74,26 +69,28 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker
-          platforms: ${{ matrix.runner.platform }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
 
       - name: Prepare environment
         run: |
-          echo "PLATFORM=${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
-          echo "XIOND_FN=xiond/${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
-          echo "DOCKER_FN=docker/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
-          echo "HEIGHLINER_FN=heighliner/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "PLATFORM=${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "XIOND_FN=xiond/${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=docker/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "HEIGHLINER_FN=heighliner/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
           echo "VERSION=$(git describe --tags | sed 's/^v//')" | tee -a $GITHUB_ENV
           echo "SHORT_SHA=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: xiond-${{ env.PLATFORM }}
+          name: xiond-${{ matrix.os }}-${{ matrix.arch }}
           merge-multiple: true
 
       - name: Rename xiond binary
         run: |
-          mv xiond-${{ env.PLATFORM }} xiond
+          ls -la
+          find / -name "*xiond*"
+          mv xiond-${{ matrix.os }}-${{ matrix.arch }} xiond
 
       - uses: int128/docker-build-cache-config-action@v1
         id: cache
@@ -110,12 +107,12 @@ jobs:
             TAG_VERSION="${SHORT_SHA}"
             CALLER=goreleaser
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.runner.platform }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: false
           target: release
           cache-from: ${{ steps.cache.outputs.cache-from }}
           cache-to: ${{ steps.cache.outputs.cache-to }}
-          outputs: type=docker,name=xion:${{ env.PLATFORM }},name-canonical=true
+          outputs: type=docker,name=xion:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Build Heighliner Image
         id: build-heighliner
@@ -123,18 +120,18 @@ jobs:
         with:
           build-args: |
             BASE_IMAGE=xion
-            VERSION=${{ env.PLATFORM }}
+            VERSION=${{ matrix.os }}-${{ matrix.arch }}
             BINARIES=/usr/bin/xiond
             CALLER=goreleaser
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: ${{ matrix.runner.platform }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
           target: heighliner
-          outputs: type=docker,name=heighliner:${{ env.PLATFORM }},name-canonical=true
+          outputs: type=docker,name=heighliner:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
         run: |
-          docker save xion:${{ env.PLATFORM }} > ${{ env.DOCKER_FN }}
+          docker save xion:${{ matrix.os }}-${{ matrix.arch }} > ${{ env.DOCKER_FN }}
 
       - name: Upload Docker Image
         uses: actions/upload-artifact@v4
@@ -147,7 +144,7 @@ jobs:
       - name: Save Heighliner Image
         working-directory: ${{ runner.temp }}
         run: |
-          docker save heighliner:${{ env.PLATFORM }} > ${{ env.HEIGHLINER_FN }}
+          docker save heighliner:${{ matrix.os }}-${{ matrix.arch }} > ${{ env.HEIGHLINER_FN }}
 
       - name: Upload Heighliner Image
         uses: actions/upload-artifact@v4

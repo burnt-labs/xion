@@ -10,15 +10,15 @@ env:
 
 jobs:
   build-integration-tests:
-    runs-on: ${{ matrix.runner.selector }}
+    runs-on: burnt-labs-${{ matrix.arch }}
     strategy:
       fail-fast: false
       matrix:
-        runner:
-          - selector: ubuntu-latest
-            platform: linux/amd64
-          # - selector: burnt-labs-arm64
-          #   platform: linux/arm64
+        os:
+          - linux
+        arch:
+          - amd64
+          # - arm64
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
       - name: Prepare Environment
         run: |
           sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
-          echo "PLATFORM=${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "PLATFORM=${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -44,7 +44,7 @@ jobs:
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: test-${{ env.PLATFORM }}
+          name: test-${{ matrix.os }}-${{ matrix.arch }}
           path: integration_tests/integration_tests.test
           retention-days: 3
 
@@ -62,7 +62,7 @@ jobs:
           retention-days: 3
 
   interchain-tests:
-    runs-on: ${{ matrix.runner.selector }}
+    runs-on: ${{ matrix.selector }}
     needs: build-integration-tests
     strategy:
       fail-fast: false
@@ -73,23 +73,23 @@ jobs:
           # - selector: burnt-labs-arm64
           #   platform: linux/arm64
         test_type:
-        - "DungeonTransferBlock"
-        - "XionSendPlatformFee"
-        - "MintModuleNoInflationNoFees"
-        - "MintModuleInflationHighFees"
-        - "MintModuleInflationLowFees"
-        - "JWTAbstractAccount"
-        - "XionSendPlatformFee"
-        - "XionAbstractAccount"
-        - "WebAuthNAbstractAccount"
-        - "XionMinimumFeeDefault"
-        - "XionMinimumFeeZero"
-        - "XionTokenFactory"
-        - "XionAbstractAccountJWTCLI"
-        - "TreasuryContract"
-        - "TreasuryMulti"
-        - "SingleAbstractAccountMigration"
-#        - "Simulate"
+          - "DungeonTransferBlock"
+          - "XionSendPlatformFee"
+          - "MintModuleNoInflationNoFees"
+          - "MintModuleInflationHighFees"
+          - "MintModuleInflationLowFees"
+          - "JWTAbstractAccount"
+          - "XionSendPlatformFee"
+          - "XionAbstractAccount"
+          - "WebAuthNAbstractAccount"
+          - "XionMinimumFeeDefault"
+          - "XionMinimumFeeZero"
+          - "XionTokenFactory"
+          - "XionAbstractAccountJWTCLI"
+          - "TreasuryContract"
+          - "TreasuryMulti"
+          - "SingleAbstractAccountMigration"
+    #        - "Simulate"
 
     steps:
       - name: checkout
@@ -107,13 +107,13 @@ jobs:
           OS: ${{ steps.string.outputs.lowercase }}
         run: |
           mkdir -p lib
-          echo "PLATFORM=${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "PLATFORM=${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
 
       - name: Download integration test binary
         uses: actions/download-artifact@v4
         with:
           path: integration_tests
-          pattern: test-${{ env.PLATFORM }}
+          pattern: test-${{ matrix.os }}-${{ matrix.arch }}
           merge-multiple: true
 
       - name: Download wasm vm lib
@@ -127,7 +127,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}
-          pattern: heighliner-${{ env.PLATFORM }}.tar
+          pattern: heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar
           merge-multiple: true
 
       - name: Load images
@@ -143,4 +143,4 @@ jobs:
           ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: heighliner:${{ env.PLATFORM }}
+          XION_IMAGE: heighliner:${{ matrix.os }}-${{ matrix.arch }}
