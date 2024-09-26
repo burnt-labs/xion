@@ -16,6 +16,13 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "params",
 					Short:     "Query the current consensus parameters",
 				},
+				{
+					RpcMethod: "DkimPubKey",
+					Use:       "dkim-pubkey [flags] <domain> <selector>",
+					Alias:     []string{"dpk"},
+					Short:     "Query a DKIM public key",
+					Example:   "dkim-pubkey --domain test.domain.com --selector test-domain",
+				},
 			},
 		},
 		Tx: &autocliv1.ServiceCommandDescriptor{
@@ -24,6 +31,35 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				{
 					RpcMethod: "UpdateParams",
 					Skip:      true, // set to true if authority gated
+				},
+				{
+					RpcMethod: "AddDkimPubKey",
+					Short:     "Add a new DKIM public key",
+					Long:      "Add a new DKIM public key",
+					Alias:     []string{"adpk"},
+					Use:       "add-dkim-pubkey [flags] <dkim_pubkeys>",
+					Example:   "add-dkim-pubkey { domain: <domain>, pubKey: <pub-key>, selector: <selector> }...",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{
+							ProtoField: "dkim_pubkeys",
+							Varargs:    true,
+						},
+					},
+					Skip: true, // set to true if authority gated
+				},
+				{
+					RpcMethod: "RemoveDkimPubKey",
+					Short:     "Remove a new DKIM public key",
+					Long:      "Remove a new DKIM public key",
+					Alias:     []string{"rdpk"},
+					Use:       "remove-dkim-pubkey [flags] dkim_pubkey",
+					Example:   "remove-dkim-pubkey { domain: <domain>, selector: <selector> }",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{
+							ProtoField: "dkim_pubkey",
+						},
+					},
+					Skip: true, // set to true if authority gated
 				},
 			},
 		},
