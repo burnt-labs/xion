@@ -104,8 +104,8 @@ builds:
       - -mod=readonly
       - -trimpath
     env:
-      - CC=/opt/osxcross/target/bin/oa64-clang
-      - CXX=/opt/osxcross/target/bin/oa64-clang++
+      - CC=oa64-clang
+      - CXX=oa64-clang++
       - CGO_LDFLAGS='-L/lib'
 
   - id: xiond_darwin_amd64
@@ -135,8 +135,8 @@ builds:
       - -mod=readonly
       - -trimpath
     env:
-      - CC=/opt/osxcross/target/bin/o64-clang
-      - CXX=/opt/osxcross/target/bin/o64-clang++
+      - CC=o64-clang
+      - CXX=o64-clang++
       - CGO_LDFLAGS='-L/lib'
 
 # Docs: https://goreleaser.com/customization/universalbinaries/
