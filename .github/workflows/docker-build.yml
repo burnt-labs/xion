@@ -48,11 +48,6 @@ jobs:
         id: build-docker
         uses: docker/build-push-action@v5
         with:
-          build-args: |
-            COMMIT="${GITHUB_SHA}"
-            VERSION=${{ env.VERSION }}
-            TAG_VERSION="${GITHUB_SHA:0:7}"
-
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: false
@@ -63,10 +58,6 @@ jobs:
         id: build-heighliner
         uses: docker/build-push-action@v5
         with:
-          build-args: |
-            BASE_IMAGE=xion
-            VERSION=${{ matrix.os }}-${{ matrix.arch }}
-            BINARIES=/usr/bin/xiond
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           target: heighliner

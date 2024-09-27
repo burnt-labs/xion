@@ -19,7 +19,7 @@ builds:
     goarch:
       - arm64
     main: ./cmd/xiond
-    binary: '{{ .ShortCommit }}/xiond_linux_arm64/xiond'
+    binary: 'xiond_linux_arm64/xiond'
     hooks:
       pre:
         - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.aarch64.a -O /lib/libwasmvm_muslc.aarch64.a'
@@ -52,7 +52,7 @@ builds:
     goarch:
       - amd64
     main: ./cmd/xiond
-    binary: '{{ .ShortCommit }}/xiond_linux_amd64/xiond'
+    binary: 'xiond_linux_amd64/xiond'
     hooks:
       pre:
         - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.x86_64.a -O /lib/libwasmvm_muslc.x86_64.a'
@@ -83,7 +83,7 @@ builds:
     goarch:
       - arm64
     main: ./cmd/xiond
-    binary: '{{ .ShortCommit }}/xiond_darwin_arm64/xiond'
+    binary: 'xiond_darwin_arm64/xiond'
     hooks:
       pre:
         - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a'
@@ -114,7 +114,7 @@ builds:
     goarch:
       - amd64
     main: ./cmd/xiond
-    binary: '{{ .ShortCommit }}/xiond_darwin_amd64/xiond'
+    binary: 'xiond_darwin_amd64/xiond'
     hooks:
       pre:
         - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O /lib/libwasmvmstatic_darwin.a'
@@ -146,10 +146,6 @@ universal_binaries:
       - xiond_darwin_amd64
       - xiond_darwin_arm64
     name_template: '{{ .ProjectName }}'
-    hooks:
-      post:
-        - cmd: mkdir -p dist/{{ .ShortCommit }}
-        - cmd: cp -af dist/xiond_darwin_all dist/{{ .ShortCommit }}/xiond_darwin_all
 
 # Docs: https://goreleaser.com/customization/archive/
 archives:

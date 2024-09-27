@@ -38,11 +38,10 @@ RUN set -eux; \
         cp $(find . -name xiond | grep ${TARGETARCH}) /root/go/bin/xiond; \
     else \
         # use the binary from goreleaser if it exists
-        SHORT_SHA=$(git rev-parse --short HEAD); \
-        if [ ! -f "dist/${SHORT_SHA}/xiond_${TARGETOS}_${TARGETARCH}/xiond" ]; then \
+        if [ ! -f "dist/xiond_${TARGETOS}_${TARGETARCH}/xiond" ]; then \
             /entrypoint.sh build --clean --single-target --skip validate --config=.goreleaser.yaml; \
         fi; \
-        cp dist/${SHORT_SHA}/xiond_${TARGETOS}_${TARGETARCH}/xiond /root/go/bin/xiond; \
+        cp dist/xiond_${TARGETOS}_${TARGETARCH}/xiond /root/go/bin/xiond; \
     fi;
 
 # --------------------------------------------------------
