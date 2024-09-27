@@ -101,7 +101,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           tmpname="ctr-$(basename $XIOND_FN)"
-          docker create --platform ${{ matrix.os }}/${{ matrix.arch }} --name "${tmpname}" "xion:${PLATFORM}"
+          docker create --platform ${{ matrix.os }}/${{ matrix.arch }} --name "${tmpname}" "xion:${{ matrix.os }}-${{ matrix.arch }}"
           docker cp "${tmpname}:/usr/bin/xiond" "${XIOND_FN}"
           docker rm -v "${tmpname}"
 

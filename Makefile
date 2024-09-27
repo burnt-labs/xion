@@ -151,6 +151,14 @@ build-darwin-arm64:
 		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		build --clean --single-target --skip validate
 
+build-darwin-all:
+	$(DOCKER) run --rm \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --clean --id "xiond_darwin_amd64" --id "xiond_darwin_arm64" --skip validate
+
 build-docker:
 	$(DOCKER) build \
 	  --target=release \
