@@ -49,21 +49,29 @@ jobs:
         id: build-docker
         uses: docker/build-push-action@v5
         with:
+          target: release
+          push: false
+          load: true
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
-          push: false
-          target: release
-          outputs: type=docker,name=xion:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
+          tags: xion:${{ matrix.os }}-${{ matrix.arch }}
+          cache-from: type=gha,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
+          #outputs: type=docker,name=xion:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Build Heighliner Image
         id: build-heighliner
         uses: docker/build-push-action@v5
         with:
+          target: heighliner
+          push: false
+          load: true
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
-          push: false
-          target: heighliner
-          outputs: type=docker,name=heighliner:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
+          tags: heighliner:${{ matrix.os }}-${{ matrix.arch }}
+          cache-from: type=gha,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
+          #outputs: type=docker,name=heighliner:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
