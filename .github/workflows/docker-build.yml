@@ -37,9 +37,9 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "XIOND_FN=xiond/${{ matrix.os }}-${{ matrix.arch }}" | tee -a $GITHUB_ENV
-          echo "DOCKER_FN=docker/${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
-          echo "HEIGHLINER_FN=heighliner/${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
+          echo "XIOND_FN=xiond-${{ matrix.os }}-${{ matrix.arch }}" | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=docker-${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
+          echo "HEIGHLINER_FN=heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
           echo "VERSION=$(git describe --tags | sed 's/^v//')" | tee -a $GITHUB_ENV
 
       - name: Build Docker Image
