@@ -40,9 +40,9 @@ jobs:
 
       - name: Prepare environment
         run: |
-          echo "XIOND_FN=xiond/${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
-          echo "DOCKER_FN=docker/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
-          echo "HEIGHLINER_FN=heighliner/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "XIOND_FN=xiond/${{ matrix.os }}-${{ matrix.arch }}" | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=docker/${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
+          echo "HEIGHLINER_FN=heighliner/${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
           echo "VERSION=$(git describe --tags | sed 's/^v//')" | tee -a $GITHUB_ENV
 
       - name: Build Docker Image
@@ -53,6 +53,8 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           push: false
           target: release
+          cache-from: type=gha,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
           outputs: type=docker,name=xion:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Build Heighliner Image
@@ -62,6 +64,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           target: heighliner
+          cache-from: type=gha,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
           outputs: type=docker,name=heighliner:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
 
       - name: Save Docker Image
