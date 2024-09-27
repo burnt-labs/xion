@@ -63,6 +63,7 @@ jobs:
         with:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
+          push: false
           target: heighliner
           cache-from: type=gha,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ github.ref_name }}/${{ matrix.os }}/${{ matrix.arch }}
