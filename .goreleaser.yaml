@@ -191,7 +191,7 @@ dockers:
       - "--label=org.opencontainers.image.url=https://xion.burnt.com"
       - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
       - "--label=org.opencontainers.image.licenses=Apache-2.0"
-      - "--build-arg=XIOND_BINARY=xiond"
+      - "--build-arg=XIOND_BINARY=xiond_linux_arm64/xiond"
 
   - id: heighliner-linux-amd64
     ids:
@@ -213,7 +213,7 @@ dockers:
       - "--label=org.opencontainers.image.url=https://xion.burnt.com"
       - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
       - "--label=org.opencontainers.image.licenses=Apache-2.0"
-      - "--build-arg=XIOND_BINARY=xiond"
+      - "--build-arg=XIOND_BINARY=xiond_linux_amd64/xiond"
 
   - id: xiond_linux_arm64
     ids:
@@ -235,7 +235,7 @@ dockers:
       - "--label=org.opencontainers.image.url=https://xion.burnt.com"
       - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
       - "--label=org.opencontainers.image.licenses=Apache-2.0"
-      - "--build-arg=CALLER=goreleaser"
+      - "--build-arg=XIOND_BINARY=xiond_linux_arm64/xiond"
 
   - id: xiond_linux_amd64
     ids:
@@ -257,7 +257,7 @@ dockers:
       - "--label=org.opencontainers.image.url=https://xion.burnt.com"
       - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
       - "--label=org.opencontainers.image.licenses=Apache-2.0"
-      - "--build-arg=CALLER=goreleaser"
+      - "--build-arg=XIOND_BINARY=xiond_linux_amd64/xiond"
 
 
 # Docs: https://goreleaser.com/customization/changelog/
