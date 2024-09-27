@@ -169,16 +169,6 @@ release-dryrun:
 		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
 		--clean --skip validate --skip publish
 
-release:
-	$(DOCKER) run --rm \
-		--platform linux/amd64 \
-		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
-		--volume /var/run/docker.sock:/var/run/docker.sock \
-		--workdir /root/go/src/github.com/burnt-network/xion \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
-		--clean --skip validate
-
-
 ################################################################################
 ###                         Tools & dependencies                             ###
 ################################################################################

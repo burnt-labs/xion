@@ -107,6 +107,7 @@ builds:
       - CC=oa64-clang
       - CXX=oa64-clang++
       - CGO_LDFLAGS='-L/lib'
+      - MACOSX_DEPLOYMENT_TARGET=10.12
 
   - id: xiond_darwin_amd64
     goos:
@@ -138,6 +139,7 @@ builds:
       - CC=o64-clang
       - CXX=o64-clang++
       - CGO_LDFLAGS='-L/lib'
+      - MACOSX_DEPLOYMENT_TARGET=10.12
 
 # Docs: https://goreleaser.com/customization/universalbinaries/
 universal_binaries:
@@ -189,7 +191,7 @@ dockers:
       - "--label=org.opencontainers.image.url=https://xion.burnt.com"
       - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
       - "--label=org.opencontainers.image.licenses=Apache-2.0"
-      - "--build-arg=CALLER=goreleaser"
+      - "--build-arg=XIOND_BINARY=xiond"
 
   - id: heighliner-linux-amd64
     ids:
@@ -211,7 +213,7 @@ dockers:
       - "--label=org.opencontainers.image.url=https://xion.burnt.com"
       - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
       - "--label=org.opencontainers.image.licenses=Apache-2.0"
-      - "--build-arg=CALLER=goreleaser"
+      - "--build-arg=XIOND_BINARY=xiond"
 
   - id: xiond_linux_arm64
     ids:
