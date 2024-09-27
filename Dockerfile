@@ -40,7 +40,8 @@ RUN set -eux; \
     else \
         # use the binary from goreleaser if it exists
         # git config --global --add safe.directory $(pwd) \
-        goreleaser build --clean --single-target --skip validate; \
+        ls -la && pwd; \
+        #goreleaser build --clean --single-target --skip validate; \
         cp dist/xiond_${TARGETOS}_${TARGETARCH}/xiond /root/go/bin/xiond; \
     fi;
 
