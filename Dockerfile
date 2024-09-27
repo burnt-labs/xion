@@ -7,7 +7,7 @@ ARG ALPINE_VERSION="3.18"
 # Builder
 # --------------------------------------------------------
 
-FROM ghcr.io/burnt-labs/goreleaser-cross:${GORELEASER_VERSION} AS builder
+FROM ghcr.io/goreleaser/goreleaser-cross:${GORELEASER_VERSION} AS builder
 
 
 # Always set by buildkit
@@ -39,7 +39,7 @@ RUN set -eux; \
         cp "${XIOND_BINARY}" /root/go/bin/xiond; \
     else \
         # use the binary from goreleaser if it exists
-        /entrypoint.sh build --clean --single-target --skip validate --config=.goreleaser.yaml; \
+        /entrypoint.sh build --clean --single-target --skip validate; \
         cp dist/xiond_${TARGETOS}_${TARGETARCH}/xiond /root/go/bin/xiond; \
     fi;
 

@@ -217,7 +217,7 @@ dockers:
 
   - id: xiond_linux_arm64
     ids:
-      - xiond_linux_amd64
+      - xiond_linux_arm64
     use: buildx
     goos: linux
     goarch: arm64

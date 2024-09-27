@@ -14,8 +14,8 @@ XION_TEST_IMAGE = xiond:heighliner
 
 # docker and goreleaser
 DOCKER := $(shell which docker)
-GORELEASER_IMAGE = ghcr.io/burnt-labs/goreleaser-cross
-GORELEASER_VERSION = 1.22.7
+GORELEASER_IMAGE = ghcr.io/goreleaser/goreleaser-cross
+GORELEASER_VERSION = v1.22.7
 GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 
