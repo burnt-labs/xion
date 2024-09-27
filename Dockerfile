@@ -7,7 +7,7 @@ ARG ALPINE_VERSION="3.18"
 # Builder
 # --------------------------------------------------------
 
-FROM ghcr.io/goreleaser/goreleaser-cross:${GORELEASER_VERSION} AS builder
+FROM goreleaser/goreleaser-cross:v${GORELEASER_VERSION} AS builder
 
 
 # Always set by buildkit
