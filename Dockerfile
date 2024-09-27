@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+ARG GORELEASER_IMAGE="goreleaser/goreleaser-cross"
 ARG GORELEASER_VERSION="1.22.7"
 ARG ALPINE_VERSION="3.18"
 
@@ -7,7 +8,7 @@ ARG ALPINE_VERSION="3.18"
 # Builder
 # --------------------------------------------------------
 
-FROM goreleaser/goreleaser-cross:v${GORELEASER_VERSION} AS builder
+FROM ${GORELEASER_IMAGE}:v${GORELEASER_VERSION} AS builder
 
 
 # Always set by buildkit
@@ -39,8 +40,7 @@ RUN set -eux; \
         cp "${XIOND_BINARY}" /root/go/bin/xiond; \
     else \
         # use the binary from goreleaser if it exists
-        # git config --global --add safe.directory $(pwd) \
-        ls -la && pwd; \
+        git config --global --add safe.directory $(pwd) \
         goreleaser build --clean --single-target --skip validate --snapshot; \
         cp dist/xiond_${TARGETOS}_${TARGETARCH}/xiond /root/go/bin/xiond; \
     fi;

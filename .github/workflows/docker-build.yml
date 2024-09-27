@@ -25,9 +25,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-          fetch-depth: 0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -56,8 +53,6 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           tags: xion:${{ matrix.os }}-${{ matrix.arch }}
           #outputs: type=docker,name=xion:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
-          build-args: |
-            BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
 
       - name: Build Heighliner Image
         id: build-heighliner
@@ -70,8 +65,6 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           tags: heighliner:${{ matrix.os }}-${{ matrix.arch }}
           #outputs: type=docker,name=heighliner:${{ matrix.os }}-${{ matrix.arch }},name-canonical=true
-          build-args: |
-            BUILDKIT_CONTEXT_KEEP_GIT_DIR=true
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}

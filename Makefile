@@ -14,8 +14,11 @@ XION_TEST_IMAGE = xiond:heighliner
 
 # docker and goreleaser
 DOCKER := $(shell which docker)
-GORELEASER_IMAGE = goreleaser/goreleaser-cross
-GORELEASER_VERSION = v1.22.7
+GORELEASER_CROSS_IMAGE ?= goreleaser/goreleaser-cross
+GORELEASER_CROSS_VERSION ?= v1.22.7
+# need custom image
+GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE) #goreleaser/goreleaser
+GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION) #v2.3.2
 GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 
@@ -96,7 +99,7 @@ build-all:
 		--platform linux/amd64 \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		build --clean --skip validate
 
 build-local:
@@ -106,7 +109,7 @@ build-local:
 		--platform linux/amd64 \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		build --clean --single-target --skip validate
 
 build-linux-arm64:
@@ -135,7 +138,7 @@ build-darwin-amd64:
 		--platform linux/amd64 \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		build --clean --single-target --skip validate
 
 build-darwin-arm64:
@@ -145,7 +148,7 @@ build-darwin-arm64:
 		--platform linux/amd64 \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		build --clean --single-target --skip validate
 
 build-docker:
@@ -166,7 +169,7 @@ release-dryrun:
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--volume /var/run/docker.sock:/var/run/docker.sock \
 		--workdir /root/go/src/github.com/burnt-network/xion \
-		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		--clean --skip validate --skip publish
 
 ################################################################################

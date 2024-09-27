@@ -7,9 +7,9 @@ env:
   - GO111MODULE=on
 
 # Docs: https://goreleaser.com/customization/hooks/
-before:
-  hooks:
-    - apt update && apt install -y musl-tools
+# before:
+#   hooks:
+#     - apt update && apt install -y musl-tools
 
 # Docs: https://goreleaser.com/customization/build/
 builds:
