@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v11"
+const UpgradeName = "v12"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	app.WrapSetUpgradeHandler(UpgradeName)
@@ -38,20 +38,13 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 }
 
 func (app *WasmApp) WrapSetUpgradeHandler(upgradeName string) {
-	// ensure legacy params exist here -- query legacy paramspace
-	// ensure self-managed params exist -- query module self-managed
-	// direct params manipulation -- set default params in module until migration runs?
-
 	app.Logger().Info("setting upgrade handler", "name", upgradeName)
-	app.UpgradeKeeper.SetUpgradeHandler(upgradeName, func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-		sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
-		vm, err = app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
-		if err != nil {
-			return vm, err
-		}
-
-		return vm, err
-	})
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgradeName,
+		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
+			sdkCtx := sdk.UnwrapSDKContext(ctx)
+			sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
+			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
+		},
+	)
 }
