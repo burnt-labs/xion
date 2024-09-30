@@ -25,7 +25,7 @@ const (
 	xionVersionFrom = "9.0.1-rc2"
 	xionImageTo     = "ghcr.io/burnt-labs/xion/heighliner"
 	xionVersionTo   = "sha-7bba345"
-	xionUpgradeName = "v10"
+	xionUpgradeName = "v12"
 
 	osmosisImage   = "ghcr.io/strangelove-ventures/heighliner/osmosis"
 	osmosisVersion = "v25.2.1"
