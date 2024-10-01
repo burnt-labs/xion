@@ -54,6 +54,32 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/integration-tests.yml@main
     secrets: inherit
 
+  build-darwin-images:
+    runs-on: burnt-labs-amd64
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Go Version
+        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: build-darwin-all
+        run: |
+          make build-darwin-all
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-darwin-all
+          path: dist/xiond_darwin_all/xion
+          retention-days: 3
+
   build-release-info:
     runs-on: ubuntu-latest
     needs: build-docker
@@ -94,7 +120,7 @@ jobs:
 
       - name: Create version.json
         working-directory: release
-        run : |
+        run: |
           set -Eeuo pipefail
           upgrade_name=$(echo $GITHUB_REF_NAME | cut -d. -f1)
           jq -s '.[0] * (.[1] // {})' <(go mod edit -json | jq --arg name $upgrade_name '{
@@ -235,7 +261,7 @@ jobs:
       - name: Download json artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: '*.json'
+          pattern: "*.json"
           path: /tmp
           merge-multiple: true
 
