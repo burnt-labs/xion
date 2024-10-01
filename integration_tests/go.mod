@@ -1,8 +1,8 @@
 module integration_tests
 
-go 1.22.2
+go 1.22.7
 
-toolchain go1.22.4
+toolchain go1.22.8
 
 require (
 	cosmossdk.io/api v0.7.5
