@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: xiond-darwin-all
-          path: dist/xiond_darwin_all/xion
+          path: dist/xiond_darwin_all/xiond
           retention-days: 3
 
   build-release-info:
