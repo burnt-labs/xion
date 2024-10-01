@@ -55,7 +55,7 @@ jobs:
     secrets: inherit
 
   build-darwin-images:
-    runs-on: burnt-labs-amd64
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
