@@ -55,6 +55,7 @@ jobs:
     secrets: inherit
 
   build-darwin-images:
+    name: Build Darwin Images
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
