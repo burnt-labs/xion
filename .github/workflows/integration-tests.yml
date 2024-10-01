@@ -10,7 +10,7 @@ env:
 
 jobs:
   build-integration-tests:
-    runs-on: burnt-labs-${{ matrix.arch }}
+    runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('burnt-labs-{0}', matrix.arch) }}
     strategy:
       fail-fast: false
       matrix:
