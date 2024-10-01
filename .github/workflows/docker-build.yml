@@ -20,7 +20,7 @@ jobs:
         arch:
           - amd64
           - arm64
-    runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('burnt-labs-{0}', matrix.arch) }}"
+    runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('burnt-labs-{0}', matrix.arch) }}
 
     steps:
       - name: Check out code
