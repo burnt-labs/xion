@@ -62,7 +62,7 @@ jobs:
           retention-days: 3
 
   interchain-tests:
-    runs-on: ${{ matrix.selector }}
+    runs-on: burnt-labs-${{ matrix.arch }}
     needs: build-integration-tests
     strategy:
       fail-fast: false
