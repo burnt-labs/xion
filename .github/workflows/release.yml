@@ -73,7 +73,21 @@ jobs:
         run: |
           make build-darwin-all
 
-      - name: Upload binary
+      - name: Upload arm64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-darwin-arm64
+          path: dist/xiond_darwin_arm64/xiond
+          retention-days: 3
+
+      - name: Upload amd64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-darwin-amd64
+          path: dist/xiond_darwin_amd64/xiond
+          retention-days: 3
+
+      - name: Upload all binary
         uses: actions/upload-artifact@v4
         with:
           name: xiond-darwin-all
@@ -107,8 +121,8 @@ jobs:
         id: binaries-json
         run: |
           set -Eeuo pipefail
-          ls xiond-* | while read -r file; do
-            platform=$(echo $file | cut -d- -f3- | sed -E 's/^rc[0-9]*-//g; s/\//-/g')
+          ls xiond-* | grep -v 'xiond-darwin-all' | while read -r file; do
+            platform=$(echo $file | cut -d- -f3- | sed -E 's/^rc[0-9]*-//g; s/-/\//g')
             checksum=$(sha256sum "$file" | awk '{ print $1 }')
             echo "$platform: https://github.com/burnt-labs/xion/releases/download/${{ github.ref_name }}/$file?checksum=sha256:$checksum"
           done | yq '{"binaries": .}' -o json | tee binaries.json
@@ -118,7 +132,7 @@ jobs:
         with:
           name: binaries.json
           path: release/binaries.json
-          retention-days: 1
+          retention-days: 3
 
       - name: Create version.json
         working-directory: release
