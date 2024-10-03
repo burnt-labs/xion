@@ -1,0 +1,54 @@
+services:
+  xion:
+    image: burnt/xion:develop
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    command: >
+      /usr/bin/cosmovisor run start \
+        --api.address tcp://0.0.0.0:1317 \
+        --api.enable true \
+        --api.enabled-unsafe-cors true \
+        --api.swagger true \
+        --grpc.enable true \
+        --grpc.address 0.0.0.0:9090 \
+        --grpc-web.enable \
+        --minimum-gas-prices 0.025uxion \
+        --rpc.laddr tcp://0.0.0.0:26657
+    entrypoint: /home/xiond/init/entrypoint.sh
+    deploy:
+      replicas: ${NUM_VALIDATORS:-3}
+    environment:
+      DENOM: uxion
+      HOME: /home/xiond
+      CHAINNAME: xion-devnet-1
+      NUM_VALIDATORS: ${NUM_VALIDATORS:-3}
+    networks:
+      - default
+    ports:
+      - 1317
+      - 26656
+      - 26657
+    user: root
+    volumes:
+      - /home/xiond
+      - shared:/home/xiond/.shared
+      - ./init:/home/xiond/init
+    working_dir: /home/xiond
+
+  haproxy:
+    image: haproxy:2.9-alpine
+    ports:
+      - 1317:1317
+      - 8444:8444
+      - 9090:9090
+      - 26657:26657
+      - 26658:26658
+    volumes:
+      - ./init/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+
+networks:
+  default:
+
+volumes:
+  shared:

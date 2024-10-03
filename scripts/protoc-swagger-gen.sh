@@ -1,19 +1,45 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+# Use `make proto-swagger-gen` to run this script
+set -exo pipefail
 
-mkdir -p ./docs/client
-proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
+# Get the directory of this script, used to source other scripts
+: ${scripts_dir:="$(realpath $(dirname $0))"}
+: ${base_dir:="$(dirname $scripts_dir)"}
+: ${proto_dir:="$base_dir/proto"}
+
+# sets $proto_dirs
+source $scripts_dir/protoc-common.sh
+
+# work in docs directory
+cd $base_dir/client/docs
+
+# Create a temporary directory
+mkdir -p tmp-swagger-gen
+
+# Generate swagger for each path
 for dir in $proto_dirs; do
-
   # generate swagger files (filter query files)
   query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
-  if [[ ! -z "$query_file" ]]; then
-    buf protoc  \
-    -I "proto" \
-    -I "third_party/proto" \
-    "$query_file" \
-    --swagger_out=./docs/client \
-    --swagger_opt=logtostderr=true --swagger_opt=fqn_for_swagger_name=true --swagger_opt=simple_operation_ids=true
-  fi
+  [[ -n "$query_file" ]] || continue
+
+  buf generate --template $proto_dir/buf.gen.swagger.yaml $query_file
 done
+
+# combine swagger files
+# uses nodejs package `swagger-combine`.
+# all the individual swagger files need to be configured in `config.json` for merging
+mkdir -p static
+swagger-combine config.yaml \
+  --format "json" \
+  --output static/swagger.json \
+  --includeDefinitions true \
+  --continueOnConflictingPaths true
+
+# Generate OpenAPI spec using Swagger2Openapi
+# Install required dependencies if not already installed
+npm install --prefix tmp-swagger-gen  swagger2openapi
+npm exec --prefix tmp-swagger-gen  -- swagger2openapi static/swagger.json --outfile static/openapi.json
+
+# clean swagger files
+rm -rf tmp-swagger-gen

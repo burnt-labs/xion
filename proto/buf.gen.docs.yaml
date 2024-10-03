@@ -1,0 +1,5 @@
+version: v1
+plugins:
+  - name: gocosmos
+    out: ./docs
+    opt: ./docs/protodoc-markdown.tmpl,proto-docs.md

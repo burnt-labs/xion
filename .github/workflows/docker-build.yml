@@ -1,0 +1,117 @@
+name: Build Docker Images and Binaries
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-docker:
+    name: main
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - selector: ubuntu-latest
+            platform: linux/amd64
+          - selector: burnt-labs-arm64
+            platform: linux/arm64
+    runs-on: ${{ matrix.runner.selector }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up docker buildx for push
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+          platforms: ${{ matrix.runner.platform }}
+
+      - name: Prepare environment
+        run: |
+          echo "PLATFORM=${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "XIOND_FN=xiond/${{ matrix.runner.platform }}" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "DOCKER_FN=docker/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "HEIGHLINER_FN=heighliner/${{ matrix.runner.platform }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" | tee -a $GITHUB_ENV
+
+      - name: Build Docker Image
+        id: build-docker
+        uses: docker/build-push-action@v5
+        with:
+          build-args: |
+            COMMIT="${GITHUB_SHA}"
+            VERSION=${{ env.VERSION }}
+            TAG_VERSION="${GITHUB_SHA:0:7}"
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.runner.platform }}
+          push: false
+          target: release
+          outputs: type=docker,name=xion:${{ env.PLATFORM }},name-canonical=true
+
+      - name: Build Heighliner Image
+        id: build-heighliner
+        uses: docker/build-push-action@v5
+        with:
+          build-args: |
+            BASE_IMAGE=xion
+            VERSION=${{ env.PLATFORM }}
+            BINARIES=/usr/bin/xiond
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.runner.platform }}
+          target: heighliner
+          outputs: type=docker,name=heighliner:${{ env.PLATFORM }},name-canonical=true
+
+      - name: Save Docker Image
+        working-directory: ${{ runner.temp }}
+        run: |
+          docker save xion:${{ env.PLATFORM }} > ${{ env.DOCKER_FN }}
+
+      - name: Upload Docker Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DOCKER_FN }}
+          path: ${{ runner.temp }}/${{ env.DOCKER_FN }}
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Save Heighliner Image
+        working-directory: ${{ runner.temp }}
+        run: |
+          docker save heighliner:${{ env.PLATFORM }} > ${{ env.HEIGHLINER_FN }}
+
+      - name: Upload Heighliner Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.HEIGHLINER_FN }}
+          path: ${{ runner.temp }}/${{ env.HEIGHLINER_FN }}
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Copy xiond binary from container
+        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
+        working-directory: ${{ runner.temp }}
+        run: |
+          tmpname="ctr-$(basename $XIOND_FN)"
+          docker create --platform ${{ matrix.runner.platform }} --name "${tmpname}" "xion:${PLATFORM}"
+          docker cp "${tmpname}:/usr/bin/xiond" "${XIOND_FN}"
+          docker rm -v "${tmpname}"
+
+      - name: Upload binary
+        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.XIOND_FN }}
+          path: ${{ runner.temp }}/${{ env.XIOND_FN }}
+          retention-days: 3

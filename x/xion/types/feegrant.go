@@ -396,7 +396,7 @@ func (a *MultiAnyAllowance) ExpiresAt() (*time.Time, error) {
 			return nil, err
 		}
 		if set {
-			if expiration != newExpiration {
+			if !EqTime(expiration, newExpiration) {
 				return nil, errorsmod.Wrapf(ErrInconsistentExpiry, "allowance 0 had expiration %v while allowance %d had expiration %v", expiration, i, newExpiration)
 			}
 		} else {
@@ -405,4 +405,14 @@ func (a *MultiAnyAllowance) ExpiresAt() (*time.Time, error) {
 		}
 	}
 	return expiration, nil
+}
+
+func EqTime(a, b *time.Time) bool {
+	if a != nil && b != nil {
+		return a.Equal(*b)
+	}
+	if a == nil && b == nil {
+		return true
+	}
+	return false
 }
