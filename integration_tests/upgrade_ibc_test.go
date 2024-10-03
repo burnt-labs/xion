@@ -2,8 +2,15 @@ package integration_tests
 
 import (
 	"context"
-	"cosmossdk.io/x/upgrade"
 	"encoding/json"
+	"os"
+	"path"
+	"strconv"
+	"testing"
+	"time"
+
+	"cosmossdk.io/x/upgrade"
+
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/jwk"
@@ -33,11 +40,6 @@ import (
 	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
-	"os"
-	"path"
-	"strconv"
-	"testing"
-	"time"
 
 	"cosmossdk.io/math"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
