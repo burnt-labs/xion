@@ -329,6 +329,6 @@ func TestXionUpgradeIBC(t *testing.T) {
 	err = testutil.WaitForBlocks(timeoutCtx, int(blocksAfterUpgrade), chain)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
-	// test IBC conformance after chain upgrade on same testPath
+	// test IBC conformance after chain upgrade on same path
 	conformance.TestChainPair(t, ctx, client, network, chain, counterpartyChain, rf, rep, r, testPath)
 }
