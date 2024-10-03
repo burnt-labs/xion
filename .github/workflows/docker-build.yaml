@@ -42,7 +42,7 @@ jobs:
         with:
           distribution: goreleaser
           version: "~> v2"
-          args: build --clean --id xiond_${{ matrix.os }}_${{ matrix.arch }}
+          args: build --clean --skip validate --id xiond_${{ matrix.os }}_${{ matrix.arch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
