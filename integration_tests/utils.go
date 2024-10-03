@@ -19,26 +19,57 @@ import (
 	"testing"
 	"time"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
+	"github.com/burnt-labs/xion/x/jwk"
+	"github.com/burnt-labs/xion/x/mint"
+	"github.com/burnt-labs/xion/x/xion"
+	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
+	aa "github.com/larry0x/abstract-account/x/abstractaccount"
+	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
+	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
+
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
+
 	"cosmossdk.io/math"
+	"cosmossdk.io/x/upgrade"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/ibc-go/modules/capability"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 
-	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -52,7 +83,7 @@ const (
 	packetforward    = "0.0"
 )
 
-var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
+var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
 
 // Function type for any function that modify the genesis file
 type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
@@ -203,31 +234,71 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
+	// config
+	cfg := ibc.ChainConfig{
+		Images: []ibc.DockerImage{
+			{
+				Repository: imageTagComponents[0],
+				Version:    imageTagComponents[1],
+				UidGid:     "1025:1025",
+			},
+		},
+		// GasPrices:              "0.1uxion",
+		GasPrices:      gas,
+		GasAdjustment:  2.0,
+		Type:           "cosmos",
+		ChainID:        "xion-1",
+		Bin:            "xiond",
+		Bech32Prefix:   "xion",
+		Denom:          "uxion",
+		TrustingPeriod: "336h",
+		ModifyGenesis:  modifyGenesis,
+		// UsingNewGenesisCommand: true,
+		EncodingConfig: func() *moduletestutil.TestEncodingConfig {
+			cfg := moduletestutil.MakeTestEncodingConfig(
+				auth.AppModuleBasic{},
+				genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+				bank.AppModuleBasic{},
+				capability.AppModuleBasic{},
+				staking.AppModuleBasic{},
+				mint.AppModuleBasic{},
+				distr.AppModuleBasic{},
+				gov.NewAppModuleBasic(
+					[]govclient.ProposalHandler{
+						paramsclient.ProposalHandler,
+					},
+				),
+				params.AppModuleBasic{},
+				slashing.AppModuleBasic{},
+				upgrade.AppModuleBasic{},
+				consensus.AppModuleBasic{},
+				transfer.AppModuleBasic{},
+				ibccore.AppModuleBasic{},
+				ibctm.AppModuleBasic{},
+				ibcwasm.AppModuleBasic{},
+				ccvprovider.AppModuleBasic{},
+				ibcsolomachine.AppModuleBasic{},
+
+				// custom
+				wasm.AppModuleBasic{},
+				authz.AppModuleBasic{},
+				tokenfactory.AppModuleBasic{},
+				xion.AppModuleBasic{},
+				jwk.AppModuleBasic{},
+				aa.AppModuleBasic{},
+			)
+			// TODO: add encoding types here for the modules you want to use
+			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+			return &cfg
+		}(),
+	}
+
 	// Chain factory
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
-			Name:    imageTagComponents[0],
-			Version: imageTagComponents[1],
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: imageTagComponents[0],
-						Version:    imageTagComponents[1],
-						UidGid:     "1025:1025",
-					},
-				},
-				// GasPrices:              "0.1uxion",
-				GasPrices:              gas,
-				GasAdjustment:          1.3,
-				Type:                   "cosmos",
-				ChainID:                "xion-1",
-				Bin:                    "xiond",
-				Bech32Prefix:           "xion",
-				Denom:                  "uxion",
-				TrustingPeriod:         "336h",
-				ModifyGenesis:          modifyGenesis,
-				UsingNewGenesisCommand: true,
-			},
+			Name:          imageTagComponents[0],
+			Version:       imageTagComponents[1],
+			ChainConfig:   cfg,
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
 		},
@@ -370,7 +441,9 @@ func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, pa
 func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, denom string, blockHeight uint64) string {
 	if blockHeight == 0 {
 		// No history is required so use the most recent block height
-		blockHeight, _ = xion.Height(ctx)
+		bHeight, err := xion.Height(ctx)
+		require.NoError(t, err)
+		blockHeight = uint64(bHeight)
 		require.Greater(t, blockHeight, 0)
 	}
 
@@ -379,7 +452,7 @@ func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx contex
 	 * {"supply":[{"denom":"uxion","amount":"110000002059725"}]}
 	 */
 	jsonRes := make(map[string]interface{})
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "bank", "total", "--height", strconv.FormatInt(int64(blockHeight), 10))
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "bank", "total", "--height", strconv.FormatInt(int64(blockHeight), 10))
 	require.NoError(t, err)
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
@@ -402,7 +475,9 @@ func getTotalCoinSupplyInBank(t *testing.T, xion *cosmos.CosmosChain, ctx contex
 // This function gets the bank balance for an address at some particular history denoted by the block height
 func getAddressBankBalanceAtHeight(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, address string, denom string, blockHeight uint64) string {
 	if blockHeight == 0 {
-		blockHeight, _ = xion.Height(ctx)
+		bHeight, err := xion.Height(ctx)
+		require.NoError(t, err)
+		blockHeight = uint64(bHeight)
 		require.Greater(t, blockHeight, 0)
 	}
 
@@ -411,7 +486,7 @@ func getAddressBankBalanceAtHeight(t *testing.T, xion *cosmos.CosmosChain, ctx c
 	 * {"supply":[{"denom":"uxion","amount":"110000002059725"}]}
 	 */
 	jsonRes := make(map[string]interface{})
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "bank", "balances", address, "--height", strconv.FormatInt(int64(blockHeight), 10))
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "bank", "balances", address, "--height", strconv.FormatInt(int64(blockHeight), 10))
 	require.NoError(t, err)
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
@@ -450,12 +525,12 @@ func GetModuleAddress(t *testing.T, xion *cosmos.CosmosChain, ctx context.Contex
 			}
 	*/
 	jsonRes := make(map[string]interface{})
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "auth", "module-account", moduleName)
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "auth", "module-account", moduleName)
 	require.NoError(t, err)
 
 	require.NoError(t, json.Unmarshal(queryRes, &jsonRes))
 
-	moduleAddress, err := dyno.GetString(jsonRes, "account", "base_account", "address")
+	moduleAddress, err := dyno.GetString(jsonRes, "account", "value", "address")
 	require.NoError(t, err)
 	t.Logf("%s module address: %s", moduleName, moduleAddress)
 	return moduleAddress
@@ -464,19 +539,21 @@ func GetModuleAddress(t *testing.T, xion *cosmos.CosmosChain, ctx context.Contex
 // Retrieve a block annual provision. This is the minted tokens for the block for validators and delegator
 func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, denom string, blockHeight uint64) math.LegacyDec {
 	if blockHeight == 0 {
-		blockHeight, _ = xion.Height(ctx)
+		bHeight, err := xion.Height(ctx)
+		require.NoError(t, err)
+		blockHeight = uint64(bHeight)
 		require.Greater(t, blockHeight, 0)
 	}
 
 	// Query the current block provision
 	// Response is a string
 	var annualProvision json.Number
-	queryRes, _, err := xion.FullNodes[0].ExecQuery(ctx, "mint", "annual-provisions", "--height", strconv.FormatInt(int64(blockHeight), 10))
+	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "mint", "annual-provisions", "--height", strconv.FormatInt(int64(blockHeight), 10))
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &annualProvision))
 	// Query the block per year
 	params := make(map[string]interface{})
-	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
+	queryRes, _, err = xion.GetNode().ExecQuery(ctx, "mint", "params")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &params))
 	blocksPerYear, err := dyno.GetInteger(params, "blocks_per_year")
@@ -559,7 +636,7 @@ func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.C
 func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context) {
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, currentBlockHeight, uint64(12))
+	require.GreaterOrEqual(t, currentBlockHeight, int64(12))
 	// Get a random number from 1 to the (currentBlockHeight - 10)
 	randomHeight := rand.Intn(int(currentBlockHeight)-11) + 2 // we start from 2 because we need at least 2 blocks to run the test
 
@@ -572,7 +649,7 @@ func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ct
 // Run Mint module test over some txHash
 func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, txHashes []string) {
 	for i, txHash := range txHashes {
-		txResp, err := authTx.QueryTx(xion.FullNodes[0].CliContext(), txHash)
+		txResp, err := authTx.QueryTx(xion.GetNode().CliContext(), txHash)
 		require.NoError(t, err)
 		t.Logf("Bank send msg %d BH: %d", i, txResp.Height)
 		MintModuleTestHarness(t, xion, ctx, int(txResp.Height)+1) // check my block and the next one
@@ -594,6 +671,27 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 
 func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
 	cmd := TxCommandOverrideGas(t, tn, keyName, tn.Chain.Config().GasPrices, command...)
+	t.Logf("cmd: %s", cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal(stdout, &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, nil
+}
+
+func ExecTxWithGas(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, gas string, command ...string) (string, error) {
+	cmd := TxCommandOverrideGas(t, tn, keyName, gas, command...)
 	t.Logf("cmd: %s", cmd)
 	stdout, _, err := tn.Exec(ctx, cmd, nil)
 	if err != nil {

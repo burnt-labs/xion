@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	feegranttypes "cosmossdk.io/x/feegrant"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
-	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"

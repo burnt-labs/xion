@@ -110,7 +110,7 @@ func CreateWebAuthNAttestationCred(t *testing.T, challenge []byte) []byte {
 
 	// Add CredentialIDLength
 	credentialIDLengthBytes := make([]byte, 2)
-	credentialIDLength := uint16(len(credentialID))
+	credentialIDLength := uint16(len(credentialID)) // nolint:gosec
 	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
 	attData = append(attData, credentialIDLengthBytes...)
 
@@ -222,7 +222,7 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 
 	// Add CredentialIDLength
 	credentialIDLengthBytes := make([]byte, 2)
-	credentialIDLength := uint16(len(credentialID))
+	credentialIDLength := uint16(len(credentialID)) //nolint:gosec
 	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
 	attData = append(attData, credentialIDLengthBytes...)
 

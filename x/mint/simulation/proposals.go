@@ -3,6 +3,8 @@ package simulation
 import (
 	"math/rand"
 
+	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -36,10 +38,10 @@ func SimulateMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) 
 
 	params := types.DefaultParams()
 	params.BlocksPerYear = uint64(simtypes.RandIntBetween(r, 1, 1000000))
-	params.GoalBonded = sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 100)), 2)
-	params.InflationMin = sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 50)), 2)
-	params.InflationMax = sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 50, 100)), 2)
-	params.InflationRateChange = sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 100)), 2)
+	params.GoalBonded = math.LegacyNewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 100)), 2)
+	params.InflationMin = math.LegacyNewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 50)), 2)
+	params.InflationMax = math.LegacyNewDecWithPrec(int64(simtypes.RandIntBetween(r, 50, 100)), 2)
+	params.InflationRateChange = math.LegacyNewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 100)), 2)
 	params.MintDenom = simtypes.RandStringOfLength(r, 10)
 
 	return &types.MsgUpdateParams{

@@ -3,17 +3,21 @@ package integration_tests
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
-	ibctest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +33,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 	currentHeight, _ := xion.Height(ctx)
@@ -49,14 +53,9 @@ func TestXionSendPlatformFee(t *testing.T) {
 	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
 	require.NoError(t, err)
 
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-	)
 	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
 
-	_, err = xion.FullNodes[0].ExecTx(ctx,
+	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
 		"xion", "send", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
@@ -67,7 +66,8 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.Eventuallyf(t, func() bool {
 		balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 		require.NoError(t, err)
-		return uint64(balance) == uint64(100)
+		t.Logf("expected %d, got %d", 100, balance.Int64())
+		return balance.Equal(math.NewInt(100))
 	},
 		time.Second*20,
 		time.Second*6,
@@ -96,12 +96,15 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("Platform percentage change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 
+	proposalID, err := strconv.Atoi(paramChangeTx.ProposalID)
+	require.NoError(t, err)
+
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.QueryProposal(ctx, paramChangeTx.ProposalID)
+		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == cosmos.ProposalStatusVotingPeriod {
+			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
@@ -109,15 +112,15 @@ func TestXionSendPlatformFee(t *testing.T) {
 		return false
 	}, time.Second*11, time.Second, "failed to reach status VOTING after 11s")
 
-	err = xion.VoteOnProposalAllValidators(ctx, paramChangeTx.ProposalID, cosmos.ProposalVoteYes)
+	err = xion.VoteOnProposalAllValidators(ctx, uint64(proposalID), cosmos.ProposalVoteYes)
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.QueryProposal(ctx, paramChangeTx.ProposalID)
+		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == cosmos.ProposalStatusPassed {
+			if proposalInfo.Status == govv1beta1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
@@ -130,9 +133,9 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 	initialReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(100), uint64(initialReceivingBalance))
+	require.Equal(t, math.NewInt(100), initialReceivingBalance)
 
-	_, err = xion.FullNodes[0].ExecTx(ctx,
+	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
 		"xion", "send", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
@@ -140,12 +143,13 @@ func TestXionSendPlatformFee(t *testing.T) {
 	)
 
 	require.NoError(t, err)
-	testutil.WaitForBlocks(ctx, int(currentHeight)+100, xion)
+	err = testutil.WaitForBlocks(ctx, int(currentHeight)+100, xion)
+	require.NoError(t, err)
 
 	postSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equalf(t, uint64(initialSendingBalance-200), uint64(postSendingBalance), "Wanted %d, got %d", uint64(initialSendingBalance-200), uint64(postSendingBalance))
+	require.Equalf(t, initialSendingBalance.SubRaw(200), postSendingBalance, "Wanted %d, got %d", initialSendingBalance.SubRaw(200), postSendingBalance)
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(290), uint64(postReceivingBalance))
+	require.Equal(t, math.NewInt(290), postReceivingBalance)
 }

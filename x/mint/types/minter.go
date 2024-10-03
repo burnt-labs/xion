@@ -10,7 +10,7 @@ import (
 
 // NewMinter returns a new Minter object with the given inflation and annual
 // provisions values.
-func NewMinter(inflation, annualProvisions sdk.Dec) Minter {
+func NewMinter(inflation, annualProvisions math.LegacyDec) Minter {
 	return Minter{
 		Inflation:        inflation,
 		AnnualProvisions: annualProvisions,
@@ -18,7 +18,7 @@ func NewMinter(inflation, annualProvisions sdk.Dec) Minter {
 }
 
 // InitialMinter returns an initial Minter object with a given inflation value.
-func InitialMinter(inflation sdk.Dec) Minter {
+func InitialMinter(inflation math.LegacyDec) Minter {
 	return NewMinter(
 		inflation,
 		math.LegacyNewDec(0),
@@ -29,7 +29,7 @@ func InitialMinter(inflation sdk.Dec) Minter {
 // which uses an inflation rate of 13%.
 func DefaultInitialMinter() Minter {
 	return InitialMinter(
-		sdk.NewDecWithPrec(13, 2),
+		math.LegacyNewDecWithPrec(13, 2),
 	)
 }
 
@@ -43,7 +43,7 @@ func ValidateMinter(minter Minter) error {
 }
 
 // NextInflationRate returns the new inflation rate for the next hour.
-func (m Minter) NextInflationRate(params Params, bondedRatio sdk.Dec) math.LegacyDec {
+func (m Minter) NextInflationRate(params Params, bondedRatio math.LegacyDec) math.LegacyDec {
 	// The target annual inflation rate is recalculated for each previsions cycle. The
 	// inflation is also subject to a rate change (positive or negative) depending on
 	// the distance from the desired ratio (67%). The maximum rate change possible is

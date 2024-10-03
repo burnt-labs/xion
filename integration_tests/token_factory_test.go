@@ -6,12 +6,10 @@ import (
 	"path"
 	"testing"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/cosmos-sdk/types"
-	ibctest "github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"cosmossdk.io/math"
+
+	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,21 +23,9 @@ func TestXionTokenFactory(t *testing.T) {
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations(
-		(*types.Msg)(nil),
-		&xiontypes.MsgSetPlatformPercentage{},
-		&xiontypes.MsgSend{},
-		&tokenfactorytypes.MsgMint{},
-		&tokenfactorytypes.MsgCreateDenom{},
-		&tokenfactorytypes.MsgChangeAdmin{},
-		&wasmtypes.MsgStoreCode{},
-		&wasmtypes.MsgInstantiateContract{},
-		&wasmtypes.MsgExecuteContract{},
-	)
-
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := int64(10_000_000)
+	fundAmount := math.NewInt(10_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion, xion) // TODO: add a second user
 	// TODO: extract both users
 	xionUser := users[0]
@@ -60,19 +46,17 @@ func TestXionTokenFactory(t *testing.T) {
 	// mint
 	MintTokenFactoryDenom(t, ctx, xion, xionUser, 100, tfDenom)
 	t.Log("minted tfDenom to user")
-	if balance, err := xion.GetBalance(ctx, uaddr, tfDenom); err != nil {
-		t.Fatal(err)
-	} else if balance != 100 {
-		t.Fatal("balance not 100")
-	}
+	balance, err := xion.GetBalance(ctx, uaddr, tfDenom)
+	require.NoError(t, err)
+	require.Equal(t, math.NewInt(100).Int64(), balance.Int64())
 
 	// mint-to
 	expectedMint := uint64(70)
 	MintToTokenFactoryDenom(t, ctx, xion, xionUser, xionUser2, expectedMint, tfDenom)
 	t.Log("minted tfDenom to user")
-	balance, err := xion.GetBalance(ctx, uaddr2, tfDenom)
+	balance, err = xion.GetBalance(ctx, uaddr2, tfDenom)
 	require.NoError(t, err)
-	require.Equal(t, uint64(balance), expectedMint, "balance not 70")
+	require.Equal(t, balance.Int64(), int64(expectedMint), "balance not 70")
 
 	fp, err := os.Getwd()
 	require.NoError(t, err)
@@ -104,5 +88,5 @@ func TestXionTokenFactory(t *testing.T) {
 	balance, err = xion.GetBalance(ctx, uaddr2, tfDenom)
 	require.NoError(t, err)
 	fmt.Println(balance)
-	require.Equal(t, balance, int64(101))
+	require.Equal(t, balance.Int64(), int64(101))
 }

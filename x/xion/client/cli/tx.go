@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -15,6 +14,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/gogoproto/proto"
+
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	signing2 "cosmossdk.io/x/tx/signing"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -137,7 +140,7 @@ When using '--dry-run' a key name cannot be used, only a bech32 address.
 				return err
 			}
 
-			totalAddrs := sdk.NewInt(int64(len(args) - 2))
+			totalAddrs := math.NewInt(int64(len(args) - 2))
 			// coins to be received by the addresses
 			sendCoins := coins
 			if split {
@@ -238,7 +241,11 @@ func NewRegisterCmd() *cobra.Command {
 			}
 			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
-			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(predictedAddr.String()))
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(
+				clientCtx.GetFromAddress(),
+				[]byte(predictedAddr.String()),
+				signMode,
+			)
 			if err != nil {
 				return fmt.Errorf("error signing predicted address : %s", err)
 			}
@@ -313,7 +320,21 @@ func NewAddAuthenticatorCmd() *cobra.Command {
 
 			contractAddr := args[0]
 
-			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(contractAddr))
+			signMode := signing.SignMode_SIGN_MODE_UNSPECIFIED
+			switch clientCtx.SignModeStr {
+			case flags.SignModeDirect:
+				signMode = signing.SignMode_SIGN_MODE_DIRECT
+			case flags.SignModeLegacyAminoJSON:
+				signMode = signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON
+			case flags.SignModeDirectAux:
+				signMode = signing.SignMode_SIGN_MODE_DIRECT_AUX
+			case flags.SignModeTextual:
+				signMode = signing.SignMode_SIGN_MODE_TEXTUAL
+			case flags.SignModeEIP191:
+				signMode = signing.SignMode_SIGN_MODE_EIP_191
+			}
+
+			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), []byte(contractAddr), signMode)
 			if err != nil {
 				return fmt.Errorf("error signing address : %s", err)
 			}
@@ -368,10 +389,10 @@ func NewAddAuthenticatorCmd() *cobra.Command {
 // NewSignCmd returns a CLI command to sign a Tx with the Smart Contract Account signer
 func NewSignCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sign [keyname] [path/to/tx.json]",
+		Use:   "sign [keyname] [signer_account] [path/to/tx.json]",
 		Short: "sign a transaction",
 		Long:  `Sign transaction by retrieving the Smart Contract Account signer.`,
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := cmd.Flags().Set(flags.FlagFrom, args[0]); err != nil {
 				return err
@@ -386,7 +407,12 @@ func NewSignCmd() *cobra.Command {
 				return err
 			}
 
-			txBz, err := os.ReadFile(args[1])
+			signerAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+
+			txBz, err := os.ReadFile(args[2])
 			if err != nil {
 				return err
 			}
@@ -398,17 +424,17 @@ func NewSignCmd() *cobra.Command {
 
 			queryClient := authtypes.NewQueryClient(clientCtx)
 
-			signerAcc, err := getSignerOfTx(queryClient, stdTx)
+			signerAcc, err := getSignerOfTx(queryClient, signerAddr)
 			if err != nil {
 				return err
 			}
 
-			signerData := authsigning.SignerData{
+			signerData := signing2.SignerData{
 				Address:       signerAcc.GetAddress().String(),
 				ChainID:       clientCtx.ChainID,
 				AccountNumber: signerAcc.GetAccountNumber(),
 				Sequence:      signerAcc.GetSequence(),
-				PubKey:        signerAcc.GetPubKey(), // NOTE: NilPubKey
+				PubKey:        nil, // NOTE: NilPubKey
 			}
 
 			txBuilder, err := clientCtx.TxConfig.WrapTxBuilder(stdTx)
@@ -431,11 +457,25 @@ func NewSignCmd() *cobra.Command {
 				panic(err)
 			}
 
-			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(signMode, signerData, txBuilder.GetTx())
+			adaptableTx, ok := txBuilder.GetTx().(authsigning.V2AdaptableTx)
+			if !ok {
+				return fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", txBuilder.GetTx())
+			}
+
+			txData := adaptableTx.GetSigningTxData()
+			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(
+				clientCtx.CmdContext,
+				signingv1beta1.SignMode_SIGN_MODE_DIRECT,
+				signerData,
+				txData,
+			)
 			if err != nil {
 				panic(err)
 			}
-			signedBytes, _, err := clientCtx.Keyring.Sign(clientCtx.GetFromName(), signBytes)
+			signedBytes, _, err := clientCtx.Keyring.Sign(
+				clientCtx.GetFromName(), signBytes,
+				signMode,
+			)
 			if err != nil {
 				panic(err)
 			}
@@ -474,28 +514,14 @@ func NewSignCmd() *cobra.Command {
 	return cmd
 }
 
-func getSignerOfTx(queryClient authtypes.QueryClient, stdTx sdk.Tx) (*aatypes.AbstractAccount, error) {
-	var signerAddr sdk.AccAddress
-	for i, msg := range stdTx.GetMsgs() {
-		signers := msg.GetSigners()
-		if len(signers) != 1 {
-			return nil, fmt.Errorf("msg %d has more than one signers", i)
-		}
-
-		if signerAddr != nil && !signerAddr.Equals(signers[0]) {
-			return nil, errors.New("tx has more than one signers")
-		}
-
-		signerAddr = signers[0]
-	}
-
-	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: signerAddr.String()})
+func getSignerOfTx(queryClient authtypes.QueryClient, address sdk.AccAddress) (*aatypes.AbstractAccount, error) {
+	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: address.String()})
 	if err != nil {
 		return nil, err
 	}
 
 	if res.Account.TypeUrl != typeURL((*aatypes.AbstractAccount)(nil)) {
-		return nil, fmt.Errorf("signer %s is not an AbstractAccount", signerAddr.String())
+		return nil, fmt.Errorf("signer %s is not an AbstractAccount", address.String())
 	}
 
 	acc := &aatypes.AbstractAccount{}
