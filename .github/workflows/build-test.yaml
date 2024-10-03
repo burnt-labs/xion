@@ -1,0 +1,51 @@
+name: Build and Test
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Golang CI Lint
+    uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@main
+    secrets: inherit
+
+  update-swagger:
+    name: Update Swagger
+    uses: burnt-labs/xion/.github/workflows/update-swagger.yaml@main
+    secrets: inherit
+
+  unit-tests:
+    name: Go Unit Tests
+    uses: burnt-labs/xion/.github/workflows/tests.yaml@main
+    secrets: inherit
+
+  build-binaries:
+    name: Build xiond linux binaries
+    uses: burnt-labs/xion/.github/workflows/linux-build.yaml@main
+    secrets: inherit
+
+  build-docker:
+    needs: build-binaries
+    name: Build Docker Images
+    uses: burnt-labs/xion/.github/workflows/docker-build.yaml@main
+    secrets: inherit
+
+  docker-scout:
+    needs: build-docker
+    name: Docker Scout
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yaml@main
+    secrets: inherit
+
+  interchain-tests:
+    needs: build-docker
+    name: Interchain tests
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@main
+    secrets: inherit

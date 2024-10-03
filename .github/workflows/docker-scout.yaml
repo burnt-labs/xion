@@ -1,0 +1,55 @@
+name: Docker Scout
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  docker-scout:
+    name: main
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
+
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Prepare environment
+        run: |
+          echo "DOCKER_FN=docker/${{ matrix.os }}/${{ matrix.arch }}.tar" | tr '/' '-' | tee -a $GITHUB_ENV
+
+      - name: Download images
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}
+          pattern: ${{ env.DOCKER_FN }}
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          ls -la
+          docker load < ${{ env.DOCKER_FN }}
+
+      - name: Run Docker Scout
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          only-fixed: true
+          platform: ${{ matrix.os }}/${{ matrix.arch }}
+          image: xion:${{ matrix.os }}-${{ matrix.arch }}
