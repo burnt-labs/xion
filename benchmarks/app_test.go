@@ -219,7 +219,7 @@ func InitializeWasmApp(b testing.TB, db dbm.DB, numAccounts int) AppInfo {
 		Label:  "Demo contract",
 		Msg:    initBz,
 	}
-	gasWanted := 500000 + 10000*uint64(numAccounts)
+	gasWanted := 500000 + 10000*uint64(numAccounts) // nolint:gosec
 	initTx, err := simtestutil.GenSignedMockTx(r, txGen, []sdk.Msg{&initMsg}, nil, gasWanted, "", []uint64{0}, []uint64{1}, minter)
 	require.NoError(b, err)
 	_, res, err := wasmApp.SimDeliver(txGen.TxEncoder(), initTx)
