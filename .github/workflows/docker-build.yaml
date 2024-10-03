@@ -33,27 +33,16 @@ jobs:
       - name: Set Go Version
         run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
 
-      - name: Prepare environment
-        run: |
-          case $GITHUB_REF in refs/tags/v*)
-            echo "GORELEASER_CURRENT_TAG=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV;;
-          default)
-            echo "GORELEASER_CURRENT_TAG=${GITHUB_REF_NAME}" | tee -a $GITHUB_ENV;;
-          esac
-
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
-        env:
-          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
         with:
           distribution: goreleaser
           version: "~> v2"
-
-          args: build --clean --id xiond_${{ matrix.os }}_${{ matrix.arch }}
+          args: build --clean --skip validate --id xiond_${{ matrix.os }}_${{ matrix.arch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
