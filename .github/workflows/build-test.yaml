@@ -27,7 +27,13 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/tests.yaml@main
     secrets: inherit
 
+  build-binaries:
+    name: Build xiond linux binaries
+    uses: burnt-labs/xion/.github/workflows/linux-build.yaml@main
+    secrets: inherit
+
   build-docker:
+    needs: build-binaries
     name: Build Docker Images
     uses: burnt-labs/xion/.github/workflows/docker-build.yaml@main
     secrets: inherit

@@ -30,21 +30,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set Go Version
-        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
-
-      - uses: actions/setup-go@v5
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: "~> v2"
-          args: build --clean --skip validate --id xiond_${{ matrix.os }}_${{ matrix.arch }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: dist
+          pattern: xiond-*
+          merge-multiple: true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -71,7 +62,7 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           tags: xion:${{ matrix.os }}-${{ matrix.arch }}
           build-args: |
-            XIOND_BINARY=dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
+            XIOND_BINARY=dist/xiond-${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Build Heighliner Image
         id: build-heighliner
@@ -84,7 +75,7 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           tags: heighliner:${{ matrix.os }}-${{ matrix.arch }}
           build-args: |
-            XIOND_BINARY=dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
+            XIOND_BINARY=dist/xiond-${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
@@ -109,18 +100,5 @@ jobs:
         with:
           name: ${{ env.HEIGHLINER_FN }}
           path: ${{ runner.temp }}/${{ env.HEIGHLINER_FN }}
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Rename binary
-        run: |
-          cp dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond ${{ runner.temp }}/xiond-${{ matrix.os }}-${{ matrix.arch }}
-
-      - name: Upload binary
-        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
-        uses: actions/upload-artifact@v4
-        with:
-          name: xiond-${{ matrix.os }}-${{ matrix.arch }}
-          path: ${{ runner.temp }}/xiond-${{ matrix.os }}-${{ matrix.arch }}
           if-no-files-found: error
           retention-days: 3
