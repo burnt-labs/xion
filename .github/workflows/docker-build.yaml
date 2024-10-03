@@ -47,6 +47,8 @@ jobs:
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
+        env:
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
         with:
           distribution: goreleaser
           version: "~> v2"
