@@ -260,7 +260,6 @@ func TestSimulate(t *testing.T) {
 	}
 		`, contract, xionUser.FormattedAddress(), "uxion")
 
-	//cdc := xion.Config().EncodingConfig.Codec // proto codec
 	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)
 
