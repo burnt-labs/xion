@@ -1347,6 +1347,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(feeabstypes.ModuleName)
+	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
 
 	// IBC params migration - legacySubspace to selfManaged
 	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/11-v7-to-v8.md#params-migration

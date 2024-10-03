@@ -54,8 +54,8 @@ import (
 )
 
 const (
-	xionImageFrom   = "xion"
-	xionVersionFrom = "current"
+	xionImageFrom   = "ghcr.io/burnt-labs/xion/heighliner"
+	xionVersionFrom = "12.0.1"
 	xionImageTo     = "xion"
 	xionVersionTo   = "local"
 	xionUpgradeName = "v13"
