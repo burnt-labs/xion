@@ -714,8 +714,10 @@ func NewWasmApp(
 	wasmOpts = append(wasmOpts, tokenFactoryOpts...)
 
 	// instantiate the Wasm VM with the chosen parameters
+	// we need to create this double wasm dir because the wasmd Keeper appends an extra `wasm/` to the value you give it
+	doubleWasmDir := filepath.Join(wasmDir, "wasm")
 	wasmVM, err := wasmvm.NewVM(
-		wasmDir,
+		doubleWasmDir,
 		availableCapabilities,
 		WasmContractMemoryLimit, // default of 32
 		wasmConfig.ContractDebugMode,
