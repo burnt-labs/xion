@@ -2,9 +2,44 @@ package integration_tests
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"path"
 	"strconv"
 	"testing"
 	"time"
+
+	"cosmossdk.io/x/upgrade"
+
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/burnt-labs/xion/x/jwk"
+	"github.com/burnt-labs/xion/x/mint"
+	"github.com/burnt-labs/xion/x/xion"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/ibc-go/modules/capability"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
+	aa "github.com/larry0x/abstract-account/x/abstractaccount"
+	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 
 	"cosmossdk.io/math"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -22,10 +57,10 @@ import (
 
 const (
 	xionImageFrom   = "ghcr.io/burnt-labs/xion/heighliner"
-	xionVersionFrom = "9.0.1-rc2"
-	xionImageTo     = "ghcr.io/burnt-labs/xion/heighliner"
-	xionVersionTo   = "sha-7bba345"
-	xionUpgradeName = "v12"
+	xionVersionFrom = "12.0.1"
+	xionImageTo     = "xion"
+	xionVersionTo   = "local"
+	xionUpgradeName = "v13"
 
 	osmosisImage   = "ghcr.io/strangelove-ventures/heighliner/osmosis"
 	osmosisVersion = "v25.2.1"
@@ -61,7 +96,45 @@ func TestXionUpgradeIBC(t *testing.T) {
 				Bech32Prefix:   "xion",
 				Denom:          "uxion",
 				TrustingPeriod: ibcClientTrustingPeriod,
-				ModifyGenesis:  ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
+				EncodingConfig: func() *moduletestutil.TestEncodingConfig {
+					cfg := moduletestutil.MakeTestEncodingConfig(
+						auth.AppModuleBasic{},
+						genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
+						bank.AppModuleBasic{},
+						capability.AppModuleBasic{},
+						staking.AppModuleBasic{},
+						mint.AppModuleBasic{},
+						distr.AppModuleBasic{},
+						gov.NewAppModuleBasic(
+							[]govclient.ProposalHandler{
+								paramsclient.ProposalHandler,
+							},
+						),
+						params.AppModuleBasic{},
+						slashing.AppModuleBasic{},
+						upgrade.AppModuleBasic{},
+						consensus.AppModuleBasic{},
+						transfer.AppModuleBasic{},
+						ibccore.AppModuleBasic{},
+						ibctm.AppModuleBasic{},
+						ibcwasm.AppModuleBasic{},
+						ccvprovider.AppModuleBasic{},
+						ibcsolomachine.AppModuleBasic{},
+
+						// custom
+						wasm.AppModuleBasic{},
+						authz.AppModuleBasic{},
+						tokenfactory.AppModuleBasic{},
+						xion.AppModuleBasic{},
+						jwk.AppModuleBasic{},
+						aa.AppModuleBasic{},
+					)
+					// TODO: add encoding types here for the modules you want to use
+					ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+					return &cfg
+				}(),
+
+				ModifyGenesis: ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
 			},
 		},
 		{
@@ -91,7 +164,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 	chain, counterpartyChain := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
 
 	const (
-		path        = "ibc-upgrade-test-path"
+		testPath    = "ibc-upgrade-test-testPath"
 		relayerName = "relayer"
 	)
 
@@ -112,7 +185,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 			Chain1:  chain,
 			Chain2:  counterpartyChain,
 			Relayer: r,
-			Path:    path,
+			Path:    testPath,
 		})
 
 	ctx := context.Background()
@@ -134,8 +207,68 @@ func TestXionUpgradeIBC(t *testing.T) {
 	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
 	chainUser := users[0]
 
+	// deploy the account contract, and pin it
+	fp, err := os.Getwd()
+	require.NoError(t, err)
+	codeIDStr, err := chain.StoreContract(ctx, chainUser.FormattedAddress(),
+		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	require.NoError(t, err)
+
+	authority, err := chain.UpgradeQueryAuthority(ctx)
+	require.NoError(t, err)
+	codeID, err := strconv.Atoi(codeIDStr)
+	require.NoError(t, err)
+
+	pinCodeMsg := wasmtypes.MsgPinCodes{
+		Authority: authority,
+		CodeIDs:   []uint64{uint64(codeID)},
+	}
+	msg, err := chain.Config().EncodingConfig.Codec.MarshalInterfaceJSON(&pinCodeMsg)
+	require.NoError(t, err)
+
+	pinCodeTx, err := chain.SubmitProposal(ctx, chainUser.KeyName(), cosmos.TxProposalv1{
+		Messages: []json.RawMessage{msg},
+		Metadata: "",
+		Deposit:  "100uxion",
+		Title:    "Pin AA Contract Code",
+		Summary:  "To verify that the wasm cache doesn't move or change during upgrade",
+	})
+	require.NoError(t, err)
+
+	proposalID, err := strconv.Atoi(pinCodeTx.ProposalID)
+	require.NoError(t, err)
+
+	require.Eventuallyf(t, func() bool {
+		proposalInfo, err := chain.GovQueryProposal(ctx, uint64(proposalID))
+		if err != nil {
+			require.NoError(t, err)
+		} else {
+			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+				return true
+			}
+			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
+		}
+		return false
+	}, time.Second*11, time.Second, "failed to reach status VOTING after 11s")
+
+	err = chain.VoteOnProposalAllValidators(ctx, uint64(proposalID), cosmos.ProposalVoteYes)
+	require.NoError(t, err)
+
+	require.Eventuallyf(t, func() bool {
+		proposalInfo, err := chain.GovQueryProposal(ctx, uint64(proposalID))
+		if err != nil {
+			require.NoError(t, err)
+		} else {
+			if proposalInfo.Status == govv1beta1.StatusPassed {
+				return true
+			}
+			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
+		}
+		return false
+	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
+
 	// test IBC conformance before chain upgrade
-	conformance.TestChainPair(t, ctx, client, network, chain, counterpartyChain, rf, rep, r, path)
+	conformance.TestChainPair(t, ctx, client, network, chain, counterpartyChain, rf, rep, r, testPath)
 
 	height, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
@@ -197,5 +330,5 @@ func TestXionUpgradeIBC(t *testing.T) {
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
 	// test IBC conformance after chain upgrade on same path
-	conformance.TestChainPair(t, ctx, client, network, chain, counterpartyChain, rf, rep, r, path)
+	conformance.TestChainPair(t, ctx, client, network, chain, counterpartyChain, rf, rep, r, testPath)
 }
