@@ -106,8 +106,6 @@ func (s *IntegrationTestSuite) TestParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		s.Run(tc.name, func() {
 			expected := s.mintKeeper.GetParams(s.ctx)
 			err := s.mintKeeper.SetParams(s.ctx, tc.input)

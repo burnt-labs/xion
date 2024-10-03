@@ -307,6 +307,9 @@ test-integration-xion-mig: compile_integration_tests
 test-integration-simulate: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestSimulate
 
+test-integration-simulate: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestSimulate
+
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 
