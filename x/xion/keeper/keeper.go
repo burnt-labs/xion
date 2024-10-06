@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/json"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"cosmossdk.io/log"
