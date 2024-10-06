@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/json"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"cosmossdk.io/log"
@@ -66,6 +67,25 @@ func (k Keeper) GetPlatformPercentage(ctx sdktypes.Context) math.Int {
 
 func (k Keeper) OverwritePlatformPercentage(ctx sdktypes.Context, percentage uint32) {
 	ctx.KVStore(k.storeKey).Set(types.PlatformPercentageKey, sdktypes.Uint64ToBigEndian(uint64(percentage)))
+}
+
+// Platform Minimum
+func (k Keeper) GetPlatformMinimums(ctx sdktypes.Context) (sdktypes.Coins, error) {
+	bz := ctx.KVStore(k.storeKey).Get(types.PlatformPercentageKey)
+
+	var coins sdktypes.Coins
+	err := json.Unmarshal(bz, &coins)
+
+	return coins, err
+}
+
+func (k Keeper) OverwritePlatformMinimum(ctx sdktypes.Context, coins sdktypes.Coins) error {
+	bz, err := json.Marshal(coins)
+	if err != nil {
+		return err
+	}
+	ctx.KVStore(k.storeKey).Set(types.PlatformMinimumKey, bz)
+	return nil
 }
 
 // Authority
