@@ -1,7 +1,11 @@
 package types
 
 import (
+	"bytes"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
+	"fmt"
 	"net/url"
 
 	"cosmossdk.io/errors"
@@ -18,5 +22,18 @@ func (pubKey *DkimPubKey) Validate() error {
 	if _, err := base64.StdEncoding.DecodeString(pubKey.PubKey); err != nil {
 		return errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
 	}
+	return nil
+}
+
+func (pub *DkimPubKey) ComputePoseidonHash() error {
+	var pp []byte
+	b, _ := pem.Decode([]byte(pub.PubKey))
+	p := bytes.NewBuffer(pp)
+	pem.Encode(p, b)
+	k, e := x509.ParsePKCS1PublicKey(p.Bytes())
+	if e != nil {
+		return e
+	}
+	fmt.Println(k)
 	return nil
 }

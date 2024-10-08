@@ -31,11 +31,12 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 
 func SaveDkimPubKey(ctx context.Context, dkimKey *types.DkimPubKey, store dkimv1.StateStore) (bool, error) {
 	if err := store.DkimPubKeyTable().Save(ctx, &dkimv1.DkimPubKey{
-		Domain:   dkimKey.Domain,
-		PubKey:   dkimKey.PubKey,
-		Selector: dkimKey.Selector,
-		Version:  dkimv1.Version(dkimKey.Version),
-		KeyType:  dkimv1.KeyType(dkimKey.KeyType),
+		Domain:       dkimKey.Domain,
+		PubKey:       dkimKey.PubKey,
+		Selector:     dkimKey.Selector,
+		PoseidonHash: dkimKey.PoseidonHash,
+		Version:      dkimv1.Version(dkimKey.Version),
+		KeyType:      dkimv1.KeyType(dkimKey.KeyType),
 	}); err != nil {
 		return false, err
 	}
