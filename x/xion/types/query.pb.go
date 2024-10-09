@@ -255,39 +255,125 @@ func (m *QueryWebAuthNVerifyAuthenticateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryWebAuthNVerifyAuthenticateResponse proto.InternalMessageInfo
 
+type QueryPlatformPercentageRequest struct {
+}
+
+func (m *QueryPlatformPercentageRequest) Reset()         { *m = QueryPlatformPercentageRequest{} }
+func (m *QueryPlatformPercentageRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPlatformPercentageRequest) ProtoMessage()    {}
+func (*QueryPlatformPercentageRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2d6eabf4b8b83bc3, []int{4}
+}
+func (m *QueryPlatformPercentageRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPlatformPercentageRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPlatformPercentageRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPlatformPercentageRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPlatformPercentageRequest.Merge(m, src)
+}
+func (m *QueryPlatformPercentageRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPlatformPercentageRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPlatformPercentageRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPlatformPercentageRequest proto.InternalMessageInfo
+
+type QueryPlatformPercentageResponse struct {
+	PlatformPercentage uint32 `protobuf:"varint,1,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
+}
+
+func (m *QueryPlatformPercentageResponse) Reset()         { *m = QueryPlatformPercentageResponse{} }
+func (m *QueryPlatformPercentageResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPlatformPercentageResponse) ProtoMessage()    {}
+func (*QueryPlatformPercentageResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2d6eabf4b8b83bc3, []int{5}
+}
+func (m *QueryPlatformPercentageResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPlatformPercentageResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPlatformPercentageResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPlatformPercentageResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPlatformPercentageResponse.Merge(m, src)
+}
+func (m *QueryPlatformPercentageResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPlatformPercentageResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPlatformPercentageResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPlatformPercentageResponse proto.InternalMessageInfo
+
+func (m *QueryPlatformPercentageResponse) GetPlatformPercentage() uint32 {
+	if m != nil {
+		return m.PlatformPercentage
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*QueryWebAuthNVerifyRegisterRequest)(nil), "xion.v1.QueryWebAuthNVerifyRegisterRequest")
 	proto.RegisterType((*QueryWebAuthNVerifyRegisterResponse)(nil), "xion.v1.QueryWebAuthNVerifyRegisterResponse")
 	proto.RegisterType((*QueryWebAuthNVerifyAuthenticateRequest)(nil), "xion.v1.QueryWebAuthNVerifyAuthenticateRequest")
 	proto.RegisterType((*QueryWebAuthNVerifyAuthenticateResponse)(nil), "xion.v1.QueryWebAuthNVerifyAuthenticateResponse")
+	proto.RegisterType((*QueryPlatformPercentageRequest)(nil), "xion.v1.QueryPlatformPercentageRequest")
+	proto.RegisterType((*QueryPlatformPercentageResponse)(nil), "xion.v1.QueryPlatformPercentageResponse")
 }
 
 func init() { proto.RegisterFile("xion/v1/query.proto", fileDescriptor_2d6eabf4b8b83bc3) }
 
 var fileDescriptor_2d6eabf4b8b83bc3 = []byte{
-	// 340 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xae, 0xc8, 0xcc, 0xcf,
-	0xd3, 0x2f, 0x33, 0xd4, 0x2f, 0x2c, 0x4d, 0x2d, 0xaa, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
-	0x62, 0x07, 0x09, 0xea, 0x95, 0x19, 0x2a, 0x55, 0x71, 0x29, 0x05, 0x82, 0xc4, 0xc3, 0x53, 0x93,
-	0x1c, 0x4b, 0x4b, 0x32, 0xfc, 0xc2, 0x52, 0x8b, 0x32, 0xd3, 0x2a, 0x83, 0x52, 0xd3, 0x33, 0x8b,
-	0x4b, 0x52, 0x8b, 0x82, 0x52, 0x0b, 0x4b, 0x53, 0x8b, 0x4b, 0x84, 0x84, 0xb8, 0x58, 0x12, 0x53,
-	0x52, 0x8a, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0xc0, 0x6c, 0x21, 0x19, 0x2e, 0xce, 0xe4,
-	0x8c, 0xc4, 0x9c, 0x9c, 0xd4, 0xbc, 0xf4, 0x54, 0x09, 0x26, 0xb0, 0x04, 0x42, 0x40, 0x88, 0x8f,
-	0x8b, 0xa9, 0xa8, 0x40, 0x82, 0x19, 0x2c, 0xcc, 0x54, 0x54, 0x00, 0x32, 0x21, 0x25, 0xb1, 0x24,
-	0x51, 0x82, 0x45, 0x81, 0x51, 0x83, 0x27, 0x08, 0xcc, 0x56, 0x72, 0xe5, 0x52, 0xc6, 0x6b, 0x77,
-	0x71, 0x41, 0x7e, 0x5e, 0x71, 0xaa, 0x90, 0x1c, 0x17, 0x57, 0x72, 0x51, 0x6a, 0x4a, 0x6a, 0x5e,
-	0x49, 0x66, 0x62, 0x0e, 0xd8, 0x09, 0x3c, 0x41, 0x48, 0x22, 0x4a, 0xf3, 0x18, 0xb9, 0xd4, 0xb0,
-	0x98, 0x03, 0x62, 0x82, 0x54, 0x24, 0x27, 0x96, 0xa4, 0x52, 0xcf, 0x1f, 0xa8, 0x8e, 0x61, 0x41,
-	0x77, 0x0c, 0xdc, 0x9f, 0xac, 0x48, 0xfe, 0xd4, 0xe4, 0x52, 0x27, 0xe8, 0x3e, 0x88, 0x5f, 0x8d,
-	0x9a, 0x98, 0xb8, 0x58, 0xc1, 0x6a, 0x85, 0x4a, 0xb9, 0xc4, 0xb0, 0x87, 0x8b, 0x90, 0xb6, 0x1e,
-	0x34, 0xf2, 0xf4, 0x08, 0xc7, 0x9c, 0x94, 0x0e, 0x71, 0x8a, 0x21, 0xd6, 0x2b, 0x31, 0x08, 0x35,
-	0x32, 0x72, 0x49, 0xe1, 0x76, 0xa7, 0x90, 0x3e, 0x3e, 0xe3, 0xb0, 0x84, 0xb8, 0x94, 0x01, 0xf1,
-	0x1a, 0x60, 0x6e, 0x70, 0x72, 0x3c, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f,
-	0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28,
-	0xf5, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0xfd, 0xa4, 0xd2, 0xa2, 0xbc,
-	0x12, 0xdd, 0x9c, 0xc4, 0xa4, 0x62, 0x7d, 0x70, 0x0a, 0xaf, 0x80, 0x50, 0x25, 0x95, 0x05, 0xa9,
-	0xc5, 0x49, 0x6c, 0xe0, 0x64, 0x6e, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0xcd, 0xd9, 0x5e, 0xff,
-	0xfd, 0x02, 0x00, 0x00,
+	// 404 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0xcd, 0xce, 0xd2, 0x40,
+	0x14, 0xed, 0x54, 0x3e, 0xcd, 0x77, 0xf3, 0xe9, 0x62, 0x48, 0x4c, 0xd3, 0x98, 0x91, 0xd4, 0x44,
+	0x30, 0x6a, 0x2b, 0xfa, 0x04, 0x98, 0xb8, 0x35, 0xd8, 0x85, 0x26, 0x6e, 0xcc, 0xb4, 0xbd, 0x94,
+	0x26, 0xa5, 0x1d, 0xa6, 0x53, 0x02, 0xee, 0x7c, 0x03, 0x9f, 0xc0, 0xe7, 0x71, 0xc9, 0xd2, 0xa5,
+	0x81, 0xb5, 0xef, 0x60, 0x3a, 0x14, 0x04, 0xf9, 0x5d, 0x7c, 0xab, 0xde, 0x9c, 0x7b, 0x7a, 0xe6,
+	0x9c, 0x7b, 0x67, 0xa0, 0x39, 0x4d, 0xf2, 0xcc, 0x9b, 0x74, 0xbd, 0x71, 0x89, 0x72, 0xe6, 0x0a,
+	0x99, 0xab, 0x9c, 0xde, 0xab, 0x40, 0x77, 0xd2, 0x75, 0xbe, 0x82, 0xf3, 0xa1, 0xc2, 0x3f, 0x61,
+	0xd0, 0x2b, 0xd5, 0xf0, 0xfd, 0x47, 0x94, 0xc9, 0x60, 0xe6, 0x63, 0x9c, 0x14, 0x0a, 0xa5, 0x8f,
+	0xe3, 0x12, 0x0b, 0x45, 0x29, 0x34, 0x78, 0x14, 0x49, 0x8b, 0xb4, 0x48, 0xe7, 0xda, 0xd7, 0x35,
+	0x7d, 0x04, 0xd7, 0xe1, 0x90, 0xa7, 0x29, 0x66, 0x31, 0x5a, 0xa6, 0x6e, 0xfc, 0x03, 0xe8, 0x03,
+	0x30, 0xa5, 0xb0, 0xee, 0x68, 0xd8, 0x94, 0xa2, 0x52, 0x88, 0xb8, 0xe2, 0x56, 0xa3, 0x45, 0x3a,
+	0x37, 0xbe, 0xae, 0x9d, 0x77, 0xf0, 0xe4, 0xe4, 0xd9, 0x85, 0xc8, 0xb3, 0x02, 0x29, 0x03, 0x08,
+	0x25, 0x46, 0x98, 0xa9, 0x84, 0xa7, 0xda, 0xc2, 0x8d, 0xbf, 0x85, 0x38, 0x3f, 0x08, 0x3c, 0x3d,
+	0xa0, 0x53, 0x95, 0x15, 0x23, 0xe4, 0x0a, 0x6f, 0x2f, 0xc7, 0xae, 0x99, 0xc6, 0xff, 0x66, 0x36,
+	0x39, 0xaf, 0xb6, 0x72, 0x3e, 0x83, 0xf6, 0x59, 0x7f, 0xab, 0xac, 0x4e, 0x0b, 0x98, 0xa6, 0xf6,
+	0x53, 0xae, 0x06, 0xb9, 0x1c, 0xf5, 0x51, 0x86, 0x98, 0x29, 0x1e, 0xaf, 0x23, 0x38, 0x3e, 0x3c,
+	0x3e, 0xca, 0xa8, 0x07, 0xe6, 0x41, 0x53, 0xd4, 0xdd, 0x2f, 0x62, 0xd3, 0xd6, 0xa1, 0xef, 0xfb,
+	0x54, 0xec, 0xfd, 0xf8, 0xfa, 0x8f, 0x09, 0x57, 0x5a, 0x94, 0x96, 0xf0, 0xf0, 0xf0, 0x36, 0xe8,
+	0x73, 0xb7, 0xbe, 0x32, 0xee, 0xf9, 0xfb, 0x62, 0xbf, 0xb8, 0x8c, 0x5c, 0x87, 0x36, 0xe8, 0x37,
+	0x02, 0xf6, 0xf1, 0xe9, 0x50, 0xef, 0x94, 0xdc, 0x81, 0x3d, 0xdb, 0xaf, 0x2e, 0xff, 0x61, 0xe3,
+	0x21, 0x01, 0xba, 0x3f, 0x53, 0xda, 0xde, 0x55, 0x3a, 0xba, 0x17, 0xbb, 0x73, 0x9e, 0xb8, 0x3e,
+	0xea, 0x6d, 0xef, 0xe7, 0x82, 0x91, 0xf9, 0x82, 0x91, 0xdf, 0x0b, 0x46, 0xbe, 0x2f, 0x99, 0x31,
+	0x5f, 0x32, 0xe3, 0xd7, 0x92, 0x19, 0x9f, 0xdb, 0x71, 0xa2, 0x86, 0x65, 0xe0, 0x86, 0xf9, 0xc8,
+	0x0b, 0x4a, 0x99, 0xa9, 0x97, 0x29, 0x0f, 0x0a, 0x4f, 0x3f, 0xe1, 0xe9, 0xea, 0xa3, 0x66, 0x02,
+	0x8b, 0xe0, 0xae, 0x7e, 0xc7, 0x6f, 0xfe, 0x06, 0x00, 0x00, 0xff, 0xff, 0x85, 0xd8, 0x9a, 0xdb,
+	0xde, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -304,6 +390,7 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	WebAuthNVerifyRegister(ctx context.Context, in *QueryWebAuthNVerifyRegisterRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyRegisterResponse, error)
 	WebAuthNVerifyAuthenticate(ctx context.Context, in *QueryWebAuthNVerifyAuthenticateRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyAuthenticateResponse, error)
+	PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error)
 }
 
 type queryClient struct {
@@ -332,10 +419,20 @@ func (c *queryClient) WebAuthNVerifyAuthenticate(ctx context.Context, in *QueryW
 	return out, nil
 }
 
+func (c *queryClient) PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error) {
+	out := new(QueryPlatformPercentageResponse)
+	err := c.cc.Invoke(ctx, "/xion.v1.Query/PlatformPercentage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	WebAuthNVerifyRegister(context.Context, *QueryWebAuthNVerifyRegisterRequest) (*QueryWebAuthNVerifyRegisterResponse, error)
 	WebAuthNVerifyAuthenticate(context.Context, *QueryWebAuthNVerifyAuthenticateRequest) (*QueryWebAuthNVerifyAuthenticateResponse, error)
+	PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -347,6 +444,9 @@ func (*UnimplementedQueryServer) WebAuthNVerifyRegister(ctx context.Context, req
 }
 func (*UnimplementedQueryServer) WebAuthNVerifyAuthenticate(ctx context.Context, req *QueryWebAuthNVerifyAuthenticateRequest) (*QueryWebAuthNVerifyAuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WebAuthNVerifyAuthenticate not implemented")
+}
+func (*UnimplementedQueryServer) PlatformPercentage(ctx context.Context, req *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlatformPercentage not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -389,6 +489,24 @@ func _Query_WebAuthNVerifyAuthenticate_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_PlatformPercentage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPlatformPercentageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PlatformPercentage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.v1.Query/PlatformPercentage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PlatformPercentage(ctx, req.(*QueryPlatformPercentageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.v1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -400,6 +518,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WebAuthNVerifyAuthenticate",
 			Handler:    _Query_WebAuthNVerifyAuthenticate_Handler,
+		},
+		{
+			MethodName: "PlatformPercentage",
+			Handler:    _Query_PlatformPercentage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -568,6 +690,57 @@ func (m *QueryWebAuthNVerifyAuthenticateResponse) MarshalToSizedBuffer(dAtA []by
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryPlatformPercentageRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPlatformPercentageRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPlatformPercentageRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPlatformPercentageResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPlatformPercentageResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPlatformPercentageResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.PlatformPercentage != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.PlatformPercentage))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -652,6 +825,27 @@ func (m *QueryWebAuthNVerifyAuthenticateResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	return n
+}
+
+func (m *QueryPlatformPercentageRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryPlatformPercentageResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.PlatformPercentage != 0 {
+		n += 1 + sovQuery(uint64(m.PlatformPercentage))
+	}
 	return n
 }
 
@@ -1168,6 +1362,125 @@ func (m *QueryWebAuthNVerifyAuthenticateResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryWebAuthNVerifyAuthenticateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPlatformPercentageRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPlatformPercentageRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPlatformPercentageRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPlatformPercentageResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPlatformPercentageResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPlatformPercentageResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PlatformPercentage", wireType)
+			}
+			m.PlatformPercentage = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PlatformPercentage |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
