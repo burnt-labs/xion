@@ -66,7 +66,7 @@ func CmdQueryBlockGasUsage() *cobra.Command {
 				totalTXs += 1
 				if resTx.TxResult.GasWanted%1000 == 0 {
 					totalRoundTXs += 1
-					cmd.Printf("unsimulated tx: %s\n", resTx.Hash.String())
+					cmd.Printf("https://explorer.burnt.com/xion-testnet-1/tx/%s %d\n", resTx.Hash.String(), resTx.TxResult.GasWanted)
 				}
 			}
 			gasUseRatio := float32(totalGasUsed) / float32(totalGasWanted)
