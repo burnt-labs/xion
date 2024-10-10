@@ -6,6 +6,7 @@ option go_package = "github.com/burnt-labs/xion/x/xion/types";
 service Query {
   rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest) returns (QueryWebAuthNVerifyRegisterResponse) {}
   rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest) returns (QueryWebAuthNVerifyAuthenticateResponse) {}
+  rpc PlatformPercentage(QueryPlatformPercentageRequest) returns (QueryPlatformPercentageResponse) {}
 }
 
 message QueryWebAuthNVerifyRegisterRequest {
@@ -28,3 +29,9 @@ message QueryWebAuthNVerifyAuthenticateRequest {
 }
 
 message QueryWebAuthNVerifyAuthenticateResponse {}
+
+message QueryPlatformPercentageRequest {}
+
+message QueryPlatformPercentageResponse {
+  uint64 platform_percentage = 1;
+}
