@@ -78,8 +78,8 @@ func (k Keeper) GetAuthority() string {
 }
 
 // PlatformPercentage implements types.QueryServer.
-func (k Keeper) PlatformPercentage(ctx context.Context, req *types.QueryPlatformPercentageRequest) (*types.QueryPlatformPercentageResponse, error) {
+func (k Keeper) PlatformPercentage(ctx context.Context, _ *types.QueryPlatformPercentageRequest) (*types.QueryPlatformPercentageResponse, error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	percentage := k.GetPlatformPercentage(sdkCtx).Uint64()
-	return &types.QueryPlatformPercentageResponse{PlatformPercentage: uint32(percentage)}, nil
+	return &types.QueryPlatformPercentageResponse{PlatformPercentage: percentage}, nil
 }

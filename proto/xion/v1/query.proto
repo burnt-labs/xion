@@ -33,5 +33,5 @@ message QueryWebAuthNVerifyAuthenticateResponse {}
 message QueryPlatformPercentageRequest {}
 
 message QueryPlatformPercentageResponse {
-  uint32 platform_percentage = 1;
+  uint64 platform_percentage = 1;
 }

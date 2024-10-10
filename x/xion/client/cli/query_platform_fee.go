@@ -1,18 +1,19 @@
 package cli
 
 import (
-	"github.com/burnt-labs/xion/x/xion/types"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cobra"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 func CmdPlatformFee() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "platform-fee",
 		Short: "Get Platform Fee",
-		RunE: func(cmd *cobra.Command, args []string) error {
-
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
