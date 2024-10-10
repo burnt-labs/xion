@@ -52,7 +52,15 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	}
 
 	percentage := k.GetPlatformPercentage(ctx)
+	minimums, err := k.GetPlatformMinimums(ctx)
+	if err != nil {
+		return nil, err
+	}
 	throughCoins := msg.Amount
+	if !msg.Amount.IsAnyGT(minimums) {
+		// minimum has not been met. no coin in msg.Amount exceeds a minimum that has been set
+		return nil, errorsmod.Wrapf(types.ErrMinimumNotMet, "received %v, needed at least %v", msg.Amount, minimums)
+	}
 
 	if !percentage.IsZero() {
 		platformCoins := msg.Amount.MulInt(percentage).QuoInt(math.NewInt(10000))
@@ -94,8 +102,17 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	}
 
 	percentage := k.GetPlatformPercentage(ctx)
+	minimums, err := k.GetPlatformMinimums(ctx)
+	if err != nil {
+		return nil, err
+	}
 	var outputs []banktypes.Output
 	totalPlatformCoins := sdk.NewCoins()
+
+	if !msg.Inputs[0].Coins.IsAnyGT(minimums) {
+		// minimum has not been met. no coin in msg.Amount exceeds a minimum that has been set
+		return nil, errorsmod.Wrapf(types.ErrMinimumNotMet, "received %v, needed at least %v", msg.Inputs[0].Coins, minimums)
+	}
 
 	for _, out := range msg.Outputs {
 		accAddr := sdk.MustAccAddressFromBech32(out.Address)
@@ -125,7 +142,7 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 		outputs = append(outputs, banktypes.NewOutput(feeCollectorAcc, totalPlatformCoins))
 	}
 
-	err := k.bankKeeper.InputOutputCoins(ctx, msg.Inputs[0], outputs)
+	err = k.bankKeeper.InputOutputCoins(ctx, msg.Inputs[0], outputs)
 	if err != nil {
 		return nil, err
 	}
@@ -142,4 +159,15 @@ func (k msgServer) SetPlatformPercentage(goCtx context.Context, msg *types.MsgSe
 	k.OverwritePlatformPercentage(ctx, msg.PlatformPercentage)
 
 	return &types.MsgSetPlatformPercentageResponse{}, nil
+}
+
+func (k msgServer) SetPlatformMinimum(goCtx context.Context, msg *types.MsgSetPlatformMinimum) (*types.MsgSetPlatformMinimumResponse, error) {
+	if k.GetAuthority() != msg.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err := k.OverwritePlatformMinimum(ctx, msg.Minimums)
+
+	return &types.MsgSetPlatformMinimumResponse{}, err
 }

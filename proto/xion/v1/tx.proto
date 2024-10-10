@@ -25,6 +25,11 @@ service Msg {
   // percentage fee
   rpc SetPlatformPercentage(MsgSetPlatformPercentage)
       returns (MsgSetPlatformPercentageResponse);
+
+  // SetPlatformMinimum defines the method for updating the platform
+  // percentage fee
+  rpc SetPlatformMinimum(MsgSetPlatformMinimum)
+      returns (MsgSetPlatformMinimumResponse);
 }
 
 // MsgSend represents a message to send coins from one account to another.
@@ -76,3 +81,18 @@ message MsgSetPlatformPercentage {
 }
 
 message MsgSetPlatformPercentageResponse {}
+
+message MsgSetPlatformMinimum {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "xion/MsgSetPlatformMinimum";
+
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  repeated cosmos.base.v1beta1.Coin minimums = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MsgSetPlatformMinimumResponse {}
