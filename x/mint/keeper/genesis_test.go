@@ -75,12 +75,16 @@ func (s *GenesisTestSuite) TestImportExportGenesis() {
 
 	s.keeper.InitGenesis(s.sdkCtx, s.accountKeeper, genesisState)
 
-	minter := s.keeper.GetMinter(s.sdkCtx)
+	minter, err := s.keeper.GetMinter(s.sdkCtx)
+	s.Require().NoError(err)
 	s.Require().Equal(genesisState.Minter, minter)
 
 	invalidCtx := testutil.DefaultContextWithDB(s.T(), s.key, storetypes.NewTransientStoreKey("transient_test"))
-	s.Require().Panics(func() { s.keeper.GetMinter(invalidCtx.Ctx) }, "stored minter should not have been nil")
-	params := s.keeper.GetParams(s.sdkCtx)
+	_, err = s.keeper.GetMinter(invalidCtx.Ctx)
+	s.Require().Error(err)
+
+	params, err := s.keeper.GetParams(s.sdkCtx)
+	s.Require().NoError(err)
 	s.Require().Equal(genesisState.Params, params)
 
 	genesisState2 := s.keeper.ExportGenesis(s.sdkCtx)
