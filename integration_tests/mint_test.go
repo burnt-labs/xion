@@ -65,7 +65,7 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 	chainHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
 	assertion := func(t *testing.T, provision math.LegacyDec, feesAccrued int64, tokenChange int64) {
-		require.Truef(t, provision.TruncateInt().GT(math.NewInt(feesAccrued)), "provision should be greater if tokens where minted")
+		require.Truef(t, provision.TruncateInt().GT(math.NewInt(feesAccrued)), "provision should be greater if tokens where minted, provision: %s, fees accrued:%s", provision.TruncateInt(), feesAccrued)
 		// We have minted tokens because the fees accrued is less than the block provision
 		mintedTokens := provision.TruncateInt().Sub(math.NewInt(feesAccrued))
 		t.Logf("Minted tokens: %d and Token change: %d", mintedTokens.Int64(), int64(tokenChange))
