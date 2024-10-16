@@ -39,8 +39,13 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 	chainHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
 
+	assertion := func(t *testing.T, provision math.LegacyDec, feesAccrued int64, tokenChange int64) {
+		require.Equal(t, math.NewInt(0), math.NewInt(tokenChange))
+		t.Logf("No minted or Burned tokens. Token change: %d", tokenChange)
+	}
+
 	// Run test harness
-	VerifyMintModuleTestRandomBlocks(t, xion, ctx)
+	VerifyMintModuleTestRandomBlocks(t, xion, ctx, assertion)
 }
 
 // In this test case, the mint module inflation is left to the default value in
@@ -59,9 +64,17 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 
 	chainHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
+	assertion := func(t *testing.T, provision math.LegacyDec, feesAccrued int64, tokenChange int64) {
+		require.Truef(t, provision.TruncateInt().GT(math.NewInt(feesAccrued)), "provision should be greater if tokens where minted")
+		// We have minted tokens because the fees accrued is less than the block provision
+		mintedTokens := provision.TruncateInt().Sub(math.NewInt(feesAccrued))
+		t.Logf("Minted tokens: %d and Token change: %d", mintedTokens.Int64(), int64(tokenChange))
+		require.Equal(t, mintedTokens, math.NewInt(int64(tokenChange)))
+
+	}
 
 	// Run test harness
-	VerifyMintModuleTestRandomBlocks(t, xion, ctx)
+	VerifyMintModuleTestRandomBlocks(t, xion, ctx, assertion)
 }
 
 // TxCommand is a helper to retrieve a full command for broadcasting a tx
@@ -158,7 +171,7 @@ func TestMintModuleInflationHighFees(t *testing.T) {
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.00uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	txHashes := MintModuleTest{
@@ -173,8 +186,17 @@ func TestMintModuleInflationHighFees(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 25, xion)
 
 	require.NotEmpty(t, txHashes.TxHashes)
+
+	assertion := func(t *testing.T, provision math.LegacyDec, feesAccrued int64, tokenChange int64) {
+		// We have burned tokens because the fees accrued is greater than the block provision so the fees
+		// accrued are used to pay validators and the remaining is burned
+		require.True(t, provision.TruncateInt().LT(math.NewInt(feesAccrued)), "provision should be lower, in order to burn tokens")
+		burnedTokens := math.NewInt(feesAccrued).Sub(provision.TruncateInt())
+		t.Logf("Burned tokens: %d and Token change: %d", burnedTokens.Int64(), tokenChange)
+		require.Equal(t, burnedTokens, math.NewInt(tokenChange).Abs())
+	}
 	// Run test harness
-	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
+	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes, assertion)
 }
 
 // Here we test the mint module by sending a bunch of transactions with extra low fees
@@ -187,7 +209,7 @@ func TestMintModuleInflationLowFees(t *testing.T) {
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.00uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	txHashes := MintModuleTest{
@@ -205,6 +227,14 @@ func TestMintModuleInflationLowFees(t *testing.T) {
 	testutil.WaitForBlocks(ctx, 25, xion)
 
 	require.NotEmpty(t, txHashes.TxHashes)
+
+	assertion := func(t *testing.T, provision math.LegacyDec, feesAccrued int64, tokenChange int64) {
+		require.Truef(t, provision.TruncateInt().GT(math.NewInt(feesAccrued)), "provision should be greater if tokens where minted")
+		// We have minted tokens because the fees accrued is less than the block provision
+		mintedTokens := provision.TruncateInt().Sub(math.NewInt(feesAccrued))
+		t.Logf("Minted tokens: %d and Token change: %d", mintedTokens.Int64(), int64(tokenChange))
+		require.Equal(t, mintedTokens, math.NewInt(int64(tokenChange)))
+	}
 	// Run test harness
-	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes)
+	VerifyMintModuleTest(t, xion, ctx, txHashes.TxHashes, assertion)
 }
