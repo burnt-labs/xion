@@ -13,12 +13,18 @@ import (
 )
 
 // BeginBlocker mints new tokens for the previous block.
-func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic types.InflationCalculationFn) {
+func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic types.InflationCalculationFn) error {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
 
 	// fetch stored minter & params
-	minter := k.GetMinter(ctx)
-	params := k.GetParams(ctx)
+	minter, err := k.GetMinter(ctx)
+	if err != nil {
+		return err
+	}
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return err
+	}
 
 	// fetch collected fees
 	collectedFeeCoin := k.CountCollectedFees(ctx, params.MintDenom)
@@ -26,16 +32,18 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic types.InflationCalculatio
 	// recalculate inflation rate
 	bondedRatio, err := k.BondedRatio(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	minter.Inflation = ic(ctx, minter, params, bondedRatio)
 
 	bondedTokenSupply, err := k.BondedTokenSupply(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	minter.AnnualProvisions = minter.NextAnnualProvisions(params, bondedTokenSupply)
-	k.SetMinter(ctx, minter)
+	if err := k.SetMinter(ctx, minter); err != nil {
+		return err
+	}
 
 	// mint coins, update supply
 	neededCoin := minter.BlockProvision(params)
@@ -50,13 +58,13 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic types.InflationCalculatio
 
 		err := k.MintCoins(ctx, mintedCoins)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		// send the minted coins to the fee collector account
 		err = k.AddCollectedFees(ctx, mintedCoins)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		if mintedCoin.Amount.IsInt64() {
@@ -70,7 +78,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic types.InflationCalculatio
 		burnedCoins := sdk.NewCoins(burnedCoin)
 		err := k.BurnFees(ctx, burnedCoins)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
@@ -83,9 +91,5 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper, ic types.InflationCalculatio
 		MintedAmount:     mintedCoin.Amount.Uint64(),
 		BurnedAmount:     burnedCoin.Amount.Uint64(),
 	}
-	if err := ctx.EventManager().EmitTypedEvent(&mintEvent); err != nil {
-		k.Logger(ctx).Error("error emitting event",
-			"error", err,
-			"event", mintEvent)
-	}
+	return ctx.EventManager().EmitTypedEvent(&mintEvent)
 }

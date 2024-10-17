@@ -495,6 +495,9 @@ func TestXionAbstractAccount(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	err = testutil.WaitForBlocks(ctx, 1, xion)
+	require.NoError(t, err)
+
 	// Confirm the updated balance
 	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)

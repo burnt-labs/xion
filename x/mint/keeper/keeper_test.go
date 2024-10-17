@@ -68,7 +68,8 @@ func (s *IntegrationTestSuite) SetupTest() {
 
 	err := s.mintKeeper.SetParams(s.ctx, types.DefaultParams())
 	s.Require().NoError(err)
-	s.mintKeeper.SetMinter(s.ctx, types.DefaultInitialMinter())
+	err = s.mintKeeper.SetMinter(s.ctx, types.DefaultInitialMinter())
+	s.Require().NoError(err)
 
 	s.msgServer = keeper.NewMsgServerImpl(s.mintKeeper)
 }
@@ -107,8 +108,9 @@ func (s *IntegrationTestSuite) TestParams() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			expected := s.mintKeeper.GetParams(s.ctx)
-			err := s.mintKeeper.SetParams(s.ctx, tc.input)
+			expected, err := s.mintKeeper.GetParams(s.ctx)
+			s.Require().NoError(err)
+			err = s.mintKeeper.SetParams(s.ctx, tc.input)
 			if tc.expectErr {
 				s.Require().Error(err)
 			} else {
@@ -116,7 +118,8 @@ func (s *IntegrationTestSuite) TestParams() {
 				s.Require().NoError(err)
 			}
 
-			p := s.mintKeeper.GetParams(s.ctx)
+			p, err := s.mintKeeper.GetParams(s.ctx)
+			s.Require().NoError(err)
 			s.Require().Equal(expected, p)
 		})
 	}

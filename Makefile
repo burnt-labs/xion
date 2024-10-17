@@ -256,6 +256,9 @@ test-integration-dungeon-transfer-block: compile_integration_tests
 test-integration-mint-module-no-inflation-no-fees: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleNoInflationNoFees
 
+test-integration-mint-module-inflation-no-fees: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationNoFees
+
 test-integration-mint-module-inflation-high-fees: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationHighFees
 

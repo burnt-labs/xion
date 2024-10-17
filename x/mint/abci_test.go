@@ -116,7 +116,8 @@ func TestBeginBlocker(t *testing.T) {
 				Populate mock
 			*/
 
-			keeper.SetMinter(ctx, types.InitialMinter(tc.parameters.bondedRatio))
+			err := keeper.SetMinter(ctx, types.InitialMinter(tc.parameters.bondedRatio))
+			assert.NoError(t, err)
 
 			stakingKeeper.EXPECT().TotalBondedTokens(ctx).Return(tc.parameters.bonded, nil)
 			stakingKeeper.EXPECT().BondedRatio(ctx).Return(tc.parameters.bondedRatio, nil)
@@ -132,7 +133,8 @@ func TestBeginBlocker(t *testing.T) {
 				bankKeeper.EXPECT().BurnCoins(ctx, authtypes.FeeCollectorName, sdk.NewCoins(tc.parameters.collectedFees.Sub(c))).Return(nil)
 			}
 
-			BeginBlocker(ctx, *keeper, types.DefaultInflationCalculationFn)
+			err = BeginBlocker(ctx, *keeper, types.DefaultInflationCalculationFn)
+			assert.NoError(t, err)
 
 			events := ctx.EventManager().Events()
 			assert.Equalf(t, 1, len(events), "A single event must be emitted. However %d events were emitted", len(events))

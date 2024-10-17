@@ -582,7 +582,7 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
  * Otherwise, we had equal fees and provisions. We do not mint or burn any tokens
  * If these checks passes then the mint module functions as expected
  */
-func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, blockHeight int) {
+func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, blockHeight int, assertion func(*testing.T, math.LegacyDec, int64, int64)) {
 	// Get bank supply at previous height
 	previousXionBankSupply, err := strconv.ParseInt(getTotalCoinSupplyInBank(t, xion, ctx, xion.Config().Denom, uint64(blockHeight-1)), 10, 64)
 	t.Logf("Previous Xion bank supply: %d", previousXionBankSupply)
@@ -613,27 +613,30 @@ func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.C
 	// Get the block provision. This is the minted tokens for the block for validators and delegator
 	blockProvision := GetBlockAnnualProvision(t, xion, ctx, xion.Config().Denom, uint64(blockHeight))
 
-	if blockProvision.TruncateInt().GT(math.NewInt(feesAccrued)) {
-		// We have minted tokens because the fees accrued is less than the block provision
-		mintedTokens := blockProvision.TruncateInt().Sub(math.NewInt(feesAccrued))
-		t.Logf("Minted tokens: %d and Token change: %d", mintedTokens.Int64(), int64(tokenChange))
-		require.Equal(t, mintedTokens, math.NewInt(int64(tokenChange)))
-	} else if blockProvision.TruncateInt().LT(math.NewInt(feesAccrued)) {
-		// We have burned tokens because the fees accrued is greater than the block provision so the fees
-		// accrued are used to pay validators and the remaining is burned
-		burnedTokens := math.NewInt(feesAccrued).Sub(blockProvision.TruncateInt())
-		t.Logf("Burned tokens: %d and Token change: %d", burnedTokens.Int64(), tokenChange)
-		require.Equal(t, burnedTokens, math.NewInt(tokenChange).Abs())
-	} else {
-		// We have not minted or burned tokens but just used all fees accrued to pay validators
-		require.Equal(t, math.NewInt(0), math.NewInt(tokenChange))
-		t.Logf("No minted or Burned tokens. Token change: %d", tokenChange)
-	}
+	assertion(t, blockProvision, feesAccrued, tokenChange)
+	/*
+		if blockProvision.TruncateInt().GT(math.NewInt(feesAccrued)) {
+			// We have minted tokens because the fees accrued is less than the block provision
+			mintedTokens := blockProvision.TruncateInt().Sub(math.NewInt(feesAccrued))
+			t.Logf("Minted tokens: %d and Token change: %d", mintedTokens.Int64(), int64(tokenChange))
+			require.Equal(t, mintedTokens, math.NewInt(int64(tokenChange)))
+		} else if blockProvision.TruncateInt().LT(math.NewInt(feesAccrued)) {
+			// We have burned tokens because the fees accrued is greater than the block provision so the fees
+			// accrued are used to pay validators and the remaining is burned
+			burnedTokens := math.NewInt(feesAccrued).Sub(blockProvision.TruncateInt())
+			t.Logf("Burned tokens: %d and Token change: %d", burnedTokens.Int64(), tokenChange)
+			require.Equal(t, burnedTokens, math.NewInt(tokenChange).Abs())
+		} else {
+			// We have not minted or burned tokens but just used all fees accrued to pay validators
+			require.Equal(t, math.NewInt(0), math.NewInt(tokenChange))
+			t.Logf("No minted or Burned tokens. Token change: %d", tokenChange)
+		}
+	*/
 }
 
 // Run Mint module test harness over some random block height
 // Chain must have at least 12 blocks
-func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context) {
+func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, assertion func(*testing.T, math.LegacyDec, int64, int64)) {
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, currentBlockHeight, int64(12))
@@ -642,17 +645,17 @@ func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ct
 
 	for i := randomHeight; i < randomHeight+10; i++ {
 		t.Logf("Current random height: %d", i)
-		MintModuleTestHarness(t, xion, ctx, i)
+		MintModuleTestHarness(t, xion, ctx, i, assertion)
 	}
 }
 
 // Run Mint module test over some txHash
-func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, txHashes []string) {
+func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, txHashes []string, assertion func(*testing.T, math.LegacyDec, int64, int64)) {
 	for i, txHash := range txHashes {
 		txResp, err := authTx.QueryTx(xion.GetNode().CliContext(), txHash)
 		require.NoError(t, err)
 		t.Logf("Bank send msg %d BH: %d", i, txResp.Height)
-		MintModuleTestHarness(t, xion, ctx, int(txResp.Height)+1) // check my block and the next one
+		MintModuleTestHarness(t, xion, ctx, int(txResp.Height)+1, assertion) // check my block and the next one
 	}
 }
 
