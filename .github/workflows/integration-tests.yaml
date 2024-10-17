@@ -78,6 +78,7 @@ jobs:
           - "DungeonTransferBlock"
           - "XionSendPlatformFee"
           - "MintModuleNoInflationNoFees"
+          - "MintModuleInflationNoFees"
           - "MintModuleInflationHighFees"
           - "MintModuleInflationLowFees"
           - "JWTAbstractAccount"
