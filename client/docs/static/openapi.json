@@ -51010,6 +51010,15 @@
                 },
                 "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
             },
+            "xion.v1.QueryPlatformPercentageResponse": {
+                "type": "object",
+                "properties": {
+                    "platform_percentage": {
+                        "type": "string",
+                        "format": "uint64"
+                    }
+                }
+            },
             "xion.v1.QueryWebAuthNVerifyAuthenticateResponse": {
                 "type": "object"
             },

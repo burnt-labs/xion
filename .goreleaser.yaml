@@ -1,0 +1,289 @@
+version: 2
+
+project_name: xiond
+
+env:
+  - CGO_ENABLED=1
+  - GO111MODULE=on
+
+# Docs: https://goreleaser.com/customization/hooks/
+# before:
+#   hooks:
+#     - apt update && apt install -y musl-tools
+
+# Docs: https://goreleaser.com/customization/build/
+builds:
+  - id: xiond_linux_arm64
+    goos:
+      - linux
+    goarch:
+      - arm64
+    main: ./cmd/xiond
+    binary: 'xiond_linux_arm64/xiond'
+    hooks:
+      pre:
+        - cmd: mkdir -p ./dist/lib
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.aarch64.a -O ./dist/lib/libwasmvm_muslc.aarch64.a'
+    no_unique_dist_dir: true
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc,osusergo
+      - -w -s
+      - -linkmode=external
+      - -extldflags '-Wl,-z,muldefs -static -lm'
+    tags:
+      - netgo
+      - ledger
+      - muslc
+      - osusergo
+    flags:
+      - -mod=readonly
+      - -trimpath
+    env:
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++;
+      - CGO_LDFLAGS='-L./dist/lib'
+
+  - id: xiond_linux_amd64
+    goos:
+      - linux
+    goarch:
+      - amd64
+    main: ./cmd/xiond
+    binary: 'xiond_linux_amd64/xiond'
+    hooks:
+      pre:
+        - cmd: mkdir -p ./dist/lib
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.x86_64.a -O ./dist/lib/libwasmvm_muslc.x86_64.a'
+    no_unique_dist_dir: true
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,muslc
+      - -w -s
+      - -linkmode=external
+      - -extldflags '-Wl,-z,muldefs -static -lm'
+    tags:
+      - netgo
+      - ledger
+      - muslc
+      - osusergo
+    flags:
+      - -mod=readonly
+      - -trimpath
+    env:
+      - CGO_LDFLAGS='-L./dist/lib'
+
+  - id: xiond_darwin_arm64
+    goos:
+      - darwin
+    goarch:
+      - arm64
+    main: ./cmd/xiond
+    binary: 'xiond_darwin_arm64/xiond'
+    hooks:
+      pre:
+        - cmd: mkdir -p ./dist/lib
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O ./dist/lib/libwasmvmstatic_darwin.a'
+    no_unique_dist_dir: true
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
+      - -w -s
+      - -linkmode=external
+    tags:
+      - netgo
+      - ledger
+      - static_wasm
+    flags:
+      - -mod=readonly
+      - -trimpath
+    env:
+      - CC=oa64-clang
+      - CXX=oa64-clang++
+      - CGO_LDFLAGS='-L./dist/lib'
+      - MACOSX_DEPLOYMENT_TARGET=10.12
+
+  - id: xiond_darwin_amd64
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    main: ./cmd/xiond
+    binary: 'xiond_darwin_amd64/xiond'
+    hooks:
+      pre:
+        - cmd: mkdir -p ./dist/lib
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O ./dist/lib/libwasmvmstatic_darwin.a'
+    no_unique_dist_dir: true
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger,static_wasm
+      - -w -s
+      - -linkmode=external
+    tags:
+      - netgo
+      - ledger
+      - static_wasm
+    flags:
+      - -mod=readonly
+      - -trimpath
+    env:
+      - CC=o64-clang
+      - CXX=o64-clang++
+      - CGO_LDFLAGS='-L./dist/lib'
+      - MACOSX_DEPLOYMENT_TARGET=10.12
+
+# Docs: https://goreleaser.com/customization/universalbinaries/
+universal_binaries:
+  - id: xiond
+    ids:
+      - xiond_darwin_amd64
+      - xiond_darwin_arm64
+    name_template: '{{ .ProjectName }}'
+
+# Docs: https://goreleaser.com/customization/archive/
+archives:
+  - id: binary
+    files: []
+    format: binary
+    builds:
+      - xiond # xiond_darwin_all
+      - xiond_linux_arm64
+      - xiond_linux_amd64
+    meta: false
+    wrap_in_directory: false
+    strip_binary_directory: true
+
+# Docs: https://goreleaser.com/customization/source/
+source:
+  enabled: false
+
+checksum:
+  name_template: "xiond_v{{ .Version }}_checksums.txt"
+  algorithm: sha256
+
+dockers:
+  - id: heighliner-linux-arm64
+    ids:
+      - xiond_linux_arm64
+    use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - 'heighliner:{{ .ShortCommit }}-arm64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=heighliner"
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_arm64/xiond"
+
+  - id: heighliner-linux-amd64
+    ids:
+      - xiond_linux_amd64
+    use: buildx
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - 'heighliner:{{ .ShortCommit }}-amd64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=heighliner"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_amd64/xiond"
+
+  - id: xiond_linux_arm64
+    ids:
+      - xiond_linux_arm64
+    use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - 'xiond:{{ .ShortCommit }}-arm64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=release"
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_arm64/xiond"
+
+  - id: xiond_linux_amd64
+    ids:
+      - xiond_linux_amd64
+    use: buildx
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - 'xiond:{{ .ShortCommit }}-amd64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=release"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_amd64/xiond"
+
+
+# Docs: https://goreleaser.com/customization/changelog/
+# changelog:
+#   # disable: "{{ .Env.CREATE_CHANGELOG }}"
+#   use: github
+#   groups:
+#   - title: Features
+#     regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+#     order: 0
+#   - title: "Bug fixes"
+#     regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
+#     order: 1
+#   - title: Others
+#     order: 999
+#   filters:
+#     exclude:
+#       - '^revert:'
+#     #include:
+
+# Docs: https://goreleaser.com/customization/homebrew/
+#brews:
+
+# Docs: https://goreleaser.com/customization/release/
+#release:

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -11,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v11"
+const UpgradeName = "v13"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	app.WrapSetUpgradeHandler(UpgradeName)
@@ -23,8 +25,13 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 
 	if upgradeInfo.Name == UpgradeName {
 		if !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+			storeUpgrades := storetypes.StoreUpgrades{
+				Added: []string{
+					ibcwasmtypes.ModuleName,
+				},
+			}
+
 			app.Logger().Info("setting upgrade store loaders")
-			storeUpgrades := storetypes.StoreUpgrades{}
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 		}
 	}

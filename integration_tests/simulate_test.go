@@ -1,6 +1,7 @@
 package integration_tests
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -8,13 +9,14 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
 	txsigning "cosmossdk.io/x/tx/signing"
 	"google.golang.org/protobuf/types/known/anypb"
+
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -348,27 +350,11 @@ func TestSimulate(t *testing.T) {
 	err = txBuilder.SetSignatures(sig)
 	require.NoError(t, err)
 
-	jsonTx, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
+	txBytes, err := xion.Config().EncodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
+	txSvcClient := txtypes.NewServiceClient(xion.GetNode().GrpcConn)
+	simRes, err := txSvcClient.Simulate(context.Background(), &txtypes.SimulateRequest{
+		TxBytes: txBytes,
+	})
 	require.NoError(t, err)
-	t.Logf("json tx: %s", jsonTx)
-
-	sendFile, err := os.CreateTemp("", "*-msg-bank-send.json")
-	require.NoError(t, err)
-	defer os.Remove(sendFile.Name())
-
-	_, err = sendFile.Write(jsonTx)
-	require.NoError(t, err)
-
-	err = UploadFileToContainer(t, ctx, xion.GetNode(), sendFile)
-	require.NoError(t, err)
-
-	// call `xiond tx simulate ..`
-	sendFilePath := strings.Split(sendFile.Name(), "/")
-	_, err = ExecTx(t, ctx, xion.GetNode(),
-		xionUser.KeyName(),
-		"simulate",
-		path.Join(xion.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
-		"--chain-id", xion.Config().ChainID,
-	)
-	require.NoError(t, err)
+	t.Logf("sim res: %s", simRes)
 }
