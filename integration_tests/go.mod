@@ -2,6 +2,18 @@ module integration_tests
 
 go 1.22.7
 
+replace (
+	cosmossdk.io/core => cosmossdk.io/core v0.11.1
+	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
+	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
+	github.com/burnt-labs/xion => ../
+	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20241017182826-e40d245c944a
+	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.3-wasmvm2
+	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
+	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
+)
+
 require (
 	cosmossdk.io/api v0.7.5
 	cosmossdk.io/math v1.3.0
@@ -296,16 +308,4 @@ require (
 	pgregory.net/rapid v1.1.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
-)
-
-replace (
-	cosmossdk.io/core => cosmossdk.io/core v0.11.1
-	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
-	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
-	github.com/burnt-labs/xion => ../
-	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240911164801-9a0dcb4a06b1
-	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.3-wasmvm2
-	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
-	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )

@@ -58,7 +58,8 @@ func (suite *MintTestSuite) SetupTest() {
 
 	err := suite.mintKeeper.SetParams(suite.ctx, types.DefaultParams())
 	suite.Require().NoError(err)
-	suite.mintKeeper.SetMinter(suite.ctx, types.DefaultInitialMinter())
+	err = suite.mintKeeper.SetMinter(suite.ctx, types.DefaultInitialMinter())
+	suite.Require().NoError(err)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(testCtx.Ctx, encCfg.InterfaceRegistry)
 	types.RegisterQueryServer(queryHelper, suite.mintKeeper)
@@ -69,15 +70,19 @@ func (suite *MintTestSuite) SetupTest() {
 func (suite *MintTestSuite) TestGRPCParams() {
 	params, err := suite.queryClient.Params(gocontext.Background(), &types.QueryParamsRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(params.Params, suite.mintKeeper.GetParams(suite.ctx))
+	keeperParams, err := suite.mintKeeper.GetParams(suite.ctx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(params.Params, keeperParams)
 
 	inflation, err := suite.queryClient.Inflation(gocontext.Background(), &types.QueryInflationRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(inflation.Inflation, suite.mintKeeper.GetMinter(suite.ctx).Inflation)
+	keeperMinter, err := suite.mintKeeper.GetMinter(suite.ctx)
+	suite.Require().NoError(err)
+	suite.Require().Equal(inflation.Inflation, keeperMinter.Inflation)
 
 	annualProvisions, err := suite.queryClient.AnnualProvisions(gocontext.Background(), &types.QueryAnnualProvisionsRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(annualProvisions.AnnualProvisions, suite.mintKeeper.GetMinter(suite.ctx).AnnualProvisions)
+	suite.Require().Equal(annualProvisions.AnnualProvisions, keeperMinter.AnnualProvisions)
 }
 
 func TestMintTestSuite(t *testing.T) {
