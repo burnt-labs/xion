@@ -81,6 +81,8 @@ const (
 	votingPeriod     = "10s"
 	maxDepositPeriod = "10s"
 	packetforward    = "0.0"
+	minInflation     = "0.0"
+	maxInflation     = "0.0"
 )
 
 var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
