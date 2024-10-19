@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"errors"
+	"github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 )
@@ -18,16 +19,17 @@ func (gs GenesisState) Validate() error {
 }
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(platformPercentage uint32) *GenesisState {
+func NewGenesisState(platformPercentage uint32, platformMinimums types.Coins) *GenesisState {
 	rv := &GenesisState{
 		PlatformPercentage: platformPercentage,
+		PlatformMinimums:   platformMinimums,
 	}
 	return rv
 }
 
 // DefaultGenesisState returns a default bank module genesis state.
 func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(0)
+	return NewGenesisState(0, types.Coins{})
 }
 
 // GetGenesisStateFromAppState returns x/bank GenesisState given raw application

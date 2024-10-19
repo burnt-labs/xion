@@ -72,11 +72,12 @@ func (k Keeper) OverwritePlatformPercentage(ctx sdktypes.Context, percentage uin
 }
 
 // Platform Minimum
-func (k Keeper) GetPlatformMinimums(ctx sdktypes.Context) (sdktypes.Coins, error) {
-	bz := ctx.KVStore(k.storeKey).Get(types.PlatformPercentageKey)
+func (k Keeper) GetPlatformMinimums(ctx sdktypes.Context) (coins sdktypes.Coins, err error) {
+	bz := ctx.KVStore(k.storeKey).Get(types.PlatformMinimumKey)
 
-	var coins sdktypes.Coins
-	err := json.Unmarshal(bz, &coins)
+	if len(bz) != 0 {
+		err = json.Unmarshal(bz, &coins)
+	}
 
 	return coins, err
 }
