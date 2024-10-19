@@ -322,6 +322,8 @@ func NewWasmApp(
 	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *WasmApp {
+	overrideWasmVariables()
+
 	interfaceRegistry, err := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
 		ProtoFiles: proto.HybridResolver,
 		SigningOptions: signing.Options{
@@ -1380,4 +1382,12 @@ func (app *WasmApp) AutoCliOpts() autocli.AppOptions {
 		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	}
+}
+
+// overrideWasmVariables overrides the wasm variables to:
+//   - allow for larger wasm files
+func overrideWasmVariables() {
+	// Override Wasm size limitation from WASMD.
+	wasmtypes.MaxWasmSize = 2 * 1024 * 1024
+	wasmtypes.MaxProposalWasmSize = wasmtypes.MaxWasmSize
 }
