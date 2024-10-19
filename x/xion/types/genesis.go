@@ -3,9 +3,9 @@ package types
 import (
 	"encoding/json"
 	"errors"
-	"github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
 // Validate performs basic validation of supply genesis data returning an
