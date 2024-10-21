@@ -70,7 +70,6 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 		mintedTokens := provision.TruncateInt().Sub(math.NewInt(feesAccrued))
 		t.Logf("Minted tokens: %d and Token change: %d", mintedTokens.Int64(), int64(tokenChange))
 		require.Equal(t, mintedTokens, math.NewInt(int64(tokenChange)))
-
 	}
 
 	// Run test harness

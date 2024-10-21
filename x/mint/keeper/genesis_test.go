@@ -79,8 +79,8 @@ func (s *GenesisTestSuite) TestImportExportGenesis() {
 	s.Require().NoError(err)
 
 	// invalidCtx := testutil.DefaultContextWithDB(s.T(), s.key, storetypes.NewTransientStoreKey("transient_test"))
-	//_, err = s.keeper.GetMinter(invalidCtx.Ctx)
-	//s.Require().ErrorIs(err, collections.ErrNotFound)
+	// _, err = s.keeper.GetMinter(invalidCtx.Ctx)
+	// s.Require().ErrorIs(err, collections.ErrNotFound)
 
 	params, err := s.keeper.GetParams(s.sdkCtx)
 	s.Require().Equal(genesisState.Params, params)
