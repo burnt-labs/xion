@@ -64,14 +64,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // GetMinter returns the minter.
-func (k Keeper) GetMinter(ctx sdk.Context) (minter types.Minter) {
+func (k Keeper) GetMinter(ctx sdk.Context) (minter types.Minter, err error) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(types.MinterKey)
 	if err != nil {
-		panic("failed to get minter")
+		return types.Minter{}, err
 	}
 	if bz == nil {
-		panic("stored minter should not have been nil")
+		return types.Minter{}, err
 	}
 
 	k.cdc.MustUnmarshal(bz, &minter)
@@ -79,13 +79,11 @@ func (k Keeper) GetMinter(ctx sdk.Context) (minter types.Minter) {
 }
 
 // SetMinter sets the minter.
-func (k Keeper) SetMinter(ctx sdk.Context, minter types.Minter) {
+func (k Keeper) SetMinter(ctx sdk.Context, minter types.Minter) (err error) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&minter)
-	err := store.Set(types.MinterKey, bz)
-	if err != nil {
-		panic("failed to set minter")
-	}
+	err = store.Set(types.MinterKey, bz)
+	return err
 }
 
 // SetParams sets the x/mint module parameters.
@@ -105,18 +103,18 @@ func (k Keeper) SetParams(ctx sdk.Context, p types.Params) error {
 }
 
 // GetParams returns the current x/mint module parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+func (k Keeper) GetParams(ctx sdk.Context) (p types.Params, err error) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(types.ParamsKey)
 	if err != nil {
-		panic("failed to get params")
+		return types.Params{}, err
 	}
 	if bz == nil {
-		return p
+		return p, nil
 	}
 
 	k.cdc.MustUnmarshal(bz, &p)
-	return p
+	return p, nil
 }
 
 // StakingTokenSupply implements an alias call to the underlying staking keeper's
