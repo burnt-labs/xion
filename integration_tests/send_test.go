@@ -54,6 +54,68 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 
 	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
+	config := types.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+
+	setPlatformMinimumsMsg := xiontypes.MsgSetPlatformMinimum{
+		Authority: authtypes.NewModuleAddress("gov").String(),
+		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(10), Denom: "uxion"}},
+	}
+
+	msg, err := cdc.MarshalInterfaceJSON(&setPlatformMinimumsMsg)
+	require.NoError(t, err)
+
+	_, err = xion.GetNode().ExecTx(ctx,
+		xionUser.KeyName(),
+		"xion", "send", xionUser.KeyName(),
+		"--chain-id", xion.Config().ChainID,
+		recipientKeyAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+	)
+	// platform minimums unset, so this should fail
+	require.Error(t, err)
+
+	prop := cosmos.TxProposalv1{
+		Messages: []json.RawMessage{msg},
+		Metadata: "",
+		Deposit:  "100uxion",
+		Title:    "Set platform percentage to 5%",
+		Summary:  "Ups the platform fee to 5% for the integration test",
+	}
+	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), prop)
+	require.NoError(t, err)
+	t.Logf("Platform percentage change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
+
+	proposalID, err := strconv.Atoi(paramChangeTx.ProposalID)
+	require.NoError(t, err)
+
+	require.Eventuallyf(t, func() bool {
+		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		if err != nil {
+			require.NoError(t, err)
+		} else {
+			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+				return true
+			}
+			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
+		}
+		return false
+	}, time.Second*11, time.Second, "failed to reach status VOTING after 11s")
+
+	err = xion.VoteOnProposalAllValidators(ctx, uint64(proposalID), cosmos.ProposalVoteYes)
+	require.NoError(t, err)
+
+	require.Eventuallyf(t, func() bool {
+		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		if err != nil {
+			require.NoError(t, err)
+		} else {
+			if proposalInfo.Status == govv1beta1.StatusPassed {
+				return true
+			}
+			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
+		}
+		return false
+	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
 	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
@@ -74,29 +136,26 @@ func TestXionSendPlatformFee(t *testing.T) {
 		"balance never correctly changed")
 
 	// step 2: update the platform percentage to 5%
-	config := types.GetConfig()
-	config.SetBech32PrefixForAccount("xion", "xionpub")
 
 	setPlatformPercentageMsg := xiontypes.MsgSetPlatformPercentage{
 		Authority:          authtypes.NewModuleAddress("gov").String(),
 		PlatformPercentage: 500,
 	}
-
-	msg, err := cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)
+	msg, err = cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)
 	require.NoError(t, err)
 
-	prop := cosmos.TxProposalv1{
+	prop = cosmos.TxProposalv1{
 		Messages: []json.RawMessage{msg},
 		Metadata: "",
 		Deposit:  "100uxion",
 		Title:    "Set platform percentage to 5%",
 		Summary:  "Ups the platform fee to 5% for the integration test",
 	}
-	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), prop)
+	paramChangeTx, err = xion.SubmitProposal(ctx, xionUser.KeyName(), prop)
 	require.NoError(t, err)
 	t.Logf("Platform percentage change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
 
-	proposalID, err := strconv.Atoi(paramChangeTx.ProposalID)
+	proposalID, err = strconv.Atoi(paramChangeTx.ProposalID)
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {

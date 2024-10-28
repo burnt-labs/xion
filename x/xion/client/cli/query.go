@@ -23,6 +23,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdWebAuthNVerifyRegister())
 	cmd.AddCommand(CmdWebAuthNVerifyAuthenticate())
+	cmd.AddCommand(CmdPlatformFee())
 
 	// this line is used by starport scaffolding # 1
 

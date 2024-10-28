@@ -9,16 +9,20 @@ SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
 BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
-XION_IMAGE=xion:local
+XION_IMAGE = xiond:local
+XION_TEST_IMAGE = xiond:heighliner
 
-# for dockerized protobuf tools
+# docker and goreleaser
 DOCKER := $(shell which docker)
-HTTPS_GIT := https://github.com/burnt-labs/xion.git
-
-export GO111MODULE = on
+GORELEASER_CROSS_IMAGE ?= goreleaser/goreleaser-cross
+GORELEASER_CROSS_VERSION ?= v1.22.7
+# need custom image
+GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE) #goreleaser/goreleaser
+GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION) #v2.3.2
+GORELEASER_RELEASE ?= false
+GORELEASER_SKIP_FLAGS ?= ""
 
 # process build tags
-
 build_tags = netgo
 ifeq ($(LEDGER_ENABLED),true)
   ifeq ($(OS),Windows_NT)
@@ -90,37 +94,119 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xiond ./cmd/xiond
 endif
 
-build-windows-client: go.sum
-	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
+build-all:
+	$(DOCKER) run --rm \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --clean --skip validate
 
-build-binaries: build-binary-amd64
-build-binaries: build-binary-arm64
+build-local:
+	$(DOCKER) run --rm \
+		--env GOOS=$(shell go env -json | jq -r '.GOOS') \
+		--env GOARCH=$(shell go env -json | jq -r '.GOARCH') \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --clean --single-target --skip validate
 
-build-binary-amd64: TARGETOS = linux
-build-binary-amd64: TARGETARCH = amd64
-build-binary-amd64: --build-binary
+build-linux-arm64:
+	$(DOCKER) run --rm \
+		--env GOOS=linux \
+		--env GOARCH=arm64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
 
-build-binary-arm64: TARGETOS = linux
-build-binary-arm64: TARGETARCH = arm64
-build-binary-arm64: --build-binary
+build-linux-amd64:
+	$(DOCKER) run --rm \
+		--env GOOS=linux \
+		--env GOARCH=amd64 \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_IMAGE):$(GORELEASER_VERSION) \
+		build --clean --single-target --skip validate
 
-.PHONY: --build-binary
---build-binary:
-	mkdir -p build
-	$(DOCKER) buildx create --name xiond-build-ctx || true
-	$(DOCKER) buildx use xiond-build-ctx
-	$(DOCKER) buildx build --platform $(TARGETOS)/$(TARGETARCH) --load --tag xiond:$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH) ./
-	$(DOCKER) container create --rm --name xiond-build-ctr xiond:$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH)
-	$(DOCKER) cp xiond-build-ctr:/usr/bin/xiond $(BUILDDIR)/xiond-$(TAG_VERSION)-$(TARGETOS)-$(TARGETARCH)
-	$(DOCKER) rm -f xiond-build-ctr
-	$(DOCKER) buildx rm xiond-build-ctx
+build-darwin-amd64:
+	$(DOCKER) run --rm \
+		--env GOOS=darwin \
+		--env GOARCH=amd64 \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --clean --single-target --skip validate
 
-.PHONY: build-heighliner
+build-darwin-arm64:
+	$(DOCKER) run --rm \
+		--env GOOS=darwin \
+		--env GOARCH=arm64 \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --clean --single-target --skip validate
+
+build-darwin-all:
+	$(DOCKER) run --rm \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --clean --id "xiond_darwin_amd64" --id "xiond_darwin_arm64" --skip validate
+
+build-docker:
+	$(DOCKER) build \
+	  --target=release \
+	  --progress=plain \
+	  --tag $(XION_IMAGE) .
+
+build-docker-amd64:
+	$(DOCKER) build \
+	  --platform linux/amd64 \
+	  --target=release \
+	  --progress=plain \
+	  --tag $(XION_IMAGE) .
+
+build-docker-arm64:
+	$(DOCKER) build \
+	  --platform linux/arm64 \
+	  --target=release \
+	  --progress=plain \
+	  --tag $(XION_IMAGE) .
+
 build-heighliner:
 	$(DOCKER) build \
 	  --target=heighliner \
-		--progress=plain \
-	  --tag $(XION_IMAGE) .
+	  --progress=plain \
+	  --tag $(XION_TEST_IMAGE) .
+
+build-heighliner-amd64:
+	$(DOCKER) build \
+	  --platform linux/amd64 \
+	  --target=heighliner \
+	  --progress=plain \
+	  --tag $(XION_TEST_IMAGE) .
+
+build-heighliner-arm64:
+	$(DOCKER) build \
+	  --platform linux/arm64 \
+	  --target=heighliner \
+	  --progress=plain \
+	  --tag $(XION_TEST_IMAGE) .
+
+release-dryrun:
+	$(DOCKER) run --rm \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--volume /var/run/docker.sock:/var/run/docker.sock \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		--clean --skip validate --skip publish
 
 ################################################################################
 ###                         Tools & dependencies                             ###
@@ -162,61 +248,67 @@ compile_integration_tests:
 	@cd integration_tests && go test -c
 
 test-integration:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
 
 test-integration-dungeon-transfer-block: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestDungeonTransferBlock
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestDungeonTransferBlock
 
 test-integration-mint-module-no-inflation-no-fees: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleNoInflationNoFees
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleNoInflationNoFees
+
+test-integration-mint-module-inflation-no-fees: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationNoFees
 
 test-integration-mint-module-inflation-high-fees: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationHighFees
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationHighFees
 
 test-integration-mint-module-inflation-low-fees: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationLowFees
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestMintModuleInflationLowFees
 
 test-integration-jwt-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestJWTAbstractAccount
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestJWTAbstractAccount
 
 test-integration-register-jwt-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionAbstractAccountJWTCLI
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionAbstractAccountJWTCLI
 
 test-integration-xion-send-platform-fee: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionSendPlatformFee
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionSendPlatformFee
 
 test-integration-xion-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
 
 test-integration-xion-min-default: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeDefault
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeDefault
 
 test-integration-xion-min-zero: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeZero
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeZero
 
 test-integration-xion-token-factory: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionTokenFactory
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionTokenFactory
 
 test-integration-xion-treasury-grants: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryContract
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryContract
 
 test-integration-xion-treasury-multi: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryMulti
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryMulti
 
 test-integration-min:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run  TestXionMinimumFeeDefault -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -v -run  TestXionMinimumFeeDefault -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-web-auth-n-abstract-account: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run WebAuthNAbstractAccount
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run WebAuthNAbstractAccount
 
 test-integration-upgrade:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeIBC -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-upgrade-network:
-	@XION_IMAGE=$(XION_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeNetwork -mod=readonly  -tags='ledger test_ledger_mock'  ./...
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) cd integration_tests && go test -v -run TestXionUpgradeNetwork -mod=readonly  -tags='ledger test_ledger_mock'  ./...
 
 test-integration-xion-mig: compile_integration_tests
-	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestAbstractAccountMigration
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestAbstractAccountMigration
+
+test-integration-simulate: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestSimulate
 
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
@@ -265,6 +357,7 @@ format: format-tools
 protoVer=0.15.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
 proto-all: proto-format proto-lint proto-gen format
 

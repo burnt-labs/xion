@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Query_WebAuthNVerifyRegister_FullMethodName     = "/xion.v1.Query/WebAuthNVerifyRegister"
 	Query_WebAuthNVerifyAuthenticate_FullMethodName = "/xion.v1.Query/WebAuthNVerifyAuthenticate"
+	Query_PlatformPercentage_FullMethodName         = "/xion.v1.Query/PlatformPercentage"
 )
 
 // QueryClient is the client API for Query service.
@@ -29,6 +30,7 @@ const (
 type QueryClient interface {
 	WebAuthNVerifyRegister(ctx context.Context, in *QueryWebAuthNVerifyRegisterRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyRegisterResponse, error)
 	WebAuthNVerifyAuthenticate(ctx context.Context, in *QueryWebAuthNVerifyAuthenticateRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyAuthenticateResponse, error)
+	PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error)
 }
 
 type queryClient struct {
@@ -59,12 +61,23 @@ func (c *queryClient) WebAuthNVerifyAuthenticate(ctx context.Context, in *QueryW
 	return out, nil
 }
 
+func (c *queryClient) PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryPlatformPercentageResponse)
+	err := c.cc.Invoke(ctx, Query_PlatformPercentage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
 type QueryServer interface {
 	WebAuthNVerifyRegister(context.Context, *QueryWebAuthNVerifyRegisterRequest) (*QueryWebAuthNVerifyRegisterResponse, error)
 	WebAuthNVerifyAuthenticate(context.Context, *QueryWebAuthNVerifyAuthenticateRequest) (*QueryWebAuthNVerifyAuthenticateResponse, error)
+	PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedQueryServer) WebAuthNVerifyRegister(context.Context, *QueryWe
 }
 func (UnimplementedQueryServer) WebAuthNVerifyAuthenticate(context.Context, *QueryWebAuthNVerifyAuthenticateRequest) (*QueryWebAuthNVerifyAuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WebAuthNVerifyAuthenticate not implemented")
+}
+func (UnimplementedQueryServer) PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlatformPercentage not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -138,6 +154,24 @@ func _Query_WebAuthNVerifyAuthenticate_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_PlatformPercentage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPlatformPercentageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PlatformPercentage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_PlatformPercentage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PlatformPercentage(ctx, req.(*QueryPlatformPercentageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WebAuthNVerifyAuthenticate",
 			Handler:    _Query_WebAuthNVerifyAuthenticate_Handler,
+		},
+		{
+			MethodName: "PlatformPercentage",
+			Handler:    _Query_PlatformPercentage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

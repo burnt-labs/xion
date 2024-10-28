@@ -1,0 +1,76 @@
+name: Build Release
+# Run for new release tags only
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Create release directory
+        run: mkdir -p release
+
+      - name: Build Changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output Changelog
+        run: echo "${{steps.changelog.outputs.changelog}}"
+
+      - name: Create release for ${{ github.ref_name }}
+        id: update-release
+        uses: ncipollo/release-action@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          allowUpdates: true
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          generateReleaseNotes: true
+          prerelease: true
+          removeArtifacts: false # important, true will remove src archives
+          tag: ${{ github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          updateOnlyUnreleased: true
+
+      - name: Download release archives
+        working-directory: release
+        run: |
+          gh release download ${{ github.ref_name }} \
+            --repo=${{ github.repository }} \
+            --archive=tar.gz
+          gh release download ${{ github.ref_name }} \
+            --repo=${{ github.repository }} \
+            --archive=zip
+          ls
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          pattern: xiond-*
+          merge-multiple: true
+
+      - name: Create checksums
+        working-directory: release
+        run: |
+          sha256sum * | tee checksum.txt
+
+      - name: Remove release archives
+        working-directory: release
+        run: |
+          rm -f *.zip *.tar.gz
+          ls
+
+      - name: Upload release assets
+        working-directory: release
+        run: |
+          gh release upload ${{ github.ref_name }} * \
+            --repo ${{ github.repository }} \
+            --clobber

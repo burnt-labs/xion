@@ -22,6 +22,7 @@ const (
 	Msg_Send_FullMethodName                  = "/xion.v1.Msg/Send"
 	Msg_MultiSend_FullMethodName             = "/xion.v1.Msg/MultiSend"
 	Msg_SetPlatformPercentage_FullMethodName = "/xion.v1.Msg/SetPlatformPercentage"
+	Msg_SetPlatformMinimum_FullMethodName    = "/xion.v1.Msg/SetPlatformMinimum"
 )
 
 // MsgClient is the client API for Msg service.
@@ -37,6 +38,9 @@ type MsgClient interface {
 	// SetPlatformPercentage defines the method for updating the platform
 	// percentage fee
 	SetPlatformPercentage(ctx context.Context, in *MsgSetPlatformPercentage, opts ...grpc.CallOption) (*MsgSetPlatformPercentageResponse, error)
+	// SetPlatformMinimum defines the method for updating the platform
+	// percentage fee
+	SetPlatformMinimum(ctx context.Context, in *MsgSetPlatformMinimum, opts ...grpc.CallOption) (*MsgSetPlatformMinimumResponse, error)
 }
 
 type msgClient struct {
@@ -77,6 +81,16 @@ func (c *msgClient) SetPlatformPercentage(ctx context.Context, in *MsgSetPlatfor
 	return out, nil
 }
 
+func (c *msgClient) SetPlatformMinimum(ctx context.Context, in *MsgSetPlatformMinimum, opts ...grpc.CallOption) (*MsgSetPlatformMinimumResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MsgSetPlatformMinimumResponse)
+	err := c.cc.Invoke(ctx, Msg_SetPlatformMinimum_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility.
@@ -90,6 +104,9 @@ type MsgServer interface {
 	// SetPlatformPercentage defines the method for updating the platform
 	// percentage fee
 	SetPlatformPercentage(context.Context, *MsgSetPlatformPercentage) (*MsgSetPlatformPercentageResponse, error)
+	// SetPlatformMinimum defines the method for updating the platform
+	// percentage fee
+	SetPlatformMinimum(context.Context, *MsgSetPlatformMinimum) (*MsgSetPlatformMinimumResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -108,6 +125,9 @@ func (UnimplementedMsgServer) MultiSend(context.Context, *MsgMultiSend) (*MsgMul
 }
 func (UnimplementedMsgServer) SetPlatformPercentage(context.Context, *MsgSetPlatformPercentage) (*MsgSetPlatformPercentageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPlatformPercentage not implemented")
+}
+func (UnimplementedMsgServer) SetPlatformMinimum(context.Context, *MsgSetPlatformMinimum) (*MsgSetPlatformMinimumResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetPlatformMinimum not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 func (UnimplementedMsgServer) testEmbeddedByValue()             {}
@@ -184,6 +204,24 @@ func _Msg_SetPlatformPercentage_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_SetPlatformMinimum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSetPlatformMinimum)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SetPlatformMinimum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_SetPlatformMinimum_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SetPlatformMinimum(ctx, req.(*MsgSetPlatformMinimum))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +240,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetPlatformPercentage",
 			Handler:    _Msg_SetPlatformPercentage_Handler,
+		},
+		{
+			MethodName: "SetPlatformMinimum",
+			Handler:    _Msg_SetPlatformMinimum_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
