@@ -62,6 +62,11 @@ func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubK
 		if err := dkimKey.Validate(); err != nil {
 			return nil, err
 		}
+		hash, err := types.ComputePoseidonHash(dkimKey.PubKey)
+		if err != nil {
+			return nil, err
+		}
+		dkimKey.PoseidonHash = hash.String()
 	}
 	SaveDkimPubKeys(ctx, msg.DkimPubkeys, ms.k.OrmDB)
 	return &types.MsgAddDkimPubKeyResponse{}, nil

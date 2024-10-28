@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Query_Params_FullMethodName     = "/xion.dkim.v1.Query/Params"
-	Query_DkimPubKey_FullMethodName = "/xion.dkim.v1.Query/DkimPubKey"
+	Query_Params_FullMethodName       = "/xion.dkim.v1.Query/Params"
+	Query_DkimPubKey_FullMethodName   = "/xion.dkim.v1.Query/DkimPubKey"
+	Query_PoseidonHash_FullMethodName = "/xion.dkim.v1.Query/PoseidonHash"
 )
 
 // QueryClient is the client API for Query service.
@@ -32,6 +33,7 @@ type QueryClient interface {
 	// Params queries all parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
+	PoseidonHash(ctx context.Context, in *PoseidonHashRequest, opts ...grpc.CallOption) (*PoseidonHashResponse, error)
 }
 
 type queryClient struct {
@@ -62,6 +64,16 @@ func (c *queryClient) DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest
 	return out, nil
 }
 
+func (c *queryClient) PoseidonHash(ctx context.Context, in *PoseidonHashRequest, opts ...grpc.CallOption) (*PoseidonHashResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PoseidonHashResponse)
+	err := c.cc.Invoke(ctx, Query_PoseidonHash_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
@@ -71,6 +83,7 @@ type QueryServer interface {
 	// Params queries all parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
+	PoseidonHash(context.Context, *PoseidonHashRequest) (*PoseidonHashResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -86,6 +99,9 @@ func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*Q
 }
 func (UnimplementedQueryServer) DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKey not implemented")
+}
+func (UnimplementedQueryServer) PoseidonHash(context.Context, *PoseidonHashRequest) (*PoseidonHashResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoseidonHash not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -144,6 +160,24 @@ func _Query_DkimPubKey_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_PoseidonHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoseidonHashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PoseidonHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_PoseidonHash_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PoseidonHash(ctx, req.(*PoseidonHashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -158,6 +192,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DkimPubKey",
 			Handler:    _Query_DkimPubKey_Handler,
+		},
+		{
+			MethodName: "PoseidonHash",
+			Handler:    _Query_PoseidonHash_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

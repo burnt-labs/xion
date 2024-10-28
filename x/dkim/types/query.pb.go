@@ -217,43 +217,139 @@ func (m *QueryDkimPubKeyResponse) GetPoseidonHash() []byte {
 	return nil
 }
 
+// PoseidonHashRequest is the request type for the Query/PoseidonHash RPC method.
+type PoseidonHashRequest struct {
+	PublicKey string `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+}
+
+func (m *PoseidonHashRequest) Reset()         { *m = PoseidonHashRequest{} }
+func (m *PoseidonHashRequest) String() string { return proto.CompactTextString(m) }
+func (*PoseidonHashRequest) ProtoMessage()    {}
+func (*PoseidonHashRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef31cf4588a86e6f, []int{4}
+}
+func (m *PoseidonHashRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PoseidonHashRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PoseidonHashRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PoseidonHashRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PoseidonHashRequest.Merge(m, src)
+}
+func (m *PoseidonHashRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *PoseidonHashRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PoseidonHashRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PoseidonHashRequest proto.InternalMessageInfo
+
+func (m *PoseidonHashRequest) GetPublicKey() string {
+	if m != nil {
+		return m.PublicKey
+	}
+	return ""
+}
+
+// PoseidonHashResponse is the response type for the Query/PoseidonHash RPC method.
+type PoseidonHashResponse struct {
+	PoseidonHash []byte `protobuf:"bytes,1,opt,name=poseidon_hash,json=poseidonHash,proto3" json:"poseidon_hash,omitempty"`
+}
+
+func (m *PoseidonHashResponse) Reset()         { *m = PoseidonHashResponse{} }
+func (m *PoseidonHashResponse) String() string { return proto.CompactTextString(m) }
+func (*PoseidonHashResponse) ProtoMessage()    {}
+func (*PoseidonHashResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef31cf4588a86e6f, []int{5}
+}
+func (m *PoseidonHashResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PoseidonHashResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PoseidonHashResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PoseidonHashResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PoseidonHashResponse.Merge(m, src)
+}
+func (m *PoseidonHashResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *PoseidonHashResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PoseidonHashResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PoseidonHashResponse proto.InternalMessageInfo
+
+func (m *PoseidonHashResponse) GetPoseidonHash() []byte {
+	if m != nil {
+		return m.PoseidonHash
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "xion.dkim.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "xion.dkim.v1.QueryParamsResponse")
 	proto.RegisterType((*QueryDkimPubKeyRequest)(nil), "xion.dkim.v1.QueryDkimPubKeyRequest")
 	proto.RegisterType((*QueryDkimPubKeyResponse)(nil), "xion.dkim.v1.QueryDkimPubKeyResponse")
+	proto.RegisterType((*PoseidonHashRequest)(nil), "xion.dkim.v1.PoseidonHashRequest")
+	proto.RegisterType((*PoseidonHashResponse)(nil), "xion.dkim.v1.PoseidonHashResponse")
 }
 
 func init() { proto.RegisterFile("xion/dkim/v1/query.proto", fileDescriptor_ef31cf4588a86e6f) }
 
 var fileDescriptor_ef31cf4588a86e6f = []byte{
-	// 408 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x4f, 0x4f, 0xa3, 0x40,
-	0x18, 0xc6, 0x4b, 0x93, 0x25, 0xbb, 0xd3, 0x6e, 0x36, 0x3b, 0xdb, 0x6d, 0x09, 0xd9, 0x25, 0x5d,
-	0x56, 0xa3, 0x07, 0x85, 0xb4, 0x9e, 0x3c, 0xfa, 0xe7, 0x60, 0xa2, 0x87, 0xda, 0xa3, 0x97, 0x66,
-	0x28, 0x23, 0x4c, 0x28, 0x33, 0x94, 0x19, 0x9a, 0x72, 0xf5, 0x13, 0x98, 0xf8, 0xa5, 0x3c, 0x36,
-	0xf1, 0xe2, 0xd1, 0xb4, 0x5e, 0xfc, 0x16, 0x86, 0x81, 0xd6, 0x92, 0x1a, 0xbd, 0x31, 0xef, 0xf3,
-	0xf0, 0x7b, 0x1e, 0x5e, 0x06, 0x68, 0x53, 0xc2, 0xa8, 0xed, 0x06, 0x24, 0xb4, 0x27, 0x1d, 0x7b,
-	0x9c, 0xe0, 0x38, 0xb5, 0xa2, 0x98, 0x09, 0x06, 0xeb, 0x99, 0x62, 0x65, 0x8a, 0x35, 0xe9, 0xe8,
-	0x7f, 0x3c, 0xc6, 0xbc, 0x11, 0xb6, 0x51, 0x44, 0x6c, 0x44, 0x29, 0x13, 0x48, 0x10, 0x46, 0x79,
-	0xee, 0xd5, 0xf5, 0x12, 0xc5, 0xc3, 0x14, 0x73, 0xb2, 0xd4, 0xca, 0x09, 0x5c, 0x20, 0x81, 0x73,
-	0xc5, 0x6c, 0x00, 0x78, 0x99, 0x05, 0xf6, 0x50, 0x8c, 0x42, 0xde, 0xc7, 0xe3, 0x04, 0x73, 0x61,
-	0x9e, 0x80, 0x5f, 0xa5, 0x29, 0x8f, 0x18, 0xe5, 0x18, 0xee, 0x01, 0x35, 0x92, 0x13, 0x4d, 0x69,
-	0x2b, 0xbb, 0xb5, 0x6e, 0xc3, 0x5a, 0xef, 0x67, 0x15, 0xee, 0xc2, 0x63, 0x5e, 0x80, 0xa6, 0x84,
-	0x9c, 0x06, 0x24, 0xec, 0x25, 0xce, 0x39, 0x4e, 0x0b, 0x3c, 0xd4, 0xc1, 0x57, 0x8e, 0x47, 0x78,
-	0x28, 0x58, 0x2c, 0x49, 0xdf, 0xfa, 0xab, 0x33, 0x6c, 0x02, 0xd5, 0x65, 0x21, 0x22, 0x54, 0xab,
-	0x4a, 0xa5, 0x38, 0x99, 0x29, 0x68, 0x6d, 0xd0, 0x8a, 0x5a, 0x87, 0xa0, 0x96, 0x55, 0x18, 0x44,
-	0x89, 0x13, 0xe0, 0xb4, 0xe8, 0xa6, 0x95, 0xbb, 0xad, 0xbd, 0x06, 0xdc, 0xfc, 0x39, 0xc0, 0x29,
-	0xfc, 0x0f, 0xbe, 0x47, 0x8c, 0x63, 0xe2, 0x32, 0x3a, 0xf0, 0x11, 0xf7, 0x65, 0x68, 0xbd, 0x5f,
-	0x5f, 0x0e, 0xcf, 0x10, 0xf7, 0xbb, 0x2f, 0x0a, 0xf8, 0x22, 0xb3, 0xe1, 0x35, 0x50, 0xf3, 0x8f,
-	0x84, 0xed, 0x32, 0x7e, 0x73, 0x87, 0xfa, 0xbf, 0x0f, 0x1c, 0x79, 0x71, 0xb3, 0x75, 0xf3, 0xf0,
-	0x7c, 0x57, 0xfd, 0x09, 0x7f, 0xac, 0x7e, 0x4d, 0xbe, 0x3a, 0x38, 0x05, 0xe0, 0xad, 0x30, 0xdc,
-	0x7a, 0x87, 0xb4, 0xb1, 0x54, 0x7d, 0xfb, 0x13, 0x57, 0x91, 0xf9, 0x57, 0x66, 0xb6, 0xe0, 0xef,
-	0x55, 0xe6, 0xda, 0xee, 0xf8, 0xf1, 0xd1, 0xfd, 0xdc, 0x50, 0x66, 0x73, 0x43, 0x79, 0x9a, 0x1b,
-	0xca, 0xed, 0xc2, 0xa8, 0xcc, 0x16, 0x46, 0xe5, 0x71, 0x61, 0x54, 0xae, 0x76, 0x3c, 0x22, 0xfc,
-	0xc4, 0xb1, 0x86, 0x2c, 0xb4, 0x9d, 0x24, 0xa6, 0x62, 0x7f, 0x84, 0x1c, 0x6e, 0xcb, 0x9b, 0x35,
-	0xcd, 0x61, 0x22, 0x8d, 0x30, 0x77, 0x54, 0x79, 0xb3, 0x0e, 0x5e, 0x03, 0x00, 0x00, 0xff, 0xff,
-	0xfa, 0xd9, 0xdf, 0x2c, 0xd7, 0x02, 0x00, 0x00,
+	// 471 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x93, 0xcf, 0x6e, 0xd3, 0x40,
+	0x10, 0xc6, 0xe3, 0x48, 0x44, 0x64, 0x1a, 0x84, 0xd8, 0x86, 0xc4, 0xb2, 0xa8, 0x55, 0x0c, 0x08,
+	0x0e, 0x60, 0xab, 0x85, 0x0b, 0xe2, 0xc4, 0x9f, 0x03, 0x52, 0x39, 0x84, 0x1c, 0xb9, 0x44, 0xeb,
+	0x64, 0x48, 0x56, 0x89, 0x77, 0x5d, 0xef, 0xba, 0x8a, 0xaf, 0x3c, 0x01, 0x12, 0x2f, 0xc5, 0xb1,
+	0x12, 0x17, 0x8e, 0x55, 0xc2, 0x83, 0xa0, 0xec, 0x6e, 0x52, 0x1b, 0x57, 0xe1, 0xe6, 0x9d, 0x99,
+	0xfd, 0x7e, 0xdf, 0xcc, 0x78, 0xc1, 0x5d, 0x32, 0xc1, 0xa3, 0xc9, 0x9c, 0x25, 0xd1, 0xc5, 0x49,
+	0x74, 0x9e, 0x63, 0x56, 0x84, 0x69, 0x26, 0x94, 0x20, 0x9d, 0x4d, 0x26, 0xdc, 0x64, 0xc2, 0x8b,
+	0x13, 0xef, 0xc1, 0x54, 0x88, 0xe9, 0x02, 0x23, 0x9a, 0xb2, 0x88, 0x72, 0x2e, 0x14, 0x55, 0x4c,
+	0x70, 0x69, 0x6a, 0x3d, 0xaf, 0xa2, 0x32, 0x45, 0x8e, 0x92, 0x6d, 0x73, 0x55, 0x82, 0x54, 0x54,
+	0xa1, 0xc9, 0x04, 0x5d, 0x20, 0x9f, 0x37, 0xc0, 0x01, 0xcd, 0x68, 0x22, 0x87, 0x78, 0x9e, 0xa3,
+	0x54, 0xc1, 0x7b, 0x38, 0xac, 0x44, 0x65, 0x2a, 0xb8, 0x44, 0xf2, 0x1c, 0x5a, 0xa9, 0x8e, 0xb8,
+	0xce, 0xb1, 0xf3, 0xec, 0xe0, 0xb4, 0x1b, 0x96, 0xfd, 0x85, 0xb6, 0xda, 0xd6, 0x04, 0x9f, 0xa0,
+	0xa7, 0x45, 0x3e, 0xcc, 0x59, 0x32, 0xc8, 0xe3, 0x33, 0x2c, 0xac, 0x3c, 0xf1, 0xe0, 0xb6, 0xc4,
+	0x05, 0x8e, 0x95, 0xc8, 0xb4, 0x52, 0x7b, 0xb8, 0x3b, 0x93, 0x1e, 0xb4, 0x26, 0x22, 0xa1, 0x8c,
+	0xbb, 0x4d, 0x9d, 0xb1, 0xa7, 0xa0, 0x80, 0x7e, 0x4d, 0xcd, 0xda, 0x7a, 0x0d, 0x07, 0x1b, 0x0b,
+	0xa3, 0x34, 0x8f, 0xe7, 0x58, 0x58, 0x6f, 0x6e, 0xd5, 0x5b, 0xe9, 0x1a, 0x4c, 0xcc, 0xf7, 0x1c,
+	0x0b, 0xf2, 0x08, 0xee, 0xa4, 0x42, 0x22, 0x9b, 0x08, 0x3e, 0x9a, 0x51, 0x39, 0xd3, 0xd0, 0xce,
+	0xb0, 0xb3, 0x0d, 0x7e, 0xa4, 0x72, 0x16, 0xbc, 0x82, 0xc3, 0x41, 0xe9, 0xbc, 0xed, 0xe2, 0x08,
+	0x20, 0xcd, 0xe3, 0x05, 0x1b, 0x8f, 0xb6, 0xd4, 0xf6, 0xb0, 0x6d, 0x22, 0x67, 0x58, 0x04, 0x6f,
+	0xa0, 0x5b, 0xbd, 0x65, 0xdd, 0xd6, 0x90, 0x4e, 0x1d, 0x79, 0x7a, 0xd5, 0x84, 0x5b, 0xba, 0x5d,
+	0xf2, 0x15, 0x5a, 0x66, 0xae, 0xe4, 0xb8, 0xda, 0x51, 0x7d, 0x6d, 0xde, 0xc3, 0x3d, 0x15, 0x86,
+	0x1e, 0xf4, 0xbf, 0xfd, 0xfa, 0xf3, 0xa3, 0x79, 0x8f, 0xdc, 0xdd, 0xfd, 0x0d, 0x66, 0x5b, 0x64,
+	0x09, 0x70, 0x3d, 0x23, 0xf2, 0xf8, 0x06, 0xa5, 0xda, 0x1e, 0xbd, 0x27, 0xff, 0xa9, 0xb2, 0xcc,
+	0x23, 0xcd, 0xec, 0x93, 0xfb, 0x3b, 0x66, 0x69, 0x5d, 0x92, 0xe4, 0xd0, 0x29, 0x0f, 0x8a, 0xfc,
+	0xd3, 0xc5, 0x0d, 0xa3, 0xf7, 0x82, 0x7d, 0x25, 0x96, 0xea, 0x6b, 0xaa, 0x4b, 0x7a, 0xd7, 0x9d,
+	0x96, 0xc7, 0xfe, 0xee, 0xed, 0xcf, 0x95, 0xef, 0x5c, 0xae, 0x7c, 0xe7, 0x6a, 0xe5, 0x3b, 0xdf,
+	0xd7, 0x7e, 0xe3, 0x72, 0xed, 0x37, 0x7e, 0xaf, 0xfd, 0xc6, 0x97, 0xa7, 0x53, 0xa6, 0x66, 0x79,
+	0x1c, 0x8e, 0x45, 0x12, 0xc5, 0x79, 0xc6, 0xd5, 0x8b, 0x05, 0x8d, 0x65, 0xa4, 0xdf, 0xd0, 0xd2,
+	0xa8, 0xa9, 0x22, 0x45, 0x19, 0xb7, 0xf4, 0x1b, 0x7a, 0xf9, 0x37, 0x00, 0x00, 0xff, 0xff, 0x84,
+	0x3e, 0x6d, 0x6e, 0xc1, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -271,6 +367,7 @@ type QueryClient interface {
 	// Params queries all parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
+	PoseidonHash(ctx context.Context, in *PoseidonHashRequest, opts ...grpc.CallOption) (*PoseidonHashResponse, error)
 }
 
 type queryClient struct {
@@ -299,11 +396,21 @@ func (c *queryClient) DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest
 	return out, nil
 }
 
+func (c *queryClient) PoseidonHash(ctx context.Context, in *PoseidonHashRequest, opts ...grpc.CallOption) (*PoseidonHashResponse, error) {
+	out := new(PoseidonHashResponse)
+	err := c.cc.Invoke(ctx, "/xion.dkim.v1.Query/PoseidonHash", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Params queries all parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
+	PoseidonHash(context.Context, *PoseidonHashRequest) (*PoseidonHashResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -315,6 +422,9 @@ func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsReq
 }
 func (*UnimplementedQueryServer) DkimPubKey(ctx context.Context, req *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKey not implemented")
+}
+func (*UnimplementedQueryServer) PoseidonHash(ctx context.Context, req *PoseidonHashRequest) (*PoseidonHashResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PoseidonHash not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -357,6 +467,24 @@ func _Query_DkimPubKey_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_PoseidonHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PoseidonHashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PoseidonHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.dkim.v1.Query/PoseidonHash",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PoseidonHash(ctx, req.(*PoseidonHashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.dkim.v1.Query",
@@ -369,6 +497,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DkimPubKey",
 			Handler:    _Query_DkimPubKey_Handler,
+		},
+		{
+			MethodName: "PoseidonHash",
+			Handler:    _Query_PoseidonHash_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -512,6 +644,66 @@ func (m *QueryDkimPubKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *PoseidonHashRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PoseidonHashRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PoseidonHashRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PublicKey) > 0 {
+		i -= len(m.PublicKey)
+		copy(dAtA[i:], m.PublicKey)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.PublicKey)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PoseidonHashResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PoseidonHashResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PoseidonHashResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PoseidonHash) > 0 {
+		i -= len(m.PoseidonHash)
+		copy(dAtA[i:], m.PoseidonHash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.PoseidonHash)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -572,6 +764,32 @@ func (m *QueryDkimPubKeyResponse) Size() (n int) {
 		l = m.DkimPubkey.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	l = len(m.PoseidonHash)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *PoseidonHashRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PublicKey)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *PoseidonHashResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	l = len(m.PoseidonHash)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
@@ -901,6 +1119,172 @@ func (m *QueryDkimPubKeyResponse) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PoseidonHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PoseidonHash = append(m.PoseidonHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.PoseidonHash == nil {
+				m.PoseidonHash = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoseidonHashRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoseidonHashRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoseidonHashRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PublicKey", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PublicKey = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PoseidonHashResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PoseidonHashResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PoseidonHashResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PoseidonHash", wireType)
 			}

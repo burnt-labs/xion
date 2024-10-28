@@ -17,6 +17,10 @@ service Query {
   rpc DkimPubKey(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
+
+  rpc PoseidonHash(PoseidonHashRequest) returns (PoseidonHashResponse) {
+    option (google.api.http).get = "/dkim/v1/poseidon_hash";
+  }
 }
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.
@@ -38,4 +42,14 @@ message QueryDkimPubKeyRequest {
 message QueryDkimPubKeyResponse {
   DkimPubKey dkim_pubkey = 1;
   bytes poseidon_hash = 2; // the poseidon hash of the public key that signed the email
+}
+
+// PoseidonHashRequest is the request type for the Query/PoseidonHash RPC method.
+message PoseidonHashRequest {
+  string public_key = 1;
+}
+
+// PoseidonHashResponse is the response type for the Query/PoseidonHash RPC method.
+message PoseidonHashResponse {
+  bytes poseidon_hash = 1;
 }
