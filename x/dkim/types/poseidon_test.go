@@ -5,8 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
 func TestPoseidonPubKeyHasher(t *testing.T) {
@@ -49,7 +50,7 @@ func TestPoseidonPubKeyHasher(t *testing.T) {
 	expectedOutputBigInt, err := types.ConvertStringArrayToBigInt(expected)
 	require.NoError(t, err)
 	// Call PubkeyHasher function
-	result := types.PreparePubkeyForHashing(pubKeyInputBigInt, types.CIRCOM_BIGINT_N, types.CIRCOM_BIGINT_K)
+	result := types.PreparePubkeyForHashing(pubKeyInputBigInt, types.CircomBigintN, types.CircomBigintK)
 	require.Equal(t, len(result), len(expectedOutputBigInt))
 	// Compare result with expected output
 	if !reflect.DeepEqual(result, expectedOutputBigInt) {
@@ -108,8 +109,8 @@ func TestModulusToCircomBigIntBytes(t *testing.T) {
 	require.NoError(t, err)
 	expectedXBigInt, err := types.ConvertStringArrayToBigInt(expectedX)
 	require.NoError(t, err)
-	googleInputChunk := types.BigIntToChunkedBytes(googleBigInt, types.CIRCOM_BIGINT_N, types.CIRCOM_BIGINT_K)
-	xInputChunk := types.BigIntToChunkedBytes(xBigInt, types.CIRCOM_BIGINT_N, types.CIRCOM_BIGINT_K)
+	googleInputChunk := types.BigIntToChunkedBytes(googleBigInt, types.CircomBigintN, types.CircomBigintK)
+	xInputChunk := types.BigIntToChunkedBytes(xBigInt, types.CircomBigintN, types.CircomBigintK)
 
 	require.Equal(t, len(googleInputChunk), len(expectedGoogleBigInt))
 	require.Equal(t, len(xInputChunk), len(expectedXBigInt))

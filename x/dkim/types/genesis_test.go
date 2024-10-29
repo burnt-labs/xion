@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/google/uuid"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
 func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyType types.KeyType, count int) []types.DkimPubKey {

@@ -36,7 +36,7 @@ func MsgUpdateParams() *cobra.Command {
 		Use:   "update-params [some-value]",
 		Short: "Update the params (must be submitted from the authority)",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err

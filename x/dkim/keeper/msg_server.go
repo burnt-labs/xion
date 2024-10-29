@@ -3,9 +3,10 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"cosmossdk.io/errors"
 	dkimv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
@@ -29,7 +30,7 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 	return nil, ms.k.Params.Set(ctx, msg.Params)
 }
 
-func SaveDkimPubKey(ctx context.Context, dkimKey *types.DkimPubKey, store dkimv1.StateStore) (bool, error) {
+func SaveDkimPubKey(ctx context.Context, dkimKey types.DkimPubKey, store dkimv1.StateStore) (bool, error) {
 	if err := store.DkimPubKeyTable().Save(ctx, &dkimv1.DkimPubKey{
 		Domain:       dkimKey.Domain,
 		PubKey:       dkimKey.PubKey,
@@ -46,7 +47,7 @@ func SaveDkimPubKey(ctx context.Context, dkimKey *types.DkimPubKey, store dkimv1
 
 func SaveDkimPubKeys(ctx context.Context, dkimKeys []types.DkimPubKey, store dkimv1.StateStore) (bool, error) {
 	for _, dkimKey := range dkimKeys {
-		if isSaved, err := SaveDkimPubKey(ctx, &dkimKey, store); !isSaved {
+		if isSaved, err := SaveDkimPubKey(ctx, dkimKey, store); !isSaved {
 			return false, err
 		}
 	}
@@ -68,7 +69,10 @@ func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubK
 		}
 		dkimKey.PoseidonHash = hash.String()
 	}
-	SaveDkimPubKeys(ctx, msg.DkimPubkeys, ms.k.OrmDB)
+	_, err := SaveDkimPubKeys(ctx, msg.DkimPubkeys, ms.k.OrmDB)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgAddDkimPubKeyResponse{}, nil
 }
 

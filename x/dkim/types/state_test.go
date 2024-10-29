@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
 func TestComputePoseidonHash(t *testing.T) {

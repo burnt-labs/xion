@@ -2,6 +2,7 @@ package module
 
 import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+
 	modulev1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 )
 
@@ -22,6 +23,13 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Alias:     []string{"dpk"},
 					Short:     "Query a DKIM public key",
 					Example:   "dkim-pubkey --domain test.domain.com --selector test-domain",
+				},
+				{
+					RpcMethod: "PoseidonHash",
+					Use:       "poseidon-hash [flags] public_key",
+					Alias:     []string{"ph"},
+					Short:     "Create the poseidon hash of a x509 public key",
+					Example:   "poseidon-hash --public-key MII...",
 				},
 			},
 		},

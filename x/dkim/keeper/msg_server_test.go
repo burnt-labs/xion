@@ -4,8 +4,9 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"cosmossdk.io/orm/types/ormerrors"
 	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/orm/types/ormerrors"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
@@ -38,8 +39,7 @@ func TestParams(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			_, err := f.msgServer.UpdateParams(f.ctx, tc.request)
 
 			if tc.err {
@@ -50,9 +50,8 @@ func TestParams(t *testing.T) {
 				r, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
 				require.NoError(err)
 
-				require.EqualValues(&tc.request.Params, r.Params)
+				require.EqualValues(tc.request.Params, *(r.Params))
 			}
-
 		})
 	}
 }
@@ -142,8 +141,7 @@ func TestAddDkimPubKey(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			_, err := f.msgServer.AddDkimPubKey(f.ctx, tc.request)
 
 			if tc.err {
@@ -161,7 +159,6 @@ func TestAddDkimPubKey(t *testing.T) {
 				require.EqualValues(types.Version_DKIM1, r.DkimPubkey.Version)
 				require.EqualValues(types.KeyType_RSA, r.DkimPubkey.KeyType)
 			}
-
 		})
 	}
 }
@@ -170,7 +167,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 	f := SetupTest(t)
 	require := require.New(t)
 
-	domain := "xion.burnt.com"
+	const domain = "xion.burnt.com"
 	pubKey := base64.RawStdEncoding.EncodeToString([]byte("test-pub-key"))
 	selector := "zkemail"
 
@@ -221,8 +218,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			_, err := f.msgServer.RemoveDkimPubKey(f.ctx, tc.request)
 
 			if tc.err {
@@ -240,7 +236,6 @@ func TestRemoveDkimPubKey(t *testing.T) {
 				require.Nil(r)
 				require.Error(err)
 			}
-
 		})
 	}
 }

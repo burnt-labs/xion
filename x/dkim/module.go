@@ -19,7 +19,6 @@ import (
 
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
-	// this line is used by starport scaffolding # 1
 )
 
 const (

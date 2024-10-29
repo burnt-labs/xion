@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"cosmossdk.io/errors"
-	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/iden3/go-iden3-crypto/poseidon"
+
+	"cosmossdk.io/errors"
+
+	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // PubkeyHasher emulates the PubkeyHasher logic from Circom
@@ -19,7 +21,7 @@ func PreparePubkeyForHashing(pubkey []*big.Int, n, k int) []*big.Int {
 	// Step 1: Calculate k2_chunked_size
 	k2ChunkedSize := k >> 1
 	if k%2 == 1 {
-		k2ChunkedSize += 1
+		k2ChunkedSize++
 	}
 	fmt.Println("k2_chunked_size:", k2ChunkedSize)
 
@@ -43,8 +45,10 @@ func PreparePubkeyForHashing(pubkey []*big.Int, n, k int) []*big.Int {
 	return pubkeyHashInput
 }
 
-const CIRCOM_BIGINT_N = 121
-const CIRCOM_BIGINT_K = 17
+const (
+	CircomBigintN = 121
+	CircomBigintK = 17
+)
 
 func BigIntToChunkedBytes(num *big.Int, bytesPerChunk, numChunks int) []*big.Int {
 	res := make([]*big.Int, 0, numChunks)
@@ -120,9 +124,9 @@ func ComputePoseidonHash(pub string) (*big.Int, error) {
 	}
 	modulus := publicKey.N
 	// convert modulus to circom bigint bytes
-	modulusBytes := BigIntToChunkedBytes(modulus, CIRCOM_BIGINT_N, CIRCOM_BIGINT_K)
+	modulusBytes := BigIntToChunkedBytes(modulus, CircomBigintN, CircomBigintK)
 	// prepare the pubkey for hashing
-	pubKeyInputBigInt := PreparePubkeyForHashing(modulusBytes, CIRCOM_BIGINT_N, CIRCOM_BIGINT_K)
+	pubKeyInputBigInt := PreparePubkeyForHashing(modulusBytes, CircomBigintN, CircomBigintK)
 	hash, err := poseidon.Hash(pubKeyInputBigInt)
 	if err != nil {
 		return nil, errors.Wrap(sdkError.ErrInvalidRequest, err.Error())

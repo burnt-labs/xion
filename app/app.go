@@ -86,21 +86,6 @@ import (
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/burnt-labs/xion/client/docs"
-	owasm "github.com/burnt-labs/xion/wasmbindings"
-	dkim "github.com/burnt-labs/xion/x/dkim"
-	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
-	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
-	"github.com/burnt-labs/xion/x/globalfee"
-	"github.com/burnt-labs/xion/x/jwk"
-	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	"github.com/burnt-labs/xion/x/mint"
-	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
-	minttypes "github.com/burnt-labs/xion/x/mint/types"
-	"github.com/burnt-labs/xion/x/xion"
-	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -165,6 +150,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/burnt-labs/xion/client/docs"
+	owasm "github.com/burnt-labs/xion/wasmbindings"
+	dkim "github.com/burnt-labs/xion/x/dkim"
+	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
+	"github.com/burnt-labs/xion/x/globalfee"
+	"github.com/burnt-labs/xion/x/jwk"
+	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	"github.com/burnt-labs/xion/x/mint"
+	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
+	minttypes "github.com/burnt-labs/xion/x/mint/types"
+	"github.com/burnt-labs/xion/x/xion"
+	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 const (
@@ -366,7 +367,7 @@ func NewWasmApp(
 		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, ibchookstypes.StoreKey, packetforwardtypes.StoreKey,
-		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey, dkimtypes.StoreKey
+		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey, dkimtypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)

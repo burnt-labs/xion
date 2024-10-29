@@ -4,8 +4,9 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"cosmossdk.io/orm/types/ormerrors"
 	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/orm/types/ormerrors"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
@@ -55,8 +56,7 @@ func TestQueryDkimPubKey(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			_, err := f.msgServer.AddDkimPubKey(f.ctx, &types.MsgAddDkimPubKey{
 				Authority:   f.govModAddr,
 				DkimPubkeys: createReq,
@@ -66,14 +66,10 @@ func TestQueryDkimPubKey(t *testing.T) {
 			if tc.err {
 				require.Error(err)
 				require.Equal(err.Error(), tc.errType.Error())
-			} else {
-				if tc.result != nil {
-					require.NoError(err)
-					require.EqualValues(tc.result, tc.result)
-
-				}
+			} else if tc.result != nil {
+				require.NoError(err)
+				require.EqualValues(tc.result, tc.result)
 			}
-
 		})
 	}
 }
@@ -111,19 +107,14 @@ func TestQueryPoseidonHash(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			result, err := f.queryServer.PoseidonHash(f.ctx, tc.request)
 			if tc.err {
 				require.Error(err)
-			} else {
-				if tc.result != nil {
-					require.NoError(err)
-					require.EqualValues(result, tc.result)
-
-				}
+			} else if tc.result != nil {
+				require.NoError(err)
+				require.EqualValues(result, tc.result)
 			}
-
 		})
 	}
 }

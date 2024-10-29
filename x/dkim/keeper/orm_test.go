@@ -3,13 +3,15 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
 	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	ormlist "cosmossdk.io/orm/model/ormlist"
+
 	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	dkimKeeper "github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/require"
 )
 
 func TestORM(t *testing.T) {
@@ -22,7 +24,7 @@ func TestORM(t *testing.T) {
 	version := types.Version_DKIM1
 	keyType := types.KeyType_RSA
 
-	isSaved, err := dkimKeeper.SaveDkimPubKey(f.ctx, &types.DkimPubKey{
+	isSaved, err := dkimKeeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
 		Domain:   domain,
 		PubKey:   pubKey,
 		Selector: selector,
@@ -59,6 +61,7 @@ func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyT
 	}
 	return dkimPubKeys
 }
+
 func TestORMMultipleInsert(t *testing.T) {
 	f := SetupTest(t)
 

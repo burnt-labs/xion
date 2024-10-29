@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
-	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var _ types.QueryServer = Querier{}
@@ -20,7 +21,7 @@ func NewQuerier(keeper Keeper) Querier {
 	return Querier{Keeper: keeper}
 }
 
-func (k Querier) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	p, err := k.Keeper.Params.Get(ctx)
@@ -45,7 +46,7 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 }
 
 // PoseidonHash implements types.QueryServer.
-func (k Querier) PoseidonHash(ctx context.Context, msg *types.PoseidonHashRequest) (*types.PoseidonHashResponse, error) {
+func (k Querier) PoseidonHash(_ context.Context, msg *types.PoseidonHashRequest) (*types.PoseidonHashResponse, error) {
 	hash, err := types.ComputePoseidonHash(msg.PublicKey)
 	if err != nil {
 		return nil, errors.Wrap(sdkError.ErrInvalidRequest, err.Error())

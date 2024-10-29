@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
@@ -17,14 +18,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"cosmossdk.io/core/store"
-
 	module "github.com/burnt-labs/xion/x/dkim"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
-type testFixture struct {
+type TestFixture struct {
 	suite.Suite
 
 	ctx         sdk.Context
@@ -37,9 +36,9 @@ type testFixture struct {
 	govModAddr string
 }
 
-func SetupTest(t *testing.T) *testFixture {
+func SetupTest(t *testing.T) *TestFixture {
 	t.Helper()
-	f := new(testFixture)
+	f := new(TestFixture)
 	require := require.New(t)
 
 	// Base setup
@@ -74,7 +73,7 @@ func registerModuleInterfaces(encCfg moduletestutil.TestEncodingConfig) {
 }
 
 func registerBaseSDKModules(
-	_ *testFixture,
+	_ *TestFixture,
 	encCfg moduletestutil.TestEncodingConfig,
 	_ store.KVStoreService,
 	_ log.Logger,

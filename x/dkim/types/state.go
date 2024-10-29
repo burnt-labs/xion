@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"cosmossdk.io/errors"
+
 	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
 )
 

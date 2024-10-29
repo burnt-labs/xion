@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
 func TestGenesis(t *testing.T) {
@@ -16,7 +17,10 @@ func TestGenesis(t *testing.T) {
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	f.k.InitGenesis(f.ctx, genesisState)
+	err := f.k.InitGenesis(f.ctx, genesisState)
+	if err != nil {
+		panic(err)
+	}
 
 	got := f.k.ExportGenesis(f.ctx)
 	require.NotNil(t, got)

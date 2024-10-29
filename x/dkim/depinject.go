@@ -3,16 +3,15 @@ package module
 import (
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/log"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	modulev1 "github.com/burnt-labs/xion/api/xion/dkim/module/v1"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
@@ -33,7 +32,7 @@ func init() {
 	)
 }
 
-type ModuleInputs struct {
+type Inputs struct {
 	depinject.In
 
 	Cdc          codec.Codec
@@ -41,18 +40,18 @@ type ModuleInputs struct {
 	AddressCodec address.Codec
 }
 
-type ModuleOutputs struct {
+type Outputs struct {
 	depinject.Out
 
 	Module appmodule.AppModule
 	Keeper keeper.Keeper
 }
 
-func ProvideModule(in ModuleInputs) ModuleOutputs {
+func ProvideModule(in Inputs) Outputs {
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	k := keeper.NewKeeper(in.Cdc, in.StoreService, log.NewLogger(os.Stderr), govAddr)
 	m := NewAppModule(in.Cdc, k)
 
-	return ModuleOutputs{Module: m, Keeper: k, Out: depinject.Out{}}
+	return Outputs{Module: m, Keeper: k, Out: depinject.Out{}}
 }
