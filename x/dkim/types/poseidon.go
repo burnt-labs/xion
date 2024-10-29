@@ -36,7 +36,7 @@ func PreparePubkeyForHashing(pubkey []*big.Int, n, k int) []*big.Int {
 		} else {
 			// Combine two elements from pubkey with shift
 			term1 := new(big.Int).Set(pubkey[2*i])
-			term2 := new(big.Int).Lsh(pubkey[2*i+1], uint(n)) // (1 << n) * pubkey[2*i+1]
+			term2 := new(big.Int).Lsh(pubkey[2*i+1], uint(n)) //nolint:gosec // disable G115
 			pubkeyHashInput[i] = new(big.Int).Add(term1, term2)
 		}
 		fmt.Println("pubkeyHashInput[", i, "]:", pubkeyHashInput[i])
@@ -54,12 +54,12 @@ func BigIntToChunkedBytes(num *big.Int, bytesPerChunk, numChunks int) []*big.Int
 	res := make([]*big.Int, 0, numChunks)
 
 	// Define the mask as (1 << (8 * bytesPerChunk)) - 1
-	msk := new(big.Int).Lsh(big.NewInt(1), uint(bytesPerChunk))
+	msk := new(big.Int).Lsh(big.NewInt(1), uint(bytesPerChunk)) //nolint:gosec // disable G115
 	msk.Sub(msk, big.NewInt(1))
 
 	for i := 0; i < numChunks; i++ {
 		// Shift the number to the right by i * bytesPerChunk * 8 bits
-		shifted := new(big.Int).Rsh(num, uint(i*bytesPerChunk))
+		shifted := new(big.Int).Rsh(num, uint(i*bytesPerChunk)) //nolint:gosec // disable G115
 		// Mask to get the chunk and convert to string
 		chunk := new(big.Int).And(shifted, msk)
 		res = append(res, chunk)
