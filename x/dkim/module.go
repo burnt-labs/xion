@@ -107,42 +107,42 @@ func (a AppModuleBasic) RegisterInterfaces(r codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(r)
 }
 
-func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
 
-	if err := a.keeper.Params.Set(ctx, genesisState.Params); err != nil {
+	if err := am.keeper.Params.Set(ctx, genesisState.Params); err != nil {
 		panic(err)
 	}
 
-	if isSaved, err := keeper.SaveDkimPubKeys(ctx, genesisState.DkimPubkeys, a.keeper.OrmDB); !isSaved {
+	if isSaved, err := keeper.SaveDkimPubKeys(ctx, genesisState.DkimPubkeys, am.keeper.OrmDB); !isSaved {
 		panic(err)
 	}
 
 	return nil
 }
 
-func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
-	genState := a.keeper.ExportGenesis(ctx)
+func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
+	genState := am.keeper.ExportGenesis(ctx)
 	return marshaler.MustMarshalJSON(genState)
 }
 
-func (a AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 }
 
-func (a AppModule) QuerierRoute() string {
+func (am AppModule) QuerierRoute() string {
 	return types.QuerierRoute
 }
 
-func (a AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(a.keeper))
-	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(a.keeper))
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the
 // module. It should be incremented on each consensus-breaking change
 // introduced by the module. To avoid wrong/empty versions, the initial version
 // should be set to 1.
-func (a AppModule) ConsensusVersion() uint64 {
+func (am AppModule) ConsensusVersion() uint64 {
 	return ConsensusVersion
 }
