@@ -14,10 +14,12 @@ service Query {
     option (google.api.http).get = "/dkim/v1/params";
   }
 
+  // DkimPubKey queries the DKIM public key for a given selector and domain.
   rpc DkimPubKey(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
 
+  // PoseidonHash queries the Poseidon hash for a given public key.
   rpc PoseidonHash(PoseidonHashRequest) returns (PoseidonHashResponse) {
     option (google.api.http).get = "/dkim/v1/poseidon_hash";
   }
