@@ -14,6 +14,7 @@ service Query {
     option (google.api.http).get = "/dkim/v1/params";
   }
 
+  // DkimPubKey queries the DKIM public key for a given selector and domain.
   rpc DkimPubKey(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
