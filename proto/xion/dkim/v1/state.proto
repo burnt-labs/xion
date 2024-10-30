@@ -15,7 +15,7 @@ message DkimPubKey {
 
     string domain = 1;
     string pub_key  = 2; // base64 encoded public key
-    string poseidon_hash = 3; // hash of the public key
+    bytes poseidon_hash = 3; // hash of the public key
     string selector = 4;
     Version version = 5;
     KeyType key_type = 6;

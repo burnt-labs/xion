@@ -55,25 +55,22 @@ func SaveDkimPubKeys(ctx context.Context, dkimKeys []types.DkimPubKey, store dki
 }
 
 // AddDkimPubKey implements types.MsgServer.
-func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubKey) (*types.MsgAddDkimPubKeyResponse, error) {
+func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubKeys) (*types.MsgAddDkimPubKeysResponse, error) {
 	if ms.k.authority != msg.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
-	for _, dkimKey := range msg.DkimPubkeys {
-		if err := dkimKey.Validate(); err != nil {
-			return nil, err
-		}
-		hash, err := types.ComputePoseidonHash(dkimKey.PubKey)
+	for i := range msg.DkimPubkeys {
+		hash, err := types.ComputePoseidonHash(msg.DkimPubkeys[i].PubKey)
 		if err != nil {
 			return nil, err
 		}
-		dkimKey.PoseidonHash = hash.String()
+		msg.DkimPubkeys[i].PoseidonHash = hash.Bytes()
 	}
 	_, err := SaveDkimPubKeys(ctx, msg.DkimPubkeys, ms.k.OrmDB)
 	if err != nil {
 		return nil, err
 	}
-	return &types.MsgAddDkimPubKeyResponse{}, nil
+	return &types.MsgAddDkimPubKeysResponse{}, nil
 }
 
 // RemoveDkimPubKey implements types.MsgServer.

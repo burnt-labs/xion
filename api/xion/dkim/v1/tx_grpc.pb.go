@@ -35,7 +35,7 @@ type MsgClient interface {
 	// Since: cosmos-sdk 0.47
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add a DKIM public key.
-	AddDkimPubKey(ctx context.Context, in *MsgAddDkimPubKey, opts ...grpc.CallOption) (*MsgAddDkimPubKeyResponse, error)
+	AddDkimPubKey(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error)
 	// RemoveDkimPubKey defines a message to remove a DKIM public key.
 	RemoveDkimPubKey(ctx context.Context, in *MsgRemoveDkimPubKey, opts ...grpc.CallOption) (*MsgRemoveDkimPubKeyResponse, error)
 }
@@ -58,9 +58,9 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 	return out, nil
 }
 
-func (c *msgClient) AddDkimPubKey(ctx context.Context, in *MsgAddDkimPubKey, opts ...grpc.CallOption) (*MsgAddDkimPubKeyResponse, error) {
+func (c *msgClient) AddDkimPubKey(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MsgAddDkimPubKeyResponse)
+	out := new(MsgAddDkimPubKeysResponse)
 	err := c.cc.Invoke(ctx, Msg_AddDkimPubKey_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ type MsgServer interface {
 	// Since: cosmos-sdk 0.47
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add a DKIM public key.
-	AddDkimPubKey(context.Context, *MsgAddDkimPubKey) (*MsgAddDkimPubKeyResponse, error)
+	AddDkimPubKey(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error)
 	// RemoveDkimPubKey defines a message to remove a DKIM public key.
 	RemoveDkimPubKey(context.Context, *MsgRemoveDkimPubKey) (*MsgRemoveDkimPubKeyResponse, error)
 	mustEmbedUnimplementedMsgServer()
@@ -105,7 +105,7 @@ type UnimplementedMsgServer struct{}
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
 }
-func (UnimplementedMsgServer) AddDkimPubKey(context.Context, *MsgAddDkimPubKey) (*MsgAddDkimPubKeyResponse, error) {
+func (UnimplementedMsgServer) AddDkimPubKey(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddDkimPubKey not implemented")
 }
 func (UnimplementedMsgServer) RemoveDkimPubKey(context.Context, *MsgRemoveDkimPubKey) (*MsgRemoveDkimPubKeyResponse, error) {
@@ -151,7 +151,7 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Msg_AddDkimPubKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgAddDkimPubKey)
+	in := new(MsgAddDkimPubKeys)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func _Msg_AddDkimPubKey_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: Msg_AddDkimPubKey_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AddDkimPubKey(ctx, req.(*MsgAddDkimPubKey))
+		return srv.(MsgServer).AddDkimPubKey(ctx, req.(*MsgAddDkimPubKeys))
 	}
 	return interceptor(ctx, in, info, handler)
 }

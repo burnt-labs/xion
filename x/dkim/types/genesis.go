@@ -1,7 +1,5 @@
 package types
 
-import errorsmod "cosmossdk.io/errors"
-
 // this line is used by starport scaffolding # genesis/types/import
 
 // DefaultIndex is the default global index
@@ -20,10 +18,10 @@ func DefaultGenesis() *GenesisState {
 func (gs GenesisState) Validate() error {
 	// this line is used by starport scaffolding # genesis/types/validate
 	if err := gs.Params.Validate(); err != nil {
-		return errorsmod.Wrap(err, "params")
+		return err
 	}
-	for _, dkimPubKey := range gs.DkimPubkeys {
-		if err := dkimPubKey.Validate(); err != nil {
+	for _, pubkey := range gs.DkimPubkeys {
+		if err := pubkey.Validate(); err != nil {
 			return err
 		}
 	}

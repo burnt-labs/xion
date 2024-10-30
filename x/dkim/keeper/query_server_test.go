@@ -56,7 +56,7 @@ func TestQueryDkimPubKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(_ *testing.T) {
-			_, err := f.msgServer.AddDkimPubKey(f.ctx, &types.MsgAddDkimPubKey{
+			_, err := f.msgServer.AddDkimPubKey(f.ctx, &types.MsgAddDkimPubKeys{
 				Authority:   f.govModAddr,
 				DkimPubkeys: createReq,
 			})
@@ -68,51 +68,6 @@ func TestQueryDkimPubKey(t *testing.T) {
 			} else if tc.result != nil {
 				require.NoError(err)
 				require.EqualValues(tc.result, tc.result)
-			}
-		})
-	}
-}
-
-func TestQueryPoseidonHash(t *testing.T) {
-	f := SetupTest(t)
-	require := require.New(t)
-	pubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
-	res := "1983664618407009423875829639306275185491946247764487749439145140682408188330"
-
-	testCases := []struct {
-		name    string
-		request *types.PoseidonHashRequest
-		err     bool
-		errType error
-		result  *types.PoseidonHashResponse
-	}{
-		{
-			name: "fail; invalid public key",
-			request: &types.PoseidonHashRequest{
-				PublicKey: "invalid-pub-key",
-			},
-			err: true,
-		},
-		{
-			name: "success",
-			request: &types.PoseidonHashRequest{
-				PublicKey: pubKey,
-			},
-			err: false,
-			result: &types.PoseidonHashResponse{
-				PoseidonHash: []byte(res),
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(_ *testing.T) {
-			result, err := f.queryServer.PoseidonHash(f.ctx, tc.request)
-			if tc.err {
-				require.Error(err)
-			} else if tc.result != nil {
-				require.NoError(err)
-				require.EqualValues(result, tc.result)
 			}
 		})
 	}

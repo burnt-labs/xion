@@ -81,15 +81,19 @@ func (k Keeper) Logger() log.Logger {
 // InitGenesis initializes the module's state from a genesis state.
 func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) error {
 	// this line is used by starport scaffolding # genesis/module/init
-	if err := data.Params.Validate(); err != nil {
+	if err := data.Validate(); err != nil {
 		return err
 	}
-
 	for _, dkimPubKey := range data.DkimPubkeys {
+		hash, err := types.ComputePoseidonHash(dkimPubKey.PubKey)
+		if err != nil {
+			return err
+		}
 		if err := k.OrmDB.DkimPubKeyTable().Save(ctx, &apiv1.DkimPubKey{
-			Domain:   dkimPubKey.Domain,
-			PubKey:   dkimPubKey.PubKey,
-			Selector: dkimPubKey.Selector,
+			Domain:       dkimPubKey.Domain,
+			PubKey:       dkimPubKey.PubKey,
+			Selector:     dkimPubKey.Selector,
+			PoseidonHash: hash.Bytes(),
 		}); err != nil {
 			return err
 		}
@@ -116,11 +120,12 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 			panic(err)
 		}
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
-			Domain:   dkimPubKey.Domain,
-			PubKey:   dkimPubKey.PubKey,
-			Selector: dkimPubKey.Selector,
-			Version:  types.Version(dkimPubKey.Version),
-			KeyType:  types.KeyType(dkimPubKey.KeyType),
+			Domain:       dkimPubKey.Domain,
+			PubKey:       dkimPubKey.PubKey,
+			PoseidonHash: dkimPubKey.PoseidonHash,
+			Selector:     dkimPubKey.Selector,
+			Version:      types.Version(dkimPubKey.Version),
+			KeyType:      types.KeyType(dkimPubKey.KeyType),
 		})
 	}
 	// this line is used by starport scaffolding # genesis/module/export

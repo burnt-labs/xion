@@ -19,7 +19,7 @@ service Msg {
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 
   // AddDkimPubKey defines a message to add a DKIM public key.
-  rpc AddDkimPubKey(MsgAddDkimPubKey) returns (MsgAddDkimPubKeyResponse);
+  rpc AddDkimPubKey(MsgAddDkimPubKeys) returns (MsgAddDkimPubKeysResponse);
 
     // RemoveDkimPubKey defines a message to remove a DKIM public key.
     rpc RemoveDkimPubKey(MsgRemoveDkimPubKey) returns (MsgRemoveDkimPubKeyResponse);
@@ -47,7 +47,7 @@ message MsgUpdateParams {
 message MsgUpdateParamsResponse {}
 
 // MsgAddDkimPubKey is the Msg/AddDkimPubKey request type.
-message MsgAddDkimPubKey {
+message MsgAddDkimPubKeys {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address of the governance account.
@@ -58,7 +58,7 @@ message MsgAddDkimPubKey {
 
 // MsgAddDkimPubKeyResponse defines the response structure for executing a
 // MsgAddDkimPubKey message.
-message MsgAddDkimPubKeyResponse {}
+message MsgAddDkimPubKeysResponse {}
 
 // MsgRemoveDkimPubKey is the Msg/RemoveDkimPubKey request type.
 message MsgRemoveDkimPubKey {

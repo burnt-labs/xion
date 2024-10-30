@@ -111,8 +111,8 @@ func (x *fastReflection_DkimPubKey) Range(f func(protoreflect.FieldDescriptor, p
 			return
 		}
 	}
-	if x.PoseidonHash != "" {
-		value := protoreflect.ValueOfString(x.PoseidonHash)
+	if len(x.PoseidonHash) != 0 {
+		value := protoreflect.ValueOfBytes(x.PoseidonHash)
 		if !f(fd_DkimPubKey_poseidon_hash, value) {
 			return
 		}
@@ -155,7 +155,7 @@ func (x *fastReflection_DkimPubKey) Has(fd protoreflect.FieldDescriptor) bool {
 	case "xion.dkim.v1.DkimPubKey.pub_key":
 		return x.PubKey != ""
 	case "xion.dkim.v1.DkimPubKey.poseidon_hash":
-		return x.PoseidonHash != ""
+		return len(x.PoseidonHash) != 0
 	case "xion.dkim.v1.DkimPubKey.selector":
 		return x.Selector != ""
 	case "xion.dkim.v1.DkimPubKey.version":
@@ -183,7 +183,7 @@ func (x *fastReflection_DkimPubKey) Clear(fd protoreflect.FieldDescriptor) {
 	case "xion.dkim.v1.DkimPubKey.pub_key":
 		x.PubKey = ""
 	case "xion.dkim.v1.DkimPubKey.poseidon_hash":
-		x.PoseidonHash = ""
+		x.PoseidonHash = nil
 	case "xion.dkim.v1.DkimPubKey.selector":
 		x.Selector = ""
 	case "xion.dkim.v1.DkimPubKey.version":
@@ -214,7 +214,7 @@ func (x *fastReflection_DkimPubKey) Get(descriptor protoreflect.FieldDescriptor)
 		return protoreflect.ValueOfString(value)
 	case "xion.dkim.v1.DkimPubKey.poseidon_hash":
 		value := x.PoseidonHash
-		return protoreflect.ValueOfString(value)
+		return protoreflect.ValueOfBytes(value)
 	case "xion.dkim.v1.DkimPubKey.selector":
 		value := x.Selector
 		return protoreflect.ValueOfString(value)
@@ -249,7 +249,7 @@ func (x *fastReflection_DkimPubKey) Set(fd protoreflect.FieldDescriptor, value p
 	case "xion.dkim.v1.DkimPubKey.pub_key":
 		x.PubKey = value.Interface().(string)
 	case "xion.dkim.v1.DkimPubKey.poseidon_hash":
-		x.PoseidonHash = value.Interface().(string)
+		x.PoseidonHash = value.Bytes()
 	case "xion.dkim.v1.DkimPubKey.selector":
 		x.Selector = value.Interface().(string)
 	case "xion.dkim.v1.DkimPubKey.version":
@@ -306,7 +306,7 @@ func (x *fastReflection_DkimPubKey) NewField(fd protoreflect.FieldDescriptor) pr
 	case "xion.dkim.v1.DkimPubKey.pub_key":
 		return protoreflect.ValueOfString("")
 	case "xion.dkim.v1.DkimPubKey.poseidon_hash":
-		return protoreflect.ValueOfString("")
+		return protoreflect.ValueOfBytes(nil)
 	case "xion.dkim.v1.DkimPubKey.selector":
 		return protoreflect.ValueOfString("")
 	case "xion.dkim.v1.DkimPubKey.version":
@@ -588,7 +588,7 @@ func (x *fastReflection_DkimPubKey) ProtoMethods() *protoiface.Methods {
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field PoseidonHash", wireType)
 				}
-				var stringLen uint64
+				var byteLen int
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -598,23 +598,25 @@ func (x *fastReflection_DkimPubKey) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					byteLen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
+				if byteLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + intStringLen
+				postIndex := iNdEx + byteLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.PoseidonHash = string(dAtA[iNdEx:postIndex])
+				x.PoseidonHash = append(x.PoseidonHash[:0], dAtA[iNdEx:postIndex]...)
+				if x.PoseidonHash == nil {
+					x.PoseidonHash = []byte{}
+				}
 				iNdEx = postIndex
 			case 4:
 				if wireType != 2 {
@@ -827,7 +829,7 @@ type DkimPubKey struct {
 
 	Domain       string  `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
 	PubKey       string  `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`                   // base64 encoded public key
-	PoseidonHash string  `protobuf:"bytes,3,opt,name=poseidon_hash,json=poseidonHash,proto3" json:"poseidon_hash,omitempty"` // hash of the public key
+	PoseidonHash []byte  `protobuf:"bytes,3,opt,name=poseidon_hash,json=poseidonHash,proto3" json:"poseidon_hash,omitempty"` // hash of the public key
 	Selector     string  `protobuf:"bytes,4,opt,name=selector,proto3" json:"selector,omitempty"`
 	Version      Version `protobuf:"varint,5,opt,name=version,proto3,enum=xion.dkim.v1.Version" json:"version,omitempty"`
 	KeyType      KeyType `protobuf:"varint,6,opt,name=key_type,json=keyType,proto3,enum=xion.dkim.v1.KeyType" json:"key_type,omitempty"`
@@ -867,11 +869,11 @@ func (x *DkimPubKey) GetPubKey() string {
 	return ""
 }
 
-func (x *DkimPubKey) GetPoseidonHash() string {
+func (x *DkimPubKey) GetPoseidonHash() []byte {
 	if x != nil {
 		return x.PoseidonHash
 	}
-	return ""
+	return nil
 }
 
 func (x *DkimPubKey) GetSelector() string {
@@ -907,7 +909,7 @@ var file_xion_dkim_v1_state_proto_rawDesc = []byte{
 	0x52, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x70, 0x75, 0x62, 0x5f,
 	0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x70, 0x75, 0x62, 0x4b, 0x65,
 	0x79, 0x12, 0x23, 0x0a, 0x0d, 0x70, 0x6f, 0x73, 0x65, 0x69, 0x64, 0x6f, 0x6e, 0x5f, 0x68, 0x61,
-	0x73, 0x68, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x6f, 0x73, 0x65, 0x69, 0x64,
+	0x73, 0x68, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x0c, 0x70, 0x6f, 0x73, 0x65, 0x69, 0x64,
 	0x6f, 0x6e, 0x48, 0x61, 0x73, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74,
 	0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x65, 0x6c, 0x65, 0x63, 0x74,
 	0x6f, 0x72, 0x12, 0x2f, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20,
