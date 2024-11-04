@@ -67,6 +67,7 @@ func (KeyType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_50cc02dd86df3648, []int{1}
 }
 
+// DkimPubKey represents a DKIM public key with associated metadata.
 type DkimPubKey struct {
 	Domain       string  `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
 	PubKey       string  `protobuf:"bytes,2,opt,name=pub_key,json=pubKey,proto3" json:"pub_key,omitempty"`

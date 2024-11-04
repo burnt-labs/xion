@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/base64"
+	"math/big"
 	"net/url"
 
 	"cosmossdk.io/errors"
@@ -18,6 +19,15 @@ func (pubKey *DkimPubKey) Validate() error {
 	// make sure the public key is base64 encoded
 	if _, err := base64.StdEncoding.DecodeString(pubKey.PubKey); err != nil {
 		return errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
+	}
+	// validate that the poseidon hash
+	expectedHash, err := ComputePoseidonHash(pubKey.PubKey)
+	if err != nil {
+		return err
+	}
+	hash := new(big.Int).SetBytes(pubKey.PoseidonHash)
+	if hash.Cmp(expectedHash) != 0 {
+		return errors.Wrap(sdkError.ErrInvalidRequest, "poseidon hash does not match")
 	}
 	return nil
 }

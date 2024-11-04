@@ -142,11 +142,12 @@ func TestAddDkimPubKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(_ *testing.T) {
-			_, err := f.msgServer.AddDkimPubKey(f.ctx, tc.request)
 
+			err := tc.request.ValidateBasic()
 			if tc.err {
 				require.Error(err)
 			} else {
+				_, err = f.msgServer.AddDkimPubKey(f.ctx, tc.request)
 				require.NoError(err)
 
 				r, err := f.queryServer.DkimPubKey(f.ctx, &types.QueryDkimPubKeyRequest{

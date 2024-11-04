@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"encoding/base64"
 	"testing"
 
 	"github.com/google/uuid"
@@ -14,12 +13,17 @@ func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyT
 	var dkimPubKeys []types.DkimPubKey
 	for i := 0; i < count; i++ {
 		selector := uuid.NewString()
+		hash, err := types.ComputePoseidonHash(pubKey)
+		if err != nil {
+			panic(err)
+		}
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
-			Domain:   domain,
-			PubKey:   pubKey,
-			Selector: selector,
-			Version:  version,
-			KeyType:  keyType,
+			Domain:       domain,
+			PubKey:       pubKey,
+			PoseidonHash: hash.Bytes(),
+			Selector:     selector,
+			Version:      version,
+			KeyType:      keyType,
 		})
 	}
 	return dkimPubKeys
@@ -40,7 +44,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Params:      types.DefaultParams(),
-				DkimPubkeys: CreateNDkimPubKey("xion.burnt.com", base64.RawStdEncoding.EncodeToString([]byte("test-pub-key")), types.Version_DKIM1, types.KeyType_RSA, 10),
+				DkimPubkeys: CreateNDkimPubKey("xion.burnt.com", "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB", types.Version_DKIM1, types.KeyType_RSA, 10),
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,

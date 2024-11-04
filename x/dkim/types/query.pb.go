@@ -270,6 +270,7 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Params queries all parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// DkimPubKey queries the DKIM public key for a given selector and domain.
 	DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
 }
 
@@ -303,6 +304,7 @@ func (c *queryClient) DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest
 type QueryServer interface {
 	// Params queries all parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// DkimPubKey queries the DKIM public key for a given selector and domain.
 	DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
 }
 

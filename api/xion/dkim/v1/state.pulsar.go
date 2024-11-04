@@ -822,6 +822,7 @@ func (KeyType) EnumDescriptor() ([]byte, []int) {
 	return file_xion_dkim_v1_state_proto_rawDescGZIP(), []int{1}
 }
 
+// DkimPubKey represents a DKIM public key with associated metadata.
 type DkimPubKey struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

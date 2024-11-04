@@ -35,7 +35,7 @@ func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic does a sanity check on the provided data.
-func (msg *MsgUpdateParams) Validate() error {
+func (msg *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
 	}
@@ -67,7 +67,7 @@ func (msg *MsgAddDkimPubKeys) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic does a sanity check on the provided data.
-func (msg *MsgAddDkimPubKeys) Validate() error {
+func (msg *MsgAddDkimPubKeys) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
 	}
@@ -103,7 +103,7 @@ func (msg *MsgRemoveDkimPubKey) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic does a sanity check on the provided data.
-func (msg *MsgRemoveDkimPubKey) Validate() error {
+func (msg *MsgRemoveDkimPubKey) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
 	}

@@ -59,13 +59,6 @@ func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubK
 	if ms.k.authority != msg.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
-	for i := range msg.DkimPubkeys {
-		hash, err := types.ComputePoseidonHash(msg.DkimPubkeys[i].PubKey)
-		if err != nil {
-			return nil, err
-		}
-		msg.DkimPubkeys[i].PoseidonHash = hash.Bytes()
-	}
 	_, err := SaveDkimPubKeys(ctx, msg.DkimPubkeys, ms.k.OrmDB)
 	if err != nil {
 		return nil, err
