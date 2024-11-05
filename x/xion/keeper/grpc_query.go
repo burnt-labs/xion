@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"net/url"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/burnt-labs/xion/x/xion/types"
 )
