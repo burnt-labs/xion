@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"net/url"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -61,4 +62,22 @@ func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.Que
 	}
 
 	return &types.QueryWebAuthNVerifyAuthenticateResponse{}, nil
+}
+
+// PlatformPercentage implements types.QueryServer.
+func (k Keeper) PlatformPercentage(ctx context.Context, _ *types.QueryPlatformPercentageRequest) (*types.QueryPlatformPercentageResponse, error) {
+	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+	percentage := k.GetPlatformPercentage(sdkCtx).Uint64()
+	return &types.QueryPlatformPercentageResponse{PlatformPercentage: percentage}, nil
+}
+
+// PlatformMinimum implements types.QueryServer.
+func (k Keeper) PlatformMinimum(ctx context.Context, _ *types.QueryPlatformMinimumRequest) (*types.QueryPlatformMinimumResponse, error) {
+	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+	coins, err := k.GetPlatformMinimums(sdkCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryPlatformMinimumResponse{Minimums: coins}, nil
 }
