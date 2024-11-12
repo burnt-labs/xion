@@ -96,6 +96,13 @@ type TestData struct {
 	client    *client.Client
 }
 
+type Dkim struct {
+	PubKey       string `json:"pubKey"`
+	Domain       string `json:"domain"`
+	Selector     string `json:"selector"`
+	PoseidonHash string `json:"poseidon_hash"`
+}
+
 func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
 	msg := fmt.Sprintf(`
 {
@@ -431,6 +438,29 @@ func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, pa
 
 	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
 		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
+
+// / params is the json encoded array of dkim public keys
+func ModifyGenesisDKIMRecords(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	// let's add a DKIM record
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	pubKeys := []Dkim{}
+	err := json.Unmarshal([]byte(params[0]), &pubKeys)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal dkim public keys to json: %w", err)
+	}
+	if err := dyno.Set(g, pubKeys, "app_state", "dkim", "dkim_pubkeys"); err != nil {
+		return nil, fmt.Errorf("failed to set dkim records in genesis json: %w", err)
 	}
 	out, err := json.Marshal(g)
 	if err != nil {

@@ -23,7 +23,6 @@ func PreparePubkeyForHashing(pubkey []*big.Int, n, k int) []*big.Int {
 	if k%2 == 1 {
 		k2ChunkedSize++
 	}
-	fmt.Println("k2_chunked_size:", k2ChunkedSize)
 
 	// Step 2: Prepare pubkey_hash_input with correct size
 	pubkeyHashInput := make([]*big.Int, k2ChunkedSize)
@@ -39,7 +38,6 @@ func PreparePubkeyForHashing(pubkey []*big.Int, n, k int) []*big.Int {
 			term2 := new(big.Int).Lsh(pubkey[2*i+1], uint(n)) //nolint:gosec // disable G115
 			pubkeyHashInput[i] = new(big.Int).Add(term1, term2)
 		}
-		fmt.Println("pubkeyHashInput[", i, "]:", pubkeyHashInput[i])
 	}
 
 	return pubkeyHashInput

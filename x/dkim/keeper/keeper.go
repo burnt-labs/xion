@@ -85,15 +85,11 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		return err
 	}
 	for _, dkimPubKey := range data.DkimPubkeys {
-		hash, err := types.ComputePoseidonHash(dkimPubKey.PubKey)
-		if err != nil {
-			return err
-		}
 		if err := k.OrmDB.DkimPubKeyTable().Save(ctx, &apiv1.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
-			PoseidonHash: hash.Bytes(),
+			PoseidonHash: dkimPubKey.PoseidonHash,
 		}); err != nil {
 			return err
 		}
