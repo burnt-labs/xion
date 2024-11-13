@@ -79,14 +79,15 @@ func (msg *MsgAddDkimPubKeys) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgAddDkimPubKey creates new instance of MsgAddDkimPubKey
-func NewMsgRemoveDkimPubKeys(
+// NewMsgRemoveDkimPubKey creates new instance of NewMsgRemoveDkimPubKey
+func NewMsgRemoveDkimPubKey(
 	sender sdk.Address,
-	dkimPubKeys []DkimPubKey,
-) *MsgAddDkimPubKeys {
-	return &MsgAddDkimPubKeys{
-		Authority:   sender.String(),
-		DkimPubkeys: dkimPubKeys,
+	dkimPubKey DkimPubKey,
+) *MsgRemoveDkimPubKey {
+	return &MsgRemoveDkimPubKey{
+		Authority: sender.String(),
+		Selector:  dkimPubKey.Selector,
+		Domain:    dkimPubKey.Domain,
 	}
 }
 

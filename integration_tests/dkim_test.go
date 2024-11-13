@@ -1,9 +1,10 @@
 package integration_tests
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"testing"
+	"time"
 
 	"cosmossdk.io/math"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
@@ -12,6 +13,7 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
@@ -41,13 +43,14 @@ var pubKeysBz, _ = json.Marshal([]Dkim{{
 }})
 
 func TestDKIMModule(t *testing.T) {
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisDKIMRecords}, [][]string{{string(pubKeysBz)}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisDKIMRecords, ModifyGenesisShortProposals}, [][]string{{string(pubKeysBz)}, {votingPeriod, maxDepositPeriod}}))
 
 	xion, ctx := td.xionChain, td.ctx
 
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgAddDkimPubKeys{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgRemoveDkimPubKey{})
 
 	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
@@ -58,12 +61,6 @@ func TestDKIMModule(t *testing.T) {
 	dkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "--domain", domain_1, "--selector", selector_1)
 	require.NoError(t, err)
 	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), pubKey_1)
-
-	address, err := xion.GetAddress(ctx, chainUser.KeyName())
-	require.NoError(t, err)
-
-	addrString, err := sdk.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, address)
-	require.NoError(t, err)
 
 	governancePubkey_1 := "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCD8gKP5B1x0stqA0NhBw0PbvVjbQ98s07tAovJmUBLk9D/VsjNCVx8WAzZxyKI+lbs9Okua/Knq5kDzO2dxSbus/LaDHCHx7YYqNWL0xdaPCSjFL/sYqX7V4wq4N/OcBoASitk61eGJXVgmEfJBRNfNoi3iHDf9GvpCNBKTHYkewIDAQAB"
 	poseidonHash, err := dkimTypes.ComputePoseidonHash(governancePubkey_1)
@@ -82,13 +79,36 @@ func TestDKIMModule(t *testing.T) {
 
 	createDkimMsg := dkimTypes.NewMsgAddDkimPubKeys(sdk.MustAccAddressFromBech32(govModAddress), governancePubKeys)
 
+	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{createDkimMsg}, "Add Netflix DKIM record", "Add Netflix DKIM record", "Add Netflix DKIM record", 1)
+	require.NoError(t, err)
+
+	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
+	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "--domain", governanceDomain, "--selector", governanceSelector)
+	require.NoError(t, err)
+	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), governancePubkey_1)
+
+	deleteDkimMsg := dkimTypes.NewMsgRemoveDkimPubKey(sdk.MustAccAddressFromBech32(govModAddress), dkimTypes.DkimPubKey{
+		Domain:   governanceDomain,
+		Selector: governanceSelector,
+	})
+
+	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{deleteDkimMsg}, "Remove Netflix DKIM record", "Remove Netflix DKIM record", "Remove Netflix DKIM record", 2)
+	require.NoError(t, err)
+
+	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
+	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "--domain", governanceDomain, "--selector", governanceSelector)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found")
+}
+
+func createAndSubmitProposal(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, proposer ibc.Wallet, proposalMsgs []cosmos.ProtoMessage, title, summary, metadata string, proposalId int) error {
 	proposal, err := xion.BuildProposal(
-		[]cosmos.ProtoMessage{createDkimMsg},
-		"Add netflix DKIM public key",
-		"Add netflix DKIM public key",
-		"",
-		"500000000"+xion.Config().Denom, // greater than min deposit
-		addrString,
+		proposalMsgs,
+		title,
+		summary,
+		metadata,
+		"500000000"+xion.Config().Denom, // greater than min deposit",
+		proposer.FormattedAddress(),
 		false,
 	)
 	require.NoError(t, err)
@@ -96,22 +116,28 @@ func TestDKIMModule(t *testing.T) {
 	height, err := xion.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
-	_, err = xion.SubmitProposal(ctx, chainUser.KeyName(), proposal)
+	_, err = xion.SubmitProposal(ctx, proposer.KeyName(), proposal)
 	require.NoError(t, err) // only governance account can submit proposals
 
-	prop, err := xion.GovQueryProposal(ctx, 1)
+	prop, err := xion.GovQueryProposal(ctx, uint64(proposalId))
 	require.NoError(t, err)
 	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
 
 	err = xion.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	err = testutil.WaitForBlocks(ctx, int(height+haltHeightDelta), xion)
-	require.NoError(t, err)
-
-	prop, err = xion.GovQueryProposal(ctx, 1)
-	require.NoError(t, err)
-	fmt.Println("Proposal status: ", prop)
+	require.Eventuallyf(t, func() bool {
+		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(prop.ProposalId))
+		if err != nil {
+			require.NoError(t, err)
+		} else {
+			if proposalInfo.Status == govv1beta1.StatusPassed {
+				return true
+			}
+			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
+		}
+		return false
+	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
 	afterVoteHeight, err := xion.Height(ctx)
 	require.NoError(t, err, "error fetching height after voting on proposal")
@@ -122,10 +148,5 @@ func TestDKIMModule(t *testing.T) {
 	height, err = xion.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 	err = testutil.WaitForBlocks(ctx, int(height+4), xion)
-	require.NoError(t, err)
-
-	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
-	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "--domain", governanceDomain, "--selector", governanceSelector)
-	require.NoError(t, err)
-	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), governancePubKeys)
+	return err
 }
