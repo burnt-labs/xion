@@ -20,7 +20,7 @@ func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyT
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
 			Domain:       domain,
 			PubKey:       pubKey,
-			PoseidonHash: hash.Bytes(),
+			PoseidonHash: []byte(hash.String()),
 			Selector:     selector,
 			Version:      version,
 			KeyType:      keyType,

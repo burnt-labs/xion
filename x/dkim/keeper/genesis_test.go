@@ -34,7 +34,7 @@ func TestGenesis(t *testing.T) {
 						Domain:       "x.com",
 						Selector:     "test",
 						PubKey:       PubKey,
-						PoseidonHash: hash.Bytes(),
+						PoseidonHash: []byte(hash.String()),
 					},
 				},
 			},
