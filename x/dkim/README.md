@@ -13,9 +13,9 @@ The DKIM module enables the storage, querying, and management of DKIM public key
 
 ## Features
 
-### 1. Poseidon Hash Calculation
+### 1. Dkim record generation
 
-The module includes functionality for calculating the Poseidon hash of a given public key, which enhances privacy and security in verifying DKIM signatures on-chain.
+The module includes functionality to generate a dkim record for a given domain and selector.Refer to the example usage section for more details.
 
 ### 2. Governance-Controlled Key Management
 
@@ -48,15 +48,6 @@ Fetches the DKIM public key and its Poseidon hash for a specified selector and d
 - **Response**: `QueryDkimPubKeyResponse`
   - `dkim_pubkey`: The stored DKIM public key.
   - `poseidon_hash`: Poseidon hash of the public key.
-
-#### 3. `PoseidonHash`
-
-Calculates and returns the Poseidon hash of a provided public key.
-
-- **Request**: `PoseidonHashRequest`
-  - `public_key`: The public key in raw format.
-- **Response**: `PoseidonHashResponse`
-  - `poseidon_hash`: The computed Poseidon hash of the input public key.
 
 ### `Msg` Service
 
@@ -94,7 +85,6 @@ Allows governance to remove a DKIM public key for a specific selector and domain
 
 - **`QueryParamsRequest` / `QueryParamsResponse`**: For querying and retrieving module parameters.
 - **`QueryDkimPubKeyRequest` / `QueryDkimPubKeyResponse`**: For querying DKIM public keys and Poseidon hashes.
-- **`PoseidonHashRequest` / `PoseidonHashResponse`**: For calculating and retrieving the Poseidon hash of a public key.
 
 ### Governance Messages
 
@@ -114,9 +104,13 @@ To add a new DKIM public key:
 
 To fetch the stored DKIM public key for a given selector and domain, call `QueryDkimPubKey` with the appropriate request parameters.
 
-### Calculating a Poseidon Hash
+### Generating a Dkim record
 
-To calculate the Poseidon hash for a public key, use the `PoseidonHash` endpoint, passing the public key as input.
+To generate the dkim record for a domain,selector pair, use the `gdkim` CLI query command, passing the domain and selectors as arguments.
+
+```bash
+xiond query dkim gdkim <domain> <selector>
+```
 
 ## License
 
