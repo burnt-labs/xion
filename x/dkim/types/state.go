@@ -25,7 +25,10 @@ func (pubKey *DkimPubKey) Validate() error {
 	if err != nil {
 		return err
 	}
-	hash := new(big.Int).SetBytes(pubKey.PoseidonHash)
+	hash, isSet := new(big.Int).SetString(string(pubKey.PoseidonHash), 10)
+	if !isSet {
+		return errors.Wrap(sdkError.ErrInvalidRequest, "failed to set poseidon hash")
+	}
 	if hash.Cmp(expectedHash) != 0 {
 		return errors.Wrap(sdkError.ErrInvalidRequest, "poseidon hash does not match")
 	}

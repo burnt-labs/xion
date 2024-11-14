@@ -2,11 +2,13 @@ package integration_tests
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
+	"github.com/burnt-labs/xion/x/dkim/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -29,6 +31,9 @@ const selector_2 = "dkim202407"
 
 const poseidon_hash_1 = "1983664618407009423875829639306275185491946247764487749439145140682408188330"
 const poseidon_hash_2 = "1983664618407009423875829639306275185491946247764487749439145140682408188330"
+
+const customDomain = "account.netflix.com"
+const customSelector = "kk6c473czcop4fqv6yhfgiqupmfz3cm2"
 
 var pubKeysBz, _ = json.Marshal([]Dkim{{
 	PubKey:       pubKey_1,
@@ -58,22 +63,25 @@ func TestDKIMModule(t *testing.T) {
 	govModAddress := GetModuleAddress(t, xion, ctx, govModule.ModuleName)
 
 	// query chain for DKIM records
-	dkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "--domain", domain_1, "--selector", selector_1)
+	dkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, selector_1)
 	require.NoError(t, err)
 	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), pubKey_1)
 
-	governancePubkey_1 := "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCD8gKP5B1x0stqA0NhBw0PbvVjbQ98s07tAovJmUBLk9D/VsjNCVx8WAzZxyKI+lbs9Okua/Knq5kDzO2dxSbus/LaDHCHx7YYqNWL0xdaPCSjFL/sYqX7V4wq4N/OcBoASitk61eGJXVgmEfJBRNfNoi3iHDf9GvpCNBKTHYkewIDAQAB"
-	poseidonHash, err := dkimTypes.ComputePoseidonHash(governancePubkey_1)
-	governanceDomain := "account.netflix.com"
-	governanceSelector := "kk6c473czcop4fqv6yhfgiqupmfz3cm2"
-	require.NoError(t, err, "error computing governance public key poseidon hash")
+	// generate a dkim record by querying the chain
+	// and then submit a proposal to add it
+	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", "account.netflix.com", "kk6c473czcop4fqv6yhfgiqupmfz3cm2")
+	require.NoError(t, err)
+
+	customDkimPubkey := dkimRecord["pub_key"].(string)
+	poseidonHash, err := base64.StdEncoding.DecodeString(dkimRecord["poseidon_hash"].(string))
+	require.NoError(t, err)
 
 	governancePubKeys := []dkimTypes.DkimPubKey{
 		{
-			Domain:       governanceDomain,
-			Selector:     governanceSelector,
-			PubKey:       governancePubkey_1,
-			PoseidonHash: poseidonHash.Bytes(),
+			Domain:       customDomain,
+			Selector:     customSelector,
+			PubKey:       customDkimPubkey,
+			PoseidonHash: poseidonHash,
 		},
 	}
 
@@ -83,20 +91,23 @@ func TestDKIMModule(t *testing.T) {
 	require.NoError(t, err)
 
 	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
-	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "--domain", governanceDomain, "--selector", governanceSelector)
+	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.NoError(t, err)
-	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), governancePubkey_1)
+	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), customDkimPubkey)
+	expectedHash, err := types.ComputePoseidonHash(customDkimPubkey)
+	require.NoError(t, err)
+	require.Equal(t, dkimRecord["poseidon_hash"].(string), base64.StdEncoding.EncodeToString([]byte(expectedHash.String())))
 
 	deleteDkimMsg := dkimTypes.NewMsgRemoveDkimPubKey(sdk.MustAccAddressFromBech32(govModAddress), dkimTypes.DkimPubKey{
-		Domain:   governanceDomain,
-		Selector: governanceSelector,
+		Domain:   customDomain,
+		Selector: customSelector,
 	})
 
 	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{deleteDkimMsg}, "Remove Netflix DKIM record", "Remove Netflix DKIM record", "Remove Netflix DKIM record", 2)
 	require.NoError(t, err)
 
 	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
-	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "--domain", governanceDomain, "--selector", governanceSelector)
+	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 }
