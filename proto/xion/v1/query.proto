@@ -4,9 +4,12 @@ package xion.v1;
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
 service Query {
-  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest) returns (QueryWebAuthNVerifyRegisterResponse) {}
-  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest) returns (QueryWebAuthNVerifyAuthenticateResponse) {}
-  rpc PlatformPercentage(QueryPlatformPercentageRequest) returns (QueryPlatformPercentageResponse) {}
+  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest)
+      returns (QueryWebAuthNVerifyRegisterResponse) {}
+  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest)
+      returns (QueryWebAuthNVerifyAuthenticateResponse) {}
+  rpc PlatformPercentage(QueryPlatformPercentageRequest)
+      returns (QueryPlatformPercentageResponse) {}
 }
 
 message QueryWebAuthNVerifyRegisterRequest {
@@ -16,9 +19,7 @@ message QueryWebAuthNVerifyRegisterRequest {
   bytes data = 4;
 }
 
-message QueryWebAuthNVerifyRegisterResponse {
-  bytes credential = 1;
-}
+message QueryWebAuthNVerifyRegisterResponse { bytes credential = 1; }
 
 message QueryWebAuthNVerifyAuthenticateRequest {
   string addr = 1;
@@ -32,6 +33,4 @@ message QueryWebAuthNVerifyAuthenticateResponse {}
 
 message QueryPlatformPercentageRequest {}
 
-message QueryPlatformPercentageResponse {
-  uint64 platform_percentage = 1;
-}
+message QueryPlatformPercentageResponse { uint64 platform_percentage = 1; }

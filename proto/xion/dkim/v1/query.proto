@@ -29,14 +29,17 @@ message QueryParamsResponse {
   Params params = 1;
 }
 
-// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC method.
+// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
+// method.
 message QueryDkimPubKeyRequest {
   string selector = 1;
   string domain = 2;
 }
 
-// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC method.
+// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC
+// method.
 message QueryDkimPubKeyResponse {
   DkimPubKey dkim_pubkey = 1;
-  bytes poseidon_hash = 2; // the poseidon hash of the public key that signed the email
+  bytes poseidon_hash =
+      2; // the poseidon hash of the public key that signed the email
 }

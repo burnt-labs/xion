@@ -9,17 +9,20 @@ option go_package = "github.com/burnt-labs/xion/x/dkim/types";
 
 // DkimPubKey represents a DKIM public key with associated metadata.
 message DkimPubKey {
-    option (cosmos.orm.v1.table) = {
-      id: 1;
-      primary_key: { fields: "domain,selector" }
-    };
+  option (cosmos.orm.v1.table) = {
+    id : 1;
+primary_key: {
+fields:
+  "domain,selector"
+}
+};
 
-    string domain = 1;
-    string pub_key  = 2; // base64 encoded public key
-    bytes poseidon_hash = 3; // hash of the public key
-    string selector = 4;
-    Version version = 5;
-    KeyType key_type = 6;
+string domain = 1;
+string pub_key = 2;      // base64 encoded public key
+bytes poseidon_hash = 3; // hash of the public key
+string selector = 4;
+Version version = 5;
+KeyType key_type = 6;
 }
 
 enum Version {

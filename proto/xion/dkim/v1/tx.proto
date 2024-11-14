@@ -21,8 +21,9 @@ service Msg {
   // AddDkimPubKey defines a message to add a DKIM public key.
   rpc AddDkimPubKey(MsgAddDkimPubKeys) returns (MsgAddDkimPubKeysResponse);
 
-    // RemoveDkimPubKey defines a message to remove a DKIM public key.
-    rpc RemoveDkimPubKey(MsgRemoveDkimPubKey) returns (MsgRemoveDkimPubKeyResponse);
+  // RemoveDkimPubKey defines a message to remove a DKIM public key.
+  rpc RemoveDkimPubKey(MsgRemoveDkimPubKey)
+      returns (MsgRemoveDkimPubKeyResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -32,12 +33,12 @@ message MsgUpdateParams {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address of the governance account.
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // params defines the parameters to update.
   //
   // NOTE: All parameters must be supplied.
-  Params params = 2 [(gogoproto.nullable) = false];
+  Params params = 2 [ (gogoproto.nullable) = false ];
 }
 
 // MsgUpdateParamsResponse defines the response structure for executing a
@@ -51,9 +52,9 @@ message MsgAddDkimPubKeys {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address of the governance account.
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
-  repeated DkimPubKey dkim_pubkeys = 2 [(gogoproto.nullable) = false];
+  repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
 }
 
 // MsgAddDkimPubKeyResponse defines the response structure for executing a
@@ -65,7 +66,7 @@ message MsgRemoveDkimPubKey {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address of the governance account.
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   string selector = 2;
   string domain = 3;
