@@ -23,9 +23,7 @@ func NewTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	txCmd.AddCommand(
-		MsgUpdateParams(),
-	)
+	txCmd.AddCommand()
 	return txCmd
 }
 

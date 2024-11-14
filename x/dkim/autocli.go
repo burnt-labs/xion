@@ -20,7 +20,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				{
 					RpcMethod: "DkimPubKey",
 					Use:       "dkim-pubkey [flags] <domain> <selector>",
-					Alias:     []string{"dpk"},
+					Alias:     []string{"dkim"},
 					Short:     "Query a DKIM public key",
 					Example:   "dkim-pubkey --domain test.domain.com --selector test-domain",
 				},
@@ -37,7 +37,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					RpcMethod: "AddDkimPubKey",
 					Short:     "Add a new DKIM public key",
 					Long:      "Add a new DKIM public key",
-					Alias:     []string{"adpk"},
+					Alias:     []string{"adkim"},
 					Use:       "add-dkim-pubkey [flags] <dkim_pubkeys>",
 					Example:   "add-dkim-pubkey { domain: <domain>, pubKey: <pub-key>, selector: <selector> }...",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
@@ -52,7 +52,7 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					RpcMethod: "RemoveDkimPubKey",
 					Short:     "Remove a new DKIM public key",
 					Long:      "Remove a new DKIM public key",
-					Alias:     []string{"rdpk"},
+					Alias:     []string{"rdkim"},
 					Use:       "remove-dkim-pubkey [flags] dkim_pubkey",
 					Example:   "remove-dkim-pubkey { domain: <domain>, selector: <selector> }",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
