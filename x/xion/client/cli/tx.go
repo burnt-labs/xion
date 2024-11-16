@@ -59,6 +59,7 @@ func NewTxCmd() *cobra.Command {
 		NewSignCmd(),
 		NewAddAuthenticatorCmd(),
 		NewRegisterCmd(),
+		NewEmitArbitraryDataCmd(),
 	)
 
 	return txCmd
@@ -511,6 +512,39 @@ func NewSignCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
+	return cmd
+}
+
+// NewEmitArbitraryDataCmd returns a CLI command handler for emitting some arbitrary data from the chain.
+func NewEmitArbitraryDataCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "emit <arbitrary_data> <contract_address>",
+		Short: "Emit an arbitrary data from the chain",
+		Long:  `Sends an arbitrary data to the contract's emit endpoint. The contract emits the arbitrary contract on-chain.`,
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			arbitraryData := args[0]
+
+			contractAddr := args[1]
+
+			msg := wasmtypes.MsgExecuteContract{
+				Sender:   clientCtx.GetFromAddress().String(),
+				Contract: contractAddr,
+				Funds:    sdk.Coins{},
+				Msg:      []byte(arbitraryData),
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
