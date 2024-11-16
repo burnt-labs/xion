@@ -111,7 +111,8 @@ func (m *QueryParamsResponse) GetParams() *Params {
 	return nil
 }
 
-// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC method.
+// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
+// method.
 type QueryDkimPubKeyRequest struct {
 	Selector string `protobuf:"bytes,1,opt,name=selector,proto3" json:"selector,omitempty"`
 	Domain   string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
@@ -164,7 +165,8 @@ func (m *QueryDkimPubKeyRequest) GetDomain() string {
 	return ""
 }
 
-// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC method.
+// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC
+// method.
 type QueryDkimPubKeyResponse struct {
 	DkimPubkey   *DkimPubKey `protobuf:"bytes,1,opt,name=dkim_pubkey,json=dkimPubkey,proto3" json:"dkim_pubkey,omitempty"`
 	PoseidonHash []byte      `protobuf:"bytes,2,opt,name=poseidon_hash,json=poseidonHash,proto3" json:"poseidon_hash,omitempty"`

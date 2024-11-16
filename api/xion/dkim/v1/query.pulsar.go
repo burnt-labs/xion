@@ -1866,7 +1866,8 @@ func (x *QueryParamsResponse) GetParams() *Params {
 	return nil
 }
 
-// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC method.
+// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
+// method.
 type QueryDkimPubKeyRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1910,7 +1911,8 @@ func (x *QueryDkimPubKeyRequest) GetDomain() string {
 	return ""
 }
 
-// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC method.
+// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC
+// method.
 type QueryDkimPubKeyResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

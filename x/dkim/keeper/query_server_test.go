@@ -56,7 +56,7 @@ func TestQueryDkimPubKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(_ *testing.T) {
-			_, err := f.msgServer.AddDkimPubKey(f.ctx, &types.MsgAddDkimPubKeys{
+			_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
 				Authority:   f.govModAddr,
 				DkimPubkeys: createReq,
 			})

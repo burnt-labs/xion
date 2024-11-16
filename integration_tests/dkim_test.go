@@ -69,7 +69,7 @@ func TestDKIMModule(t *testing.T) {
 
 	// generate a dkim record by querying the chain
 	// and then submit a proposal to add it
-	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", "account.netflix.com", "kk6c473czcop4fqv6yhfgiqupmfz3cm2")
+	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", customDomain, customSelector)
 	require.NoError(t, err)
 
 	customDkimPubkey := dkimRecord["pub_key"].(string)

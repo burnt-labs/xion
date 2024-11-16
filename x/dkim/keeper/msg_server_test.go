@@ -147,7 +147,7 @@ func TestAddDkimPubKey(t *testing.T) {
 			if tc.err {
 				require.Error(err)
 			} else {
-				_, err = f.msgServer.AddDkimPubKey(f.ctx, tc.request)
+				_, err = f.msgServer.AddDkimPubKeys(f.ctx, tc.request)
 				require.NoError(err)
 
 				r, err := f.queryServer.DkimPubKey(f.ctx, &types.QueryDkimPubKeyRequest{
@@ -172,7 +172,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 	const PubKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
 	selector := "zkemail"
 
-	_, err := f.msgServer.AddDkimPubKey(f.ctx, &types.MsgAddDkimPubKeys{
+	_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
 		Authority: f.govModAddr,
 		DkimPubkeys: []types.DkimPubKey{
 			{

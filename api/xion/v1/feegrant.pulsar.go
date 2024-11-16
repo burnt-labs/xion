@@ -1674,7 +1674,8 @@ func (x *ContractsAllowance) GetContractAddresses() []string {
 	return nil
 }
 
-// MultiAnyAllowance creates an allowance that pays if any of the internal allowances are met
+// MultiAnyAllowance creates an allowance that pays if any of the internal
+// allowances are met
 type MultiAnyAllowance struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -89,7 +89,7 @@ func GenerateDkimPublicKey() *cobra.Command {
 				return err
 			}
 
-			pubKey, err := types.GetDKIMPublicKey(args[1], args[0])
+			pubKey, err := GetDKIMPublicKey(args[1], args[0])
 			if err != nil {
 				return err
 			}
