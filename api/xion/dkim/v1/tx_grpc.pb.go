@@ -34,7 +34,7 @@ type MsgClient interface {
 	//
 	// Since: cosmos-sdk 0.47
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
-	// AddDkimPubKey defines a message to add a DKIM public key.
+	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error)
 	// RemoveDkimPubKey defines a message to remove a DKIM public key.
 	RemoveDkimPubKey(ctx context.Context, in *MsgRemoveDkimPubKey, opts ...grpc.CallOption) (*MsgRemoveDkimPubKeyResponse, error)
@@ -88,7 +88,7 @@ type MsgServer interface {
 	//
 	// Since: cosmos-sdk 0.47
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
-	// AddDkimPubKey defines a message to add a DKIM public key.
+	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error)
 	// RemoveDkimPubKey defines a message to remove a DKIM public key.
 	RemoveDkimPubKey(context.Context, *MsgRemoveDkimPubKey) (*MsgRemoveDkimPubKeyResponse, error)
