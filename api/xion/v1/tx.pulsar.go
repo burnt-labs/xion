@@ -2,20 +2,22 @@
 package xionv1
 
 import (
+	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
 	_ "cosmossdk.io/api/amino"
 	v1beta11 "cosmossdk.io/api/cosmos/bank/v1beta1"
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	_ "cosmossdk.io/api/cosmos/msg/v1"
-	fmt "fmt"
+
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var _ protoreflect.List = (*_MsgSend_3_list)(nil)
@@ -104,17 +106,21 @@ func (x *MsgSend) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSend_messageType fastReflection_MsgSend_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSend_messageType{}
+var (
+	_fastReflection_MsgSend_messageType fastReflection_MsgSend_messageType
+	_                                   protoreflect.MessageType = fastReflection_MsgSend_messageType{}
+)
 
 type fastReflection_MsgSend_messageType struct{}
 
 func (x fastReflection_MsgSend_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSend)(nil)
 }
+
 func (x fastReflection_MsgSend_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSend)
 }
+
 func (x fastReflection_MsgSend_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSend
 }
@@ -640,9 +646,7 @@ func (x *fastReflection_MsgSend) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgSendResponse protoreflect.MessageDescriptor
-)
+var md_MsgSendResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_v1_tx_proto_init()
@@ -669,17 +673,21 @@ func (x *MsgSendResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSendResponse_messageType fastReflection_MsgSendResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSendResponse_messageType{}
+var (
+	_fastReflection_MsgSendResponse_messageType fastReflection_MsgSendResponse_messageType
+	_                                           protoreflect.MessageType = fastReflection_MsgSendResponse_messageType{}
+)
 
 type fastReflection_MsgSendResponse_messageType struct{}
 
 func (x fastReflection_MsgSendResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSendResponse)(nil)
 }
+
 func (x fastReflection_MsgSendResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSendResponse)
 }
+
 func (x fastReflection_MsgSendResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSendResponse
 }
@@ -1131,17 +1139,21 @@ func (x *MsgMultiSend) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgMultiSend_messageType fastReflection_MsgMultiSend_messageType
-var _ protoreflect.MessageType = fastReflection_MsgMultiSend_messageType{}
+var (
+	_fastReflection_MsgMultiSend_messageType fastReflection_MsgMultiSend_messageType
+	_                                        protoreflect.MessageType = fastReflection_MsgMultiSend_messageType{}
+)
 
 type fastReflection_MsgMultiSend_messageType struct{}
 
 func (x fastReflection_MsgMultiSend_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgMultiSend)(nil)
 }
+
 func (x fastReflection_MsgMultiSend_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgMultiSend)
 }
+
 func (x fastReflection_MsgMultiSend_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgMultiSend
 }
@@ -1628,9 +1640,7 @@ func (x *fastReflection_MsgMultiSend) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgMultiSendResponse protoreflect.MessageDescriptor
-)
+var md_MsgMultiSendResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_v1_tx_proto_init()
@@ -1657,17 +1667,21 @@ func (x *MsgMultiSendResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgMultiSendResponse_messageType fastReflection_MsgMultiSendResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgMultiSendResponse_messageType{}
+var (
+	_fastReflection_MsgMultiSendResponse_messageType fastReflection_MsgMultiSendResponse_messageType
+	_                                                protoreflect.MessageType = fastReflection_MsgMultiSendResponse_messageType{}
+)
 
 type fastReflection_MsgMultiSendResponse_messageType struct{}
 
 func (x fastReflection_MsgMultiSendResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgMultiSendResponse)(nil)
 }
+
 func (x fastReflection_MsgMultiSendResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgMultiSendResponse)
 }
+
 func (x fastReflection_MsgMultiSendResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgMultiSendResponse
 }
@@ -2017,17 +2031,21 @@ func (x *MsgSetPlatformPercentage) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSetPlatformPercentage_messageType fastReflection_MsgSetPlatformPercentage_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSetPlatformPercentage_messageType{}
+var (
+	_fastReflection_MsgSetPlatformPercentage_messageType fastReflection_MsgSetPlatformPercentage_messageType
+	_                                                    protoreflect.MessageType = fastReflection_MsgSetPlatformPercentage_messageType{}
+)
 
 type fastReflection_MsgSetPlatformPercentage_messageType struct{}
 
 func (x fastReflection_MsgSetPlatformPercentage_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSetPlatformPercentage)(nil)
 }
+
 func (x fastReflection_MsgSetPlatformPercentage_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSetPlatformPercentage)
 }
+
 func (x fastReflection_MsgSetPlatformPercentage_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSetPlatformPercentage
 }
@@ -2452,9 +2470,7 @@ func (x *fastReflection_MsgSetPlatformPercentage) ProtoMethods() *protoiface.Met
 	}
 }
 
-var (
-	md_MsgSetPlatformPercentageResponse protoreflect.MessageDescriptor
-)
+var md_MsgSetPlatformPercentageResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_v1_tx_proto_init()
@@ -2481,17 +2497,21 @@ func (x *MsgSetPlatformPercentageResponse) slowProtoReflect() protoreflect.Messa
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSetPlatformPercentageResponse_messageType fastReflection_MsgSetPlatformPercentageResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSetPlatformPercentageResponse_messageType{}
+var (
+	_fastReflection_MsgSetPlatformPercentageResponse_messageType fastReflection_MsgSetPlatformPercentageResponse_messageType
+	_                                                            protoreflect.MessageType = fastReflection_MsgSetPlatformPercentageResponse_messageType{}
+)
 
 type fastReflection_MsgSetPlatformPercentageResponse_messageType struct{}
 
 func (x fastReflection_MsgSetPlatformPercentageResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSetPlatformPercentageResponse)(nil)
 }
+
 func (x fastReflection_MsgSetPlatformPercentageResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSetPlatformPercentageResponse)
 }
+
 func (x fastReflection_MsgSetPlatformPercentageResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSetPlatformPercentageResponse
 }
@@ -2892,17 +2912,21 @@ func (x *MsgSetPlatformMinimum) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSetPlatformMinimum_messageType fastReflection_MsgSetPlatformMinimum_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSetPlatformMinimum_messageType{}
+var (
+	_fastReflection_MsgSetPlatformMinimum_messageType fastReflection_MsgSetPlatformMinimum_messageType
+	_                                                 protoreflect.MessageType = fastReflection_MsgSetPlatformMinimum_messageType{}
+)
 
 type fastReflection_MsgSetPlatformMinimum_messageType struct{}
 
 func (x fastReflection_MsgSetPlatformMinimum_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSetPlatformMinimum)(nil)
 }
+
 func (x fastReflection_MsgSetPlatformMinimum_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSetPlatformMinimum)
 }
+
 func (x fastReflection_MsgSetPlatformMinimum_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSetPlatformMinimum
 }
@@ -3366,9 +3390,7 @@ func (x *fastReflection_MsgSetPlatformMinimum) ProtoMethods() *protoiface.Method
 	}
 }
 
-var (
-	md_MsgSetPlatformMinimumResponse protoreflect.MessageDescriptor
-)
+var md_MsgSetPlatformMinimumResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_v1_tx_proto_init()
@@ -3395,17 +3417,21 @@ func (x *MsgSetPlatformMinimumResponse) slowProtoReflect() protoreflect.Message 
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSetPlatformMinimumResponse_messageType fastReflection_MsgSetPlatformMinimumResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSetPlatformMinimumResponse_messageType{}
+var (
+	_fastReflection_MsgSetPlatformMinimumResponse_messageType fastReflection_MsgSetPlatformMinimumResponse_messageType
+	_                                                         protoreflect.MessageType = fastReflection_MsgSetPlatformMinimumResponse_messageType{}
+)
 
 type fastReflection_MsgSetPlatformMinimumResponse_messageType struct{}
 
 func (x fastReflection_MsgSetPlatformMinimumResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSetPlatformMinimumResponse)(nil)
 }
+
 func (x fastReflection_MsgSetPlatformMinimumResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSetPlatformMinimumResponse)
 }
+
 func (x fastReflection_MsgSetPlatformMinimumResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSetPlatformMinimumResponse
 }
@@ -4147,20 +4173,22 @@ func file_xion_v1_tx_proto_rawDescGZIP() []byte {
 	return file_xion_v1_tx_proto_rawDescData
 }
 
-var file_xion_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_xion_v1_tx_proto_goTypes = []interface{}{
-	(*MsgSend)(nil),                          // 0: xion.v1.MsgSend
-	(*MsgSendResponse)(nil),                  // 1: xion.v1.MsgSendResponse
-	(*MsgMultiSend)(nil),                     // 2: xion.v1.MsgMultiSend
-	(*MsgMultiSendResponse)(nil),             // 3: xion.v1.MsgMultiSendResponse
-	(*MsgSetPlatformPercentage)(nil),         // 4: xion.v1.MsgSetPlatformPercentage
-	(*MsgSetPlatformPercentageResponse)(nil), // 5: xion.v1.MsgSetPlatformPercentageResponse
-	(*MsgSetPlatformMinimum)(nil),            // 6: xion.v1.MsgSetPlatformMinimum
-	(*MsgSetPlatformMinimumResponse)(nil),    // 7: xion.v1.MsgSetPlatformMinimumResponse
-	(*v1beta1.Coin)(nil),                     // 8: cosmos.base.v1beta1.Coin
-	(*v1beta11.Input)(nil),                   // 9: cosmos.bank.v1beta1.Input
-	(*v1beta11.Output)(nil),                  // 10: cosmos.bank.v1beta1.Output
-}
+var (
+	file_xion_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+	file_xion_v1_tx_proto_goTypes  = []interface{}{
+		(*MsgSend)(nil),                          // 0: xion.v1.MsgSend
+		(*MsgSendResponse)(nil),                  // 1: xion.v1.MsgSendResponse
+		(*MsgMultiSend)(nil),                     // 2: xion.v1.MsgMultiSend
+		(*MsgMultiSendResponse)(nil),             // 3: xion.v1.MsgMultiSendResponse
+		(*MsgSetPlatformPercentage)(nil),         // 4: xion.v1.MsgSetPlatformPercentage
+		(*MsgSetPlatformPercentageResponse)(nil), // 5: xion.v1.MsgSetPlatformPercentageResponse
+		(*MsgSetPlatformMinimum)(nil),            // 6: xion.v1.MsgSetPlatformMinimum
+		(*MsgSetPlatformMinimumResponse)(nil),    // 7: xion.v1.MsgSetPlatformMinimumResponse
+		(*v1beta1.Coin)(nil),                     // 8: cosmos.base.v1beta1.Coin
+		(*v1beta11.Input)(nil),                   // 9: cosmos.bank.v1beta1.Input
+		(*v1beta11.Output)(nil),                  // 10: cosmos.bank.v1beta1.Output
+	}
+)
 var file_xion_v1_tx_proto_depIdxs = []int32{
 	8,  // 0: xion.v1.MsgSend.amount:type_name -> cosmos.base.v1beta1.Coin
 	9,  // 1: xion.v1.MsgMultiSend.inputs:type_name -> cosmos.bank.v1beta1.Input

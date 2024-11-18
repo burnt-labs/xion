@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	"cosmossdk.io/orm/model/ormlist"
 
@@ -132,9 +133,9 @@ func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {
 		pageRequest.Limit = request.Limit
 		pageRequest.Reverse = request.Reverse
 		return &pageRequest
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 func convertPageResponse(response *queryv1beta1.PageResponse) *query.PageResponse {
@@ -143,9 +144,9 @@ func convertPageResponse(response *queryv1beta1.PageResponse) *query.PageRespons
 		pageResponse.NextKey = response.NextKey
 		pageResponse.Total = response.Total
 		return &pageResponse
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 func consumeIteratorResults(iterator dkimv1.DkimPubKeyIterator) (output []*types.DkimPubKey, err error) {

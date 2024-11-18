@@ -42,7 +42,7 @@ func TestQueryDkimPubKey(t *testing.T) {
 			},
 			err: false,
 			result: &types.QueryDkimPubKeyResponse{
-				DkimPubkey: &types.DkimPubKey{
+				DkimPubKey: &types.DkimPubKey{
 					Domain:   domain,
 					PubKey:   pubKey,
 					Selector: createReq[0].Selector,

@@ -3,8 +3,9 @@ package cli_test
 import (
 	"testing"
 
-	cli "github.com/burnt-labs/xion/x/dkim/client/cli"
 	"github.com/stretchr/testify/require"
+
+	cli "github.com/burnt-labs/xion/x/dkim/client/cli"
 )
 
 func TestGetDkimPubicKey(t *testing.T) {

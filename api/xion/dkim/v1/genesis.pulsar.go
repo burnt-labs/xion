@@ -2,16 +2,18 @@
 package dkimv1
 
 import (
-	_ "cosmossdk.io/api/amino"
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
+	_ "cosmossdk.io/api/amino"
+
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var _ protoreflect.List = (*_GenesisState_2_list)(nil)
@@ -98,17 +100,21 @@ func (x *GenesisState) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_GenesisState_messageType fastReflection_GenesisState_messageType
-var _ protoreflect.MessageType = fastReflection_GenesisState_messageType{}
+var (
+	_fastReflection_GenesisState_messageType fastReflection_GenesisState_messageType
+	_                                        protoreflect.MessageType = fastReflection_GenesisState_messageType{}
+)
 
 type fastReflection_GenesisState_messageType struct{}
 
 func (x fastReflection_GenesisState_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_GenesisState)(nil)
 }
+
 func (x fastReflection_GenesisState_messageType) New() protoreflect.Message {
 	return new(fastReflection_GenesisState)
 }
+
 func (x fastReflection_GenesisState_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_GenesisState
 }
@@ -587,9 +593,7 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_Params protoreflect.MessageDescriptor
-)
+var md_Params protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_dkim_v1_genesis_proto_init()
@@ -616,17 +620,21 @@ func (x *Params) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_Params_messageType fastReflection_Params_messageType
-var _ protoreflect.MessageType = fastReflection_Params_messageType{}
+var (
+	_fastReflection_Params_messageType fastReflection_Params_messageType
+	_                                  protoreflect.MessageType = fastReflection_Params_messageType{}
+)
 
 type fastReflection_Params_messageType struct{}
 
 func (x fastReflection_Params_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_Params)(nil)
 }
+
 func (x fastReflection_Params_messageType) New() protoreflect.Message {
 	return new(fastReflection_Params)
 }
+
 func (x fastReflection_Params_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_Params
 }
@@ -1074,12 +1082,14 @@ func file_xion_dkim_v1_genesis_proto_rawDescGZIP() []byte {
 	return file_xion_dkim_v1_genesis_proto_rawDescData
 }
 
-var file_xion_dkim_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_xion_dkim_v1_genesis_proto_goTypes = []interface{}{
-	(*GenesisState)(nil), // 0: xion.dkim.v1.GenesisState
-	(*Params)(nil),       // 1: xion.dkim.v1.Params
-	(*DkimPubKey)(nil),   // 2: xion.dkim.v1.DkimPubKey
-}
+var (
+	file_xion_dkim_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+	file_xion_dkim_v1_genesis_proto_goTypes  = []interface{}{
+		(*GenesisState)(nil), // 0: xion.dkim.v1.GenesisState
+		(*Params)(nil),       // 1: xion.dkim.v1.Params
+		(*DkimPubKey)(nil),   // 2: xion.dkim.v1.DkimPubKey
+	}
+)
 var file_xion_dkim_v1_genesis_proto_depIdxs = []int32{
 	1, // 0: xion.dkim.v1.GenesisState.params:type_name -> xion.dkim.v1.Params
 	2, // 1: xion.dkim.v1.GenesisState.dkim_pubkeys:type_name -> xion.dkim.v1.DkimPubKey

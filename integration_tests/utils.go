@@ -439,7 +439,6 @@ func ModifyGenesisDKIMRecords(chainConfig ibc.ChainConfig, genbz []byte, params 
 	}
 	pubKeys := []Dkim{}
 	err := json.Unmarshal([]byte(params[0]), &pubKeys)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal dkim public keys to json: %w", err)
 	}
