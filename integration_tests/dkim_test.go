@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/burnt-labs/xion/x/dkim/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -23,6 +22,7 @@ import (
 const (
 	pubKey_1 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
 	pubKey_2 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+	pubKey_3 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApYmNCWAKIxf5uOEXIdEBPRDmMxcyiAnpDT3/xHad1n/d1yeZLhxCEOV6IeMNOIHD9p+VxqqzmFCvWkKvisBauAMxoJ0so7JHfjP3BOUb7hKOvcU4XiwyjhjMJQMNBImlB75Es04Kfu9RrC9tOFau5lN4ldjvNUjQH3YZoknK+LyXtJ8XBUrKdd4pptlzhMb3/J5q2wlHgUC0+jZUKtjCLHoHhQv7+vXdM2gZmPlmr5fofyAyPMPLdO5e65BXC2Z9kmSl1Zw3b41i9RlC8OwAyloI0Za/hzqQ/0sre9KtCNoPCtLhF/03dccG/282WkWCWVRxEBEC1q6s99GYm7SMqQIDAQAB"
 )
 
 const (
@@ -33,11 +33,13 @@ const (
 const (
 	selector_1 = "dkim202406"
 	selector_2 = "dkim202407"
+	selector_3 = "google"
 )
 
-const (
+var (
 	poseidon_hash_1 = "1983664618407009423875829639306275185491946247764487749439145140682408188330"
 	poseidon_hash_2 = "1983664618407009423875829639306275185491946247764487749439145140682408188330"
+	poseidon_hash_3 = "14900978865743571023141723682019198695580050511337677317524514528673897510335"
 )
 
 const (
@@ -49,12 +51,17 @@ var pubKeysBz, _ = json.Marshal([]Dkim{{
 	PubKey:       pubKey_1,
 	Domain:       domain_1,
 	Selector:     selector_1,
-	PoseidonHash: poseidon_hash_1,
+	PoseidonHash: base64.StdEncoding.EncodeToString([]byte(poseidon_hash_1)),
 }, {
 	PubKey:       pubKey_2,
 	Domain:       domain_2,
 	Selector:     selector_2,
-	PoseidonHash: poseidon_hash_2,
+	PoseidonHash: base64.StdEncoding.EncodeToString([]byte(poseidon_hash_2)),
+}, {
+	PubKey:       pubKey_3,
+	Domain:       domain_1,
+	Selector:     selector_3,
+	PoseidonHash: base64.StdEncoding.EncodeToString([]byte(poseidon_hash_3)),
 }})
 
 func TestDKIMModule(t *testing.T) {
@@ -75,7 +82,18 @@ func TestDKIMModule(t *testing.T) {
 	// query chain for DKIM records
 	dkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, selector_1)
 	require.NoError(t, err)
-	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), pubKey_1)
+	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey_1)
+
+	// query for all records of x.com
+	allDkimRecords, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1)
+	require.NoError(t, err)
+	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 2)
+
+	// query for a domain+poseidon hash pair matching domain_1 selector_3
+	allDkimRecords, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1, "--hash", poseidon_hash_3)
+	require.NoError(t, err)
+	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 1)
+	require.Equal(t, allDkimRecords["dkim_pub_keys"].([]interface{})[0].(map[string]interface{})["selector"], selector_3)
 
 	// generate a dkim record by querying the chain
 	// and then submit a proposal to add it
@@ -104,10 +122,7 @@ func TestDKIMModule(t *testing.T) {
 	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
 	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.NoError(t, err)
-	require.Equal(t, dkimRecord["dkim_pubkey"].(map[string]interface{})["pub_key"].(string), customDkimPubkey)
-	expectedHash, err := types.ComputePoseidonHash(customDkimPubkey)
-	require.NoError(t, err)
-	require.Equal(t, dkimRecord["poseidon_hash"].(string), base64.StdEncoding.EncodeToString([]byte(expectedHash.String())))
+	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), customDkimPubkey)
 
 	deleteDkimMsg := dkimTypes.NewMsgRemoveDkimPubKey(sdk.MustAccAddressFromBech32(govModAddress), dkimTypes.DkimPubKey{
 		Domain:   customDomain,

@@ -2,18 +2,16 @@
 package xionv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
-
+	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (
@@ -53,21 +51,17 @@ func (x *QueryWebAuthNVerifyRegisterRequest) slowProtoReflect() protoreflect.Mes
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType
-	_                                                              protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType{}
-)
+var _fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType{}
 
 type fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType struct{}
 
 func (x fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryWebAuthNVerifyRegisterRequest)(nil)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryWebAuthNVerifyRegisterRequest)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyRegisterRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryWebAuthNVerifyRegisterRequest
 }
@@ -665,21 +659,17 @@ func (x *QueryWebAuthNVerifyRegisterResponse) slowProtoReflect() protoreflect.Me
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType
-	_                                                               protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType{}
-)
+var _fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType{}
 
 type fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType struct{}
 
 func (x fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryWebAuthNVerifyRegisterResponse)(nil)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryWebAuthNVerifyRegisterResponse)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyRegisterResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryWebAuthNVerifyRegisterResponse
 }
@@ -1099,21 +1089,17 @@ func (x *QueryWebAuthNVerifyAuthenticateRequest) slowProtoReflect() protoreflect
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType
-	_                                                                  protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType{}
-)
+var _fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType{}
 
 type fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType struct{}
 
 func (x fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryWebAuthNVerifyAuthenticateRequest)(nil)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryWebAuthNVerifyAuthenticateRequest)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyAuthenticateRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryWebAuthNVerifyAuthenticateRequest
 }
@@ -1744,7 +1730,9 @@ func (x *fastReflection_QueryWebAuthNVerifyAuthenticateRequest) ProtoMethods() *
 	}
 }
 
-var md_QueryWebAuthNVerifyAuthenticateResponse protoreflect.MessageDescriptor
+var (
+	md_QueryWebAuthNVerifyAuthenticateResponse protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_v1_query_proto_init()
@@ -1771,21 +1759,17 @@ func (x *QueryWebAuthNVerifyAuthenticateResponse) slowProtoReflect() protoreflec
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType
-	_                                                                   protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType{}
-)
+var _fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType{}
 
 type fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType struct{}
 
 func (x fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryWebAuthNVerifyAuthenticateResponse)(nil)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryWebAuthNVerifyAuthenticateResponse)
 }
-
 func (x fastReflection_QueryWebAuthNVerifyAuthenticateResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryWebAuthNVerifyAuthenticateResponse
 }
@@ -2102,7 +2086,9 @@ func (x *fastReflection_QueryWebAuthNVerifyAuthenticateResponse) ProtoMethods() 
 	}
 }
 
-var md_QueryPlatformPercentageRequest protoreflect.MessageDescriptor
+var (
+	md_QueryPlatformPercentageRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_v1_query_proto_init()
@@ -2129,21 +2115,17 @@ func (x *QueryPlatformPercentageRequest) slowProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryPlatformPercentageRequest_messageType fastReflection_QueryPlatformPercentageRequest_messageType
-	_                                                          protoreflect.MessageType = fastReflection_QueryPlatformPercentageRequest_messageType{}
-)
+var _fastReflection_QueryPlatformPercentageRequest_messageType fastReflection_QueryPlatformPercentageRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryPlatformPercentageRequest_messageType{}
 
 type fastReflection_QueryPlatformPercentageRequest_messageType struct{}
 
 func (x fastReflection_QueryPlatformPercentageRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryPlatformPercentageRequest)(nil)
 }
-
 func (x fastReflection_QueryPlatformPercentageRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryPlatformPercentageRequest)
 }
-
 func (x fastReflection_QueryPlatformPercentageRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryPlatformPercentageRequest
 }
@@ -2491,21 +2473,17 @@ func (x *QueryPlatformPercentageResponse) slowProtoReflect() protoreflect.Messag
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryPlatformPercentageResponse_messageType fastReflection_QueryPlatformPercentageResponse_messageType
-	_                                                           protoreflect.MessageType = fastReflection_QueryPlatformPercentageResponse_messageType{}
-)
+var _fastReflection_QueryPlatformPercentageResponse_messageType fastReflection_QueryPlatformPercentageResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryPlatformPercentageResponse_messageType{}
 
 type fastReflection_QueryPlatformPercentageResponse_messageType struct{}
 
 func (x fastReflection_QueryPlatformPercentageResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryPlatformPercentageResponse)(nil)
 }
-
 func (x fastReflection_QueryPlatformPercentageResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryPlatformPercentageResponse)
 }
-
 func (x fastReflection_QueryPlatformPercentageResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryPlatformPercentageResponse
 }
@@ -2868,7 +2846,9 @@ func (x *fastReflection_QueryPlatformPercentageResponse) ProtoMethods() *protoif
 	}
 }
 
-var md_QueryPlatformMinimumRequest protoreflect.MessageDescriptor
+var (
+	md_QueryPlatformMinimumRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_v1_query_proto_init()
@@ -2895,21 +2875,17 @@ func (x *QueryPlatformMinimumRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryPlatformMinimumRequest_messageType fastReflection_QueryPlatformMinimumRequest_messageType
-	_                                                       protoreflect.MessageType = fastReflection_QueryPlatformMinimumRequest_messageType{}
-)
+var _fastReflection_QueryPlatformMinimumRequest_messageType fastReflection_QueryPlatformMinimumRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryPlatformMinimumRequest_messageType{}
 
 type fastReflection_QueryPlatformMinimumRequest_messageType struct{}
 
 func (x fastReflection_QueryPlatformMinimumRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryPlatformMinimumRequest)(nil)
 }
-
 func (x fastReflection_QueryPlatformMinimumRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryPlatformMinimumRequest)
 }
-
 func (x fastReflection_QueryPlatformMinimumRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryPlatformMinimumRequest
 }
@@ -3308,21 +3284,17 @@ func (x *QueryPlatformMinimumResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryPlatformMinimumResponse_messageType fastReflection_QueryPlatformMinimumResponse_messageType
-	_                                                        protoreflect.MessageType = fastReflection_QueryPlatformMinimumResponse_messageType{}
-)
+var _fastReflection_QueryPlatformMinimumResponse_messageType fastReflection_QueryPlatformMinimumResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryPlatformMinimumResponse_messageType{}
 
 type fastReflection_QueryPlatformMinimumResponse_messageType struct{}
 
 func (x fastReflection_QueryPlatformMinimumResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryPlatformMinimumResponse)(nil)
 }
-
 func (x fastReflection_QueryPlatformMinimumResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryPlatformMinimumResponse)
 }
-
 func (x fastReflection_QueryPlatformMinimumResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryPlatformMinimumResponse
 }
@@ -4150,20 +4122,18 @@ func file_xion_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_v1_query_proto_rawDescData
 }
 
-var (
-	file_xion_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-	file_xion_v1_query_proto_goTypes  = []interface{}{
-		(*QueryWebAuthNVerifyRegisterRequest)(nil),      // 0: xion.v1.QueryWebAuthNVerifyRegisterRequest
-		(*QueryWebAuthNVerifyRegisterResponse)(nil),     // 1: xion.v1.QueryWebAuthNVerifyRegisterResponse
-		(*QueryWebAuthNVerifyAuthenticateRequest)(nil),  // 2: xion.v1.QueryWebAuthNVerifyAuthenticateRequest
-		(*QueryWebAuthNVerifyAuthenticateResponse)(nil), // 3: xion.v1.QueryWebAuthNVerifyAuthenticateResponse
-		(*QueryPlatformPercentageRequest)(nil),          // 4: xion.v1.QueryPlatformPercentageRequest
-		(*QueryPlatformPercentageResponse)(nil),         // 5: xion.v1.QueryPlatformPercentageResponse
-		(*QueryPlatformMinimumRequest)(nil),             // 6: xion.v1.QueryPlatformMinimumRequest
-		(*QueryPlatformMinimumResponse)(nil),            // 7: xion.v1.QueryPlatformMinimumResponse
-		(*v1beta1.Coin)(nil),                            // 8: cosmos.base.v1beta1.Coin
-	}
-)
+var file_xion_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_xion_v1_query_proto_goTypes = []interface{}{
+	(*QueryWebAuthNVerifyRegisterRequest)(nil),      // 0: xion.v1.QueryWebAuthNVerifyRegisterRequest
+	(*QueryWebAuthNVerifyRegisterResponse)(nil),     // 1: xion.v1.QueryWebAuthNVerifyRegisterResponse
+	(*QueryWebAuthNVerifyAuthenticateRequest)(nil),  // 2: xion.v1.QueryWebAuthNVerifyAuthenticateRequest
+	(*QueryWebAuthNVerifyAuthenticateResponse)(nil), // 3: xion.v1.QueryWebAuthNVerifyAuthenticateResponse
+	(*QueryPlatformPercentageRequest)(nil),          // 4: xion.v1.QueryPlatformPercentageRequest
+	(*QueryPlatformPercentageResponse)(nil),         // 5: xion.v1.QueryPlatformPercentageResponse
+	(*QueryPlatformMinimumRequest)(nil),             // 6: xion.v1.QueryPlatformMinimumRequest
+	(*QueryPlatformMinimumResponse)(nil),            // 7: xion.v1.QueryPlatformMinimumResponse
+	(*v1beta1.Coin)(nil),                            // 8: cosmos.base.v1beta1.Coin
+}
 var file_xion_v1_query_proto_depIdxs = []int32{
 	8, // 0: xion.v1.QueryPlatformMinimumResponse.minimums:type_name -> cosmos.base.v1beta1.Coin
 	0, // 1: xion.v1.Query.WebAuthNVerifyRegister:input_type -> xion.v1.QueryWebAuthNVerifyRegisterRequest

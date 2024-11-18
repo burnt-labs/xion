@@ -2,19 +2,17 @@
 package dkimv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	_ "cosmossdk.io/api/cosmos/msg/v1"
-
+	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (
@@ -50,21 +48,17 @@ func (x *MsgUpdateParams) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_MsgUpdateParams_messageType fastReflection_MsgUpdateParams_messageType
-	_                                           protoreflect.MessageType = fastReflection_MsgUpdateParams_messageType{}
-)
+var _fastReflection_MsgUpdateParams_messageType fastReflection_MsgUpdateParams_messageType
+var _ protoreflect.MessageType = fastReflection_MsgUpdateParams_messageType{}
 
 type fastReflection_MsgUpdateParams_messageType struct{}
 
 func (x fastReflection_MsgUpdateParams_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateParams)(nil)
 }
-
 func (x fastReflection_MsgUpdateParams_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateParams)
 }
-
 func (x fastReflection_MsgUpdateParams_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateParams
 }
@@ -520,7 +514,9 @@ func (x *fastReflection_MsgUpdateParams) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var md_MsgUpdateParamsResponse protoreflect.MessageDescriptor
+var (
+	md_MsgUpdateParamsResponse protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_dkim_v1_tx_proto_init()
@@ -547,21 +543,17 @@ func (x *MsgUpdateParamsResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_MsgUpdateParamsResponse_messageType fastReflection_MsgUpdateParamsResponse_messageType
-	_                                                   protoreflect.MessageType = fastReflection_MsgUpdateParamsResponse_messageType{}
-)
+var _fastReflection_MsgUpdateParamsResponse_messageType fastReflection_MsgUpdateParamsResponse_messageType
+var _ protoreflect.MessageType = fastReflection_MsgUpdateParamsResponse_messageType{}
 
 type fastReflection_MsgUpdateParamsResponse_messageType struct{}
 
 func (x fastReflection_MsgUpdateParamsResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateParamsResponse)(nil)
 }
-
 func (x fastReflection_MsgUpdateParamsResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateParamsResponse)
 }
-
 func (x fastReflection_MsgUpdateParamsResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateParamsResponse
 }
@@ -962,21 +954,17 @@ func (x *MsgAddDkimPubKeys) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_MsgAddDkimPubKeys_messageType fastReflection_MsgAddDkimPubKeys_messageType
-	_                                             protoreflect.MessageType = fastReflection_MsgAddDkimPubKeys_messageType{}
-)
+var _fastReflection_MsgAddDkimPubKeys_messageType fastReflection_MsgAddDkimPubKeys_messageType
+var _ protoreflect.MessageType = fastReflection_MsgAddDkimPubKeys_messageType{}
 
 type fastReflection_MsgAddDkimPubKeys_messageType struct{}
 
 func (x fastReflection_MsgAddDkimPubKeys_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgAddDkimPubKeys)(nil)
 }
-
 func (x fastReflection_MsgAddDkimPubKeys_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgAddDkimPubKeys)
 }
-
 func (x fastReflection_MsgAddDkimPubKeys_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgAddDkimPubKeys
 }
@@ -1440,7 +1428,9 @@ func (x *fastReflection_MsgAddDkimPubKeys) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var md_MsgAddDkimPubKeysResponse protoreflect.MessageDescriptor
+var (
+	md_MsgAddDkimPubKeysResponse protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_dkim_v1_tx_proto_init()
@@ -1467,21 +1457,17 @@ func (x *MsgAddDkimPubKeysResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_MsgAddDkimPubKeysResponse_messageType fastReflection_MsgAddDkimPubKeysResponse_messageType
-	_                                                     protoreflect.MessageType = fastReflection_MsgAddDkimPubKeysResponse_messageType{}
-)
+var _fastReflection_MsgAddDkimPubKeysResponse_messageType fastReflection_MsgAddDkimPubKeysResponse_messageType
+var _ protoreflect.MessageType = fastReflection_MsgAddDkimPubKeysResponse_messageType{}
 
 type fastReflection_MsgAddDkimPubKeysResponse_messageType struct{}
 
 func (x fastReflection_MsgAddDkimPubKeysResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgAddDkimPubKeysResponse)(nil)
 }
-
 func (x fastReflection_MsgAddDkimPubKeysResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgAddDkimPubKeysResponse)
 }
-
 func (x fastReflection_MsgAddDkimPubKeysResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgAddDkimPubKeysResponse
 }
@@ -1833,21 +1819,17 @@ func (x *MsgRemoveDkimPubKey) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_MsgRemoveDkimPubKey_messageType fastReflection_MsgRemoveDkimPubKey_messageType
-	_                                               protoreflect.MessageType = fastReflection_MsgRemoveDkimPubKey_messageType{}
-)
+var _fastReflection_MsgRemoveDkimPubKey_messageType fastReflection_MsgRemoveDkimPubKey_messageType
+var _ protoreflect.MessageType = fastReflection_MsgRemoveDkimPubKey_messageType{}
 
 type fastReflection_MsgRemoveDkimPubKey_messageType struct{}
 
 func (x fastReflection_MsgRemoveDkimPubKey_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgRemoveDkimPubKey)(nil)
 }
-
 func (x fastReflection_MsgRemoveDkimPubKey_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgRemoveDkimPubKey)
 }
-
 func (x fastReflection_MsgRemoveDkimPubKey_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgRemoveDkimPubKey
 }
@@ -2350,7 +2332,9 @@ func (x *fastReflection_MsgRemoveDkimPubKey) ProtoMethods() *protoiface.Methods 
 	}
 }
 
-var md_MsgRemoveDkimPubKeyResponse protoreflect.MessageDescriptor
+var (
+	md_MsgRemoveDkimPubKeyResponse protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_dkim_v1_tx_proto_init()
@@ -2377,21 +2361,17 @@ func (x *MsgRemoveDkimPubKeyResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_MsgRemoveDkimPubKeyResponse_messageType fastReflection_MsgRemoveDkimPubKeyResponse_messageType
-	_                                                       protoreflect.MessageType = fastReflection_MsgRemoveDkimPubKeyResponse_messageType{}
-)
+var _fastReflection_MsgRemoveDkimPubKeyResponse_messageType fastReflection_MsgRemoveDkimPubKeyResponse_messageType
+var _ protoreflect.MessageType = fastReflection_MsgRemoveDkimPubKeyResponse_messageType{}
 
 type fastReflection_MsgRemoveDkimPubKeyResponse_messageType struct{}
 
 func (x fastReflection_MsgRemoveDkimPubKeyResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgRemoveDkimPubKeyResponse)(nil)
 }
-
 func (x fastReflection_MsgRemoveDkimPubKeyResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgRemoveDkimPubKeyResponse)
 }
-
 func (x fastReflection_MsgRemoveDkimPubKeyResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgRemoveDkimPubKeyResponse
 }
@@ -3045,19 +3025,17 @@ func file_xion_dkim_v1_tx_proto_rawDescGZIP() []byte {
 	return file_xion_dkim_v1_tx_proto_rawDescData
 }
 
-var (
-	file_xion_dkim_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-	file_xion_dkim_v1_tx_proto_goTypes  = []interface{}{
-		(*MsgUpdateParams)(nil),             // 0: xion.dkim.v1.MsgUpdateParams
-		(*MsgUpdateParamsResponse)(nil),     // 1: xion.dkim.v1.MsgUpdateParamsResponse
-		(*MsgAddDkimPubKeys)(nil),           // 2: xion.dkim.v1.MsgAddDkimPubKeys
-		(*MsgAddDkimPubKeysResponse)(nil),   // 3: xion.dkim.v1.MsgAddDkimPubKeysResponse
-		(*MsgRemoveDkimPubKey)(nil),         // 4: xion.dkim.v1.MsgRemoveDkimPubKey
-		(*MsgRemoveDkimPubKeyResponse)(nil), // 5: xion.dkim.v1.MsgRemoveDkimPubKeyResponse
-		(*Params)(nil),                      // 6: xion.dkim.v1.Params
-		(*DkimPubKey)(nil),                  // 7: xion.dkim.v1.DkimPubKey
-	}
-)
+var file_xion_dkim_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_xion_dkim_v1_tx_proto_goTypes = []interface{}{
+	(*MsgUpdateParams)(nil),             // 0: xion.dkim.v1.MsgUpdateParams
+	(*MsgUpdateParamsResponse)(nil),     // 1: xion.dkim.v1.MsgUpdateParamsResponse
+	(*MsgAddDkimPubKeys)(nil),           // 2: xion.dkim.v1.MsgAddDkimPubKeys
+	(*MsgAddDkimPubKeysResponse)(nil),   // 3: xion.dkim.v1.MsgAddDkimPubKeysResponse
+	(*MsgRemoveDkimPubKey)(nil),         // 4: xion.dkim.v1.MsgRemoveDkimPubKey
+	(*MsgRemoveDkimPubKeyResponse)(nil), // 5: xion.dkim.v1.MsgRemoveDkimPubKeyResponse
+	(*Params)(nil),                      // 6: xion.dkim.v1.Params
+	(*DkimPubKey)(nil),                  // 7: xion.dkim.v1.DkimPubKey
+}
 var file_xion_dkim_v1_tx_proto_depIdxs = []int32{
 	6, // 0: xion.dkim.v1.MsgUpdateParams.params:type_name -> xion.dkim.v1.Params
 	7, // 1: xion.dkim.v1.MsgAddDkimPubKeys.dkim_pubkeys:type_name -> xion.dkim.v1.DkimPubKey

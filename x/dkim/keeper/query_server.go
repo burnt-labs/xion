@@ -44,7 +44,7 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 		Domain:   dkimPubKey.Domain,
 		PubKey:   dkimPubKey.PubKey,
 		Selector: dkimPubKey.Selector,
-	}, PoseidonHash: dkimPubKey.PoseidonHash}, nil
+	}}, nil
 }
 
 // DkimPubKeys implements types.QueryServer

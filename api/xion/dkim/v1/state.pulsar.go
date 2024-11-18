@@ -2,17 +2,15 @@
 package dkimv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	_ "cosmossdk.io/api/cosmos/orm/v1"
-
+	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (
@@ -56,21 +54,17 @@ func (x *DkimPubKey) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_DkimPubKey_messageType fastReflection_DkimPubKey_messageType
-	_                                      protoreflect.MessageType = fastReflection_DkimPubKey_messageType{}
-)
+var _fastReflection_DkimPubKey_messageType fastReflection_DkimPubKey_messageType
+var _ protoreflect.MessageType = fastReflection_DkimPubKey_messageType{}
 
 type fastReflection_DkimPubKey_messageType struct{}
 
 func (x fastReflection_DkimPubKey_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_DkimPubKey)(nil)
 }
-
 func (x fastReflection_DkimPubKey_messageType) New() protoreflect.Message {
 	return new(fastReflection_DkimPubKey)
 }
-
 func (x fastReflection_DkimPubKey_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_DkimPubKey
 }
@@ -957,15 +951,13 @@ func file_xion_dkim_v1_state_proto_rawDescGZIP() []byte {
 	return file_xion_dkim_v1_state_proto_rawDescData
 }
 
-var (
-	file_xion_dkim_v1_state_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-	file_xion_dkim_v1_state_proto_msgTypes  = make([]protoimpl.MessageInfo, 1)
-	file_xion_dkim_v1_state_proto_goTypes   = []interface{}{
-		(Version)(0),       // 0: xion.dkim.v1.Version
-		(KeyType)(0),       // 1: xion.dkim.v1.KeyType
-		(*DkimPubKey)(nil), // 2: xion.dkim.v1.DkimPubKey
-	}
-)
+var file_xion_dkim_v1_state_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_xion_dkim_v1_state_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_xion_dkim_v1_state_proto_goTypes = []interface{}{
+	(Version)(0),       // 0: xion.dkim.v1.Version
+	(KeyType)(0),       // 1: xion.dkim.v1.KeyType
+	(*DkimPubKey)(nil), // 2: xion.dkim.v1.DkimPubKey
+}
 var file_xion_dkim_v1_state_proto_depIdxs = []int32{
 	0, // 0: xion.dkim.v1.DkimPubKey.version:type_name -> xion.dkim.v1.Version
 	1, // 1: xion.dkim.v1.DkimPubKey.key_type:type_name -> xion.dkim.v1.KeyType
