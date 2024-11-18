@@ -48372,6 +48372,26 @@
       },
       "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
     },
+    "xion.v1.QueryPlatformMinimumResponse": {
+      "type": "object",
+      "properties": {
+        "minimums": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "denom": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string"
+              }
+            },
+            "description": "Coin defines a token with a denomination and an amount.\n\nNOTE: The amount field is an Int which implements the custom method\nsignatures required by gogoproto."
+          }
+        }
+      }
+    },
     "xion.v1.QueryPlatformPercentageResponse": {
       "type": "object",
       "properties": {

@@ -55,7 +55,7 @@ func SaveDkimPubKeys(ctx context.Context, dkimKeys []types.DkimPubKey, store dki
 }
 
 // AddDkimPubKey implements types.MsgServer.
-func (ms msgServer) AddDkimPubKey(ctx context.Context, msg *types.MsgAddDkimPubKeys) (*types.MsgAddDkimPubKeysResponse, error) {
+func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPubKeys) (*types.MsgAddDkimPubKeysResponse, error) {
 	if ms.k.authority != msg.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}

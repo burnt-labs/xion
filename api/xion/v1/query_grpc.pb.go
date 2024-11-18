@@ -22,6 +22,7 @@ const (
 	Query_WebAuthNVerifyRegister_FullMethodName     = "/xion.v1.Query/WebAuthNVerifyRegister"
 	Query_WebAuthNVerifyAuthenticate_FullMethodName = "/xion.v1.Query/WebAuthNVerifyAuthenticate"
 	Query_PlatformPercentage_FullMethodName         = "/xion.v1.Query/PlatformPercentage"
+	Query_PlatformMinimum_FullMethodName            = "/xion.v1.Query/PlatformMinimum"
 )
 
 // QueryClient is the client API for Query service.
@@ -31,6 +32,7 @@ type QueryClient interface {
 	WebAuthNVerifyRegister(ctx context.Context, in *QueryWebAuthNVerifyRegisterRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyRegisterResponse, error)
 	WebAuthNVerifyAuthenticate(ctx context.Context, in *QueryWebAuthNVerifyAuthenticateRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyAuthenticateResponse, error)
 	PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error)
+	PlatformMinimum(ctx context.Context, in *QueryPlatformMinimumRequest, opts ...grpc.CallOption) (*QueryPlatformMinimumResponse, error)
 }
 
 type queryClient struct {
@@ -71,6 +73,16 @@ func (c *queryClient) PlatformPercentage(ctx context.Context, in *QueryPlatformP
 	return out, nil
 }
 
+func (c *queryClient) PlatformMinimum(ctx context.Context, in *QueryPlatformMinimumRequest, opts ...grpc.CallOption) (*QueryPlatformMinimumResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryPlatformMinimumResponse)
+	err := c.cc.Invoke(ctx, Query_PlatformMinimum_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type QueryServer interface {
 	WebAuthNVerifyRegister(context.Context, *QueryWebAuthNVerifyRegisterRequest) (*QueryWebAuthNVerifyRegisterResponse, error)
 	WebAuthNVerifyAuthenticate(context.Context, *QueryWebAuthNVerifyAuthenticateRequest) (*QueryWebAuthNVerifyAuthenticateResponse, error)
 	PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error)
+	PlatformMinimum(context.Context, *QueryPlatformMinimumRequest) (*QueryPlatformMinimumResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedQueryServer) WebAuthNVerifyAuthenticate(context.Context, *Que
 }
 func (UnimplementedQueryServer) PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PlatformPercentage not implemented")
+}
+func (UnimplementedQueryServer) PlatformMinimum(context.Context, *QueryPlatformMinimumRequest) (*QueryPlatformMinimumResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlatformMinimum not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -172,6 +188,24 @@ func _Query_PlatformPercentage_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_PlatformMinimum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPlatformMinimumRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PlatformMinimum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_PlatformMinimum_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PlatformMinimum(ctx, req.(*QueryPlatformMinimumRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PlatformPercentage",
 			Handler:    _Query_PlatformPercentage_Handler,
+		},
+		{
+			MethodName: "PlatformMinimum",
+			Handler:    _Query_PlatformMinimum_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
