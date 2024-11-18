@@ -62,6 +62,24 @@ func (this DkimPubKeyDomainSelectorIndexKey) WithDomainSelector(domain string, s
 	return this
 }
 
+type DkimPubKeyDomainPoseidonHashIndexKey struct {
+	vs []interface{}
+}
+
+func (x DkimPubKeyDomainPoseidonHashIndexKey) id() uint32            { return 1 }
+func (x DkimPubKeyDomainPoseidonHashIndexKey) values() []interface{} { return x.vs }
+func (x DkimPubKeyDomainPoseidonHashIndexKey) dkimPubKeyIndexKey()   {}
+
+func (this DkimPubKeyDomainPoseidonHashIndexKey) WithDomain(domain string) DkimPubKeyDomainPoseidonHashIndexKey {
+	this.vs = []interface{}{domain}
+	return this
+}
+
+func (this DkimPubKeyDomainPoseidonHashIndexKey) WithDomainPoseidonHash(domain string, poseidon_hash []byte) DkimPubKeyDomainPoseidonHashIndexKey {
+	this.vs = []interface{}{domain, poseidon_hash}
+	return this
+}
+
 type dkimPubKeyTable struct {
 	table ormtable.Table
 }

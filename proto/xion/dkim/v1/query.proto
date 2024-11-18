@@ -4,6 +4,7 @@ package xion.dkim.v1;
 import "google/api/annotations.proto";
 import "xion/dkim/v1/genesis.proto";
 import "xion/dkim/v1/state.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/dkim/types";
 
@@ -16,6 +17,11 @@ service Query {
 
   // DkimPubKey queries the DKIM public key for a given selector and domain.
   rpc DkimPubKey(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
+    option (google.api.http).get = "/dkim/v1/dkim_pubkey";
+  }
+
+  // DkimPubKeys queries the DKIM public keys for a given selectors and domains.
+  rpc DkimPubKeys(QueryDkimPubKeysRequest) returns (QueryDkimPubKeysResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
 }
@@ -29,17 +35,33 @@ message QueryParamsResponse {
   Params params = 1;
 }
 
-// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
+// QueryDkimPubKeyRequest is the request type for the Query/DkimPubKey RPC
 // method.
 message QueryDkimPubKeyRequest {
   string selector = 1;
   string domain = 2;
 }
 
-// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC
+// QueryDkimPubKeyResponse is the response type for the Query/DkimPubKey RPC
 // method.
 message QueryDkimPubKeyResponse {
-  DkimPubKey dkim_pubkey = 1;
+  DkimPubKey dkim_pub_key = 1;
   bytes poseidon_hash =
       2; // the poseidon hash of the public key that signed the email
+}
+
+// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
+// method. All fields are optional, and will filter down results.
+message QueryDkimPubKeysRequest {
+  string selector = 1;
+  string domain = 2;
+  bytes poseidon_hash = 3;
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
+}
+
+// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC
+// method.
+message QueryDkimPubKeysResponse {
+  repeated DkimPubKey dkim_pub_keys = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }

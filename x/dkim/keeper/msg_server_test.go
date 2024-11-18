@@ -142,7 +142,6 @@ func TestAddDkimPubKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(_ *testing.T) {
-
 			err := tc.request.ValidateBasic()
 			if tc.err {
 				require.Error(err)

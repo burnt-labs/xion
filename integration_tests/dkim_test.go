@@ -86,6 +86,7 @@ func TestDKIMModule(t *testing.T) {
 	}
 
 	createDkimMsg := dkimTypes.NewMsgAddDkimPubKeys(sdk.MustAccAddressFromBech32(govModAddress), governancePubKeys)
+	require.NoError(t, createDkimMsg.ValidateBasic())
 
 	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{createDkimMsg}, "Add Netflix DKIM record", "Add Netflix DKIM record", "Add Netflix DKIM record", 1)
 	require.NoError(t, err)
