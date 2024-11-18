@@ -321,6 +321,97 @@ func (m *MsgRemoveDkimPubKeyResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveDkimPubKeyResponse proto.InternalMessageInfo
 
+// MsgRevokeDkimPubKey is the Msg/RevokeDkimPubKey request type.
+type MsgRevokeDkimPubKey struct {
+	Domain  string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
+	PrivKey []byte `protobuf:"bytes,2,opt,name=priv_key,json=privKey,proto3" json:"priv_key,omitempty"`
+}
+
+func (m *MsgRevokeDkimPubKey) Reset()         { *m = MsgRevokeDkimPubKey{} }
+func (m *MsgRevokeDkimPubKey) String() string { return proto.CompactTextString(m) }
+func (*MsgRevokeDkimPubKey) ProtoMessage()    {}
+func (*MsgRevokeDkimPubKey) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cca4ef5b8cd44607, []int{6}
+}
+func (m *MsgRevokeDkimPubKey) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRevokeDkimPubKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRevokeDkimPubKey.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRevokeDkimPubKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRevokeDkimPubKey.Merge(m, src)
+}
+func (m *MsgRevokeDkimPubKey) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRevokeDkimPubKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRevokeDkimPubKey.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRevokeDkimPubKey proto.InternalMessageInfo
+
+func (m *MsgRevokeDkimPubKey) GetDomain() string {
+	if m != nil {
+		return m.Domain
+	}
+	return ""
+}
+
+func (m *MsgRevokeDkimPubKey) GetPrivKey() []byte {
+	if m != nil {
+		return m.PrivKey
+	}
+	return nil
+}
+
+// MsgRevokeDkimPubKeyResponse defines the response structure for executing a
+// MsgRevokeDkimPubKey message.
+type MsgRevokeDkimPubKeyResponse struct {
+}
+
+func (m *MsgRevokeDkimPubKeyResponse) Reset()         { *m = MsgRevokeDkimPubKeyResponse{} }
+func (m *MsgRevokeDkimPubKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRevokeDkimPubKeyResponse) ProtoMessage()    {}
+func (*MsgRevokeDkimPubKeyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cca4ef5b8cd44607, []int{7}
+}
+func (m *MsgRevokeDkimPubKeyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRevokeDkimPubKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRevokeDkimPubKeyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRevokeDkimPubKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRevokeDkimPubKeyResponse.Merge(m, src)
+}
+func (m *MsgRevokeDkimPubKeyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRevokeDkimPubKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRevokeDkimPubKeyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRevokeDkimPubKeyResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "xion.dkim.v1.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "xion.dkim.v1.MsgUpdateParamsResponse")
@@ -328,43 +419,48 @@ func init() {
 	proto.RegisterType((*MsgAddDkimPubKeysResponse)(nil), "xion.dkim.v1.MsgAddDkimPubKeysResponse")
 	proto.RegisterType((*MsgRemoveDkimPubKey)(nil), "xion.dkim.v1.MsgRemoveDkimPubKey")
 	proto.RegisterType((*MsgRemoveDkimPubKeyResponse)(nil), "xion.dkim.v1.MsgRemoveDkimPubKeyResponse")
+	proto.RegisterType((*MsgRevokeDkimPubKey)(nil), "xion.dkim.v1.MsgRevokeDkimPubKey")
+	proto.RegisterType((*MsgRevokeDkimPubKeyResponse)(nil), "xion.dkim.v1.MsgRevokeDkimPubKeyResponse")
 }
 
 func init() { proto.RegisterFile("xion/dkim/v1/tx.proto", fileDescriptor_cca4ef5b8cd44607) }
 
 var fileDescriptor_cca4ef5b8cd44607 = []byte{
-	// 494 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0xcf, 0x6e, 0xd3, 0x40,
-	0x10, 0xc6, 0xb3, 0x0d, 0x44, 0x64, 0x12, 0x15, 0x30, 0x81, 0x3a, 0xae, 0xea, 0x96, 0x48, 0xa8,
-	0xa1, 0x52, 0x6d, 0x35, 0x48, 0x1c, 0xb8, 0x25, 0xe2, 0x86, 0x22, 0x55, 0x06, 0x2e, 0xbd, 0x14,
-	0x3b, 0x5e, 0x6d, 0xad, 0x74, 0xbd, 0x96, 0x67, 0x1d, 0x25, 0x37, 0xc4, 0x1d, 0x09, 0x5e, 0x00,
-	0xf1, 0x08, 0x3d, 0xf0, 0x10, 0x3d, 0x56, 0x9c, 0x38, 0x21, 0x94, 0x1c, 0xfa, 0x1a, 0xc8, 0x7f,
-	0x92, 0xe0, 0x18, 0xb5, 0x52, 0x6e, 0xbb, 0xf3, 0x7d, 0x33, 0xf3, 0xf3, 0xac, 0x07, 0x1e, 0x8f,
-	0x3d, 0xe1, 0x9b, 0xee, 0xd0, 0xe3, 0xe6, 0xe8, 0xc8, 0x94, 0x63, 0x23, 0x08, 0x85, 0x14, 0x4a,
-	0x3d, 0x0e, 0x1b, 0x71, 0xd8, 0x18, 0x1d, 0x69, 0x5b, 0x03, 0x81, 0x5c, 0xa0, 0xc9, 0x91, 0xc5,
-	0x2e, 0x8e, 0x2c, 0xb5, 0x69, 0x5a, 0x2e, 0x9b, 0x51, 0x9f, 0xa2, 0x87, 0x99, 0xa6, 0xe6, 0x34,
-	0x94, 0xb6, 0xa4, 0x99, 0xd2, 0x60, 0x82, 0x89, 0xe4, 0x68, 0xc6, 0xa7, 0x2c, 0xda, 0x4c, 0x9b,
-	0x9c, 0xa6, 0x42, 0x7a, 0x49, 0xa5, 0xd6, 0x67, 0x02, 0xf7, 0xfb, 0xc8, 0xde, 0x07, 0xae, 0x2d,
-	0xe9, 0xb1, 0x1d, 0xda, 0x1c, 0x95, 0x97, 0x50, 0xb5, 0x23, 0x79, 0x26, 0x42, 0x4f, 0x4e, 0x54,
-	0xb2, 0x47, 0xda, 0xd5, 0x9e, 0xfa, 0xf3, 0xc7, 0x61, 0x23, 0x4b, 0xec, 0xba, 0x6e, 0x48, 0x11,
-	0xdf, 0xca, 0xd0, 0xf3, 0x99, 0xb5, 0xb4, 0x2a, 0x1d, 0xa8, 0x04, 0x49, 0x05, 0x75, 0x63, 0x8f,
-	0xb4, 0x6b, 0x9d, 0x86, 0xf1, 0xef, 0xa7, 0x1a, 0x69, 0xf5, 0xde, 0x9d, 0xcb, 0xdf, 0xbb, 0x25,
-	0x2b, 0x73, 0xbe, 0xda, 0xfc, 0x74, 0x7d, 0x71, 0xb0, 0xac, 0xd1, 0x6a, 0xc2, 0xd6, 0x0a, 0x8e,
-	0x45, 0x31, 0x10, 0x3e, 0xd2, 0xd6, 0x37, 0x02, 0x0f, 0xfb, 0xc8, 0xba, 0xae, 0xfb, 0x7a, 0xe8,
-	0xf1, 0xe3, 0xc8, 0x79, 0x43, 0x27, 0xeb, 0xc3, 0x76, 0xa1, 0x1e, 0x83, 0x9d, 0x06, 0x91, 0x33,
-	0xa4, 0x93, 0x18, 0xb9, 0xdc, 0xae, 0x75, 0xd4, 0x3c, 0xf2, 0xb2, 0x51, 0x86, 0x5d, 0x73, 0xd3,
-	0x48, 0x9c, 0x52, 0x60, 0xdf, 0x86, 0x66, 0x81, 0x6f, 0x41, 0xff, 0x95, 0xc0, 0xa3, 0x3e, 0x32,
-	0x8b, 0x72, 0x31, 0xa2, 0x4b, 0xc3, 0xda, 0xfc, 0x1a, 0xdc, 0x43, 0x7a, 0x4e, 0x07, 0x52, 0x84,
-	0xc9, 0xb8, 0xab, 0xd6, 0xe2, 0xae, 0x3c, 0x81, 0x8a, 0x2b, 0xb8, 0xed, 0xf9, 0x6a, 0x39, 0x51,
-	0xb2, 0x5b, 0x01, 0x78, 0x07, 0xb6, 0xff, 0x83, 0x34, 0x47, 0xee, 0x7c, 0xdf, 0x80, 0x72, 0x1f,
-	0x99, 0xf2, 0x0e, 0xea, 0xb9, 0xff, 0x63, 0x27, 0x3f, 0xa4, 0x95, 0xf7, 0xd2, 0x9e, 0xdd, 0x28,
-	0xcf, 0xab, 0x2b, 0x27, 0xb0, 0xb9, 0xf2, 0x94, 0xbb, 0x85, 0xc4, 0xbc, 0x41, 0xdb, 0xbf, 0xc5,
-	0xb0, 0xa8, 0xfd, 0x01, 0x1e, 0x14, 0x06, 0xfd, 0xb4, 0x90, 0xbc, 0x6a, 0xd1, 0x9e, 0xdf, 0x6a,
-	0x99, 0x77, 0xd0, 0xee, 0x7e, 0xbc, 0xbe, 0x38, 0x20, 0xbd, 0xee, 0xe5, 0x54, 0x27, 0x57, 0x53,
-	0x9d, 0xfc, 0x99, 0xea, 0xe4, 0xcb, 0x4c, 0x2f, 0x5d, 0xcd, 0xf4, 0xd2, 0xaf, 0x99, 0x5e, 0x3a,
-	0xd9, 0x67, 0x9e, 0x3c, 0x8b, 0x1c, 0x63, 0x20, 0xb8, 0xe9, 0x44, 0xa1, 0x2f, 0x0f, 0xcf, 0x6d,
-	0x07, 0xcd, 0x64, 0x73, 0xc7, 0xe9, 0xee, 0xca, 0x49, 0x40, 0xd1, 0xa9, 0x24, 0x8b, 0xf8, 0xe2,
-	0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xca, 0xbe, 0xb6, 0xa2, 0x2f, 0x04, 0x00, 0x00,
+	// 541 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0x3f, 0x6f, 0xd3, 0x40,
+	0x18, 0xc6, 0x73, 0x04, 0x4a, 0x73, 0x89, 0x0a, 0x98, 0x40, 0x1d, 0x57, 0x75, 0x4b, 0x24, 0xd4,
+	0x50, 0xa9, 0xb6, 0x1a, 0x24, 0x06, 0xb6, 0x44, 0x0c, 0x48, 0x55, 0xa4, 0xca, 0xc0, 0xd2, 0x25,
+	0xd8, 0xf1, 0xe9, 0x6a, 0xb9, 0xf6, 0x59, 0x7e, 0xcf, 0x56, 0xbc, 0xa1, 0xee, 0x48, 0xf0, 0x05,
+	0xf8, 0x0c, 0x1d, 0xf8, 0x10, 0x1d, 0x2b, 0x26, 0x26, 0x84, 0x92, 0xa1, 0x5f, 0x03, 0xf9, 0x4f,
+	0xe3, 0xd8, 0x8e, 0xa8, 0xd4, 0xcd, 0xf7, 0xbe, 0xcf, 0xfb, 0x3c, 0x3f, 0xdf, 0x9d, 0x0e, 0x3f,
+	0x9b, 0x5a, 0xcc, 0x55, 0x4d, 0xdb, 0x72, 0xd4, 0xf0, 0x50, 0xe5, 0x53, 0xc5, 0xf3, 0x19, 0x67,
+	0x42, 0x2b, 0x2e, 0x2b, 0x71, 0x59, 0x09, 0x0f, 0xa5, 0xcd, 0x09, 0x03, 0x87, 0x81, 0xea, 0x00,
+	0x8d, 0x55, 0x0e, 0xd0, 0x54, 0x26, 0x49, 0x85, 0x69, 0x4a, 0x5c, 0x02, 0x16, 0x64, 0x3d, 0xb1,
+	0xd0, 0x03, 0xae, 0x73, 0x92, 0x75, 0xda, 0x94, 0x51, 0x96, 0x7c, 0xaa, 0xf1, 0x57, 0x56, 0xed,
+	0xa4, 0x21, 0xe3, 0xb4, 0x91, 0x2e, 0xd2, 0x56, 0xf7, 0x2b, 0xc2, 0x8f, 0x46, 0x40, 0x3f, 0x79,
+	0xa6, 0xce, 0xc9, 0xb1, 0xee, 0xeb, 0x0e, 0x08, 0x6f, 0x70, 0x43, 0x0f, 0xf8, 0x29, 0xf3, 0x2d,
+	0x1e, 0x89, 0x68, 0x17, 0xf5, 0x1a, 0x43, 0xf1, 0xd7, 0xcf, 0x83, 0x76, 0x36, 0x38, 0x30, 0x4d,
+	0x9f, 0x00, 0x7c, 0xe0, 0xbe, 0xe5, 0x52, 0x2d, 0x97, 0x0a, 0x7d, 0xbc, 0xe6, 0x25, 0x0e, 0xe2,
+	0xbd, 0x5d, 0xd4, 0x6b, 0xf6, 0xdb, 0xca, 0xf2, 0xaf, 0x2a, 0xa9, 0xfb, 0xf0, 0xfe, 0xe5, 0x9f,
+	0x9d, 0x9a, 0x96, 0x29, 0xdf, 0x6e, 0x9c, 0x5f, 0x5f, 0xec, 0xe7, 0x1e, 0xdd, 0x0e, 0xde, 0x2c,
+	0xe1, 0x68, 0x04, 0x3c, 0xe6, 0x02, 0xe9, 0xfe, 0x40, 0xf8, 0xc9, 0x08, 0xe8, 0xc0, 0x34, 0xdf,
+	0xd9, 0x96, 0x73, 0x1c, 0x18, 0x47, 0x24, 0xba, 0x3b, 0xec, 0x00, 0xb7, 0x62, 0xb0, 0xb1, 0x17,
+	0x18, 0x36, 0x89, 0x62, 0xe4, 0x7a, 0xaf, 0xd9, 0x17, 0x8b, 0xc8, 0x79, 0x50, 0x86, 0xdd, 0x34,
+	0xd3, 0x4a, 0x3c, 0x52, 0x61, 0xdf, 0xc2, 0x9d, 0x0a, 0xdf, 0x82, 0xfe, 0x3b, 0xc2, 0x4f, 0x47,
+	0x40, 0x35, 0xe2, 0xb0, 0x90, 0xe4, 0x82, 0x3b, 0xf3, 0x4b, 0x78, 0x1d, 0xc8, 0x19, 0x99, 0x70,
+	0xe6, 0x27, 0xdb, 0xdd, 0xd0, 0x16, 0x6b, 0xe1, 0x39, 0x5e, 0x33, 0x99, 0xa3, 0x5b, 0xae, 0x58,
+	0x4f, 0x3a, 0xd9, 0xaa, 0x02, 0xbc, 0x8d, 0xb7, 0x56, 0x20, 0x2d, 0x90, 0xdf, 0x67, 0xc4, 0x21,
+	0xb3, 0x97, 0x89, 0x73, 0x77, 0xb4, 0xec, 0x2e, 0x74, 0xf0, 0xba, 0xe7, 0x5b, 0xe1, 0xd8, 0x26,
+	0x51, 0x42, 0xd4, 0xd2, 0x1e, 0xc6, 0xeb, 0x23, 0x92, 0x07, 0x15, 0x9d, 0x6e, 0x82, 0xfa, 0xe7,
+	0x75, 0x5c, 0x1f, 0x01, 0x15, 0x3e, 0xe2, 0x56, 0xe1, 0x22, 0x6e, 0x17, 0x4f, 0xa3, 0x74, 0x31,
+	0xa4, 0x97, 0xff, 0x6d, 0xdf, 0xb8, 0x0b, 0x27, 0x78, 0xa3, 0x74, 0x67, 0x76, 0x2a, 0x83, 0x45,
+	0x81, 0xb4, 0x77, 0x8b, 0x60, 0xe1, 0xfd, 0x19, 0x3f, 0xae, 0x9c, 0xe8, 0x8b, 0xca, 0x70, 0x59,
+	0x22, 0xbd, 0xba, 0x55, 0x52, 0x4c, 0x28, 0x9d, 0xc0, 0xaa, 0x84, 0xa2, 0x64, 0x65, 0xc2, 0xea,
+	0xdd, 0x97, 0x1e, 0x7c, 0xb9, 0xbe, 0xd8, 0x47, 0xc3, 0xc1, 0xe5, 0x4c, 0x46, 0x57, 0x33, 0x19,
+	0xfd, 0x9d, 0xc9, 0xe8, 0xdb, 0x5c, 0xae, 0x5d, 0xcd, 0xe5, 0xda, 0xef, 0xb9, 0x5c, 0x3b, 0xd9,
+	0xa3, 0x16, 0x3f, 0x0d, 0x0c, 0x65, 0xc2, 0x1c, 0xd5, 0x08, 0x7c, 0x97, 0x1f, 0x9c, 0xe9, 0x06,
+	0xa8, 0xc9, 0x23, 0x34, 0x4d, 0x9f, 0x21, 0x1e, 0x79, 0x04, 0x8c, 0xb5, 0xe4, 0x4d, 0x79, 0xfd,
+	0x2f, 0x00, 0x00, 0xff, 0xff, 0x5a, 0x03, 0xe1, 0x04, 0xfa, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -385,8 +481,11 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error)
-	// RemoveDkimPubKey defines a message to remove a DKIM public key.
+	// RemoveDkimPubKey defines a message to remove a DKIM public key via governance
 	RemoveDkimPubKey(ctx context.Context, in *MsgRemoveDkimPubKey, opts ...grpc.CallOption) (*MsgRemoveDkimPubKeyResponse, error)
+	// RevokeDkimPubKey defines a message to remove a DKIM public key without
+	// governance, by submitting the compromised privkey
+	RevokeDkimPubKey(ctx context.Context, in *MsgRevokeDkimPubKey, opts ...grpc.CallOption) (*MsgRevokeDkimPubKeyResponse, error)
 }
 
 type msgClient struct {
@@ -424,6 +523,15 @@ func (c *msgClient) RemoveDkimPubKey(ctx context.Context, in *MsgRemoveDkimPubKe
 	return out, nil
 }
 
+func (c *msgClient) RevokeDkimPubKey(ctx context.Context, in *MsgRevokeDkimPubKey, opts ...grpc.CallOption) (*MsgRevokeDkimPubKeyResponse, error) {
+	out := new(MsgRevokeDkimPubKeyResponse)
+	err := c.cc.Invoke(ctx, "/xion.dkim.v1.Msg/RevokeDkimPubKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// UpdateParams defines a governance operation for updating the parameters.
@@ -432,8 +540,11 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error)
-	// RemoveDkimPubKey defines a message to remove a DKIM public key.
+	// RemoveDkimPubKey defines a message to remove a DKIM public key via governance
 	RemoveDkimPubKey(context.Context, *MsgRemoveDkimPubKey) (*MsgRemoveDkimPubKeyResponse, error)
+	// RevokeDkimPubKey defines a message to remove a DKIM public key without
+	// governance, by submitting the compromised privkey
+	RevokeDkimPubKey(context.Context, *MsgRevokeDkimPubKey) (*MsgRevokeDkimPubKeyResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -448,6 +559,9 @@ func (*UnimplementedMsgServer) AddDkimPubKeys(ctx context.Context, req *MsgAddDk
 }
 func (*UnimplementedMsgServer) RemoveDkimPubKey(ctx context.Context, req *MsgRemoveDkimPubKey) (*MsgRemoveDkimPubKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveDkimPubKey not implemented")
+}
+func (*UnimplementedMsgServer) RevokeDkimPubKey(ctx context.Context, req *MsgRevokeDkimPubKey) (*MsgRevokeDkimPubKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeDkimPubKey not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -508,6 +622,24 @@ func _Msg_RemoveDkimPubKey_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_RevokeDkimPubKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRevokeDkimPubKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RevokeDkimPubKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.dkim.v1.Msg/RevokeDkimPubKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RevokeDkimPubKey(ctx, req.(*MsgRevokeDkimPubKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.dkim.v1.Msg",
@@ -524,6 +656,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveDkimPubKey",
 			Handler:    _Msg_RemoveDkimPubKey_Handler,
+		},
+		{
+			MethodName: "RevokeDkimPubKey",
+			Handler:    _Msg_RevokeDkimPubKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -727,6 +863,66 @@ func (m *MsgRemoveDkimPubKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgRevokeDkimPubKey) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRevokeDkimPubKey) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRevokeDkimPubKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PrivKey) > 0 {
+		i -= len(m.PrivKey)
+		copy(dAtA[i:], m.PrivKey)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PrivKey)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Domain) > 0 {
+		i -= len(m.Domain)
+		copy(dAtA[i:], m.Domain)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Domain)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRevokeDkimPubKeyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRevokeDkimPubKeyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRevokeDkimPubKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -812,6 +1008,32 @@ func (m *MsgRemoveDkimPubKey) Size() (n int) {
 }
 
 func (m *MsgRemoveDkimPubKeyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgRevokeDkimPubKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Domain)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.PrivKey)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgRevokeDkimPubKeyResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1330,6 +1552,172 @@ func (m *MsgRemoveDkimPubKeyResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgRemoveDkimPubKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRevokeDkimPubKey) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRevokeDkimPubKey: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRevokeDkimPubKey: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Domain", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Domain = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrivKey", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PrivKey = append(m.PrivKey[:0], dAtA[iNdEx:postIndex]...)
+			if m.PrivKey == nil {
+				m.PrivKey = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRevokeDkimPubKeyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRevokeDkimPubKeyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRevokeDkimPubKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

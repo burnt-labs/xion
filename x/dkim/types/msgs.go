@@ -10,6 +10,7 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgAddDkimPubKeys{}
 	_ sdk.Msg = &MsgRemoveDkimPubKey{}
+	_ sdk.Msg = &MsgRevokeDkimPubKey{}
 )
 
 // NewMsgUpdateParams creates new instance of MsgUpdateParams

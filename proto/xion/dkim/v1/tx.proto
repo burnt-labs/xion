@@ -21,9 +21,14 @@ service Msg {
   // AddDkimPubKey defines a message to add DKIM public keys.
   rpc AddDkimPubKeys(MsgAddDkimPubKeys) returns (MsgAddDkimPubKeysResponse);
 
-  // RemoveDkimPubKey defines a message to remove a DKIM public key.
+  // RemoveDkimPubKey defines a message to remove a DKIM public key via governance
   rpc RemoveDkimPubKey(MsgRemoveDkimPubKey)
       returns (MsgRemoveDkimPubKeyResponse);
+
+  // RevokeDkimPubKey defines a message to remove a DKIM public key without
+  // governance, by submitting the compromised privkey
+  rpc RevokeDkimPubKey(MsgRevokeDkimPubKey)
+      returns (MsgRevokeDkimPubKeyResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -75,3 +80,13 @@ message MsgRemoveDkimPubKey {
 // MsgRemoveDkimPubKeyResponse defines the response structure for executing a
 // MsgRemoveDkimPubKey message.
 message MsgRemoveDkimPubKeyResponse {}
+
+// MsgRevokeDkimPubKey is the Msg/RevokeDkimPubKey request type.
+message MsgRevokeDkimPubKey {
+  string domain = 1;
+  bytes priv_key = 2;
+}
+
+// MsgRevokeDkimPubKeyResponse defines the response structure for executing a
+// MsgRevokeDkimPubKey message.
+message MsgRevokeDkimPubKeyResponse {}
