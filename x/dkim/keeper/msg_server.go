@@ -2,11 +2,12 @@ package keeper
 
 import (
 	"context"
-	"cosmossdk.io/errors"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+
+	"cosmossdk.io/errors"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -96,6 +97,9 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 
 	var privateKey *rsa.PrivateKey
 	d, _ := pem.Decode(msg.PrivKey)
+	if d == nil {
+		return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to decode pem private key")
+	}
 	if key, err := x509.ParsePKCS1PrivateKey(d.Bytes); err != nil {
 		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
 			return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to decode private key")
