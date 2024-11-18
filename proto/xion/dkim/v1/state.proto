@@ -19,6 +19,10 @@ message DkimPubKey {
       id: 1,
       fields: "domain,poseidon_hash"
     }
+    index: {
+      id: 2,
+      fields: "domain,pub_key"
+    }
   };
 
   string domain = 1;

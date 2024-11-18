@@ -2,8 +2,11 @@ package keeper
 
 import (
 	"context"
-
 	"cosmossdk.io/errors"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -84,4 +87,29 @@ func (ms msgServer) RemoveDkimPubKey(ctx context.Context, msg *types.MsgRemoveDk
 	}
 
 	return &types.MsgRemoveDkimPubKeyResponse{}, nil
+}
+
+// RevokeDkimPubKey implements types.MsgServer.
+func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDkimPubKey) (*types.MsgRevokeDkimPubKeyResponse, error) {
+	// providing a domain and private key revokes all pubkeys for that domain
+	// that match the private key
+
+	var privateKey *rsa.PrivateKey
+	d, _ := pem.Decode(msg.PrivKey)
+	if key, err := x509.ParsePKCS1PrivateKey(d.Bytes); err != nil {
+		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
+			return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to decode private key")
+		} else {
+			privateKey = key.(*rsa.PrivateKey)
+		}
+	} else {
+		privateKey = key
+	}
+
+	pubkey := base64.StdEncoding.EncodeToString(privateKey.PublicKey.N.Bytes())
+
+	err := ms.k.OrmDB.DkimPubKeyTable().DeleteBy(ctx,
+		dkimv1.DkimPubKeyDomainPubKeyIndexKey{}.WithDomainPubKey(msg.Domain, pubkey))
+
+	return &types.MsgRevokeDkimPubKeyResponse{}, err
 }

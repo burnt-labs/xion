@@ -4,7 +4,6 @@ package dkimv1
 
 import (
 	context "context"
-
 	ormlist "cosmossdk.io/orm/model/ormlist"
 	ormtable "cosmossdk.io/orm/model/ormtable"
 	ormerrors "cosmossdk.io/orm/types/ormerrors"
@@ -78,6 +77,24 @@ func (this DkimPubKeyDomainPoseidonHashIndexKey) WithDomain(domain string) DkimP
 
 func (this DkimPubKeyDomainPoseidonHashIndexKey) WithDomainPoseidonHash(domain string, poseidon_hash []byte) DkimPubKeyDomainPoseidonHashIndexKey {
 	this.vs = []interface{}{domain, poseidon_hash}
+	return this
+}
+
+type DkimPubKeyDomainPubKeyIndexKey struct {
+	vs []interface{}
+}
+
+func (x DkimPubKeyDomainPubKeyIndexKey) id() uint32            { return 2 }
+func (x DkimPubKeyDomainPubKeyIndexKey) values() []interface{} { return x.vs }
+func (x DkimPubKeyDomainPubKeyIndexKey) dkimPubKeyIndexKey()   {}
+
+func (this DkimPubKeyDomainPubKeyIndexKey) WithDomain(domain string) DkimPubKeyDomainPubKeyIndexKey {
+	this.vs = []interface{}{domain}
+	return this
+}
+
+func (this DkimPubKeyDomainPubKeyIndexKey) WithDomainPubKey(domain string, pub_key string) DkimPubKeyDomainPubKeyIndexKey {
+	this.vs = []interface{}{domain, pub_key}
 	return this
 }
 

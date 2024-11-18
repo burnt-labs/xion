@@ -2,21 +2,21 @@
 package dkimv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
-
+	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
-var md_QueryParamsRequest protoreflect.MessageDescriptor
+var (
+	md_QueryParamsRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_dkim_v1_query_proto_init()
@@ -43,21 +43,17 @@ func (x *QueryParamsRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
-	_                                              protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
-)
+var _fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
 
 type fastReflection_QueryParamsRequest_messageType struct{}
 
 func (x fastReflection_QueryParamsRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsRequest)(nil)
 }
-
 func (x fastReflection_QueryParamsRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsRequest)
 }
-
 func (x fastReflection_QueryParamsRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsRequest
 }
@@ -405,21 +401,17 @@ func (x *QueryParamsResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
-	_                                               protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
-)
+var _fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
 
 type fastReflection_QueryParamsResponse_messageType struct{}
 
 func (x fastReflection_QueryParamsResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsResponse)(nil)
 }
-
 func (x fastReflection_QueryParamsResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsResponse)
 }
-
 func (x fastReflection_QueryParamsResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsResponse
 }
@@ -846,21 +838,17 @@ func (x *QueryDkimPubKeyRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryDkimPubKeyRequest_messageType fastReflection_QueryDkimPubKeyRequest_messageType
-	_                                                  protoreflect.MessageType = fastReflection_QueryDkimPubKeyRequest_messageType{}
-)
+var _fastReflection_QueryDkimPubKeyRequest_messageType fastReflection_QueryDkimPubKeyRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryDkimPubKeyRequest_messageType{}
 
 type fastReflection_QueryDkimPubKeyRequest_messageType struct{}
 
 func (x fastReflection_QueryDkimPubKeyRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryDkimPubKeyRequest)(nil)
 }
-
 func (x fastReflection_QueryDkimPubKeyRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryDkimPubKeyRequest)
 }
-
 func (x fastReflection_QueryDkimPubKeyRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryDkimPubKeyRequest
 }
@@ -1334,21 +1322,17 @@ func (x *QueryDkimPubKeyResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryDkimPubKeyResponse_messageType fastReflection_QueryDkimPubKeyResponse_messageType
-	_                                                   protoreflect.MessageType = fastReflection_QueryDkimPubKeyResponse_messageType{}
-)
+var _fastReflection_QueryDkimPubKeyResponse_messageType fastReflection_QueryDkimPubKeyResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryDkimPubKeyResponse_messageType{}
 
 type fastReflection_QueryDkimPubKeyResponse_messageType struct{}
 
 func (x fastReflection_QueryDkimPubKeyResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryDkimPubKeyResponse)(nil)
 }
-
 func (x fastReflection_QueryDkimPubKeyResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryDkimPubKeyResponse)
 }
-
 func (x fastReflection_QueryDkimPubKeyResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryDkimPubKeyResponse
 }
@@ -1843,21 +1827,17 @@ func (x *QueryDkimPubKeysRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryDkimPubKeysRequest_messageType fastReflection_QueryDkimPubKeysRequest_messageType
-	_                                                   protoreflect.MessageType = fastReflection_QueryDkimPubKeysRequest_messageType{}
-)
+var _fastReflection_QueryDkimPubKeysRequest_messageType fastReflection_QueryDkimPubKeysRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryDkimPubKeysRequest_messageType{}
 
 type fastReflection_QueryDkimPubKeysRequest_messageType struct{}
 
 func (x fastReflection_QueryDkimPubKeysRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryDkimPubKeysRequest)(nil)
 }
-
 func (x fastReflection_QueryDkimPubKeysRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryDkimPubKeysRequest)
 }
-
 func (x fastReflection_QueryDkimPubKeysRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryDkimPubKeysRequest
 }
@@ -2523,21 +2503,17 @@ func (x *QueryDkimPubKeysResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryDkimPubKeysResponse_messageType fastReflection_QueryDkimPubKeysResponse_messageType
-	_                                                    protoreflect.MessageType = fastReflection_QueryDkimPubKeysResponse_messageType{}
-)
+var _fastReflection_QueryDkimPubKeysResponse_messageType fastReflection_QueryDkimPubKeysResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryDkimPubKeysResponse_messageType{}
 
 type fastReflection_QueryDkimPubKeysResponse_messageType struct{}
 
 func (x fastReflection_QueryDkimPubKeysResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryDkimPubKeysResponse)(nil)
 }
-
 func (x fastReflection_QueryDkimPubKeysResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryDkimPubKeysResponse)
 }
-
 func (x fastReflection_QueryDkimPubKeysResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryDkimPubKeysResponse
 }
@@ -3391,21 +3367,19 @@ func file_xion_dkim_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_dkim_v1_query_proto_rawDescData
 }
 
-var (
-	file_xion_dkim_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-	file_xion_dkim_v1_query_proto_goTypes  = []interface{}{
-		(*QueryParamsRequest)(nil),       // 0: xion.dkim.v1.QueryParamsRequest
-		(*QueryParamsResponse)(nil),      // 1: xion.dkim.v1.QueryParamsResponse
-		(*QueryDkimPubKeyRequest)(nil),   // 2: xion.dkim.v1.QueryDkimPubKeyRequest
-		(*QueryDkimPubKeyResponse)(nil),  // 3: xion.dkim.v1.QueryDkimPubKeyResponse
-		(*QueryDkimPubKeysRequest)(nil),  // 4: xion.dkim.v1.QueryDkimPubKeysRequest
-		(*QueryDkimPubKeysResponse)(nil), // 5: xion.dkim.v1.QueryDkimPubKeysResponse
-		(*Params)(nil),                   // 6: xion.dkim.v1.Params
-		(*DkimPubKey)(nil),               // 7: xion.dkim.v1.DkimPubKey
-		(*v1beta1.PageRequest)(nil),      // 8: cosmos.base.query.v1beta1.PageRequest
-		(*v1beta1.PageResponse)(nil),     // 9: cosmos.base.query.v1beta1.PageResponse
-	}
-)
+var file_xion_dkim_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_xion_dkim_v1_query_proto_goTypes = []interface{}{
+	(*QueryParamsRequest)(nil),       // 0: xion.dkim.v1.QueryParamsRequest
+	(*QueryParamsResponse)(nil),      // 1: xion.dkim.v1.QueryParamsResponse
+	(*QueryDkimPubKeyRequest)(nil),   // 2: xion.dkim.v1.QueryDkimPubKeyRequest
+	(*QueryDkimPubKeyResponse)(nil),  // 3: xion.dkim.v1.QueryDkimPubKeyResponse
+	(*QueryDkimPubKeysRequest)(nil),  // 4: xion.dkim.v1.QueryDkimPubKeysRequest
+	(*QueryDkimPubKeysResponse)(nil), // 5: xion.dkim.v1.QueryDkimPubKeysResponse
+	(*Params)(nil),                   // 6: xion.dkim.v1.Params
+	(*DkimPubKey)(nil),               // 7: xion.dkim.v1.DkimPubKey
+	(*v1beta1.PageRequest)(nil),      // 8: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageResponse)(nil),     // 9: cosmos.base.query.v1beta1.PageResponse
+}
 var file_xion_dkim_v1_query_proto_depIdxs = []int32{
 	6, // 0: xion.dkim.v1.QueryParamsResponse.params:type_name -> xion.dkim.v1.Params
 	7, // 1: xion.dkim.v1.QueryDkimPubKeyResponse.dkim_pub_key:type_name -> xion.dkim.v1.DkimPubKey
