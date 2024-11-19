@@ -2,8 +2,13 @@ package integration_tests
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
+	"strings"
 	"testing"
 	"time"
 
@@ -73,6 +78,7 @@ func TestDKIMModule(t *testing.T) {
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgAddDkimPubKeys{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgRemoveDkimPubKey{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgRevokeDkimPubKey{})
 
 	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
@@ -136,6 +142,72 @@ func TestDKIMModule(t *testing.T) {
 	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
+
+	// let's create a new key pair and submit a proposal to add it
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	privKeyPEM := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		},
+	)
+
+	publicKey := privateKey.PublicKey
+	// Marshal the public key to PKCS1 DER format
+	pubKeyDER := x509.MarshalPKCS1PublicKey(&publicKey)
+
+	// Encode the public key in PEM format
+	pubKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pubKeyDER,
+	})
+	// remove the PEM header and footer from the public key
+	after, _ := strings.CutPrefix(string(pubKeyPEM), "-----BEGIN RSA PUBLIC KEY-----\n")
+	pubKey, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
+	pubKey = strings.ReplaceAll(pubKey, "\n", "")
+	hash, err := dkimTypes.ComputePoseidonHash(pubKey)
+	require.NoError(t, err)
+
+	// remove the PEM header and footer from the private key
+	after, _ = strings.CutPrefix(string(privKeyPEM), "-----BEGIN RSA PRIVATE KEY-----\n")
+	privKey, _ := strings.CutSuffix(after, "\n-----END RSA PRIVATE KEY-----\n")
+	privKey = strings.ReplaceAll(privKey, "\n", "")
+
+	governancePubKeys = []dkimTypes.DkimPubKey{
+		{
+			Domain:       domain_1,
+			Selector:     "personal_key",
+			PubKey:       pubKey,
+			PoseidonHash: []byte(hash.String()),
+		},
+	}
+
+	createDkimMsg = dkimTypes.NewMsgAddDkimPubKeys(sdk.MustAccAddressFromBech32(govModAddress), governancePubKeys)
+	require.NoError(t, createDkimMsg.ValidateBasic())
+
+	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{createDkimMsg}, "Add Xion DKIM record", "Add Xion DKIM record", "Add Xion DKIM record", 3)
+	require.NoError(t, err)
+
+	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
+	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
+	require.NoError(t, err)
+	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey)
+
+	// let's revoke the key
+	revokeDkimMsg := dkimTypes.NewMsgReVokeDkimPubKey(sdk.MustAccAddressFromBech32(chainUser.FormattedAddress()), domain_1, privKeyPEM)
+	require.NoError(t, revokeDkimMsg.ValidateBasic())
+
+	// execute the revoke tx using the CLI command
+	_, err = ExecTx(t, ctx, xion.GetNode(), chainUser.KeyName(), "dkim", "rdkim", domain_1, privKey, "--chain-id", xion.Config().ChainID)
+	require.NoError(t, err)
+
+	// query the chain for the revoked key
+	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not found")
+
 }
 
 func createAndSubmitProposal(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, proposer ibc.Wallet, proposalMsgs []cosmos.ProtoMessage, title, summary, metadata string, proposalId int) error {
