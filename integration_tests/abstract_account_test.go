@@ -1,6 +1,7 @@
 package integration_tests
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -31,8 +32,8 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	cometClient "github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	cometCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
-	libclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
+	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
+	cometTypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -584,7 +585,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		aaContractAddr,
 		path.Join(xion.GetNode().HomeDir(), removeFilePath[len(removeFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
-		"--authenticator-id", "1",
+		"--nuthenticator-id", "1",
 	)
 	require.NoError(t, err)
 
@@ -808,47 +809,68 @@ func TestXionClientEvent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
 
-	cometClient, err := getCometClient(xion.GetRPCAddress())
+	/*
+		cometClient, err := getCometClient(xion.GetRPCAddress()) // Note: add a close function
+		require.NoError(t, err)
+
+		eventStream, err := subscribe(t, comettypes.EventTx, cometClient)
+		require.NoError(t, err)
+
+		// note: MASSIVELY unsafe, need to be able to cancel, consider wrapping around a separate goroutine and adding a work timer
+		go func() {
+			for {
+				select {
+				case event <- eventStream:
+					fmt.Println("intercepted a transaction")
+					fmt.Println(event)
+				default:
+					continue
+				}
+			}
+		}()
+	*/
+
+	jsonExecMsgStr, err = GenerateTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"xion", "emit", "arbitrary_data", aaContractAddr,
+		"--authenticator-id", "0",
+		"--chain-id", xion.Config().ChainID,
+	)
+
+	require.NoError(t, err)
+	jsonExecMsg = []byte(jsonExecMsgStr)
+	require.True(t, json.Valid(jsonExecMsg))
+
+	rotateFile, err = os.CreateTemp("", "*-msg-exec-emit.json")
+	require.NoError(t, err)
+	defer os.Remove(rotateFile.Name())
+
+	_, err = rotateFile.Write(jsonExecMsg)
 	require.NoError(t, err)
 
-	eventStream, err := subscribe(t, comettypes.EventTx, cometClient)
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), rotateFile)
 	require.NoError(t, err)
 
-	// note: MASSIVELY unsafe, need to be able to cancel, consider wrapping around a separate goroutine and adding a work timer
-	for {
-		select {
-		case event <- eventStream:
-			fmt.Println("intercepted a transaction")
-			fmt.Println(event)
-		default:
-			continue
-		}
-	}
+	rotateFilePath = strings.Split(rotateFile.Name(), "/")
 
+	_, err = ExecTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"xion", "sign",
+		xionUser.KeyName(),
+		aaContractAddr,
+		path.Join(xion.GetNode().HomeDir(), rotateFilePath[len(rotateFilePath)-1]),
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
 }
 
 //TODO: change smart contract for the event emission one
 //TODO:	create a small client
 
-func GetClient(addr string) (*rpchttp.HTTP, error) {
-	httpClient, err := libclient.DefaultHTTPClient(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	httpClient.Timeout = 10 * time.Second
-	rpcClient, err := rpchttp.NewWithClient(addr, "/websocket", httpClient)
-	if err != nil {
-		return nil, err
-	}
-
-	return rpcClient, nil
-}
-
-func getCometClient(addr string) (*cometClient.Client, error) {
+func getCometClient(addr string) (cometClient.Client, error) {
 	return rpchttp.New(addr, "/websocket")
 }
 
-func subscribeToEvent(t *testing.T, eventType string, cli *cometClient.Client) (<-chan cometCoreTypes.ResultEvent, error) {
-	return cli.Subscribe(ctx, "helpers", types.QueryForEvent(eventType).String()) //<- eventype is confusing...
+func subscribeToEvent(t *testing.T, ctx context.Context, eventType string, cli cometClient.Client) (<-chan cometRpcCoreTypes.ResultEvent, error) {
+	return cli.Subscribe(ctx, "helpers", cometTypes.QueryForEvent(eventType).String()) //<- eventype is confusing...
 }

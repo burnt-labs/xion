@@ -519,12 +519,17 @@ func NewSignCmd() *cobra.Command {
 // NewEmitArbitraryDataCmd returns a CLI command handler for emitting some arbitrary data from the chain.
 func NewEmitArbitraryDataCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "emit <arbitrary_data> <contract_address>",
+		Use:   "emit <arbitrary_data> <contract_address> --authenticator-id [uint8]",
 		Short: "Emit an arbitrary data from the chain",
 		Long:  `Sends an arbitrary data to the contract's emit endpoint. The contract emits the arbitrary contract on-chain.`,
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			authenticatorID, err := cmd.Flags().GetUint8(flagAuthenticatorID)
 			if err != nil {
 				return err
 			}
@@ -564,7 +569,7 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 				return fmt.Errorf("failed to unpack account: %w", err)
 			}
 
-			msg := wasmtypes.MsgExecuteContract{
+			msgExec := wasmtypes.MsgExecuteContract{
 				Sender:   contractAddr,
 				Contract: contractAddr,
 				Funds:    sdk.Coins{},
@@ -572,7 +577,7 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 			}
 
 			txBuilder := clientCtx.TxConfig.NewTxBuilder()
-			txBuilder.SetMsgs(&msg)
+			txBuilder.SetMsgs(&msgExec)
 
 			signerData := signing2.SignerData{
 				ChainID:       clientCtx.ChainID,
@@ -580,12 +585,19 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 				Sequence:      account.GetSequence(),
 			}
 
+			adaptableTx, ok := txBuilder.GetTx().(authsigning.V2AdaptableTx)
+			if !ok {
+				return fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", txBuilder.GetTx())
+			}
+
+			txData := adaptableTx.GetSigningTxData()
+
 			// Generate SignBytes using the TxBuilder
 			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(
 				clientCtx.CmdContext,
 				clientCtx.TxConfig.SignModeHandler().DefaultMode(),
 				signerData,
-				txBuilder.GetTx(),
+				txData,
 			)
 			if err != nil {
 				log.Fatalf("Failed to generate signBytes: %v", err)
@@ -630,11 +642,12 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), wasmMsg)
 		},
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
 
 	return cmd
 }
