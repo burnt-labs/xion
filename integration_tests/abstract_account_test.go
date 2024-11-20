@@ -11,6 +11,7 @@ import (
 	"path"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -809,27 +810,22 @@ func TestXionClientEvent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
 
-	/*
-		cometClient, err := getCometClient(xion.GetRPCAddress()) // Note: add a close function
-		require.NoError(t, err)
+	cometWsClient, err := getCometClient(xion.GetHostRPCAddress()) // Note: add a close function
+	require.NoError(t, err)
+	fmt.Printf("%+v\n", xion.GetNode())
 
-		eventStream, err := subscribe(t, comettypes.EventTx, cometClient)
-		require.NoError(t, err)
+	err = cometWsClient.Start()
+	require.NoError(t, err)
 
-		// note: MASSIVELY unsafe, need to be able to cancel, consider wrapping around a separate goroutine and adding a work timer
-		go func() {
-			for {
-				select {
-				case event <- eventStream:
-					fmt.Println("intercepted a transaction")
-					fmt.Println(event)
-				default:
-					continue
-				}
-			}
-		}()
-	*/
+	eventStream, err := subscribeToEvent(t, ctx, cometTypes.EventTx, cometWsClient)
+	require.NoError(t, err)
 
+	// note: MASSIVELY unsafe, need to be able to cancel, consider wrapping around a separate goroutine and adding a work timer
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go receiveEvents(t, &wg, eventStream)
+
+	time.Sleep(5 * time.Second) // sleeping for 5 seconds to make sure we intercept transactions
 	jsonExecMsgStr, err = GenerateTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "emit", "arbitrary_data", aaContractAddr,
@@ -861,16 +857,46 @@ func TestXionClientEvent(t *testing.T) {
 		path.Join(xion.GetNode().HomeDir(), rotateFilePath[len(rotateFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
-	require.NoError(t, err)
+	require.NoError(t, err) // it's returning an error and it's not throwing
+	fmt.Println("we have thrown a transaction")
+
+	wg.Wait()
+	stopClient(ctx, cometWsClient) // could be a defered function
 }
 
 //TODO: change smart contract for the event emission one
 //TODO:	create a small client
 
-func getCometClient(addr string) (cometClient.Client, error) {
-	return rpchttp.New(addr, "/websocket")
+func getCometClient(hostAddr string) (cometClient.Client, error) {
+	return rpchttp.New(hostAddr, "/websocket")
 }
 
 func subscribeToEvent(t *testing.T, ctx context.Context, eventType string, cli cometClient.Client) (<-chan cometRpcCoreTypes.ResultEvent, error) {
-	return cli.Subscribe(ctx, "helpers", cometTypes.QueryForEvent(eventType).String()) //<- eventype is confusing...
+	return cli.Subscribe(ctx, "helpers", cometTypes.QueryForEvent(eventType).String())
+}
+
+func receiveEvents(t *testing.T, wg *sync.WaitGroup, eventStream <-chan cometRpcCoreTypes.ResultEvent) {
+	defer wg.Done() // make sure the function has a way out
+	for {
+		select {
+		case event := <-eventStream:
+			fmt.Println("event intercepted")
+			fmt.Println(event)
+			break
+		default:
+			continue
+		}
+	}
+	return
+}
+
+func stopClient(ctx context.Context, cli cometClient.Client) error {
+	if err := cli.UnsubscribeAll(ctx, "helpers"); err != nil {
+		return err
+	}
+
+	if err := cli.Stop(); err != nil {
+		return err
+	}
+	return nil
 }
