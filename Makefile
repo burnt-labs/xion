@@ -282,6 +282,9 @@ test-integration-xion-send-platform-fee: compile_integration_tests
 test-integration-xion-abstract-account: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionAbstractAccount
 
+test-integration-xion-abstract-account-event: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionClientEvent
+
 test-integration-xion-min-default: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionMinimumFeeDefault
 

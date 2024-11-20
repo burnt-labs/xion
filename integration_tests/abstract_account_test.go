@@ -29,6 +29,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	cometClient "github.com/cometbft/cometbft/rpc/client"
+	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
+	cometCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
+	libclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -616,4 +620,235 @@ func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string
 	require.True(t, ok)
 
 	return addr
+}
+
+func TestXionClientEvent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	t.Parallel()
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	xion, ctx := td.xionChain, td.ctx
+
+	config := types.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+
+	// Create and Fund User Wallets
+	t.Log("creating and funding user accounts")
+	fundAmount := math.NewInt(10_000_000)
+	xionUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
+	require.NoError(t, err)
+	currentHeight, _ := xion.Height(ctx)
+	err = testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
+	require.NoError(t, err)
+	t.Logf("created xion user %s", xionUser.FormattedAddress())
+
+	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, fundAmount, xionUserBalInitial)
+
+	// Create a Secondary Key For Rotation
+	recipientKeyName := "recipient-key"
+	err = xion.CreateKey(ctx, recipientKeyName)
+	require.NoError(t, err)
+	receipientKeyAddressBytes, err := xion.GetAddress(ctx, recipientKeyName)
+	require.NoError(t, err)
+	recipientKeyAddress, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, receipientKeyAddressBytes)
+	require.NoError(t, err)
+
+	// Get Public Key For Funded Account
+	account, err := ExecBin(t, ctx, xion.GetNode(),
+		"keys", "show",
+		xionUser.KeyName(),
+		"--keyring-backend", keyring.BackendTest,
+		"-p",
+	)
+	require.NoError(t, err)
+	t.Log("Funded Account:")
+	for k, v := range account {
+		t.Logf("[%s]: %v", k, v)
+	}
+
+	fp, err := os.Getwd()
+	require.NoError(t, err)
+
+	// Store Wasm Contract
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
+		"integration_tests", "testdata", "contracts", "account-wasm-updatable-event-aarch64.wasm"))
+	require.NoError(t, err)
+
+	// retrieve the hash
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
+		"wasm", "code-info", codeID)
+	require.NoError(t, err)
+	t.Logf("code response: %s", codeResp)
+
+	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
+
+	registeredTxHash, err := ExecTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"xion", "register",
+		codeID,
+		xionUser.KeyName(),
+		"--funds", depositedFunds,
+		"--salt", "0",
+		"--authenticator", "Secp256K1",
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	t.Logf("tx hash: %s", registeredTxHash)
+
+	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", registeredTxHash)
+	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
+	aaContractAddr := GetAAContractAddress(t, txDetails)
+
+	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, math.NewInt(100000), contractBalance)
+
+	contractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
+	require.NoError(t, err)
+
+	pubkey64, ok := contractState["data"].(string)
+	require.True(t, ok)
+	pubkeyRawJSON, err := base64.StdEncoding.DecodeString(pubkey64)
+	require.NoError(t, err)
+	var pubKeyMap jsonAuthenticator
+	json.Unmarshal(pubkeyRawJSON, &pubKeyMap)
+	require.Equal(t, account["key"], pubKeyMap["Secp256K1"]["pubkey"])
+
+	// Generate Msg Send without signatures
+	jsonMsg := RawJSONMsgSend(t, aaContractAddr, recipientKeyAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	require.True(t, json.Valid(jsonMsg))
+
+	sendFile, err := os.CreateTemp("", "*-msg-bank-send.json")
+	require.NoError(t, err)
+	defer os.Remove(sendFile.Name())
+
+	_, err = sendFile.Write(jsonMsg)
+	require.NoError(t, err)
+
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), sendFile)
+	require.NoError(t, err)
+
+	// Sign and broadcast a transaction
+	sendFilePath := strings.Split(sendFile.Name(), "/")
+	_, err = ExecTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"xion", "sign",
+		xionUser.KeyName(),
+		aaContractAddr,
+		path.Join(xion.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 1, xion)
+	require.NoError(t, err)
+
+	// Confirm the updated balance
+	balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, math.NewInt(100000).Uint64(), balance.Uint64())
+
+	// Generate Key Rotation Msg
+	account, err = ExecBin(t, ctx, xion.GetNode(),
+		"keys", "show",
+		xionUser.KeyName(),
+		"--keyring-backend", keyring.BackendTest,
+		"-p",
+	)
+
+	// add secondary authenticator to account. in this case, the same key but in a different position
+	jsonExecMsgStr, err := GenerateTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"xion", "add-authenticator", aaContractAddr,
+		"--authenticator-id", "1",
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	jsonExecMsg := []byte(jsonExecMsgStr)
+	require.True(t, json.Valid(jsonExecMsg))
+
+	rotateFile, err := os.CreateTemp("", "*-msg-exec-rotate-key.json")
+	require.NoError(t, err)
+	defer os.Remove(rotateFile.Name())
+
+	_, err = rotateFile.Write(jsonExecMsg)
+	require.NoError(t, err)
+
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), rotateFile)
+	require.NoError(t, err)
+
+	rotateFilePath := strings.Split(rotateFile.Name(), "/")
+
+	_, err = ExecTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"xion", "sign",
+		xionUser.KeyName(),
+		aaContractAddr,
+		path.Join(xion.GetNode().HomeDir(), rotateFilePath[len(rotateFilePath)-1]),
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	updatedContractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 1 }}`)
+	require.NoError(t, err)
+
+	updatedPubKey, ok := updatedContractState["data"].(string)
+	require.True(t, ok)
+
+	updatedPubKeyRawJSON, err := base64.StdEncoding.DecodeString(updatedPubKey)
+	require.NoError(t, err)
+	var updatedPubKeyMap jsonAuthenticator
+
+	err = json.Unmarshal(updatedPubKeyRawJSON, &updatedPubKeyMap)
+	require.NoError(t, err)
+	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
+
+	cometClient, err := getCometClient(xion.GetRPCAddress())
+	require.NoError(t, err)
+
+	eventStream, err := subscribe(t, comettypes.EventTx, cometClient)
+	require.NoError(t, err)
+
+	// note: MASSIVELY unsafe, need to be able to cancel, consider wrapping around a separate goroutine and adding a work timer
+	for {
+		select {
+		case event <- eventStream:
+			fmt.Println("intercepted a transaction")
+			fmt.Println(event)
+		default:
+			continue
+		}
+	}
+
+}
+
+//TODO: change smart contract for the event emission one
+//TODO:	create a small client
+
+func GetClient(addr string) (*rpchttp.HTTP, error) {
+	httpClient, err := libclient.DefaultHTTPClient(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	httpClient.Timeout = 10 * time.Second
+	rpcClient, err := rpchttp.NewWithClient(addr, "/websocket", httpClient)
+	if err != nil {
+		return nil, err
+	}
+
+	return rpcClient, nil
+}
+
+func getCometClient(addr string) (*cometClient.Client, error) {
+	return rpchttp.New(addr, "/websocket")
+}
+
+func subscribeToEvent(t *testing.T, eventType string, cli *cometClient.Client) (<-chan cometCoreTypes.ResultEvent, error) {
+	return cli.Subscribe(ctx, "helpers", types.QueryForEvent(eventType).String()) //<- eventype is confusing...
 }
