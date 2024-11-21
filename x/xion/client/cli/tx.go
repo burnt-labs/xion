@@ -531,23 +531,8 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 
 			contractAddr := args[1]
 
-			signMode := signing.SignMode_SIGN_MODE_UNSPECIFIED
-			switch clientCtx.SignModeStr {
-			case flags.SignModeDirect:
-				signMode = signing.SignMode_SIGN_MODE_DIRECT
-			case flags.SignModeLegacyAminoJSON:
-				signMode = signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON
-			case flags.SignModeDirectAux:
-				signMode = signing.SignMode_SIGN_MODE_DIRECT_AUX
-			case flags.SignModeTextual:
-				signMode = signing.SignMode_SIGN_MODE_TEXTUAL
-			case flags.SignModeEIP191:
-				signMode = signing.SignMode_SIGN_MODE_EIP_191
-			}
-
 			data := map[string]interface{}{}
 			data["data"] = arbitraryData
-
 			msg := map[string]interface{}{}
 			msg["emit"] = data
 

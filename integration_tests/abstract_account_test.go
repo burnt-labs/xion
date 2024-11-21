@@ -34,7 +34,6 @@ import (
 	cometClient "github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
-	cometTypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
@@ -817,7 +816,9 @@ func TestXionClientEvent(t *testing.T) {
 	err = cometWsClient.Start()
 	require.NoError(t, err)
 
-	eventStream, err := subscribeToEvent(t, ctx, cometTypes.EventTx, cometWsClient)
+	//eventStream, err := subscribeToEvent(t, ctx, cometTypes.EventTx, cometWsClient)
+	eventStream, err := subscribeToEvent(t, ctx, aaContractAddr, cometWsClient)
+
 	require.NoError(t, err)
 
 	// note: MASSIVELY unsafe, need to be able to cancel, consider wrapping around a separate goroutine and adding a work timer
@@ -825,7 +826,8 @@ func TestXionClientEvent(t *testing.T) {
 	wg.Add(1)
 	go receiveEvents(t, &wg, eventStream)
 
-	time.Sleep(5 * time.Second) // sleeping for 5 seconds to make sure we intercept transactions
+	time.Sleep(10 * time.Second) // sleeping for 5 seconds to make sure we intercept transactions
+	fmt.Println("slept for 10s")
 	jsonExecMsgStr, err = GenerateTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "emit", "arbitrary_data", aaContractAddr,
@@ -872,7 +874,9 @@ func getCometClient(hostAddr string) (cometClient.Client, error) {
 }
 
 func subscribeToEvent(t *testing.T, ctx context.Context, eventType string, cli cometClient.Client) (<-chan cometRpcCoreTypes.ResultEvent, error) {
-	return cli.Subscribe(ctx, "helpers", cometTypes.QueryForEvent(eventType).String())
+	ev := fmt.Sprintf("message.module='wasm' AND message.action='/cosmwasm.wasm.v1.MsgExecuteContract' AND wasm-account_emit._contract_address='%s'", eventType)
+	fmt.Printf("%s\n\n\n", ev)
+	return cli.Subscribe(ctx, "helpers", "message.module='wasm' AND message.action='/cosmwasm.wasm.v1.MsgExecuteContract' AND eventType.eventAttribute='wasm-account_emit._contract_address'")
 }
 
 func receiveEvents(t *testing.T, wg *sync.WaitGroup, eventStream <-chan cometRpcCoreTypes.ResultEvent) {
