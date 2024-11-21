@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -528,12 +527,6 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			authenticatorID, err := cmd.Flags().GetUint8(flagAuthenticatorID)
-			if err != nil {
-				return err
-			}
-
 			arbitraryData := args[0]
 
 			contractAddr := args[1]
@@ -552,74 +545,11 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 				signMode = signing.SignMode_SIGN_MODE_EIP_191
 			}
 
-			// Get the signer's address
-			signerAddr := clientCtx.GetFromAddress()
-			// Query the account details
-			queryClient := authtypes.NewQueryClient(clientCtx)
-			res, err := queryClient.Account(cmd.Context(), &authtypes.QueryAccountRequest{
-				Address: signerAddr.String(),
-			})
-			if err != nil {
-				return fmt.Errorf("failed to query account: %w", err)
-			}
-
-			// Decode the account details
-			var account authtypes.AccountI
-			if err := clientCtx.InterfaceRegistry.UnpackAny(res.Account, &account); err != nil {
-				return fmt.Errorf("failed to unpack account: %w", err)
-			}
-
-			msgExec := wasmtypes.MsgExecuteContract{
-				Sender:   contractAddr,
-				Contract: contractAddr,
-				Funds:    sdk.Coins{},
-				Msg:      []byte(arbitraryData),
-			}
-
-			txBuilder := clientCtx.TxConfig.NewTxBuilder()
-			txBuilder.SetMsgs(&msgExec)
-
-			signerData := signing2.SignerData{
-				ChainID:       clientCtx.ChainID,
-				AccountNumber: account.GetAccountNumber(),
-				Sequence:      account.GetSequence(),
-			}
-
-			adaptableTx, ok := txBuilder.GetTx().(authsigning.V2AdaptableTx)
-			if !ok {
-				return fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", txBuilder.GetTx())
-			}
-
-			txData := adaptableTx.GetSigningTxData()
-
-			// Generate SignBytes using the TxBuilder
-			signBytes, err := clientCtx.TxConfig.SignModeHandler().GetSignBytes(
-				clientCtx.CmdContext,
-				clientCtx.TxConfig.SignModeHandler().DefaultMode(),
-				signerData,
-				txData,
-			)
-			if err != nil {
-				log.Fatalf("Failed to generate signBytes: %v", err)
-			}
-			signature, pubKey, err := clientCtx.Keyring.SignByAddress(clientCtx.GetFromAddress(), signBytes, signMode)
-			if err != nil {
-				return fmt.Errorf("error signing address : %s", err)
-			}
-
-			secp256k1 := map[string]interface{}{}
-			secp256k1["id"] = authenticatorID
-			secp256k1["pubkey"] = pubKey.Bytes()
-			secp256k1["signature"] = signature
-
-			addAuthenticator := map[string]interface{}{}
-			addAuthenticator["Secp256K1"] = secp256k1
-
-			addAuthMethod := map[string]interface{}{}
-			addAuthMethod["add_authenticator"] = addAuthenticator
+			data := map[string]interface{}{}
+			data["data"] = arbitraryData
 
 			msg := map[string]interface{}{}
-			msg["add_auth_method"] = addAuthMethod
+			msg["emit"] = data
 
 			jsonMsg, err := json.Marshal(msg)
 			if err != nil {
