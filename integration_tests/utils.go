@@ -19,10 +19,12 @@ import (
 	"testing"
 	"time"
 
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
 	"github.com/burnt-labs/xion/x/xion"
+	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -31,8 +33,6 @@ import (
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
-
-	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 
 	"cosmossdk.io/math"
 	"cosmossdk.io/x/upgrade"
@@ -264,6 +264,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				ibcwasm.AppModuleBasic{},
 				ccvprovider.AppModuleBasic{},
 				ibcsolomachine.AppModuleBasic{},
+				feegrantmodule.AppModuleBasic{},
 
 				// custom
 				wasm.AppModuleBasic{},

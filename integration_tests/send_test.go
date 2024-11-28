@@ -216,7 +216,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	)
 
 	require.NoError(t, err)
-	err = testutil.WaitForBlocks(ctx, int(currentHeight)+100, xion)
+	err = testutil.WaitForBlocks(ctx, int(currentHeight)+15, xion)
 	require.NoError(t, err)
 
 	postSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
@@ -225,4 +225,22 @@ func TestXionSendPlatformFee(t *testing.T) {
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, math.NewInt(290), postReceivingBalance)
+
+	// step 4: give grant to sender
+	_, err = xion.GetNode().ExecTx(ctx,
+		xionUser.KeyName(),
+		"feegrant", "grant", xionUser.KeyName(), recipientKeyAddress,
+		"--chain-id", xion.Config().ChainID,
+		"--allowed-messages", fmt.Sprintf("%s, %s", "xion/MsgSend", "/cosmos.bank.v1beta1.MsgSend"),
+	)
+	require.NoError(t, err)
+	// step 5: transfer and verify fees
+
+	_, err = xion.GetNode().ExecTx(ctx,
+		xionUser.KeyName(),
+		"xion", "send", xionUser.KeyName(),
+		"--chain-id", xion.Config().ChainID,
+		recipientKeyAddress, fmt.Sprintf("%d%s", 200, xion.Config().Denom),
+	)
+	require.NoError(t, err)
 }
