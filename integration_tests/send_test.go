@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkMath "cosmossdk.io/math"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -28,14 +28,15 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.001uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := math.NewInt(10_000_000)
-	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
+	fundAmount := sdkMath.NewInt(10_000_000)
+	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion, xion)
 	xionUser := users[0]
+	secondXionUser := users[1]
 	currentHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
 	t.Logf("created xion user %s", xionUser.FormattedAddress())
@@ -66,7 +67,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	setPlatformMinimumsMsg := xiontypes.MsgSetPlatformMinimum{
 		Authority: authtypes.NewModuleAddress("gov").String(),
-		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(10), Denom: "uxion"}},
+		Minimums:  types.Coins{types.Coin{Amount: sdkMath.NewInt(10), Denom: "uxion"}},
 	}
 
 	msg, err := cdc.MarshalInterfaceJSON(&setPlatformMinimumsMsg)
@@ -143,7 +144,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 		balance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 		require.NoError(t, err)
 		t.Logf("expected %d, got %d", 100, balance.Int64())
-		return balance.Equal(math.NewInt(100))
+		return balance.Equal(sdkMath.NewInt(100))
 	},
 		time.Second*20,
 		time.Second*6,
@@ -206,7 +207,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 	initialReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, math.NewInt(100), initialReceivingBalance)
+	require.Equal(t, sdkMath.NewInt(100), initialReceivingBalance)
 
 	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
@@ -221,26 +222,41 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	postSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equalf(t, initialSendingBalance.SubRaw(200), postSendingBalance, "Wanted %d, got %d", initialSendingBalance.SubRaw(200), postSendingBalance)
+
+	fee := 200000 * 0.001
+	expectedInitialBalance := initialSendingBalance.SubRaw(200 + int64(fee))
+	require.Equalf(t, expectedInitialBalance, postSendingBalance, "Wanted %d, got %d", expectedInitialBalance, postSendingBalance)
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, math.NewInt(290), postReceivingBalance)
+	require.Equal(t, sdkMath.NewInt(290), postReceivingBalance)
 
 	// step 4: give grant to sender
 	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
-		"feegrant", "grant", xionUser.KeyName(), recipientKeyAddress,
+		"feegrant", "grant", xionUser.KeyName(), secondXionUser.FormattedAddress(),
 		"--chain-id", xion.Config().ChainID,
-		"--allowed-messages", fmt.Sprintf("%s, %s", "xion/MsgSend", "/cosmos.bank.v1beta1.MsgSend"),
+		"--allowed-messages", fmt.Sprintf("%s", "xion/MsgSend"),
 	)
 	require.NoError(t, err)
-	// step 5: transfer and verify fees
+	// TODO: check for xionUser gas before step 5
+	postSendingBalance, err = xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+	require.NoError(t, err)
+	expctedGrantFeeBalance := expectedInitialBalance.SubRaw(int64(fee))
+	require.Equalf(t, expctedGrantFeeBalance, postSendingBalance, "Wanted %d, got %d", expctedGrantFeeBalance, postSendingBalance) // TODO: should be rejected a small delta of gas should've been charged
 
+	// step 5: transfer and verify fees
 	_, err = xion.GetNode().ExecTx(ctx,
-		xionUser.KeyName(),
-		"xion", "send", xionUser.KeyName(),
+		secondXionUser.KeyName(),
+		"xion", "send", secondXionUser.FormattedAddress(),
+		recipientKeyAddress, fmt.Sprintf("%d%s", 105, xion.Config().Denom),
 		"--chain-id", xion.Config().ChainID,
-		recipientKeyAddress, fmt.Sprintf("%d%s", 200, xion.Config().Denom),
 	)
 	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, int(currentHeight)+5, xion)
+	require.NoError(t, err)
+
+	postSendingBalance, err = xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+	require.NoError(t, err)
+	expctedGrantFeeBalance = expectedInitialBalance.SubRaw(int64(fee))                                                             // TODO: this needs to accomodate gas for providing the grant and financing one transaction with theg grant
+	require.Equalf(t, expctedGrantFeeBalance, postSendingBalance, "Wanted %d, got %d", expctedGrantFeeBalance, postSendingBalance) // TODO: should be rejected a small delta of gas should've been charged
 }
