@@ -209,21 +209,26 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, sdkMath.NewInt(100), initialReceivingBalance)
 
-	_, err = xion.GetNode().ExecTx(ctx,
+	initialPlatformSendHash, err := xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
 		"xion", "send", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
 		recipientKeyAddress, fmt.Sprintf("%d%s", 200, xion.Config().Denom),
 	)
-
 	require.NoError(t, err)
 	err = testutil.WaitForBlocks(ctx, int(currentHeight)+15, xion)
+	require.NoError(t, err)
+
+	initialPlatformSend, err := ExecQuery(t, ctx, xion.GetNode(), "tx", initialPlatformSendHash)
+	require.NoError(t, err)
+
+	initialGasWanted, err := GetGasFromTx(t, initialPlatformSend, "gas_wanted")
 	require.NoError(t, err)
 
 	postSendingBalance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
 
-	fee := 200000 * 0.001
+	fee := float64(initialGasWanted) * 0.001
 	expectedInitialBalance := initialSendingBalance.SubRaw(200 + int64(fee))
 	require.Equalf(t, expectedInitialBalance, postSendingBalance, "Wanted %d, got %d", expectedInitialBalance, postSendingBalance)
 	postReceivingBalance, err := xion.GetBalance(ctx, recipientKeyAddress, xion.Config().Denom)
@@ -235,21 +240,21 @@ func TestXionSendPlatformFee(t *testing.T) {
 		xionUser.KeyName(),
 		"feegrant", "grant", xionUser.KeyName(), secondXionUser.FormattedAddress(),
 		"--chain-id", xion.Config().ChainID,
-		"--allowed-messages", fmt.Sprintf("%s", "xion/MsgSend"),
+		"--allowed-messages", fmt.Sprintf("%s", "/xion.v1.MsgSend"),
 	)
 	require.NoError(t, err)
-	// TODO: check for xionUser gas before step 5
 	postSendingBalance, err = xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
 	expctedGrantFeeBalance := expectedInitialBalance.SubRaw(int64(fee))
-	require.Equalf(t, expctedGrantFeeBalance, postSendingBalance, "Wanted %d, got %d", expctedGrantFeeBalance, postSendingBalance) // TODO: should be rejected a small delta of gas should've been charged
+	require.Equalf(t, expctedGrantFeeBalance, postSendingBalance, "Wanted %d, got %d", expctedGrantFeeBalance, postSendingBalance)
 
 	// step 5: transfer and verify fees
-	_, err = xion.GetNode().ExecTx(ctx,
+	fundedPlatformSendHash, err := xion.GetNode().ExecTx(ctx,
 		secondXionUser.KeyName(),
 		"xion", "send", secondXionUser.FormattedAddress(),
 		recipientKeyAddress, fmt.Sprintf("%d%s", 105, xion.Config().Denom),
 		"--chain-id", xion.Config().ChainID,
+		"--fee-granter", xionUser.FormattedAddress(),
 	)
 	require.NoError(t, err)
 	err = testutil.WaitForBlocks(ctx, int(currentHeight)+5, xion)
@@ -257,6 +262,17 @@ func TestXionSendPlatformFee(t *testing.T) {
 
 	postSendingBalance, err = xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
-	expctedGrantFeeBalance = expectedInitialBalance.SubRaw(int64(fee))                                                             // TODO: this needs to accomodate gas for providing the grant and financing one transaction with theg grant
-	require.Equalf(t, expctedGrantFeeBalance, postSendingBalance, "Wanted %d, got %d", expctedGrantFeeBalance, postSendingBalance) // TODO: should be rejected a small delta of gas should've been charged
+	expctedGrantFeeBalance = expctedGrantFeeBalance.SubRaw(int64(fee))
+	require.Equalf(t, expctedGrantFeeBalance, postSendingBalance, "Wanted %d, got %d", expctedGrantFeeBalance, postSendingBalance)
+
+	fundedPlatformSendTx, err := ExecQuery(t, ctx, xion.GetNode(), "tx", fundedPlatformSendHash)
+	require.NoError(t, err)
+
+	fundedGasUsed, err := GetGasFromTx(t, fundedPlatformSendTx, "gas_used")
+	require.NoError(t, err)
+	initialGasUsed, err := GetGasFromTx(t, initialPlatformSend, "gas_used")
+	require.NoError(t, err)
+
+	require.Greater(t, fundedGasUsed, initialGasUsed)
+	t.Logf("fundedGasUsed: %d,\n initialGasUsed: %d", fundedGasUsed, initialGasUsed)
 }

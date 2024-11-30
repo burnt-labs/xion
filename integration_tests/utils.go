@@ -9,6 +9,7 @@ import (
 	"embed"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"math/rand"
@@ -1164,4 +1165,12 @@ func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
 	}
 
 	return tempFile
+}
+
+func GetGasFromTx(t *testing.T, tx map[string]interface{}, gasKey string) (int64, error) {
+	gas, ok := tx[gasKey].(string)
+	if !ok {
+		return 0, errors.New(fmt.Sprintf("could not get gas with key: %s", gasKey))
+	}
+	return strconv.ParseInt(gas, 10, 64)
 }
