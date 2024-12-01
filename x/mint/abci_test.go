@@ -140,7 +140,7 @@ func TestBeginBlocker(t *testing.T) {
 			assert.Equalf(t, 1, len(events), "A single event must be emitted. However %d events were emitted", len(events))
 			event := events[0]
 			assert.Equalf(t, "xion.mint.v1.MintIncentiveTokens", event.Type, "Expected event to be xion.mint.v1.MintIncentiveTokens but found: %s", event.Type)
-			assert.Equalf(t, 7, len(event.Attributes), "Expcted 7 attributes but found %d", len(event.Attributes))
+			assert.Equalf(t, 7, len(event.Attributes), "Expected 7 attributes but found %d", len(event.Attributes))
 
 			assert.Equal(t, "annual_provisions", event.Attributes[0].Key)
 			assert.Equal(t, tc.expected.annualProvisions, sdkmath.LegacyMustNewDecFromStr(stripValue(t, event.Attributes[0].Value)))
