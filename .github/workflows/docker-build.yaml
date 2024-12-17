@@ -71,8 +71,6 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           tags: xion:${{ matrix.os }}-${{ matrix.arch }}
           build-args: |
-            COMMIT=${{ github.sha }}
-            VERSION=${{ github.ref_name }}
             XIOND_BINARY=dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
 
       - name: Build Heighliner Image
@@ -86,8 +84,6 @@ jobs:
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           tags: heighliner:${{ matrix.os }}-${{ matrix.arch }}
           build-args: |
-            COMMIT=${{ github.sha }}
-            VERSION=${{ github.ref_name }}
             XIOND_BINARY=dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
 
       - name: Save Docker Image

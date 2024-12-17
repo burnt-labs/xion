@@ -3,6 +3,7 @@
 PACKAGES_SIMTEST = $(shell go list ./... | grep '/simulation')
 VERSION ?= $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT ?= $(shell git log -1 --format='%H')
+TAG_VERSION ?= $(shell git rev-parse --short HEAD)
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
@@ -85,7 +86,7 @@ all: install lint test
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
 
-build: guard-VERSION guard-COMMIT
+build: go.sum
 ifeq ($(OS),Windows_NT)
 	$(error wasmd server not supported. Use "make build-windows-client" for client)
 	exit 1
@@ -229,12 +230,6 @@ clean:
 
 distclean: clean
 	rm -rf vendor/
-
-guard-%:
-	@ if [ "${${*}}" = "" ]; then \
-        echo "Environment variable $* not set"; \
-        exit 1; \
-	fi
 
 ###############################################################################
 ###                                Testing                                  ###
