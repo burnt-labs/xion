@@ -23,7 +23,7 @@ builds:
     hooks:
       pre:
         - cmd: mkdir -p ./dist/lib
-        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.aarch64.a -O ./dist/lib/libwasmvm_muslc.aarch64.a'
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/libwasmvm_muslc.aarch64.a -O ./dist/lib/libwasmvm_muslc.aarch64.a'
     no_unique_dist_dir: true
     ldflags:
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
@@ -57,7 +57,7 @@ builds:
     hooks:
       pre:
         - cmd: mkdir -p ./dist/lib
-        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvm_muslc.x86_64.a -O ./dist/lib/libwasmvm_muslc.x86_64.a'
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/libwasmvm_muslc.x86_64.a -O ./dist/lib/libwasmvm_muslc.x86_64.a'
     no_unique_dist_dir: true
     ldflags:
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
@@ -89,7 +89,7 @@ builds:
     hooks:
       pre:
         - cmd: mkdir -p ./dist/lib
-        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O ./dist/lib/libwasmvmstatic_darwin.a'
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/libwasmvmstatic_darwin.a -O ./dist/lib/libwasmvmstatic_darwin.a'
     no_unique_dist_dir: true
     ldflags:
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
@@ -122,7 +122,7 @@ builds:
     hooks:
       pre:
         - cmd: mkdir -p ./dist/lib
-        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I % wget https://github.com/CosmWasm/wasmvm/releases/download/%/libwasmvmstatic_darwin.a -O ./dist/lib/libwasmvmstatic_darwin.a'
+        - cmd: sh -c 'grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/libwasmvmstatic_darwin.a -O ./dist/lib/libwasmvmstatic_darwin.a'
     no_unique_dist_dir: true
     ldflags:
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
