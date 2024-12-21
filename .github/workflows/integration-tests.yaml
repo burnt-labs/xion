@@ -78,6 +78,7 @@ jobs:
           - "DungeonTransferBlock"
           - "XionSendPlatformFee"
           - "MintModuleNoInflationNoFees"
+          - "MintModuleInflationNoFees"
           - "MintModuleInflationHighFees"
           - "MintModuleInflationLowFees"
           - "JWTAbstractAccount"
@@ -91,7 +92,7 @@ jobs:
           - "TreasuryContract"
           - "TreasuryMulti"
           - "SingleAbstractAccountMigration"
-    #        - "Simulate"
+          - "Simulate"
 
     steps:
       - name: checkout

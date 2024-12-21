@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"context"
+	"encoding/json"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"cosmossdk.io/log"
@@ -68,9 +71,36 @@ func (k Keeper) OverwritePlatformPercentage(ctx sdktypes.Context, percentage uin
 	ctx.KVStore(k.storeKey).Set(types.PlatformPercentageKey, sdktypes.Uint64ToBigEndian(uint64(percentage)))
 }
 
+// Platform Minimum
+func (k Keeper) GetPlatformMinimums(ctx sdktypes.Context) (coins sdktypes.Coins, err error) {
+	bz := ctx.KVStore(k.storeKey).Get(types.PlatformMinimumKey)
+
+	if len(bz) != 0 {
+		err = json.Unmarshal(bz, &coins)
+	}
+
+	return coins, err
+}
+
+func (k Keeper) OverwritePlatformMinimum(ctx sdktypes.Context, coins sdktypes.Coins) error {
+	bz, err := json.Marshal(coins)
+	if err != nil {
+		return err
+	}
+	ctx.KVStore(k.storeKey).Set(types.PlatformMinimumKey, bz)
+	return nil
+}
+
 // Authority
 
 // GetAuthority returns the x/xion module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// PlatformPercentage implements types.QueryServer.
+func (k Keeper) PlatformPercentage(ctx context.Context, _ *types.QueryPlatformPercentageRequest) (*types.QueryPlatformPercentageResponse, error) {
+	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+	percentage := k.GetPlatformPercentage(sdkCtx).Uint64()
+	return &types.QueryPlatformPercentageResponse{PlatformPercentage: percentage}, nil
 }
