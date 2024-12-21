@@ -79,6 +79,7 @@ jobs:
         - "WebAuthNAbstractAccount"
         - "XionMinimumFeeDefault"
         - "XionMinimumFeeZero"
+        - "XionTokenFactory"
 
     steps:
       - name: Set up Go 1.21

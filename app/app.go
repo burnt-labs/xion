@@ -6,19 +6,62 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
-	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
-	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-	owasm "github.com/burnt-labs/xion/wasmbindings"
-	"github.com/burnt-labs/xion/x/globalfee"
-	"github.com/burnt-labs/xion/x/jwk"
-	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
-	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	wasmapp "github.com/CosmWasm/wasmd/app"
+	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/CosmosContracts/juno/v21/x/tokenfactory"
+	"github.com/CosmosContracts/juno/v21/x/tokenfactory/bindings"
+	tokenfactorykeeper "github.com/CosmosContracts/juno/v21/x/tokenfactory/keeper"
+	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
+	aa "github.com/larry0x/abstract-account/x/abstractaccount"
+	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
+	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+	"github.com/osmosis-labs/fee-abstraction/v7/x/feeabs"
+	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/keeper"
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/types"
+	"github.com/spf13/cast"
+
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmos "github.com/cometbft/cometbft/libs/os"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
+	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
+	ibchooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7"
+	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/keeper"
+	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/types"
+	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
+	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
+	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
+	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
+	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
+	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
+	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -98,49 +141,14 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
-	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-	ibchooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7"
-	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/keeper"
-	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v7/types"
-	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
-	icacontroller "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller"
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/keeper"
-	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
-	icahost "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
-	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
-	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v7/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
-	aa "github.com/larry0x/abstract-account/x/abstractaccount"
-	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/osmosis-labs/fee-abstraction/v7/x/feeabs"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/keeper"
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v7/x/feeabs/types"
-
-	"github.com/spf13/cast"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"github.com/burnt-labs/xion/app/upgrades"
-	v5 "github.com/burnt-labs/xion/app/upgrades/v5"
+	v6 "github.com/burnt-labs/xion/app/upgrades/v6"
+	owasm "github.com/burnt-labs/xion/wasmbindings"
+	"github.com/burnt-labs/xion/x/globalfee"
+	"github.com/burnt-labs/xion/x/jwk"
+	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	"github.com/burnt-labs/xion/x/mint"
 	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	minttypes "github.com/burnt-labs/xion/x/mint/types"
@@ -163,7 +171,7 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
-	Upgrades                = []upgrades.Upgrade{v5.Upgrade}
+	Upgrades                = []upgrades.Upgrade{v6.Upgrade}
 )
 
 // These constants are derived from the above variables.
@@ -223,6 +231,7 @@ var (
 		nftmodule.AppModuleBasic{},
 		consensus.AppModuleBasic{},
 		// non sdk modules
+		tokenfactory.AppModuleBasic{},
 		wasm.AppModuleBasic{},
 		globalfee.AppModuleBasic{},
 		aa.AppModuleBasic{},
@@ -251,6 +260,7 @@ var (
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
 		wasmtypes.ModuleName:           {authtypes.Burner},
+		tokenfactorytypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 		globalfee.ModuleName:           nil,
 		aatypes.ModuleName:             nil,
 		xiontypes.ModuleName:           nil,
@@ -258,6 +268,11 @@ var (
 		packetforwardtypes.ModuleName:  nil,
 		ibchookstypes.ModuleName:       nil,
 		feeabstypes.ModuleName:         nil,
+	}
+	tokenFactoryCapabilities = []string{
+		tokenfactorytypes.EnableBurnFrom,
+		tokenfactorytypes.EnableForceTransfer,
+		tokenfactorytypes.EnableSetMetadata,
 	}
 )
 
@@ -310,8 +325,9 @@ type WasmApp struct {
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
 	FeeAbsKeeper          feeabskeeper.Keeper
 
-	XionKeeper xionkeeper.Keeper
-	JwkKeeper  jwkkeeper.Keeper
+	XionKeeper         xionkeeper.Keeper
+	JwkKeeper          jwkkeeper.Keeper
+	TokenFactoryKeeper tokenfactorykeeper.Keeper
 
 	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
@@ -368,7 +384,7 @@ func NewWasmApp(
 		wasmtypes.StoreKey, icahosttypes.StoreKey, aatypes.StoreKey,
 		icacontrollertypes.StoreKey, globalfee.StoreKey, xiontypes.StoreKey,
 		ibchookstypes.StoreKey, packetforwardtypes.StoreKey, feeabstypes.StoreKey,
-		jwktypes.StoreKey,
+		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -591,13 +607,15 @@ func NewWasmApp(
 		keys[jwktypes.StoreKey],
 		app.GetSubspace(jwktypes.ModuleName))
 
-	app.XionKeeper = xionkeeper.NewKeeper(
+	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
 		appCodec,
-		keys[xiontypes.StoreKey],
-		app.GetSubspace(xiontypes.ModuleName),
-		app.BankKeeper,
+		keys[tokenfactorytypes.StoreKey],
 		app.AccountKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String())
+		app.BankKeeper,
+		app.DistrKeeper,
+		tokenFactoryCapabilities,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	// Configure the hooks keeper
 	hooksKeeper := ibchookskeeper.NewKeeper(
@@ -680,9 +698,12 @@ func NewWasmApp(
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
 	// See https://github.com/CosmWasm/cosmwasm/blob/main/docs/CAPABILITIES-BUILT-IN.md
-	availableCapabilities := "iterator,staking,stargate,cosmwasm_1_1,cosmwasm_1_2,cosmwasm_1_3,cosmwasm_1_4"
 
+	availableCapabilities := strings.Join(append(wasmapp.AllCapabilities(), "token_factory"), ",")
+
+	tokenFactoryOpts := bindings.RegisterCustomPlugins(app.BankKeeper, &app.TokenFactoryKeeper)
 	wasmOpts = append(owasm.RegisterStargateQueries(*app.GRPCQueryRouter(), appCodec), wasmOpts...)
+	wasmOpts = append(wasmOpts, tokenFactoryOpts...)
 
 	app.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
@@ -712,6 +733,20 @@ func NewWasmApp(
 		wasmkeeper.NewGovPermissionKeeper(app.WasmKeeper),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	app.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
+	app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
+
+	app.XionKeeper = xionkeeper.NewKeeper(
+		appCodec,
+		keys[xiontypes.StoreKey],
+		app.GetSubspace(xiontypes.ModuleName),
+		app.BankKeeper,
+		app.AccountKeeper,
+		app.ContractKeeper,
+		app.WasmKeeper,
+		app.AbstractAccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Set legacy router for backwards compatibility with gov v1beta1
 	app.GovKeeper.SetLegacyRouter(govRouter)
@@ -791,11 +826,12 @@ func NewWasmApp(
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
-		xion.NewAppModule(app.XionKeeper),
+		tokenfactory.NewAppModule(app.TokenFactoryKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(tokenfactorytypes.ModuleName)),
 		jwk.NewAppModule(appCodec, app.JwkKeeper, app.GetSubspace(jwktypes.ModuleName)),
 		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		aa.NewAppModule(app.AbstractAccountKeeper),
+		xion.NewAppModule(app.XionKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
@@ -819,8 +855,8 @@ func NewWasmApp(
 		genutiltypes.ModuleName, authz.ModuleName, feegrant.ModuleName,
 		nft.ModuleName, group.ModuleName, paramstypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
+		tokenfactorytypes.ModuleName,
 		globalfee.ModuleName,
-		xiontypes.ModuleName,
 		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
@@ -830,6 +866,7 @@ func NewWasmApp(
 		ibcfeetypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
+		xiontypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	)
@@ -842,6 +879,7 @@ func NewWasmApp(
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		tokenfactorytypes.ModuleName,
 		globalfee.ModuleName,
 		xiontypes.ModuleName,
 		jwktypes.ModuleName,
@@ -872,7 +910,9 @@ func NewWasmApp(
 		genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName, globalfee.ModuleName, xiontypes.ModuleName,
+		consensusparamtypes.ModuleName,
+		tokenfactorytypes.ModuleName,
+		globalfee.ModuleName, xiontypes.ModuleName,
 		jwktypes.ModuleName,
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
@@ -1199,6 +1239,7 @@ func (app *WasmApp) setupUpgradeStoreLoaders() {
 
 	for _, upgrade := range Upgrades {
 		if upgradeInfo.Name == upgrade.UpgradeName {
+			upgrade := upgrade
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 		}
 	}
@@ -1246,6 +1287,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
+	paramsKeeper.Subspace(tokenfactorytypes.ModuleName)
 	paramsKeeper.Subspace(globalfee.ModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
 	paramsKeeper.Subspace(jwktypes.ModuleName)

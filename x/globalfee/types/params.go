@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 var (
@@ -77,7 +80,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 func validateMinimumGasPrices(i interface{}) error {
 	v, ok := i.(sdk.DecCoins)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected sdk.DecCoins", i)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected sdk.DecCoins", i)
 	}
 
 	dec := DecCoins(v)
@@ -90,7 +93,7 @@ type BypassMinFeeMsgTypes []string
 func validateBypassMinFeeMsgTypes(i interface{}) error {
 	bypassMinFeeMsgTypes, ok := i.([]string)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected []sdk.Msg", i)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected []sdk.Msg", i)
 	}
 
 	for _, msgType := range bypassMinFeeMsgTypes {
@@ -109,7 +112,7 @@ func validateBypassMinFeeMsgTypes(i interface{}) error {
 func validateMaxTotalBypassMinFeeMsgGasUsage(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
 	}
 
 	return nil

@@ -8,9 +8,11 @@ import (
 	"math/rand"
 
 	"cosmossdk.io/math"
-	"github.com/burnt-labs/xion/x/mint/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	"github.com/burnt-labs/xion/x/mint/types"
 )
 
 // Simulation parameter constants
@@ -33,17 +35,17 @@ func GenInflationRateChange(r *rand.Rand) math.LegacyDec {
 }
 
 // GenInflationMax randomized InflationMax
-func GenInflationMax(r *rand.Rand) math.LegacyDec {
+func GenInflationMax(_ *rand.Rand) math.LegacyDec {
 	return sdk.NewDecWithPrec(20, 2)
 }
 
 // GenInflationMin randomized InflationMin
-func GenInflationMin(r *rand.Rand) math.LegacyDec {
+func GenInflationMin(_ *rand.Rand) math.LegacyDec {
 	return sdk.NewDecWithPrec(7, 2)
 }
 
 // GenGoalBonded randomized GoalBonded
-func GenGoalBonded(r *rand.Rand) math.LegacyDec {
+func GenGoalBonded(_ *rand.Rand) math.LegacyDec {
 	return sdk.NewDecWithPrec(67, 2)
 }
 

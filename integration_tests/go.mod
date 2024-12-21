@@ -5,9 +5,10 @@ go 1.21
 require (
 	cosmossdk.io/math v1.3.0
 	github.com/CosmWasm/wasmd v0.45.0
+	github.com/CosmosContracts/juno/v21 v21.0.0
 	github.com/burnt-labs/xion v0.1.0
 	github.com/cosmos/cosmos-sdk v0.47.10
-	github.com/cosmos/ibc-go/v7 v7.3.1
+	github.com/cosmos/ibc-go/v7 v7.4.0
 	github.com/docker/docker v24.0.4+incompatible
 	github.com/golang-jwt/jwt/v4 v4.3.0
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
@@ -51,7 +52,7 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
-	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
@@ -70,7 +71,7 @@ require (
 	github.com/cosmos/gogoproto v1.4.10 // indirect
 	github.com/cosmos/iavl v0.20.1 // indirect
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3-0.20240228213828-cce7f56d000b // indirect
-	github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230802211043-d72e83c94350 // indirect
+	github.com/cosmos/ibc-apps/modules/ibc-hooks/v7 v7.0.0-20230803181732-7c8f814d3b79 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.4 // indirect
 	github.com/cosmos/rosetta-sdk-go v0.10.0 // indirect
@@ -262,7 +263,7 @@ require (
 	modernc.org/sqlite v1.24.0 // indirect
 	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.0.1 // indirect
-	nhooyr.io/websocket v1.8.6 // indirect
+	nhooyr.io/websocket v1.8.7 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
@@ -274,7 +275,7 @@ replace (
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v0.37.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20240202022305-255071ed91ee
-	github.com/strangelove-ventures/interchaintest/v7 => github.com/burnt-labs/interchaintest/v7 v7.0.0-20230725204927-990da9d6e272
+	github.com/strangelove-ventures/interchaintest/v7 => github.com/burnt-labs/interchaintest/v7 v7.0.0-20240415152002-a4ca94b373df
 	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )

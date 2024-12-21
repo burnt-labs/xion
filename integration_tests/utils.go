@@ -2,12 +2,12 @@ package integration_tests
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
-	"path"
-
 	"math/rand"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"testing"
@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
+	tokenfactorytypes "github.com/CosmosContracts/juno/v21/x/tokenfactory/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"
@@ -30,15 +31,16 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+//go:embed configuredChains.yaml
+var configuredChainsFile embed.FS
+
 const (
 	votingPeriod     = "10s"
 	maxDepositPeriod = "10s"
 	packetforward    = "0.0"
 )
 
-var (
-	defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
-)
+var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
 
 // Function type for any function that modify the genesis file
 type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
@@ -141,11 +143,12 @@ func ParamChangeProposal(t *testing.T, subspace, key, value, title, description,
 	}
 	return proposal
 }
+
 func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
-	var numFullNodes = 1
-	var numValidators = 3
+	numFullNodes := 1
+	numValidators := 3
 
 	// pulling image from env to foster local dev
 	imageTag := os.Getenv("XION_IMAGE")
@@ -165,7 +168,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 						UidGid:     "1025:1025",
 					},
 				},
-				//GasPrices:              "0.1uxion",
+				// GasPrices:              "0.1uxion",
 				GasPrices:              gas,
 				GasAdjustment:          1.3,
 				Type:                   "cosmos",
@@ -207,7 +210,8 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 		NetworkID:         network,
 		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 
-		SkipPathCreation: false},
+		SkipPathCreation: false,
+	},
 	),
 	)
 	return TestData{xion, ctx, client}
@@ -257,6 +261,7 @@ func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, para
 	}
 	return out, nil
 }
+
 func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
 	g := make(map[string]interface{})
 	if err := json.Unmarshal(genbz, &g); err != nil {
@@ -422,7 +427,7 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &annualProvision))
 	// Query the block per year
-	var params = make(map[string]interface{})
+	params := make(map[string]interface{})
 	queryRes, _, err = xion.FullNodes[0].ExecQuery(ctx, "mint", "params")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &params))
@@ -504,7 +509,6 @@ func MintModuleTestHarness(t *testing.T, xion *cosmos.CosmosChain, ctx context.C
 // Run Mint module test harness over some random block height
 // Chain must have at least 12 blocks
 func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context) {
-
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, currentBlockHeight, uint64(12))
@@ -519,7 +523,6 @@ func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ct
 
 // Run Mint module test over some txHash
 func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, txHashes []string) {
-
 	for i, txHash := range txHashes {
 		txResp, err := authTx.QueryTx(xion.FullNodes[0].CliContext(), txHash)
 		require.NoError(t, err)
@@ -596,12 +599,152 @@ func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx [
 	}
 	return string(stdout), err
 }
-func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
 
+func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
 	content, err := os.ReadFile(file.Name())
 	if err != nil {
 		return err
 	}
 	path := strings.Split(file.Name(), "/")
 	return tn.WriteFile(ctx, content, path[len(path)-1])
+}
+
+func CreateTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, subDenomName, feeCoin string) (fullDenom string) {
+	// TF gas to create cost 2mil, so we set to 2.5 to be safe
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "create-denom", subDenomName,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", user.KeyName(),
+		"--gas", "2500000",
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+
+	if feeCoin != "" {
+		cmd = append(cmd, "--fees", feeCoin)
+	}
+
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+
+	return "factory/" + user.FormattedAddress() + "/" + subDenomName
+}
+
+func MintTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, amount uint64, fullDenom string) {
+	denom := strconv.FormatUint(amount, 10) + fullDenom
+
+	// mint new tokens to the account
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "mint", denom,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", admin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func MintToTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, toWallet ibc.Wallet, amount uint64, fullDenom string) {
+	denom := strconv.FormatUint(amount, 10) + fullDenom
+
+	receiver := toWallet.FormattedAddress()
+
+	t.Log("minting", denom, "to", receiver)
+
+	// mint new tokens to the account
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "mint-to", receiver, denom,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", admin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func TransferTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, currentAdmin ibc.Wallet, newAdminBech32 string, fullDenom string) {
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "change-admin", fullDenom, newAdminBech32,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", currentAdmin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, fullDenom string) string {
+	cmd := []string{
+		"xiond", "query", "tokenfactory", "denom-authority-metadata", fullDenom,
+		"--node", chain.GetRPCAddress(),
+		//"--chain-id", chain.Config().ChainID,
+		"--output", "json",
+	}
+	stdout, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	results := &tokenfactorytypes.QueryDenomAuthorityMetadataResponse{}
+	err = json.Unmarshal(stdout, results)
+	require.NoError(t, err)
+
+	t.Log(results)
+
+	return results.AuthorityMetadata.Admin
+}
+
+// OverrideConfiguredChainsYaml overrides the interchaintests configuredChains.yaml file with an embedded tmpfile
+func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
+	// Extract the embedded file to a temporary file
+	tempFile, err := os.CreateTemp("", "configuredChains-*.yaml")
+	if err != nil {
+		t.Errorf("error creating temporary file: %v", err)
+	}
+
+	content, err := configuredChainsFile.ReadFile("configuredChains.yaml")
+	if err != nil {
+		t.Errorf("error reading embedded file: %v", err)
+	}
+
+	if _, err := tempFile.Write(content); err != nil {
+		t.Errorf("error writing to temporary file: %v", err)
+	}
+	if err := tempFile.Close(); err != nil {
+		t.Errorf("error closing temporary file: %v", err)
+	}
+
+	// Set the environment variable to the path of the temporary file
+	err = os.Setenv("IBCTEST_CONFIGURED_CHAINS", tempFile.Name())
+	t.Logf("set env var IBCTEST_CONFIGURED_CHAINS to %s", tempFile.Name())
+	if err != nil {
+		t.Errorf("error setting env var: %v", err)
+	}
+
+	return tempFile
 }

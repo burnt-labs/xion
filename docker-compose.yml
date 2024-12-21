@@ -2,30 +2,25 @@ version: "3.9"
 services:
 
   testnet:
+    image: burnt/xion:develop
     build:
       context: .
       dockerfile: Dockerfile
-      target: xion-dev
+      target: dev
     platform: linux/amd64
-    volumes:
-      - testnet-data:/xion/
     ports:
       - "1317:1317"
       - "26656:26656"
       - "26657:26657"
 
   release:
+    image: burnt/xion:release
     build:
       context: .
       dockerfile: Dockerfile
-      target: xion-release
+      target: release
     platform: linux/amd64
-    volumes:
-      - testnet-data:/xion/data
     ports:
       - "1317:1317"
       - "26656:26656"
       - "26657:26657"
-
-volumes:
-  testnet-data:

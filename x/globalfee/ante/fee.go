@@ -4,12 +4,14 @@ import (
 	"errors"
 
 	tmstrings "github.com/cometbft/cometbft/libs/strings"
+
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee"
-
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
@@ -46,7 +48,7 @@ func NewFeeDecorator(globalfeeSubspace paramtypes.Subspace, stakingKeeperDenom f
 func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
-		return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "Tx must implement the sdk.FeeTx interface")
+		return ctx, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must implement the sdk.FeeTx interface")
 	}
 
 	// Do not check minimum-gas-prices and global fees during simulations
@@ -70,7 +72,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.DecCoins, error) {
 	// Get required global fee min gas prices
 	// Note that it should never be empty since its default value is set to coin={"StakingBondDenom", 0}
-	globalFees, err := mfd.GetGlobalFee(ctx, tx)
+	globalFees, err := mfd.GetGlobalFee(ctx)
 	if err != nil {
 		return sdk.DecCoins{}, err
 	}
@@ -84,7 +86,7 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Dec
 	// to form the tx fee requirements
 
 	// Get local minimum-gas-prices
-	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
+	localFees := GetMinGasPrice(ctx)
 	feeRequired := MaxCoins(localFees, globalFees)
 
 	ctx.Logger().Debug("debugging globalfee",
@@ -102,7 +104,7 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Dec
 // (might also return 0denom if globalMinGasPrice is 0)
 // sorted in ascending order.
 // Note that ParamStoreKeyMinGasPrices type requires coins sorted.
-func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.DecCoins, error) {
+func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context) (sdk.DecCoins, error) {
 	var (
 		globalMinGasPrices sdk.DecCoins
 		err                error
@@ -167,7 +169,7 @@ func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) (res
 
 // GetMinGasPrice returns a nodes's local minimum gas prices
 // fees given a gas limit
-func GetMinGasPrice(ctx sdk.Context, gasLimit int64) sdk.DecCoins {
+func GetMinGasPrice(ctx sdk.Context) sdk.DecCoins {
 	minGasPrices := ctx.MinGasPrices()
 	// special case: if minGasPrices=[], requiredFees=[]
 	if minGasPrices.IsZero() {
