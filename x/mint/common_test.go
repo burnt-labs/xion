@@ -3,11 +3,15 @@ package mint
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+
 	// banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -22,13 +26,14 @@ type mocks struct {
 	minttestutil.MockAccountKeeper
 	minttestutil.MockBankKeeper
 	minttestutil.MockStakingKeeper
-	moduleAccount authtypes.ModuleAccountI
+	moduleAccount sdk.ModuleAccountI
 }
 
 func createTestBaseKeeperAndContextWithMocks(t *testing.T) (testutil.TestContext, *keeper.Keeper, mocks) {
 	encCfg := moduletestutil.MakeTestEncodingConfig(mint.AppModuleBasic{})
-	key := sdk.NewKVStoreKey(minttypes.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(t, key, sdk.NewTransientStoreKey("transient_test"))
+	key := storetypes.NewKVStoreKey(minttypes.StoreKey)
+	store := runtime.NewKVStoreService(key)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
 
 	// gomock initializations
 	ctrl := gomock.NewController(t)
@@ -42,7 +47,7 @@ func createTestBaseKeeperAndContextWithMocks(t *testing.T) (testutil.TestContext
 
 	keeper := keeper.NewKeeper(
 		encCfg.Codec,
-		key,
+		store,
 		stakingKeeper,
 		accountKeeper,
 		bankKeeper,

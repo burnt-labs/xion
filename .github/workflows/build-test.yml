@@ -32,12 +32,6 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/docker-build.yml@main
     secrets: inherit
 
-  push-docker:
-    needs: build-docker
-    name: Heighliner Build
-    uses: burnt-labs/xion/.github/workflows/docker-push.yml@main
-    secrets: inherit
-
   docker-scout:
     needs: build-docker
     name: Docker Scout

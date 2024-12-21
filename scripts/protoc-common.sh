@@ -11,12 +11,16 @@ set -eo pipefail
 : ${proto_dir:="$base_dir/proto"}
 
 # Define dependencies
-deps=$(cat <<EOF
-  github.com/cosmos/cosmos-sdk
-  github.com/cosmos/ibc-go/v7
-  github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7
-  github.com/CosmWasm/wasmd
-EOF
+# deps=$(cat <<EOF
+#   github.com/cosmos/cosmos-sdk
+#   github.com/cosmos/ibc-go/v8
+#   github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8
+#   github.com/CosmWasm/wasmd
+# EOF
+# )
+deps=$(
+  egrep '^\s*github.com/(cosmos/(cosmos-sdk|ibc-go\/v|ibc-apps\/middle)|CosmWasm/wasmd)' \
+  $base_dir/go.mod | cut -d ' ' -f 1
 )
 
 # Install dependencies
