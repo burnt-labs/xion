@@ -61,18 +61,18 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		return ctx, err
 	}
 
-	return next(ctx.WithMinGasPrices(sdk.NewDecCoinsFromCoins(feeRequired...)), tx, simulate)
+	return next(ctx.WithMinGasPrices(feeRequired), tx, simulate)
 }
 
 // GetTxFeeRequired returns the required fees for the given FeeTx.
 // In case the FeeTx's mode is CheckTx, it returns the combined requirements
 // of local min gas prices and global fees. Otherwise, in DeliverTx, it returns the global fee.
-func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coins, error) {
+func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.DecCoins, error) {
 	// Get required global fee min gas prices
 	// Note that it should never be empty since its default value is set to coin={"StakingBondDenom", 0}
 	globalFees, err := mfd.GetGlobalFee(ctx, tx)
 	if err != nil {
-		return sdk.Coins{}, err
+		return sdk.DecCoins{}, err
 	}
 
 	// In DeliverTx, the global fee min gas prices are the only tx fee requirements.
@@ -85,14 +85,24 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Coi
 
 	// Get local minimum-gas-prices
 	localFees := GetMinGasPrice(ctx, int64(tx.GetGas()))
-	return CombinedFeeRequirement(globalFees, localFees)
+	feeRequired := MaxCoins(localFees, globalFees)
+
+	ctx.Logger().Debug("debugging globalfee",
+		"fee required", feeRequired,
+		"tx", tx,
+		"min gas prices", ctx.MinGasPrices(),
+		"global fees", globalFees,
+		"local fees", localFees,
+	)
+
+	return feeRequired, nil
 }
 
 // GetGlobalFee returns the global fees for a given fee tx's gas
 // (might also return 0denom if globalMinGasPrice is 0)
 // sorted in ascending order.
 // Note that ParamStoreKeyMinGasPrices type requires coins sorted.
-func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.Coins, error) {
+func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.DecCoins, error) {
 	var (
 		globalMinGasPrices sdk.DecCoins
 		err                error
@@ -101,23 +111,16 @@ func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context, feeTx sdk.FeeTx) (sdk.Coin
 	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMinGasPrices) {
 		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMinGasPrices, &globalMinGasPrices)
 	}
+
 	// global fee is empty set, set global fee to 0uxion
 	if len(globalMinGasPrices) == 0 {
 		globalMinGasPrices, err = mfd.DefaultZeroGlobalFee(ctx)
 		if err != nil {
-			return sdk.Coins{}, err
+			return sdk.DecCoins{}, err
 		}
 	}
-	requiredGlobalFees := make(sdk.Coins, len(globalMinGasPrices))
-	// Determine the required fees by multiplying each required minimum gas
-	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-	glDec := sdk.NewDec(int64(feeTx.GetGas()))
-	for i, gp := range globalMinGasPrices {
-		fee := gp.Amount.Mul(glDec)
-		requiredGlobalFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
-	}
 
-	return requiredGlobalFees.Sort(), nil
+	return globalMinGasPrices.Sort(), nil
 }
 
 // DefaultZeroGlobalFee returns a zero coin with the staking module bond denom
@@ -164,21 +167,12 @@ func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) (res
 
 // GetMinGasPrice returns a nodes's local minimum gas prices
 // fees given a gas limit
-func GetMinGasPrice(ctx sdk.Context, gasLimit int64) sdk.Coins {
+func GetMinGasPrice(ctx sdk.Context, gasLimit int64) sdk.DecCoins {
 	minGasPrices := ctx.MinGasPrices()
 	// special case: if minGasPrices=[], requiredFees=[]
 	if minGasPrices.IsZero() {
-		return sdk.Coins{}
+		return sdk.DecCoins{}
 	}
 
-	requiredFees := make(sdk.Coins, len(minGasPrices))
-	// Determine the required fees by multiplying each required minimum gas
-	// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
-	glDec := sdk.NewDec(gasLimit)
-	for i, gp := range minGasPrices {
-		fee := gp.Amount.Mul(glDec)
-		requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
-	}
-
-	return requiredFees.Sort()
+	return minGasPrices.Sort()
 }

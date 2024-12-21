@@ -15,23 +15,23 @@ service Query {
   
   // Parameters queries the parameters of the module.
   rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/jwk/jwk/params";
+    option (google.api.http).get = "/xion/jwk/params";
   
   }
   
   // Queries a list of Audience items.
   rpc Audience    (QueryGetAudienceRequest) returns (QueryGetAudienceResponse) {
-    option (google.api.http).get = "/jwk/jwk/audience/{aud}";
+    option (google.api.http).get = "/xion/jwk/audience/{aud}";
   
   }
   rpc AudienceAll (QueryAllAudienceRequest) returns (QueryAllAudienceResponse) {
-    option (google.api.http).get = "/jwk/jwk/audience";
+    option (google.api.http).get = "/xion/jwk/audience";
   
   }
   
   // Queries a list of ValidateJWT items.
   rpc ValidateJWT (QueryValidateJWTRequest) returns (QueryValidateJWTResponse) {
-    option (google.api.http).get = "/jwk/jwk/validate_jwt/{aud}/{sub}/{sigBytes}";
+    option (google.api.http).get = "/xion/jwk/validate_jwt/{aud}/{sub}/{sigBytes}";
   
   }
 }
