@@ -17,12 +17,12 @@ jobs:
 
       - name: Generate Swagger
         env:
-          DOCKER_IMAGE: ghcr.io/cosmos/proto-builder:0.14.0
+          DOCKER_IMAGE: ghcr.io/cosmos/proto-builder:0.15.0
         run: |
           # runs as runner:docker (1001:121)
-          chmod -R o+wX client/docs
+          chmod -R o+wX client
           make proto-swagger-gen
-          chmod -R o-w client/docs/*
+          chmod -R o-w client/*
 
       # Need to sort out using signed commits to use
       # - name: Commit if Changed

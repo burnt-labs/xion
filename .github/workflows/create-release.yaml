@@ -83,10 +83,11 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/build-release.yaml@main
     secrets: inherit
 
-  update-networks:
-    name: Update Networks Repo
-    needs:
-      - build-release
-      - build-release-info
-    uses: burnt-labs/xion/.github/workflows/update-networks.yaml@main
-    secrets: inherit
+  # TODO: move to triggered action in burnt-networks repo
+  # update-networks:
+  #   name: Update Networks Repo
+  #   needs:
+  #     - build-release
+  #     - build-release-info
+  #   uses: burnt-labs/xion/.github/workflows/update-networks.yaml@main
+  #   secrets: inherit
