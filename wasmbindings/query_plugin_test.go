@@ -337,8 +337,9 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 
 func createAuthzGrants(suite *StargateTestSuite) {
 	authzKeeper := suite.app.AuthzKeeper
+
 	authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
-		Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+		Msg: "/" + string(proto.MessageReflect(&banktypes.MsgSend{}).Descriptor().FullName()),
 	})
 	suite.NoError(err)
 	grantMsg := &authztypes.MsgGrant{
@@ -372,7 +373,7 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 			},
 			responseProtoStruct: func() codec.ProtoMarshaler {
 				authorization, err := types.NewAnyWithValue(&authztypes.GenericAuthorization{
-					Msg: "/" + proto.MessageName(&banktypes.MsgSend{}),
+					Msg: "/" + string(proto.MessageReflect(&banktypes.MsgSend{}).Descriptor().FullName()),
 				})
 				suite.NoError(err)
 				return &authztypes.QueryGrantsResponse{
