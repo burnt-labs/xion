@@ -1,0 +1,57 @@
+name: Build Darwin Binaries
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-darwin-images:
+    name: Build Darwin Binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Go Version
+        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build darwin all
+        run: |
+          make build-darwin-all
+
+      - name: Rename darwin binaries
+        run: |
+          for file in dist/xiond_darwin_*/xiond; do
+            cp $file ${{ runner.temp }}/$(basename $(dirname $file) | sed 's/_/-/g')
+          done
+
+      - name: Upload arm64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-darwin-arm64
+          path: ${{ runner.temp }}/xiond-darwin-arm64
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Upload amd64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-darwin-amd64
+          path: ${{ runner.temp }}/xiond-darwin-amd64
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Upload all binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-darwin-all
+          path: ${{ runner.temp }}/xiond-darwin-all
+          retention-days: 3
+          if-no-files-found: error

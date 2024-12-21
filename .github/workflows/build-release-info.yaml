@@ -1,0 +1,74 @@
+name: Build Release Info
+# Run for new release tags only
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-release-info:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare environment
+        run: mkdir -p release
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          pattern: xiond-*
+          merge-multiple: true
+
+      - name: Create binaries.json
+        working-directory: release
+        id: binaries-json
+        run: |
+          set -Eeuo pipefail
+          ls xiond-* | grep -v 'xiond-darwin-all' | while read -r file; do
+            platform=$(echo $file | cut -d- -f2- | sed -E 's/^rc[0-9]*-//g; s/-/\//g')
+            checksum=$(sha256sum "$file" | awk '{ print $1 }')
+            echo "$platform: https://github.com/burnt-labs/xion/releases/download/${{ github.ref_name }}/$file?checksum=sha256:$checksum"
+          done | yq '{"binaries": .}' -o json | tee binaries.json
+
+      - name: Upload binaries.json file
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries.json
+          path: release/binaries.json
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Create version.json
+        working-directory: release
+        run: |
+          set -Eeuo pipefail
+          upgrade_name=$(echo $GITHUB_REF_NAME | cut -d. -f1)
+          jq -s '.[0] * (.[1] // {})' <(go mod edit -json | jq --arg name $upgrade_name '{
+              name: $name,
+              tag: "${{ github.ref_name }}",
+              height: 0,
+              proposal: 0,
+              go_version: .Go,
+              cosmos_sdk_version: (.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version),
+              cosmwasm_enabled: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") != null),
+              cosmwasm_version: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version),
+              ibc_go_version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v7") | .Version),
+              consensus: {
+                type: "cometbft",
+                version: (.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version)
+              }
+            }') binaries.json | tee version.json
+
+      - name: Upload version.json files
+        uses: actions/upload-artifact@v4
+        with:
+          name: version.json
+          path: release/version.json
+          retention-days: 3
+          if-no-files-found: error

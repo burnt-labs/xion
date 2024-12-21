@@ -12,6 +12,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	"github.com/gorilla/mux"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
@@ -40,6 +41,9 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
@@ -161,7 +165,10 @@ import (
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
-const appName = "XionApp"
+const (
+	appName                 = "XionApp"
+	WasmContractMemoryLimit = 32
+)
 
 // We pull these out, so we can set them with LDFLAGS in the Makefile
 var (
@@ -271,6 +278,7 @@ type WasmApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	WasmKeeper            wasmkeeper.Keeper
+	WasmClientKeeper      ibcwasmkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
 	IBCHooksKeeper        *ibchookskeeper.Keeper
 	ContractKeeper        *wasmkeeper.PermissionedKeeper
@@ -342,17 +350,18 @@ func NewWasmApp(
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	keys := storetypes.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
-		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, consensusparamtypes.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
-		evidencetypes.StoreKey, capabilitytypes.StoreKey,
-		authzkeeper.StoreKey, nftkeeper.StoreKey, group.StoreKey,
+		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
+		crisistypes.StoreKey, minttypes.StoreKey, distrtypes.StoreKey,
+		slashingtypes.StoreKey, govtypes.StoreKey, paramstypes.StoreKey,
+		consensusparamtypes.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
+		evidencetypes.StoreKey, capabilitytypes.StoreKey, authzkeeper.StoreKey,
+		nftkeeper.StoreKey, group.StoreKey,
 		// non sdk store keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey, ibcfeetypes.StoreKey,
-		wasmtypes.StoreKey, icahosttypes.StoreKey, aatypes.StoreKey,
-		icacontrollertypes.StoreKey, globalfee.StoreKey, xiontypes.StoreKey,
-		ibchookstypes.StoreKey, packetforwardtypes.StoreKey, feeabstypes.StoreKey,
-		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
+		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
+		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
+		xiontypes.StoreKey, ibchookstypes.StoreKey, packetforwardtypes.StoreKey,
+		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -704,6 +713,20 @@ func NewWasmApp(
 	wasmOpts = append(owasm.RegisterStargateQueries(*app.GRPCQueryRouter(), appCodec), wasmOpts...)
 	wasmOpts = append(wasmOpts, tokenFactoryOpts...)
 
+	// instantiate the Wasm VM with the chosen parameters
+	wasmVM, err := wasmvm.NewVM(
+		wasmDir,
+		availableCapabilities,
+		WasmContractMemoryLimit, // default of 32
+		wasmConfig.ContractDebugMode,
+		wasmConfig.MemoryCacheSize,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	wasmOpts = append(wasmOpts, wasmkeeper.WithWasmEngine(wasmVM))
+
 	app.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
@@ -723,6 +746,15 @@ func NewWasmApp(
 		availableCapabilities,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		wasmOpts...,
+	)
+
+	app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
+		appCodec,
+		runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
+		app.IBCKeeper.ClientKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		wasmVM,
+		app.GRPCQueryRouter(),
 	)
 
 	app.AbstractAccountKeeper = aakeeper.NewKeeper(
@@ -833,6 +865,7 @@ func NewWasmApp(
 		xion.NewAppModule(app.XionKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.NewAppModule(),
+		ibcwasm.NewAppModule(app.WasmClientKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
@@ -885,6 +918,7 @@ func NewWasmApp(
 		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		xiontypes.ModuleName,
@@ -910,6 +944,7 @@ func NewWasmApp(
 		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
@@ -941,6 +976,7 @@ func NewWasmApp(
 		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
@@ -1049,7 +1085,7 @@ func NewWasmApp(
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
-			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+			tmos.Exit(fmt.Sprintf("failed to initialize pinned codes %s", err))
 		}
 	}
 
