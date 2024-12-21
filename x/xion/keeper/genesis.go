@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"encoding/binary"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/burnt-labs/xion/x/xion/types"
@@ -13,8 +15,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState *types.GenesisState) {
 
 // ExportGenesis returns the bank module's genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	rv := types.NewGenesisState(
-		uint32(k.GetPlatformPercentage(ctx).Uint64()),
-	)
+	bz := ctx.KVStore(k.storeKey).Get(types.PlatformPercentageKey)
+	platformPercentage := binary.BigEndian.Uint32(bz)
+	rv := types.NewGenesisState(platformPercentage)
 	return rv
 }
