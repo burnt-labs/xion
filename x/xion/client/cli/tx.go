@@ -13,7 +13,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-var FlagSplit = "split"
+const FlagSplit = "split"
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
 func NewTxCmd() *cobra.Command {

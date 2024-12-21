@@ -2,6 +2,7 @@ package app
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -12,12 +13,12 @@ import (
 	"github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	"github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
+	feeabsante "github.com/osmosis-labs/fee-abstraction/v4/x/feeabs/ante"
+	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v4/x/feeabs/keeper"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-
-	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -31,6 +32,7 @@ type HandlerOptions struct {
 	GlobalFeeSubspace     paramtypes.Subspace
 	StakingKeeper         *stakingkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
+	FeeAbsKeeper          *feeabskeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -55,18 +57,27 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.TXCounterStoreKey == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "tx counter key is required for ante builder")
 	}
+	if options.FeeAbsKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "fee abstraction keeper is required for AnteHandler")
+	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		wasmkeeper.NewLimitSimulationGasDecorator(options.WasmConfig.SimulationGasLimit), // after setup context to enforce limits early
 		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreKey),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+		// this changes the minGasFees,
+		// and must occur before gas fee checks
+		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, options.StakingKeeper.BondDenom),
+		feeabsante.NewFeeAbstrationMempoolFeeDecorator(*options.FeeAbsKeeper),
+
+		// validation checks
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, options.StakingKeeper.BondDenom), //
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
+		// fee abstraction fee deduction replaces sdk fee deduction
+		feeabsante.NewFeeAbstractionDeductFeeDecorate(options.AccountKeeper, options.BankKeeper, *options.FeeAbsKeeper, options.FeegrantKeeper),
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
