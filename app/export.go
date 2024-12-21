@@ -1,6 +1,6 @@
 package app
 
-import
+import (
 	"encoding/json"
 	"fmt"
 	"log"
