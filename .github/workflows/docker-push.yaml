@@ -94,4 +94,4 @@ jobs:
       - name: Inspect image
         run: |
            jq -cr '.tags | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON" | \
-           xargs -n1 docker buildx imagetools inspect%
+           xargs -n1 docker buildx imagetools inspect
