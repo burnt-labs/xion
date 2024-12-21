@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
+
 	"math/rand"
 	"os"
 	"strconv"
@@ -14,9 +16,11 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/icza/dyno"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/docker/docker/client"
+	"github.com/icza/dyno"
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v7/ibc"
@@ -29,6 +33,11 @@ import (
 const (
 	votingPeriod     = "10s"
 	maxDepositPeriod = "10s"
+	packetforward    = "0.0"
+)
+
+var (
+	defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", sdk.ZeroInt())}
 )
 
 // Function type for any function that modify the genesis file
@@ -40,6 +49,98 @@ type TestData struct {
 	client    *client.Client
 }
 
+func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
+	msg := fmt.Sprintf(`
+{
+  "body": {
+    "messages": [
+      {
+        "@type": "/cosmos.bank.v1beta1.MsgSend",
+        "from_address": "%s",
+        "to_address": "%s",
+        "amount": [
+          {
+            "denom": "%s",
+            "amount": "100000"
+          }
+        ]
+      }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
+	`, from, to, denom)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
+func RawJSONMsgExecContractNewPubKey(t *testing.T, sender, contract, pubkey string) []byte {
+	msg := fmt.Sprintf(`
+{
+  "body": {
+    "messages": [
+      {
+        "@type": "/cosmwasm.wasm.v1.MsgExecuteContract",
+        "sender": "%s",
+        "contract": "%s",
+        "msg": {
+          "update_pubkey": {
+            "new_pubkey": "%s"
+          }
+        },
+        "funds": []
+      }
+    ],
+    "memo": "",
+    "timeout_height": "0",
+    "extension_options": [],
+    "non_critical_extension_options": []
+  },
+  "auth_info": {
+    "signer_infos": [],
+    "fee": {
+      "amount": [],
+      "gas_limit": "200000",
+      "payer": "",
+      "granter": ""
+    },
+    "tip": null
+  },
+  "signatures": []
+}
+	`, sender, contract, pubkey)
+	var rawMsg json.RawMessage = []byte(msg)
+	return rawMsg
+}
+
+func ParamChangeProposal(t *testing.T, subspace, key, value, title, description, deposit string) paramsutils.ParamChangeProposalJSON {
+	changes := paramsutils.ParamChangeJSON{
+		Subspace: subspace,
+		Key:      key,
+		Value:    json.RawMessage(fmt.Sprintf(`"%s"`, value)),
+	}
+	proposal := paramsutils.ParamChangeProposalJSON{
+		Title:       title,
+		Description: description,
+		Deposit:     deposit,
+		Changes:     []paramsutils.ParamChangeJSON{changes},
+	}
+	return proposal
+}
 func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
 	ctx := context.Background()
 
@@ -48,6 +149,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 
 	// pulling image from env to foster local dev
 	imageTag := os.Getenv("XION_IMAGE")
+	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
 	// Chain factory
@@ -155,6 +257,20 @@ func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, para
 	}
 	return out, nil
 }
+func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, "0.0", "app_state", "packetfowardmiddleware", "params", "fee_percentage"); err != nil {
+		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
 
 // This function modifies the inflation parameters of the mint module in the genesis file
 func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
@@ -170,6 +286,25 @@ func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ..
 	}
 	if err := dyno.Set(g, params[2], "app_state", "mint", "params", "inflation_rate_change"); err != nil {
 		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
+
+func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, []int64{1}, "app_state", "abstractaccount", "params", "allowed_code_ids"); err != nil {
+		return nil, fmt.Errorf("failed to set allowed code ids in genesis json: %w", err)
+	}
+
+	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
+		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
 	}
 	out, err := json.Marshal(g)
 	if err != nil {
@@ -423,4 +558,50 @@ func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName str
 		return "", err
 	}
 	return output.TxHash, nil
+}
+
+func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	t.Logf("querying with cmd: %s", command)
+	output, _, err := tn.ExecQuery(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
+}
+
+func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	output, _, err := tn.ExecBin(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
+}
+
+func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
+	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
+		return "", err
+	}
+
+	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"))
+
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), err
+}
+func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
+
+	content, err := os.ReadFile(file.Name())
+	if err != nil {
+		return err
+	}
+	path := strings.Split(file.Name(), "/")
+	return tn.WriteFile(ctx, content, path[len(path)-1])
 }

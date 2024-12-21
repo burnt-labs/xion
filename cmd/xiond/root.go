@@ -248,7 +248,6 @@ func newApp(
 
 	return app.NewWasmApp(
 		logger, db, traceStore, true,
-		app.GetEnabledProposals(),
 		appOpts,
 		wasmOpts,
 		baseappOptions...,
@@ -287,7 +286,6 @@ func appExport(
 		db,
 		traceStore,
 		height == -1,
-		app.GetEnabledProposals(),
 		appOpts,
 		emptyWasmOpts,
 	)

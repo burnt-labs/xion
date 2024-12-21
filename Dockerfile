@@ -1,7 +1,11 @@
 # docker build . -t cosmwasm/xiond:latest
 # docker run --rm -it cosmwasm/xiond:latest /bin/sh
-FROM golang:1.19-alpine3.17 AS go-builder
+FROM golang:1.21-alpine3.19 AS go-builder
 ARG arch=x86_64
+
+ENV WASMVM_VERSION=v1.5.2
+ENV WASMVM_CHECKSUM_AARCH64=e78b224c15964817a3b75a40e59882b4d0e06fd055b39514d61646689cef8c6e
+ENV WASMVM_CHECKSUM_x86_64=e660a38efb2930b34ee6f6b0bb12730adccb040b6ab701b8f82f34453a426ae7
 
 # this comes from standard alpine nightly file
 #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
@@ -13,93 +17,119 @@ RUN apk add git
 # RUN apk add libusb-dev linux-headers
 
 WORKDIR /code
+COPY go.mod /code/
+COPY go.sum /code/
+RUN go mod download
+
 COPY ./.git /code/.git
 COPY ./app /code/app
 COPY ./cmd /code/cmd
 COPY ./contrib /code/contrib
 COPY ./proto /code/proto
 COPY ./x /code/x
-COPY go.mod /code/
-COPY go.sum /code/
+COPY ./wasmbindings /code/wasmbindings
 COPY Makefile /code/
+
 # See https://github.com/CosmWasm/wasmvm/releases
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.2.4/libwasmvm_muslc.aarch64.a /lib/libwasmvm_muslc.aarch64.a
-ADD https://github.com/CosmWasm/wasmvm/releases/download/v1.2.4/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
-RUN sha256sum /lib/libwasmvm_muslc.aarch64.a | grep 682a54082e131eaff9beec80ba3e5908113916fcb8ddf7c668cb2d97cb94c13c
-RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep ce3d892377d2523cf563e01120cb1436f9343f80be952c93f66aa94f5737b661
+ADD https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.aarch64.a /lib/libwasmvm_muslc.aarch64.a
+ADD https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
+RUN sha256sum /lib/libwasmvm_muslc.aarch64.a | grep ${WASMVM_CHECKSUM_AARCH64}
+RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep ${WASMVM_CHECKSUM_x86_64}
 
 # Copy the library you want to the final location that will be found by the linker flag `-lwasmvm_muslc`
-RUN cp /lib/libwasmvm_muslc.${arch}.a /lib/libwasmvm_muslc.a
+RUN cp -vf /lib/libwasmvm_muslc.${arch}.a /lib/libwasmvm_muslc.a
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
-RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build
+RUN set -eux \
+  && make test-version \
+  && LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build
+
 RUN echo "Ensuring binary is statically linked ..." \
   && (file /code/build/xiond | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.16 AS localdev
+FROM alpine:3.19 AS xion-dev
+COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
-  COPY --from=go-builder /code/build/xiond /usr/bin/xiond
+# rest server
+EXPOSE 1317
+# tendermint grpc
+EXPOSE 9090
+# tendermint p2p
+EXPOSE 26656
+# tendermint rpc
+EXPOSE 26657
+# tendermint prometheus
+EXPOSE 26660
 
-  COPY ./docker/local-config /xion/config
-  COPY ./docker/entrypoint.sh /root/entrypoint.sh
-  RUN chmod +x /root/entrypoint.sh
+RUN mkdir /xion
 
-  # rest server
-  EXPOSE 1317
-  # tendermint grpc
-  EXPOSE 9090
-  # tendermint p2p
-  EXPOSE 26656
-  # tendermint rpc
-  EXPOSE 26657
-  # tendermint prometheus
-  EXPOSE 26660
+RUN set -euxo pipefail \
+  && apk add --no-cache \
+  bash \
+  curl \
+  htop \
+  jq \
+  lz4 \
+  tini
 
-  VOLUME [ "/xion/data" ]
+RUN set -euxo pipefail \
+  && addgroup -S xiond \
+  && adduser \
+  --disabled-password \
+  --gecos xiond \
+  --ingroup xiond \
+  xiond
 
-  CMD ["/root/entrypoint.sh"]
+RUN set -eux \
+  && chown -R xiond:xiond /home/xiond \
+  && chown -R xiond:xiond /xion
+
+USER xiond:xiond
+
+COPY ./docker/entrypoint.sh /home/xiond/entrypoint.sh
+
+CMD ["/home/xiond/entrypoint.sh"]
 
 # --------------------------------------------------------
-FROM alpine:3.17 AS xion-release
+FROM alpine:3.19 AS xion-release
 
-  COPY --from=go-builder /code/build/xiond /usr/bin/xiond
+COPY --from=go-builder /code/build/xiond /usr/bin/xiond
 
-  # rest server
-  EXPOSE 1317
-  # tendermint grpc
-  EXPOSE 9090
-  # tendermint p2p
-  EXPOSE 26656
-  # tendermint rpc
-  EXPOSE 26657
-  # tendermint prometheus
-  EXPOSE 26660
+# rest server
+EXPOSE 1317
+# tendermint grpc
+EXPOSE 9090
+# tendermint p2p
+EXPOSE 26656
+# tendermint rpc
+EXPOSE 26657
+# tendermint prometheus
+EXPOSE 26660
 
-  RUN set -euxo pipefail \
-    && apk add --no-cache \
-      aria2 \
-      aws-cli \
-      bash \
-      curl \
-      htop \
-      jq \
-      lz4 \
-      tini
+RUN set -euxo pipefail \
+  && apk add --no-cache \
+  aria2 \
+  aws-cli \
+  bash \
+  curl \
+  htop \
+  jq \
+  lz4 \
+  tini
 
-  RUN set -euxo pipefail \
-    && addgroup -S xiond \
-    && adduser \
-       --disabled-password \
-       --gecos xiond \
-       --ingroup xiond \
-       xiond
+RUN set -euxo pipefail \
+  && addgroup -S xiond \
+  && adduser \
+  --disabled-password \
+  --gecos xiond \
+  --ingroup xiond \
+  xiond
 
-  RUN set -eux \
-    && chown -R xiond:xiond /home/xiond
+RUN set -eux \
+  && chown -R xiond:xiond /home/xiond
 
-  USER xiond:xiond
-  WORKDIR /home/xiond/.xiond
+USER xiond:xiond
+WORKDIR /home/xiond/.xiond
 
-  CMD ["/usr/bin/xiond", "version"]
-
+CMD ["/usr/bin/xiond", "version"]
