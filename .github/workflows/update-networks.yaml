@@ -26,12 +26,17 @@ jobs:
           METADATA_PATH=${BASE_PATH}/governance-proposals/software-upgrades/metadata
           PROPOSAL_PATH=${BASE_PATH}/governance-proposals/software-upgrades/proposal
           UPGRADE_NAME=$(echo ${GITHUB_REF_NAME} | cut -d. -f1)
+          CURRENT_MAJOR=$(echo ${UPGRADE_NAME} | cut -dv -f2)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          PREVIOUS_MAJOR=$(echo ${PREVIOUS_TAG} | cut -d. -f1 | cut -dv -f2)
+          IS_MAJOR_UPGRADE=$([ "${CURRENT_MAJOR}" -gt "${PREVIOUS_MAJOR}" ] && echo "true" || echo "false")
           echo "BASE_PATH=${BASE_PATH}" | tee -a ${GITHUB_ENV}
           echo "NETWORK=${NETWORK}" | tee -a ${GITHUB_ENV}
           echo "BINARIES_PATH=${BINARIES_PATH}" | tee -a ${GITHUB_ENV}
           echo "METADATA_PATH=${METADATA_PATH}" | tee -a ${GITHUB_ENV}
           echo "PROPOSAL_PATH=${PROPOSAL_PATH}" | tee -a ${GITHUB_ENV}
           echo "UPGRADE_NAME=${UPGRADE_NAME}" | tee -a ${GITHUB_ENV}
+          echo "IS_MAJOR_UPGRADE=${IS_MAJOR_UPGRADE}" | tee -a ${GITHUB_ENV}
           echo "NETWORKS_REPO=burnt-labs/burnt-networks" | tee -a ${GITHUB_ENV}
 
       - name: Install SSH key
@@ -60,26 +65,8 @@ jobs:
         run: |
           cp /tmp/binaries.json ${UPGRADE_NAME}.json
 
-      - name: Add version to chain.json
-        run: |
-          set -Eeuo pipefail
-          CHAIN_JSON=${BASE_PATH}/chain-registry/chain.json
-          VERSION_JSON=/tmp/version.json
-          cp ${CHAIN_JSON} /tmp/chain.json
-          jq --slurpfile version ${VERSION_JSON} '
-            .codebase.versions |= (
-              map(
-                if .name == $version[0].name then
-                  ($version[0] + {height: .height, proposal: .proposal})
-                else
-                  .
-                end
-              ) +
-              if any(.[]; .name == $version[0].name) then [] else $version end
-            )
-          ' /tmp/chain.json | tee ${CHAIN_JSON}
-
-      - name: Add metadata json
+      - name: Add metadata json for major upgrade
+        if: env.IS_MAJOR_UPGRADE == 'true'
         working-directory: ${{ env.METADATA_PATH }}
         run: |
           set -Eeuo pipefail
@@ -94,7 +81,8 @@ jobs:
             vote_option_context: "YES to approve the upgrade, NO to reject the upgrade."
           }' | tee ${UPGRADE_NAME}.json
 
-      - name: Add proposal json
+      - name: Add proposal json for major upgrade
+        if: env.IS_MAJOR_UPGRADE == 'true'
         working-directory: ${{ env.PROPOSAL_PATH }}
         run: |
           set -Eeuo pipefail
@@ -122,7 +110,8 @@ jobs:
             summary: "Software Upgrade \($version)"
           }' | tee ${UPGRADE_NAME}.json
 
-      - name: Create PR
+      - name: Create PR for major upgrade
+        if: env.IS_MAJOR_UPGRADE == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
