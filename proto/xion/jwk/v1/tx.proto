@@ -8,17 +8,37 @@ option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 // Msg defines the Msg service.
 service Msg {
+  rpc CreateAudienceClaim (MsgCreateAudienceClaim) returns (MsgCreateAudienceClaimResponse);
+  rpc DeleteAudienceClaim (MsgDeleteAudienceClaim) returns (MsgDeleteAudienceClaimResponse);
   rpc CreateAudience (MsgCreateAudience) returns (MsgCreateAudienceResponse);
   rpc UpdateAudience (MsgUpdateAudience) returns (MsgUpdateAudienceResponse);
   rpc DeleteAudience (MsgDeleteAudience) returns (MsgDeleteAudienceResponse);
 }
+
+message MsgCreateAudienceClaim {
+  string admin = 1;
+  bytes aud_hash = 2;
+}
+
+message MsgCreateAudienceClaimResponse {}
+
+message MsgDeleteAudienceClaim {
+  string admin = 1;
+  bytes aud_hash = 2;
+}
+
+message MsgDeleteAudienceClaimResponse {}
+
+
 message MsgCreateAudience {
   string admin = 1;
   string aud   = 2;
   string key   = 3;
 }
 
-message MsgCreateAudienceResponse {}
+message MsgCreateAudienceResponse {
+  Audience audience = 1;
+}
 
 message MsgUpdateAudience {
   string admin = 1;
@@ -27,7 +47,9 @@ message MsgUpdateAudience {
   string key    = 4;
 }
 
-message MsgUpdateAudienceResponse {}
+message MsgUpdateAudienceResponse {
+  Audience audience = 1;
+}
 
 message MsgDeleteAudience {
   string admin = 1;

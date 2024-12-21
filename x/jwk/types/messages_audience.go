@@ -1,6 +1,9 @@
 package types
 
 import (
+	"fmt"
+
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	errorsmod "cosmossdk.io/errors"
@@ -13,6 +16,9 @@ const (
 	TypeMsgCreateAudience = "create_audience"
 	TypeMsgUpdateAudience = "update_audience"
 	TypeMsgDeleteAudience = "delete_audience"
+
+	TypeMsgCreateAudienceClaim = "create_audience_claim"
+	TypeMsgDeleteAudienceClaim = "delete_audience_claim"
 )
 
 var _ sdk.Msg = &MsgCreateAudience{}
@@ -56,9 +62,19 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
 
-	_, err = jwk.ParseKey([]byte(msg.Key))
+	key, err := jwk.ParseKey([]byte(msg.Key))
 	if err != nil {
 		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
+	}
+
+	var sigAlg jwa.SignatureAlgorithm
+	if err := sigAlg.Accept(key.Algorithm().String()); err != nil {
+		return err
+	}
+
+	switch sigAlg {
+	case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
+		return fmt.Errorf("invalid algorithm: %s", sigAlg.String())
 	}
 
 	return nil
@@ -102,10 +118,31 @@ func (msg *MsgUpdateAudience) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateAudience) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Admin)
+	_, err := sdk.AccAddressFromBech32(msg.NewAdmin)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
+
+	_, err = sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
+	key, err := jwk.ParseKey([]byte(msg.Key))
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
+	}
+
+	var sigAlg jwa.SignatureAlgorithm
+	if err := sigAlg.Accept(key.Algorithm().String()); err != nil {
+		return err
+	}
+
+	switch sigAlg {
+	case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
+		return fmt.Errorf("invalid algorithm: %s", sigAlg.String())
+	}
+
 	return nil
 }
 
@@ -147,5 +184,93 @@ func (msg *MsgDeleteAudience) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
 	}
+	return nil
+}
+
+var _ sdk.Msg = &MsgCreateAudienceClaim{}
+
+func NewMsgCreateAudienceClaim(
+	admin sdk.AccAddress,
+	hash []byte,
+) *MsgCreateAudienceClaim {
+	return &MsgCreateAudienceClaim{
+		Admin:   admin.String(),
+		AudHash: hash,
+	}
+}
+
+func (msg *MsgCreateAudienceClaim) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgCreateAudienceClaim) Type() string {
+	return TypeMsgCreateAudienceClaim
+}
+
+func (msg *MsgCreateAudienceClaim) GetSigners() []sdk.AccAddress {
+	admin, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{admin}
+}
+
+func (msg *MsgCreateAudienceClaim) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgCreateAudienceClaim) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
+	if len(msg.AudHash) != 32 {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "hash must be 32 byte sha256")
+	}
+
+	return nil
+}
+
+var _ sdk.Msg = &MsgDeleteAudienceClaim{}
+
+func NewMsgDeleteAudienceClaim(
+	admin sdk.AccAddress,
+	hash []byte,
+) *MsgDeleteAudienceClaim {
+	return &MsgDeleteAudienceClaim{
+		Admin:   admin.String(),
+		AudHash: hash,
+	}
+}
+
+func (msg *MsgDeleteAudienceClaim) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgDeleteAudienceClaim) Type() string {
+	return TypeMsgDeleteAudienceClaim
+}
+
+func (msg *MsgDeleteAudienceClaim) GetSigners() []sdk.AccAddress {
+	admin, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{admin}
+}
+
+func (msg *MsgDeleteAudienceClaim) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgDeleteAudienceClaim) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Admin)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
 	return nil
 }

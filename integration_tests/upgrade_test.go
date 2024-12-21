@@ -28,15 +28,14 @@ const (
 * 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgrade ./...
 
 As of Aug 17 2023 this is the necessary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
-current-testnet: v0.3.4
-step between: v0.3.5
-upgrade-version: v0.3.6
+current-testnet: v6
+upgrade-version: v7
 */
-func TestXionUpgrade(t *testing.T) {
+func TestXionUpgradeNetwork(t *testing.T) {
 	t.Parallel()
 
 	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
-	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v4")
+	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v7")
 }
 
 func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
