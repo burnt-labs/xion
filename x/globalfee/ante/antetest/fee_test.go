@@ -241,7 +241,7 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	// setup tests with default global fee i.e. "0uxion" and empty local min gas prices
 	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParamsEmpty, noBondDenom)
 
-	// set a subspace that doesn't have the stakingtypes.KeyBondDenom key registred
+	// set a subspace that doesn't have the stakingtypes.KeyBondDenom key registered
 	// feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
 
 	// check that an error is returned when staking bond denom is empty
