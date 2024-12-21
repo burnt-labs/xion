@@ -414,7 +414,6 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	// Get Public Key For Funded Account
 	account, err := ExecBin(t, ctx, xion.FullNodes[0],
-		xionUser.KeyName(),
 		"keys", "show",
 		xionUser.KeyName(),
 		"--keyring-backend", keyring.BackendTest,
@@ -508,7 +507,6 @@ func TestXionAbstractAccount(t *testing.T) {
 
 	// Generate Key Rotation Msg
 	account, err = ExecBin(t, ctx, xion.FullNodes[0],
-		xionUser.KeyName(),
 		"keys", "show",
 		xionUser.KeyName(),
 		"--keyring-backend", keyring.BackendTest,
