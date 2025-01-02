@@ -59,6 +59,7 @@ func NewTxCmd() *cobra.Command {
 		NewSignCmd(),
 		NewAddAuthenticatorCmd(),
 		NewRegisterCmd(),
+		NewUpdateConfigsCmd(),
 	)
 
 	return txCmd
@@ -511,6 +512,77 @@ func NewSignCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
+	return cmd
+}
+
+func NewUpdateConfigsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-configs [contract-address] [grants-json-file] [fee-configs-json-file]",
+		Short: "Update grant and fee configurations in the treasury contract",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			// Parse arguments
+			contractAddress := args[0]
+			grantsFile := args[1]
+			feeConfigsFile := args[2]
+
+			// Read and parse grants JSON file
+			grantsData, err := os.ReadFile(grantsFile)
+			if err != nil {
+				return fmt.Errorf("failed to read grants JSON file: %w", err)
+			}
+
+			var grants []map[string]interface{}
+			if err := json.Unmarshal(grantsData, &grants); err != nil {
+				return fmt.Errorf("failed to parse grants JSON file: %w", err)
+			}
+
+			// Read and parse fee configs JSON file
+			feeConfigsData, err := os.ReadFile(feeConfigsFile)
+			if err != nil {
+				return fmt.Errorf("failed to read fee configs JSON file: %w", err)
+			}
+
+			var feeConfigs []map[string]interface{}
+			if err := json.Unmarshal(feeConfigsData, &feeConfigs); err != nil {
+				return fmt.Errorf("failed to parse fee configs JSON file: %w", err)
+			}
+
+			// Construct execute message
+			executeMsg := map[string]interface{}{
+				"update_configs": map[string]interface{}{
+					"grants":      grants,
+					"fee_configs": feeConfigs,
+				},
+			}
+
+			msgBz, err := json.Marshal(executeMsg)
+			if err != nil {
+				return fmt.Errorf("failed to serialize execute message: %w", err)
+			}
+
+			// Create and broadcast transaction
+			msg := wasmtypes.MsgExecuteContract{
+				Sender:   clientCtx.GetFromAddress().String(),
+				Contract: contractAddress,
+				Msg:      msgBz,
+				Funds:    nil,
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 

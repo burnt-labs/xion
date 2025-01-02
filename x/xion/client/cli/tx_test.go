@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 
 	"cosmossdk.io/math"
 
@@ -12,6 +13,7 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 )
@@ -199,6 +201,115 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 
 			cmd.SetContext(ctx)
 			cmd.SetArgs(args)
+
+			s.Require().NoError(client.SetCmdClientContextHandler(tc.ctxGen(), cmd))
+
+			err := cmd.Execute()
+			if tc.expectErr {
+				s.Require().Error(err)
+			} else {
+				s.Require().NoError(err)
+			}
+		})
+	}
+}
+
+func (s *CLITestSuite) TestUpdateConfigsCmd() {
+	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 1)
+	cmd := cli.NewUpdateConfigsCmd()
+	cmd.SetOutput(io.Discard)
+
+	// Prepare mock JSON files for grants and fee configs
+	grantsFile := "grants.json"
+	feeConfigsFile := "fee_configs.json"
+
+	// Create temporary JSON files for testing
+	grantsData := []byte(`[
+		{
+			"msg_type_url": "/cosmos.bank.v1.MsgSend",
+			"grant_config": {
+				"description": "Bank grant",
+				"authorization": {
+					"type_url": "/cosmos.authz.v1.GenericAuthorization",
+					"value": "CgRQYXk="
+				},
+				"optional": true
+			}
+		}
+	]`)
+
+	feeConfigsData := []byte(`[
+		{
+			"description": "Fee allowance for user1",
+			"allowance": {
+				"type_url": "/cosmos.feegrant.v1.BasicAllowance",
+				"value": "CgQICAI="
+			},
+			"expiration": 1715151235
+		}
+	]`)
+
+	require.NoError(s.T(), os.WriteFile(grantsFile, grantsData, 0600))
+	defer os.Remove(grantsFile)
+
+	require.NoError(s.T(), os.WriteFile(feeConfigsFile, feeConfigsData, 0600))
+	defer os.Remove(feeConfigsFile)
+
+	// Mock valid Bech32 contract address
+	validContractAddress := "cosmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
+
+	extraArgs := []string{
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin("photon", math.NewInt(10))).String()),
+		fmt.Sprintf("--%s=test-chain", flags.FlagChainID),
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, accounts[0].Name),
+	}
+
+	testCases := []struct {
+		name       string
+		ctxGen     func() client.Context
+		contract   string
+		grantsFile string
+		feeFile    string
+		extraArgs  []string
+		expectErr  bool
+	}{
+		{
+			"valid execution",
+			func() client.Context {
+				return s.baseCtx.WithFromAddress(accounts[0].Address)
+			},
+			validContractAddress,
+			grantsFile,
+			feeConfigsFile,
+			extraArgs,
+			false,
+		},
+		{
+			"invalid contract address",
+			func() client.Context {
+				return s.baseCtx.WithFromAddress(accounts[0].Address)
+			},
+			"invalid-address",
+			grantsFile,
+			feeConfigsFile,
+			extraArgs,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			// Validate contract address format before executing the command
+			if _, err := sdk.AccAddressFromBech32(tc.contract); tc.contract != "invalid-address" && err != nil {
+				s.T().Fatalf("invalid contract address: %s", err)
+			}
+
+			ctx := svrcmd.CreateExecuteContext(context.Background())
+
+			cmd.SetContext(ctx)
+			cmd.SetArgs(append([]string{tc.contract, tc.grantsFile, tc.feeFile}, tc.extraArgs...))
 
 			s.Require().NoError(client.SetCmdClientContextHandler(tc.ctxGen(), cmd))
 

@@ -88,26 +88,51 @@ func TestUpdateTreasuryConfigs(t *testing.T) {
 	_, err = ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), executeCmd...)
 	require.NoError(t, err)
 
-	// Query and validate contract state
-	t.Log("Validating updated contract state")
-	contractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "all", treasuryAddr)
+	// Query and validate Grant Config URLs
+	t.Log("Querying grant config type URLs")
+	grantQueryMsg := map[string]interface{}{
+		"grant_config_type_urls": struct{}{},
+	}
+	grantQueryMsgStr, err := json.Marshal(grantQueryMsg)
 	require.NoError(t, err)
-	t.Logf("Updated Contract State: %s", contractState)
 
-	// Assert the state contains the updated grants and fee configs
-	storedGrants := contractState["grant_configs"].([]map[string]GrantConfig)
-	require.Equal(t, len(grants), len(storedGrants))
-	for i, storedGrant := range storedGrants {
-		require.Equal(t, grants[i]["msg_type_url"], storedGrant["msg_type_url"])
-		require.Equal(t, grants[i]["grant_config"].(GrantConfig).Description, storedGrant["grant_config"].Description)
-		require.Equal(t, grants[i]["grant_config"].(GrantConfig).Authorization.TypeURL, storedGrant["grant_config"].Authorization.TypeURL)
+	grantQueryRaw, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", treasuryAddr, string(grantQueryMsgStr))
+	require.NoError(t, err)
+
+	grantQueryBytes, err := json.Marshal(grantQueryRaw["data"])
+	require.NoError(t, err)
+
+	var queriedGrantConfigUrls []string
+	err = json.Unmarshal(grantQueryBytes, &queriedGrantConfigUrls)
+	require.NoError(t, err)
+
+	// Validate that all grants are in the contract state
+	require.Equal(t, len(grants), len(queriedGrantConfigUrls))
+	for _, grant := range grants {
+		msgTypeURL := grant["msg_type_url"].(string)
+		require.Contains(t, queriedGrantConfigUrls, msgTypeURL)
 	}
 
-	storedFeeConfigs := contractState["fee_configs"].([]interface{})
-	require.Equal(t, len(feeConfigs), len(storedFeeConfigs))
-	for i, storedFeeConfig := range storedFeeConfigs {
-		stored := storedFeeConfig.(map[string]interface{})
-		require.Equal(t, feeConfigs[i].Description, stored["description"])
-		require.Equal(t, feeConfigs[i].Allowance.TypeURL, stored["allowance"].(map[string]interface{})["type_url"])
+	// Query and validate Fee Config
+	t.Log("Querying fee config")
+	feeQueryMsg := map[string]interface{}{
+		"fee_config": struct{}{},
 	}
+	feeQueryMsgStr, err := json.Marshal(feeQueryMsg)
+	require.NoError(t, err)
+
+	feeQueryRaw, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", treasuryAddr, string(feeQueryMsgStr))
+	require.NoError(t, err)
+
+	feeQueryBytes, err := json.Marshal(feeQueryRaw["data"])
+	require.NoError(t, err)
+
+	var queriedFeeConfig FeeConfig
+	err = json.Unmarshal(feeQueryBytes, &queriedFeeConfig)
+	require.NoError(t, err)
+
+	// Validate Fee Config
+	require.Equal(t, len(feeConfigs), 1)
+	require.Equal(t, feeConfigs[0].Description, queriedFeeConfig.Description)
+	require.Equal(t, feeConfigs[0].Allowance.TypeURL, queriedFeeConfig.Allowance.TypeURL)
 }
