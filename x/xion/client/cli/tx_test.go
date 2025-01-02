@@ -219,7 +219,6 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	cmd := cli.NewUpdateConfigsCmd()
 	cmd.SetOutput(io.Discard)
 
-	// Prepare mock JSON files for grants and fee configs
 	grantsFile := "grants.json"
 	feeConfigsFile := "fee_configs.json"
 
@@ -228,17 +227,28 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 		{
 			"msg_type_url": "/cosmos.bank.v1.MsgSend",
 			"grant_config": {
-				"description": "Bank grant",
-				"authorization": {
-					"type_url": "/cosmos.authz.v1.GenericAuthorization",
-					"value": "CgRQYXk="
-				},
-				"optional": true
+			"description": "Bank grant",
+			"authorization": {
+				"type_url": "/cosmos.authz.v1.GenericAuthorization",
+				"value": "CgRQYXk="
+			},
+			"optional": true
+			}
+		},
+		{
+			"msg_type_url": "/cosmos.staking.v1.MsgDelegate",
+			"grant_config": {
+			"description": "Staking grant",
+			"authorization": {
+				"type_url": "/cosmos.authz.v1.GenericAuthorization",
+				"value": "CgREZWxlZ2F0ZQ=="
+			},
+			"optional": false
 			}
 		}
 	]`)
 
-	feeConfigsData := []byte(`[
+	feeConfigsData := []byte(`
 		{
 			"description": "Fee allowance for user1",
 			"allowance": {
@@ -247,7 +257,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 			},
 			"expiration": 1715151235
 		}
-	]`)
+	`)
 
 	require.NoError(s.T(), os.WriteFile(grantsFile, grantsData, 0600))
 	defer os.Remove(grantsFile)

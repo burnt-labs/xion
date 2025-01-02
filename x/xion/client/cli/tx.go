@@ -516,9 +516,30 @@ func NewSignCmd() *cobra.Command {
 }
 
 func NewUpdateConfigsCmd() *cobra.Command {
+	type ExplicitAny struct {
+		TypeURL string `json:"type_url"`
+		Value   []byte `json:"value"`
+	}
+
+	type GrantConfig struct {
+		Description   string      `json:"description"`
+		Authorization ExplicitAny `json:"authorization"`
+		Optional      bool        `json:"optional"`
+	}
+
+	type UpdateGrantConfig struct {
+		MsgTypeURL  string      `json:"msg_type_url"`
+		GrantConfig GrantConfig `json:"grant_config"`
+	}
+
+	type FeeConfig struct {
+		Description string       `json:"description"`
+		Allowance   *ExplicitAny `json:"allowance,omitempty"`
+		Expiration  int32        `json:"expiration,omitempty"`
+	}
 	cmd := &cobra.Command{
-		Use:   "update-configs [contract-address] [grants-json-file] [fee-configs-json-file]",
-		Short: "Update grant and fee configurations in the treasury contract",
+		Use:   "update-configs [contract] [grants_file] [fee_configs_file]",
+		Short: "Batch update grant configs and fee config for the treasury",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -526,59 +547,73 @@ func NewUpdateConfigsCmd() *cobra.Command {
 				return err
 			}
 
-			// Parse arguments
-			contractAddress := args[0]
+			contract := args[0]
 			grantsFile := args[1]
 			feeConfigsFile := args[2]
 
-			// Read and parse grants JSON file
 			grantsData, err := os.ReadFile(grantsFile)
 			if err != nil {
-				return fmt.Errorf("failed to read grants JSON file: %w", err)
+				return fmt.Errorf("failed to read grants file: %w", err)
 			}
 
-			var grants []map[string]interface{}
+			var grants []UpdateGrantConfig
 			if err := json.Unmarshal(grantsData, &grants); err != nil {
-				return fmt.Errorf("failed to parse grants JSON file: %w", err)
+				return fmt.Errorf("failed to unmarshal grants: %w", err)
 			}
 
-			// Read and parse fee configs JSON file
 			feeConfigsData, err := os.ReadFile(feeConfigsFile)
 			if err != nil {
-				return fmt.Errorf("failed to read fee configs JSON file: %w", err)
+				return fmt.Errorf("failed to read fee configs file: %w", err)
+			}
+			var feeConfig FeeConfig
+			if err := json.Unmarshal(feeConfigsData, &feeConfig); err != nil {
+				return fmt.Errorf("failed to unmarshal fee configs: %w", err)
 			}
 
-			var feeConfigs []map[string]interface{}
-			if err := json.Unmarshal(feeConfigsData, &feeConfigs); err != nil {
-				return fmt.Errorf("failed to parse fee configs JSON file: %w", err)
+			var msgs []sdk.Msg
+			for _, grant := range grants {
+				executeMsg := map[string]interface{}{
+					"update_grant_config": map[string]interface{}{
+						"msg_type_url": grant.MsgTypeURL,
+						"grant_config": grant.GrantConfig,
+					},
+				}
+				msgBz, err := json.Marshal(executeMsg)
+				if err != nil {
+					return fmt.Errorf("failed to marshal execute message for grant: %w", err)
+				}
+				msg := &wasmtypes.MsgExecuteContract{
+					Sender:   clientCtx.GetFromAddress().String(),
+					Contract: contract,
+					Msg:      msgBz,
+					Funds:    sdk.Coins{},
+				}
+				msgs = append(msgs, msg)
 			}
 
-			// Construct execute message
-			executeMsg := map[string]interface{}{
-				"update_configs": map[string]interface{}{
-					"grants":      grants,
-					"fee_configs": feeConfigs,
+			feeExecuteMsg := map[string]interface{}{
+				"update_fee_config": map[string]interface{}{
+					"fee_config": feeConfig,
 				},
 			}
-
-			msgBz, err := json.Marshal(executeMsg)
+			feeMsgBz, err := json.Marshal(feeExecuteMsg)
 			if err != nil {
-				return fmt.Errorf("failed to serialize execute message: %w", err)
+				return fmt.Errorf("failed to marshal execute message for fee config: %w", err)
 			}
-
-			// Create and broadcast transaction
-			msg := wasmtypes.MsgExecuteContract{
+			feeMsg := &wasmtypes.MsgExecuteContract{
 				Sender:   clientCtx.GetFromAddress().String(),
-				Contract: contractAddress,
-				Msg:      msgBz,
-				Funds:    nil,
+				Contract: contract,
+				Msg:      feeMsgBz,
+				Funds:    sdk.Coins{},
+			}
+			msgs = append(msgs, feeMsg)
+
+			err = tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgs...)
+			if err != nil {
+				return fmt.Errorf("failed to broadcast transaction: %w", err)
 			}
 
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+			return nil
 		},
 	}
 
