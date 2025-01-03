@@ -608,12 +608,7 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			}
 			msgs = append(msgs, feeMsg)
 
-			err = tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgs...)
-			if err != nil {
-				return fmt.Errorf("failed to broadcast transaction: %w", err)
-			}
-
-			return nil
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgs...)
 		},
 	}
 
