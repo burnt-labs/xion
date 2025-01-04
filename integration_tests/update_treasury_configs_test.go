@@ -181,13 +181,14 @@ func TestUpdateTreasuryConfigsWithAA(t *testing.T) {
 		"--keyring-backend", keyring.BackendTest,
 		"-p",
 	)
+	require.NoError(t, err)
 
 	// Store AA Wasm Contract
 	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
 		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
-	depositedFunds := fmt.Sprintf("%d%s", 100000, xion.Config().Denom)
+	depositedFunds := fmt.Sprintf("%d%s", 1000000, xion.Config().Denom)
 
 	registeredTxHash, err := ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
@@ -208,7 +209,7 @@ func TestUpdateTreasuryConfigsWithAA(t *testing.T) {
 
 	contractBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, math.NewInt(100000), contractBalance)
+	require.Equal(t, math.NewInt(1000000), contractBalance)
 
 	contractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 0 }}`)
 	require.NoError(t, err)
@@ -229,7 +230,10 @@ func TestUpdateTreasuryConfigsWithAA(t *testing.T) {
 
 	// Instantiate contract
 	t.Log("Instantiating contract")
+	accAddr, err := types.AccAddressFromBech32(aaContractAddr)
+	require.NoError(t, err)
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        accAddr,
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
@@ -270,27 +274,40 @@ func TestUpdateTreasuryConfigsWithAA(t *testing.T) {
 	grantsFilePath := strings.Split(grantsFile.Name(), "/")
 	feeConfigFilePath := strings.Split(feeConfigsFile.Name(), "/")
 	t.Log("Executing CLI command to update configs")
-	_ = path.Join(fp, "integration_tests", "testdata", "unsigned_tx.json")
+	unsignedTxFile, err := os.CreateTemp("", "*-msg-update-config.json")
+	require.NoError(t, err)
 	cmd := []string{
 		"tx", "xion", "update-configs", treasuryAddr, path.Join(xion.GetNode().HomeDir(), grantsFilePath[len(grantsFilePath)-1]), path.Join(xion.GetNode().HomeDir(), feeConfigFilePath[len(grantsFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
-		"--from", xionUser.FormattedAddress(),
-		"--gas", "auto",
-		"--fees", "1000uxion",
+		"--from", aaContractAddr,
+		"--gas-prices", "1uxion", "--gas-adjustment", "2",
+		"--gas", "400000", // set gas limit high because auto broadcasts the transaction
 		"--generate-only",
-		"--dry-run",
 	}
 
 	unsignedTx, err := ExecBin(t, ctx, xion.GetNode(), cmd...)
 	require.NoError(t, err)
-	// Write the unsigned transaction to a file
-	// err = os.WriteFile(unsignedTxFile, []byte(unsignedTx), 0644)
+	t.Log("Unsigned Tx: ", unsignedTx)
+	unsignedTxBz, err := json.Marshal(unsignedTx)
 	require.NoError(t, err)
-	t.Log("unsigned tx file created ", unsignedTx)
+	// Write the unsigned transaction to a file
+	_, err = unsignedTxFile.Write(unsignedTxBz)
+	require.NoError(t, err)
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), unsignedTxFile)
+	require.NoError(t, err)
 
 	// TODO: sign the unsigned transaction
+	unsignedTxFilePath := strings.Split(unsignedTxFile.Name(), "/")
+	_, err = ExecTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"xion", "sign",
+		xionUser.KeyName(),
+		aaContractAddr,
+		path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath[len(unsignedTxFilePath)-1]),
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
 
-	// Wait for the transaction to be included in a block
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
