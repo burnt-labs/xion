@@ -57,6 +57,13 @@ func TestXionSendPlatformFee(t *testing.T) {
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
+	// query to make sure minimums are empty
+
+	minimums, err := ExecQuery(t, ctx, xion.GetNode(), "xion", "platform-minimum")
+	require.NoError(t, err)
+	t.Log(minimums)
+	require.Equal(t, []interface{}{}, minimums["minimums"])
+
 	setPlatformMinimumsMsg := xiontypes.MsgSetPlatformMinimum{
 		Authority: authtypes.NewModuleAddress("gov").String(),
 		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(10), Denom: "uxion"}},
@@ -78,8 +85,8 @@ func TestXionSendPlatformFee(t *testing.T) {
 		Messages: []json.RawMessage{msg},
 		Metadata: "",
 		Deposit:  "100uxion",
-		Title:    "Set platform percentage to 5%",
-		Summary:  "Ups the platform fee to 5% for the integration test",
+		Title:    "Set platform minimum to 100uxion",
+		Summary:  "Ups the platform minimum to 100uxion for the integration test",
 	}
 	paramChangeTx, err := xion.SubmitProposal(ctx, xionUser.KeyName(), prop)
 	require.NoError(t, err)
@@ -116,6 +123,13 @@ func TestXionSendPlatformFee(t *testing.T) {
 		}
 		return false
 	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
+
+	// check that the value has been set
+
+	minimums, err = ExecQuery(t, ctx, xion.GetNode(), "xion", "platform-minimum")
+	require.NoError(t, err)
+	coins := minimums["minimums"].([]interface{})
+	require.Equal(t, 1, len(coins))
 
 	_, err = xion.GetNode().ExecTx(ctx,
 		xionUser.KeyName(),
