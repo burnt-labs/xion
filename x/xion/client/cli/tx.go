@@ -59,6 +59,7 @@ func NewTxCmd() *cobra.Command {
 		NewSignCmd(),
 		NewAddAuthenticatorCmd(),
 		NewRegisterCmd(),
+		NewUpdateConfigsCmd(),
 	)
 
 	return txCmd
@@ -511,6 +512,107 @@ func NewSignCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
+	return cmd
+}
+
+func NewUpdateConfigsCmd() *cobra.Command {
+	type ExplicitAny struct {
+		TypeURL string `json:"type_url"`
+		Value   []byte `json:"value"`
+	}
+
+	type GrantConfig struct {
+		Description   string      `json:"description"`
+		Authorization ExplicitAny `json:"authorization"`
+		Optional      bool        `json:"optional"`
+	}
+
+	type UpdateGrantConfig struct {
+		MsgTypeURL  string      `json:"msg_type_url"`
+		GrantConfig GrantConfig `json:"grant_config"`
+	}
+
+	type FeeConfig struct {
+		Description string       `json:"description"`
+		Allowance   *ExplicitAny `json:"allowance,omitempty"`
+		Expiration  int32        `json:"expiration,omitempty"`
+	}
+	cmd := &cobra.Command{
+		Use:   "update-configs [contract] [grants_file] [fee_configs_file]",
+		Short: "Batch update grant configs and fee config for the treasury",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			contract := args[0]
+			grantsFile := args[1]
+			feeConfigsFile := args[2]
+
+			grantsData, err := os.ReadFile(grantsFile)
+			if err != nil {
+				return fmt.Errorf("failed to read grants file: %w", err)
+			}
+
+			var grants []UpdateGrantConfig
+			if err := json.Unmarshal(grantsData, &grants); err != nil {
+				return fmt.Errorf("failed to unmarshal grants: %w", err)
+			}
+
+			feeConfigsData, err := os.ReadFile(feeConfigsFile)
+			if err != nil {
+				return fmt.Errorf("failed to read fee configs file: %w", err)
+			}
+			var feeConfig FeeConfig
+			if err := json.Unmarshal(feeConfigsData, &feeConfig); err != nil {
+				return fmt.Errorf("failed to unmarshal fee configs: %w", err)
+			}
+
+			var msgs []sdk.Msg
+			for _, grant := range grants {
+				executeMsg := map[string]interface{}{
+					"update_grant_config": map[string]interface{}{
+						"msg_type_url": grant.MsgTypeURL,
+						"grant_config": grant.GrantConfig,
+					},
+				}
+				msgBz, err := json.Marshal(executeMsg)
+				if err != nil {
+					return fmt.Errorf("failed to marshal execute message for grant: %w", err)
+				}
+				msg := &wasmtypes.MsgExecuteContract{
+					Sender:   clientCtx.GetFromAddress().String(),
+					Contract: contract,
+					Msg:      msgBz,
+					Funds:    sdk.Coins{},
+				}
+				msgs = append(msgs, msg)
+			}
+
+			feeExecuteMsg := map[string]interface{}{
+				"update_fee_config": map[string]interface{}{
+					"fee_config": feeConfig,
+				},
+			}
+			feeMsgBz, err := json.Marshal(feeExecuteMsg)
+			if err != nil {
+				return fmt.Errorf("failed to marshal execute message for fee config: %w", err)
+			}
+			feeMsg := &wasmtypes.MsgExecuteContract{
+				Sender:   clientCtx.GetFromAddress().String(),
+				Contract: contract,
+				Msg:      feeMsgBz,
+				Funds:    sdk.Coins{},
+			}
+			msgs = append(msgs, feeMsg)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgs...)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
