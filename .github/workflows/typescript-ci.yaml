@@ -1,0 +1,187 @@
+name: Protobuf CI
+
+on:
+  push:
+    paths:
+      - '**/*.proto'
+    branches:
+      - '**'
+  pull_request:
+    paths:
+      - '**/*.proto'
+  workflow_dispatch:
+
+jobs:
+  generate_protobuf:
+    name: Generate Protobuf Definitions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Cache Protobuf Dependencies
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-protobuf-cache-${{ hashFiles('**/package-lock.json') }}
+      
+      - name: Install Dependencies
+        run: |
+          npm ci
+      
+      - name: Generate Protobuf Definitions
+        run: |
+          npx protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts \
+            --ts_out=./generated \
+            --proto_path=./proto \
+            $(find ./proto -name '*.proto')
+
+      - name: Verify TypeScript Compilation
+        run: |
+          tsc --noEmit
+
+      - name: Upload Protobuf Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: protobuf-definitions
+          path: ./generated
+
+  publish_types:
+    name: Publish TypeScript Definitions
+    needs: generate_protobuf
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Download Protobuf Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: protobuf-definitions
+
+      - name: Prepare TypeScript Definitions Package
+        run: |
+          mkdir -p ./dist
+          cp -r ./generated ./dist/types
+          cp ./typescript/package.json ./dist/package.json
+          cp ./typescript/README.md ./dist/
+
+      - name: Publish TypeScript Definitions Package
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd ./dist && npm publish --access public
+
+  build_package:
+    name: Build and Publish NPM Package
+    needs: generate_protobuf
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Ensure the token has minimal permissions and is stored securely
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+
+      - name: Download Protobuf Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: protobuf-definitions
+
+      - name: Prepare NPM Package
+        run: |
+          mkdir -p ./dist
+          cp -r ./generated ./dist/protobuf
+          cp package.json ./dist/
+          cp README.md ./dist/
+
+      - name: Build Package
+        run: |
+          cd ./dist && npm pack
+
+      - name: Publish Package to NPM
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd ./dist && npm publish --access public
+
+  validate_compatibility:
+    name: Validate Compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+
+      - name: Run Compatibility Tests
+        run: |
+          npm run test:compatibility
+
+  release:
+    name: Tag Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Cache Protobuf Dependencies
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-protobuf-cache-${{ hashFiles('**/package-lock.json') }}
+      
+      - name: Install Dependencies
+        run: |
+          npm ci
+
+      - name: Generate Protobuf Definitions for Release
+        run: |
+          npx protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts \
+            --ts_out=./generated \
+            --proto_path=./proto \
+            $(find ./proto -name '*.proto')
+
+      - name: Package and Publish Release to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Ensure the token has minimal permissions and is stored securely
+        run: |
+          mkdir -p ./dist
+          cp -r ./generated ./dist/protobuf
+          cp package.json ./dist/
+          cp README.md ./dist/
+          cd ./dist && npm publish --access public

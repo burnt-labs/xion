@@ -1,0 +1,13 @@
+{
+  "name": "@burnt-labs/xion-types",
+  "version": "1.0.0",
+  "description": "TypeScript definitions for Xion Protobuf files",
+  "main": "index.js",
+  "types": "types/index.d.ts",
+  "files": ["types/"],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "license": "MIT"
+}
