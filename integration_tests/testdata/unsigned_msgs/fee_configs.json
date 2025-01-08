@@ -1,0 +1,8 @@
+{
+  "description": "Fee allowance for user1",
+  "allowance": {
+    "type_url": "/cosmos.feegrant.v1.BasicAllowance",
+    "value": "CgQICAI="
+  },
+  "expiration": 1715151235
+}
