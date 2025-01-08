@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -22,10 +23,10 @@ var configFileUrl string // Global variable to hold the file location argument
 func init() {
 	// Define command-line flags
 	flag.StringVar(&configFileUrl, "configUrl", "", "URL to the configuration file")
-	flag.Parse()
 }
 func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
-	require.NotNil(t, configFileUrl, "Skipping test as no config file is provided via the --config flag")
+	flag.Parse()
+	require.NotNil(t, configFileUrl, "No config file is provided via the configUrl flag")
 	// Setup Xion chain
 	td := BuildXionChain(t, "0.0uxion", nil)
 	xion, ctx := td.xionChain, td.ctx
@@ -69,9 +70,19 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 
 	// Local File Test
 	t.Log("Testing with local file")
-	localFile := path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "config.json")
+	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "config.json"))
+	require.NoError(t, err)
+
+	file, err := os.CreateTemp("", "*-config.json")
+	require.NoError(t, err)
+	_, err = file.Write(configData)
+	require.NoError(t, err)
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), file)
+	require.NoError(t, err)
+
+	configFilePath := strings.Split(file.Name(), "/")
 	cmd := []string{
-		"tx", "xion", "update-configs", treasuryAddr, localFile,
+		"xion", "update-configs", treasuryAddr, path.Join(xion.GetNode().HomeDir(), configFilePath[len(configFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 		"--from", xionUser.KeyName(),
 		"--gas-prices", "1uxion", "--gas-adjustment", "1.4",
@@ -95,12 +106,11 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 	// URL Test
 	t.Log("Testing with URL")
 	cmd = []string{
-		"tx", "xion", "update-configs", treasuryAddr, configFileUrl,
+		"xion", "update-configs", treasuryAddr, configFileUrl,
 		"--chain-id", xion.Config().ChainID,
 		"--from", xionUser.KeyName(),
 		"--gas-prices", "1uxion", "--gas-adjustment", "1.4",
 		"--gas", "400000",
-		"--url",
 		"-y",
 	}
 	_, err = ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), cmd...)
@@ -250,9 +260,19 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	// Test with local config file
 	t.Log("Testing with local config file")
-	localFile := path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "config.json")
+	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "config.json"))
+	require.NoError(t, err)
+
+	file, err := os.CreateTemp("", "*-config.json")
+	require.NoError(t, err)
+	_, err = file.Write(configData)
+	require.NoError(t, err)
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), file)
+	require.NoError(t, err)
+
+	configFilePath := strings.Split(file.Name(), "/")
 	cmd := []string{
-		"tx", "xion", "update-configs", treasuryAddr, localFile,
+		"tx", "xion", "update-configs", treasuryAddr, path.Join(xion.GetNode().HomeDir(), configFilePath[len(configFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 		"--from", aaContractAddr,
 		"--gas-prices", "1uxion", "--gas-adjustment", "2",
@@ -267,12 +287,17 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	unsignedTxFile := WriteUnsignedTxToFile(t, unsignedTx)
 	defer os.Remove(unsignedTxFile.Name())
 
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), unsignedTxFile)
+	require.NoError(t, err)
+
+	unsignedTxFilePath := strings.Split(unsignedTxFile.Name(), "/")
+
 	_, err = ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
 		aaContractAddr,
-		unsignedTxFile.Name(),
+		path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath[len(unsignedTxFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
@@ -285,7 +310,6 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 		"--from", aaContractAddr,
 		"--gas-prices", "1uxion", "--gas-adjustment", "2",
 		"--gas", "400000",
-		"--url",
 		"--generate-only",
 	}
 	unsignedTx, err = ExecBin(t, ctx, xion.GetNode(), cmd...)
@@ -295,12 +319,17 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	unsignedTxFile = WriteUnsignedTxToFile(t, unsignedTx)
 	defer os.Remove(unsignedTxFile.Name())
 
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), unsignedTxFile)
+	require.NoError(t, err)
+
+	unsignedTxFilePath = strings.Split(unsignedTxFile.Name(), "/")
+
 	_, err = ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
 		aaContractAddr,
-		unsignedTxFile.Name(),
+		path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath[len(unsignedTxFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
@@ -316,7 +345,6 @@ func WriteUnsignedTxToFile(t *testing.T, unsignedTx map[string]interface{}) *os.
 	t.Helper()
 	unsignedTxFile, err := os.CreateTemp("", "*-msg-update-config.json")
 	require.NoError(t, err)
-	defer os.Remove(unsignedTxFile.Name())
 
 	unsignedTxBz, err := json.Marshal(unsignedTx)
 	require.NoError(t, err)

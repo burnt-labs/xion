@@ -542,6 +542,7 @@ func NewUpdateConfigsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-configs [contract] [config_path_or_url]",
 		Short: "Batch update grant configs and fee config for the treasury",
+		Long:  "Batch update grant configs and fee config for the treasury. To read from a local file, use the --local flag otherwise the config_path_or_url is treated as a URL",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

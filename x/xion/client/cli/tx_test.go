@@ -220,6 +220,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	cmd.SetOutput(io.Discard)
 
 	configFile := "config.json"
+	configFileUrl := "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/feat/json-grants/integration_tests/testdata/unsigned_msgs/config.json"
 
 	// Create temporary JSON files for testing
 	configData := []byte(`{"grant_config":[
@@ -266,7 +267,6 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin("photon", math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=test-chain", flags.FlagChainID),
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, accounts[0].Name),
-		fmt.Sprintf("--%s=true", "local"),
 	}
 
 	testCases := []struct {
@@ -278,13 +278,23 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 		expectErr  bool
 	}{
 		{
+			"valid execution url",
+			func() client.Context {
+				return s.baseCtx.WithFromAddress(accounts[0].Address)
+			},
+			validContractAddress,
+			configFileUrl,
+			extraArgs,
+			false,
+		},
+		{
 			"valid execution",
 			func() client.Context {
 				return s.baseCtx.WithFromAddress(accounts[0].Address)
 			},
 			validContractAddress,
 			configFile,
-			extraArgs,
+			append(extraArgs, fmt.Sprintf("--%s=true", "local")),
 			false,
 		},
 		{
