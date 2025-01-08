@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -537,10 +538,11 @@ func NewUpdateConfigsCmd() *cobra.Command {
 		Allowance   *ExplicitAny `json:"allowance,omitempty"`
 		Expiration  int32        `json:"expiration,omitempty"`
 	}
+
 	cmd := &cobra.Command{
-		Use:   "update-configs [contract] [grants_file] [fee_configs_file]",
+		Use:   "update-configs [contract] [config_path_or_url]",
 		Short: "Batch update grant configs and fee config for the treasury",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -548,30 +550,50 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			}
 
 			contract := args[0]
-			grantsFile := args[1]
-			feeConfigsFile := args[2]
+			configSource := args[1]
 
-			grantsData, err := os.ReadFile(grantsFile)
+			// Determine source type (local file or URL)
+			localSource, err := cmd.Flags().GetBool("local")
 			if err != nil {
-				return fmt.Errorf("failed to read grants file: %w", err)
+				return fmt.Errorf("failed to parse local flag: %w", err)
 			}
 
-			var grants []UpdateGrantConfig
-			if err := json.Unmarshal(grantsData, &grants); err != nil {
-				return fmt.Errorf("failed to unmarshal grants: %w", err)
+			var configData struct {
+				GrantConfig []UpdateGrantConfig `json:"grant_config"`
+				FeeConfig   FeeConfig           `json:"fee_config"`
 			}
 
-			feeConfigsData, err := os.ReadFile(feeConfigsFile)
-			if err != nil {
-				return fmt.Errorf("failed to read fee configs file: %w", err)
-			}
-			var feeConfig FeeConfig
-			if err := json.Unmarshal(feeConfigsData, &feeConfig); err != nil {
-				return fmt.Errorf("failed to unmarshal fee configs: %w", err)
+			if localSource {
+				// Read from local file
+				fileData, err := os.ReadFile(configSource)
+				if err != nil {
+					return fmt.Errorf("failed to read configuration file: %w", err)
+				}
+				err = json.Unmarshal(fileData, &configData)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal local configuration file: %w", err)
+				}
+			} else {
+				// Fetch JSON from URI
+				resp, err := http.Get(configSource)
+				if err != nil {
+					return fmt.Errorf("failed to fetch configuration from URI: %w", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusOK {
+					return fmt.Errorf("received non-200 response code: %d", resp.StatusCode)
+				}
+
+				err = json.NewDecoder(resp.Body).Decode(&configData)
+				if err != nil {
+					return fmt.Errorf("failed to decode JSON response: %w", err)
+				}
 			}
 
 			var msgs []sdk.Msg
-			for _, grant := range grants {
+			// Process Grant Configs
+			for _, grant := range configData.GrantConfig {
 				executeMsg := map[string]interface{}{
 					"update_grant_config": map[string]interface{}{
 						"msg_type_url": grant.MsgTypeURL,
@@ -591,9 +613,10 @@ func NewUpdateConfigsCmd() *cobra.Command {
 				msgs = append(msgs, msg)
 			}
 
+			// Process Fee Config
 			feeExecuteMsg := map[string]interface{}{
 				"update_fee_config": map[string]interface{}{
-					"fee_config": feeConfig,
+					"fee_config": configData.FeeConfig,
 				},
 			}
 			feeMsgBz, err := json.Marshal(feeExecuteMsg)
@@ -613,6 +636,7 @@ func NewUpdateConfigsCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().Bool("local", false, "Specify if the config source is a local file instead of a URL")
 	return cmd
 }
 

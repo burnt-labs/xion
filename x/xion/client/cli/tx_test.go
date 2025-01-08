@@ -219,11 +219,10 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	cmd := cli.NewUpdateConfigsCmd()
 	cmd.SetOutput(io.Discard)
 
-	grantsFile := "grants.json"
-	feeConfigsFile := "fee_configs.json"
+	configFile := "config.json"
 
 	// Create temporary JSON files for testing
-	grantsData := []byte(`[
+	configData := []byte(`{"grant_config":[
 		{
 			"msg_type_url": "/cosmos.bank.v1.MsgSend",
 			"grant_config": {
@@ -246,24 +245,17 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 			"optional": false
 			}
 		}
-	]`)
-
-	feeConfigsData := []byte(`
-		{
+	], "fee_config":{
 			"description": "Fee allowance for user1",
 			"allowance": {
 				"type_url": "/cosmos.feegrant.v1.BasicAllowance",
 				"value": "CgQICAI="
 			},
 			"expiration": 1715151235
-		}
-	`)
+		}}`)
 
-	require.NoError(s.T(), os.WriteFile(grantsFile, grantsData, 0600))
-	defer os.Remove(grantsFile)
-
-	require.NoError(s.T(), os.WriteFile(feeConfigsFile, feeConfigsData, 0600))
-	defer os.Remove(feeConfigsFile)
+	require.NoError(s.T(), os.WriteFile(configFile, configData, 0600))
+	defer os.Remove(configFile)
 
 	// Mock valid Bech32 contract address
 	validContractAddress := "cosmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
@@ -274,14 +266,14 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin("photon", math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=test-chain", flags.FlagChainID),
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, accounts[0].Name),
+		fmt.Sprintf("--%s=true", "local"),
 	}
 
 	testCases := []struct {
 		name       string
 		ctxGen     func() client.Context
 		contract   string
-		grantsFile string
-		feeFile    string
+		configFile string
 		extraArgs  []string
 		expectErr  bool
 	}{
@@ -291,8 +283,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 				return s.baseCtx.WithFromAddress(accounts[0].Address)
 			},
 			validContractAddress,
-			grantsFile,
-			feeConfigsFile,
+			configFile,
 			extraArgs,
 			false,
 		},
@@ -302,8 +293,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 				return s.baseCtx.WithFromAddress(accounts[0].Address)
 			},
 			"invalid-address",
-			grantsFile,
-			feeConfigsFile,
+			configFile,
 			extraArgs,
 			true,
 		},
@@ -319,7 +309,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 			ctx := svrcmd.CreateExecuteContext(context.Background())
 
 			cmd.SetContext(ctx)
-			cmd.SetArgs(append([]string{tc.contract, tc.grantsFile, tc.feeFile}, tc.extraArgs...))
+			cmd.SetArgs(append([]string{tc.contract, tc.configFile}, tc.extraArgs...))
 
 			s.Require().NoError(client.SetCmdClientContextHandler(tc.ctxGen(), cmd))
 
