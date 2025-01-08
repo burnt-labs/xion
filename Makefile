@@ -295,10 +295,10 @@ test-integration-xion-treasury-grants: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryContract
 
 test-integration-xion-update-treasury-configs: compile_integration_tests
-	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryConfigsWithCLI
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryConfigsWithLocalAndURL --configUrl="$(configUrl)"
 
 test-integration-xion-update-treasury-configs-aa: compile_integration_tests
-	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryConfigsWithAA
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryConfigsWithAALocalAndURL --configUrl="$(configUrl)"
 
 test-integration-xion-treasury-multi: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryMulti
