@@ -23,6 +23,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/codec"
+	cdcTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -43,6 +45,28 @@ const (
 	flagToken           = "token"
 	flagSubject         = "sub"
 )
+
+type ExplicitAny struct {
+	TypeURL string `json:"type_url"`
+	Value   []byte `json:"value"`
+}
+
+type GrantConfig struct {
+	Description   string      `json:"description"`
+	Authorization interface{} `json:"authorization"`
+	Optional      bool        `json:"optional"`
+}
+
+type UpdateGrantConfig struct {
+	MsgTypeURL  string      `json:"msg_type_url"`
+	GrantConfig GrantConfig `json:"grant_config"`
+}
+
+type FeeConfig struct {
+	Description string      `json:"description"`
+	Allowance   interface{} `json:"allowance,omitempty"`
+	Expiration  int32       `json:"expiration,omitempty"`
+}
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
 func NewTxCmd() *cobra.Command {
@@ -517,27 +541,6 @@ func NewSignCmd() *cobra.Command {
 }
 
 func NewUpdateConfigsCmd() *cobra.Command {
-	type ExplicitAny struct {
-		TypeURL string `json:"type_url"`
-		Value   []byte `json:"value"`
-	}
-
-	type GrantConfig struct {
-		Description   string      `json:"description"`
-		Authorization ExplicitAny `json:"authorization"`
-		Optional      bool        `json:"optional"`
-	}
-
-	type UpdateGrantConfig struct {
-		MsgTypeURL  string      `json:"msg_type_url"`
-		GrantConfig GrantConfig `json:"grant_config"`
-	}
-
-	type FeeConfig struct {
-		Description string       `json:"description"`
-		Allowance   *ExplicitAny `json:"allowance,omitempty"`
-		Expiration  int32        `json:"expiration,omitempty"`
-	}
 
 	cmd := &cobra.Command{
 		Use:   "update-configs [contract] [config_path_or_url]",
@@ -548,6 +551,12 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
+			}
+
+			cdc := clientCtx.Codec
+			_, err = clientCtx.InterfaceRegistry.Resolve("/cosmos.bank.v1.MsgSend")
+			if err != nil {
+				return fmt.Errorf("failed to resolve typeurl with test interface")
 			}
 
 			contract := args[0]
@@ -595,6 +604,17 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			var msgs []sdk.Msg
 			// Process Grant Configs
 			for _, grant := range configData.GrantConfig {
+				auth := grant.GrantConfig.Authorization
+				authBz, err := json.Marshal(auth)
+				if err != nil {
+					return fmt.Errorf("failed to marshal authorization for grant: %w", err)
+				}
+				authTypeUrl := auth.(map[string]interface{})["@type"].(string)
+				grantConfig, err := ConvertJSONToAny(cdc, authBz, authTypeUrl)
+				if err != nil {
+					return fmt.Errorf("failed to convert grant config to Any: %w", err)
+				}
+				grant.GrantConfig.Authorization = grantConfig
 				executeMsg := map[string]interface{}{
 					"update_grant_config": map[string]interface{}{
 						"msg_type_url": grant.MsgTypeURL,
@@ -615,6 +635,18 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			}
 
 			// Process Fee Config
+			allowance := configData.FeeConfig.Allowance
+			allowanceBz, err := json.Marshal(allowance)
+			if err != nil {
+				return fmt.Errorf("failed to marshal allowance for fee config: %w", err)
+			}
+			allowanceTypeUrl := allowance.(map[string]interface{})["@type"].(string)
+			feeConfig, err := ConvertJSONToAny(cdc, allowanceBz, allowanceTypeUrl)
+			if err != nil {
+				return fmt.Errorf("failed to convert fee config to Any: %w", err)
+			}
+			configData.FeeConfig.Allowance = feeConfig
+
 			feeExecuteMsg := map[string]interface{}{
 				"update_fee_config": map[string]interface{}{
 					"fee_config": configData.FeeConfig,
@@ -729,4 +761,33 @@ func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticat
 		require.NoError(t, err)
 		t.Logf("signed token: %s", output)
 	*/
+}
+
+func ConvertJSONToAny(cdc codec.Codec, jsonInput []byte, typeURL string) (ExplicitAny, error) {
+	// Resolve the concrete type for the given typeURL
+	protoMsg, err := cdc.InterfaceRegistry().Resolve(typeURL)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to resolve type URL %s: %w", typeURL, err)
+	}
+
+	// Unmarshal the JSON into the Protobuf message
+	err = cdc.UnmarshalJSON(jsonInput, protoMsg)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to unmarshal JSON into proto.Message: %w", err)
+	}
+
+	// Marshal the Protobuf message into Any
+	val, err := cdcTypes.NewAnyWithValue(protoMsg)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to marshal proto.Message into Any: %w", err)
+	}
+
+	res := ExplicitAny{
+		TypeURL: val.TypeUrl,
+		Value:   val.Value,
+	}
+
+	protoMsg.Reset()
+
+	return res, nil
 }

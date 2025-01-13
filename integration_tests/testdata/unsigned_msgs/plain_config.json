@@ -1,0 +1,68 @@
+{
+  "grant_config": [
+    {
+      "msg_type_url": "/cosmos.bank.v1.MsgSend",
+      "grant_config": {
+        "description": "Bank grant",
+        "authorization": {
+          "@type": "/cosmos.authz.v1.GenericAuthorization",
+          "msg": "/cosmos.bank.v1.MsgSend"
+        },
+        "optional": true
+      }
+    },
+    {
+      "msg_type_url": "/cosmos.staking.v1.MsgDelegate",
+      "grant_config": {
+        "description": "Staking grant",
+        "authorization": {
+          "@type": "/cosmos.authz.v1.GenericAuthorization",
+          "msg": "/cosmos.staking.v1.MsgDelegate"
+        },
+        "optional": false
+      }
+    },
+    {
+      "msg_type_url": "/cosmos.gov.v1beta1.MsgVote",
+      "grant_config": {
+        "description": "Governance vote grant",
+        "authorization": {
+          "@type": "/cosmos.authz.v1.MsgExecAuthorization",
+          "msgs": [
+            {
+              "@type": "/cosmos.gov.v1beta1.MsgVote",
+              "proposal_id": "1",
+              "voter": "cosmos1voteraddress",
+              "option": "VOTE_OPTION_YES"
+            }
+          ]
+        },
+        "optional": true
+      }
+    }
+  ],
+  "fee_config": {
+    "description": "Fee allowance for user1",
+    "allowance": {
+      "@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
+      "allowance": {
+        "@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
+        "allowance": {
+          "@type": "/cosmos.feegrant.v1beta1.BasicAllowance",
+          "spend_limit": [
+            {
+              "denom": "atom",
+              "amount": "1000"
+            }
+          ],
+          "expiration": "2025-01-01T00:00:00Z"
+        },
+        "allowed_messages": [
+          "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+        ]
+      },
+      "allowed_messages": ["/cosmos.staking.v1beta1.MsgDelegate"]
+    },
+    "expiration": 1715151235
+  }
+}

@@ -4,6 +4,7 @@ import (
 	"io"
 	"testing"
 
+	feegrant "cosmossdk.io/x/feegrant/module"
 	"github.com/stretchr/testify/suite"
 
 	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
@@ -28,7 +29,7 @@ func TestMigrateTestSuite(t *testing.T) {
 }
 
 func (s *CLITestSuite) SetupSuite() {
-	s.encCfg = testutilmod.MakeTestEncodingConfig(bank.AppModuleBasic{})
+	s.encCfg = testutilmod.MakeTestEncodingConfig(bank.AppModuleBasic{}, feegrant.AppModuleBasic{})
 	s.kr = keyring.NewInMemory(s.encCfg.Codec)
 	s.baseCtx = client.Context{}.
 		WithKeyring(s.kr).

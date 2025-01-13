@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"cosmossdk.io/math"
+	"cosmossdk.io/x/feegrant"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -331,4 +332,56 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 			}
 		})
 	}
+}
+
+func (s *CLITestSuite) TestSerializeJSONAllowanceToProto() {
+	// Example JSON input for a BasicAllowance
+	jsonInput := []byte(`{
+		"allowance": {
+			"@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
+			"allowance": {
+				"@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
+				"allowance": {
+					"@type": "/cosmos.feegrant.v1beta1.BasicAllowance",
+					"spend_limit": [{"denom": "atom", "amount": "1000"}],
+					"expiration": "2025-01-01T00:00:00Z"
+				},
+				"allowed_messages": ["/cosmos.bank.v1beta1.MsgSend"]
+			},
+			"allowed_messages": ["/cosmos.staking.v1beta1.MsgDelegate"]
+		},
+		"allowed_messages": ["/cosmos.gov.v1beta1.MsgVote"]
+	}`)
+
+	// Expected Type URL for BasicAllowance
+	typeURL := "/cosmos.feegrant.v1beta1.AllowedMsgAllowance"
+
+	// Serialize JSON to Protobuf
+	protoMsg, err := cli.SeralizeJSONAllowanceToProto(s.encCfg.Codec, jsonInput, typeURL)
+	require.NoError(s.T(), err, "Failed to serialize JSON to Proto")
+
+	// Assert that the resulting Protobuf message is not nil
+	require.NotNil(s.T(), protoMsg, "Protobuf message should not be nil")
+
+	// Verify first-level AllowedMsgAllowance
+	topLevelAllowance, ok := protoMsg.(*feegrant.AllowedMsgAllowance)
+	require.True(s.T(), ok, "Top-level Protobuf message is not of type *feegrant.AllowedMsgAllowance")
+	require.Equal(s.T(), []string{"/cosmos.gov.v1beta1.MsgVote"}, topLevelAllowance.AllowedMessages)
+
+	// Verify second-level AllowedMsgAllowance
+	secondLevelAllowance, ok := topLevelAllowance.Allowance.GetCachedValue().(*feegrant.AllowedMsgAllowance)
+	require.True(s.T(), ok, "Second-level Protobuf message is not of type *feegrant.AllowedMsgAllowance")
+	require.Equal(s.T(), []string{"/cosmos.staking.v1beta1.MsgDelegate"}, secondLevelAllowance.AllowedMessages)
+	s.T().Log("Second-level Protobuf message: ", secondLevelAllowance.String())
+
+	// Verify second-level AllowedMsgAllowance
+	thirdLevelAllowance, ok := secondLevelAllowance.Allowance.GetCachedValue().(*feegrant.AllowedMsgAllowance)
+	require.True(s.T(), ok, "Second-level Protobuf message is not of type *feegrant.AllowedMsgAllowance")
+	require.Equal(s.T(), []string{"/cosmos.bank.v1beta1.MsgSend"}, thirdLevelAllowance.AllowedMessages)
+	s.T().Log("third-level Protobuf message: ", thirdLevelAllowance.String())
+	// Verify third-level AllowedMsgAllowance (BasicAllowance)
+	fourthLevelAllowance, ok := thirdLevelAllowance.Allowance.GetCachedValue().(*feegrant.BasicAllowance)
+	require.True(s.T(), ok, "Third-level Protobuf message is not of type *feegrant.BasicAllowance")
+	require.Equal(s.T(), sdk.Coins{{Denom: "atom", Amount: math.NewInt(1000)}}, fourthLevelAllowance.SpendLimit)
+	require.NotNil(s.T(), fourthLevelAllowance.Expiration, "Expiration should not be nil")
 }
