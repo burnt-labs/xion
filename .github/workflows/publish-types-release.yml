@@ -1,0 +1,59 @@
+name: Publish TypeScript Definitions (Release)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # e.g., v1.2.3, v2.0.0, etc.
+
+jobs:
+  publish-types-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          # GITHUB_REF is usually "refs/tags/v1.2.3"
+          RAW_TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${RAW_TAG#v}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: make proto-deps
+
+      - name: Generate TypeScript definitions
+        run: make proto-gen-ts
+
+      - name: Create package.json
+        run: |
+          cat > client/ts/types/package.json << EOF
+          {
+            "name": "@xion/types",
+            "version": "${{ env.VERSION }}",
+            "description": "TypeScript definitions for Xion",
+            "types": "index.d.ts",
+            "files": [
+              "**/*.d.ts",
+              "**/*.js"
+            ],
+            "publishConfig": {
+              "access": "public"
+            }
+          }
+          EOF
+
+      - name: Publish to npm
+        run: |
+          cd client/ts/types
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
