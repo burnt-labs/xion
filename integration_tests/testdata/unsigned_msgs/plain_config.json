@@ -1,23 +1,23 @@
 {
   "grant_config": [
     {
-      "msg_type_url": "/cosmos.bank.v1.MsgSend",
+      "msg_type_url": "/cosmos.bank.v1beta1.MsgSend",
       "grant_config": {
         "description": "Bank grant",
         "authorization": {
-          "@type": "/cosmos.authz.v1.GenericAuthorization",
-          "msg": "/cosmos.bank.v1.MsgSend"
+          "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+          "msg": "/cosmos.bank.v1beta1.MsgSend"
         },
         "optional": true
       }
     },
     {
-      "msg_type_url": "/cosmos.staking.v1.MsgDelegate",
+      "msg_type_url": "/cosmos.staking.v1beta1.MsgDelegate",
       "grant_config": {
         "description": "Staking grant",
         "authorization": {
-          "@type": "/cosmos.authz.v1.GenericAuthorization",
-          "msg": "/cosmos.staking.v1.MsgDelegate"
+          "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+          "msg": "/cosmos.staking.v1beta1.MsgDelegate"
         },
         "optional": false
       }
@@ -27,13 +27,34 @@
       "grant_config": {
         "description": "Governance vote grant",
         "authorization": {
-          "@type": "/cosmos.authz.v1.MsgExecAuthorization",
-          "msgs": [
+          "@type": "/cosmwasm.wasm.v1.ContractExecutionAuthorization",
+          "grants": [
             {
-              "@type": "/cosmos.gov.v1beta1.MsgVote",
-              "proposal_id": "1",
-              "voter": "cosmos1voteraddress",
-              "option": "VOTE_OPTION_YES"
+              "contract": "cosmos1contractaddress",
+              "limit": {
+                "@type": "/cosmwasm.wasm.v1.MaxCallsLimit",
+                "remaining": "5"
+              },
+              "filter": {
+                "@type": "/cosmwasm.wasm.v1.AcceptedMessageKeysFilter",
+                "keys": ["key1", "key2"]
+              }
+            },
+            {
+              "contract": "cosmos1anothercontractaddress",
+              "limit": {
+                "@type": "/cosmwasm.wasm.v1.CombinedLimit",
+                "calls_remaining": "5",
+                "amounts": [
+                  {
+                    "denom": "uxion",
+                    "amount": "1000"
+                  }
+                ]
+              },
+              "filter": {
+                "@type": "/cosmwasm.wasm.v1.AllowAllMessagesFilter"
+              }
             }
           ]
         },

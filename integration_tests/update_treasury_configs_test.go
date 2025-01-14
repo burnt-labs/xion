@@ -70,7 +70,7 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 
 	// Local File Test
 	t.Log("Testing with local file")
-	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "config.json"))
+	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "plain_config.json"))
 	require.NoError(t, err)
 
 	file, err := os.CreateTemp("", "*-config.json")
@@ -260,7 +260,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	// Test with local config file
 	t.Log("Testing with local config file")
-	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "config.json"))
+	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "plain_config.json"))
 	require.NoError(t, err)
 
 	file, err := os.CreateTemp("", "*-config.json")

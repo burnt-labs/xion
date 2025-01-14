@@ -554,10 +554,6 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			}
 
 			cdc := clientCtx.Codec
-			_, err = clientCtx.InterfaceRegistry.Resolve("/cosmos.bank.v1.MsgSend")
-			if err != nil {
-				return fmt.Errorf("failed to resolve typeurl with test interface")
-			}
 
 			contract := args[0]
 			configSource := args[1]
@@ -605,12 +601,11 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			// Process Grant Configs
 			for _, grant := range configData.GrantConfig {
 				auth := grant.GrantConfig.Authorization
-				authBz, err := json.Marshal(auth)
-				if err != nil {
-					return fmt.Errorf("failed to marshal authorization for grant: %w", err)
+				authM, ok := auth.(map[string]interface{})
+				if !ok {
+					return fmt.Errorf("failed to parse authorization from grant config")
 				}
-				authTypeUrl := auth.(map[string]interface{})["@type"].(string)
-				grantConfig, err := ConvertJSONToAny(cdc, authBz, authTypeUrl)
+				grantConfig, err := ConvertJSONToAny(cdc, authM)
 				if err != nil {
 					return fmt.Errorf("failed to convert grant config to Any: %w", err)
 				}
@@ -636,12 +631,8 @@ func NewUpdateConfigsCmd() *cobra.Command {
 
 			// Process Fee Config
 			allowance := configData.FeeConfig.Allowance
-			allowanceBz, err := json.Marshal(allowance)
-			if err != nil {
-				return fmt.Errorf("failed to marshal allowance for fee config: %w", err)
-			}
-			allowanceTypeUrl := allowance.(map[string]interface{})["@type"].(string)
-			feeConfig, err := ConvertJSONToAny(cdc, allowanceBz, allowanceTypeUrl)
+			allowanceM := allowance.(map[string]interface{})
+			feeConfig, err := ConvertJSONToAny(cdc, allowanceM)
 			if err != nil {
 				return fmt.Errorf("failed to convert fee config to Any: %w", err)
 			}
@@ -763,15 +754,23 @@ func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticat
 	*/
 }
 
-func ConvertJSONToAny(cdc codec.Codec, jsonInput []byte, typeURL string) (ExplicitAny, error) {
+func ConvertJSONToAny(cdc codec.Codec, jsonInput map[string]interface{}) (ExplicitAny, error) {
+	typeURL, ok := jsonInput["@type"].(string)
+	if !ok {
+		return ExplicitAny{}, fmt.Errorf("failed to parse type URL from JSON")
+	}
+	delete(jsonInput, "@type")
 	// Resolve the concrete type for the given typeURL
 	protoMsg, err := cdc.InterfaceRegistry().Resolve(typeURL)
 	if err != nil {
 		return ExplicitAny{}, fmt.Errorf("failed to resolve type URL %s: %w", typeURL, err)
 	}
-
+	jsonInputBz, err := json.Marshal(jsonInput)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to marshal JSON input: %w", err)
+	}
 	// Unmarshal the JSON into the Protobuf message
-	err = cdc.UnmarshalJSON(jsonInput, protoMsg)
+	err = cdc.UnmarshalJSON(jsonInputBz, protoMsg)
 	if err != nil {
 		return ExplicitAny{}, fmt.Errorf("failed to unmarshal JSON into proto.Message: %w", err)
 	}

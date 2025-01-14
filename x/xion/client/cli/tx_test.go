@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -336,7 +338,8 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 
 func (s *CLITestSuite) TestSerializeJSONAllowanceToProto() {
 	// Example JSON input for a BasicAllowance
-	jsonInput := []byte(`{
+	jsonInput := `{
+		"@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
 		"allowance": {
 			"@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
 			"allowance": {
@@ -351,17 +354,25 @@ func (s *CLITestSuite) TestSerializeJSONAllowanceToProto() {
 			"allowed_messages": ["/cosmos.staking.v1beta1.MsgDelegate"]
 		},
 		"allowed_messages": ["/cosmos.gov.v1beta1.MsgVote"]
-	}`)
-
-	// Expected Type URL for BasicAllowance
-	typeURL := "/cosmos.feegrant.v1beta1.AllowedMsgAllowance"
+	}`
 
 	// Serialize JSON to Protobuf
-	protoMsg, err := cli.SeralizeJSONAllowanceToProto(s.encCfg.Codec, jsonInput, typeURL)
+	var jsonData map[string]interface{}
+	require.NoError(s.T(), json.Unmarshal([]byte(jsonInput), &jsonData), "Failed to unmarshal JSON input")
+
+	anyMsg, err := cli.ConvertJSONToAny(s.encCfg.Codec, jsonData)
 	require.NoError(s.T(), err, "Failed to serialize JSON to Proto")
 
 	// Assert that the resulting Protobuf message is not nil
-	require.NotNil(s.T(), protoMsg, "Protobuf message should not be nil")
+	require.NotNil(s.T(), anyMsg, "Protobuf message should not be nil")
+
+	var protoMsg feegrant.FeeAllowanceI
+	// Unpack the Any into the top-level AllowedMsgAllowance
+	err = s.encCfg.InterfaceRegistry.UnpackAny(&cdctypes.Any{
+		TypeUrl: anyMsg.TypeURL,
+		Value:   anyMsg.Value,
+	}, &protoMsg)
+	require.NoError(s.T(), err, "Failed to unpack Any into Protobuf message")
 
 	// Verify first-level AllowedMsgAllowance
 	topLevelAllowance, ok := protoMsg.(*feegrant.AllowedMsgAllowance)
@@ -372,16 +383,15 @@ func (s *CLITestSuite) TestSerializeJSONAllowanceToProto() {
 	secondLevelAllowance, ok := topLevelAllowance.Allowance.GetCachedValue().(*feegrant.AllowedMsgAllowance)
 	require.True(s.T(), ok, "Second-level Protobuf message is not of type *feegrant.AllowedMsgAllowance")
 	require.Equal(s.T(), []string{"/cosmos.staking.v1beta1.MsgDelegate"}, secondLevelAllowance.AllowedMessages)
-	s.T().Log("Second-level Protobuf message: ", secondLevelAllowance.String())
 
-	// Verify second-level AllowedMsgAllowance
+	// Verify third-level AllowedMsgAllowance
 	thirdLevelAllowance, ok := secondLevelAllowance.Allowance.GetCachedValue().(*feegrant.AllowedMsgAllowance)
-	require.True(s.T(), ok, "Second-level Protobuf message is not of type *feegrant.AllowedMsgAllowance")
+	require.True(s.T(), ok, "Third-level Protobuf message is not of type *feegrant.AllowedMsgAllowance")
 	require.Equal(s.T(), []string{"/cosmos.bank.v1beta1.MsgSend"}, thirdLevelAllowance.AllowedMessages)
-	s.T().Log("third-level Protobuf message: ", thirdLevelAllowance.String())
-	// Verify third-level AllowedMsgAllowance (BasicAllowance)
+
+	// Verify fourth-level BasicAllowance
 	fourthLevelAllowance, ok := thirdLevelAllowance.Allowance.GetCachedValue().(*feegrant.BasicAllowance)
-	require.True(s.T(), ok, "Third-level Protobuf message is not of type *feegrant.BasicAllowance")
+	require.True(s.T(), ok, "Fourth-level Protobuf message is not of type *feegrant.BasicAllowance")
 	require.Equal(s.T(), sdk.Coins{{Denom: "atom", Amount: math.NewInt(1000)}}, fourthLevelAllowance.SpendLimit)
 	require.NotNil(s.T(), fourthLevelAllowance.Expiration, "Expiration should not be nil")
 }
