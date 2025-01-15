@@ -146,9 +146,15 @@ func validateGrantConfigs(t *testing.T, ctx context.Context, xion *cosmos.Cosmos
 	require.NoError(t, err)
 
 	// Validate that all grants are in the contract state
-	require.Equal(t, 2, len(queriedGrantConfigUrls))
-	require.Equal(t, "/cosmos.bank.v1.MsgSend", queriedGrantConfigUrls[0])
-	require.Equal(t, "/cosmos.staking.v1.MsgDelegate", queriedGrantConfigUrls[1])
+	require.Equal(t, 3, len(queriedGrantConfigUrls))
+	check := []string{"/cosmos.bank.v1beta1.MsgSend", "/cosmos.staking.v1beta1.MsgDelegate", "/cosmos.gov.v1beta1.MsgVote"}
+	exists := make(map[string]bool)
+	for _, str := range queriedGrantConfigUrls {
+		exists[str] = true
+	}
+	for _, str := range check {
+		require.True(t, exists[str], "Expected %s to be in the grant config type URLs", str)
+	}
 }
 
 func validateFeeConfig(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, treasuryAddr string) {
@@ -171,7 +177,7 @@ func validateFeeConfig(t *testing.T, ctx context.Context, xion *cosmos.CosmosCha
 
 	// Validate Fee Config
 	require.Equal(t, "Fee allowance for user1", queriedFeeConfig.Description)
-	require.Equal(t, "/cosmos.feegrant.v1.BasicAllowance", queriedFeeConfig.Allowance.TypeURL)
+	require.Equal(t, "/cosmos.feegrant.v1beta1.AllowedMsgAllowance", queriedFeeConfig.Allowance.TypeURL)
 }
 
 func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
