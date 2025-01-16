@@ -242,6 +242,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", registeredTxHash)
 	require.NoError(t, err)
 	aaContractAddr := GetAAContractAddress(t, txDetails)
+	t.Logf("AA Contract Address: %s", aaContractAddr)
 
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
 		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
@@ -290,8 +291,15 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	unsignedTx, err := ExecBin(t, ctx, xion.GetNode(), cmd...)
 	require.NoError(t, err)
 
-	t.Log("Signing transaction for local config")
+	// Marshal the unsignedTx to JSON for logging
+	unsignedTxJSON, err := json.MarshalIndent(unsignedTx, "", "  ")
+	require.NoError(t, err)
+
+	t.Logf("Unsigned Transaction (JSON): %s", unsignedTxJSON)
+
 	unsignedTxFile := WriteUnsignedTxToFile(t, unsignedTx)
+	t.Logf("Unsigned Tx File Path: %v", unsignedTxFile.Name())
+
 	defer os.Remove(unsignedTxFile.Name())
 
 	err = UploadFileToContainer(t, ctx, xion.GetNode(), unsignedTxFile)
@@ -300,6 +308,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	unsignedTxFilePath := strings.Split(unsignedTxFile.Name(), "/")
 
 	_, err = ExecTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
 		aaContractAddr,
