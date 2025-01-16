@@ -262,9 +262,11 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 
-	treasuryAddr, err := xion.InstantiateContract(ctx, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), true)
+	treasuryAddr1, err := xion.InstantiateContract(ctx, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), true)
 	require.NoError(t, err)
-	t.Logf("Deployed and instantiated Treasury contract at address: %s", treasuryAddr)
+	treasuryAddr2, err := xion.InstantiateContract(ctx, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), true)
+	require.NoError(t, err)
+	t.Logf("Deployed and instantiated Treasury contract at address: %s %s", treasuryAddr1, treasuryAddr2)
 
 	// Test with local config file
 	t.Log("Testing with local config file")
@@ -280,7 +282,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	configFilePath := strings.Split(file.Name(), "/")
 	cmd := []string{
-		"tx", "xion", "update-configs", treasuryAddr, path.Join(xion.GetNode().HomeDir(), configFilePath[len(configFilePath)-1]),
+		"tx", "xion", "update-configs", treasuryAddr1, path.Join(xion.GetNode().HomeDir(), configFilePath[len(configFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 		"--from", aaContractAddr,
 		"--gas-prices", "1uxion", "--gas-adjustment", "2",
@@ -307,20 +309,32 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	unsignedTxFilePath := strings.Split(unsignedTxFile.Name(), "/")
 
-	_, err = ExecTx(t, ctx, xion.GetNode(),
-		xionUser.KeyName(),
-		"xion", "sign",
-		xionUser.KeyName(),
-		aaContractAddr,
-		path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath[len(unsignedTxFilePath)-1]),
+	signedTx, err := ExecBinRaw(t, ctx, xion.GetNode(),
+		"tx", "xion", "sign", xionUser.KeyName(), aaContractAddr, path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath[len(unsignedTxFilePath)-1]),
+		"--from", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", xion.GetNode().HostName()),
 	)
 	require.NoError(t, err)
+	t.Logf("signed tx: %s", signedTx)
+
+	// Wait for the transaction to be included in a block
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	require.NoError(t, err)
+
+	// Validate Grant Configs
+	validateGrantConfigs(t, ctx, xion, treasuryAddr1)
+
+	// Validate Fee Config
+	validateFeeConfig(t, ctx, xion, treasuryAddr1)
 
 	// Test with URL config file
 	t.Log("Testing with URL config file")
 	cmd = []string{
-		"tx", "xion", "update-configs", treasuryAddr, configFileUrl,
+		"tx", "xion", "update-configs", treasuryAddr2, configFileUrl,
 		"--chain-id", xion.Config().ChainID,
 		"--from", aaContractAddr,
 		"--gas-prices", "1uxion", "--gas-adjustment", "2",
@@ -331,29 +345,35 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Signing transaction for URL config")
-	unsignedTxFile = WriteUnsignedTxToFile(t, unsignedTx)
-	defer os.Remove(unsignedTxFile.Name())
+	unsignedTxFile2 := WriteUnsignedTxToFile(t, unsignedTx)
+	defer os.Remove(unsignedTxFile2.Name())
 
-	err = UploadFileToContainer(t, ctx, xion.GetNode(), unsignedTxFile)
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), unsignedTxFile2)
 	require.NoError(t, err)
 
-	unsignedTxFilePath = strings.Split(unsignedTxFile.Name(), "/")
+	unsignedTxFilePath2 := strings.Split(unsignedTxFile2.Name(), "/")
 
-	_, err = ExecTx(t, ctx, xion.GetNode(),
-		xionUser.KeyName(),
-		"xion", "sign",
-		xionUser.KeyName(),
-		aaContractAddr,
-		path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath[len(unsignedTxFilePath)-1]),
+	signedTx, err = ExecBinRaw(t, ctx, xion.GetNode(),
+		"tx", "xion", "sign", xionUser.KeyName(), aaContractAddr, path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath2[len(unsignedTxFilePath2)-1]),
+		"--from", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", xion.GetNode().HostName()),
 	)
+	require.NoError(t, err)
+	t.Logf("signed tx: %s", signedTx)
+
+	// Wait for the transaction to be included in a block
+	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
 	// Validate Grant Configs
-	validateGrantConfigs(t, ctx, xion, treasuryAddr)
+	validateGrantConfigs(t, ctx, xion, treasuryAddr2)
 
 	// Validate Fee Config
-	validateFeeConfig(t, ctx, xion, treasuryAddr)
+	validateFeeConfig(t, ctx, xion, treasuryAddr2)
 }
 
 func WriteUnsignedTxToFile(t *testing.T, unsignedTx map[string]interface{}) *os.File {
