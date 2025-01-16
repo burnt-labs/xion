@@ -299,7 +299,6 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	unsignedTxFilePath := strings.Split(unsignedTxFile.Name(), "/")
 
 	_, err = ExecTx(t, ctx, xion.GetNode(),
-		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
 		aaContractAddr,
