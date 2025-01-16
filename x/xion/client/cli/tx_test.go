@@ -222,8 +222,8 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	cmd := cli.NewUpdateConfigsCmd()
 	cmd.SetOutput(io.Discard)
 
-	configFile := "config.json"
-	configFileUrl := "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/feat/json-grants/integration_tests/testdata/unsigned_msgs/config.json"
+	configFile := "plain_config.json"
+	configFileUrl := "https://raw.githubusercontent.com/burnt-labs/xion/6ce7bb89562d5a2964788cb64a623eec170c8748/integration_tests/testdata/unsigned_msgs/plain_config.json"
 
 	// Create temporary JSON files for testing
 	configData := []byte(`{"grant_config":[
@@ -232,19 +232,19 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 			"grant_config": {
 			"description": "Bank grant",
 			"authorization": {
-				"type_url": "/cosmos.authz.v1.GenericAuthorization",
-				"value": "CgRQYXk="
+				"@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+				"msg": "/cosmos.bank.v1beta1.MsgSend"
 			},
 			"optional": true
 			}
 		},
 		{
-			"msg_type_url": "/cosmos.staking.v1.MsgDelegate",
+			"msg_type_url": "/cosmos.staking.v1beta1.MsgDelegate",
 			"grant_config": {
 			"description": "Staking grant",
 			"authorization": {
-				"type_url": "/cosmos.authz.v1.GenericAuthorization",
-				"value": "CgREZWxlZ2F0ZQ=="
+				"@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+				"msg": "/cosmos.staking.v1beta1.MsgDelegate"
 			},
 			"optional": false
 			}
@@ -252,8 +252,14 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	], "fee_config":{
 			"description": "Fee allowance for user1",
 			"allowance": {
-				"type_url": "/cosmos.feegrant.v1.BasicAllowance",
-				"value": "CgQICAI="
+				"@type": "/cosmos.feegrant.v1beta1.BasicAllowance",
+          		"spend_limit": [
+            		{
+						"denom": "atom",
+						"amount": "1000"
+            		}
+          		],
+          		"expiration": "2025-01-01T00:00:00Z"
 			},
 			"expiration": 1715151235
 		}}`)
