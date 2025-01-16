@@ -24,6 +24,7 @@ func init() {
 	// Define command-line flags
 	flag.StringVar(&configFileUrl, "configUrl", "", "URL to the configuration file")
 }
+
 func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 	flag.Parse()
 	require.NotNil(t, configFileUrl, "No config file is provided via the configUrl flag")

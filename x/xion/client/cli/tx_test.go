@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/stretchr/testify/require"
+
 	"cosmossdk.io/math"
 	"cosmossdk.io/x/feegrant"
 
@@ -16,7 +18,6 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 )
@@ -223,7 +224,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	cmd.SetOutput(io.Discard)
 
 	configFile := "plain_config.json"
-	configFileUrl := "https://raw.githubusercontent.com/burnt-labs/xion/6ce7bb89562d5a2964788cb64a623eec170c8748/integration_tests/testdata/unsigned_msgs/plain_config.json"
+	configFileURL := "https://raw.githubusercontent.com/burnt-labs/xion/6ce7bb89562d5a2964788cb64a623eec170c8748/integration_tests/testdata/unsigned_msgs/plain_config.json"
 
 	// Create temporary JSON files for testing
 	configData := []byte(`{"grant_config":[
@@ -264,7 +265,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 			"expiration": 1715151235
 		}}`)
 
-	require.NoError(s.T(), os.WriteFile(configFile, configData, 0600))
+	require.NoError(s.T(), os.WriteFile(configFile, configData, 0o600))
 	defer os.Remove(configFile)
 
 	// Mock valid Bech32 contract address
@@ -292,7 +293,7 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 				return s.baseCtx.WithFromAddress(accounts[0].Address)
 			},
 			validContractAddress,
-			configFileUrl,
+			configFileURL,
 			extraArgs,
 			false,
 		},

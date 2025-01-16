@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -541,7 +542,6 @@ func NewSignCmd() *cobra.Command {
 }
 
 func NewUpdateConfigsCmd() *cobra.Command {
-
 	cmd := &cobra.Command{
 		Use:   "update-configs [contract] [config_path_or_url]",
 		Short: "Batch update grant configs and fee config for the treasury",
@@ -581,6 +581,11 @@ func NewUpdateConfigsCmd() *cobra.Command {
 				}
 			} else {
 				// Fetch JSON from URI
+				parsedURL, err := url.Parse(configSource)
+				if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") {
+					return fmt.Errorf("invalid URL: %s", configSource)
+				}
+				// #nosec G107 - URL is controlled and safe in this context
 				resp, err := http.Get(configSource)
 				if err != nil {
 					return fmt.Errorf("failed to fetch configuration from URI: %w", err)
