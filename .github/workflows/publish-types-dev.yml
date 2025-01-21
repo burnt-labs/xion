@@ -1,0 +1,52 @@
+name: Publish TypeScript Definitions (Dev)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'proto/**'
+      - 'client/ts/types/**'
+
+jobs:
+  publish-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: make proto-deps
+
+      - name: Generate TypeScript definitions
+        run: make proto-gen-ts
+
+      - name: Create package.json for types
+        run: |
+          cat > client/ts/types/package.json << EOF
+          {
+            "name": "@burnt-labs/xion-types",
+            "version": "0.0.0-${GITHUB_SHA::8}",
+            "description": "TypeScript definitions for Xion",
+            "types": "index.d.ts",
+            "files": [
+              "**/*.d.ts",
+              "**/*.js"
+            ],
+            "publishConfig": {
+              "access": "public"
+            }
+          }
+          EOF
+
+      - name: Publish to npm
+        run: |
+          cd client/ts/types
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
