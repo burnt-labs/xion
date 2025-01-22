@@ -27,7 +27,8 @@ func init() {
 
 func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 	flag.Parse()
-	require.NotNil(t, configFileUrl, "No config file is provided via the configUrl flag")
+	// require.NotNil(t, configFileUrl, "No config file is provided via the configUrl flag")
+	configFileUrl = "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/feat/json-grants/integration_tests/testdata/unsigned_msgs/plain_config.json"
 	// Setup Xion chain
 	td := BuildXionChain(t, "0.0uxion", nil)
 	xion, ctx := td.xionChain, td.ctx
