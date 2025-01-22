@@ -322,9 +322,21 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("signed tx: %s", signedTx)
 
+	var signedTxDetails map[string]interface{}
+	err = json.Unmarshal(signedTx, &signedTxDetails)
+	require.NoError(t, err)
+
+	txHash := signedTxDetails["txhash"].(string)
+	t.Logf("tx hash: %s", txHash)
+
 	// Wait for the transaction to be included in a block
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
+
+	// query the tx
+	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	require.NoError(t, err)
+	t.Logf("tx details: %v", txDetails)
 
 	// Validate Grant Configs
 	validateGrantConfigs(t, ctx, xion, treasuryAddr1)
