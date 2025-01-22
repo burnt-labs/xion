@@ -41,5 +41,5 @@ jobs:
   interchain-tests:
     needs: build-docker
     name: Interchain tests
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@feat/json-grants
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@main
     secrets: inherit

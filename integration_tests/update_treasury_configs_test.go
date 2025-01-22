@@ -196,7 +196,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	// Create and fund test user
 	t.Log("Creating and funding user accounts")
-	fundAmount := math.NewInt(10_000_000)
+	fundAmount := math.NewInt(100_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 
@@ -225,7 +225,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
-	depositedFunds := fmt.Sprintf("%d%s", 1000000, xion.Config().Denom)
+	depositedFunds := fmt.Sprintf("%d%s", 10000000, xion.Config().Denom)
 
 	registeredTxHash, err := ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
@@ -287,7 +287,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 		"--from", aaContractAddr,
 		"--gas-prices", "1uxion", "--gas-adjustment", "2",
-		"--gas", "400000",
+		"--gas", "4000000",
 		"--local",
 		"--generate-only",
 	}
@@ -295,13 +295,10 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	// Marshal the unsignedTx to JSON for logging
-	unsignedTxJSON, err := json.MarshalIndent(unsignedTx, "", "  ")
+	_, err = json.MarshalIndent(unsignedTx, "", "  ")
 	require.NoError(t, err)
 
-	t.Logf("Unsigned Transaction (JSON): %s", unsignedTxJSON)
-
 	unsignedTxFile := WriteUnsignedTxToFile(t, unsignedTx)
-	t.Logf("Unsigned Tx File Path: %v", unsignedTxFile.Name())
 
 	defer os.Remove(unsignedTxFile.Name())
 
@@ -310,7 +307,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	unsignedTxFilePath := strings.Split(unsignedTxFile.Name(), "/")
 
-	signedTx, err := ExecBinRaw(t, ctx, xion.GetNode(),
+	_, err = ExecBinRaw(t, ctx, xion.GetNode(),
 		"tx", "xion", "sign", xionUser.KeyName(), aaContractAddr, path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath[len(unsignedTxFilePath)-1]),
 		"--from", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
@@ -320,23 +317,10 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 		"--node", fmt.Sprintf("tcp://%s:26657", xion.GetNode().HostName()),
 	)
 	require.NoError(t, err)
-	t.Logf("signed tx: %s", signedTx)
-
-	var signedTxDetails map[string]interface{}
-	err = json.Unmarshal(signedTx, &signedTxDetails)
-	require.NoError(t, err)
-
-	txHash := signedTxDetails["txhash"].(string)
-	t.Logf("tx hash: %s", txHash)
 
 	// Wait for the transaction to be included in a block
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
-
-	// query the tx
-	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
-	require.NoError(t, err)
-	t.Logf("tx details: %v", txDetails)
 
 	// Validate Grant Configs
 	validateGrantConfigs(t, ctx, xion, treasuryAddr1)
@@ -351,7 +335,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 		"--from", aaContractAddr,
 		"--gas-prices", "1uxion", "--gas-adjustment", "2",
-		"--gas", "400000",
+		"--gas", "4000000",
 		"--generate-only",
 	}
 	unsignedTx, err = ExecBin(t, ctx, xion.GetNode(), cmd...)
@@ -366,7 +350,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	unsignedTxFilePath2 := strings.Split(unsignedTxFile2.Name(), "/")
 
-	signedTx, err = ExecBinRaw(t, ctx, xion.GetNode(),
+	_, err = ExecBinRaw(t, ctx, xion.GetNode(),
 		"tx", "xion", "sign", xionUser.KeyName(), aaContractAddr, path.Join(xion.GetNode().HomeDir(), unsignedTxFilePath2[len(unsignedTxFilePath2)-1]),
 		"--from", xionUser.KeyName(),
 		"--chain-id", xion.Config().ChainID,
@@ -376,7 +360,6 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 		"--node", fmt.Sprintf("tcp://%s:26657", xion.GetNode().HostName()),
 	)
 	require.NoError(t, err)
-	t.Logf("signed tx: %s", signedTx)
 
 	// Wait for the transaction to be included in a block
 	err = testutil.WaitForBlocks(ctx, 2, xion)
