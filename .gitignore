@@ -42,6 +42,7 @@ vagrant
 # IDE
 .idea/
 *.iml
+qodana.sarif.json
 
 # Graphviz
 dependency-graph.png

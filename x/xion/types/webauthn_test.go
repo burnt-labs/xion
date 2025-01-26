@@ -155,7 +155,7 @@ func CreateWebAuthNAttestationCred(t *testing.T, challenge []byte) []byte {
 
 	credCreationRes, err := json.Marshal(credentialCreationResponse)
 	require.NoError(t, err)
-	_, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader((credCreationRes)))
+	_, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(credCreationRes))
 	require.NoError(t, err)
 	return credCreationRes
 }
