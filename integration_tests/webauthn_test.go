@@ -66,7 +66,7 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", codeResp)
 
-	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
 	require.NoError(t, err)
 
 	return td, deployerAddr, codeHash, codeIDStr, nil
