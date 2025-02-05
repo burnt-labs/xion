@@ -86,6 +86,7 @@ func NewTxCmd() *cobra.Command {
 		NewAddAuthenticatorCmd(),
 		NewRegisterCmd(),
 		NewUpdateConfigsCmd(),
+		NewUpdateParamsCmd(),
 	)
 
 	return txCmd
@@ -666,6 +667,71 @@ func NewUpdateConfigsCmd() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool("local", false, "Specify if the config source is a local file instead of a URL")
+	return cmd
+}
+
+func NewUpdateParamsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-params <contract> <display_url> <redirect_url> <icon_url>",
+		Short: "Update treasury contract parameters",
+		Long: `Updates a treasury contract's display URL, redirect URL, and icon URL.
+		Example:
+		update-params <contract_address> "https://example.com/display" "https://example.com/redirect" "https://example.com/icon.png"
+		`,
+		Args: cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			contract := args[0]
+			displayURL := args[1]
+			redirectURL := args[2]
+			iconURL := args[3]
+
+			_, err = url.ParseRequestURI(displayURL)
+			if err != nil {
+				return fmt.Errorf("invalid display URL: %w", err)
+			}
+			_, err = url.ParseRequestURI(redirectURL)
+			if err != nil {
+				return fmt.Errorf("invalid redirect URL: %w", err)
+			}
+			_, err = url.ParseRequestURI(iconURL)
+			if err != nil {
+				return fmt.Errorf("invalid icon URL: %w", err)
+			}
+
+			// Construct the execute message
+			updateMsg := map[string]interface{}{
+				"update_params": map[string]interface{}{
+					"params": map[string]string{
+						"display_url":  displayURL,
+						"redirect_url": redirectURL,
+						"icon_url":     iconURL,
+					},
+				},
+			}
+
+			// Serialize the message to JSON
+			msgBz, err := json.Marshal(updateMsg)
+			if err != nil {
+				return fmt.Errorf("failed to marshal execute message: %w", err)
+			}
+
+			// Create a MsgExecuteContract message
+			msg := &wasmtypes.MsgExecuteContract{
+				Sender:   clientCtx.GetFromAddress().String(),
+				Contract: contract,
+				Msg:      msgBz,
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
 
