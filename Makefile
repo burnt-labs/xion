@@ -300,6 +300,9 @@ test-integration-xion-update-treasury-configs: compile_integration_tests
 test-integration-xion-update-treasury-configs-aa: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryConfigsWithAALocalAndURL --configUrl="$(configUrl)"
 
+test-integration-xion-update-treasury-params: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryContractParams
+
 test-integration-xion-treasury-multi: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryMulti
 
