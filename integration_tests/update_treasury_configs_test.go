@@ -28,7 +28,7 @@ func init() {
 func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 	flag.Parse()
 	// require.NotNil(t, configFileUrl, "No config file is provided via the configUrl flag")
-	configFileUrl = "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/feat/json-grants/integration_tests/testdata/unsigned_msgs/plain_config.json"
+	configFileUrl = "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/main/integration_tests/testdata/unsigned_msgs/plain_config.json"
 	// Setup Xion chain
 	td := BuildXionChain(t, "0.0uxion", nil)
 	xion, ctx := td.xionChain, td.ctx
@@ -183,7 +183,8 @@ func validateFeeConfig(t *testing.T, ctx context.Context, xion *cosmos.CosmosCha
 }
 
 func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
-	require.NotNil(t, configFileUrl, "Skipping test as no config file is provided via the --config flag")
+	configFileUrl = "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/main/integration_tests/testdata/unsigned_msgs/plain_config.json"
+	// require.NotNil(t, configFileUrl, "Skipping test as no config file is provided via the --config flag")
 	// Setup Xion chain
 	td := BuildXionChain(t, "0.0uxion", nil)
 	xion, ctx := td.xionChain, td.ctx
