@@ -670,7 +670,6 @@ func NewUpdateConfigsCmd() *cobra.Command {
 	return cmd
 }
 
-// NewUpdateParamsCmd creates a CLI command for updating contract params.
 func NewUpdateParamsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-params <contract> <display_url> <redirect_url> <icon_url>",
