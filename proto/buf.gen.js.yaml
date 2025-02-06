@@ -1,0 +1,6 @@
+version: v1
+plugins:
+  - name: ts
+    out: types/generated
+    path: node_modules/.bin/protoc-gen-ts_proto
+    opt: "esModuleInterop=true,forceLong=long,useOptionals=messages,outputClientImpl=grpc-web"

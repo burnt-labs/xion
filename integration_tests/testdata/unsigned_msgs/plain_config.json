@@ -1,0 +1,89 @@
+{
+  "grant_config": [
+    {
+      "msg_type_url": "/cosmos.bank.v1beta1.MsgSend",
+      "grant_config": {
+        "description": "Bank grant",
+        "authorization": {
+          "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+          "msg": "/cosmos.bank.v1beta1.MsgSend"
+        },
+        "optional": true
+      }
+    },
+    {
+      "msg_type_url": "/cosmos.staking.v1beta1.MsgDelegate",
+      "grant_config": {
+        "description": "Staking grant",
+        "authorization": {
+          "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+          "msg": "/cosmos.staking.v1beta1.MsgDelegate"
+        },
+        "optional": false
+      }
+    },
+    {
+      "msg_type_url": "/cosmos.gov.v1beta1.MsgVote",
+      "grant_config": {
+        "description": "Governance vote grant",
+        "authorization": {
+          "@type": "/cosmwasm.wasm.v1.ContractExecutionAuthorization",
+          "grants": [
+            {
+              "contract": "cosmos1contractaddress",
+              "limit": {
+                "@type": "/cosmwasm.wasm.v1.MaxCallsLimit",
+                "remaining": "5"
+              },
+              "filter": {
+                "@type": "/cosmwasm.wasm.v1.AcceptedMessageKeysFilter",
+                "keys": ["key1", "key2"]
+              }
+            },
+            {
+              "contract": "cosmos1anothercontractaddress",
+              "limit": {
+                "@type": "/cosmwasm.wasm.v1.CombinedLimit",
+                "calls_remaining": "5",
+                "amounts": [
+                  {
+                    "denom": "uxion",
+                    "amount": "1000"
+                  }
+                ]
+              },
+              "filter": {
+                "@type": "/cosmwasm.wasm.v1.AllowAllMessagesFilter"
+              }
+            }
+          ]
+        },
+        "optional": true
+      }
+    }
+  ],
+  "fee_config": {
+    "description": "Fee allowance for user1",
+    "allowance": {
+      "@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
+      "allowance": {
+        "@type": "/cosmos.feegrant.v1beta1.AllowedMsgAllowance",
+        "allowance": {
+          "@type": "/cosmos.feegrant.v1beta1.BasicAllowance",
+          "spend_limit": [
+            {
+              "denom": "atom",
+              "amount": "1000"
+            }
+          ],
+          "expiration": "2025-01-01T00:00:00Z"
+        },
+        "allowed_messages": [
+          "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+        ]
+      },
+      "allowed_messages": ["/cosmos.staking.v1beta1.MsgDelegate"]
+    },
+    "expiration": 1715151235
+  }
+}
