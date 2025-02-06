@@ -93,6 +93,8 @@ jobs:
           - "TreasuryMulti"
           - "SingleAbstractAccountMigration"
           - "Simulate"
+          - "UpdateTreasuryConfigsWithLocalAndURL"
+          - "UpdateTreasuryConfigsWithAALocalAndURL"
 
     steps:
       - name: checkout
