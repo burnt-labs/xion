@@ -141,7 +141,7 @@ func TestSimulate(t *testing.T) {
 	// predict the contract address so it can be verified
 	salt := "0"
 	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["data_hash"].(string))
+	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
 	require.NoError(t, err)
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
