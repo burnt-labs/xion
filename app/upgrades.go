@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v14"
+const UpgradeName = "v15"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	app.WrapSetUpgradeHandler(UpgradeName)
@@ -26,12 +26,12 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 	if upgradeInfo.Name == UpgradeName {
 		if !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 			storeUpgrades := storetypes.StoreUpgrades{
-				Added: []string{
+				// Remove the ibcwasm module store.
+				Deleted: []string{
 					ibcwasmtypes.ModuleName,
 				},
 			}
-
-			app.Logger().Info("setting upgrade store loaders")
+			app.Logger().Info("setting upgrade store loaders for v15")
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 		}
 	}
