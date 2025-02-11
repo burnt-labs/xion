@@ -46,8 +46,6 @@ message QueryDkimPubKeyRequest {
 // method.
 message QueryDkimPubKeyResponse {
   DkimPubKey dkim_pub_key = 1;
-  bytes poseidon_hash =
-      2; // the poseidon hash of the public key that signed the email
 }
 
 // QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC

@@ -47,16 +47,19 @@ func TestORM(t *testing.T) {
 	require.EqualValues(t, types.KeyType_RSA, res.KeyType)
 }
 
-func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyType types.KeyType, count int) []types.DkimPubKey {
+func CreateNDkimPubKey(t *testing.T, domain string, pubKey string, version types.Version, keyType types.KeyType, count int) []types.DkimPubKey {
 	var dkimPubKeys []types.DkimPubKey
+	hash, err := types.ComputePoseidonHash(pubKey)
+	require.NoError(t, err)
 	for i := 0; i < count; i++ {
 		selector := uuid.NewString()
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
-			Domain:   domain,
-			PubKey:   pubKey,
-			Selector: selector,
-			Version:  version,
-			KeyType:  keyType,
+			Domain:       domain,
+			PubKey:       pubKey,
+			Selector:     selector,
+			Version:      version,
+			KeyType:      keyType,
+			PoseidonHash: hash.Bytes(),
 		})
 	}
 	return dkimPubKeys
@@ -67,7 +70,9 @@ func TestORMMultipleInsert(t *testing.T) {
 
 	dt := f.k.OrmDB.DkimPubKeyTable()
 	count := 10
-	dkimPubKeys := CreateNDkimPubKey("xion.burnt.com", "xion1234567890", types.Version_DKIM1, types.KeyType_RSA, count)
+	domain := "xion.burnt.com"
+	pubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+	dkimPubKeys := CreateNDkimPubKey(t, domain, pubKey, types.Version_DKIM1, types.KeyType_RSA, count)
 	isSaved, err := dkimKeeper.SaveDkimPubKeys(f.ctx, dkimPubKeys, f.k.OrmDB)
 	require.NoError(t, err)
 	require.True(t, isSaved)

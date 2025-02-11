@@ -2,11 +2,12 @@ package keeper
 
 import (
 	"context"
-	"cosmossdk.io/errors"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
+	"strings"
+
+	"cosmossdk.io/errors"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -96,9 +97,12 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 
 	var privateKey *rsa.PrivateKey
 	d, _ := pem.Decode(msg.PrivKey)
+	if d == nil {
+		return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to decode pem private key")
+	}
 	if key, err := x509.ParsePKCS1PrivateKey(d.Bytes); err != nil {
 		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
-			return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to decode private key")
+			return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to parse private key")
 		} else {
 			privateKey = key.(*rsa.PrivateKey)
 		}
@@ -106,10 +110,22 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		privateKey = key
 	}
 
-	pubkey := base64.StdEncoding.EncodeToString(privateKey.PublicKey.N.Bytes())
+	publicKey := privateKey.PublicKey
+	// Marshal the public key to PKCS1 DER format
+	pubKeyDER := x509.MarshalPKCS1PublicKey(&publicKey)
+
+	// Encode the public key in PEM format
+	pubKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pubKeyDER,
+	})
+	// remove the PEM header and footer from the public key
+	after, _ := strings.CutPrefix(string(pubKeyPEM), "-----BEGIN RSA PUBLIC KEY-----\n")
+	pubKey, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
+	pubKey = strings.ReplaceAll(pubKey, "\n", "")
 
 	err := ms.k.OrmDB.DkimPubKeyTable().DeleteBy(ctx,
-		dkimv1.DkimPubKeyDomainPubKeyIndexKey{}.WithDomainPubKey(msg.Domain, pubkey))
+		dkimv1.DkimPubKeyDomainPubKeyIndexKey{}.WithDomainPubKey(msg.Domain, pubKey))
 
 	return &types.MsgRevokeDkimPubKeyResponse{}, err
 }

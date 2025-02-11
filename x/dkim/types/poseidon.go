@@ -79,8 +79,8 @@ func ConvertStringArrayToBigInt(arr []string) ([]*big.Int, error) {
 	return res, nil
 }
 
-// Converts a base64 encoded string `pk` into a PEM format public key
-func FormatPublicKey(pk string) string {
+// Converts a base64 encoded string `pk` into a PEM format key. It essentially adds the PEM header and footer
+func FormatToPemKey(pk string, isPrivateKey bool) string {
 	// Determine the necessary padding for base64 encoding
 	pad := (4 - (len(pk) % 4)) % 4
 	pkPadded := pk + string(bytes.Repeat([]byte("="), pad))
@@ -96,29 +96,36 @@ func FormatPublicKey(pk string) string {
 	}
 
 	// Wrap in PEM format
-	pemKey := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s-----END PUBLIC KEY-----\n", formattedPk.String())
+	var pemKey string
+	if isPrivateKey {
+		pemKey = fmt.Sprintf("-----BEGIN PRIVATE KEY-----\n%s-----END PRIVATE KEY-----\n", formattedPk.String())
+	} else {
+		pemKey = fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s-----END PUBLIC KEY-----\n", formattedPk.String())
+	}
 	return pemKey
 }
 
-// compute the poseidon hash of a x509 encoded public key
+// compute the poseidon hash of a pem encoded public key without the PEM header and footer
 func ComputePoseidonHash(pub string) (*big.Int, error) {
 	// make sure the public key is base64 encoded
 	if _, err := base64.StdEncoding.DecodeString(pub); err != nil {
 		return nil, errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
 	}
 	// write pubkey to PEM
-	pemKey := FormatPublicKey(pub)
+	var publicKey *rsa.PublicKey
+	pemKey := FormatToPemKey(pub, false)
 	block, _ := pem.Decode([]byte(pemKey))
 	if block == nil {
 		return nil, errors.Wrap(sdkError.ErrInvalidRequest, "public key is invalid")
 	}
-	pkInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-	publicKey, ok := pkInterface.(*rsa.PublicKey)
-	if !ok {
-		return nil, errors.Wrap(sdkError.ErrInvalidRequest, "the public key is not a rsa.PublicKey")
+	if key, err := x509.ParsePKCS1PublicKey(block.Bytes); err != nil {
+		if key, err := x509.ParsePKIXPublicKey(block.Bytes); err != nil {
+			return nil, errors.Wrap(ErrParsingPubKey, "failed to decode public key")
+		} else {
+			publicKey = key.(*rsa.PublicKey)
+		}
+	} else {
+		publicKey = key
 	}
 	modulus := publicKey.N
 	// convert modulus to circom bigint bytes

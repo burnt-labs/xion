@@ -14,11 +14,11 @@ import (
 func (pubKey *DkimPubKey) Validate() error {
 	// url pass the pubkey domain
 	if _, err := url.Parse(pubKey.Domain); err != nil {
-		return errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
+		return errors.Wrap(sdkError.ErrInvalidRequest, "dkim url key parsing failed "+err.Error())
 	}
 	// make sure the public key is base64 encoded
 	if _, err := base64.StdEncoding.DecodeString(pubKey.PubKey); err != nil {
-		return errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
+		return errors.Wrap(sdkError.ErrInvalidRequest, "dkim public key decoding failed "+err.Error())
 	}
 	// validate that the poseidon hash
 	expectedHash, err := ComputePoseidonHash(pubKey.PubKey)
@@ -30,7 +30,7 @@ func (pubKey *DkimPubKey) Validate() error {
 		return errors.Wrap(sdkError.ErrInvalidRequest, "failed to set poseidon hash")
 	}
 	if hash.Cmp(expectedHash) != 0 {
-		return errors.Wrap(sdkError.ErrInvalidRequest, "poseidon hash does not match")
+		return errors.Wrapf(sdkError.ErrInvalidRequest, "poseidon hash does not match ")
 	}
 	return nil
 }

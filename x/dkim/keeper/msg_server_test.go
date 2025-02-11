@@ -1,6 +1,11 @@
 package keeper_test
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,6 +13,7 @@ import (
 	"cosmossdk.io/orm/types/ormerrors"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
+	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestParams(t *testing.T) {
@@ -235,6 +241,160 @@ func TestRemoveDkimPubKey(t *testing.T) {
 				})
 				require.Nil(r)
 				require.Error(err)
+			}
+		})
+	}
+}
+
+func TestRevokeDkimPubKey(t *testing.T) {
+	f := SetupTest(t)
+	// Generate a test RSA private key
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	// Extract the public key
+	publicKey := privateKey.PublicKey
+
+	// Marshal the public key to PKCS1 DER format
+	pubKeyDER := x509.MarshalPKCS1PublicKey(&publicKey)
+
+	// Encode the public key in PEM format
+	pubKeyPEM_1 := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pubKeyDER,
+	})
+
+	// Encode private key as PEM
+	privKeyPEM := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		},
+	)
+	// remove the PEM header and footer from the public key
+	after, _ := strings.CutPrefix(string(pubKeyPEM_1), "-----BEGIN RSA PUBLIC KEY-----\n")
+	pubKey_1, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
+	pubKey_1 = strings.ReplaceAll(pubKey_1, "\n", "")
+	hash_1, err := types.ComputePoseidonHash(pubKey_1)
+	require.NoError(t, err)
+	domain_1 := "x.com"
+
+	privateKey_2, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	// Extract the public key
+	publicKey_2 := privateKey_2.PublicKey
+
+	// Marshal the public key to PKCS1 DER format
+	pubKeyDER_2 := x509.MarshalPKCS1PublicKey(&publicKey_2)
+
+	// Encode the public key in PEM format
+	pubKeyPEM_2 := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pubKeyDER_2,
+	})
+
+	privKeyPEM_2 := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privateKey_2),
+		},
+	)
+	// remove the PEM header and footer from the public key
+	after, _ = strings.CutPrefix(string(pubKeyPEM_2), "-----BEGIN RSA PUBLIC KEY-----\n")
+	pubKey_2, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
+	pubKey_2 = strings.ReplaceAll(pubKey_2, "\n", "")
+	hash_2, err := types.ComputePoseidonHash(pubKey_2)
+	require.NoError(t, err)
+	domain_2 := "y.com"
+
+	// Add in a DKIM public key
+	addDkimKeysMsg := types.NewMsgAddDkimPubKeys(sdkTypes.MustAccAddressFromBech32(f.govModAddr), []types.DkimPubKey{
+		{
+			Domain:       domain_1,
+			PubKey:       pubKey_1,
+			Selector:     "dkim-202308",
+			PoseidonHash: []byte(hash_1.String()),
+		},
+		{
+			Domain:       domain_1,
+			PubKey:       pubKey_2,
+			Selector:     "dkim-202310",
+			PoseidonHash: []byte(hash_2.String()),
+		},
+		{
+			Domain:       domain_2,
+			PubKey:       pubKey_1,
+			Selector:     "dkim-202308",
+			PoseidonHash: []byte(hash_1.String()),
+		},
+		{
+			Domain:       domain_2,
+			PubKey:       pubKey_2,
+			Selector:     "dkim-202310",
+			PoseidonHash: []byte(hash_2.String()),
+		},
+	})
+	addDkimKeysMsg.Authority = f.govModAddr
+	require.NoError(t, addDkimKeysMsg.ValidateBasic())
+	_, err = f.msgServer.AddDkimPubKeys(f.ctx, addDkimKeysMsg)
+	require.NoError(t, err)
+
+	// Define test cases
+	tests := []struct {
+		name           string
+		msg            *types.MsgRevokeDkimPubKey
+		mockError      error
+		expectedError  error
+		expectedLength int8
+	}{
+		{
+			name: "invalid private key",
+			msg: &types.MsgRevokeDkimPubKey{
+				Signer:  string(f.addrs[0]),
+				Domain:  domain_1,
+				PrivKey: []byte("invalid_key"),
+			},
+			mockError:     nil,
+			expectedError: types.ErrParsingPrivKey,
+		},
+		{
+			name: "successfully revoke 1 of domain 1 DKIM public key",
+			msg: &types.MsgRevokeDkimPubKey{
+				Signer:  string(f.addrs[0]),
+				Domain:  domain_1,
+				PrivKey: privKeyPEM,
+			},
+			mockError:      nil,
+			expectedError:  nil,
+			expectedLength: 1, // domain_1 has 1 keys, 1 with the matching pub key should be revoked, 1 with a different pubkey should be left
+		},
+		{
+			name: "successfully revoke 1 of domain 2 DKIM public key",
+			msg: &types.MsgRevokeDkimPubKey{
+				Signer:  string(f.addrs[0]),
+				Domain:  domain_2,
+				PrivKey: privKeyPEM_2,
+			},
+			mockError:      nil,
+			expectedError:  nil,
+			expectedLength: 1, // domain_2 has 1 keys, 1 with the matching pub key should be revoked, 1 with a different pubkey should be left
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := f.ctx
+			if strings.Contains(tt.name, "success") {
+				require.NoError(t, tt.msg.ValidateBasic())
+			}
+			// Call the RevokeDkimPubKey method
+			_, err := f.msgServer.RevokeDkimPubKey(ctx, tt.msg)
+			// Validate results
+			if tt.expectedError != nil {
+				require.ErrorIs(t, err, tt.expectedError)
+			} else {
+				res, err := f.queryServer.DkimPubKeys(ctx, &types.QueryDkimPubKeysRequest{Domain: tt.msg.Domain})
+				require.NoError(t, err)
+				require.Len(t, res.DkimPubKeys, int(tt.expectedLength))
 			}
 		})
 	}

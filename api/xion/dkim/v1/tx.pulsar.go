@@ -2690,6 +2690,7 @@ func (x *fastReflection_MsgRemoveDkimPubKeyResponse) ProtoMethods() *protoiface.
 
 var (
 	md_MsgRevokeDkimPubKey          protoreflect.MessageDescriptor
+	fd_MsgRevokeDkimPubKey_signer   protoreflect.FieldDescriptor
 	fd_MsgRevokeDkimPubKey_domain   protoreflect.FieldDescriptor
 	fd_MsgRevokeDkimPubKey_priv_key protoreflect.FieldDescriptor
 )
@@ -2697,6 +2698,7 @@ var (
 func init() {
 	file_xion_dkim_v1_tx_proto_init()
 	md_MsgRevokeDkimPubKey = File_xion_dkim_v1_tx_proto.Messages().ByName("MsgRevokeDkimPubKey")
+	fd_MsgRevokeDkimPubKey_signer = md_MsgRevokeDkimPubKey.Fields().ByName("signer")
 	fd_MsgRevokeDkimPubKey_domain = md_MsgRevokeDkimPubKey.Fields().ByName("domain")
 	fd_MsgRevokeDkimPubKey_priv_key = md_MsgRevokeDkimPubKey.Fields().ByName("priv_key")
 }
@@ -2766,6 +2768,12 @@ func (x *fastReflection_MsgRevokeDkimPubKey) Interface() protoreflect.ProtoMessa
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_MsgRevokeDkimPubKey) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Signer != "" {
+		value := protoreflect.ValueOfString(x.Signer)
+		if !f(fd_MsgRevokeDkimPubKey_signer, value) {
+			return
+		}
+	}
 	if x.Domain != "" {
 		value := protoreflect.ValueOfString(x.Domain)
 		if !f(fd_MsgRevokeDkimPubKey_domain, value) {
@@ -2793,6 +2801,8 @@ func (x *fastReflection_MsgRevokeDkimPubKey) Range(f func(protoreflect.FieldDesc
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_MsgRevokeDkimPubKey) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
+	case "xion.dkim.v1.MsgRevokeDkimPubKey.signer":
+		return x.Signer != ""
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.domain":
 		return x.Domain != ""
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.priv_key":
@@ -2813,6 +2823,8 @@ func (x *fastReflection_MsgRevokeDkimPubKey) Has(fd protoreflect.FieldDescriptor
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_MsgRevokeDkimPubKey) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
+	case "xion.dkim.v1.MsgRevokeDkimPubKey.signer":
+		x.Signer = ""
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.domain":
 		x.Domain = ""
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.priv_key":
@@ -2833,6 +2845,9 @@ func (x *fastReflection_MsgRevokeDkimPubKey) Clear(fd protoreflect.FieldDescript
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_MsgRevokeDkimPubKey) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
+	case "xion.dkim.v1.MsgRevokeDkimPubKey.signer":
+		value := x.Signer
+		return protoreflect.ValueOfString(value)
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.domain":
 		value := x.Domain
 		return protoreflect.ValueOfString(value)
@@ -2859,6 +2874,8 @@ func (x *fastReflection_MsgRevokeDkimPubKey) Get(descriptor protoreflect.FieldDe
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_MsgRevokeDkimPubKey) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
+	case "xion.dkim.v1.MsgRevokeDkimPubKey.signer":
+		x.Signer = value.Interface().(string)
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.domain":
 		x.Domain = value.Interface().(string)
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.priv_key":
@@ -2883,6 +2900,8 @@ func (x *fastReflection_MsgRevokeDkimPubKey) Set(fd protoreflect.FieldDescriptor
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_MsgRevokeDkimPubKey) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+	case "xion.dkim.v1.MsgRevokeDkimPubKey.signer":
+		panic(fmt.Errorf("field signer of message xion.dkim.v1.MsgRevokeDkimPubKey is not mutable"))
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.domain":
 		panic(fmt.Errorf("field domain of message xion.dkim.v1.MsgRevokeDkimPubKey is not mutable"))
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.priv_key":
@@ -2900,6 +2919,8 @@ func (x *fastReflection_MsgRevokeDkimPubKey) Mutable(fd protoreflect.FieldDescri
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_MsgRevokeDkimPubKey) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+	case "xion.dkim.v1.MsgRevokeDkimPubKey.signer":
+		return protoreflect.ValueOfString("")
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.domain":
 		return protoreflect.ValueOfString("")
 	case "xion.dkim.v1.MsgRevokeDkimPubKey.priv_key":
@@ -2973,6 +2994,10 @@ func (x *fastReflection_MsgRevokeDkimPubKey) ProtoMethods() *protoiface.Methods 
 		var n int
 		var l int
 		_ = l
+		l = len(x.Signer)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		l = len(x.Domain)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
@@ -3015,12 +3040,19 @@ func (x *fastReflection_MsgRevokeDkimPubKey) ProtoMethods() *protoiface.Methods 
 			copy(dAtA[i:], x.PrivKey)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.PrivKey)))
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0x1a
 		}
 		if len(x.Domain) > 0 {
 			i -= len(x.Domain)
 			copy(dAtA[i:], x.Domain)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Domain)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Signer) > 0 {
+			i -= len(x.Signer)
+			copy(dAtA[i:], x.Signer)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Signer)))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -3075,6 +3107,38 @@ func (x *fastReflection_MsgRevokeDkimPubKey) ProtoMethods() *protoiface.Methods 
 			switch fieldNum {
 			case 1:
 				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Signer = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Domain", wireType)
 				}
 				var stringLen uint64
@@ -3105,7 +3169,7 @@ func (x *fastReflection_MsgRevokeDkimPubKey) ProtoMethods() *protoiface.Methods 
 				}
 				x.Domain = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
-			case 2:
+			case 3:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field PrivKey", wireType)
 				}
@@ -3783,8 +3847,9 @@ type MsgRevokeDkimPubKey struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Domain  string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
-	PrivKey []byte `protobuf:"bytes,2,opt,name=priv_key,json=privKey,proto3" json:"priv_key,omitempty"`
+	Signer  string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	Domain  string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	PrivKey []byte `protobuf:"bytes,3,opt,name=priv_key,json=privKey,proto3" json:"priv_key,omitempty"`
 }
 
 func (x *MsgRevokeDkimPubKey) Reset() {
@@ -3805,6 +3870,13 @@ func (*MsgRevokeDkimPubKey) ProtoMessage() {}
 // Deprecated: Use MsgRevokeDkimPubKey.ProtoReflect.Descriptor instead.
 func (*MsgRevokeDkimPubKey) Descriptor() ([]byte, []int) {
 	return file_xion_dkim_v1_tx_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *MsgRevokeDkimPubKey) GetSigner() string {
+	if x != nil {
+		return x.Signer
+	}
+	return ""
 }
 
 func (x *MsgRevokeDkimPubKey) GetDomain() string {
@@ -3896,11 +3968,15 @@ var file_xion_dkim_v1_tx_proto_rawDesc = []byte{
 	0x69, 0x6e, 0x3a, 0x0e, 0x82, 0xe7, 0xb0, 0x2a, 0x09, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69,
 	0x74, 0x79, 0x22, 0x1d, 0x0a, 0x1b, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44,
 	0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x48, 0x0a, 0x13, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x76, 0x6f, 0x6b, 0x65, 0x44, 0x6b,
-	0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x6f, 0x6d, 0x61,
-	0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e,
-	0x12, 0x19, 0x0a, 0x08, 0x70, 0x72, 0x69, 0x76, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x0c, 0x52, 0x07, 0x70, 0x72, 0x69, 0x76, 0x4b, 0x65, 0x79, 0x22, 0x1d, 0x0a, 0x1b, 0x4d,
+	0x65, 0x22, 0x87, 0x01, 0x0a, 0x13, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x76, 0x6f, 0x6b, 0x65, 0x44,
+	0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b, 0x65, 0x79, 0x12, 0x30, 0x0a, 0x06, 0x73, 0x69, 0x67,
+	0x6e, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xd2, 0xb4, 0x2d, 0x14, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72,
+	0x69, 0x6e, 0x67, 0x52, 0x06, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x64,
+	0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x6f, 0x6d,
+	0x61, 0x69, 0x6e, 0x12, 0x19, 0x0a, 0x08, 0x70, 0x72, 0x69, 0x76, 0x5f, 0x6b, 0x65, 0x79, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x07, 0x70, 0x72, 0x69, 0x76, 0x4b, 0x65, 0x79, 0x3a, 0x0b,
+	0x82, 0xe7, 0xb0, 0x2a, 0x06, 0x73, 0x69, 0x67, 0x6e, 0x65, 0x72, 0x22, 0x1d, 0x0a, 0x1b, 0x4d,
 	0x73, 0x67, 0x52, 0x65, 0x76, 0x6f, 0x6b, 0x65, 0x44, 0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b,
 	0x65, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x82, 0x03, 0x0a, 0x03, 0x4d,
 	0x73, 0x67, 0x12, 0x54, 0x0a, 0x0c, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x61, 0x72, 0x61,

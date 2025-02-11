@@ -1,9 +1,14 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"net/url"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var (
@@ -108,6 +113,53 @@ func (msg *MsgRemoveDkimPubKey) GetSigners() []sdk.AccAddress {
 func (msg *MsgRemoveDkimPubKey) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
+	}
+	return nil
+}
+
+// NewMsgRevokeDkimPubKey creates new instance of NewMsgRevokeDkimPubKey
+// Private key is a pem encoded private key
+func NewMsgReVokeDkimPubKey(
+	sender sdk.Address,
+	domain string,
+	privKey []byte,
+) *MsgRevokeDkimPubKey {
+	return &MsgRevokeDkimPubKey{
+		Signer:  sender.String(),
+		Domain:  domain,
+		PrivKey: privKey,
+	}
+}
+
+// Route returns the name of the module
+func (msg MsgRevokeDkimPubKey) Route() string { return ModuleName }
+
+// Type returns the the action
+func (msg MsgRevokeDkimPubKey) Type() string { return "remove_dkim_public_keys" }
+
+// GetSigners returns the expected signers for a MsgAddDkimPubKey message.
+func (msg *MsgRevokeDkimPubKey) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(msg.Signer)
+	return []sdk.AccAddress{addr}
+}
+
+// ValidateBasic does a sanity check on the provided data.
+func (msg *MsgRevokeDkimPubKey) ValidateBasic() error {
+	// url pass the pubkey domain
+	if _, err := url.Parse(msg.Domain); err != nil {
+		return errors.Wrap(sdkError.ErrInvalidRequest, "dkim url key parsing failed "+err.Error())
+	}
+	d, _ := pem.Decode(msg.PrivKey)
+	if d == nil {
+		return errors.Wrap(ErrParsingPrivKey, "failed to decode pem private key")
+	}
+	if _, err := x509.ParsePKCS1PrivateKey(d.Bytes); err != nil {
+		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
+			return errors.Wrap(ErrParsingPrivKey, "failed to parse private key")
+		} else {
+			_ = key.(*rsa.PrivateKey)
+			return nil
+		}
 	}
 	return nil
 }

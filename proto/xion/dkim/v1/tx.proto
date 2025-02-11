@@ -83,8 +83,11 @@ message MsgRemoveDkimPubKeyResponse {}
 
 // MsgRevokeDkimPubKey is the Msg/RevokeDkimPubKey request type.
 message MsgRevokeDkimPubKey {
-  string domain = 1;
-  bytes priv_key = 2;
+  option (cosmos.msg.v1.signer) = "signer";
+
+  string signer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string domain = 2;
+  bytes priv_key = 3;
 }
 
 // MsgRevokeDkimPubKeyResponse defines the response structure for executing a
