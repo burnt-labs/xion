@@ -41,6 +41,9 @@ import (
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
@@ -275,6 +278,7 @@ type WasmApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	WasmKeeper            wasmkeeper.Keeper
+	WasmClientKeeper      ibcwasmkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
 	IBCHooksKeeper        *ibchookskeeper.Keeper
 	ContractKeeper        *wasmkeeper.PermissionedKeeper
@@ -356,7 +360,7 @@ func NewWasmApp(
 		nftkeeper.StoreKey, group.StoreKey,
 		// non sdk store keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey, ibcfeetypes.StoreKey,
-		wasmtypes.StoreKey, icahosttypes.StoreKey,
+		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, ibchookstypes.StoreKey, packetforwardtypes.StoreKey,
 		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey,
@@ -749,6 +753,15 @@ func NewWasmApp(
 		wasmOpts...,
 	)
 
+	app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
+		appCodec,
+		runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
+		app.IBCKeeper.ClientKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		wasmVM,
+		app.GRPCQueryRouter(),
+	)
+
 	app.AbstractAccountKeeper = aakeeper.NewKeeper(
 		appCodec,
 		keys[aatypes.StoreKey],
@@ -857,6 +870,7 @@ func NewWasmApp(
 		xion.NewAppModule(app.XionKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.NewAppModule(),
+		ibcwasm.NewAppModule(app.WasmClientKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
@@ -909,6 +923,7 @@ func NewWasmApp(
 		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		xiontypes.ModuleName,
@@ -934,6 +949,7 @@ func NewWasmApp(
 		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
@@ -965,6 +981,7 @@ func NewWasmApp(
 		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
@@ -1333,6 +1350,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(feeabstypes.ModuleName)
+	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
 
 	// IBC params migration - legacySubspace to selfManaged
 	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/11-v7-to-v8.md#params-migration
