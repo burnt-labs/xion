@@ -17,12 +17,12 @@ jobs:
 
       - name: Generate Swagger
         env:
-          DOCKER_IMAGE: ghcr.io/cosmos/proto-builder:0.14.0
+          DOCKER_IMAGE: ghcr.io/cosmos/proto-builder:0.15.0
         run: |
           # runs as runner:docker (1001:121)
-          chmod -R o+wX client/docs
-          make proto-swagger-gen
-          chmod -R o-w client/docs/*
+          chmod -R o+wX client
+          make proto-gen-swagger
+          chmod -R o-w client/*
 
       # Need to sort out using signed commits to use
       # - name: Commit if Changed
@@ -34,6 +34,6 @@ jobs:
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
             git status --porcelain 1>&2
-            echo 'Please run `make proto-swagger-gen`' 1>&2
+            echo 'Please run `make proto-gen-swagger`' 1>&2
             exit 1
           fi

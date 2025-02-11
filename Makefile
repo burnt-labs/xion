@@ -16,8 +16,8 @@ DOCKER := $(shell which docker)
 GORELEASER_CROSS_IMAGE ?= goreleaser/goreleaser-cross
 GORELEASER_CROSS_VERSION ?= v1.22.7
 # need custom image
-GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE) #goreleaser/goreleaser
-GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION) #v2.3.2
+GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
+GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
 GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 
@@ -294,6 +294,15 @@ test-integration-xion-token-factory: compile_integration_tests
 test-integration-xion-treasury-grants: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryContract
 
+test-integration-xion-update-treasury-configs: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryConfigsWithLocalAndURL --configUrl="$(configUrl)"
+
+test-integration-xion-update-treasury-configs-aa: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryConfigsWithAALocalAndURL --configUrl="$(configUrl)"
+
+test-integration-xion-update-treasury-params: compile_integration_tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestUpdateTreasuryContractParams
+
 test-integration-xion-treasury-multi: compile_integration_tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestTreasuryMulti
 
@@ -367,15 +376,19 @@ protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
-proto-all: proto-format proto-lint proto-gen format
+proto-all: proto-format proto-lint proto-gen proto-format
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/protocgen.sh
+	@$(protoImage) sh ./scripts/proto-gen.sh
 
-proto-swagger-gen:
+proto-gen-ts:
+	@echo "Generating Protobuf files"
+	@$(protoImage) sh ./scripts/proto-gen.sh --ts
+
+proto-gen-swagger:
 	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh 'scripts/protoc-swagger-gen.sh'
+	@$(protoImage) sh scripts/proto-gen.sh --swagger
 
 proto-format:
 	@echo "Formatting Protobuf files"
