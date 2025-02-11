@@ -60,7 +60,7 @@ const (
 	xionVersionFrom = "12.0.1"
 	xionImageTo     = "xion"
 	xionVersionTo   = "local"
-	xionUpgradeName = "v15"
+	xionUpgradeName = "v13"
 
 	osmosisImage   = "ghcr.io/strangelove-ventures/heighliner/osmosis"
 	osmosisVersion = "v25.2.1"
