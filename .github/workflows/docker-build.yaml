@@ -1,4 +1,4 @@
-name: Build Docker Images and Binaries
+name: Build Docker Images 
 
 # reusable workflow, do not add triggers
 on:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux-images:
+  build-docker-images:
     name: Build ${{ matrix.os }}/${{ matrix.arch }}
     runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('burnt-labs-{0}', matrix.arch) }}
 
@@ -25,29 +25,8 @@ jobs:
       packages: write
 
     steps:
-      - name: Check out code
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set Go Version
-        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Install wget
-        run: sudo apt-get update && sudo apt-get install -y wget
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: "~> v2"
-          args: build --clean --skip validate --id xiond_${{ matrix.os }}_${{ matrix.arch }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -58,15 +37,25 @@ jobs:
           driver: docker
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: xiond-${{ matrix.os }}-${{ matrix.arch }}
+          merge-multiple: true
+
       - name: Prepare environment
         run: |
           echo "DOCKER_FN=docker-${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
           echo "HEIGHLINER_FN=heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
+          echo "PREBUILT_BINARY=$(find dist -name xiond-${{ matrix.os }}-${{ matrix.arch}})" | tee -a $GITHUB_ENV
+          realpath $(pwd)
 
       - name: Build Docker Image
         id: build-docker
         uses: docker/build-push-action@v5
         with:
+          context: . # important
           target: release
           push: false
           load: true
@@ -76,12 +65,13 @@ jobs:
           build-args: |
             COMMIT=${{ github.sha }}
             VERSION=${{ github.ref_name }}
-            XIOND_BINARY=dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
+            PREBUILT_BINARY=${{ env.PREBUILT_BINARY }}
 
       - name: Build Heighliner Image
         id: build-heighliner
         uses: docker/build-push-action@v5
         with:
+          context: . # important
           target: heighliner
           push: false
           load: true
@@ -91,7 +81,7 @@ jobs:
           build-args: |
             COMMIT=${{ github.sha }}
             VERSION=${{ github.ref_name }}
-            XIOND_BINARY=dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond
+            PREBUILT_BINARY=${{ env.PREBUILT_BINARY }}
 
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
@@ -116,18 +106,5 @@ jobs:
         with:
           name: ${{ env.HEIGHLINER_FN }}
           path: ${{ runner.temp }}/${{ env.HEIGHLINER_FN }}
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Rename binary
-        run: |
-          cp dist/xiond_${{ matrix.os }}_${{ matrix.arch }}/xiond ${{ runner.temp }}/xiond-${{ matrix.os }}-${{ matrix.arch }}
-
-      - name: Upload binary
-        # if-contains(github.event.ref, 'v[0-9]+\.[0-9]+\.[0-9]+')
-        uses: actions/upload-artifact@v4
-        with:
-          name: xiond-${{ matrix.os }}-${{ matrix.arch }}
-          path: ${{ runner.temp }}/xiond-${{ matrix.os }}-${{ matrix.arch }}
           if-no-files-found: error
           retention-days: 3

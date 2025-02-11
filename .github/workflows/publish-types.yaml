@@ -1,0 +1,29 @@
+name: Publish TypeScript Definitions 
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  publish-types-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Generate TypeScript definitions
+        run: make proto-gen-ts
+
+      - name: Publish to npm
+        working-directory: client/js/types
+        run: |
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
