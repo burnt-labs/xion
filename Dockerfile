@@ -1,19 +1,19 @@
 # syntax=docker/dockerfile:1
 
-ARG GO_VERSION="1.23"
+ARG GORELEASER_IMAGE="ghcr.io/goreleaser/goreleaser-cross"
+ARG GORELEASER_VERSION="v1.23.6"
 ARG ALPINE_VERSION="3.20"
 
 # --------------------------------------------------------
 # Builder
 # --------------------------------------------------------
 
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
+FROM ${GORELEASER_IMAGE}:${GORELEASER_VERSION} AS builder
 
 # Always set by buildkit
 ARG TARGETPLATFORM
 ARG TARGETARCH
 ARG TARGETOS
-ARG XIOND_BINARY
 
 # needed in makefile
 ARG COMMIT
@@ -23,57 +23,29 @@ ARG VERSION
 ENV COMMIT=${COMMIT} \
     VERSION=${VERSION} \
     GOOS=${TARGETOS} \
-    GOARCH=${TARGETARCH} \
-    XIOND_BINARY=${XIOND_BINARY}
-
-# Install dependencies
-RUN set -eux; \
-    apk add --no-cache \
-    build-base \
-    ca-certificates \
-    linux-headers \
-    binutils-gold \
-    git
+    GOARCH=${TARGETARCH} 
 
 # Set the workdir
 WORKDIR /go/src/github.com/burnt-labs/xion
-
-# Download go dependencies
-COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/root/pkg/mod \
-    set -eux; \
-    go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@v1.5.0; \
-    go mod download
-
-# Cosmwasm - Download correct libwasmvm version
-RUN set -eux; \
-    WASMVM_REPO="github.com/CosmWasm/wasmvm"; \
-    WASMVM_MOD_VERSION="$(grep ${WASMVM_REPO} go.mod | cut -d ' ' -f 1)"; \
-    WASMVM_VERSION="$(go list -m ${WASMVM_MOD_VERSION} | cut -d ' ' -f 2)"; \
-    [ ${TARGETPLATFORM} = "linux/amd64" ] && LIBWASM="libwasmvm_muslc.x86_64.a"; \
-    [ ${TARGETPLATFORM} = "linux/arm64" ] && LIBWASM="libwasmvm_muslc.aarch64.a"; \
-    [ ${TARGETOS} = "darwin" ] && LIBWASM="libwasmvmstatic_darwin.a"; \
-    [ -z "$LIBWASM" ] && echo "Arch ${TARGETARCH} not recognized" && exit 1; \
-    wget "https://${WASMVM_REPO}/releases/download/${WASMVM_VERSION}/${LIBWASM}" -O "/lib/${LIBWASM}"; \
-    # verify checksum
-    EXPECTED=$(wget -q "https://${WASMVM_REPO}/releases/download/${WASMVM_VERSION}/checksums.txt" -O- | grep "${LIBWASM}" | awk '{print $1}'); \
-    sha256sum "/lib/${LIBWASM}" | grep "${EXPECTED}"; \
-    cp /lib/${LIBWASM} /lib/libwasmvm_muslc.a;
 
 # Copy local files
 COPY . .
 
 # Build xiond binary
+ARG PREBUILT_BINARY
+ENV PREBUILT_BINARY=${PREBUILT_BINARY}
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/pkg/mod \
-    if [ -e "${XIOND_BINARY:-}" ]; then \
-        cp "${XIOND_BINARY}" /go/bin/xiond; \
+    set -eux; \
+    mkdir -p /go/bin; \
+    if [ -e "${PREBUILT_BINARY:-}" ]; then \
+        cp -a "${PREBUILT_BINARY}" /go/bin/xiond; \
     else \
-        export CGO_ENABLED=1 LINK_STATICALLY=true BUILD_TAGS=muslc; \
-        make test-version; \
-        make install; \
-    fi
+        goreleaser build \
+            --config .goreleaser/build.yaml \
+            --snapshot --clean --single-target --skip validate; \
+        cp -a $(find ./dist -name xiond-${GOOS}-${GOARCH}) /go/bin/xiond; \
+    fi;
 
 # --------------------------------------------------------
 # Heighliner
@@ -92,7 +64,7 @@ COPY --from=busybox:1.36-musl /bin/busybox /bin/busybox
 COPY --from=busybox:1.36-musl /etc/passwd /etc/group /etc/
 
 # Install trusted CA certificates
-COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
+COPY --from=ghcr.io/linuxcontainers/alpine:3 /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 # Install xiond
 COPY --from=builder /go/bin/xiond /bin/xiond
@@ -147,9 +119,8 @@ USER heighliner
 # Runner
 # --------------------------------------------------------
 
-FROM alpine:${ALPINE_VERSION} AS release
+FROM ghcr.io/linuxcontainers/alpine:${ALPINE_VERSION} AS release
 COPY --from=builder /go/bin/xiond /usr/bin/xiond
-COPY --from=builder /go/bin/cosmovisor /usr/bin/cosmovisor
 
 # api
 EXPOSE 1317
@@ -164,6 +135,8 @@ EXPOSE 26660
 
 RUN set -euxo pipefail; \
     apk add --no-cache bash openssl curl htop jq lz4 tini; \
+    curl -sSL https://github.com/cosmos/cosmos-sdk/releases/download/cosmovisor%2Fv1.5.0/cosmovisor-v1.5.0-linux-amd64.tar.gz \
+    | tar -xz -C /usr/bin; \
     addgroup --gid 1000 -S xiond; \
     adduser --uid 1000 -S xiond \
     --disabled-password \
