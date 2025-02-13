@@ -23,25 +23,6 @@ deps=$(cat <<EOF
 EOF
 )
 
-fix=$(cat <<EOF
-{
-  "swagger": "2.0",
-  "info": {
-    "title": "Empty",
-    "version": "0.0.0"
-  },
-  "consumes": [
-    "application/json"
-  ],
-  "produces": [
-    "application/json"
-  ],
-  "paths": {},
-  "definitions": {}
-}
-EOF
-)
-
 # Install selected dependencies from go.mod
 go mod download $deps
 
@@ -101,10 +82,6 @@ gen_swagger() {
   # combine swagger files
   # uses nodejs package `swagger-combine`.
   # all the individual swagger files need to be configured in `config.json` for merging
-  mkdir -p ${docs_dir}/static
-  # proto does not exist, so create an empty file
-  mkdir -p ${tmp_dir}/packetforward/v1/
-  echo "$fix" > ${tmp_dir}/packetforward/v1/query.swagger.json
   swagger-combine ${docs_dir}/config.yaml \
     --format "json" \
     --output ${docs_dir}/static/swagger.json \

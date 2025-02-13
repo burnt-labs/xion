@@ -67,13 +67,13 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/docker-scout.yaml@workflows/main
     secrets: inherit
 
-  # interchain-tests:
-  #   name: Interchain tests
-  #   needs: 
-  #     - build-docker
-  #     - build-integration
-  #   uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@workflows/main
-  #   secrets: inherit
+  interchain-tests:
+    name: Interchain tests
+    needs: 
+      - build-docker
+      - build-integration
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@workflows/main
+    secrets: inherit
 
   build-release:
     name: Build Release
@@ -83,7 +83,7 @@ jobs:
       - unit-tests
       - build-darwin
       - docker-scout
-      #- interchain-tests
+      - interchain-tests
     uses: burnt-labs/xion/.github/workflows/goreleaser.yaml@workflows/main
     secrets: inherit
 

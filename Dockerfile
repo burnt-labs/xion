@@ -40,11 +40,13 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     mkdir -p /go/bin; \
     if [ -e "${PREBUILT_BINARY:-}" ]; then \
         cp -a "${PREBUILT_BINARY}" /go/bin/xiond; \
+        chmod a+x /go/bin/xiond; \
     else \
         goreleaser build \
             --config .goreleaser/build.yaml \
             --snapshot --clean --single-target --skip validate; \
         cp -a $(find ./dist -name xiond-${GOOS}-${GOARCH}) /go/bin/xiond; \
+        chmod a+x /go/bin/xiond; \
     fi;
 
 # --------------------------------------------------------
