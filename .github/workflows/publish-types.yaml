@@ -21,8 +21,27 @@ jobs:
       - name: Generate TypeScript definitions
         run: make proto-gen-ts
 
+      - name: Create package.json for types
+        working-directory: client/ts/types
+        run: |
+          cat > package.json << EOF
+          {
+            "name": "@burnt-labs/xion-types",
+            "version": "${{ github.ref_name }}",
+            "description": "TypeScript definitions for Xion",
+            "types": "index.d.ts",
+            "files": [
+              "**/*.d.ts",
+              "**/*.js"
+            ],
+            "publishConfig": {
+              "access": "public"
+            }
+          }
+          EOF
+
       - name: Publish to npm
-        working-directory: client/js/types
+        working-directory: client/ts/types
         run: |
           npm publish
         env:
