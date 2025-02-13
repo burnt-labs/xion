@@ -8,7 +8,7 @@
     "types/"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "../../scripts/proto-gen.sh --ts",
     "test": "jest"
   },
   "license": "MIT",
