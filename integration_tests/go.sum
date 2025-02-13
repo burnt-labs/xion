@@ -407,8 +407,8 @@ github.com/cosmos/gogoproto v1.7.0 h1:79USr0oyXAbxg3rspGh/m4SWNyoz/GLaAh0QlCe2fr
 github.com/cosmos/gogoproto v1.7.0/go.mod h1:yWChEv5IUEYURQasfyBW5ffkMHR/90hiHgbNgrtp4j0=
 github.com/cosmos/iavl v1.2.4 h1:IHUrG8dkyueKEY72y92jajrizbkZKPZbMmG14QzsEkw=
 github.com/cosmos/iavl v1.2.4/go.mod h1:GiM43q0pB+uG53mLxLDzimxM9l/5N9UuSY3/D0huuVw=
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2 h1:dyLNlDElY6+5zW/BT/dO/3Ad9FpQblfh+9dQpYQodbA=
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.0.2/go.mod h1:82hPO/tRawbuFad2gPwChvpZ0JEIoNi91LwVneAYCeM=
+github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.1.1 h1:+EGYrTsQ2hu8pBwCWAgqc0g/zSklvBFehda9URLfvOU=
+github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8 v8.1.1/go.mod h1:8sbOclBgOCgBPesufd3ZlLRHvJ3dOeN9+dXhn3KbKOc=
 github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 v8.0.0-20240530162148-4827cf263165 h1:uaW2p383zzr6JjgWa0D4/kUkzOG5p0DyIpNPY6e0mpI=
 github.com/cosmos/ibc-apps/modules/ibc-hooks/v8 v8.0.0-20240530162148-4827cf263165/go.mod h1:9+Z14xz3Y+5uEn5i1CvLcDN1aTthEhYUdI7pphySkY8=
 github.com/cosmos/ibc-go/modules/apps/callbacks v0.2.1-0.20231113120333-342c00b0f8bd h1:Lx+/5dZ/nN6qPXP2Ofog6u1fmlkCFA1ElcOconnofEM=
