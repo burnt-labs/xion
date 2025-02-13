@@ -67,10 +67,10 @@ brews:
       - xiond@{{ .Major }}
     # Repository to push the generated files to.
     skip_upload: true
-    # repository:
-    #   owner: burnt-labs
-    #   name: xion-homebrew
-    #   branch: main
+    repository:
+      owner: burnt-labs
+      name: xion-homebrew
+      branch: main
 
 # Docs: https://goreleaser.com/customization/cloudsmith/
 cloudsmiths:

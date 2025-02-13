@@ -29,6 +29,7 @@ builds:
         - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/{{ .Env.WASM_LIB }} -O {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB}}'
         - cmd: echo Starting build...
     ldflags:
+      - -X main.Date={{ .CommitDate }}
       - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
       - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
       - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
@@ -40,7 +41,6 @@ builds:
         {{- if eq .Os "linux" -}}
           -extldflags '-Wl,-z,muldefs -static -lm'
         {{- end }}
-    mod_date: "{{ .CommitDate }}"
     mod_timestamp: "{{ .CommitTimestamp }}"
     tags:
       - netgo
