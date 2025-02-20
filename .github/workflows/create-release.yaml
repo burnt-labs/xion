@@ -15,59 +15,64 @@ concurrency:
 jobs:
   lint:
     name: Golang CI Lint
-    uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@main
+    uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@workflows/main
     secrets: inherit
 
   update-swagger:
     name: Update Swagger
-    uses: burnt-labs/xion/.github/workflows/update-swagger.yaml@main
+    uses: burnt-labs/xion/.github/workflows/update-swagger.yaml@workflows/main
     secrets: inherit
 
   unit-tests:
     name: Go Unit Tests
-    uses: burnt-labs/xion/.github/workflows/tests.yaml@main
+    uses: burnt-labs/xion/.github/workflows/tests.yaml@workflows/main
     secrets: inherit
 
-  build-darwin-binaries:
-    name: Build Darwin Binaries
-    uses: burnt-labs/xion/.github/workflows/darwin-build.yaml@main
+  build-darwin:
+    name: Build Binaries
+    uses: burnt-labs/xion/.github/workflows/binaries-darwin.yaml@workflows/main
+    secrets: inherit
+
+  build-linux:
+    name: Build Binaries
+    uses: burnt-labs/xion/.github/workflows/binaries-linux.yaml@workflows/main
+    secrets: inherit
+
+  build-integration:
+    name: Build Binaries
+    uses: burnt-labs/xion/.github/workflows/binaries-test.yaml@workflows/main
     secrets: inherit
 
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yaml@main
+    needs: build-linux
+    uses: burnt-labs/xion/.github/workflows/docker-build.yaml@workflows/main
     secrets: inherit
 
   push-docker:
     name: Push Docker Images
     needs: build-docker
-    uses: burnt-labs/xion/.github/workflows/docker-push.yaml@main
+    uses: burnt-labs/xion/.github/workflows/docker-push.yaml@workflows/main
     secrets: inherit
 
   push-heighliner:
     name: Push Heighliner Images
     needs: build-docker
-    uses: burnt-labs/xion/.github/workflows/heighliner-push.yaml@main
+    uses: burnt-labs/xion/.github/workflows/heighliner-push.yaml@workflows/main
     secrets: inherit
 
   docker-scout:
     name: Docker Scout
     needs: build-docker
-    uses: burnt-labs/xion/.github/workflows/docker-scout.yaml@main
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yaml@workflows/main
     secrets: inherit
 
   interchain-tests:
     name: Interchain tests
-    needs: build-docker
-    uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@main
-    secrets: inherit
-
-  build-release-info:
-    name: Build Release Info
-    needs:
+    needs: 
       - build-docker
-      - build-darwin-binaries
-    uses: burnt-labs/xion/.github/workflows/build-release-info.yaml@main
+      - build-integration
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@workflows/main
     secrets: inherit
 
   build-release:
@@ -76,11 +81,26 @@ jobs:
       - lint
       - update-swagger
       - unit-tests
+      - build-darwin
       - docker-scout
       - interchain-tests
-      - build-release-info
-      - build-darwin-binaries
-    uses: burnt-labs/xion/.github/workflows/build-release.yaml@main
+    uses: burnt-labs/xion/.github/workflows/goreleaser.yaml@workflows/main
+    secrets: inherit
+
+  # # TODO: move to goreleaser
+  # build-release-info:
+  #   name: Build Release Info
+  #   needs:
+  #     - build-darwin
+  #     - build-linux
+  #   uses: burnt-labs/xion/.github/workflows/build-release-info.yaml@workflows/main
+  #   secrets: inherit
+
+  # TODO: move to goreleaser
+  publish-types:
+    name: Publish Typescript Types
+    needs: build-release
+    uses: burnt-labs/xion/.github/workflows/publish-types.yaml@workflows/main
     secrets: inherit
 
   # TODO: move to triggered action in burnt-networks repo
@@ -89,5 +109,5 @@ jobs:
   #   needs:
   #     - build-release
   #     - build-release-info
-  #   uses: burnt-labs/xion/.github/workflows/update-networks.yaml@main
+  #   uses: burnt-labs/xion/.github/workflows/update-networks.yaml@workflows/main
   #   secrets: inherit

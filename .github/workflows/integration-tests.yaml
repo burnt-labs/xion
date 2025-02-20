@@ -9,63 +9,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-integration-tests:
-    runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('burnt-labs-{0}', matrix.arch) }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - linux
-        arch:
-          - amd64
-          # - arm64
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Prepare Environment
-        run: |
-          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
-          echo "PLATFORM=${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ^${{ env.GO_VERSION }}
-          cache: false
-
-      - name: build go test binary
-        working-directory: integration_tests
-        run: |
-          go test -c
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-${{ matrix.os }}-${{ matrix.arch }}
-          path: integration_tests/integration_tests.test
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: find wasmvm lib
-        run: |
-          WASM_PATH="$(find /home/runner/go/pkg/mod -name libwasmvm.$(uname -m).so 2>/dev/null | head -n 1)"
-          echo "WASM_PATH=$WASM_PATH" | tee -a $GITHUB_ENV
-          echo "WASM_FILE=$(basename $WASM_PATH)" | tee -a $GITHUB_ENV
-
-      - name: Upload wasmvm lib
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.WASM_FILE }}
-          path: ${{ env.WASM_PATH }}
-          if-no-files-found: error
-          retention-days: 3
-
   interchain-tests:
     runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('burnt-labs-{0}', matrix.arch) }}
-    needs: build-integration-tests
     strategy:
       fail-fast: false
       matrix:
@@ -100,24 +45,12 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          fetch-depth: 0
 
-      - id: string
-        uses: ASzc/change-string-case-action@v6
-        with:
-          string: ${{ runner.os }}
-
-      - name: Prepare Environment
-        env:
-          OS: ${{ steps.string.outputs.lowercase }}
-        run: |
-          mkdir -p lib
-          echo "PLATFORM=${{ matrix.os }}/${{ matrix.arch }}" | tr '/' '-' | tee -a $GITHUB_ENV
-
-      - name: Download integration test binary
+      - name: Download test binary
         uses: actions/download-artifact@v4
         with:
-          path: integration_tests
+          path: dist
           pattern: test-${{ matrix.os }}-${{ matrix.arch }}
           merge-multiple: true
 
@@ -138,14 +71,13 @@ jobs:
       - name: Load images
         working-directory: ${{ runner.temp }}
         run: |
-          docker load < "heighliner-${PLATFORM}.tar"
+          docker load < "heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar"
 
       - name: Run all up ci test
-        run: |
-          ls -l lib integration_tests
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
-          chmod a+x ./integration_tests/integration_tests.test
-          ./integration_tests/integration_tests.test -test.failfast -test.v -test.run Test${{ matrix.test_type }}
         env:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: heighliner:${{ matrix.os }}-${{ matrix.arch }}
+        run: |
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
+          chmod a+x ./dist/test-${{ matrix.os }}-${{ matrix.arch }}
+          dist/test-${{ matrix.os }}-${{ matrix.arch }} -test.failfast -test.v -test.run Test${{ matrix.test_type }}

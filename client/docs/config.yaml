@@ -201,13 +201,6 @@ apis:
     tags:
       rename:
         Query: IBC/Core
-  - url: ./packetforward/v1/query.swagger.json
-    operationIds:
-      rename:
-        Params: IBCPacketforwardParams
-    tags:
-      rename:
-        Query: IBC/Core
   - url: ./xion/globalfee/v1/query.swagger.json
     operationIds:
       rename:

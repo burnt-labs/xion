@@ -1,0 +1,3 @@
+[submodule "devnet"]
+	path = devnet
+	url = https://github.com/burnt-labs/devnet
