@@ -44,7 +44,7 @@ use_tmp_dir() {
 get_proto_dirs() {
   # Find all subdirectories with .proto files
   find $@ -path -prune -o -name '*.proto' -print0 \
-    | xargs -0 -n1 dirname | sort -u
+    | xargs -0 -n1 dirname | sort -u 
 }
 
 gen_gogo() {
@@ -78,10 +78,10 @@ gen_swagger() {
     buf generate --template $proto_dir/buf.gen.swagger.yaml $query_file
   done
 
+
   # combine swagger files
   # uses nodejs package `swagger-combine`.
   # all the individual swagger files need to be configured in `config.json` for merging
-  mkdir -p ${docs_dir}/static
   swagger-combine ${docs_dir}/config.yaml \
     --format "json" \
     --output ${docs_dir}/static/swagger.json \
@@ -94,9 +94,9 @@ gen_swagger() {
   npm exec -- swagger2openapi ../static/swagger.json --outfile ../static/openapi.json
 }
 
-gen_js() {
+gen_ts() {
   local dirs=$(get_proto_dirs $proto_dir $proto_paths)
-  ts_dir=$client_dir/js
+  ts_dir=$client_dir/ts
   types_dir=$ts_dir/types
   mkdir -p $types_dir
 
@@ -108,7 +108,7 @@ gen_js() {
     query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
     [[ -n "$query_file" ]] || continue
 
-    buf generate --template $proto_dir/buf.gen.js.yaml $query_file
+    buf generate --template $proto_dir/buf.gen.ts.yaml $query_file
   done
 }
 
@@ -127,7 +127,7 @@ else
       shift
       ;;
     --ts|--js)
-      gen_js
+      gen_ts
       shift
       ;;
     *)

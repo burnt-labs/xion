@@ -1,5 +1,6 @@
 name: Build Release
 # Run for new release tags only
+# superceded by goreleaser.yaml
 
 on:
   workflow_call:

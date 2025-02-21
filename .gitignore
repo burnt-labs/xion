@@ -56,3 +56,4 @@ contract_tests/*
 go.work
 go.work.sum
 /integration_tests/integration_tests.test
+release
