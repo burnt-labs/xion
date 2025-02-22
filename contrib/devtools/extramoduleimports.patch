@@ -1,0 +1,63 @@
+diff --git a/Sources/protoc-gen-swift/FileGenerator.swift b/Sources/protoc-gen-swift/FileGenerator.swift
+index f0cddb24..e5864211 100644
+--- a/Sources/protoc-gen-swift/FileGenerator.swift
++++ b/Sources/protoc-gen-swift/FileGenerator.swift
+@@ -149,6 +149,14 @@ class FileGenerator {
+             return
+         }
+
++        let neededCustomImports = generatorOptions.extraModuleImports
++        if !neededCustomImports.isEmpty {
++            p.print()
++            for i in neededCustomImports {
++                p.print("import \(i)\n")
++            }
++        }
++
+         p.print()
+         generateVersionCheck(printer: &p)
+
+diff --git a/Sources/protoc-gen-swift/GeneratorOptions.swift b/Sources/protoc-gen-swift/GeneratorOptions.swift
+index 3224e138..8bfc1ce5 100644
+--- a/Sources/protoc-gen-swift/GeneratorOptions.swift
++++ b/Sources/protoc-gen-swift/GeneratorOptions.swift
+@@ -64,6 +64,7 @@ class GeneratorOptions {
+         }
+     }
+
++    let extraModuleImports: [String]
+     let outputNaming: OutputNaming
+     let protoToModuleMappings: ProtoFileToModuleMappings
+     let visibility: Visibility
+@@ -74,6 +75,7 @@ class GeneratorOptions {
+     let visibilitySourceSnippet: String
+
+     init(parameter: any CodeGeneratorParameter) throws {
++        var externalModuleImports: [String] = []
+         var outputNaming: OutputNaming = .fullPath
+         var moduleMapPath: String?
+         var visibility: Visibility = .internal
+@@ -146,6 +148,15 @@ class GeneratorOptions {
+                         value: pair.value
+                     )
+                 }
++            case "ExtraModuleImports":
++                if !pair.value.isEmpty {
++                    externalModuleImports.append(pair.value)
++                } else {
++                    throw GenerationError.invalidParameterValue(
++                        name: pair.key,
++                        value: pair.value
++                    )
++                }
+             default:
+                 throw GenerationError.unknownParameter(name: pair.key)
+             }
+@@ -179,6 +190,7 @@ class GeneratorOptions {
+             visibilitySourceSnippet = "package "
+         }
+
++        self.extraModuleImports = externalModuleImports
+         self.experimentalStripNonfunctionalCodegen = experimentalStripNonfunctionalCodegen
+
+         switch (implementationOnlyImports, useAccessLevelOnImports) {

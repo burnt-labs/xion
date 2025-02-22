@@ -323,8 +323,9 @@ format: format-tools
 ################################################################################
 ###                                 Protobuf                                 ###
 ################################################################################
-protoVer=0.14.0
-protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+protoVer=0.16.0
+#protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
+protoImageName=swiftbuilder
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
@@ -332,11 +333,21 @@ proto-all: proto-format proto-lint proto-gen proto-format
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/proto-gen.sh
+	@$(protoImage) ./scripts/proto-gen.sh
 
 proto-gen-ts:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/proto-gen.sh --ts
+
+# should this be changed to use docker like the rest? we would need a custom image
+proto-gen-swift:
+	@echo "Generating Protobuf files"
+	@$(protoImage) ./scripts/proto-gen.sh --swift
+
+# should this be changed to use docker like the rest? we would need a custom image
+proto-gen-kotlin:
+	@echo "Generating Protobuf files"
+	@$(protoImage) ./scripts/proto-gen.sh --kotlin
 
 proto-gen-swagger:
 	@echo "Generating Protobuf Swagger"

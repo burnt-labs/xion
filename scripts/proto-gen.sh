@@ -24,9 +24,11 @@ EOF
 )
 
 # Install selected dependencies from go.mod
+echo "installing dependencies"
 go mod download $deps
 
 # Get dependency paths
+echo "getting paths"
 proto_paths=$(go list -f '{{ .Dir }}' -m $deps | sed "s/$/\/proto/")
 
 use_tmp_dir() {
@@ -50,10 +52,11 @@ get_proto_dirs() {
 gen_gogo() {
   local dirs=$(get_proto_dirs $proto_dir)
 
-  for dir in $xion_dirs; do
+  for dir in $dirs; do
     for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
       if grep "option go_package" $file &> /dev/null ; then
-      buf generate --output $proto_dir --template $proto_dir/buf.gen.gogo.yaml $file
+        echo "generating for file $file"
+        buf generate --output $proto_dir --template $proto_dir/buf.gen.gogo.yaml $file
       fi
     done
   done
@@ -112,6 +115,38 @@ gen_ts() {
   done
 }
 
+gen_swift() {
+  local dirs=$(get_proto_dirs $proto_dir $proto_paths)
+  swift_dir=$client_dir/swift
+  types_dir=$swift_dir/types
+  mkdir -p $types_dir
+
+  cd $swift_dir
+  # Generate swift for each path
+  for dir in $dirs; do
+    for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
+      echo "generating for file $file"
+      buf generate --template $proto_dir/buf.gen.swift.yaml $file
+    done
+  done
+}
+
+gen_kotlin() {
+  local dirs=$(get_proto_dirs $proto_dir $proto_paths)
+  kotlin_dir=$client_dir/kotlin
+  types_dir=$kotlin_dir/types
+  mkdir -p $types_dir
+
+  cd $kotlin_dir
+  # Generate kotlin for each path
+    for dir in $dirs; do
+      for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
+        echo "generating for file $file"
+        buf generate --template $proto_dir/buf.gen.kotlin.yaml $file
+      done
+    done
+}
+
 # Parse CLI parameters
 if [[ $# -eq 0 ]]; then
   gen_gogo
@@ -128,6 +163,14 @@ else
       ;;
     --ts|--js)
       gen_ts
+      shift
+      ;;
+    --swift)
+      gen_swift
+      shift
+      ;;
+    --kotlin)
+      gen_kotlin
       shift
       ;;
     *)
