@@ -26,7 +26,7 @@ require (
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.4.2-0.20240730185033-ccd4dc278e72
-	github.com/cosmos/ibc-go/v8 v8.5.1
+	github.com/cosmos/ibc-go/v8 v8.6.0
 	github.com/cosmos/interchain-security/v5 v5.0.0-alpha1.0.20240424193412-7cd900ad2a74
 	github.com/docker/docker v24.0.9+incompatible
 	github.com/dvsekhvalnov/jose2go v1.6.0
