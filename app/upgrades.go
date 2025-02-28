@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v16"
+const UpgradeName = "v17"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	app.WrapSetUpgradeHandler(UpgradeName)
