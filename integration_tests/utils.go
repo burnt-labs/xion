@@ -227,6 +227,23 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
+	configFileOverrides := make(map[string]any)
+
+	appTomlOverrides := make(testutil.Toml)
+	configTomlOverrides := make(testutil.Toml)
+
+	apiOverrides := make(testutil.Toml)
+	apiOverrides["rpc-max-body-bytes"] = 3_000_000
+	appTomlOverrides["api"] = apiOverrides
+
+	rpcOverrides := make(testutil.Toml)
+	rpcOverrides["max_body_bytes"] = 3_000_000
+	rpcOverrides["max_header_bytes"] = 3_100_000
+	configTomlOverrides["rpc"] = rpcOverrides
+
+	configFileOverrides["config/app.toml"] = appTomlOverrides
+	configFileOverrides["config/config.toml"] = configTomlOverrides
+
 	// config
 	cfg := ibc.ChainConfig{
 		Images: []ibc.DockerImage{
@@ -284,6 +301,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
+		ConfigFileOverrides: configFileOverrides,
 	}
 
 	// Chain factory

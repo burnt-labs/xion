@@ -62,7 +62,14 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read vkey.json file: %v", err)
 	}
-	verificationContractAddress, err := xion.InstantiateContract(ctx, zkemailCodeID, xionUser.FormattedAddress(), fmt.Sprintf(`{"vkey": "%s"}`, string(vkeyBz)), false)
+	var vkey map[string]any
+	err = json.Unmarshal(vkeyBz, &vkey)
+	require.NoError(t, err)
+
+	vkeyJsonBz, err := json.Marshal(vkey)
+	require.NoError(t, err)
+
+	verificationContractAddress, err := xion.InstantiateContract(ctx, xionUser.FormattedAddress(), zkemailCodeID, fmt.Sprintf(`{"vkey": "%s"}`, string(vkeyJsonBz)), true)
 	require.NoError(t, err)
 
 	// Register Abstract Account Contract (Ensuring Fixed Address)
