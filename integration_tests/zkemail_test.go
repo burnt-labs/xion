@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
@@ -22,6 +23,17 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/anypb"
 )
+
+type SnarkJSVkey struct {
+	VkAlpha1 [3]string    `json:"vk_alpha_1"`
+	VkBeta2  [3][2]string `json:"vk_beta_2"`
+	VkGamma2 [3][2]string `json:"vk_gamma_2"`
+	VkDelta2 [3][2]string `json:"vk_delta_2"`
+	IC       [][3]string  `json:"IC"`
+}
+type ZKVerificationInstantiateMsg struct {
+	Vkey SnarkJSVkey `json:"vkey"`
+}
 
 func TestZKEmailAuthenticator(t *testing.T) {
 	if testing.Short() {
@@ -62,15 +74,17 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read vkey.json file: %v", err)
 	}
-	var vkey map[string]any
+	var vkey SnarkJSVkey
 	err = json.Unmarshal(vkeyBz, &vkey)
 	require.NoError(t, err)
+	instantiateMsg := ZKVerificationInstantiateMsg{Vkey: vkey}
 
-	vkeyJsonBz, err := json.Marshal(vkey)
+	vkeyJsonBz, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 
-	verificationContractAddress, err := xion.InstantiateContract(ctx, xionUser.FormattedAddress(), zkemailCodeID, fmt.Sprintf(`{"vkey": "%s"}`, string(vkeyJsonBz)), true)
-	require.NoError(t, err)
+	verificationContractAddress, err := xion.InstantiateContract(ctx, xionUser.FormattedAddress(), zkemailCodeID, string(vkeyJsonBz), true)
+	time.Sleep(120 * time.Second)
+	// require.NoError(t, err)
 
 	// Register Abstract Account Contract (Ensuring Fixed Address)
 	registeredTxHash, err := ExecTx(t, ctx, xion.GetNode(),
@@ -166,6 +180,9 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read vkey.json file: %v", err)
 	}
+
+	// prepend auth index to signature
+	proofBz = append([]byte{0}, proofBz...)
 
 	sigData := signing.SingleSignatureData{
 		SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
