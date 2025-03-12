@@ -95,6 +95,13 @@ type TestData struct {
 	client    *client.Client
 }
 
+type Dkim struct {
+	PubKey       string `json:"pubKey"`
+	Domain       string `json:"domain"`
+	Selector     string `json:"selector"`
+	PoseidonHash string `json:"poseidon_hash"`
+}
+
 func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
 	msg := fmt.Sprintf(`
 {
@@ -220,6 +227,23 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	println("image tag:", imageTag)
 	imageTagComponents := strings.Split(imageTag, ":")
 
+	configFileOverrides := make(map[string]any)
+
+	appTomlOverrides := make(testutil.Toml)
+	configTomlOverrides := make(testutil.Toml)
+
+	apiOverrides := make(testutil.Toml)
+	apiOverrides["rpc-max-body-bytes"] = 3_000_000
+	appTomlOverrides["api"] = apiOverrides
+
+	rpcOverrides := make(testutil.Toml)
+	rpcOverrides["max_body_bytes"] = 3_000_000
+	rpcOverrides["max_header_bytes"] = 3_100_000
+	configTomlOverrides["rpc"] = rpcOverrides
+
+	configFileOverrides["config/app.toml"] = appTomlOverrides
+	configFileOverrides["config/config.toml"] = configTomlOverrides
+
 	// config
 	cfg := ibc.ChainConfig{
 		Images: []ibc.DockerImage{
@@ -277,6 +301,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
+		ConfigFileOverrides: configFileOverrides,
 	}
 
 	// Chain factory
@@ -415,6 +440,28 @@ func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, pa
 
 	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
 		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
+	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
+
+// / params is the json encoded array of dkim public keys
+func ModifyGenesisDKIMRecords(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	// let's add a DKIM record
+	g := make(map[string]interface{})
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	pubKeys := []Dkim{}
+	err := json.Unmarshal([]byte(params[0]), &pubKeys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal dkim public keys to json: %w", err)
+	}
+	if err := dyno.Set(g, pubKeys, "app_state", "dkim", "dkim_pubkeys"); err != nil {
+		return nil, fmt.Errorf("failed to set dkim records in genesis json: %w", err)
 	}
 	out, err := json.Marshal(g)
 	if err != nil {
