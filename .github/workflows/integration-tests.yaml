@@ -40,6 +40,8 @@ jobs:
           - "Simulate"
           - "UpdateTreasuryConfigsWithLocalAndURL"
           - "UpdateTreasuryConfigsWithAALocalAndURL"
+          - "ZKEmailAuthenticator"
+          
 
     steps:
       - name: checkout

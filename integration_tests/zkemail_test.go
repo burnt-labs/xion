@@ -84,7 +84,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	verificationContractAddress, err := xion.InstantiateContract(ctx, xionUser.FormattedAddress(), zkemailCodeID, string(vkeyJsonBz), true)
 	time.Sleep(120 * time.Second)
-	// require.NoError(t, err)
+	require.NoError(t, err)
 
 	// Register Abstract Account Contract (Ensuring Fixed Address)
 	registeredTxHash, err := ExecTx(t, ctx, xion.GetNode(),

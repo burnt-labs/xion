@@ -20,7 +20,7 @@ GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
-XION_IMAGE ?= xiond:$(GOARCH)
+XION_IMAGE ?= heighliner:$(GOARCH)
 HEIGHLINER_IMAGE ?= heighliner:$(GOARCH)
 
 # process build tags
