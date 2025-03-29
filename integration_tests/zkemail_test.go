@@ -1,10 +1,10 @@
 package integration_tests
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"os"
 	"path"
 	"strings"
@@ -48,9 +48,9 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	t.Parallel()
 
-	dkimDomain := "google.com"
+	dkimDomain := "gmail.com"
 	dkimSelector := "20230601"
-	dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4zd3nfUoLHWFbfoPZzAb8bvjsFIIFsNypweLuPe4M+vAP1YxObFxRnpvLYz7Z+bORKLber5aGmgFF9iaufsH1z0+aw8Qex7uDaafzWoJOM/6lAS5iI0JggZiUkqNpRQLL7H6E7HcvOMC61nJcO4r0PwLDZKwEaCs8gUHiqRn/SS3wqEZX29v/VOUVcI4BjaOzOCLaz7V8Bkwmj4Rqq4kaLQQrbfpjas1naScHTAmzULj0Rdp+L1vVyGitm+dd460PcTIG3Pn+FYrgQQo2fvnTcGiFFuMa8cpxgfH3rJztf1YFehLWwJWgeXTriuIyuxUabGdRQu7vh7GrObTsHmIHwIDAQAB"
+	dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
 	gPubKeyHash, err := dkimTypes.ComputePoseidonHash(dkimPubkey)
 	require.NoError(t, err)
 	gPubKeyBz, _ := json.Marshal([]Dkim{
@@ -58,7 +58,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 			Domain:       dkimDomain,
 			Selector:     dkimSelector,
 			PubKey:       dkimPubkey,
-			PoseidonHash: base64.StdEncoding.EncodeToString(gPubKeyHash.Bytes()),
+			PoseidonHash: base64.StdEncoding.EncodeToString(ToLittleEndian(gPubKeyHash.Bytes())),
 		},
 	})
 
@@ -70,7 +70,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := math.NewInt(10_000_000)
+	fundAmount := math.NewInt(1_000_000_000_000)
 	xionUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
 	require.NoError(t, err)
 	currentHeight, _ := xion.Height(ctx)
@@ -111,7 +111,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		xionUser.KeyName(), "xion", "register",
 		accountCodeID,
 		xionUser.KeyName(),
-		"--funds", "1000000uxion",
+		"--funds", "2000000000uxion",
 		"--salt", "0",
 		"--authenticator", "Secp256K1",
 		"--chain-id", xion.Config().ChainID,
@@ -123,12 +123,14 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	t.Logf("TxDetails: %s", txDetails)
 	aaContractAddr := GetAAContractAddress(t, txDetails)
 
-	// this commitement is gotten from the email address and a salt currently "testuseronexion@gmail.com", "XRhMS5Nc2dTZW5kEpAB"
-	emailCommitment := "6293004408188449527623842124792388138908023069134722952437088476138094090885"
-	emailHash := base64.StdEncoding.EncodeToString([]byte(emailCommitment))
+	// poseidon([salt, email_address])
+	emailCommitment := "17159366307350401517208657413587014704131356894001302493847352957889395820464"
+	emailCommitmentBIG, isSet := new(big.Int).SetString(emailCommitment, 10)
+	require.True(t, isSet)
+	emailHash := base64.StdEncoding.EncodeToString(ToLittleEndian(emailCommitmentBIG.Bytes()))
+	t.Logf("email hash: %s", emailHash)
 
 	// send a execute msg to add a zkemail authenticator to the account
-	_, err = xion.ExecuteContract(ctx, aaContractAddr, xionUser.FormattedAddress(), fmt.Sprintf(`{"authenticator": {"ZKEmail": {"id": 1, "verification_contract": "%s", "email_hash": "%s", "dkim_domain": "%s"}}}`, verificationContractAddress, emailHash, dkimDomain))
 	authExecuteMsg := fmt.Sprintf(
 		`{"add_auth_method":{"add_authenticator":{"ZKEmail": {"id": 1, "verification_contract": "%s", "email_hash": "%s", "dkim_domain": "%s"}}}}`,
 		verificationContractAddress,
@@ -159,7 +161,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 	err = UploadFileToContainer(t, ctx, xion.GetNode(), file)
 	require.NoError(t, err)
-	t.Log("Unsigned authenticator tx uploaded to container")
 
 	configFilePath := strings.Split(file.Name(), "/")
 
@@ -206,6 +207,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a bank send message from the AA contract to a recipient
+	// Note if the tx changes, a new proof will need to be generated
 	recipient := "xion1qaf2xflx5j3agtlvqk5vhjpeuhl6g45hxshwqj"
 	jsonMsg := RawJSONMsgSend(t, aaContractAddr, recipient, "uxion")
 	require.NoError(t, err)
@@ -252,6 +254,9 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	txBuilder, err = xion.Config().EncodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
 
+	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
+	txBuilder.SetGasLimit(200_000) // 20 million because verification takes a lot of gas
+
 	builtTx := txBuilder.GetTx()
 	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
 	if !ok {
@@ -265,9 +270,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		signerData, txData)
 	require.NoError(t, err)
 
-	signBytesHash := sha256.Sum256(signBytes)
-	signBytes64 := base64.StdEncoding.EncodeToString(signBytesHash[:])
-	t.Logf("sign bytes hash: %s", signBytes64)
+	signBytes64 := base64.StdEncoding.EncodeToString(signBytes[:])
+	t.Logf("sign bytes: %s", signBytes64)
 
 	// Hardcoded proof (pre-generated externally)
 	proofBz, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "keys", "zkproof.json"))
@@ -286,13 +290,13 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	sig := &Signature{
 		Proof:    proof,
-		DkimHash: base64.StdEncoding.EncodeToString(gPubKeyHash.Bytes()),
+		DkimHash: base64.StdEncoding.EncodeToString(ToLittleEndian(gPubKeyHash.Bytes())),
 	}
 	sigBz, err := json.Marshal(sig)
 	require.NoError(t, err)
 
 	// prepend auth index to signature
-	proofBz = append([]byte{1}, sigBz...)
+	proofBz = append([]byte{uint8(1)}, sigBz...)
 
 	sigData := signing.SingleSignatureData{
 		SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
@@ -312,15 +316,15 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--gas", "200000", "--gas-prices", "0.025uxion", "--gas-adjustment", "1.5")
-	t.Logf("output: %s", output)
+	output, err := ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
+	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
 	require.NoError(t, err)
-	require.Equal(t, int64(1_000_000-100_000), newBalance.Int64())
+	require.Equal(t, int64(1_000_000_000_000-100_000), newBalance.Int64())
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, int64(100_000), recipientBalance.Int64())

@@ -23,6 +23,7 @@ import (
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
 	"github.com/burnt-labs/xion/x/xion"
+	dkim "github.com/burnt-labs/xion/x/dkim"
 	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -296,6 +297,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				xion.AppModuleBasic{},
 				jwk.AppModuleBasic{},
 				aa.AppModuleBasic{},
+				dkim.AppModuleBasic{},
 			)
 			// TODO: add encoding types here for the modules you want to use
 			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -1210,4 +1212,12 @@ func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
 	}
 
 	return tempFile
+}
+
+func ToLittleEndian(b []byte) []byte {
+	le := make([]byte, len(b))
+	for i, v := range b {
+		le[len(b)-1-i] = v
+	}
+	return le
 }
