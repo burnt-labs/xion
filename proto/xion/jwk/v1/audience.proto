@@ -4,11 +4,9 @@ package xion.jwk.v1;
 option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 message Audience {
-  string aud = 1; 
-  string key = 2; 
+  string aud = 1;
+  string key = 2;
   string admin = 3;
 }
 
-message AudienceClaim {
-  string signer = 1;
-}
+message AudienceClaim { string signer = 1; }

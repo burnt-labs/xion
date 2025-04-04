@@ -19,6 +19,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
@@ -86,6 +87,8 @@ func init() {
 	setWhitelistedQuery("/xion.jwk.v1.Query/Audience", &jwktypes.QueryGetAudienceResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/Params", &jwktypes.QueryParamsResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/ValidateJWT", &jwktypes.QueryValidateJWTResponse{})
+	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKeys", &dkimtypes.QueryDkimPubKeysResponse{})
+	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKey", &dkimtypes.QueryDkimPubKeyResponse{})
 }
 
 // GetWhitelistedQuery returns the whitelisted query at the provided path.

@@ -21,9 +21,7 @@ message QueryWebAuthNVerifyRegisterRequest {
   bytes data = 4;
 }
 
-message QueryWebAuthNVerifyRegisterResponse {
-  bytes credential = 1;
-}
+message QueryWebAuthNVerifyRegisterResponse { bytes credential = 1; }
 
 message QueryWebAuthNVerifyAuthenticateRequest {
   string addr = 1;
