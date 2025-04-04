@@ -242,14 +242,15 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	anyPk, err := codectypes.NewAnyWithValue(pubKey)
 	signerData := txsigning.SignerData{
 		Address:       aaContractAddr,
-		ChainID:       xion.Config().ChainID,
-		AccountNumber: account.GetAccountNumber(),
-		Sequence:      account.GetSequence(),
+		ChainID:       "xion-local-testnet-1",
+		AccountNumber: 10,
+		Sequence:      1,
 		PubKey: &anypb.Any{
 			TypeUrl: anyPk.TypeUrl,
 			Value:   anyPk.Value,
 		},
 	}
+	fmt.Printf("signer data: %v\n", signerData)
 
 	txBuilder, err = xion.Config().EncodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
@@ -270,8 +271,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		signerData, txData)
 	require.NoError(t, err)
 
-	signBytes64 := base64.StdEncoding.EncodeToString(signBytes[:])
-	t.Logf("sign bytes: %s", signBytes64)
+	signBytes64 := base64.StdEncoding.EncodeToString(signBytes)
+	t.Logf("sign bytes: %s %s %v", signBytes64, string(signBytes), signBytes)
 
 	// Hardcoded proof (pre-generated externally)
 	proofBz, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "keys", "zkproof.json"))
