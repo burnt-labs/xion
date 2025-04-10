@@ -153,6 +153,9 @@ import (
 
 	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
+	dkim "github.com/burnt-labs/xion/x/dkim"
+	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
@@ -300,6 +303,7 @@ type WasmApp struct {
 	// IBC middleware wrappers
 	Ics20WasmHooks   *ibchooks.WasmHooks
 	HooksICS4Wrapper ibchooks.ICS4Middleware
+	DkimKeeper       dkimkeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -365,7 +369,7 @@ func NewWasmApp(
 		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, ibchookstypes.StoreKey, packetforwardtypes.StoreKey,
-		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey,
+		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey, dkimtypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -605,6 +609,14 @@ func NewWasmApp(
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
+
+	// Create the dkim Keeper
+	app.DkimKeeper = dkimkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[dkimtypes.StoreKey]),
+		logger,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	app.JwkKeeper = jwkkeeper.NewKeeper(
 		appCodec,
@@ -878,6 +890,7 @@ func NewWasmApp(
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		feeabsModule,
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
+		dkim.NewAppModule(appCodec, app.DkimKeeper),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -929,6 +942,7 @@ func NewWasmApp(
 		xiontypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -954,6 +968,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -987,6 +1002,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
@@ -1351,6 +1367,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(feeabstypes.ModuleName)
 	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
+	paramsKeeper.Subspace(dkimtypes.ModuleName)
 
 	// IBC params migration - legacySubspace to selfManaged
 	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/11-v7-to-v8.md#params-migration

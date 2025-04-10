@@ -10,20 +10,20 @@ option go_package = "github.com/burnt-labs/xion/x/mint/types";
 // module EndBlocker
 message MintIncentiveTokens {
   string bonded_ratio = 1 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.moretags) = "yaml:\"bonded_ratio\"",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   string inflation = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.moretags) = "yaml:\"inflation\"",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   string annual_provisions = 3 [
     (gogoproto.moretags) = "yaml:\"annual_provisions\"",
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
