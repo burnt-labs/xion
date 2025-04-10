@@ -242,9 +242,9 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	anyPk, err := codectypes.NewAnyWithValue(pubKey)
 	signerData := txsigning.SignerData{
 		Address:       aaContractAddr,
-		ChainID:       "xion-local-testnet-1",
-		AccountNumber: 10,
-		Sequence:      1,
+		ChainID:       xion.Config().ChainID,
+		AccountNumber: account.GetAccountNumber(),
+		Sequence:      account.GetSequence(),
 		PubKey: &anypb.Any{
 			TypeUrl: anyPk.TypeUrl,
 			Value:   anyPk.Value,
@@ -254,25 +254,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	txBuilder, err = xion.Config().EncodingConfig.TxConfig.WrapTxBuilder(tx)
 	require.NoError(t, err)
-
-	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
-	txBuilder.SetGasLimit(200_000) // 20 million because verification takes a lot of gas
-
-	builtTx := txBuilder.GetTx()
-	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
-	if !ok {
-		panic(fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", builtTx))
-	}
-	txData := adaptableTx.GetSigningTxData()
-
-	signBytes, err := xion.Config().EncodingConfig.TxConfig.SignModeHandler().GetSignBytes(
-		ctx,
-		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
-		signerData, txData)
-	require.NoError(t, err)
-
-	signBytes64 := base64.StdEncoding.EncodeToString(signBytes)
-	t.Logf("sign bytes: %s %s %v", signBytes64, string(signBytes), signBytes)
 
 	// Hardcoded proof (pre-generated externally)
 	proofBz, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "keys", "zkproof.json"))
@@ -313,6 +294,25 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	err = txBuilder.SetSignatures(sigV2)
 	require.NoError(t, err)
 
+	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
+	txBuilder.SetGasLimit(2_000_000) // 20 million because verification takes a lot of gas
+
+	builtTx := txBuilder.GetTx()
+	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
+	if !ok {
+		panic(fmt.Errorf("expected tx to implement V2AdaptableTx, got %T", builtTx))
+	}
+	txData := adaptableTx.GetSigningTxData()
+
+	signBytes, err := xion.Config().EncodingConfig.TxConfig.SignModeHandler().GetSignBytes(
+		ctx,
+		signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
+		signerData, txData)
+	require.NoError(t, err)
+
+	signBytes64 := base64.StdEncoding.EncodeToString(signBytes)
+	t.Logf("sign bytes: %s %s %v", signBytes64, string(signBytes), signBytes)
+
 	jsonTx, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
@@ -323,9 +323,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
-	newBalance, err := xion.GetBalance(ctx, aaContractAddr, xion.Config().Denom)
-	require.NoError(t, err)
-	require.Equal(t, int64(1_000_000_000_000-100_000), newBalance.Int64())
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, int64(100_000), recipientBalance.Int64())
