@@ -21,25 +21,29 @@ jobs:
           # - arm64
         test_type:
           - "DungeonTransferBlock"
-          - "XionSendPlatformFee"
           - "MintModuleNoInflationNoFees"
           - "MintModuleInflationNoFees"
           - "MintModuleInflationHighFees"
           - "MintModuleInflationLowFees"
           - "JWTAbstractAccount"
+          - "XionAbstractAccountJWTCLI"
           - "XionSendPlatformFee"
           - "XionAbstractAccount"
-          - "WebAuthNAbstractAccount"
+          - "XionClientEvent"
           - "XionMinimumFeeDefault"
-          # - "XionMinimumFeeZero" # disabled, needs fix
+          - "XionMinimumFeeDefault"
+          - "XionMinimumFeeZero"
           - "XionTokenFactory"
-          - "XionAbstractAccountJWTCLI"
           - "TreasuryContract"
-          - "TreasuryMulti"
-          - "SingleAbstractAccountMigration"
-          - "Simulate"
           - "UpdateTreasuryConfigsWithLocalAndURL"
           - "UpdateTreasuryConfigsWithAALocalAndURL"
+          - "UpdateTreasuryContractParams"
+          - "TreasuryMulti"
+          - "XionMinimumFeeDefault"
+          - "WebAuthNAbstractAccount"
+          - "XionUpgradeNetwork"
+          - "AbstractAccountMigration"
+          - "Simulate"
 
     steps:
       - name: checkout
