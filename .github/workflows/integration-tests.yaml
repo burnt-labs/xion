@@ -82,4 +82,4 @@ jobs:
         run: |
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
           chmod a+x ./dist/test-${{ matrix.os }}-${{ matrix.arch }}
-          dist/test-${{ matrix.os }}-${{ matrix.arch }} -test.failfast -test.v -test.run ${{ matrix.test_type }}
+          dist/test-${{ matrix.os }}-${{ matrix.arch }} -test.failfast -test.v -test.run Test${{ matrix.test_type }}
