@@ -59,7 +59,7 @@ require (
 	github.com/hashicorp/go-metrics v0.5.3
 	github.com/larry0x/abstract-account v0.0.0-20240202022305-255071ed91ee
 	github.com/lestrrat-go/jwx/v2 v2.0.21
-	github.com/osmosis-labs/fee-abstraction/v8 v8.0.1
+	github.com/osmosis-labs/fee-abstraction/v8 v8.0.2
 	github.com/prometheus/client_golang v1.20.5
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.8.1
