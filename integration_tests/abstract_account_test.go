@@ -584,7 +584,7 @@ func TestXionAbstractAccount(t *testing.T) {
 		aaContractAddr,
 		path.Join(xion.GetNode().HomeDir(), removeFilePath[len(removeFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
-		"--nuthenticator-id", "1",
+		"--authenticator-id", "1",
 	)
 	require.NoError(t, err)
 
