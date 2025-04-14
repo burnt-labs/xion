@@ -20,26 +20,31 @@ jobs:
           - amd64
           # - arm64
         test_type:
-          - "DungeonTransferBlock"
-          - "XionSendPlatformFee"
-          - "MintModuleNoInflationNoFees"
-          - "MintModuleInflationNoFees"
-          - "MintModuleInflationHighFees"
-          - "MintModuleInflationLowFees"
-          - "JWTAbstractAccount"
+          - "TestDungeonTransferBlock"
+          - "TestMintModuleNoInflationNoFees"
+          - "TestMintModuleInflationNoFees"
+          - "TestMintModuleInflationHighFees"
+          - "TestMintModuleInflationLowFees"
+          - "TestJWTAbstractAccount"
+          - "TestXionAbstractAccountJWTCLI"
           - "XionSendPlatformFee"
           - "XionAbstractAccount"
+          - "XionClientEvent"
+          - "TestXionMinimumFeeDefault"
+          - "TestXionMinimumFeeDefault"
+          - "TestXionMinimumFeeZero"
+          - "TestXionTokenFactory"
+          - "TestTreasuryContract"
+          - "TestUpdateTreasuryConfigsWithLocalAndURL"
+          - "TestUpdateTreasuryConfigsWithAALocalAndURL"
+          - "TestUpdateTreasuryContractParams"
+          - "TestTreasuryMulti"
+          - "TestXionMinimumFeeDefault"
           - "WebAuthNAbstractAccount"
-          - "XionMinimumFeeDefault"
-          - "XionMinimumFeeZero"
-          - "XionTokenFactory"
-          - "XionAbstractAccountJWTCLI"
-          - "TreasuryContract"
-          - "TreasuryMulti"
-          - "SingleAbstractAccountMigration"
-          - "Simulate"
-          - "UpdateTreasuryConfigsWithLocalAndURL"
-          - "UpdateTreasuryConfigsWithAALocalAndURL"
+          - "TestXionUpgradeIBC"
+          - "TestXionUpgradeNetwork"
+          - "TestAbstractAccountMigration"
+          - "TestSimulate"
 
     steps:
       - name: checkout
@@ -80,4 +85,4 @@ jobs:
         run: |
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
           chmod a+x ./dist/test-${{ matrix.os }}-${{ matrix.arch }}
-          dist/test-${{ matrix.os }}-${{ matrix.arch }} -test.failfast -test.v -test.run Test${{ matrix.test_type }}
+          dist/test-${{ matrix.os }}-${{ matrix.arch }} -test.failfast -test.v -test.run ${{ matrix.test_type }}
