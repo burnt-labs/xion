@@ -58,9 +58,12 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 		}
 		return &types.QueryDkimPubKeysResponse{
 			DkimPubKeys: []*types.DkimPubKey{{
-				Domain:   dkimPubKey.Domain,
-				PubKey:   dkimPubKey.PubKey,
-				Selector: dkimPubKey.Selector,
+				Domain:       dkimPubKey.Domain,
+				PubKey:       dkimPubKey.PubKey,
+				Selector:     dkimPubKey.Selector,
+				PoseidonHash: dkimPubKey.PoseidonHash,
+				Version:      types.Version(dkimPubKey.Version),
+				KeyType:      types.KeyType(dkimPubKey.KeyType),
 			}},
 			Pagination: nil,
 		}, nil

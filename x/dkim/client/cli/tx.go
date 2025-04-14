@@ -43,10 +43,6 @@ func MsgUpdateParams() *cobra.Command {
 
 			senderAddress := cliCtx.GetFromAddress()
 
-			if err != nil {
-				return err
-			}
-
 			msg := &types.MsgUpdateParams{
 				Authority: senderAddress.String(),
 				Params:    types.Params{},

@@ -49,7 +49,7 @@ func GetCmdParams() *cobra.Command {
 
 func GetDkimPublicKey() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "dkim-pubkey [flag] <domain> <selector>",
+		Use:     "dkim-pubkey <domain> <selector> [flag]",
 		Short:   "Get a DKIM public key",
 		Aliases: []string{"qdkim"},
 		Args:    cobra.ExactArgs(2),

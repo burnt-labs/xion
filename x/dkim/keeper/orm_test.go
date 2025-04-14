@@ -21,15 +21,17 @@ func TestORM(t *testing.T) {
 	domain := "xion.burnt.com"
 	pubKey := "xion1234567890"
 	selector := "zkemail"
+	poseidonHash := []byte("poseidonHash")
 	version := types.Version_DKIM1
 	keyType := types.KeyType_RSA
 
 	isSaved, err := dkimKeeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
-		Domain:   domain,
-		PubKey:   pubKey,
-		Selector: selector,
-		Version:  version,
-		KeyType:  keyType,
+		Domain:       domain,
+		PubKey:       pubKey,
+		Selector:     selector,
+		PoseidonHash: poseidonHash,
+		Version:      version,
+		KeyType:      keyType,
 	}, f.k.OrmDB)
 
 	require.NoError(t, err)
@@ -43,6 +45,7 @@ func TestORM(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.EqualValues(t, pubKey, res.PubKey)
+	require.EqualValues(t, poseidonHash, res.PoseidonHash)
 	require.EqualValues(t, types.Version_DKIM1, res.Version)
 	require.EqualValues(t, types.KeyType_RSA, res.KeyType)
 }
@@ -51,7 +54,7 @@ func CreateNDkimPubKey(t *testing.T, domain string, pubKey string, version types
 	var dkimPubKeys []types.DkimPubKey
 	hash, err := types.ComputePoseidonHash(pubKey)
 	require.NoError(t, err)
-	for i := 0; i < count; i++ {
+	for range count {
 		selector := uuid.NewString()
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
 			Domain:       domain,

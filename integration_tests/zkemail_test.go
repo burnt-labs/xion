@@ -13,7 +13,7 @@ import (
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
 	txsigning "cosmossdk.io/x/tx/signing"
-	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -137,8 +137,9 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		emailHash,
 		dkimDomain,
 	)
+	t.Logf("auth execute msg: %s", authExecuteMsg)
 
-	msgExec := &wasm.MsgExecuteContract{
+	msgExec := &wasmtypes.MsgExecuteContract{
 		Sender:   aaContractAddr, // contract is the sender in this case
 		Contract: aaContractAddr, // target contract address is also the AA contract
 		Msg:      []byte(authExecuteMsg),
@@ -201,6 +202,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	// Verify the authenticator type is ZKEmail
 	require.Contains(t, response, "ZKEmail", "Response should contain ZKEmail field")
+	require.Equal(t, response["ZKEmail"].(map[string]any)["email_hash"].(string), emailHash, "Email hash should match")
+	require.Equal(t, response["ZKEmail"].(map[string]any)["dkim_domain"].(string), dkimDomain, "DKIM domain should match")
 
 	// Wait for a few blocks to ensure query is up to date
 	err = testutil.WaitForBlocks(ctx, 2, xion)
@@ -317,7 +320,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err := ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
+	output, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--gas", "2000000", "--gas-prices", "0.025uxion", "--gas-adjustment", "1.5")
 	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 
