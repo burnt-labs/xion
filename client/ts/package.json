@@ -1,0 +1,26 @@
+{
+  "name": "@burnt-labs/xion-types",
+  "version": "16.0.0",
+  "description": "TypeScript definitions for Xion Protobuf files",
+  "main": "index.js",
+  "types": "types/index.d.ts",
+  "files": [
+    "types/"
+  ],
+  "scripts": {
+    "build": "../../scripts/proto-gen.sh --ts",
+    "test": "jest"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@improbable-eng/grpc-web": "^0.14.1",
+    "browser-headers": "^0.4.1",
+    "google-protobuf": "^3.17.3",
+    "long": "^4.0.0",
+    "protobufjs": "~6.11.2"
+  },
+  "devDependencies": {
+    "prettier": "^2.3.0",
+    "ts-proto": "^1.82.5"
+  }
+}

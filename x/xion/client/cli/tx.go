@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -22,6 +24,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/codec"
+	cdcTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -43,6 +47,28 @@ const (
 	flagSubject         = "sub"
 )
 
+type ExplicitAny struct {
+	TypeURL string `json:"type_url"`
+	Value   []byte `json:"value"`
+}
+
+type GrantConfig struct {
+	Description   string      `json:"description"`
+	Authorization interface{} `json:"authorization"`
+	Optional      bool        `json:"optional"`
+}
+
+type UpdateGrantConfig struct {
+	MsgTypeURL  string      `json:"msg_type_url"`
+	GrantConfig GrantConfig `json:"grant_config"`
+}
+
+type FeeConfig struct {
+	Description string      `json:"description"`
+	Allowance   interface{} `json:"allowance,omitempty"`
+	Expiration  int32       `json:"expiration,omitempty"`
+}
+
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
@@ -60,6 +86,8 @@ func NewTxCmd() *cobra.Command {
 		NewAddAuthenticatorCmd(),
 		NewRegisterCmd(),
 		NewEmitArbitraryDataCmd(),
+		NewUpdateConfigsCmd(),
+		NewUpdateParamsCmd(),
 	)
 
 	return txCmd
@@ -567,6 +595,200 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 	return cmd
 }
 
+func NewUpdateConfigsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-configs [contract] [config_path_or_url]",
+		Short: "Batch update grant configs and fee config for the treasury",
+		Long:  "Batch update grant configs and fee config for the treasury. To read from a local file, use the --local flag otherwise the config_path_or_url is treated as a URL",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			cdc := clientCtx.Codec
+
+			contract := args[0]
+			configSource := args[1]
+
+			// Determine source type (local file or URL)
+			localSource, err := cmd.Flags().GetBool("local")
+			if err != nil {
+				return fmt.Errorf("failed to parse local flag: %w", err)
+			}
+
+			var configData struct {
+				GrantConfig []UpdateGrantConfig `json:"grant_config"`
+				FeeConfig   FeeConfig           `json:"fee_config"`
+			}
+
+			if localSource {
+				// Read from local file
+				fileData, err := os.ReadFile(configSource)
+				if err != nil {
+					return fmt.Errorf("failed to read configuration file: %w", err)
+				}
+				err = json.Unmarshal(fileData, &configData)
+				if err != nil {
+					return fmt.Errorf("failed to unmarshal local configuration file: %w", err)
+				}
+			} else {
+				// Fetch JSON from URI
+				parsedURL, err := url.Parse(configSource)
+				if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") {
+					return fmt.Errorf("invalid URL: %s", configSource)
+				}
+				// #nosec G107 - URL is controlled and safe in this context
+				resp, err := http.Get(configSource)
+				if err != nil {
+					return fmt.Errorf("failed to fetch configuration from URI: %w", err)
+				}
+				defer resp.Body.Close()
+
+				if resp.StatusCode != http.StatusOK {
+					return fmt.Errorf("received non-200 response code: %d", resp.StatusCode)
+				}
+
+				err = json.NewDecoder(resp.Body).Decode(&configData)
+				if err != nil {
+					return fmt.Errorf("failed to decode JSON response: %w", err)
+				}
+			}
+
+			var msgs []sdk.Msg
+			// Process Grant Configs
+			for _, grant := range configData.GrantConfig {
+				auth := grant.GrantConfig.Authorization
+				authM, ok := auth.(map[string]interface{})
+				if !ok {
+					return fmt.Errorf("failed to parse authorization from grant config")
+				}
+				grantConfig, err := ConvertJSONToAny(cdc, authM)
+				if err != nil {
+					return fmt.Errorf("failed to convert grant config to Any: %w", err)
+				}
+				grant.GrantConfig.Authorization = grantConfig
+				executeMsg := map[string]interface{}{
+					"update_grant_config": map[string]interface{}{
+						"msg_type_url": grant.MsgTypeURL,
+						"grant_config": grant.GrantConfig,
+					},
+				}
+				msgBz, err := json.Marshal(executeMsg)
+				if err != nil {
+					return fmt.Errorf("failed to marshal execute message for grant: %w", err)
+				}
+				msg := &wasmtypes.MsgExecuteContract{
+					Sender:   clientCtx.GetFromAddress().String(),
+					Contract: contract,
+					Msg:      msgBz,
+					Funds:    sdk.Coins{},
+				}
+				msgs = append(msgs, msg)
+			}
+
+			// Process Fee Config
+			allowance := configData.FeeConfig.Allowance
+			allowanceM := allowance.(map[string]interface{})
+			feeConfig, err := ConvertJSONToAny(cdc, allowanceM)
+			if err != nil {
+				return fmt.Errorf("failed to convert fee config to Any: %w", err)
+			}
+			configData.FeeConfig.Allowance = feeConfig
+
+			feeExecuteMsg := map[string]interface{}{
+				"update_fee_config": map[string]interface{}{
+					"fee_config": configData.FeeConfig,
+				},
+			}
+			feeMsgBz, err := json.Marshal(feeExecuteMsg)
+			if err != nil {
+				return fmt.Errorf("failed to marshal execute message for fee config: %w", err)
+			}
+			feeMsg := &wasmtypes.MsgExecuteContract{
+				Sender:   clientCtx.GetFromAddress().String(),
+				Contract: contract,
+				Msg:      feeMsgBz,
+				Funds:    sdk.Coins{},
+			}
+			msgs = append(msgs, feeMsg)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgs...)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	cmd.Flags().Bool("local", false, "Specify if the config source is a local file instead of a URL")
+	return cmd
+}
+
+func NewUpdateParamsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-params <contract> <display_url> <redirect_url> <icon_url>",
+		Short: "Update treasury contract parameters",
+		Long: `Updates a treasury contract's display URL, redirect URL, and icon URL.
+		Example:
+		update-params <contract_address> "https://example.com/display" "https://example.com/redirect" "https://example.com/icon.png"
+		`,
+		Args: cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			contract := args[0]
+			displayURL := args[1]
+			redirectURL := args[2]
+			iconURL := args[3]
+
+			_, err = url.ParseRequestURI(displayURL)
+			if err != nil {
+				return fmt.Errorf("invalid display URL: %w", err)
+			}
+			_, err = url.ParseRequestURI(redirectURL)
+			if err != nil {
+				return fmt.Errorf("invalid redirect URL: %w", err)
+			}
+			_, err = url.ParseRequestURI(iconURL)
+			if err != nil {
+				return fmt.Errorf("invalid icon URL: %w", err)
+			}
+
+			// Construct the execute message
+			updateMsg := map[string]interface{}{
+				"update_params": map[string]interface{}{
+					"params": map[string]string{
+						"display_url":  displayURL,
+						"redirect_url": redirectURL,
+						"icon_url":     iconURL,
+					},
+				},
+			}
+
+			// Serialize the message to JSON
+			msgBz, err := json.Marshal(updateMsg)
+			if err != nil {
+				return fmt.Errorf("failed to marshal execute message: %w", err)
+			}
+
+			// Create a MsgExecuteContract message
+			msg := &wasmtypes.MsgExecuteContract{
+				Sender:   clientCtx.GetFromAddress().String(),
+				Contract: contract,
+				Msg:      msgBz,
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
 func getSignerOfTx(queryClient authtypes.QueryClient, address sdk.AccAddress) (*aatypes.AbstractAccount, error) {
 	res, err := queryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: address.String()})
 	if err != nil {
@@ -655,4 +877,41 @@ func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticat
 		require.NoError(t, err)
 		t.Logf("signed token: %s", output)
 	*/
+}
+
+func ConvertJSONToAny(cdc codec.Codec, jsonInput map[string]interface{}) (ExplicitAny, error) {
+	typeURL, ok := jsonInput["@type"].(string)
+	if !ok {
+		return ExplicitAny{}, fmt.Errorf("failed to parse type URL from JSON")
+	}
+	delete(jsonInput, "@type")
+	// Resolve the concrete type for the given typeURL
+	protoMsg, err := cdc.InterfaceRegistry().Resolve(typeURL)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to resolve type URL %s: %w", typeURL, err)
+	}
+	jsonInputBz, err := json.Marshal(jsonInput)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to marshal JSON input: %w", err)
+	}
+	// Unmarshal the JSON into the Protobuf message
+	err = cdc.UnmarshalJSON(jsonInputBz, protoMsg)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to unmarshal JSON into proto.Message: %w", err)
+	}
+
+	// Marshal the Protobuf message into Any
+	val, err := cdcTypes.NewAnyWithValue(protoMsg)
+	if err != nil {
+		return ExplicitAny{}, fmt.Errorf("failed to marshal proto.Message into Any: %w", err)
+	}
+
+	res := ExplicitAny{
+		TypeURL: val.TypeUrl,
+		Value:   val.Value,
+	}
+
+	protoMsg.Reset()
+
+	return res, nil
 }

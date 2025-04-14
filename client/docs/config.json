@@ -3,11 +3,11 @@
     "info": {
         "title": "Cosmos SDK - gRPC Gateway docs",
         "description": "A REST interface for state queries",
-        "version": "1.0.0"
+        "version": "16.0.0"
     },
     "apis": [
         {
-            "url": "./tmp-swagger-gen/cosmos/auth/v1beta1/query.swagger.json",
+            "url": "./cosmos/auth/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "AuthParams"
@@ -15,7 +15,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/bank/v1beta1/query.swagger.json",
+            "url": "./cosmos/bank/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "BankParams"
@@ -23,7 +23,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/base/tendermint/v1beta1/query.swagger.json",
+            "url": "./cosmos/base/tendermint/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "BaseParams"
@@ -31,7 +31,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/distribution/v1beta1/query.swagger.json",
+            "url": "./cosmos/distribution/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "DistributionParams"
@@ -39,7 +39,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/evidence/v1beta1/query.swagger.json",
+            "url": "./cosmos/evidence/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "EvidenceParams"
@@ -47,7 +47,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/gov/v1beta1/query.swagger.json",
+            "url": "./cosmos/gov/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "GovParams"
@@ -55,7 +55,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/gov/v1/query.swagger.json",
+            "url": "./cosmos/gov/v1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "GovV1Params",
@@ -70,7 +70,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/mint/v1beta1/query.swagger.json",
+            "url": "./cosmos/mint/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "MintParams"
@@ -78,7 +78,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/params/v1beta1/query.swagger.json",
+            "url": "./cosmos/params/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "Params"
@@ -86,7 +86,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/slashing/v1beta1/query.swagger.json",
+            "url": "./cosmos/slashing/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "SlashingParams"
@@ -94,7 +94,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/staking/v1beta1/query.swagger.json",
+            "url": "./cosmos/staking/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "StakingParams",
@@ -103,13 +103,13 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/tx/v1beta1/service.swagger.json",
+            "url": "./cosmos/tx/v1beta1/service.swagger.json",
             "dereference": {
                 "circular": "ignore"
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/upgrade/v1beta1/query.swagger.json",
+            "url": "./cosmos/upgrade/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "UpgradeParams"
@@ -117,7 +117,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/authz/v1beta1/query.swagger.json",
+            "url": "./cosmos/authz/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "AuthzParams"
@@ -125,7 +125,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/feegrant/v1beta1/query.swagger.json",
+            "url": "./cosmos/feegrant/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "FeegrantParams"
@@ -133,7 +133,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/nft/v1beta1/query.swagger.json",
+            "url": "./cosmos/nft/v1beta1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "NftParams",
@@ -142,7 +142,7 @@
             }
         },
         {
-            "url": "./tmp-swagger-gen/cosmos/group/v1/query.swagger.json",
+            "url": "./cosmos/group/v1/query.swagger.json",
             "operationIds": {
                 "rename": {
                     "Params": "GroupParams",

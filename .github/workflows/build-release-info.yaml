@@ -25,25 +25,6 @@ jobs:
           pattern: xiond-*
           merge-multiple: true
 
-      - name: Create binaries.json
-        working-directory: release
-        id: binaries-json
-        run: |
-          set -Eeuo pipefail
-          ls xiond-* | grep -v 'xiond-darwin-all' | while read -r file; do
-            platform=$(echo $file | cut -d- -f2- | sed -E 's/^rc[0-9]*-//g; s/-/\//g')
-            checksum=$(sha256sum "$file" | awk '{ print $1 }')
-            echo "$platform: https://github.com/burnt-labs/xion/releases/download/${{ github.ref_name }}/$file?checksum=sha256:$checksum"
-          done | yq '{"binaries": .}' -o json | tee binaries.json
-
-      - name: Upload binaries.json file
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries.json
-          path: release/binaries.json
-          retention-days: 3
-          if-no-files-found: error
-
       - name: Create version.json
         working-directory: release
         run: |
