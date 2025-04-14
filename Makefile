@@ -264,23 +264,23 @@ test-integration-xion-update-treasury-configs-aa: compile-integration-tests
 test-integration-xion-update-treasury-params: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestUpdateTreasuryContractParams
 
+test-integration-single-aa-mig: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestSingleAbstractAccountMigration
+
 test-treasury-multi: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestTreasuryMulti
 
-test-xion-integration-min: compile-integration-tests
+test-integration-min-fee: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
 
 test-integration-web-auth-n-abstract-account: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=WebAuthNAbstractAccount
 
-test-integration-upgrade: compile-integration-tests
+test-integration-upgrade-ibc: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeIBC
 
 test-integration-upgrade-network: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeNetwork
-
-test-integration-xion-mig: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestAbstractAccountMigration
 
 test-integration-simulate: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestSimulate
