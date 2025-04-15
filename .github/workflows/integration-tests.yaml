@@ -34,7 +34,7 @@ jobs:
             - "UpdateTreasuryConfigsWithLocalAndURL"
             - "UpdateTreasuryContractParams"
             - "WebAuthNAbstractAccount"
-            # - "XionAbstractAccount" # needs fix
+            - "XionAbstractAccount"
             - "XionAbstractAccountJWTCLI"
             - "XionClientEvent"
             - "XionMinimumFeeDefault"
