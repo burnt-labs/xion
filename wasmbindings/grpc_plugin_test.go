@@ -122,11 +122,11 @@ func (suite *GrpcTestSuite) TestAuthzGrpcQuerier() {
 			suite.Require().NoError(err)
 
 			if tc.checkResponseStruct {
-				reponseBz, err := proto.Marshal(grpcResponse)
+				responseBz, err := proto.Marshal(grpcResponse)
 				suite.Require().NoError(err)
 				expectedResponseBz, err := proto.Marshal(tc.responseProtoStruct())
 				suite.Require().NoError(err)
-				suite.Require().Equal(reponseBz, expectedResponseBz)
+				suite.Require().Equal(responseBz, expectedResponseBz)
 			}
 
 			if tc.resendRequest {
