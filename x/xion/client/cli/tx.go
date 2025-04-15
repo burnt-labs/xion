@@ -85,6 +85,7 @@ func NewTxCmd() *cobra.Command {
 		NewSignCmd(),
 		NewAddAuthenticatorCmd(),
 		NewRegisterCmd(),
+		NewEmitArbitraryDataCmd(),
 		NewUpdateConfigsCmd(),
 		NewUpdateParamsCmd(),
 	)
@@ -542,6 +543,58 @@ func NewSignCmd() *cobra.Command {
 	return cmd
 }
 
+// NewEmitArbitraryDataCmd returns a CLI command handler for emitting some arbitrary data from the chain.
+func NewEmitArbitraryDataCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "emit <arbitrary_data> <contract_address> --authenticator-id [uint8]",
+		Short: "Emit an arbitrary data from the chain",
+		Long:  `Sends an arbitrary data to the contract's emit endpoint. The contract emits the arbitrary contract on-chain.`,
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			arbitraryData := args[0]
+
+			contractAddr := args[1]
+
+			data := map[string]interface{}{}
+			data["data"] = arbitraryData
+			msg := map[string]interface{}{}
+			msg["emit"] = data
+
+			jsonMsg, err := json.Marshal(msg)
+			if err != nil {
+				return err
+			}
+
+			rawMsg := wasmtypes.RawContractMessage{}
+			err = json.Unmarshal(jsonMsg, &rawMsg)
+			if err != nil {
+				return err
+			}
+
+			wasmMsg := &wasmtypes.MsgExecuteContract{
+				Sender:   contractAddr,
+				Contract: contractAddr,
+				Msg:      rawMsg,
+				Funds:    nil,
+			}
+			if err := wasmMsg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), wasmMsg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().Uint8(flagAuthenticatorID, 0, "Authenticator index locator")
+
+	return cmd
+}
+
 func NewUpdateConfigsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-configs [contract] [config_path_or_url]",
@@ -666,6 +719,7 @@ func NewUpdateConfigsCmd() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+
 	cmd.Flags().Bool("local", false, "Specify if the config source is a local file instead of a URL")
 	return cmd
 }

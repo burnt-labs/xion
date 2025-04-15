@@ -3,7 +3,7 @@
     "info": {
         "title": "Cosmos SDK - gRPC Gateway docs",
         "description": "A REST interface for state queries",
-        "version": "16.0.0"
+        "version": "18.0.0"
     },
     "apis": [
         {
