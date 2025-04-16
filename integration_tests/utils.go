@@ -20,10 +20,10 @@ import (
 	"time"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
+	dkim "github.com/burnt-labs/xion/x/dkim"
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
 	"github.com/burnt-labs/xion/x/xion"
-	dkim "github.com/burnt-labs/xion/x/dkim"
 	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
@@ -443,6 +443,22 @@ func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, pa
 	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
 		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
 	}
+	out, err := json.Marshal(g)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+	}
+	return out, nil
+}
+
+func ModifyGenesisAAParams(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
+	g := make(map[string]any)
+	if err := json.Unmarshal(genbz, &g); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	if err := dyno.Set(g, params[0], "app_state", "abstractaccount", "params", "max_gas_before"); err != nil {
+		return nil, fmt.Errorf("failed to set aa max gas before in genesis: %w", err)
+	}
+
 	out, err := json.Marshal(g)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)

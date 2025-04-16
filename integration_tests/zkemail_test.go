@@ -62,7 +62,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		},
 	})
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisDKIMRecords}, [][]string{{votingPeriod, maxDepositPeriod}, {string(gPubKeyBz)}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisDKIMRecords, ModifyGenesisAAParams}, [][]string{{votingPeriod, maxDepositPeriod}, {string(gPubKeyBz)}, {"20000000"}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	config := types.GetConfig()
@@ -320,7 +320,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--gas", "2000000", "--gas-prices", "0.025uxion", "--gas-adjustment", "1.5")
+	output, err := ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 
