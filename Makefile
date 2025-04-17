@@ -127,6 +127,7 @@ build-docker:
 	  --progress=plain \
 	  --build-arg=GORELEASER_IMAGE=$(GORELEASER_IMAGE) \
 	  --build-arg=GORELEASER_VERSION=$(GORELEASER_VERSION) \
+		--no-cache \
 	  --tag $(XION_IMAGE) .
 
 build-docker-arm64 build-docker-amd64:
