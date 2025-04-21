@@ -2,7 +2,6 @@ package keeper
 
 import (
 	b64 "encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	"github.com/vocdoni/circom2gnark/parser"
 	"gotest.tools/assert"
 
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 )
 
@@ -50,69 +50,13 @@ func TestCalculateTxBodyCommitment(t *testing.T) {
 	received, err := calculateTxBodyCommitment(string(decodedTx))
 	require.NoError(t, err)
 
-	assert.Equal(t, "18446744073709551615", received)
+	assert.Equal(t, "18446744073709551615", received.String())
 }
 
-func calculateTxBodyCommitment(tx string) (string, error) {
-	// Convert string to bytes.
-	txBytes := []byte(tx)
-
-	// Pad the transaction bytes.
-	paddedTxBytes := padBytes(txBytes, TX_BODY_MAX_BYTES)
-
-	// Pack bytes into field elements (as hex strings).
-	txFields := packBytesIntoFields(paddedTxBytes)
-
-	// Initialize commitment to zero (64-char hex string of zero).
-	commitment := ""
-
-	// Process chunks of 16 field elements.
-	chunkSize := 16
-	for i := 0; i < len(txFields); i += chunkSize {
-		end := i + chunkSize
-		if end > len(txFields) {
-			end = len(txFields)
-		}
-		chunk := txFields[i:end]
-
-		// Convert chunk strings to []*big.Int.
-		chunkBigInts := make([]*big.Int, len(chunk))
-		for j, fieldStr := range chunk {
-			bi, ok := new(big.Int).SetString(fieldStr, 16)
-			if !ok {
-				return "", fmt.Errorf("invalid hex string in chunk %d: %s", i/chunkSize, fieldStr)
-			}
-			chunkBigInts[j] = bi
-		}
-
-		// Compute chunk commitment.
-		chunkCommitmentBI, err := poseidon.Hash(chunkBigInts)
-		if err != nil {
-			return "", fmt.Errorf("failed to hash chunk %d: %w", i/chunkSize, err)
-		}
-		chunkCommitment := fmt.Sprintf("%064x", chunkCommitmentBI) // Convert to 64-char hex string.
-
-		// Update commitment.
-		if i == 0 {
-			commitment = chunkCommitment
-		} else {
-			// Convert current commitment to *big.Int.
-			commitmentBI, ok := new(big.Int).SetString(commitment, 16)
-			if !ok {
-				return "", fmt.Errorf("invalid commitment hex at chunk %d: %s", i/chunkSize, commitment)
-			}
-
-			// Hash commitment and chunk commitment.
-			combined := []*big.Int{commitmentBI, chunkCommitmentBI}
-			commitmentBI, err = poseidon.Hash(combined)
-			if err != nil {
-				return "", fmt.Errorf("failed to hash commitment at chunk %d: %w", i/chunkSize, err)
-			}
-			commitment = fmt.Sprintf("%064x", commitmentBI) // Update commitment as hex string.
-		}
-	}
-
-	return commitment, nil
+func fromLeBytesModOrder(bytes []byte) fr.Element {
+	var field fr.Element
+	field.SetBytes(bytes) // Little-endian, modulo BN254 scalar field order.
+	return fr.Element(field)
 }
 
 // padBytes pads the input bytes to the specified length by appending zeros.
@@ -122,15 +66,9 @@ func padBytes(bytes []byte, length int) []byte {
 	return padded
 }
 
-// fromLeBytesModOrder converts up to 31 bytes to a string (representing a field element).
-func fromLeBytesModOrder(bytes []byte) string {
-	// Placeholder: Convert bytes to a string representation (e.g., hex).
-	// In a real implementation, this might encode a 256-bit field element modulo the field order.
-	return hex.EncodeToString(bytes) // Example: Use hex encoding; adjust as needed.
-}
-
-func packBytesIntoFields(bytes []byte) []string {
-	var fields []string
+// packBytesIntoFields converts bytes into fr.Element field elements, using 31 bytes per element.
+func packBytesIntoFields(bytes []byte) []fr.Element {
+	var fields []fr.Element
 	for i := 0; i < len(bytes); i += 31 {
 		end := i + 31
 		if end > len(bytes) {
@@ -141,4 +79,59 @@ func packBytesIntoFields(bytes []byte) []string {
 		fields = append(fields, field)
 	}
 	return fields
+}
+
+// calculateTxBodyCommitment computes the commitment for a transaction body.
+func calculateTxBodyCommitment(tx string) (fr.Element, error) {
+	// Convert string to bytes.
+	txBytes := []byte(tx)
+
+	// Pad the transaction bytes.
+	paddedTxBytes := padBytes(txBytes, TX_BODY_MAX_BYTES)
+
+	// Pack bytes into field elements.
+	txFields := packBytesIntoFields(paddedTxBytes)
+
+	// Initialize commitment to zero.
+	var commitment fr.Element // Zero by default for fr.Element.
+
+	// Process chunks of 16 field elements.
+	chunkSize := 16
+	for i := 0; i < len(txFields); i += chunkSize {
+		end := i + chunkSize
+		if end > len(txFields) {
+			end = len(txFields)
+		}
+		chunk := txFields[i:end]
+
+		// Convert chunk to []*big.Int for Poseidon.
+		chunkBigInts := make([]*big.Int, len(chunk))
+		for j, field := range chunk {
+			chunkBigInts[j] = field.BigInt(new(big.Int)) // Convert fr.Element to *big.Int.
+		}
+
+		// Compute chunk commitment.
+		chunkCommitmentBI, err := poseidon.Hash(chunkBigInts)
+		if err != nil {
+			return fr.Element{}, fmt.Errorf("failed to hash chunk %d: %w", i/chunkSize, err)
+		}
+		var chunkCommitment fr.Element
+		chunkCommitment.SetBigInt(chunkCommitmentBI) // Convert *big.Int to fr.Element.
+
+		// Update commitment.
+		if i == 0 {
+			commitment = fr.Element(chunkCommitment)
+		} else {
+			combined := []*big.Int{commitment.BigInt(new(big.Int)), chunkCommitment.BigInt(new(big.Int))}
+			commitmentBI, err := poseidon.Hash(combined)
+			if err != nil {
+				return fr.Element{}, fmt.Errorf("failed to hash commitment at chunk %d: %w", i/chunkSize, err)
+			}
+			var newCommitment fr.Element
+			newCommitment.SetBigInt(commitmentBI)
+			commitment = fr.Element(newCommitment)
+		}
+	}
+
+	return commitment, nil
 }
