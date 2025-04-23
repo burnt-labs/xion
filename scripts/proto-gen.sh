@@ -72,7 +72,6 @@ gen_swagger() {
   use_tmp_dir $docs_dir
   # Generate swagger for each path
   for dir in $dirs; do
-    echo $dir
     # generate swagger files (filter query files)
     query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
     [[ -n "$query_file" ]] || continue
