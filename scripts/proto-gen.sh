@@ -19,6 +19,7 @@ deps=$(cat <<EOF
   github.com/cosmos/cosmos-proto
   github.com/cosmos/ibc-go/v8
   github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8
+  github.com/osmosis-labs/fee-abstraction/v8
   github.com/CosmWasm/wasmd
 EOF
 )
@@ -71,6 +72,7 @@ gen_swagger() {
   use_tmp_dir $docs_dir
   # Generate swagger for each path
   for dir in $dirs; do
+    echo $dir
     # generate swagger files (filter query files)
     query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
     [[ -n "$query_file" ]] || continue
