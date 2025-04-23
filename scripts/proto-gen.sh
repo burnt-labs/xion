@@ -78,7 +78,7 @@ gen_swagger() {
 
     buf generate --template $proto_dir/buf.gen.swagger.yaml $query_file
   done
-
+  # find ./ -type f
 
   # combine swagger files
   # uses nodejs package `swagger-combine`.

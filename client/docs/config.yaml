@@ -233,3 +233,12 @@ apis:
     tags:
       rename:
         Query: Xion
+
+# not included
+# ./cosmos/app/v1alpha1/query.swagger.json
+# ./cosmos/circuit/v1/query.swagger.json
+# ./cosmos/orm/query/v1alpha1/query.swagger.json
+# ./cosmos/query/v1/query.swagger.json
+# ./cosmos/autocli/v1/query.swagger.json
+# ./cosmos/base/node/v1beta1/query.swagger.json
+# ./ibc/lightclients/wasm/v1/query.swagger.json
