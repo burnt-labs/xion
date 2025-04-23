@@ -53,6 +53,7 @@ jobs:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           NFPM_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_KEY_PATH: /home/runner/.gnupg/trustdb.gpg
         with:
           distribution: goreleaser-pro
           version: "~> v2"
