@@ -45,6 +45,12 @@ universal_binaries:
 source:
   enabled: true
 
+signs:
+  - artifacts: package
+    cmd: gpg2
+    #- args: ["-u", "<key id, fingerprint, email, ...>", "--output", "${signature}", "--detach-sign", "${artifact}"]
+  
+
 archives:
   # brew does not work without zip
   - id: xiond
@@ -66,20 +72,18 @@ brews:
       - xiond@{{ .Version }}
       - xiond@{{ .Major }}
     # Repository to push the generated files to.
-    skip_upload: true
+    skip_upload: false
     repository:
       owner: burnt-labs
-      name: xion-homebrew
+      name: homebrew-xion
       branch: main
+      pull_request:
+        enabled: true
+        draft: false
 
-# Docs: https://goreleaser.com/customization/cloudsmith/
-cloudsmiths:
-  - organization: burnt-labs
-    repository: xiond
-    distributions:
-      deb: "any-distro/any-version"
-      alpine: "alpine/any-version"
-      # rpm: any-distro/any-version"
+# docs https://goreleaser.com/customization/fury/
+furies:
+  - account: burnt
 
 # docs: https://goreleaser.com/customization/checksum/
 checksum:
