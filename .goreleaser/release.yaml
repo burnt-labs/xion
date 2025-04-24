@@ -52,7 +52,7 @@ signs:
   
 
 archives:
-  - id: xiond
+  - id: tgz
     formats: [tar.gz]
     meta: false
     wrap_in_directory: false
@@ -82,6 +82,8 @@ brews:
       - xiond@{{ .Major }}
     # Repository to push the generated files to.
     skip_upload: false
+    ids:
+      - tgz
     repository:
       owner: burnt-labs
       name: homebrew-xion
