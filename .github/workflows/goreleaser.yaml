@@ -44,16 +44,18 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
+      
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         env:
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_KEY_ID: ${{ steps.import_gpg.outputs.keyid }}
+          GPG_KEY_PATH: /home/runner/.gnupg/trustdb.gpg
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          GORELEASER_ACCESS_TOKEN: ${{ secrets.GORELEASER_ACCESS_TOKEN }}
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           NFPM_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_PATH: /home/runner/.gnupg/trustdb.gpg
         with:
           distribution: goreleaser-pro
           version: "~> v2"

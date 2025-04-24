@@ -52,9 +52,9 @@ signs:
   
 
 archives:
-  # brew does not work without zip
+  # brew default is zip
   - id: xiond
-    formats: [tgz, zip]
+    formats: [tar.gz, zip]
     meta: false
     wrap_in_directory: false
     strip_binary_directory: false
@@ -65,6 +65,16 @@ nfpms:
       - apk
       - deb
       - rpm
+    apk:
+      signature:
+        key_file: ${{ .Env.GPG_KEY_PATH }}
+    deb:
+      signature:
+        key_file: ${{ .Env.GPG_KEY_PATH }}
+    rpm:
+      signature:
+        key_file: ${{ .Env.GPG_KEY_PATH }}
+
 
 # Docs: https://goreleaser.com/customization/homebrew/
 brews:
@@ -77,6 +87,7 @@ brews:
       owner: burnt-labs
       name: homebrew-xion
       branch: main
+      token: ${{ Env.GORELEASER_ACCESS_TOKEN }}
       pull_request:
         enabled: true
         draft: false
