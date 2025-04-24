@@ -65,9 +65,9 @@ nfpms:
       - apk
       - deb
       - rpm
-    apk:
-      signature:
-        key_file: "{{ .Env.GPG_KEY_PATH }}"
+    # apk:
+    #   signature:
+    #     key_file: "{{ .Env.RSA_KEY_PATH }}"
     deb:
       signature:
         key_file: "{{ .Env.GPG_KEY_PATH }}"

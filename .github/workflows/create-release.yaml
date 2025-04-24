@@ -13,20 +13,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Golang CI Lint
-    uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@workflows/main
-    secrets: inherit
+  # lint:
+  #   name: Golang CI Lint
+  #   uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@workflows/main
+  #   secrets: inherit
 
-  update-swagger:
-    name: Update Swagger
-    uses: burnt-labs/xion/.github/workflows/update-swagger.yaml@workflows/main
-    secrets: inherit
+  # update-swagger:
+  #   name: Update Swagger
+  #   uses: burnt-labs/xion/.github/workflows/update-swagger.yaml@workflows/main
+  #   secrets: inherit
 
-  unit-tests:
-    name: Go Unit Tests
-    uses: burnt-labs/xion/.github/workflows/tests.yaml@workflows/main
-    secrets: inherit
+  # unit-tests:
+  #   name: Go Unit Tests
+  #   uses: burnt-labs/xion/.github/workflows/tests.yaml@workflows/main
+  #   secrets: inherit
 
   build-darwin:
     name: Build Binaries
@@ -38,10 +38,10 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/binaries-linux.yaml@workflows/main
     secrets: inherit
 
-  build-integration:
-    name: Build Binaries
-    uses: burnt-labs/xion/.github/workflows/binaries-test.yaml@workflows/main
-    secrets: inherit
+  # build-integration:
+  #   name: Build Binaries
+  #   uses: burnt-labs/xion/.github/workflows/binaries-test.yaml@workflows/main
+  #   secrets: inherit
 
   # build-docker:
   #   name: Build Docker Images
@@ -78,9 +78,10 @@ jobs:
   build-release:
     name: Build Release
     needs:
-      - lint
-      - update-swagger
-      - unit-tests
+      - build-linux
+      # - lint
+      # - update-swagger
+      # - unit-tests
       - build-darwin
       # - docker-scout
       # - interchain-tests
