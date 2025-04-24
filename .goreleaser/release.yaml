@@ -102,11 +102,15 @@ brews:
     repository:
       owner: burnt-labs
       name: homebrew-xion
-      branch: main
+      branch: "{{.ProjectName}}-{{.Version}}"
       token: "{{ .Env.GORELEASER_ACCESS_TOKEN }}"
       pull_request:
         enabled: true
         draft: false
+        base:
+          owner: burnt-labs
+          name: homebrew-xion
+          branch: main
 
 
 # Docs: https://goreleaser.com/customization/changelog/
