@@ -99,6 +99,7 @@ brews:
     commit_author:
       name: developer
       email: 197779235+isburnt@users.noreply.github.com
+    directory: Formula
     repository:
       owner: burnt-labs
       name: homebrew-xion
