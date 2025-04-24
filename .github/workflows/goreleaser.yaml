@@ -48,7 +48,7 @@ jobs:
       - name: Save GPG and RSA keys
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" > /home/runner/.gnupg/gpg.asc
-          echo "${{ secrets.RSA_PRIVATE_KEY }}" > /home/runner/.gnupg/pem.pem
+          echo "${{ secrets.PEM_PRIVATE_KEY }}" > /home/runner/.gnupg/pem.pem
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
