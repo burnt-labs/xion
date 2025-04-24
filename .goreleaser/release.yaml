@@ -67,13 +67,13 @@ nfpms:
       - rpm
     apk:
       signature:
-        key_file: ${{ .Env.GPG_KEY_PATH }}
+        key_file: "{{ .Env.GPG_KEY_PATH }}"
     deb:
       signature:
-        key_file: ${{ .Env.GPG_KEY_PATH }}
+        key_file: "{{ .Env.GPG_KEY_PATH }}"
     rpm:
       signature:
-        key_file: ${{ .Env.GPG_KEY_PATH }}
+        key_file: "{{ .Env.GPG_KEY_PATH }}"
 
 
 # Docs: https://goreleaser.com/customization/homebrew/
@@ -87,7 +87,7 @@ brews:
       owner: burnt-labs
       name: homebrew-xion
       branch: main
-      token: ${{ Env.GORELEASER_ACCESS_TOKEN }}
+      token: "{{ .Env.GORELEASER_ACCESS_TOKEN }}"
       pull_request:
         enabled: true
         draft: false
