@@ -94,6 +94,8 @@ brews:
     skip_upload: false
     ids:
       - tgz
+    test: |
+      system "#{bin}/xiond version"
     commit_author:
       name: developer
       email: 197779235+isburnt@users.noreply.github.com
