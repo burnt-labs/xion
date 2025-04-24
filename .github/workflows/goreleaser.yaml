@@ -38,12 +38,21 @@ jobs:
         with:
           go-version: stable
 
-      - name: Import GPG key
-        id: import_gpg
+      - name: Import package signing GPG key
+        id: import_pkg_gpg
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Import github siginig GPG key
+        id: import_git_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_GIT_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_GIT_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       
       - name: Save GPG and RSA keys
         run: |

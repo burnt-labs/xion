@@ -1,5 +1,7 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
 
+# using this file requires goreleaser pro
+
 version: 2
 
 project_name: xiond
@@ -45,18 +47,17 @@ universal_binaries:
 source:
   enabled: true
 
-signs:
-  - artifacts: package
-    cmd: gpg2
-    #- args: ["-u", "<key id, fingerprint, email, ...>", "--output", "${signature}", "--detach-sign", "${artifact}"]
-  
-
 archives:
   - id: tgz
     formats: [tar.gz]
     meta: false
     wrap_in_directory: false
     strip_binary_directory: false
+
+# docs: https://goreleaser.com/customization/checksum/
+checksum:
+  name_template: "xiond-{{ .Version }}-checksums.txt"
+  algorithm: sha256
 
 nfpms:
   - if: '{{ eq .Os "linux" }}'
@@ -74,6 +75,15 @@ nfpms:
       signature:
         key_file: "{{ .Env.GPG_KEY_PATH }}"
 
+# not used
+# signs:
+#   - artifacts: package
+#     cmd: gpg2
+#     #- args: ["-u", "<key id, fingerprint, email, ...>", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+# docs https://goreleaser.com/customization/fury/
+furies:
+  - account: burnt
 
 # Docs: https://goreleaser.com/customization/homebrew/
 brews:
@@ -84,6 +94,9 @@ brews:
     skip_upload: false
     ids:
       - tgz
+    commit_author:
+      name: developer
+      email: 197779235+isburnt@users.noreply.github.com
     repository:
       owner: burnt-labs
       name: homebrew-xion
@@ -93,14 +106,6 @@ brews:
         enabled: true
         draft: false
 
-# docs https://goreleaser.com/customization/fury/
-furies:
-  - account: burnt
-
-# docs: https://goreleaser.com/customization/checksum/
-checksum:
-  name_template: "xiond-{{ .Version }}-checksums.txt"
-  algorithm: sha256
 
 # Docs: https://goreleaser.com/customization/changelog/
 # changelog:
