@@ -77,7 +77,7 @@ jobs:
         with:
           repository: burnt-labs/homebrew-xion
           fetch-depth: 0
-          ref: xiond-${{ github.event.release.tag_name }}
+          ref: xiond-${{ github.ref_name }}
 
       - name: Import github siginig GPG key
         id: import_git_gpg
