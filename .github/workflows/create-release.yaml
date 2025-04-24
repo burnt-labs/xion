@@ -78,6 +78,7 @@ jobs:
   build-release:
     name: Build Release
     needs:
+      - build-linux
       - lint
       - update-swagger
       - unit-tests

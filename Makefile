@@ -240,9 +240,6 @@ test-integration-xion-abstract-account: compile-integration-tests
 test-integration-xion-abstract-account-event: compile_integration_tests
 	$(MAKE) run-integration-test TEST_NAME=XionClientEvent
 
-test-integration-xion-min-default: compile_integration_tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
-
 test-integration-xion-min-default: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
 
