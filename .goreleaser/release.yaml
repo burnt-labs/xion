@@ -52,9 +52,8 @@ signs:
   
 
 archives:
-  # brew default is zip
   - id: xiond
-    formats: [tar.gz, zip]
+    formats: [tar.gz]
     meta: false
     wrap_in_directory: false
     strip_binary_directory: false
