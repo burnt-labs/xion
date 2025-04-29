@@ -2,16 +2,18 @@ package app
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"fmt"
 
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v18"
+const UpgradeName = "v19"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	app.WrapSetUpgradeHandler(UpgradeName)
@@ -27,6 +29,32 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("setting upgrade store loaders")
 			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+
+			ctx := context.Background()
+			minCommission := math.LegacyMustNewDecFromStr("0.05")
+			stakingParams, err := app.StakingKeeper.GetParams(ctx)
+			if err != nil {
+				panic(fmt.Sprintf("failed to get staking params %s", err))
+			}
+			stakingParams.MinCommissionRate = minCommission
+			err = app.StakingKeeper.SetParams(ctx, stakingParams)
+			if err != nil {
+				panic(fmt.Sprintf("failed to set staking params %s", err))
+			}
+
+			err = app.StakingKeeper.IterateValidators(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
+				if validator.GetCommission().LT(minCommission) {
+					val := validator.(stakingtypes.Validator)
+					_, err = app.StakingKeeper.UpdateValidatorCommission(ctx, val, minCommission)
+					if err != nil {
+						return true
+					}
+				}
+				return false
+			})
+			if err != nil {
+				panic(fmt.Sprintf("failed to update validator commission %s", err))
+			}
 		}
 	}
 }
@@ -36,7 +64,7 @@ func (app *WasmApp) WrapSetUpgradeHandler(upgradeName string) {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
-			sdkCtx := sdk.UnwrapSDKContext(ctx)
+			sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 			sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
 			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 		},
