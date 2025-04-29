@@ -157,12 +157,12 @@ import (
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	"github.com/burnt-labs/xion/x/mint"
-	mintkeeper "github.com/burnt-labs/xion/x/mint/keeper"
-	minttypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 const (
@@ -455,7 +455,10 @@ func NewWasmApp(
 		app.BankKeeper,
 		authtypes.FeeCollectorName,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
+		mintkeeper.WithMintFn(xionkeeper.StakedInflationMintFn(
+			authtypes.FeeCollectorName,
+			minttypes.DefaultInflationCalculationFn,
+			app.BankKeeper, app.AccountKeeper, app.StakingKeeper)))
 
 	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,

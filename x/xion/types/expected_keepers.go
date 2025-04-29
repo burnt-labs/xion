@@ -2,6 +2,7 @@ package types // noalias
 
 import (
 	"context"
+	"cosmossdk.io/math"
 
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 
@@ -34,6 +35,8 @@ type BankKeeper interface {
 	BlockedAddr(addr sdktypes.AccAddress) bool
 	SendCoins(ctx context.Context, fromAddr sdktypes.AccAddress, toAddr sdktypes.AccAddress, amt sdktypes.Coins) error
 	InputOutputCoins(ctx context.Context, input banktypes.Input, outputs []banktypes.Output) error
+	GetBalance(ctx context.Context, addr sdktypes.AccAddress, denom string) sdktypes.Coin
+	BurnCoins(ctx context.Context, moduleName string, amt sdktypes.Coins) error
 }
 
 type AccountKeeper interface {
@@ -50,4 +53,9 @@ type WasmKeeper interface {
 type AbstractAccountKeeper interface {
 	GetParams(ctx sdktypes.Context) (*aatypes.Params, error)
 	SetParams(ctx sdktypes.Context, params *aatypes.Params) error
+}
+
+type StakingKeeper interface {
+	TotalBondedTokens(ctx context.Context) (math.Int, error)
+	BondedRatio(ctx context.Context) (math.LegacyDec, error)
 }
