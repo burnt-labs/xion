@@ -3,7 +3,7 @@ module integration_tests
 go 1.23.5
 
 replace (
-	cosmossdk.io/core => cosmossdk.io/core v0.11.1
+	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/burnt-labs/xion => ../
