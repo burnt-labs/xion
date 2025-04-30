@@ -3,7 +3,7 @@ module integration_tests
 go 1.23.5
 
 replace (
-	cosmossdk.io/core => cosmossdk.io/core v0.11.1
+	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/burnt-labs/xion => ../
@@ -37,7 +37,7 @@ require (
 	github.com/larry0x/abstract-account v0.0.0-20240904201714-f31e8234ed64
 	github.com/lestrrat-go/jwx v1.2.29
 	github.com/strangelove-ventures/interchaintest/v8 v8.7.0
-	github.com/strangelove-ventures/tokenfactory v0.50.3
+	github.com/strangelove-ventures/tokenfactory v0.50.6
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/protobuf v1.36.6
