@@ -2,15 +2,15 @@ package app
 
 import (
 	"context"
-	"cosmossdk.io/math"
 	"fmt"
 
+	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 const UpgradeName = "v19"
@@ -42,7 +42,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 				panic(fmt.Sprintf("failed to set staking params %s", err))
 			}
 
-			err = app.StakingKeeper.IterateValidators(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
+			err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, validator stakingtypes.ValidatorI) (stop bool) {
 				if validator.GetCommission().LT(minCommission) {
 					val := validator.(stakingtypes.Validator)
 					_, err = app.StakingKeeper.UpdateValidatorCommission(ctx, val, minCommission)

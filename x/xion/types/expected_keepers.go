@@ -2,9 +2,10 @@ package types // noalias
 
 import (
 	"context"
-	"cosmossdk.io/math"
 
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+
+	"cosmossdk.io/math"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"

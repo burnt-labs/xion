@@ -1,13 +1,16 @@
 package keeper
 
 import (
+	"time"
+
 	"cosmossdk.io/math"
-	"github.com/burnt-labs/xion/x/xion/types"
+
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"time"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 const (
