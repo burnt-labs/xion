@@ -14,6 +14,7 @@ const (
 	AttributeKeyCollectedAmount = "collected_amount"
 	AttributeKeyMintedAmount    = "minted_amount"
 	AttributeKeyBurnedAmount    = "burned_amount"
+	AttributeKeyNeededAmount    = "needed_amount"
 )
 
 func StakedInflationMintFn(feeCollectorName string, ic minttypes.InflationCalculationFn, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper) func(ctx sdk.Context, k *mintkeeper.Keeper) error {
@@ -92,6 +93,7 @@ func StakedInflationMintFn(feeCollectorName string, ic minttypes.InflationCalcul
 				sdk.NewAttribute(minttypes.AttributeKeyBondedRatio, bondedRatio.String()),
 				sdk.NewAttribute(minttypes.AttributeKeyInflation, minter.Inflation.String()),
 				sdk.NewAttribute(minttypes.AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
+				sdk.NewAttribute(AttributeKeyNeededAmount, neededCoin.Amount.String()),
 				sdk.NewAttribute(AttributeKeyMintedAmount, mintedCoin.Amount.String()),
 				sdk.NewAttribute(AttributeKeyCollectedAmount, collectedFeeCoin.Amount.String()),
 				sdk.NewAttribute(AttributeKeyBurnedAmount, burnedCoin.Amount.String()),
