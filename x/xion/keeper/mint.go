@@ -10,6 +10,12 @@ import (
 	"time"
 )
 
+const (
+	AttributeKeyCollectedAmount = "collected_amount"
+	AttributeKeyMintedAmount    = "minted_amount"
+	AttributeKeyBurnedAmount    = "burned_amount"
+)
+
 func StakedInflationMintFn(feeCollectorName string, ic minttypes.InflationCalculationFn, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper) func(ctx sdk.Context, k *mintkeeper.Keeper) error {
 	return func(ctx sdk.Context, k *mintkeeper.Keeper) error {
 		defer telemetry.ModuleMeasureSince(minttypes.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
@@ -86,7 +92,9 @@ func StakedInflationMintFn(feeCollectorName string, ic minttypes.InflationCalcul
 				sdk.NewAttribute(minttypes.AttributeKeyBondedRatio, bondedRatio.String()),
 				sdk.NewAttribute(minttypes.AttributeKeyInflation, minter.Inflation.String()),
 				sdk.NewAttribute(minttypes.AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, mintedCoin.Amount.String()),
+				sdk.NewAttribute(AttributeKeyMintedAmount, mintedCoin.Amount.String()),
+				sdk.NewAttribute(AttributeKeyCollectedAmount, collectedFeeCoin.Amount.String()),
+				sdk.NewAttribute(AttributeKeyBurnedAmount, burnedCoin.Amount.String()),
 			),
 		)
 
