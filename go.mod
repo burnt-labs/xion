@@ -3,7 +3,7 @@ module github.com/burnt-labs/xion
 go 1.23.5
 
 replace (
-	cosmossdk.io/core => cosmossdk.io/core v0.11.1
+	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
@@ -15,7 +15,7 @@ replace (
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20241017182826-e40d245c944a
-	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.3-wasmvm2
+	github.com/strangelove-ventures/tokenfactory => github.com/strangelove-ventures/tokenfactory v0.50.6-wasmvm2
 
 	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -64,7 +64,7 @@ require (
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
-	github.com/strangelove-ventures/tokenfactory v0.50.3
+	github.com/strangelove-ventures/tokenfactory v0.50.6
 	github.com/stretchr/testify v1.10.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	go.uber.org/mock v0.5.2
