@@ -37,7 +37,7 @@ require (
 	github.com/larry0x/abstract-account v0.0.0-20240904201714-f31e8234ed64
 	github.com/lestrrat-go/jwx v1.2.29
 	github.com/strangelove-ventures/interchaintest/v8 v8.7.0
-	github.com/strangelove-ventures/tokenfactory v0.50.3
+	github.com/strangelove-ventures/tokenfactory v0.50.6
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/protobuf v1.36.6
