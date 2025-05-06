@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+
+version: 2
+
+project_name: xiond
+
+dist: dist/dist
+
+# Docs: https://goreleaser.com/customization/build/
+builds:
+  - # Set the builder to prebuilt
+    builder: prebuilt
+
+    # When builder is `prebuilt` there are no defaults for goos, goarch,
+    # goarm, gomips, goamd64 and targets, so you always have to specify them:
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+    # prebuilt specific options
+    prebuilt:
+      # Path must be the template path to the binaries.
+      path: dist/xiond_{{ .Os }}_{{ .Arch }}/xiond
+
+    # Use 'binary' to set the final name of your binary.
+    # This is the name that will be used in archives et al.
+    binary: xiond
+
+dockers:
+  - id: heighliner-linux-arm64
+    ids:
+      - xiond-linux-arm64
+    use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - 'heighliner:{{ .ShortCommit }}-arm64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=heighliner"
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_arm64/xiond"
+
+  - id: heighliner-linux-amd64
+    ids:
+      - xiond-linux-amd64
+    use: buildx
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - 'heighliner:{{ .ShortCommit }}-amd64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=heighliner"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_amd64/xiond"
+
+  - id: xiond-linux-arm64
+    ids:
+      - xiond-linux-arm64
+    use: buildx
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - 'xiond:{{ .ShortCommit }}-arm64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=release"
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_arm64/xiond"
+
+  - id: xiond-linux-amd64
+    ids:
+      - xiond-linux-amd64
+    use: buildx
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - 'xiond:{{ .ShortCommit }}-amd64'
+    build_flag_templates:
+      - "--pull"
+      - "--target=release"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.description={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version=v{{.Version}}"
+      - "--label=org.opencontainers.image.url=https://xion.burnt.com"
+      - "--label=org.opencontainers.image.source=https://github.com/burnt-labs/xion"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--build-arg=XIOND_BINARY=xiond_linux_amd64/xiond"
