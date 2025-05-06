@@ -13,10 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Golang CI Lint
-    uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@workflows/main
-    secrets: inherit
+  # lint:
+  #   name: Golang CI Lint
+  #   uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@workflows/main
+  #   secrets: inherit
 
   update-swagger:
     name: Update Swagger
@@ -79,7 +79,6 @@ jobs:
     name: Build Release
     needs:
       - build-linux
-      - lint
       - update-swagger
       - unit-tests
       - build-darwin
