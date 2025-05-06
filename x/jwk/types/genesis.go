@@ -2,6 +2,11 @@ package types
 
 import (
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // DefaultIndex is the default global index
@@ -23,6 +28,11 @@ func (gs GenesisState) Validate() error {
 	audienceIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.AudienceList {
+		_, err := sdk.AccAddressFromBech32(elem.Admin)
+		if err != nil {
+			return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+		}
+
 		index := string(AudienceKey(elem.Aud))
 		if _, ok := audienceIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for audience")

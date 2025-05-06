@@ -1,0 +1,129 @@
+name: Create Release
+# Run for new release tags only
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  update-networks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - mainnet/xion-mainnet-1
+          - testnets/xion-testnet-1
+    permissions:
+      contents: write
+    steps:
+      - name: Prepare environment
+        run: |
+          BASE_PATH=${{ matrix.path }}
+          NETWORK=$(basename $(dirname ${{ matrix.path }}) s)
+          BINARIES_PATH=${BASE_PATH}/governance-proposals/software-upgrades/binaries
+          METADATA_PATH=${BASE_PATH}/governance-proposals/software-upgrades/metadata
+          PROPOSAL_PATH=${BASE_PATH}/governance-proposals/software-upgrades/proposal
+          UPGRADE_NAME=$(echo ${GITHUB_REF_NAME} | cut -d. -f1)
+          CURRENT_MAJOR=$(echo ${UPGRADE_NAME} | cut -dv -f2)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^)
+          PREVIOUS_MAJOR=$(echo ${PREVIOUS_TAG} | cut -d. -f1 | cut -dv -f2)
+          IS_MAJOR_UPGRADE=$([ "${CURRENT_MAJOR}" -gt "${PREVIOUS_MAJOR}" ] && echo "true" || echo "false")
+          echo "BASE_PATH=${BASE_PATH}" | tee -a ${GITHUB_ENV}
+          echo "NETWORK=${NETWORK}" | tee -a ${GITHUB_ENV}
+          echo "BINARIES_PATH=${BINARIES_PATH}" | tee -a ${GITHUB_ENV}
+          echo "METADATA_PATH=${METADATA_PATH}" | tee -a ${GITHUB_ENV}
+          echo "PROPOSAL_PATH=${PROPOSAL_PATH}" | tee -a ${GITHUB_ENV}
+          echo "UPGRADE_NAME=${UPGRADE_NAME}" | tee -a ${GITHUB_ENV}
+          echo "IS_MAJOR_UPGRADE=${IS_MAJOR_UPGRADE}" | tee -a ${GITHUB_ENV}
+          echo "NETWORKS_REPO=burnt-labs/burnt-networks" | tee -a ${GITHUB_ENV}
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          name: id_ed25519
+          key: ${{ secrets.BURNT_NETWORKS_SSH_KEY }}
+          known_hosts: |
+            github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+
+      - name: Check out code (use ssh)
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+          git clone git@github.com:${{ env.NETWORKS_REPO }}.git ./
+
+      - name: Download json artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*.json"
+          path: /tmp
+          merge-multiple: true
+
+      - name: Rename binaries.json
+        working-directory: ${{ env.BINARIES_PATH }}
+        run: |
+          cp /tmp/binaries.json ${UPGRADE_NAME}.json
+
+      - name: Add metadata json for major upgrade
+        if: env.IS_MAJOR_UPGRADE == 'true'
+        working-directory: ${{ env.METADATA_PATH }}
+        run: |
+          set -Eeuo pipefail
+          [[ -f ${UPGRADE_NAME}.json ]] || \
+          jq -n --arg version ${UPGRADE_NAME} '{
+            title: "Software Upgrade \($version)",
+            authors: [
+            ],
+            summary: "Software Upgrade \($version)",
+            details: "Software Upgrade \($version) at block height <TBD>",
+            proposal_forum_url: "",
+            vote_option_context: "YES to approve the upgrade, NO to reject the upgrade."
+          }' | tee ${UPGRADE_NAME}.json
+
+      - name: Add proposal json for major upgrade
+        if: env.IS_MAJOR_UPGRADE == 'true'
+        working-directory: ${{ env.PROPOSAL_PATH }}
+        run: |
+          set -Eeuo pipefail
+          [[ -f ${UPGRADE_NAME}.json ]] || \
+          jq -n \
+            --arg version ${UPGRADE_NAME} \
+            --arg binaries_url https://raw.githubusercontent.com/${NETWORKS_REPO}/main/${BINARIES_PATH}/${UPGRADE_NAME}.json \
+            --arg metadata_url https://raw.githubusercontent.com/${NETWORKS_REPO}/main/${METADATA_PATH}/${UPGRADE_NAME}.json \
+          '{
+            messages: [
+              {
+                "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+                authority: "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc",
+                plan: {
+                  name: $version,
+                  height: "<TBD>",
+                  info: $binaries_url,
+                  upgraded_client_state: null
+                }
+              }
+            ],
+            metadata: $metadata_url,
+            deposit: "10000000uxion",
+            title: "Software Upgrade \($version)",
+            summary: "Software Upgrade \($version)"
+          }' | tee ${UPGRADE_NAME}.json
+
+      - name: Create PR for major upgrade
+        if: env.IS_MAJOR_UPGRADE == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add -A
+          git commit --message "Update for xion release ${{ env.NETWORK }}/${{ github.ref_name }}"
+          echo "Pushing git commit"
+          git push -f -u origin "HEAD:${{ env.NETWORK }}/${{ github.ref_name }}"
+          git checkout "${{ env.NETWORK }}/${{ github.ref_name }}"
+          # echo "Creating a pull request"
+          # git request-pull main origin ${{ env.NETWORK }}/${{ github.ref_name }}
+          # gh pr create -B main \
+          #   -H ${{ env.NETWORK }}/${{ github.ref_name }} \
+          #   -t ${{ env.NETWORK }}/${{ github.ref_name }} \
+          #   -b ${{ env.NETWORK }}/${{ github.ref_name }} \
+          #   -r 2xburnt

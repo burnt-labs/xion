@@ -1,24 +1,29 @@
 #!/usr/bin/make -f
 
-PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
-VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
-COMMIT := $(shell git log -1 --format='%H')
+PACKAGES_SIMTEST = $(shell go list ./... | grep '/simulation')
+VERSION ?= $(shell echo $(shell git describe --tags) | sed 's/^v//')
+COMMIT ?= $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 BINDIR ?= $(GOPATH)/bin
+BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./app
-XION_IMAGE=xion:local
 
-# for dockerized protobuf tools
+# docker and goreleaser
 DOCKER := $(shell which docker)
-BUF_IMAGE=bufbuild/buf@sha256:3cb1f8a4b48bd5ad8f09168f10f607ddc318af202f5c057d52a45216793d85e5 #v1.4.0
-DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(BUF_IMAGE)
-HTTPS_GIT := https://github.com/burnt-labs/xiond.git
-
-export GO111MODULE = on
+GORELEASER_CROSS_IMAGE := $(if $(GORELEASER_KEY),ghcr.io/goreleaser/goreleaser-cross-pro,ghcr.io/goreleaser/goreleaser-cross)
+GORELEASER_CROSS_VERSION ?= v1.23.6
+# need custom image
+GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
+GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
+GORELEASER_RELEASE ?= false
+GORELEASER_SKIP_FLAGS ?= ""
+GOOS ?= $(shell go env GOOS)
+GOARCH ?= $(shell go env GOARCH)
+XION_IMAGE ?= xiond:$(GOARCH)
+HEIGHLINER_IMAGE ?= heighliner:$(GOARCH)
 
 # process build tags
-
 build_tags = netgo
 ifeq ($(LEDGER_ENABLED),true)
   ifeq ($(OS),Windows_NT)
@@ -79,7 +84,10 @@ include contrib/devtools/Makefile
 
 all: install lint test
 
-build: go.sum
+install: go.sum
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
+
+build: guard-VERSION guard-COMMIT
 ifeq ($(OS),Windows_NT)
 	$(error wasmd server not supported. Use "make build-windows-client" for client)
 	exit 1
@@ -87,14 +95,72 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/xiond ./cmd/xiond
 endif
 
-build-windows-client: go.sum
-	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/xiond.exe ./cmd/xiond
+build-all:
+	$(DOCKER) run --rm \
+		--env NODISTDIR=false \
+		--platform linux/amd64 \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --config .goreleaser/build.yaml --clean --skip validate
 
-install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
+build-local:
+	$(DOCKER) run --rm \
+		--env GOOS=$(GOOS) \
+		--env GOARCH=$(GOARCH) \
+		--env NODISTDIR=true \
+		--env GORELEASER_KEY=$(GORELEASER_KEY) \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		build --config .goreleaser/build.yaml --clean --skip validate --single-target 
 
-########################################
-### Tools & dependencies
+build-linux-arm64 build-linux-amd64 build-darwin-amd64 build-darwin-arm64 build-windows-amd64:
+	$(MAKE) build-local \
+		GOOS=$(if $(findstring windows,$@),windows,$(if $(findstring darwin,$@),darwin,linux)) \
+		GOARCH=$(if $(findstring arm64,$@),arm64,amd64)
+
+build-docker:
+	$(DOCKER) build \
+	  --platform linux/$(GOARCH) \
+	  --target=$(if $(TARGET),$(TARGET),release) \
+	  --progress=plain \
+	  --build-arg=GORELEASER_IMAGE=$(GORELEASER_IMAGE) \
+	  --build-arg=GORELEASER_VERSION=$(GORELEASER_VERSION) \
+	  --tag $(XION_IMAGE) .
+
+build-docker-arm64 build-docker-amd64:
+	$(MAKE) build-docker \
+		GOARCH=$(if $(findstring arm64,$@),arm64,amd64) \
+		XION_IMAGE="xiond:$(GOARCH)"
+
+build-heighliner build-heighliner-amd64 build-heighliner-arm64:
+	$(MAKE) build-docker \
+		GOARCH=$(if $(findstring arm64,$@),arm64,$(if $(findstring amd64,$@),amd64,$(GOARCH))) \
+		XION_IMAGE=heighliner:$(GOARCH) \
+		TARGET=heighliner 
+
+release-snapshot:
+	$(DOCKER) run --rm \
+		--env "GORELEASER_KEY=$(GORELEASER_KEY)" \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		release --config .goreleaser/release.yaml --snapshot --clean
+
+release:
+	$(DOCKER) run --rm \
+		--env "GORELEASER_KEY=$(GORELEASER_KEY)" \
+		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
+		--workdir /root/go/src/github.com/burnt-network/xion \
+		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
+		release --config .goreleaser/release.yaml --auto-snapshot --clean
+
+.PHONY: build release
+
+################################################################################
+###                         Tools & dependencies                             ###
+################################################################################
 
 go-mod-cache: go.sum
 	@echo "--> Download go modules to local cache"
@@ -115,8 +181,15 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
-########################################
-### Testing
+guard-%:
+	@ if [ "${${*}}" = "" ]; then \
+        echo "Environment variable $* not set"; \
+        exit 1; \
+	fi
+
+###############################################################################
+###                                Testing                                  ###
+###############################################################################
 
 
 test: test-unit
@@ -148,6 +221,9 @@ test-integration-mint-module-inflation-low-fees: compile_integration_tests
 
 test-integration-jwt-abstract-account: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestJWTAbstractAccount
+
+test-integration-register-jwt-abstract-account: compile_integration_tests
+	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestXionAbstractAccountJWTCLI
 
 test-integration-xion-send-platform-fee: compile_integration_tests
 	@XION_IMAGE=$(XION_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run XionSendPlatformFee
@@ -196,10 +272,10 @@ test-sim-multi-seed-short: runsim
 test-sim-deterministic: runsim
 	@echo "Running short multi-seed application simulation. This may take awhile!"
 	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 1 1 TestAppStateDeterminism
-
-###############################################################################
-###                                Linting                                  ###
-###############################################################################
+	
+################################################################################
+###                                 Linting                                  ###
+################################################################################
 
 format-tools:
 	go install mvdan.cc/gofumpt@v0.4.0
@@ -217,31 +293,37 @@ format: format-tools
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
 
 
-###############################################################################
-###                                Protobuf                                 ###
-###############################################################################
-protoVer=0.11.6
+################################################################################
+###                                 Protobuf                                 ###
+################################################################################
+protoVer=0.14.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
-proto-all: proto-format proto-lint proto-gen format
+proto-all: proto-format proto-lint proto-gen proto-format
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/protocgen.sh
+	@$(protoImage) sh ./scripts/proto-gen.sh
+
+proto-gen-ts:
+	@echo "Generating Protobuf files"
+	@$(protoImage) sh ./scripts/proto-gen.sh --ts
+
+proto-gen-swagger:
+	@echo "Generating Protobuf Swagger"
+	@$(protoImage) sh scripts/proto-gen.sh --swagger
 
 proto-format:
 	@echo "Formatting Protobuf files"
 	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
 
-proto-swagger-gen:
-	@./scripts/protoc-swagger-gen.sh
-
 proto-lint:
-	@$(DOCKER_BUF) lint --error-format=json
+	@$(protoImage) buf lint --error-format=json
 
 proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
+	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
 .PHONY: all install install-debug \
 	go-mod-cache draw-deps clean build format \

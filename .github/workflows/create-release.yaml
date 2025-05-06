@@ -1,0 +1,94 @@
+name: Create Release
+# Run for new release tags only
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # lint:
+  #   name: Golang CI Lint
+  #   uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@release/v6
+  #   secrets: inherit
+
+  update-swagger:
+    name: Update Swagger
+    uses: burnt-labs/xion/.github/workflows/update-swagger.yaml@release/v6
+    secrets: inherit
+
+  unit-tests:
+    name: Go Unit Tests
+    uses: burnt-labs/xion/.github/workflows/tests.yaml@release/v6
+    secrets: inherit
+
+  build-darwin:
+    name: Build Binaries
+    uses: burnt-labs/xion/.github/workflows/binaries-darwin.yaml@release/v6
+    secrets: inherit
+
+  build-linux:
+    name: Build Binaries
+    uses: burnt-labs/xion/.github/workflows/binaries-linux.yaml@release/v6
+    secrets: inherit
+
+  build-integration:
+    name: Build Binaries
+    uses: burnt-labs/xion/.github/workflows/binaries-test.yaml@release/v6
+    secrets: inherit
+
+  build-docker:
+    name: Build Docker Images
+    needs: build-linux
+    uses: burnt-labs/xion/.github/workflows/docker-build.yaml@release/v6
+    secrets: inherit
+
+  push-docker:
+    name: Push Docker Images
+    needs: build-docker
+    uses: burnt-labs/xion/.github/workflows/docker-push.yaml@release/v6
+    secrets: inherit
+
+  push-heighliner:
+    name: Push Heighliner Images
+    needs: build-docker
+    uses: burnt-labs/xion/.github/workflows/heighliner-push.yaml@release/v6
+    secrets: inherit
+
+  docker-scout:
+    name: Docker Scout
+    needs: build-docker
+    uses: burnt-labs/xion/.github/workflows/docker-scout.yaml@release/v6
+    secrets: inherit
+
+  interchain-tests:
+    name: Interchain tests
+    needs: 
+      - build-docker
+      - build-integration
+    uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@release/v6
+    secrets: inherit
+
+  build-release:
+    name: Build Release
+    needs:
+      - build-linux
+      - update-swagger
+      - unit-tests
+      - build-darwin
+      - docker-scout
+      - interchain-tests
+    uses: burnt-labs/xion/.github/workflows/goreleaser.yaml@release/v6
+    secrets: inherit
+
+  verify-installers:
+    name: Verify Package Installers
+    needs: build-release
+    uses: burnt-labs/xion/.github/workflows/verify-installers.yaml@release/v6
+    secrets: inherit
