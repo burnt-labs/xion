@@ -3,7 +3,7 @@
     "info": {
         "title": "XION - gRPC Gateway docs",
         "description": "A REST interface for state queries",
-        "version": "9.0.0"
+        "version": "v11.0.2"
     },
     "paths": {
         "/cosmos/auth/v1beta1/account_info/{address}": {
@@ -27931,76 +27931,6 @@
                 ]
             }
         },
-        "/ibc/apps/packetforward/v1/params": {
-            "get": {
-                "summary": "Params queries all parameters of the packetforward module.",
-                "operationId": "IBCPacketforwardParams",
-                "responses": {
-                    "200": {
-                        "description": "A successful response.",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "params": {
-                                            "description": "params defines the parameters of the module.",
-                                            "type": "object",
-                                            "properties": {
-                                                "fee_percentage": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "description": "An unexpected error response.",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        },
-                                        "code": {
-                                            "type": "integer",
-                                            "format": "int32"
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "details": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "type_url": {
-                                                        "type": "string"
-                                                    },
-                                                    "value": {
-                                                        "type": "string",
-                                                        "format": "byte"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "IBC/Core"
-                ]
-            }
-        },
         "/xion/globalfee/v1/params": {
             "get": {
                 "operationId": "GlobalFeeParams",
@@ -50665,30 +50595,6 @@
                     }
                 },
                 "description": "Version defines the versioning scheme used to negotiate the IBC verison in\nthe connection handshake."
-            },
-            "packetforward.v1.Params": {
-                "type": "object",
-                "properties": {
-                    "fee_percentage": {
-                        "type": "string"
-                    }
-                },
-                "description": "Params defines the set of packetforward parameters."
-            },
-            "packetforward.v1.QueryParamsResponse": {
-                "type": "object",
-                "properties": {
-                    "params": {
-                        "description": "params defines the parameters of the module.",
-                        "type": "object",
-                        "properties": {
-                            "fee_percentage": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
-                "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
             },
             "xion.globalfee.v1.Params": {
                 "type": "object",

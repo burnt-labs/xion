@@ -1,0 +1,85 @@
+name: Interchain tests
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  interchain-tests:
+    runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('burnt-labs-{0}', matrix.arch) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          # - arm64
+        test_type:
+            - "DungeonTransferBlock"
+            - "JWTAbstractAccount"
+            - "MintModuleInflationHighFees"
+            - "MintModuleInflationLowFees"
+            - "MintModuleInflationNoFees"
+            - "MintModuleNoInflationNoFees"
+            # - "Simulate"
+            - "SingleAbstractAccountMigration"
+            - "TreasuryContract"
+            - "TreasuryMulti"
+            - "UpdateTreasuryConfigsWithAALocalAndURL"
+            - "UpdateTreasuryConfigsWithLocalAndURL"
+            - "UpdateTreasuryContractParams"
+            - "WebAuthNAbstractAccount"
+            - "XionAbstractAccount"
+            - "XionAbstractAccountJWTCLI"
+            - "XionClientEvent"
+            - "XionMinimumFeeDefault"
+            - "XionMinimumFeeZero"
+            - "XionSendPlatformFee"
+            - "XionTokenFactory"
+            # - "XionUpgradeNetwork" # broken
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download test binary
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: test-${{ matrix.os }}-${{ matrix.arch }}
+          merge-multiple: true
+
+      - name: Download wasm vm lib
+        uses: actions/download-artifact@v4
+        with:
+          path: lib
+          pattern: libwasmvm.*
+          merge-multiple: true
+
+      - name: Download heighliner image
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}
+          pattern: heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          docker load < "heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar"
+
+      - name: Run all up ci test
+        env:
+          E2E_SKIP_CLEANUP: true
+          XION_IMAGE: heighliner:${{ matrix.os }}-${{ matrix.arch }}
+        run: |
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
+          chmod a+x ./dist/test-${{ matrix.os }}-${{ matrix.arch }}
+          dist/test-${{ matrix.os }}-${{ matrix.arch }} -test.failfast -test.v -test.run Test${{ matrix.test_type }}

@@ -1,0 +1,102 @@
+version: 2
+
+project_name: xiond
+
+# Docs: https://goreleaser.com/customization/hooks/
+before:
+  # hooks:
+  #   - apt update && apt install -y musl-dev
+
+# Docs: https://goreleaser.com/customization/build/
+builds:
+  - id: xiond
+    goos:
+      - linux
+      - darwin
+      # - windows
+    goarch:
+      - amd64
+      - arm64
+    goamd64:
+      - v1
+    goarm:
+      - v8.0
+    main: ./cmd/xiond
+    binary: bin/xiond-{{ .Os }}-{{ .Arch }}
+    hooks:
+      pre:
+        - cmd: mkdir -p {{ .Env.LIB_PATH }}
+        - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/{{ .Env.WASM_LIB }} -O {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }}'
+        - cmd: echo Starting build...
+    ldflags:
+      - -X main.Date={{ .CommitDate }}
+      - -X github.com/cosmos/cosmos-sdk/version.Name={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.AppName={{ .ProjectName }}
+      - -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }}
+      - -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }}
+      - -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
+      - -w -s
+      - -linkmode=external
+      - >-
+        {{- if eq .Os "linux" -}}
+          -extldflags '-Wl,-z,muldefs -static -lm'
+        {{- end }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    tags:
+      - netgo
+      - ledger
+      - >-
+        {{- if eq .Os "linux" -}}
+          osusergo
+        {{- end }}
+      - >-
+        {{- if eq .Os "darwin" -}}
+          static_wasm
+        {{- else if eq .Os "linux" -}}
+          muslc
+        {{- end }}
+    flags:
+      - -mod=readonly
+      - -trimpath
+    env:
+      - CGO_ENABLED=1
+      - CGO_LDFLAGS='-L./dist/lib_{{ .Arch }}'
+      - LIB_PATH=./dist/lib_{{ .Arch }}
+      - >-
+        {{- if eq .Os "darwin" }}WASM_LIB=libwasmvmstatic_darwin.a{{- end }}
+        {{- if eq .Os "linux" }}
+          {{- if eq .Arch "amd64" }}WASM_LIB=libwasmvm_muslc.x86_64.a{{- end }}
+          {{- if eq .Arch "arm64" }}WASM_LIB=libwasmvm_muslc.aarch64.a{{- end }}
+        {{- end }}
+      - >-
+        {{- if eq .Os "darwin" }}MACOSX_DEPLOYMENT_TARGET=10.12{{- end }}
+        {{- if eq .Os "windows" }}WASM_LIB=​wasmvm.dll{{- end }}
+      - >-
+        {{- if eq .Os "darwin" }}
+          {{- if eq .Arch "amd64"}}CC=o64-clang{{- end }}
+          {{- if eq .Arch "arm64"}}CC=oa64-clang{{- end }}
+        {{- end }}
+        {{- if eq .Os "linux" }}
+          {{- if eq .Arch "amd64" }}CC=x86_64-linux-gnu-gcc{{- end }}
+          {{- if eq .Arch "arm64" }}CC=aarch64-linux-gnu-gcc{{- end }}
+        {{- end }}
+        {{- if eq .Os "windows" }}
+          {{- if eq .Arch "amd64" }}CC=x86_64-w64-mingw32-gcc{{- end }}
+          {{- if eq .Arch "arm64" }}CC=/llvm-mingw/bin/aarch64-w64-mingw32-gcc{{- end }}
+        {{- end }}
+      - >-
+        {{- if eq .Os "darwin" }}
+          {{- if eq .Arch "amd64"}}CXX=o64-clang++{{- end }}
+          {{- if eq .Arch "arm64"}}CXX=oa64-clang++{{- end }}
+        {{- end }}
+        {{- if eq .Os "linux" }}
+          {{- if eq .Arch "amd64" }}CXX=x86_64-linux-gnu-g++{{- end }}
+          {{- if eq .Arch "arm64" }}CXX=aarch64-linux-gnu-g++{{- end }}
+        {{- end }}
+        {{- if eq .Os "windows" }}
+          {{- if eq .Arch "amd64" }}CXX=x86_64-w64-mingw32-g++{{- end }}
+          {{- if eq .Arch "arm64" }}CXX=/llvm-mingw/bin/aarch64-w64-mingw32-g++{{- end }}
+        {{- end }}
+
+
+
