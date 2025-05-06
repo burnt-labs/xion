@@ -1,0 +1,97 @@
+name: Push Docker images
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  REPOS: |
+    burntnetwork/xion
+    ghcr.io/${{ github.repository }}/xion
+    385156030167.dkr.ecr.us-east-1.amazonaws.com/burnt/xiond
+
+jobs:
+  merge:
+    name: Create registry manifests
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Prepare environment
+        run: |
+          echo "TAG_VERSION=${GITHUB_SHA:0:7}" | tee -a $GITHUB_ENV
+
+      - name: Metadata for xion container
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REPOS }}
+          tags: |
+            type=raw,value=${{ env.TAG_VERSION }}
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'push' }}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Download images
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}
+          pattern: docker*
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          for image in docker*.tar; do
+            PLATFORM=$(basename $image .tar | cut -d- -f2-)
+            docker load < $image;
+            docker tag xion:$PLATFORM burntnetwork/xion:$PLATFORM
+            docker push burntnetwork/xion:$PLATFORM;
+          done;
+
+      - name: Prepare mainfest vars
+        run: |
+          IMAGE_TARGETS=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< $DOCKER_METADATA_OUTPUT_JSON)
+          IMAGE_TAGS=$(docker image ls burntnetwork/xion --digests --format json | jq -r '"\(.Repository):\(.Tag)"' | tr '\n' ' ')
+          echo "IMAGE_TAGS=$IMAGE_TAGS" | tee -a $GITHUB_ENV
+          echo "IMAGE_TARGETS=${IMAGE_TARGETS}" | tee -a $GITHUB_ENV
+
+      - name: Create manifest list and push
+        run: |
+          eval "docker buildx imagetools create ${IMAGE_TARGETS} ${IMAGE_TAGS}"
+
+      - name: Inspect image
+        run: |
+           jq -cr '.tags | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON" | \
+           xargs -n1 docker buildx imagetools inspect

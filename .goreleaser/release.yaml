@@ -1,0 +1,148 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+
+# using this file requires goreleaser pro
+
+version: 2
+
+project_name: xiond
+
+dist: release
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+  maintainers:
+    - "Burnt <support@burnt.com>"
+  license: "Apache2.0"
+  homepage: "https://xion.burnt.com/"
+  description: "Xiond is the Cosmos SDK based blockchain cli/daemon for the Xion Network."
+
+snapshot:
+  version_template: "{{ .Version }}-{{ .ShortCommit }}"
+
+# includes:
+#   - from_file:
+#       path: ./.goreleaser/build.yaml
+# Docs: https://goreleaser.com/customization/build/
+builds:
+  - builder: prebuilt
+    binary: xiond
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    goamd64:
+      - v1
+    goarm64:
+      - v8.0
+    prebuilt:
+      path: "dist/xiond_{{ .Os }}_{{ .Arch }}_{{ with .Arm64 }}{{ . }}{{ end }}{{ with .Amd64 }}{{ . }}{{ end }}/bin/xiond-{{ .Os }}-{{ .Arch }}"
+
+# Docs: https://goreleaser.com/customization/universalbinaries/
+universal_binaries:
+  - id: xiond
+
+# Docs: https://goreleaser.com/customization/source/
+source:
+  enabled: true
+
+archives:
+  - id: tgz
+    formats: [tar.gz]
+    meta: false
+    wrap_in_directory: false
+    strip_binary_directory: false
+
+# docs: https://goreleaser.com/customization/checksum/
+checksum:
+  name_template: "xiond-{{ .Version }}-checksums.txt"
+  algorithm: sha256
+
+nfpms:
+  - if: '{{ eq .Os "linux" }}'
+    formats:
+      - apk
+      - deb
+      - rpm
+    apk:
+      signature:
+        key_file: "{{ .Env.PEM_KEY_PATH }}"
+    deb:
+      signature:
+        key_file: "{{ .Env.GPG_KEY_PATH }}"
+    rpm:
+      signature:
+        key_file: "{{ .Env.GPG_KEY_PATH }}"
+
+# not used
+# signs:
+#   - artifacts: package
+#     cmd: gpg2
+#     #- args: ["-u", "<key id, fingerprint, email, ...>", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+# docs https://goreleaser.com/customization/fury/
+furies:
+  - account: burnt
+
+# Docs: https://goreleaser.com/customization/homebrew/
+brews:
+  - alternative_names:
+      - xiond@{{ .Version }}
+      - xiond@{{ .Major }}
+    # Repository to push the generated files to.
+    skip_upload: false
+    ids:
+      - tgz
+    test: |
+      system "#{bin}/xiond version"
+    commit_author:
+      name: developer
+      email: 197779235+isburnt@users.noreply.github.com
+    directory: Formula
+    repository:
+      owner: burnt-labs
+      name: homebrew-xion
+      branch: "{{.ProjectName}}-v{{.Version}}"
+      token: "{{ .Env.GORELEASER_ACCESS_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: burnt-labs
+          name: homebrew-xion
+          branch: main
+
+
+# Docs: https://goreleaser.com/customization/changelog/
+# changelog:
+  # disable: "{{ .Env.CREATE_CHANGELOG }}"
+  # ai:
+  #  use: openai
+  # groups:
+  # - title: Features
+  #   regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+  #   order: 0
+  # - title: "Bug fixes"
+  #   regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
+  #   order: 1
+  # - title: Others
+  #   order: 999
+  # filters:
+  #   exclude:
+  #     - '^revert:'
+    #include:
+
+# Docs: https://goreleaser.com/customization/release/
+release:
+  github:
+    owner: burnt-labs
+    name: xion
+  draft: true
+  use_existing_draft: true
+  replace_existing_artifacts: true
+  prerelease: "true"
+  make_latest: false
+  # disable: "{{ .Env.SKIP_GITHUB_RELEASE }}"
+  mode: keep-existing
+

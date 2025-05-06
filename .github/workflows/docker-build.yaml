@@ -1,0 +1,110 @@
+name: Build Docker Images 
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build-docker-images:
+    name: Build ${{ matrix.os }}/${{ matrix.arch }}
+    runs-on: ${{ matrix.arch == 'amd64' &&  'ubuntu-latest' || format('github-{0}', matrix.arch) }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
+
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up docker buildx for push
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: xiond-${{ matrix.os }}-${{ matrix.arch }}
+          merge-multiple: true
+
+      - name: Prepare environment
+        run: |
+          echo "DOCKER_FN=docker-${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
+          echo "HEIGHLINER_FN=heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar" | tee -a $GITHUB_ENV
+          echo "PREBUILT_BINARY=$(find dist -name xiond-${{ matrix.os }}-${{ matrix.arch}})" | tee -a $GITHUB_ENV
+          realpath $(pwd)
+
+      - name: Build Docker Image
+        id: build-docker
+        uses: docker/build-push-action@v5
+        with:
+          context: . # important
+          target: release
+          push: false
+          load: true
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
+          tags: xion:${{ matrix.os }}-${{ matrix.arch }}
+          build-args: |
+            COMMIT=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+            PREBUILT_BINARY=${{ env.PREBUILT_BINARY }}
+
+      - name: Build Heighliner Image
+        id: build-heighliner
+        uses: docker/build-push-action@v5
+        with:
+          context: . # important
+          target: heighliner
+          push: false
+          load: true
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ matrix.os }}/${{ matrix.arch }}
+          tags: heighliner:${{ matrix.os }}-${{ matrix.arch }}
+          build-args: |
+            COMMIT=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+            PREBUILT_BINARY=${{ env.PREBUILT_BINARY }}
+
+      - name: Save Docker Image
+        working-directory: ${{ runner.temp }}
+        run: |
+          docker save xion:${{ matrix.os }}-${{ matrix.arch }} > ${{ env.DOCKER_FN }}
+
+      - name: Upload Docker Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DOCKER_FN }}
+          path: ${{ runner.temp }}/${{ env.DOCKER_FN }}
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Save Heighliner Image
+        working-directory: ${{ runner.temp }}
+        run: |
+          docker save heighliner:${{ matrix.os }}-${{ matrix.arch }} > ${{ env.HEIGHLINER_FN }}
+
+      - name: Upload Heighliner Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.HEIGHLINER_FN }}
+          path: ${{ runner.temp }}/${{ env.HEIGHLINER_FN }}
+          if-no-files-found: error
+          retention-days: 3
