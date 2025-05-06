@@ -1,0 +1,98 @@
+name: Verify Installers
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  apt-install:
+    runs-on: ${{ format('github-{0}', matrix.arch) }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - amd64
+          - arm64
+          
+    steps:
+      - name: Download the repository key
+        run: |
+          wget -qO - https://packages.burnt.com/apt/gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/burnt-keyring.gpg
+
+      - name: Add to apt sources list
+        run: |
+          echo "deb [signed-by=/usr/share/keyrings/burnt-keyring.gpg] http://packages.burnt.com/apt /" | sudo tee /etc/apt/sources.list.d/burnt.list
+
+      - name: Update sources
+        run: |
+          sudo apt update
+
+      - name: Install xiond
+        run: |
+          sudo apt install -y xiond=$( echo ${{ github.ref_name }} | sed 's/^v//')
+
+      - name: Verify xiond installation
+        run: |
+          xiond version --long
+
+  rpm-install:
+    runs-on: ${{ format('github-{0}', matrix.arch) }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - amd64
+          - arm64
+
+    container:
+      image: redhat/ubi8:latest
+      options: --user root
+    steps:
+      - name: Download the repository key
+        run: |
+          rpm --import https://packages.burnt.com/yum/gpg.key
+
+      - name: Add to yum repos list
+        run: |
+          printf "[burnt]\nname=Burnt Repo\nenabled=1\nbaseurl=https://packages.burnt.com/yum/\n" | tee /etc/yum.repos.d/burnt.repo
+
+      - name: Install xiond
+        run: |
+          yum install xiond-$( echo ${{ github.ref_name }} | sed 's/^v//')-1 -y
+
+      - name: Verify xiond installation
+        run: |
+          xiond version --long
+
+  apk-install:
+    runs-on: ${{ format('github-{0}', matrix.arch) }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - amd64
+          - arm64
+
+    container:
+      image: alpine:latest
+      options: --user root
+    steps:
+      - name: Download the repository key
+        run: |
+          wget -qO - https://alpine.fury.io/burnt/burnt@fury.io-b8abd990.rsa.pub | tee /etc/apk/keys/burnt@fury.io-b8abd990.rsa.pub 
+
+      - name: Add to apk repos list
+        run: |
+          echo "https://alpine.fury.io/burnt" >> /etc/apk/repositories
+
+      - name: Install xiond
+        run: |
+          apk update && apk add xiond=$( echo ${{ github.ref_name }} | sed 's/^v//')
+
+      - name: Verify xiond installation
+        run: |
+          xiond version --long
