@@ -19,6 +19,7 @@ const (
 	inflationMin        = "0.0"
 	inflationMax        = "0.0"
 	inflationRateChange = "0.0"
+	BlocksPerYear       = "6311520" // 60*60*8766/5 defualt blocks per year value from x/mint
 )
 
 // In this test case, the mint module inflation is set to 0 by setting the inflation rate
@@ -32,7 +33,7 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 		t.Skip("skipping in short mode")
 	}
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisInflation}, [][]string{{votingPeriod, maxDepositPeriod}, {minInflation, maxInflation, inflationRateChange}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisInflation}, [][]string{{votingPeriod, maxDepositPeriod}, {minInflation, maxInflation, inflationRateChange, BlocksPerYear}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	// Wait for some blocks and check if that supply stays the same
@@ -59,7 +60,7 @@ func TestMintModuleInflationNoFees(t *testing.T) {
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod, BlocksPerYear}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	chainHeight, _ := xion.Height(ctx)
