@@ -544,6 +544,7 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
 	require.NoError(t, json.Unmarshal(queryRes, &params))
 	blocksPerYear, err := dyno.GetInteger(params, "blocks_per_year")
 	require.NoError(t, err)
+	t.Logf("Blocks Per Year: %d", blocksPerYear)
 	// Calculate the block provision
 	return math.LegacyMustNewDecFromStr(annualProvision.String()).QuoInt(math.NewInt(blocksPerYear))
 }
