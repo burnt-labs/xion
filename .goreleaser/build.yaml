@@ -60,8 +60,8 @@ builds:
       - -trimpath
     env:
       - CGO_ENABLED=1
-      - CGO_LDFLAGS='-L./dist/lib'
-      - LIB_PATH=./dist/lib
+      - CGO_LDFLAGS='-L./dist/lib-{{ .Arch}}'
+      - LIB_PATH=./dist/lib-{{ .Arch }}
       - >-
         {{- if eq .Os "darwin" }}MACOSX_DEPLOYMENT_TARGET=10.12{{- end }}
       - >-
