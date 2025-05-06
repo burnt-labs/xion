@@ -22,6 +22,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
+	mintTypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/burnt-labs/xion/x/xion"
 	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
@@ -397,7 +398,18 @@ func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ..
 	if err := dyno.Set(g, params[2], "app_state", "mint", "params", "inflation_rate_change"); err != nil {
 		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
 	}
+	/*
+		blocksPerYear, err := strconv.ParseUint(params[3], 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed convert blocks per year to uint64: %w", err)
+		}
+	*/
+	if err := dyno.Set(g, params[3], "app_state", "mint", "params", "blocks_per_year"); err != nil {
+		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
+	}
 	out, err := json.Marshal(g)
+	fmt.Printf("%v\n", string(out))
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 	}
@@ -531,22 +543,24 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
 		require.Greater(t, blockHeight, 0)
 	}
 
-	// Query the current block provision
-	// Response is a string
-	var annualProvision json.Number
+	// query the current block provision
+	// response is a string
+	var annualProvisionResponse mintTypes.QueryAnnualProvisionsResponse
 	queryRes, _, err := xion.GetNode().ExecQuery(ctx, "mint", "annual-provisions", "--height", strconv.FormatInt(int64(blockHeight), 10))
+	t.Logf("annual provission: %v", queryRes)
 	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(queryRes, &annualProvision))
+	require.NoError(t, json.Unmarshal(queryRes, &annualProvisionResponse))
+
 	// Query the block per year
-	params := make(map[string]interface{})
+	var params mintTypes.Params
 	queryRes, _, err = xion.GetNode().ExecQuery(ctx, "mint", "params")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &params))
-	blocksPerYear, err := dyno.GetInteger(params, "blocks_per_year")
-	require.NoError(t, err)
-	t.Logf("Blocks Per Year: %d", blocksPerYear)
+	t.Logf("mint params: %v", params)
+	blocksPerYear := int64(params.BlocksPerYear)
+
 	// Calculate the block provision
-	return math.LegacyMustNewDecFromStr(annualProvision.String()).QuoInt(math.NewInt(blocksPerYear))
+	return math.LegacyMustNewDecFromStr(annualProvisionResponse.AnnualProvisions.String()).QuoInt(math.NewInt(blocksPerYear))
 }
 
 // This test confirms the property of the module described at
