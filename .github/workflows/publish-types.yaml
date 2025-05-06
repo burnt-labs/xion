@@ -18,6 +18,9 @@ jobs:
           node-version: 18
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Set permissions for TypeScript directory
+        run: sudo chmod -R 777 client/ts
+
       - name: Generate TypeScript definitions
         run: make proto-gen-ts
 
@@ -45,4 +48,4 @@ jobs:
         run: |
           npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

@@ -78,6 +78,7 @@ jobs:
   build-release:
     name: Build Release
     needs:
+      - build-linux
       - lint
       - update-swagger
       - unit-tests
@@ -111,3 +112,9 @@ jobs:
   #     - build-release-info
   #   uses: burnt-labs/xion/.github/workflows/update-networks.yaml@workflows/main
   #   secrets: inherit
+
+  verify-installers:
+    name: Verify Package Installers
+    needs: build-release
+    uses: burnt-labs/xion/.github/workflows/verify-installers.yaml@workflows/main
+    secrets: inherit
