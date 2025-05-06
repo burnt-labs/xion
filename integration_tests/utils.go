@@ -398,18 +398,10 @@ func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ..
 	if err := dyno.Set(g, params[2], "app_state", "mint", "params", "inflation_rate_change"); err != nil {
 		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
 	}
-	/*
-		blocksPerYear, err := strconv.ParseUint(params[3], 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("failed convert blocks per year to uint64: %w", err)
-		}
-	*/
 	if err := dyno.Set(g, params[3], "app_state", "mint", "params", "blocks_per_year"); err != nil {
 		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
 	}
 	out, err := json.Marshal(g)
-	fmt.Printf("%v\n", string(out))
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 	}
@@ -552,12 +544,12 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
 	require.NoError(t, json.Unmarshal(queryRes, &annualProvisionResponse))
 
 	// Query the block per year
-	var params mintTypes.Params
+	params := make(map[string]interface{})
 	queryRes, _, err = xion.GetNode().ExecQuery(ctx, "mint", "params")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &params))
-	t.Logf("mint params: %v", params)
-	blocksPerYear := int64(params.BlocksPerYear)
+	blocksPerYear, err := dyno.GetInteger(params, "params", "blocks_per_year")
+	require.NoError(t, err)
 
 	// Calculate the block provision
 	return math.LegacyMustNewDecFromStr(annualProvisionResponse.AnnualProvisions.String()).QuoInt(math.NewInt(blocksPerYear))
