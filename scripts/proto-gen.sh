@@ -19,6 +19,7 @@ deps=$(cat <<EOF
   github.com/cosmos/cosmos-proto
   github.com/cosmos/ibc-go/v8
   github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8
+  github.com/osmosis-labs/fee-abstraction/v8
   github.com/CosmWasm/wasmd
 EOF
 )
@@ -77,11 +78,12 @@ gen_swagger() {
 
     buf generate --template $proto_dir/buf.gen.swagger.yaml $query_file
   done
-
+  # find ./ -type f
 
   # combine swagger files
   # uses nodejs package `swagger-combine`.
   # all the individual swagger files need to be configured in `config.json` for merging
+  
   swagger-combine ${docs_dir}/config.yaml \
     --format "json" \
     --output ${docs_dir}/static/swagger.json \
