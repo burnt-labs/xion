@@ -222,7 +222,6 @@ test-integration-mint-module-inflation-no-fees: compile-integration-tests
 test-integration-mint-module-inflation-high-fees: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationHighFees
 
-// TODO: this one seemed to stay hunged
 test-integration-mint-module-inflation-low-fees: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationLowFees
 

@@ -18,19 +18,17 @@ const UpgradeName = "v19"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	app.WrapSetUpgradeHandler(UpgradeName)
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == UpgradeName {
-		if !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-			storeUpgrades := storetypes.StoreUpgrades{}
+	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{}
 
-			app.Logger().Info("setting upgrade store loaders")
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-			app.WrapSetUpgradeHandler(UpgradeName)
-			app.Logger().Info("upgrade info", "name", upgradeInfo.Name, "height", upgradeInfo.Height)
-		}
+		app.Logger().Info("setting upgrade store loaders")
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+		app.Logger().Info("upgrade info", "name", upgradeInfo.Name, "height", upgradeInfo.Height)
 	}
 }
 

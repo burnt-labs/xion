@@ -120,7 +120,7 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	defer timeoutCtxCancel()
 
 	// this should timeout due to chain halt at upgrade height.
-	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height), chain) // This creates a race condition
+	_ = testutil.WaitForBlocks(timeoutCtx, int(haltHeight-height), chain)
 
 	height, err = chain.Height(ctx)
 	require.NoError(t, err, "error fetching height after chain should have halted")
