@@ -83,6 +83,7 @@ const (
 	packetforward    = "0.0"
 	minInflation     = "0.0"
 	maxInflation     = "0.0"
+	mintDenom        = "uxion"
 )
 
 var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
@@ -401,6 +402,10 @@ func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ..
 	if err := dyno.Set(g, params[3], "app_state", "mint", "params", "blocks_per_year"); err != nil {
 		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
 	}
+
+	if err := dyno.Set(g, params[4], "app_state", "mint", "params", "mint_denom"); err != nil {
+		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
+	}
 	out, err := json.Marshal(g)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
@@ -548,6 +553,7 @@ func GetBlockAnnualProvision(t *testing.T, xion *cosmos.CosmosChain, ctx context
 	queryRes, _, err = xion.GetNode().ExecQuery(ctx, "mint", "params")
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(queryRes, &params))
+	fmt.Printf("%+v\n", params)
 	blocksPerYear, err := dyno.GetInteger(params, "params", "blocks_per_year")
 	require.NoError(t, err)
 
