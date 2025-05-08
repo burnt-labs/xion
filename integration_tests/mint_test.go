@@ -19,7 +19,7 @@ const (
 	inflationMin        = "0.0"
 	inflationMax        = "0.0"
 	inflationRateChange = "0.0"
-	BlocksPerYear       = "6311520" // 60*60*8766/5 defualt blocks per year value from x/mint
+	BlocksPerYear       = "13892511" // (86400*365)/2.27) xion mainnet parity
 )
 
 // In this test case, the mint module inflation is set to 0 by setting the inflation rate
