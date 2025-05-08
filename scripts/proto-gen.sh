@@ -83,6 +83,7 @@ gen_swagger() {
   # combine swagger files
   # uses nodejs package `swagger-combine`.
   # all the individual swagger files need to be configured in `config.json` for merging
+  
   swagger-combine ${docs_dir}/config.yaml \
     --format "json" \
     --output ${docs_dir}/static/swagger.json \
