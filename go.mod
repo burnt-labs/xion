@@ -1,6 +1,6 @@
 module github.com/burnt-labs/xion
 
-go 1.23.5
+go 1.23.9
 
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
