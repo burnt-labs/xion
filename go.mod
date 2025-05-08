@@ -5,6 +5,7 @@ go 1.23.5
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
