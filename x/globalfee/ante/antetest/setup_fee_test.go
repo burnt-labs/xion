@@ -35,7 +35,7 @@ var testBondDenom = "uxion"
 
 func (s *IntegrationTestSuite) SetupTest() {
 	app := xionapp.Setup(s.T())
-	ctx := app.BaseApp.NewContext(false)
+	ctx := app.NewContext(false)
 
 	encodingConfig := testutil.MakeTestEncodingConfig()
 	encodingConfig.Amino.RegisterConcrete(&testdata.TestMsg{}, "testdata.TestMsg", nil)
