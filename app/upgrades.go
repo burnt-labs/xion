@@ -71,7 +71,7 @@ func (app *WasmApp) WrapSetUpgradeHandler(upgradeName string) {
 				panic(fmt.Sprintf("failed to retrieve params from legacy Xion Mint: %s", err))
 			}
 			// Prepare subspace for mint module migration
-			mintSubspace := app.GetSubspace(minttypes.ModuleName).WithKeyTable(minttypes.ParamKeyTable())
+			mintSubspace := app.GetSubspace(minttypes.ModuleName).WithKeyTable(minttypes.ParamKeyTable()) //nolint:staticcheck
 			mintSubspace.SetParamSet(sdkCtx, &p)
 
 			migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)

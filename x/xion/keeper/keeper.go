@@ -9,11 +9,11 @@ import (
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 
-	xionMint "github.com/burnt-labs/xion/x/mint/keeper"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	xionMint "github.com/burnt-labs/xion/x/mint/keeper"
 	"github.com/burnt-labs/xion/x/xion/types"
 )
 

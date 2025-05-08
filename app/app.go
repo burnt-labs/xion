@@ -159,7 +159,6 @@ import (
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
-
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xionMintKeeper "github.com/burnt-labs/xion/x/mint/keeper"
