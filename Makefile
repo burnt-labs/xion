@@ -20,8 +20,8 @@ GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
-XION_IMAGE ?= heighliner:current
-HEIGHLINER_IMAGE ?= heighliner:current
+XION_IMAGE ?= xiond:$(GOARCH)
+HEIGHLINER_IMAGE ?= heighliner:$(GOARCH)
 
 # process build tags
 build_tags = netgo
@@ -137,7 +137,7 @@ build-docker-arm64 build-docker-amd64:
 build-heighliner build-heighliner-amd64 build-heighliner-arm64:
 	$(MAKE) build-docker \
 		GOARCH=$(if $(findstring arm64,$@),arm64,$(if $(findstring amd64,$@),amd64,$(GOARCH))) \
-		XION_IMAGE=heighliner:v19\
+		XION_IMAGE=heighliner:$(GOARCH) \
 		TARGET=heighliner 
 
 release-snapshot:
