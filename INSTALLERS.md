@@ -20,6 +20,14 @@ Verify Installation
 xiond version
 ```
 
+Optional: List versions / Install a specific version
+
+```bash
+brew search xiond --formulae
+brew install xiond@18.0.1 --overwrite
+xiond version
+````
+
 ## Debian/Apt
 
 Download the repository key
@@ -50,7 +58,7 @@ xiond version
 Optional: List versions / Install a specific version
 
 ```bash
-sudo apt list -a xiond;
+sudo apt list -a xiond
 sudo apt install -y xiond=18.0.1
 xiond version
 ````
