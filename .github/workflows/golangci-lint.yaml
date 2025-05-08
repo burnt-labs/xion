@@ -26,5 +26,5 @@ jobs:
       - name: golangci-lint-xiond
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v1.60.2
+          version: latest
           args: --timeout=10m --tests=false
