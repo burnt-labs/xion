@@ -38,7 +38,7 @@ Update sources, and install xiond
 
 ```bash
 sudo apt update
-sudo apt install xiond
+sudo apt install xiond -y
 ```
 
 Verify Installation
@@ -46,6 +46,14 @@ Verify Installation
 ```bash
 xiond version
 ```
+
+Optional: List versions / Install a specific version
+
+```bash
+sudo apt list -a xiond;
+sudo apt install -y xiond=18.0.1
+xiond version
+````
 
 ## Redhat/Dnf/Yum/Rpm
 
@@ -73,6 +81,14 @@ Verify Installation
 xiond version
 ```
 
+Optional: List versions / Install a specific version
+
+```bash
+sudo dnf list xiond --showduplicates
+sudo dnf install xiond-18.0.1
+xiond version
+```
+
 ## Alpine Linux
 
 Download the repository key
@@ -84,7 +100,7 @@ wget -qO - https://alpine.fury.io/burnt/burnt@fury.io-b8abd990.rsa.pub | sudo te
 Add the burnt repository to your repository list, inlude the signing key
 
 ```bash
-echo "https://alpine.fury.io/burnt" >> /etc/apk/repositories
+echo "https://alpine.fury.io/burnt" | sudo tee -a /etc/apk/repositories
 ```
 
 Update sources, and install xiond
@@ -97,5 +113,13 @@ sudo apk add xiond
 Verify Installation
 
 ```bash
+xiond version
+```
+
+Optional: List versions / Install a specific version
+
+```bash
+sudo apk info xiond
+sudo apk add xiond=17.0.1
 xiond version
 ```
