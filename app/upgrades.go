@@ -10,27 +10,36 @@ import (
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 const UpgradeName = "v19"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
-	app.WrapSetUpgradeHandler(UpgradeName)
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
-	app.Logger().Info("upgrade info", "name", upgradeInfo.Name, "height", upgradeInfo.Height)
+	app.WrapSetUpgradeHandler(UpgradeName)
 
-	if upgradeInfo.Name == UpgradeName {
-		if !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-			storeUpgrades := storetypes.StoreUpgrades{}
+	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{}
 
-			app.Logger().Info("setting upgrade store loaders")
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+		app.Logger().Info("setting upgrade store loaders")
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+		app.Logger().Info("upgrade info", "name", upgradeInfo.Name, "height", upgradeInfo.Height)
+	}
+}
 
-			ctx := context.Background()
+func (app *WasmApp) WrapSetUpgradeHandler(upgradeName string) {
+	app.Logger().Info("setting upgrade handler", "name", upgradeName)
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgradeName,
+		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
+			sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+			sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
+
 			minCommission := math.LegacyMustNewDecFromStr("0.05")
 			stakingParams, err := app.StakingKeeper.GetParams(ctx)
 			if err != nil {
@@ -55,18 +64,22 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 			if err != nil {
 				panic(fmt.Sprintf("failed to update validator commission %s", err))
 			}
-		}
-	}
-}
 
-func (app *WasmApp) WrapSetUpgradeHandler(upgradeName string) {
-	app.Logger().Info("setting upgrade handler", "name", upgradeName)
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgradeName,
-		func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
-			sdkCtx := sdktypes.UnwrapSDKContext(ctx)
-			sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
-			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
+			// Retrieve xion mint params
+			p, err := app.XionKeeper.XionLegacyMintKeeper.GetParams(sdkCtx)
+			if err != nil {
+				panic(fmt.Sprintf("failed to retrieve params from legacy Xion Mint: %s", err))
+			}
+			// Prepare subspace for mint module migration
+			mintSubspace := app.GetSubspace(minttypes.ModuleName).WithKeyTable(minttypes.ParamKeyTable())
+			mintSubspace.SetParamSet(sdkCtx, &p)
+
+			migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
+			if err != nil {
+				panic(fmt.Sprintf("failed to run migrations: %s", err))
+			}
+
+			return migrations, err
 		},
 	)
 }
