@@ -39,8 +39,8 @@ const (
 * 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgrade ./...
 
 As of Aug 17 2023 this is the necessary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
-current-testnet: v6
-upgrade-version: v7
+current-testnet: v18
+upgrade-version: v19
 */
 
 func TestXionUpgradeNetwork(t *testing.T) {
@@ -51,12 +51,12 @@ func TestXionUpgradeNetwork(t *testing.T) {
 	imageTagComponents := strings.Split(imageTag, ":")
 
 	// set "previous" to the value in the test const
-	err := os.Setenv("XION_IMAGE", fmt.Sprintf("%s:%s", xionImageFrom, xionVersionFrom))
+	err := os.Setenv("XION_IMAGE", fmt.Sprintf("%s:%s", imageTagComponents[0], imageTagComponents[1]))
 	require.NoError(t, err)
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs, ModifyGenesisInflation}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}, {minInflation, maxInflation, inflationRateChange, BlocksPerYear, mintDenom}}))
 
 	// issue the upgrade with "recent" again
-	CosmosChainUpgradeTest(t, &td, imageTagComponents[0], imageTagComponents[1], xionUpgradeName)
+	CosmosChainUpgradeTest(t, &td, imageTagComponents[0], xionUpgradeName, xionUpgradeName)
 }
 
 func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
@@ -71,6 +71,7 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
 	haltHeight := height + haltHeightDelta
+	t.Logf("halt height: %d", haltHeight)
 
 	plan := upgradetypes.Plan{
 		Name:   upgradeName,
@@ -127,10 +128,14 @@ func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, up
 	// make sure that chain is halted
 	require.Equal(t, haltHeight, height, fmt.Sprintf("height: %d is not equal to halt height: %d", height, haltHeight))
 
+	// upgrade version on all nodes
+	queryRes, _, err := chain.GetNode().ExecQuery(ctx, "mint", "params")
+	require.NoError(t, err)
+	t.Logf("mint parameters: %+v \n", string(queryRes)) // confirming mint params before the upgrade
+
 	// bring down nodes to prepare for upgrade
 	err = chain.StopAllNodes(ctx)
 	require.NoError(t, err, "error stopping node(s)")
-	// upgrade version on all nodes
 	chain.UpgradeVersion(ctx, client, upgradeContainerRepo, upgradeVersion)
 
 	// start all nodes back up.

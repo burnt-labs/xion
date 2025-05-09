@@ -1,54 +1,66 @@
+version: "2"
 run:
-  # timeout for analysis, e.g. 30s, 5m, default is 1m
-  timeout: 10m
   tests: true
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
+    - copyloopvar
     - dogsled
     - errcheck
     - goconst
     - gocritic
-    - gofumpt
-    - gci
-    - revive
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
     - nakedret
-    - copyloopvar
+    - revive
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
-    - unused
     - unparam
-    - misspell
-
-linters-settings:
-  gci:
-    custom-order: true
-    sections:
-      - standard # Standard section: captures all standard packages.
-      - default # Default section: contains all imports that could not be matched to another section type.
-      - blank # blank imports
-      - dot # dot imports
-      - prefix(github.com/cometbft/cometbft)
-      - prefix(github.com/cosmos)
-      - prefix(cosmossdk.io)
-      - prefix(github.com/cosmos/cosmos-sdk)
-      - prefix(github.com/burnt-labs/xion)
-  gosec:
-    excludes:
-      - G404
-  gocritic:
-    disabled-checks:
-      - appendAssign
-
+    - unused
+  settings:
+    gocritic:
+      disabled-checks:
+        - appendAssign
+    gosec:
+      excludes:
+        - G404
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - blank
+        - dot
+        - prefix(github.com/cometbft/cometbft)
+        - prefix(github.com/cosmos)
+        - prefix(cosmossdk.io)
+        - prefix(github.com/cosmos/cosmos-sdk)
+        - prefix(github.com/burnt-labs/xion)
+      custom-order: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

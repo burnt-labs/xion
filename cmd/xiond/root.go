@@ -197,7 +197,7 @@ func initRootCmd(rootCmd *cobra.Command,
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
-	crisis.AddModuleInitFlags(startCmd)
+	crisis.AddModuleInitFlags(startCmd) // nolint:staticcheck
 	wasm.AddModuleInitFlags(startCmd)
 }
 
