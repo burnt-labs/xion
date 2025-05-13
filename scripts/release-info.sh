@@ -14,12 +14,12 @@ fi
 : ${GITHUB_REF_NAME:=$(git describe --tags)}
 
 binaries=$(
-  find "$release_dir" -name 'xiond_*.tgz' ! -name 'xiond_*darwin_all.tgz'
+  find "$release_dir" -name 'xiond_*.zip' ! -name 'xiond_*darwin_all.zip'
 ) 
 
 binaries_list=$(
   for file in ${binaries[@]}; do
-    platform=$(basename "$file" ".tgz" | cut -d_ -f3- | sed -E 's/^rc[0-9]*-//g; s/_/\//g')
+    platform=$(basename "$file" ".zip" | cut -d_ -f3- | sed -E 's/^rc[0-9]*-//g; s/_/\//g')
     checksum=$(sha256sum "$file" | awk '{ print $1 }')
     echo "\"$platform\": \"https://github.com/burnt-labs/xion/releases/download/${GITHUB_REF_NAME}/$(basename "$file")?checksum=sha256:$checksum"\"
   done
