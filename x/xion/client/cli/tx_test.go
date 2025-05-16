@@ -25,7 +25,7 @@ import (
 func (s *CLITestSuite) TestSendTxCmd() {
 	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 1)
 	cmd := cli.NewSendTxCmd()
-	cmd.SetOutput(io.Discard)
+	cmd.SetOut(io.Discard)
 
 	extraArgs := []string{
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -107,7 +107,7 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 3)
 
 	cmd := cli.NewMultiSendTxCmd()
-	cmd.SetOutput(io.Discard)
+	cmd.SetOut(io.Discard)
 
 	extraArgs := []string{
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -221,7 +221,7 @@ func (s *CLITestSuite) TestMultiSendTxCmd() {
 func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 1)
 	cmd := cli.NewUpdateConfigsCmd()
-	cmd.SetOutput(io.Discard)
+	cmd.SetOut(io.Discard)
 
 	configFile := "plain_config.json"
 	configFileURL := "https://raw.githubusercontent.com/burnt-labs/xion/6ce7bb89562d5a2964788cb64a623eec170c8748/integration_tests/testdata/unsigned_msgs/plain_config.json"

@@ -88,7 +88,7 @@ func IsAllGT(a, b sdk.DecCoins) bool {
 
 	for _, coinB := range b {
 		amountA, amountB := a.AmountOf(coinB.Denom), coinB.Amount
-		if !amountA.GT(amountB) {
+		if amountA.LT(amountB) {
 			return false
 		}
 	}
