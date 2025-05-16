@@ -33,7 +33,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 }
 
 // VersionStoreLoader is the store loader that is called during the upgrade process.
-func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (err error) {
+func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) {
 	app.Logger().Info("setting upgrade store loaders")
 	storeUpgrades := storetypes.StoreUpgrades{
 		// Added:  []string{""},
@@ -41,7 +41,6 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (err error) {
 	}
 	storeLoader := upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
 	app.SetStoreLoader(storeLoader)
-	return nil
 }
 
 // NextUpgradeHandler is the upgrade handler that is called during the upgrade process.
