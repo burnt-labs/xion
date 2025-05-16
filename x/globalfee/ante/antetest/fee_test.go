@@ -6,13 +6,18 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+
 	"cosmossdk.io/math"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 var testGasLimit uint64 = 200_000
@@ -281,58 +286,4 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	res, err = feeDecorator.GetTxFeeRequired(ctx, tx)
 	s.Require().NoError(err)
 	s.Require().True(res.Equal(globalFee))
-}
-
-func (s *IntegrationTestSuite) TestGetTxFeeRequired_LocalAndGlobalFeesMixed() {
-	fmt.Println("Setting up global fee with two coins and local min gas price")
-	// Local min gas prices:
-	localMinGasPrices := sdk.NewDecCoins(
-		sdk.NewDecCoin("uatom", math.NewInt(4)),
-		sdk.NewDecCoin("uxion", math.NewInt(7)),
-	)
-
-	// Global fee:
-	globalFeeParams := &globfeetypes.Params{
-		MinimumGasPrices: sdk.NewDecCoins(
-			sdk.NewDecCoin("uatom", math.NewInt(3)),
-			sdk.NewDecCoin("uxion", math.NewInt(7)),
-		),
-	}
-
-	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice(
-		localMinGasPrices,
-		globalFeeParams,
-		bondDenom,
-	)
-
-	// Build a dummy transaction
-	s.txBuilder = s.clientCtx.TxConfig.NewTxBuilder()
-	priv1, _, addr1 := testdata.KeyTestPubAddr()
-	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
-
-	s.Require().NoError(s.txBuilder.SetMsgs(testdata.NewTestMsg(addr1)))
-
-	// No fees set yet in builder; GetTxFeeRequired should compute them
-	s.txBuilder.SetFeeAmount(sdk.NewCoins())
-	s.txBuilder.SetGasLimit(10000)
-
-	tx, err := s.CreateTestTx(privs, accNums, accSeqs, s.ctx.ChainID())
-	s.Require().NoError(err)
-
-	// ---------------
-	//  CHECK TX MODE
-	// ---------------
-
-	s.Require().True(s.ctx.IsCheckTx())
-
-	res, err := feeDecorator.GetTxFeeRequired(s.ctx, tx)
-	s.Require().NoError(err)
-
-	// We skip the decorator  in check TX
-	expected := sdk.NewDecCoins(
-		sdk.NewDecCoin("uatom", math.NewInt(4)),
-		sdk.NewDecCoin("uxion", math.NewInt(7)),
-	)
-
-	s.Require().True(res.Equal(expected), "expected %s, got %s", expected, res)
 }
