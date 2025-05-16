@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
+
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -12,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 )
 
 const UpgradeName = "v19"
@@ -22,7 +23,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
-	
+
 	app.Logger().Info("setting upgrade handler", "name", UpgradeName)
 	app.UpgradeKeeper.SetUpgradeHandler(UpgradeName, app.NextUpgradeHandler)
 
@@ -33,7 +34,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 }
 
 // VersionStoreLoader is the store loader that is called during the upgrade process.
-func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (err error) {
+func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) {
 	app.Logger().Info("setting upgrade store loaders")
 	storeUpgrades := storetypes.StoreUpgrades{
 		// Added:  []string{""},
@@ -41,7 +42,6 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (err error) {
 	}
 	storeLoader := upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
 	app.SetStoreLoader(storeLoader)
-	return nil
 }
 
 // NextUpgradeHandler is the upgrade handler that is called during the upgrade process.
@@ -50,7 +50,7 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
 
 	// Set the new parameters for mint and staking
-	if err := app.V19StakingForceMinimumCommission(ctx, plan); err != nil {
+	if err := app.V19StakingForceMinimumCommission(ctx); err != nil {
 		panic(fmt.Sprintf("failed set minimum commissions: %s", err))
 	}
 
@@ -74,7 +74,7 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 }
 
 // V19StakingParamsChange is a migration function that sets the minimum commission rate for validators to 0.05
-func (app *WasmApp) V19StakingForceMinimumCommission(ctx context.Context, plan upgradetypes.Plan) (err error) {
+func (app *WasmApp) V19StakingForceMinimumCommission(ctx context.Context) (err error) {
 	// Get Staking params
 	stakingParams, err := app.StakingKeeper.GetParams(ctx)
 	if err != nil {
@@ -100,7 +100,6 @@ func (app *WasmApp) V19StakingForceMinimumCommission(ctx context.Context, plan u
 		}
 		return false
 	})
-
 	if err != nil {
 		return fmt.Errorf("failed to update validator commission %s", err)
 	}
@@ -128,7 +127,7 @@ func (app *WasmApp) V19FeeabsEpochAdd(sdkCtx sdktypes.Context, plan upgradetypes
 	sdkCtx.Logger().Info("running feeabs module migrations", "name", plan.Name)
 
 	epochs := []feeabstypes.EpochInfo{
-		feeabstypes.NewGenesisEpochInfo(feeabstypes.DefaultQueryEpochIdentifier, feeabstypes.DefaultQueryPeriod), 
+		feeabstypes.NewGenesisEpochInfo(feeabstypes.DefaultQueryEpochIdentifier, feeabstypes.DefaultQueryPeriod),
 		feeabstypes.NewGenesisEpochInfo(feeabstypes.DefaultSwapEpochIdentifier, feeabstypes.DefaultSwapPeriod),
 	}
 
