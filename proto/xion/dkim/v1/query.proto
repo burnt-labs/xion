@@ -23,10 +23,10 @@ service Query {
   // DkimPubKeys queries the DKIM public keys for a given selectors and domains.
   rpc DkimPubKeys(QueryDkimPubKeysRequest) returns (QueryDkimPubKeysResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
+  }
 
-    rpc DkimVerify(QueryDkimVerify) returns (QueryDkimVerifyResponse) {
-      option (google.api.http).get = "/dkim/v1/dkim_verify";
-    }
+  rpc ProofVerify(QueryProofVerifyRequest) returns (QueryProofVerifyResponse) {
+    option (google.api.http).get = "/dkim/v1/dkim_verify";
   }
 }
 
@@ -66,13 +66,16 @@ message QueryDkimPubKeysResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
-message QueryParamsResponse {
-  // params defines the parameters of the module.
-  bool valid = 1;
-}
-
 message QueryVerifyRequest {
   // TODO: write down the request for the contract
   string selector = 1;
   string domain = 2;
 }
+
+message QueryProofVerifyRequest {
+  bytes tx_bytes = 1;
+  bytes email_hash = 2;
+  bytes dkim_hash = 3;
+}
+
+message QueryProofVerifyResponse { bool verified = 1; }
