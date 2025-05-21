@@ -3,7 +3,7 @@
   "info": {
     "title": "XION - gRPC Gateway docs",
     "description": "A REST interface for state queries",
-    "version": "v18.0.1"
+    "version": "18.0.1"
   },
   "paths": {
     "/cosmos/auth/v1beta1/account_info/{address}": {

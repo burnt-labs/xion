@@ -39,10 +39,14 @@ Update sources, and install xiond
 ```bash
 sudo apt update
 <<<<<<< HEAD
+<<<<<<< HEAD
 sudo apt install xiond -y
 =======
 sudo apt install xiond
 >>>>>>> b0f3a37 (use goreleaser for build/release)
+=======
+sudo apt install xiond
+>>>>>>> 7b2757b (add signing and upload to fury, verify installers)
 ```
 
 Verify Installation
@@ -51,6 +55,7 @@ Verify Installation
 xiond version
 ```
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 Optional: List versions / Install a specific version
 
@@ -62,6 +67,8 @@ xiond version
 
 =======
 >>>>>>> b0f3a37 (use goreleaser for build/release)
+=======
+>>>>>>> 7b2757b (add signing and upload to fury, verify installers)
 ## Redhat/Dnf/Yum/Rpm
 
 Import the burnt repository key
@@ -89,6 +96,7 @@ xiond version
 ```
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Optional: List versions / Install a specific version
 
 ```bash
@@ -99,6 +107,8 @@ xiond version
 
 =======
 >>>>>>> b0f3a37 (use goreleaser for build/release)
+=======
+>>>>>>> 7b2757b (add signing and upload to fury, verify installers)
 ## Alpine Linux
 
 Download the repository key
@@ -111,10 +121,14 @@ Add the burnt repository to your repository list, inlude the signing key
 
 ```bash
 <<<<<<< HEAD
+<<<<<<< HEAD
 echo "https://alpine.fury.io/burnt" | sudo tee -a /etc/apk/repositories
 =======
 echo "https://alpine.fury.io/burnt" >> /etc/apk/repositories
 >>>>>>> b0f3a37 (use goreleaser for build/release)
+=======
+echo "https://alpine.fury.io/burnt" >> /etc/apk/repositories
+>>>>>>> 7b2757b (add signing and upload to fury, verify installers)
 ```
 
 Update sources, and install xiond
@@ -130,6 +144,7 @@ Verify Installation
 xiond version
 ```
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 Optional: List versions / Install a specific version
 
@@ -140,3 +155,5 @@ xiond version
 ```
 =======
 >>>>>>> b0f3a37 (use goreleaser for build/release)
+=======
+>>>>>>> 7b2757b (add signing and upload to fury, verify installers)
