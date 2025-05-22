@@ -34,6 +34,7 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, err
 	}
 
+	jwt.Settings(jwt.WithCompactOnly(true))
 	token, err := jwt.Parse([]byte(req.SigBytes),
 		jwt.WithKey(key.Algorithm(), key),
 		jwt.WithAudience(req.Aud),
