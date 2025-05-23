@@ -28,7 +28,7 @@ To build locally and install the `xiond` binary:
 make install
 ```
 
-To install a prebuilt package via homebrew/apt/yum/apk see [INSTALLERS.md](https://github.com/burnt-labs/xion/INSTALLERS.md)
+To install a prebuilt package via homebrew/apt/yum/apk see [INSTALLERS.md](INSTALLERS.md)
 
 ## Build
 
