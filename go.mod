@@ -5,6 +5,8 @@ go 1.23.5
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+
+	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
