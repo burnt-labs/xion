@@ -336,6 +336,178 @@ func (m *QueryDkimPubKeysResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
+type SnarkJsProof struct {
+	PiA [][]byte `protobuf:"bytes,1,rep,name=pi_a,json=piA,proto3" json:"pi_a,omitempty"`
+	PiB [][]byte `protobuf:"bytes,2,rep,name=pi_b,json=piB,proto3" json:"pi_b,omitempty"`
+	PiC [][]byte `protobuf:"bytes,3,rep,name=pi_c,json=piC,proto3" json:"pi_c,omitempty"`
+}
+
+func (m *SnarkJsProof) Reset()         { *m = SnarkJsProof{} }
+func (m *SnarkJsProof) String() string { return proto.CompactTextString(m) }
+func (*SnarkJsProof) ProtoMessage()    {}
+func (*SnarkJsProof) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef31cf4588a86e6f, []int{6}
+}
+func (m *SnarkJsProof) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SnarkJsProof) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SnarkJsProof.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SnarkJsProof) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SnarkJsProof.Merge(m, src)
+}
+func (m *SnarkJsProof) XXX_Size() int {
+	return m.Size()
+}
+func (m *SnarkJsProof) XXX_DiscardUnknown() {
+	xxx_messageInfo_SnarkJsProof.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SnarkJsProof proto.InternalMessageInfo
+
+func (m *SnarkJsProof) GetPiA() [][]byte {
+	if m != nil {
+		return m.PiA
+	}
+	return nil
+}
+
+func (m *SnarkJsProof) GetPiB() [][]byte {
+	if m != nil {
+		return m.PiB
+	}
+	return nil
+}
+
+func (m *SnarkJsProof) GetPiC() [][]byte {
+	if m != nil {
+		return m.PiC
+	}
+	return nil
+}
+
+type QueryVerifyRequest struct {
+	DkimDomain string `protobuf:"bytes,1,opt,name=dkim_domain,json=dkimDomain,proto3" json:"dkim_domain,omitempty"`
+	TxBytes    []byte `protobuf:"bytes,2,opt,name=tx_bytes,json=txBytes,proto3" json:"tx_bytes,omitempty"`
+	EmailHash  []byte `protobuf:"bytes,3,opt,name=email_hash,json=emailHash,proto3" json:"email_hash,omitempty"`
+	DkimHash   []byte `protobuf:"bytes,4,opt,name=dkim_hash,json=dkimHash,proto3" json:"dkim_hash,omitempty"`
+}
+
+func (m *QueryVerifyRequest) Reset()         { *m = QueryVerifyRequest{} }
+func (m *QueryVerifyRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryVerifyRequest) ProtoMessage()    {}
+func (*QueryVerifyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef31cf4588a86e6f, []int{7}
+}
+func (m *QueryVerifyRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVerifyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVerifyRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVerifyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVerifyRequest.Merge(m, src)
+}
+func (m *QueryVerifyRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVerifyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVerifyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVerifyRequest proto.InternalMessageInfo
+
+func (m *QueryVerifyRequest) GetDkimDomain() string {
+	if m != nil {
+		return m.DkimDomain
+	}
+	return ""
+}
+
+func (m *QueryVerifyRequest) GetTxBytes() []byte {
+	if m != nil {
+		return m.TxBytes
+	}
+	return nil
+}
+
+func (m *QueryVerifyRequest) GetEmailHash() []byte {
+	if m != nil {
+		return m.EmailHash
+	}
+	return nil
+}
+
+func (m *QueryVerifyRequest) GetDkimHash() []byte {
+	if m != nil {
+		return m.DkimHash
+	}
+	return nil
+}
+
+type QueryVerifyResponse struct {
+	Verified bool `protobuf:"varint,1,opt,name=verified,proto3" json:"verified,omitempty"`
+}
+
+func (m *QueryVerifyResponse) Reset()         { *m = QueryVerifyResponse{} }
+func (m *QueryVerifyResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryVerifyResponse) ProtoMessage()    {}
+func (*QueryVerifyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ef31cf4588a86e6f, []int{8}
+}
+func (m *QueryVerifyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVerifyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVerifyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVerifyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVerifyResponse.Merge(m, src)
+}
+func (m *QueryVerifyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVerifyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVerifyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVerifyResponse proto.InternalMessageInfo
+
+func (m *QueryVerifyResponse) GetVerified() bool {
+	if m != nil {
+		return m.Verified
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "xion.dkim.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "xion.dkim.v1.QueryParamsResponse")
@@ -343,46 +515,59 @@ func init() {
 	proto.RegisterType((*QueryDkimPubKeyResponse)(nil), "xion.dkim.v1.QueryDkimPubKeyResponse")
 	proto.RegisterType((*QueryDkimPubKeysRequest)(nil), "xion.dkim.v1.QueryDkimPubKeysRequest")
 	proto.RegisterType((*QueryDkimPubKeysResponse)(nil), "xion.dkim.v1.QueryDkimPubKeysResponse")
+	proto.RegisterType((*SnarkJsProof)(nil), "xion.dkim.v1.SnarkJsProof")
+	proto.RegisterType((*QueryVerifyRequest)(nil), "xion.dkim.v1.QueryVerifyRequest")
+	proto.RegisterType((*QueryVerifyResponse)(nil), "xion.dkim.v1.QueryVerifyResponse")
 }
 
 func init() { proto.RegisterFile("xion/dkim/v1/query.proto", fileDescriptor_ef31cf4588a86e6f) }
 
 var fileDescriptor_ef31cf4588a86e6f = []byte{
-	// 542 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x94, 0x4f, 0x8f, 0xd2, 0x40,
-	0x18, 0xc6, 0x29, 0x28, 0xd1, 0x17, 0x36, 0xc6, 0x11, 0xa1, 0x69, 0xd6, 0x06, 0xab, 0xee, 0x6e,
-	0x8c, 0xb6, 0x61, 0xbd, 0x19, 0x2f, 0xfe, 0x89, 0x9a, 0xe8, 0x01, 0x49, 0xbc, 0x78, 0x21, 0x53,
-	0x18, 0x4b, 0x03, 0x9d, 0xe9, 0x32, 0x53, 0x5c, 0xe2, 0xcd, 0x4f, 0x60, 0xe2, 0x27, 0xf0, 0x6b,
-	0xf8, 0x09, 0x3c, 0x6e, 0xe2, 0xc5, 0xa3, 0x01, 0xfd, 0x1e, 0xa6, 0x33, 0x03, 0xb4, 0xe9, 0x06,
-	0x0e, 0x7b, 0xa3, 0xf3, 0x3e, 0x7d, 0x9e, 0xdf, 0xbc, 0xef, 0x4b, 0xc1, 0x3c, 0x0d, 0x19, 0xf5,
-	0x86, 0xe3, 0x30, 0xf2, 0x66, 0x1d, 0xef, 0x24, 0x21, 0xd3, 0xb9, 0x1b, 0x4f, 0x99, 0x60, 0xa8,
-	0x9e, 0x56, 0xdc, 0xb4, 0xe2, 0xce, 0x3a, 0xd6, 0x7e, 0xc0, 0x58, 0x30, 0x21, 0x1e, 0x8e, 0x43,
-	0x0f, 0x53, 0xca, 0x04, 0x16, 0x21, 0xa3, 0x5c, 0x69, 0x2d, 0x2b, 0xe7, 0x12, 0x10, 0x4a, 0x78,
-	0xb8, 0xaa, 0xe5, 0x13, 0xb8, 0xc0, 0x82, 0xe8, 0xca, 0xfd, 0x01, 0xe3, 0x11, 0xe3, 0x9e, 0x8f,
-	0x39, 0x51, 0xd1, 0xde, 0xac, 0xe3, 0x13, 0x81, 0x3b, 0x5e, 0x8c, 0x83, 0x90, 0xca, 0x08, 0xa5,
-	0x75, 0x1a, 0x80, 0xde, 0xa5, 0x8a, 0x2e, 0x9e, 0xe2, 0x88, 0xf7, 0xc8, 0x49, 0x42, 0xb8, 0x70,
-	0x9e, 0xc3, 0x8d, 0xdc, 0x29, 0x8f, 0x19, 0xe5, 0x04, 0x3d, 0x80, 0x6a, 0x2c, 0x4f, 0x4c, 0xa3,
-	0x6d, 0x1c, 0xd5, 0x8e, 0x1b, 0x6e, 0xf6, 0x2e, 0xae, 0x56, 0x6b, 0x8d, 0xf3, 0x16, 0x9a, 0xd2,
-	0xe4, 0xc5, 0x38, 0x8c, 0xba, 0x89, 0xff, 0x86, 0xcc, 0xb5, 0x3d, 0xb2, 0xe0, 0x0a, 0x27, 0x13,
-	0x32, 0x10, 0x6c, 0x2a, 0x9d, 0xae, 0xf6, 0xd6, 0xcf, 0xa8, 0x09, 0xd5, 0x21, 0x8b, 0x70, 0x48,
-	0xcd, 0xb2, 0xac, 0xe8, 0x27, 0xe7, 0x3d, 0xb4, 0x0a, 0x6e, 0x1a, 0xeb, 0x31, 0xd4, 0x53, 0x84,
-	0x7e, 0x9c, 0xf8, 0xfd, 0x31, 0x99, 0x6b, 0x38, 0x33, 0x0f, 0x97, 0x79, 0x0f, 0x86, 0xeb, 0xdf,
-	0xce, 0x0f, 0xa3, 0xe0, 0xcb, 0x2f, 0x80, 0x89, 0xee, 0xc0, 0x5e, 0xcc, 0x38, 0x09, 0x87, 0x8c,
-	0xf6, 0x47, 0x98, 0x8f, 0xcc, 0x4a, 0xdb, 0x38, 0xaa, 0xf7, 0xea, 0xab, 0xc3, 0xd7, 0x98, 0x8f,
-	0xd0, 0x4b, 0x80, 0xcd, 0x20, 0xcc, 0x4b, 0x12, 0xf7, 0xc0, 0x55, 0x53, 0x73, 0xd3, 0xa9, 0xb9,
-	0x6a, 0x61, 0xf4, 0xd4, 0xdc, 0x2e, 0x0e, 0x88, 0x86, 0xea, 0x65, 0xde, 0x74, 0xbe, 0x1b, 0x60,
-	0x16, 0xe1, 0x75, 0x57, 0x9e, 0xc0, 0x5e, 0xb6, 0x2b, 0xe9, 0xcc, 0x2a, 0x5b, 0xdb, 0x52, 0xdb,
-	0xb4, 0x85, 0xa3, 0x57, 0x39, 0xc4, 0x8a, 0x44, 0x3c, 0xdc, 0x89, 0xa8, 0xa2, 0xb3, 0x8c, 0xc7,
-	0xff, 0xca, 0x70, 0x59, 0x32, 0xa2, 0x8f, 0x50, 0x55, 0x1b, 0x82, 0xda, 0x79, 0x86, 0xe2, 0x02,
-	0x5a, 0xb7, 0xb7, 0x28, 0x54, 0x88, 0xd3, 0xfa, 0xf2, 0xeb, 0xef, 0xb7, 0xf2, 0x75, 0x74, 0x6d,
-	0xfd, 0x1f, 0x50, 0x7b, 0x87, 0x3e, 0x01, 0x6c, 0x6e, 0x85, 0xee, 0x9e, 0xe3, 0x54, 0xd8, 0x48,
-	0xeb, 0xde, 0x0e, 0x95, 0xce, 0xdc, 0x97, 0x99, 0x4d, 0xd4, 0x58, 0x67, 0xae, 0x5a, 0x3c, 0x26,
-	0x73, 0xf4, 0x19, 0x6a, 0x99, 0x41, 0xa0, 0xed, 0x9e, 0xeb, 0xab, 0x1e, 0xec, 0x92, 0xe9, 0xec,
-	0x5b, 0x32, 0xbb, 0x85, 0x6e, 0x9e, 0x97, 0xcd, 0x9f, 0x3d, 0xfd, 0xb9, 0xb0, 0x8d, 0xb3, 0x85,
-	0x6d, 0xfc, 0x59, 0xd8, 0xc6, 0xd7, 0xa5, 0x5d, 0x3a, 0x5b, 0xda, 0xa5, 0xdf, 0x4b, 0xbb, 0xf4,
-	0xe1, 0x30, 0x08, 0xc5, 0x28, 0xf1, 0xdd, 0x01, 0x8b, 0x3c, 0x3f, 0x99, 0x52, 0xf1, 0x70, 0x82,
-	0x7d, 0xee, 0xc9, 0xcf, 0xc7, 0xa9, 0x32, 0x13, 0xf3, 0x98, 0x70, 0xbf, 0x2a, 0x3f, 0x09, 0x8f,
-	0xfe, 0x07, 0x00, 0x00, 0xff, 0xff, 0xa1, 0x8a, 0x95, 0xd5, 0xbc, 0x04, 0x00, 0x00,
+	// 696 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0xcd, 0x6e, 0xd3, 0x4a,
+	0x14, 0xae, 0x9b, 0xde, 0xdc, 0xf4, 0xc4, 0xd5, 0x55, 0xe7, 0xf6, 0xb6, 0xbe, 0xa6, 0x0d, 0xc5,
+	0x40, 0x5b, 0x21, 0xb0, 0x95, 0xb2, 0x43, 0x6c, 0xfa, 0x23, 0x8a, 0x80, 0x45, 0x30, 0x82, 0x05,
+	0x9b, 0x68, 0x9c, 0x4c, 0x93, 0x51, 0x62, 0x8f, 0xeb, 0x99, 0x84, 0x58, 0xec, 0x58, 0xb3, 0x40,
+	0xe2, 0x09, 0x78, 0x0d, 0x9e, 0x80, 0x65, 0x25, 0x16, 0xb0, 0x44, 0x2d, 0x0f, 0x82, 0x3c, 0x33,
+	0x71, 0x63, 0x25, 0xb4, 0x0b, 0x76, 0x9e, 0x73, 0x8e, 0xbf, 0xef, 0x9b, 0xf3, 0x9d, 0x33, 0x60,
+	0x8d, 0x28, 0x8b, 0xbc, 0x76, 0x8f, 0x86, 0xde, 0xb0, 0xee, 0x9d, 0x0c, 0x48, 0x92, 0xba, 0x71,
+	0xc2, 0x04, 0x43, 0x66, 0x96, 0x71, 0xb3, 0x8c, 0x3b, 0xac, 0xdb, 0xeb, 0x1d, 0xc6, 0x3a, 0x7d,
+	0xe2, 0xe1, 0x98, 0x7a, 0x38, 0x8a, 0x98, 0xc0, 0x82, 0xb2, 0x88, 0xab, 0x5a, 0xdb, 0x2e, 0xa0,
+	0x74, 0x48, 0x44, 0x38, 0x1d, 0xe7, 0x8a, 0x0c, 0x5c, 0x60, 0x41, 0x74, 0xe6, 0x4e, 0x8b, 0xf1,
+	0x90, 0x71, 0x2f, 0xc0, 0x9c, 0x28, 0x6a, 0x6f, 0x58, 0x0f, 0x88, 0xc0, 0x75, 0x2f, 0xc6, 0x1d,
+	0x1a, 0x49, 0x0a, 0x55, 0xeb, 0xac, 0x00, 0x7a, 0x9e, 0x55, 0x34, 0x70, 0x82, 0x43, 0xee, 0x93,
+	0x93, 0x01, 0xe1, 0xc2, 0x39, 0x80, 0x7f, 0x0b, 0x51, 0x1e, 0xb3, 0x88, 0x13, 0x74, 0x17, 0xca,
+	0xb1, 0x8c, 0x58, 0xc6, 0xa6, 0xb1, 0x53, 0xdd, 0x5d, 0x71, 0x27, 0xef, 0xe2, 0xea, 0x6a, 0x5d,
+	0xe3, 0x3c, 0x83, 0x55, 0x09, 0x72, 0xd8, 0xa3, 0x61, 0x63, 0x10, 0x3c, 0x25, 0xa9, 0x86, 0x47,
+	0x36, 0x54, 0x38, 0xe9, 0x93, 0x96, 0x60, 0x89, 0x44, 0x5a, 0xf4, 0xf3, 0x33, 0x5a, 0x85, 0x72,
+	0x9b, 0x85, 0x98, 0x46, 0xd6, 0xbc, 0xcc, 0xe8, 0x93, 0xf3, 0x12, 0xd6, 0xa6, 0xd0, 0xb4, 0xac,
+	0x07, 0x60, 0x66, 0x12, 0x9a, 0xf1, 0x20, 0x68, 0xf6, 0x48, 0xaa, 0xc5, 0x59, 0x45, 0x71, 0x13,
+	0xff, 0x41, 0x3b, 0xff, 0x76, 0x3e, 0x1b, 0x53, 0xb8, 0xfc, 0x0f, 0x64, 0xa2, 0x9b, 0xb0, 0x14,
+	0x33, 0x4e, 0x68, 0x9b, 0x45, 0xcd, 0x2e, 0xe6, 0x5d, 0xab, 0xb4, 0x69, 0xec, 0x98, 0xbe, 0x39,
+	0x0e, 0x3e, 0xc6, 0xbc, 0x8b, 0x1e, 0x01, 0x5c, 0x18, 0x61, 0x2d, 0x48, 0xb9, 0x5b, 0xae, 0x72,
+	0xcd, 0xcd, 0x5c, 0x73, 0xd5, 0xc0, 0x68, 0xd7, 0xdc, 0x06, 0xee, 0x10, 0x2d, 0xca, 0x9f, 0xf8,
+	0xd3, 0xf9, 0x64, 0x80, 0x35, 0x2d, 0x5e, 0x77, 0xe5, 0x21, 0x2c, 0x4d, 0x76, 0x25, 0xf3, 0xac,
+	0x74, 0x69, 0x5b, 0xaa, 0x17, 0x6d, 0xe1, 0xe8, 0xa8, 0x20, 0xb1, 0x24, 0x25, 0x6e, 0x5f, 0x29,
+	0x51, 0x51, 0x17, 0x34, 0x1e, 0x81, 0xf9, 0x22, 0xc2, 0x49, 0xef, 0x09, 0x6f, 0x24, 0x8c, 0x1d,
+	0xa3, 0x65, 0x58, 0x88, 0x69, 0x13, 0x4b, 0x35, 0xa6, 0x5f, 0x8a, 0xe9, 0x9e, 0x0e, 0x05, 0xd6,
+	0xfc, 0x38, 0xb4, 0xaf, 0x43, 0x2d, 0xab, 0x34, 0x0e, 0x1d, 0x38, 0xef, 0x0d, 0x3d, 0xaa, 0xaf,
+	0x48, 0x42, 0x8f, 0xf3, 0x59, 0xba, 0x0e, 0x52, 0x77, 0x53, 0xbb, 0xa1, 0x7c, 0x92, 0x0e, 0x1f,
+	0x2a, 0x47, 0xfe, 0x87, 0x8a, 0x18, 0x35, 0x83, 0x54, 0x10, 0x2e, 0xbd, 0x32, 0xfd, 0xbf, 0xc5,
+	0x68, 0x3f, 0x3b, 0xa2, 0x0d, 0x00, 0x12, 0x62, 0xda, 0x9f, 0x74, 0x6a, 0x51, 0x46, 0xa4, 0x4d,
+	0xd7, 0x60, 0x51, 0x42, 0xcb, 0xec, 0x82, 0xcc, 0x56, 0xb2, 0x40, 0x96, 0x74, 0xea, 0x7a, 0x45,
+	0xc6, 0x6a, 0x74, 0xd7, 0x6d, 0xa8, 0x0c, 0xb3, 0x08, 0x25, 0x6d, 0xa9, 0xa5, 0xe2, 0xe7, 0xe7,
+	0xdd, 0x6f, 0x25, 0xf8, 0x4b, 0xfe, 0x83, 0x8e, 0xa1, 0xac, 0x96, 0x05, 0x6d, 0x16, 0xed, 0x98,
+	0xde, 0x45, 0xfb, 0xc6, 0x25, 0x15, 0x8a, 0xd4, 0x59, 0x7b, 0xf7, 0xf5, 0xe7, 0xc7, 0xf9, 0x65,
+	0xf4, 0x4f, 0xfe, 0x1c, 0xa8, 0x15, 0x44, 0x6f, 0x00, 0x2e, 0x0c, 0x46, 0xb7, 0x66, 0x20, 0x4d,
+	0x2d, 0xa7, 0x7d, 0xfb, 0x8a, 0x2a, 0xcd, 0xb9, 0x2e, 0x39, 0x57, 0xd1, 0x4a, 0xce, 0x39, 0x9e,
+	0xb6, 0x1e, 0x49, 0xd1, 0x5b, 0xa8, 0x4e, 0xcc, 0x24, 0xba, 0x1c, 0x33, 0xbf, 0xea, 0xd6, 0x55,
+	0x65, 0x9a, 0x7b, 0x43, 0x72, 0xaf, 0xa1, 0xff, 0x66, 0x71, 0x73, 0x14, 0x43, 0x55, 0xce, 0x9a,
+	0xb2, 0x66, 0x66, 0x8b, 0x0b, 0x33, 0x34, 0xb3, 0xc5, 0x45, 0x5f, 0x7f, 0x77, 0x5d, 0xe9, 0x6d,
+	0xba, 0xbf, 0xf7, 0xe5, 0xac, 0x66, 0x9c, 0x9e, 0xd5, 0x8c, 0x1f, 0x67, 0x35, 0xe3, 0xc3, 0x79,
+	0x6d, 0xee, 0xf4, 0xbc, 0x36, 0xf7, 0xfd, 0xbc, 0x36, 0xf7, 0x7a, 0xbb, 0x43, 0x45, 0x77, 0x10,
+	0xb8, 0x2d, 0x16, 0x7a, 0xc1, 0x20, 0x89, 0xc4, 0xbd, 0x3e, 0x0e, 0xb8, 0x27, 0xdf, 0xee, 0x91,
+	0xc2, 0x12, 0x69, 0x4c, 0x78, 0x50, 0x96, 0xef, 0xf1, 0xfd, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff,
+	0xbe, 0x87, 0x37, 0x60, 0x39, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -403,6 +588,7 @@ type QueryClient interface {
 	DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
 	// DkimPubKeys queries the DKIM public keys for a given selectors and domains.
 	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error)
+	ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*QueryVerifyResponse, error)
 }
 
 type queryClient struct {
@@ -440,6 +626,15 @@ func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysReque
 	return out, nil
 }
 
+func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*QueryVerifyResponse, error) {
+	out := new(QueryVerifyResponse)
+	err := c.cc.Invoke(ctx, "/xion.dkim.v1.Query/ProofVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Params queries all parameters of the module.
@@ -448,6 +643,7 @@ type QueryServer interface {
 	DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
 	// DkimPubKeys queries the DKIM public keys for a given selectors and domains.
 	DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error)
+	ProofVerify(context.Context, *QueryVerifyRequest) (*QueryVerifyResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -462,6 +658,9 @@ func (*UnimplementedQueryServer) DkimPubKey(ctx context.Context, req *QueryDkimP
 }
 func (*UnimplementedQueryServer) DkimPubKeys(ctx context.Context, req *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKeys not implemented")
+}
+func (*UnimplementedQueryServer) ProofVerify(ctx context.Context, req *QueryVerifyRequest) (*QueryVerifyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -522,6 +721,24 @@ func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_ProofVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ProofVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.dkim.v1.Query/ProofVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ProofVerify(ctx, req.(*QueryVerifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.dkim.v1.Query",
@@ -538,6 +755,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DkimPubKeys",
 			Handler:    _Query_DkimPubKeys_Handler,
+		},
+		{
+			MethodName: "ProofVerify",
+			Handler:    _Query_ProofVerify_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -779,6 +1000,140 @@ func (m *QueryDkimPubKeysResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *SnarkJsProof) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SnarkJsProof) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SnarkJsProof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PiC) > 0 {
+		for iNdEx := len(m.PiC) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.PiC[iNdEx])
+			copy(dAtA[i:], m.PiC[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.PiC[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.PiB) > 0 {
+		for iNdEx := len(m.PiB) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.PiB[iNdEx])
+			copy(dAtA[i:], m.PiB[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.PiB[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.PiA) > 0 {
+		for iNdEx := len(m.PiA) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.PiA[iNdEx])
+			copy(dAtA[i:], m.PiA[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.PiA[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVerifyRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVerifyRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVerifyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.DkimHash) > 0 {
+		i -= len(m.DkimHash)
+		copy(dAtA[i:], m.DkimHash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.DkimHash)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.EmailHash) > 0 {
+		i -= len(m.EmailHash)
+		copy(dAtA[i:], m.EmailHash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.EmailHash)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.TxBytes) > 0 {
+		i -= len(m.TxBytes)
+		copy(dAtA[i:], m.TxBytes)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.TxBytes)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.DkimDomain) > 0 {
+		i -= len(m.DkimDomain)
+		copy(dAtA[i:], m.DkimDomain)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.DkimDomain)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVerifyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVerifyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVerifyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Verified {
+		i--
+		if m.Verified {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -882,6 +1237,70 @@ func (m *QueryDkimPubKeysResponse) Size() (n int) {
 	if m.Pagination != nil {
 		l = m.Pagination.Size()
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *SnarkJsProof) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.PiA) > 0 {
+		for _, b := range m.PiA {
+			l = len(b)
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if len(m.PiB) > 0 {
+		for _, b := range m.PiB {
+			l = len(b)
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if len(m.PiC) > 0 {
+		for _, b := range m.PiC {
+			l = len(b)
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryVerifyRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.DkimDomain)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.TxBytes)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.EmailHash)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.DkimHash)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryVerifyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Verified {
+		n += 2
 	}
 	return n
 }
@@ -1511,6 +1930,406 @@ func (m *QueryDkimPubKeysResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SnarkJsProof) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SnarkJsProof: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SnarkJsProof: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PiA", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PiA = append(m.PiA, make([]byte, postIndex-iNdEx))
+			copy(m.PiA[len(m.PiA)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PiB", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PiB = append(m.PiB, make([]byte, postIndex-iNdEx))
+			copy(m.PiB[len(m.PiB)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PiC", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PiC = append(m.PiC, make([]byte, postIndex-iNdEx))
+			copy(m.PiC[len(m.PiC)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVerifyRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVerifyRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVerifyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DkimDomain", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DkimDomain = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxBytes", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TxBytes = append(m.TxBytes[:0], dAtA[iNdEx:postIndex]...)
+			if m.TxBytes == nil {
+				m.TxBytes = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EmailHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EmailHash = append(m.EmailHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.EmailHash == nil {
+				m.EmailHash = []byte{}
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DkimHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DkimHash = append(m.DkimHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.DkimHash == nil {
+				m.DkimHash = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVerifyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVerifyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVerifyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Verified", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Verified = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
