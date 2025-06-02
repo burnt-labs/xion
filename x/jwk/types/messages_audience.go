@@ -91,7 +91,7 @@ func NewMsgUpdateAudience(
 ) *MsgUpdateAudience {
 	return &MsgUpdateAudience{
 		NewAdmin: newAdmin,
-		NewAud:  newAud,
+		NewAud:   newAud,
 		Admin:    admin,
 		Aud:      aud,
 		Key:      key,
