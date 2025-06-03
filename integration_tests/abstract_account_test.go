@@ -815,7 +815,7 @@ func TestXionClientEvent(t *testing.T) {
 	err = cometWsClient.Start()
 	require.NoError(t, err)
 
-	//eventStream, err := subscribeToEvent(t, ctx, cometTypes.EventTx, cometWsClient)
+	// eventStream, err := subscribeToEvent(t, ctx, cometTypes.EventTx, cometWsClient)
 	eventStream, err := subscribeToEvent(t, ctx, cometWsClient)
 
 	require.NoError(t, err)
@@ -857,7 +857,7 @@ func TestXionClientEvent(t *testing.T) {
 	require.NoError(t, err) // it's returning an error and it's not throwing
 	fmt.Println("we have thrown a transaction")
 
-	//wg.Wait()
+	// wg.Wait()
 	<-doneChan
 	stopClient(ctx, cometWsClient)
 }

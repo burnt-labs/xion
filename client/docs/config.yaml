@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   title: XION - gRPC Gateway docs
   description: A REST interface for state queries
-  version: 18.0.1
+  version: v19.0.0
 apis:
   - url: ./cosmos/auth/v1beta1/query.swagger.json
     operationIds:
