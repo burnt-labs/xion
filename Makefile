@@ -282,6 +282,9 @@ test-integration-upgrade-network: compile-integration-tests
 test-integration-simulate: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestSimulate
 
+test-reclaim: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestReclaimProofVerification
+
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 
