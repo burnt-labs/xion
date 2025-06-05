@@ -20,7 +20,7 @@ GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
-XION_IMAGE ?= xiond:$(GOARCH)
+XION_IMAGE ?= heighliner:$(GOARCH)
 HEIGHLINER_IMAGE ?= heighliner:$(GOARCH)
 
 # process build tags
@@ -282,6 +282,12 @@ test-integration-upgrade-network: compile-integration-tests
 test-integration-simulate: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestSimulate
 
+test-integration-dkim-module: compile-integration-tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestDKIMModule
+
+test-integration-zkemail-abstract-account: compile-integration-tests
+	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestZKEmailAuthenticator
+
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 
@@ -326,7 +332,7 @@ format: format-tools
 ################################################################################
 ###                                 Protobuf                                 ###
 ################################################################################
-protoVer=0.14.0
+protoVer=0.15.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
