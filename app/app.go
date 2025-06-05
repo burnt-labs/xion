@@ -556,31 +556,6 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	app.FeeAbsKeeper = feeabskeeper.NewKeeper(
-		appCodec,
-		keys[feeabstypes.StoreKey],
-		app.GetSubspace(feeabstypes.ModuleName),
-		app.StakingKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.TransferKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		scopedFeeabsKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
-	feeabsModule := feeabs.NewAppModule(appCodec, app.FeeAbsKeeper)
-	feeabsIBCModule := feeabs.NewIBCModule(appCodec, app.FeeAbsKeeper)
-
-	// Register the proposal types
-	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
-	// by granting the governance module the right to execute the message.
-	// See: https://docs.cosmos.network/main/modules/gov#proposal-messages
-	govRouter := govv1beta1.NewRouter()
-	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(feeabstypes.ModuleName, feeabs.NewHostZoneProposal(app.FeeAbsKeeper))
 	govConfig := govtypes.DefaultConfig()
 	/*
 		Example of setting gov params:
@@ -689,6 +664,32 @@ func NewWasmApp(
 	)
 
 	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
+
+	app.FeeAbsKeeper = feeabskeeper.NewKeeper(
+		appCodec,
+		keys[feeabstypes.StoreKey],
+		app.GetSubspace(feeabstypes.ModuleName),
+		app.StakingKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.TransferKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.PortKeeper,
+		scopedFeeabsKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	feeabsModule := feeabs.NewAppModule(appCodec, app.FeeAbsKeeper)
+	feeabsIBCModule := feeabs.NewIBCModule(appCodec, app.FeeAbsKeeper)
+
+	// Register the proposal types
+	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
+	// by granting the governance module the right to execute the message.
+	// See: https://docs.cosmos.network/main/modules/gov#proposal-messages
+	govRouter := govv1beta1.NewRouter()
+	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
+		AddRoute(feeabstypes.ModuleName, feeabs.NewHostZoneProposal(app.FeeAbsKeeper))
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec,
