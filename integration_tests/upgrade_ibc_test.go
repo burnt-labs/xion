@@ -57,13 +57,16 @@ import (
 
 const (
 	xionImageFrom   = "ghcr.io/burnt-labs/xion/heighliner"
-	xionVersionFrom = "17.1.0"
+	xionVersionFrom = "19.0.0"
 	xionImageTo     = "xion"
 	xionVersionTo   = "local"
 	xionUpgradeName = "v19"
 
 	osmosisImage   = "ghcr.io/strangelove-ventures/heighliner/osmosis"
 	osmosisVersion = "v25.2.1"
+
+	FeeabsImage      = "osmolabs/fee-abstraction"
+	FeeabsICTestRepo = "osmolabs/fee-abstraction-ictest"
 
 	ibcClientTrustingPeriod = "336h"
 )

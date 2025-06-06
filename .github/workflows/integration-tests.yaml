@@ -41,6 +41,7 @@ jobs:
             - "XionMinimumFeeZero"
             - "XionSendPlatformFee"
             - "XionTokenFactory"
+            - "IBCTrasnfer"
             # - "XionUpgradeNetwork" # broken
 
     steps:
