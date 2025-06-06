@@ -216,6 +216,9 @@ test-integration-dungeon-transfer-block: compile-integration-tests
 test-integration-mint-module-no-inflation-no-fees: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestMintModuleNoInflationNoFees
 
+test-ibc-transfer-params: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestIBCTrasnferTest
+
 test-integration-mint-module-inflation-no-fees: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationNoFees
 

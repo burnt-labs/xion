@@ -25,12 +25,14 @@ import (
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/burnt-labs/xion/x/xion"
 	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
+	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/wasm"
+
 	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
-	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
+	ibcwasmtypes "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
@@ -72,6 +74,8 @@ import (
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+
+	feeabstype "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 )
 
 //go:embed configuredChains.yaml
@@ -84,6 +88,12 @@ const (
 	minInflation     = "0.0"
 	maxInflation     = "0.0"
 	mintDenom        = "uxion"
+	queryEpochTime   = "10s"
+
+	pathFeeabsXion = "feeabs-xion"
+
+	IBCRelayerImage   = "ghcr.io/cosmos/relayer"
+	IBCRelayerVersion = "latest"
 )
 
 var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
@@ -263,7 +273,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				transfer.AppModuleBasic{},
 				ibccore.AppModuleBasic{},
 				ibctm.AppModuleBasic{},
-				ibcwasm.AppModuleBasic{},
+				ibcwasmtypes.AppModuleBasic{},
 				ccvprovider.AppModuleBasic{},
 				ibcsolomachine.AppModuleBasic{},
 
@@ -367,6 +377,39 @@ func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, para
 		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 	}
 	return out, nil
+}
+
+func modifyGenesisShortProposals(
+	votingPeriod string,
+	maxDepositPeriod string,
+	queryEpochTime string,
+) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
+		g := make(map[string]interface{})
+		if err := json.Unmarshal(genbz, &g); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
+		}
+		if err := dyno.Set(g, votingPeriod, "app_state", "gov", "params", "voting_period"); err != nil {
+			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, maxDepositPeriod, "app_state", "gov", "params", "max_deposit_period"); err != nil {
+			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
+			return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, queryEpochTime, "app_state", "feeabs", "epochs", 0, "duration"); err != nil {
+			return nil, fmt.Errorf("failed to set query epoch time in genesis json: %w", err)
+		}
+		if err := dyno.Set(g, queryEpochTime, "app_state", "feeabs", "epochs", 1, "duration"); err != nil {
+			return nil, fmt.Errorf("failed to set query epoch time in genesis json: %w", err)
+		}
+		out, err := json.Marshal(g)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
+		}
+		return out, nil
+	}
 }
 
 func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
@@ -1176,4 +1219,15 @@ func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
 	}
 
 	return tempFile
+}
+
+// feeabsEncoding registers the feeabs specific module codecs so that the associated types and msgs
+// will be supported when writing to the blocksdb sqlite database.
+func feeabsEncoding() *moduletestutil.TestEncodingConfig {
+	cfg := ibcwasm.WasmEncoding()
+
+	// register custom types
+	feeabstype.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	return cfg
 }
