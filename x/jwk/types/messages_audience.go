@@ -86,10 +86,12 @@ func NewMsgUpdateAudience(
 	admin string,
 	newAdmin string,
 	aud string,
+	newAud string,
 	key string,
 ) *MsgUpdateAudience {
 	return &MsgUpdateAudience{
 		NewAdmin: newAdmin,
+		NewAud:   newAud,
 		Admin:    admin,
 		Aud:      aud,
 		Key:      key,
