@@ -24,10 +24,10 @@ import (
 	"github.com/burnt-labs/xion/x/mint"
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/burnt-labs/xion/x/xion"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ibccore "github.com/cosmos/ibc-go/v10/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	//ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
 	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
@@ -276,7 +276,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				aa.AppModuleBasic{},
 			)
 			// TODO: add encoding types here for the modules you want to use
-			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+			// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}

@@ -37,7 +37,7 @@ go mod edit -json |
     cosmos_sdk_version: (.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version),
     cosmwasm_enabled: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") != null),
     cosmwasm_version: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version),
-    ibc_go_version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v8") | .Version),
+    ibc_go_version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v10") | .Version),
     consensus: {
       type: "cometbft",
       version: (.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version)
