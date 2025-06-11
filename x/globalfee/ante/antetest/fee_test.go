@@ -11,9 +11,11 @@ import (
 
 	"cosmossdk.io/math"
 
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
@@ -286,4 +288,88 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	res, err = feeDecorator.GetTxFeeRequired(ctx, tx)
 	s.Require().NoError(err)
 	s.Require().True(res.Equal(globalFee))
+}
+
+// TestAuthzBypassUnwrapping tests that authz MsgExec messages are properly unwrapped
+// when checking for bypass message types
+func (s *IntegrationTestSuite) TestAuthzBypassUnwrapping() {
+	s.txBuilder = s.clientCtx.TxConfig.NewTxBuilder()
+	_, _, addr1 := testdata.KeyTestPubAddr()
+	_, _, addr2 := testdata.KeyTestPubAddr()
+
+	// Set up global fee params with bypass message types
+	globalfeeParams := &globfeetypes.Params{
+		MinimumGasPrices:                []sdk.DecCoin{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(1))},
+		BypassMinFeeMsgTypes:            globfeetypes.DefaultBypassMinFeeMsgTypes,
+		MaxTotalBypassMinFeeMsgGasUsage: globfeetypes.DefaultmaxTotalBypassMinFeeMsgGasUsage,
+	}
+
+	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParams, bondDenom)
+
+	testCases := map[string]struct {
+		msgs       []sdk.Msg
+		shouldPass bool
+	}{
+		"direct bypass message": {
+			msgs:       []sdk.Msg{&xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr2.String()}},
+			shouldPass: true,
+		},
+		"authz wrapped bypass message": {
+			msgs: []sdk.Msg{
+				&authz.MsgExec{
+					Grantee: addr1.String(),
+					Msgs: []*cdctypes.Any{
+						cdctypes.UnsafePackAny(&xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr2.String()}),
+					},
+				},
+			},
+			shouldPass: true,
+		},
+		"authz wrapped non-bypass message": {
+			msgs: []sdk.Msg{
+				&authz.MsgExec{
+					Grantee: addr1.String(),
+					Msgs: []*cdctypes.Any{
+						cdctypes.UnsafePackAny(testdata.NewTestMsg(addr1)),
+					},
+				},
+			},
+			shouldPass: false,
+		},
+		"nested authz wrapped bypass message": {
+			msgs: []sdk.Msg{
+				&authz.MsgExec{
+					Grantee: addr1.String(),
+					Msgs: []*cdctypes.Any{
+						cdctypes.UnsafePackAny(&authz.MsgExec{
+							Grantee: addr2.String(),
+							Msgs: []*cdctypes.Any{
+								cdctypes.UnsafePackAny(&xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr2.String()}),
+							},
+						}),
+					},
+				},
+			},
+			shouldPass: true,
+		},
+		"authz with mixed messages (contains non-bypass)": {
+			msgs: []sdk.Msg{
+				&authz.MsgExec{
+					Grantee: addr1.String(),
+					Msgs: []*cdctypes.Any{
+						cdctypes.UnsafePackAny(&xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr2.String()}),
+						cdctypes.UnsafePackAny(testdata.NewTestMsg(addr1)),
+					},
+				},
+			},
+			shouldPass: false,
+		},
+	}
+
+	for name, tc := range testCases {
+		s.Run(name, func() {
+			result := feeDecorator.ContainsOnlyBypassMinFeeMsgs(s.ctx, tc.msgs)
+			s.Require().Equal(tc.shouldPass, result)
+		})
+	}
 }

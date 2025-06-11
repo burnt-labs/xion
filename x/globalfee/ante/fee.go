@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee"
@@ -55,7 +56,8 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	// Do not check minimum-gas-prices and global fees during simulations
 	// short-circuit bypass messages
 	if simulate || mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
-		return next(ctx, tx, simulate)
+		// Clear minimum gas prices for bypass messages to ensure they are not enforced by subsequent decorators
+		return next(ctx.WithMinGasPrices(sdk.DecCoins{}), tx, simulate)
 	}
 
 	// Get the required fees, as per xion specification max(network_fees, local_validator_fees)
@@ -142,7 +144,10 @@ func (mfd FeeDecorator) getBondDenom(ctx sdk.Context) (bondDenom string) {
 
 func (mfd FeeDecorator) ContainsOnlyBypassMinFeeMsgs(ctx sdk.Context, msgs []sdk.Msg) bool {
 	bypassMsgTypes := mfd.GetBypassMsgTypes(ctx)
-	for _, msg := range msgs {
+	// Unwrap all messages first, including nested authz messages
+	unwrappedMsgs := mfd.unwrapMsgs(msgs)
+
+	for _, msg := range unwrappedMsgs {
 		if tmstrings.StringInSlice(sdk.MsgTypeURL(msg), bypassMsgTypes) {
 			continue
 		}
@@ -150,6 +155,29 @@ func (mfd FeeDecorator) ContainsOnlyBypassMinFeeMsgs(ctx sdk.Context, msgs []sdk
 	}
 
 	return true
+}
+
+// unwrapMsgs recursively unwraps authz MsgExec messages to get the underlying messages
+func (mfd FeeDecorator) unwrapMsgs(msgs []sdk.Msg) []sdk.Msg {
+	var unwrapped []sdk.Msg
+
+	for _, msg := range msgs {
+		if execMsg, ok := msg.(*authz.MsgExec); ok {
+			// Extract messages from MsgExec
+			innerMsgs, err := execMsg.GetMessages()
+			if err != nil {
+				// If we can't unwrap, include the original message
+				unwrapped = append(unwrapped, msg)
+				continue
+			}
+			// Recursively unwrap in case of nested authz messages
+			unwrapped = append(unwrapped, mfd.unwrapMsgs(innerMsgs)...)
+		} else {
+			unwrapped = append(unwrapped, msg)
+		}
+	}
+
+	return unwrapped
 }
 
 func (mfd FeeDecorator) GetBypassMsgTypes(ctx sdk.Context) (res []string) {

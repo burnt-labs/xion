@@ -807,6 +807,41 @@ func ExecBroadcastWithFlags(_ *testing.T, ctx context.Context, tn *cosmos.ChainN
 	return output.TxHash, err
 }
 
+// ExecSignTx signs a transaction and returns the signed transaction bytes
+func ExecSignTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, tx []byte, gasPrices string) ([]byte, error) {
+	// Write the transaction to a file
+	txFile := "tx_to_sign.json"
+	if err := tn.WriteFile(ctx, tx, txFile); err != nil {
+		return nil, err
+	}
+	
+	signedTxFile := "signed_tx.json"
+	
+	cmd := tn.NodeCommand(
+		"tx", "sign", path.Join(tn.HomeDir(), txFile),
+		"--from", keyName,
+		"--chain-id", tn.Chain.Config().ChainID,
+		"--keyring-backend", "test",
+		"--output-document", path.Join(tn.HomeDir(), signedTxFile),
+		"--gas-prices", gasPrices,
+		"--gas", "auto",
+		"--gas-adjustment", "1.5",
+	)
+	
+	_, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return nil, err
+	}
+	
+	// Read the signed transaction
+	signedTx, err := tn.ReadFile(ctx, signedTxFile)
+	if err != nil {
+		return nil, err
+	}
+	
+	return signedTx, nil
+}
+
 func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
 	content, err := os.ReadFile(file.Name())
 	if err != nil {

@@ -270,6 +270,9 @@ test-treasury-multi: compile-integration-tests
 test-integration-min-fee: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
 
+test-integration-globalfee-bypass: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestGlobalFeeBypassMessages
+
 test-integration-web-auth-n-abstract-account: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=WebAuthNAbstractAccount
 
