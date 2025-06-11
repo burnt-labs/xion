@@ -77,6 +77,7 @@ message QueryVerifyRequest {
   bytes tx_bytes = 2;
   bytes email_hash = 3;
   bytes dkim_hash = 4;
+  bytes proof = 5;
 }
 
 message QueryVerifyResponse { bool verified = 1; }

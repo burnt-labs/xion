@@ -100,3 +100,23 @@ func ToLittleEndian(b []byte) []byte {
 	}
 	return le
 }
+
+func Inputs(tx, email, dkim string) (inputs []string, err error) {
+	var emailBz [32]byte
+	copy(emailBz[:], email)
+	emailHash, err := fr.LittleEndian.Element(&emailBz)
+	if err != nil {
+		return []string{}, err
+	}
+	var dkimBz [32]byte
+	copy(dkimBz[:], dkim)
+	dkimHash, err := fr.LittleEndian.Element(&dkimBz)
+
+	txBz, err := CalculateTxBodyCommitment(tx)
+	if err != nil {
+		return []string{}, err
+	}
+
+	inputs = append(inputs, txBz.String(), emailHash.String(), dkimHash.String())
+	return inputs, nil
+}

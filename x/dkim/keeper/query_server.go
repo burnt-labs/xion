@@ -4,10 +4,13 @@ import (
 	"context"
 
 	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
+	"cosmossdk.io/errors"
 	"cosmossdk.io/orm/model/ormlist"
 
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/vocdoni/circom2gnark/parser"
 
 	dkimv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
@@ -125,6 +128,40 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			Pagination:  convertPageResponse(results.PageResponse()),
 		}, nil
 	}
+}
+
+func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (*types.QueryVerifyResponse, error) {
+	var verified bool
+	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
+	}
+	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
+	}
+	txBz, err := CalculateTxBodyCommitment(string(req.TxBytes))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
+	}
+	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
+	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := k.Keeper.Params.Get(c)
+	if err != nil {
+		return nil, err
+	}
+
+	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
+	if err != nil {
+		return nil, err
+	}
+
+	k.Keeper.Verify(c, snarkProof, snarkVk, &inputs)
+	return &types.QueryVerifyResponse{Verified: verified}, nil
 }
 
 func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {

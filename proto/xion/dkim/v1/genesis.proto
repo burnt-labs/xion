@@ -19,5 +19,6 @@ message Params {
   option (amino.name) = "dkim/params";
   option (gogoproto.equal) = true;
   option (gogoproto.goproto_stringer) = false;
-  // TODO: add vkey bytes
+
+  bytes vkey = 1;
 }
