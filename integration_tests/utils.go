@@ -481,6 +481,11 @@ func ModifyGenesisDKIMRecords(chainConfig ibc.ChainConfig, genbz []byte, params 
 	if err := dyno.Set(g, pubKeys, "app_state", "dkim", "dkim_pubkeys"); err != nil {
 		return nil, fmt.Errorf("failed to set dkim records in genesis json: %w", err)
 	}
+	// Set the params - vkey
+	vkey := []byte(params[1])
+	if err := dyno.Set(g, vkey, "app_state", "dkim", "params", "vkey"); err != nil {
+		return nil, fmt.Errorf("failed to set dkim vkey in genesis json: %w", err)
+	}
 	out, err := json.Marshal(g)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
