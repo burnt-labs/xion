@@ -25,6 +25,9 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
+
+	// Temporary fix for log spam, not needed with wasmd 0.55.0+
+	github.conm/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.54.2
 )
 
 require (
