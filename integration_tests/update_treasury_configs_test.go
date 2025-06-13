@@ -251,10 +251,8 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Instantiating Treasury contract")
-	accAddr, err := types.AccAddressFromBech32(aaContractAddr)
-	require.NoError(t, err)
 	instantiateMsg := TreasuryInstantiateMsg{
-		Admin:        accAddr,
+		Admin:        aaContractAddr, // Use string directly
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{

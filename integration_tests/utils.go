@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"embed"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -20,6 +21,8 @@ import (
 	"time"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
@@ -71,11 +74,18 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 )
 
 //go:embed configuredChains.yaml
 var configuredChainsFile embed.FS
+
+// createTestLogger creates a test logger with the specified log level
+func createTestLogger(t *testing.T, level zapcore.Level) *zap.Logger {
+	return zaptest.NewLogger(t, zaptest.Level(level))
+}
 
 const (
 	votingPeriod     = "10s"
@@ -281,8 +291,16 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 		}(),
 	}
 
+	// Get log level from environment variable, default to Warn
+	logLevel := zapcore.WarnLevel
+	if levelStr := os.Getenv("TEST_LOG_LEVEL"); levelStr != "" {
+		if err := logLevel.UnmarshalText([]byte(levelStr)); err != nil {
+			t.Logf("Invalid log level %s, using default Warn level", levelStr)
+		}
+	}
+
 	// Chain factory
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
+	cf := interchaintest.NewBuiltinChainFactory(createTestLogger(t, logLevel), []*interchaintest.ChainSpec{
 		{
 			Name:          imageTagComponents[0],
 			Version:       imageTagComponents[1],
@@ -1176,4 +1194,253 @@ func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
 	}
 
 	return tempFile
+}
+
+// isHexString checks if a string contains only hexadecimal characters
+func isHexString(s string) bool {
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return len(s) > 0
+}
+
+// CalculatePredictableAddress calculates the predictable address for instantiate2
+func CalculatePredictableAddress(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, keyName, codeID, initMsg, salt string) (string, error) {
+	// Get code info to extract the hash
+	codeResp, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "code-info", codeID)
+	if err != nil {
+		return "", err
+	}
+
+	codeHashStr, ok := codeResp["checksum"].(string)
+	if !ok {
+		return "", fmt.Errorf("code hash not found in response")
+	}
+
+	codeHash, err := hex.DecodeString(codeHashStr)
+	if err != nil {
+		return "", err
+	}
+
+	// Get the creator address
+	creatorAddrBytes, err := chain.GetAddress(ctx, keyName)
+	if err != nil {
+		return "", err
+	}
+
+	creator := sdk.AccAddress(creatorAddrBytes)
+
+	// Calculate the predictable address
+	// When FixMsg is true, we need to calculate with the canonical form of the message
+	var msgForAddress []byte
+	if initMsg != "" {
+		// Parse and re-marshal to get canonical JSON
+		var parsed interface{}
+		if err := json.Unmarshal([]byte(initMsg), &parsed); err == nil {
+			canonical, err := json.Marshal(parsed)
+			if err == nil {
+				msgForAddress = canonical
+			} else {
+				msgForAddress = []byte(initMsg)
+			}
+		} else {
+			msgForAddress = []byte(initMsg)
+		}
+	}
+
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), msgForAddress)
+	return predictedAddr.String(), nil
+}
+
+// InstantiateContract2 deploys a contract with a predictable address using instantiate2
+func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, keyName, codeID, initMsg, salt string, admin bool) (string, error) {
+	// Get code info to extract the hash
+	codeResp, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "code-info", codeID)
+	require.NoError(t, err)
+
+	codeHashStr, ok := codeResp["checksum"].(string)
+	require.True(t, ok, "code hash not found in response")
+
+	codeHash, err := hex.DecodeString(codeHashStr)
+	require.NoError(t, err)
+
+	// Get the creator address
+	creatorAddrBytes, err := chain.GetAddress(ctx, keyName)
+	require.NoError(t, err)
+
+	creator := sdk.AccAddress(creatorAddrBytes)
+	creatorAddrStr, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, creatorAddrBytes)
+	require.NoError(t, err)
+
+	// Calculate the predictable address
+	// When FixMsg is true, we need to calculate with the canonical form of the message
+	var msgForAddress []byte
+	if initMsg != "" {
+		// Parse and re-marshal to get canonical JSON
+		var parsed interface{}
+		if err := json.Unmarshal([]byte(initMsg), &parsed); err == nil {
+			canonical, err := json.Marshal(parsed)
+			if err == nil {
+				msgForAddress = canonical
+			} else {
+				msgForAddress = []byte(initMsg)
+			}
+		} else {
+			msgForAddress = []byte(initMsg)
+		}
+	}
+
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), msgForAddress)
+	predictedAddrStr := predictedAddr.String()
+	t.Logf("Predicted address calculation: codeHash=%x, creator=%s, salt=%s, msgLen=%d", codeHash, creator.String(), salt, len(msgForAddress))
+
+	// Prepare the instantiate2 message
+	var adminAddr string
+	if admin {
+		adminAddr = predictedAddrStr // Set the contract itself as admin
+	}
+
+	codeIDUint, err := strconv.ParseUint(codeID, 10, 64)
+	require.NoError(t, err)
+
+	instantiate2Msg := wasmtypes.MsgInstantiateContract2{
+		Sender: creatorAddrStr,
+		Admin:  adminAddr,
+		CodeID: codeIDUint,
+		Label:  fmt.Sprintf("contract-%s", salt),
+		Msg:    []byte(initMsg),
+		Funds:  sdk.Coins{},
+		Salt:   []byte(salt),
+		FixMsg: true, // This is important for predictable addresses
+	}
+
+	// Build and broadcast the transaction
+	txBuilder := chain.Config().EncodingConfig.TxConfig.NewTxBuilder()
+	err = txBuilder.SetMsgs(&instantiate2Msg)
+	require.NoError(t, err)
+	txBuilder.SetGasLimit(2000000)
+
+	tx := txBuilder.GetTx()
+	txJSONStr, err := chain.Config().EncodingConfig.TxConfig.TxJSONEncoder()(tx)
+	require.NoError(t, err)
+
+	sendFile, err := os.CreateTemp("", "*-instantiate2-tx.json")
+	require.NoError(t, err)
+	defer os.Remove(sendFile.Name())
+
+	_, err = sendFile.Write([]byte(txJSONStr))
+	require.NoError(t, err)
+	err = UploadFileToContainer(t, ctx, chain.GetNode(), sendFile)
+	require.NoError(t, err)
+
+	sendFilePath := strings.Split(sendFile.Name(), "/")
+
+	signedTx, err := ExecBinRaw(t, ctx, chain.GetNode(),
+		"tx", "sign", path.Join(chain.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
+		"--from", keyName,
+		"--chain-id", chain.Config().ChainID,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"--overwrite",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", chain.GetNode().HostName()))
+	require.NoError(t, err)
+
+	res, err := ExecBroadcastWithFlags(t, ctx, chain.GetNode(), signedTx, "--output", "json")
+	if err != nil {
+		t.Logf("Error broadcasting transaction: %v", err)
+		return "", err
+	}
+
+	// Log the transaction result for debugging
+	t.Logf("Instantiate2 transaction broadcast result (raw): %s", res)
+	t.Logf("Instantiate2 transaction broadcast result (len=%d): %q", len(res), res)
+
+	// Parse the result to check if transaction was successful
+	var txRes map[string]interface{}
+	txHash := ""
+	err = json.Unmarshal([]byte(res), &txRes)
+	if err != nil {
+		t.Logf("Error parsing transaction result as JSON: %v", err)
+		t.Logf("Raw bytes: %v", []byte(res))
+		// If we can't parse it as JSON, it might be just a txhash
+		// Try to extract just the hash part (64 hex characters)
+		res = strings.TrimSpace(res)
+		if len(res) >= 64 {
+			// Extract potential txhash (64 hex chars)
+			possibleHash := res[:64]
+			if isHexString(possibleHash) {
+				t.Logf("Extracted txhash from result: %s", possibleHash)
+				res = possibleHash
+			} else {
+				return "", fmt.Errorf("failed to parse transaction result: %v (raw: %q)", err, res)
+			}
+		} else {
+			return "", fmt.Errorf("failed to parse transaction result: %v (raw: %q)", err, res)
+		}
+	} else {
+		// Check if transaction failed
+		if code, ok := txRes["code"].(float64); ok && code != 0 {
+			rawLog, _ := txRes["raw_log"].(string)
+			return "", fmt.Errorf("transaction failed with code %v: %s", code, rawLog)
+		}
+
+		// Extract txhash for verification
+		if hash, ok := txRes["txhash"].(string); ok {
+			txHash = hash
+		}
+
+		if txHash != "" {
+			t.Logf("Transaction hash from JSON: %s", txHash)
+		}
+	}
+
+	// If we extracted a txhash from the raw string, use it
+	if txHash == "" && len(res) == 64 && isHexString(res) {
+		txHash = res
+		t.Logf("Using extracted txhash: %s", txHash)
+	}
+
+	// Verify transaction on-chain if we have a hash
+	if txHash != "" {
+		// Wait for transaction to be included in a block
+		err = testutil.WaitForBlocks(ctx, 2, chain)
+		require.NoError(t, err)
+
+		// Query the transaction to verify it was successful
+		txDetails, err := ExecQuery(t, ctx, chain.GetNode(), "tx", txHash)
+		if err != nil {
+			t.Logf("Warning: could not query transaction details: %v", err)
+		} else {
+			if txCode, ok := txDetails["code"].(float64); ok && txCode != 0 {
+				txLog, _ := txDetails["raw_log"].(string)
+				return "", fmt.Errorf("transaction failed on-chain with code %v: %s", txCode, txLog)
+			}
+			t.Logf("Transaction confirmed successful on-chain")
+		}
+	}
+
+	err = testutil.WaitForBlocks(ctx, 3, chain)
+	require.NoError(t, err)
+
+	// Verify the contract exists at the predicted address
+	contractInfo, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", predictedAddrStr)
+	if err != nil {
+		t.Logf("WARNING: Contract not found at predicted address %s: %v", predictedAddrStr, err)
+
+		// Try to list all contracts for this code ID to see where it actually got deployed
+		contracts, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "list-contract-by-code", codeID)
+		if err == nil {
+			t.Logf("Contracts for code ID %s: %+v", codeID, contracts)
+		}
+
+		return "", fmt.Errorf("contract not found at predicted address %s", predictedAddrStr)
+	}
+
+	t.Logf("Contract successfully instantiated at predicted address: %s", predictedAddrStr)
+	t.Logf("Contract info: %+v", contractInfo)
+
+	return predictedAddrStr, nil
 }
