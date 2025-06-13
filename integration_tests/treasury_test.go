@@ -49,8 +49,8 @@ type TreasuryInstantiateMsg struct {
 	Admin        *string       `json:"admin,omitempty"` // Option<Addr> in Rust
 	TypeUrls     []string      `json:"type_urls"`
 	GrantConfigs []GrantConfig `json:"grant_configs"`
-	FeeConfig    FeeConfig     `json:"fee_config"` // Required field
-	Params       Params        `json:"params"`     // Required field
+	FeeConfig    *FeeConfig    `json:"fee_config"` // Required field
+	Params       *Params       `json:"params"`     // Required field
 }
 
 type ExplicitAny struct {
@@ -168,12 +168,12 @@ func TestTreasuryContract(t *testing.T) {
 			Admin:        &adminToUse,
 			TypeUrls:     []string{testAuth.MsgTypeURL()},
 			GrantConfigs: []GrantConfig{grantConfig},
-			FeeConfig: FeeConfig{
+			FeeConfig: &FeeConfig{
 				Description: "test fee grant",
 				Allowance:   &allowanceAny,
 				Expiration:  int32(18000),
 			},
-			Params: Params{
+			Params: &Params{
 				RedirectURL: "https://example.com",
 				IconURL:     "https://example.com/icon.png",
 				Metadata:    "{}",
@@ -213,12 +213,12 @@ func TestTreasuryContract(t *testing.T) {
 		Admin:        &predictedAddrStr, // Set the predicted address as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
-		FeeConfig: FeeConfig{
+		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
 			Allowance:   &allowanceAny,
 			Expiration:  int32(18000),
 		},
-		Params: Params{
+		Params: &Params{
 			RedirectURL: "https://example.com",
 			IconURL:     "https://example.com/icon.png",
 			Metadata:    "{}",
@@ -772,13 +772,13 @@ func TestTreasuryMulti(t *testing.T) {
 			Admin:        &adminToUse,
 			TypeUrls:     []string{testAuth.MsgTypeURL()},
 			GrantConfigs: []GrantConfig{grantConfig},
-			FeeConfig: FeeConfig{
+			FeeConfig: &FeeConfig{
 				Description: "test fee grant",
 				Allowance:   &allowanceAny,
 				Expiration:  int32(18000),
 			},
 			// Include empty Params to match the structure
-			Params: Params{
+			Params: &Params{
 				RedirectURL: "",
 				IconURL:     "",
 				Metadata:    "{}",
@@ -818,13 +818,13 @@ func TestTreasuryMulti(t *testing.T) {
 		Admin:        &predictedAddrStr, // Set the predicted address as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
-		FeeConfig: FeeConfig{
+		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
 			Allowance:   &allowanceAny,
 			Expiration:  int32(18000),
 		},
 		// Include empty Params to match the structure
-		Params: Params{
+		Params: &Params{
 			RedirectURL: "",
 			IconURL:     "",
 			Metadata:    "{}",
