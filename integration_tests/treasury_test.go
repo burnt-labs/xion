@@ -735,8 +735,8 @@ func TestTreasuryMulti(t *testing.T) {
 		},
 		// Include empty Params to match the structure
 		Params: &Params{
-			RedirectURL: "",
-			IconURL:     "",
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
 			Metadata:    "{}",
 		},
 	}
