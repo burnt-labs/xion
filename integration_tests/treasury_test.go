@@ -195,18 +195,13 @@ func TestTreasuryContract(t *testing.T) {
 		predictedAddr = wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), canonicalMsg)
 		newPredictedAddrStr := predictedAddr.String()
 
-		t.Logf("Iteration %d: admin=%s, predicted=%s", i, adminToUse, newPredictedAddrStr)
-
 		// Check for convergence
 		if newPredictedAddrStr == adminToUse {
-			t.Log("Address converged!")
 			break
 		}
 
 		predictedAddrStr = newPredictedAddrStr
 	}
-
-	t.Logf("Final predicted treasury address: %s", predictedAddrStr)
 
 	// Now create the actual instantiate message with the predicted address
 	userAddrStr := xionUser.FormattedAddress()
@@ -229,14 +224,11 @@ func TestTreasuryContract(t *testing.T) {
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 
-	// Log the instantiate message for debugging
-	t.Logf("Treasury instantiate message: %s", string(instantiateMsgStr))
-
 	// Use instantiate2 with a salt to get predictable address
 	// Setting admin=true will make the contract its own admin at the blockchain level
 	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, true)
 	require.NoError(t, err)
-	t.Logf("created treasury instance with instantiate2: %s", treasuryAddr)
+	t.Logf("created treasury instance: %s", treasuryAddr)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	contractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "all", treasuryAddr)
@@ -434,7 +426,6 @@ func TestTreasuryContract(t *testing.T) {
 	var pendingAdminRes map[string]interface{}
 	err = xion.QueryContract(ctx, treasuryAddr, pendingAdminQuery, &pendingAdminRes)
 	require.NoError(t, err)
-	t.Logf("Pending admin: %s", pendingAdminRes)
 
 	// Test CancelProposedAdmin
 	t.Log("Testing CancelProposedAdmin")
@@ -523,7 +514,6 @@ func TestTreasuryContract(t *testing.T) {
 	var paramsRes map[string]interface{}
 	err = xion.QueryContract(ctx, treasuryAddr, paramsQuery, &paramsRes)
 	require.NoError(t, err)
-	t.Logf("Updated params: %s", paramsRes)
 
 	// Test Withdraw
 	t.Log("Testing Withdraw")
@@ -571,7 +561,6 @@ func TestTreasuryContract(t *testing.T) {
 	var grantConfigUrlsRes map[string]interface{}
 	err = xion.QueryContract(ctx, treasuryAddr, grantConfigUrlsQuery, &grantConfigUrlsRes)
 	require.NoError(t, err)
-	t.Logf("Grant config URLs after removal: %s", grantConfigUrlsRes)
 
 	// Test all Query messages
 	t.Log("Testing all query messages")
@@ -581,14 +570,12 @@ func TestTreasuryContract(t *testing.T) {
 	var adminRes map[string]interface{}
 	err = xion.QueryContract(ctx, treasuryAddr, adminQuery, &adminRes)
 	require.NoError(t, err)
-	t.Logf("Admin: %s", adminRes)
 
 	// Query FeeConfig
 	feeConfigQuery := map[string]interface{}{"fee_config": map[string]interface{}{}}
 	var feeConfigRes map[string]interface{}
 	err = xion.QueryContract(ctx, treasuryAddr, feeConfigQuery, &feeConfigRes)
 	require.NoError(t, err)
-	t.Logf("Fee config: %s", feeConfigRes)
 }
 
 // Helper function to execute treasury contract messages
@@ -801,18 +788,13 @@ func TestTreasuryMulti(t *testing.T) {
 		predictedAddr = wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), canonicalMsg)
 		newPredictedAddrStr := predictedAddr.String()
 
-		t.Logf("Iteration %d: admin=%s, predicted=%s", i, adminToUse, newPredictedAddrStr)
-
 		// Check for convergence
 		if newPredictedAddrStr == adminToUse {
-			t.Log("Address converged!")
 			break
 		}
 
 		predictedAddrStr = newPredictedAddrStr
 	}
-
-	t.Logf("Final predicted treasury address: %s", predictedAddrStr)
 
 	// Now create the actual instantiate message with the predicted address
 	instantiateMsg := TreasuryInstantiateMsg{
@@ -839,7 +821,7 @@ func TestTreasuryMulti(t *testing.T) {
 	// Setting admin=true will make the contract its own admin
 	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, true)
 	require.NoError(t, err)
-	t.Logf("created treasury instance with instantiate2: %s", treasuryAddr)
+	t.Logf("created treasury instance: %s", treasuryAddr)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	contractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "all", treasuryAddr)

@@ -1294,12 +1294,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), msgForAddress)
 	predictedAddrStr := predictedAddr.String()
-	t.Logf("Predicted address calculation: codeHash=%x, creator=%s, salt=%s, msgLen=%d", codeHash, creator.String(), salt, len(msgForAddress))
-	msgPreview := msgForAddress
-	if len(msgPreview) > 200 {
-		msgPreview = msgPreview[:200]
-	}
-	t.Logf("Message for address (first 200 chars): %s", string(msgPreview))
 
 	// Prepare the instantiate2 message
 	var adminAddr string
@@ -1359,17 +1353,11 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 		return "", err
 	}
 
-	// Log the transaction result for debugging
-	t.Logf("Instantiate2 transaction broadcast result (raw): %s", res)
-	t.Logf("Instantiate2 transaction broadcast result (len=%d): %q", len(res), res)
-
 	// Parse the result to check if transaction was successful
 	var txRes map[string]interface{}
 	txHash := ""
 	err = json.Unmarshal([]byte(res), &txRes)
 	if err != nil {
-		t.Logf("Error parsing transaction result as JSON: %v", err)
-		t.Logf("Raw bytes: %v", []byte(res))
 		// If we can't parse it as JSON, it might be just a txhash
 		// Try to extract just the hash part (64 hex characters)
 		res = strings.TrimSpace(res)
@@ -1377,7 +1365,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 			// Extract potential txhash (64 hex chars)
 			possibleHash := res[:64]
 			if isHexString(possibleHash) {
-				t.Logf("Extracted txhash from result: %s", possibleHash)
 				res = possibleHash
 			} else {
 				return "", fmt.Errorf("failed to parse transaction result: %v (raw: %q)", err, res)
@@ -1396,16 +1383,11 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 		if hash, ok := txRes["txhash"].(string); ok {
 			txHash = hash
 		}
-
-		if txHash != "" {
-			t.Logf("Transaction hash from JSON: %s", txHash)
-		}
 	}
 
 	// If we extracted a txhash from the raw string, use it
 	if txHash == "" && len(res) == 64 && isHexString(res) {
 		txHash = res
-		t.Logf("Using extracted txhash: %s", txHash)
 	}
 
 	// Verify transaction on-chain if we have a hash
@@ -1424,7 +1406,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 				txLog, _ := txDetails["raw_log"].(string)
 				return "", fmt.Errorf("transaction failed on-chain with code %v: %s", txCode, txLog)
 			}
-			t.Logf("Transaction confirmed successful on-chain")
 
 			// Try to extract the contract address from events
 			if events, ok := txDetails["events"].([]interface{}); ok {
@@ -1438,7 +1419,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 										value, _ := attrMap["value"].(string)
 										if key == "_contract_address" || key == "contract_address" {
 											actualContractAddr = value
-											t.Logf("Found actual contract address from events: %s", actualContractAddr)
 											break
 										}
 									}
@@ -1455,16 +1435,12 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	require.NoError(t, err)
 
 	// First try the predicted address
-	contractInfo, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", predictedAddrStr)
+	_, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", predictedAddrStr)
 	if err != nil {
-		t.Logf("WARNING: Contract not found at predicted address %s: %v", predictedAddrStr, err)
-
 		// If we found an actual address from events, try that
 		if actualContractAddr != "" && actualContractAddr != predictedAddrStr {
-			t.Logf("Trying actual contract address from events: %s", actualContractAddr)
-			contractInfo, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", actualContractAddr)
+			_, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", actualContractAddr)
 			if err == nil {
-				t.Logf("Contract found at actual address: %s (predicted was: %s)", actualContractAddr, predictedAddrStr)
 				return actualContractAddr, nil
 			}
 		}
@@ -1472,18 +1448,14 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 		// Try to list all contracts for this code ID to see where it actually got deployed
 		contracts, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "list-contract-by-code", codeID)
 		if err == nil {
-			t.Logf("Contracts for code ID %s: %+v", codeID, contracts)
-
 			// Try to extract contract addresses from the list
 			if contractList, ok := contracts["contracts"].([]interface{}); ok && len(contractList) > 0 {
 				// Get the most recently deployed contract (last in the list)
 				lastContract := contractList[len(contractList)-1]
 				if contractAddr, ok := lastContract.(string); ok {
-					t.Logf("Found contract in list at address: %s", contractAddr)
 					// Verify this is our contract
-					contractInfo, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", contractAddr)
+					_, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", contractAddr)
 					if err == nil {
-						t.Logf("Contract confirmed at address from list: %s (predicted was: %s)", contractAddr, predictedAddrStr)
 						return contractAddr, nil
 					}
 				}
@@ -1492,9 +1464,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 
 		return "", fmt.Errorf("contract not found at predicted address %s", predictedAddrStr)
 	}
-
-	t.Logf("Contract successfully instantiated at predicted address: %s", predictedAddrStr)
-	t.Logf("Contract info: %+v", contractInfo)
 
 	return predictedAddrStr, nil
 }
