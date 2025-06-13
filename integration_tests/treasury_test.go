@@ -2,6 +2,7 @@ package integration_tests
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 
 	"cosmossdk.io/x/feegrant"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -44,11 +46,11 @@ type FeeConfig struct {
 	Expiration  int32        `json:"expiration,omitempty"`
 }
 type TreasuryInstantiateMsg struct {
-	Admin        string        `json:"admin,omitempty"`
+	Admin        *string       `json:"admin,omitempty"` // Option<Addr> in Rust
 	TypeUrls     []string      `json:"type_urls"`
 	GrantConfigs []GrantConfig `json:"grant_configs"`
-	FeeConfig    *FeeConfig    `json:"fee_config"`
-	Params       *Params       `json:"params,omitempty"`
+	FeeConfig    FeeConfig     `json:"fee_config"` // Required field
+	Params       Params        `json:"params"`     // Required field
 }
 
 type ExplicitAny struct {
@@ -57,9 +59,9 @@ type ExplicitAny struct {
 }
 
 type Params struct {
-	RedirectURL string            `json:"redirect_url,omitempty"`
-	IconURL     string            `json:"icon_url,omitempty"`
-	Metadata    map[string]string `json:"metadata"` // Remove omitempty to ensure it's always included
+	RedirectURL string `json:"redirect_url"`
+	IconURL     string `json:"icon_url"`
+	Metadata    string `json:"metadata"`
 }
 
 func TestTreasuryContract(t *testing.T) {
@@ -126,21 +128,100 @@ func TestTreasuryContract(t *testing.T) {
 		Optional:      false,
 	}
 
-	// NOTE: Start the Treasury with instantiate2
-	// The instantiate message should not include an admin field - it will be set by instantiate2
+	// Get code info to extract the hash for address prediction
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "code-info", codeIDStr)
+	require.NoError(t, err)
+
+	codeHashStr, ok := codeResp["checksum"].(string)
+	require.True(t, ok, "code hash not found in response")
+
+	codeHash, err := hex.DecodeString(codeHashStr)
+	require.NoError(t, err)
+
+	// Get the creator address
+	creatorAddrBytes, err := xion.GetAddress(ctx, xionUser.KeyName())
+	require.NoError(t, err)
+
+	creator := types.AccAddress(creatorAddrBytes)
+	salt := "treasury-test-1"
+
+	// To predict the address, we need to iterate because:
+	// 1. The address depends on the instantiate message
+	// 2. The instantiate message needs to contain the address as admin
+	// 3. This creates a circular dependency
+
+	// Solution: Use a fixed-point iteration
+	// Start with a dummy address and iterate until convergence
+
+	var predictedAddr types.AccAddress
+	var predictedAddrStr string
+
+	// First iteration: calculate with a dummy admin to get initial prediction
+	dummyAdmin := "xion1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
+	for i := 0; i < 3; i++ {
+		adminToUse := dummyAdmin
+		if i > 0 {
+			adminToUse = predictedAddrStr
+		}
+
+		iterMsg := TreasuryInstantiateMsg{
+			Admin:        &adminToUse,
+			TypeUrls:     []string{testAuth.MsgTypeURL()},
+			GrantConfigs: []GrantConfig{grantConfig},
+			FeeConfig: FeeConfig{
+				Description: "test fee grant",
+				Allowance:   &allowanceAny,
+				Expiration:  int32(18000),
+			},
+			Params: Params{
+				RedirectURL: "https://example.com",
+				IconURL:     "https://example.com/icon.png",
+				Metadata:    "{}",
+			},
+		}
+
+		// Marshal and canonicalize like instantiate2 does
+		iterMsgBytes, err := json.Marshal(iterMsg)
+		require.NoError(t, err)
+
+		var parsed interface{}
+		err = json.Unmarshal(iterMsgBytes, &parsed)
+		require.NoError(t, err)
+
+		canonicalMsg, err := json.Marshal(parsed)
+		require.NoError(t, err)
+
+		// Calculate the address with this message
+		predictedAddr = wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), canonicalMsg)
+		newPredictedAddrStr := predictedAddr.String()
+
+		t.Logf("Iteration %d: admin=%s, predicted=%s", i, adminToUse, newPredictedAddrStr)
+
+		// Check for convergence
+		if newPredictedAddrStr == adminToUse {
+			t.Log("Address converged!")
+			break
+		}
+
+		predictedAddrStr = newPredictedAddrStr
+	}
+
+	t.Logf("Final predicted treasury address: %s", predictedAddrStr)
+
+	// Now create the actual instantiate message with the predicted address
 	instantiateMsg := TreasuryInstantiateMsg{
-		// Admin field is omitted - will be set via instantiate2
+		Admin:        &predictedAddrStr, // Set the predicted address as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
-		FeeConfig: &FeeConfig{
+		FeeConfig: FeeConfig{
 			Description: "test fee grant",
 			Allowance:   &allowanceAny,
 			Expiration:  int32(18000),
 		},
-		Params: &Params{
+		Params: Params{
 			RedirectURL: "https://example.com",
 			IconURL:     "https://example.com/icon.png",
-			Metadata:    map[string]string{},
+			Metadata:    "{}",
 		},
 	}
 
@@ -151,8 +232,7 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("Treasury instantiate message: %s", string(instantiateMsgStr))
 
 	// Use instantiate2 with a salt to get predictable address
-	// Setting admin=true will make the contract its own admin
-	salt := "treasury-test-1"
+	// Setting admin=true will make the contract its own admin at the blockchain level
 	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, true)
 	require.NoError(t, err)
 	t.Logf("created treasury instance with instantiate2: %s", treasuryAddr)
@@ -427,9 +507,7 @@ func TestTreasuryContract(t *testing.T) {
 			"params": Params{
 				RedirectURL: "https://newexample.com",
 				IconURL:     "https://newexample.com/newicon.png",
-				Metadata: map[string]string{
-					"updated_key": "updated_value",
-				},
+				Metadata:    `{"updated_key": "updated_value"}`,
 			},
 		},
 	}
@@ -654,22 +732,102 @@ func TestTreasuryMulti(t *testing.T) {
 		Optional:      false,
 	}
 
-	// NOTE: Start the Treasury with instantiate2
-	// The instantiate message should not include an admin field - it will be set by instantiate2
+	// Get code info to extract the hash for address prediction
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "code-info", codeIDStr)
+	require.NoError(t, err)
+
+	codeHashStr, ok := codeResp["checksum"].(string)
+	require.True(t, ok, "code hash not found in response")
+
+	codeHash, err := hex.DecodeString(codeHashStr)
+	require.NoError(t, err)
+
+	// Get the creator address
+	creatorAddrBytes, err := xion.GetAddress(ctx, xionUser.KeyName())
+	require.NoError(t, err)
+
+	creator := types.AccAddress(creatorAddrBytes)
+	salt := "treasury-multi-test-1"
+
+	// To predict the address, we need to iterate because:
+	// 1. The address depends on the instantiate message
+	// 2. The instantiate message needs to contain the address as admin
+	// 3. This creates a circular dependency
+
+	// Solution: Use a fixed-point iteration
+	// Start with a dummy address and iterate until convergence
+
+	var predictedAddr types.AccAddress
+	var predictedAddrStr string
+
+	// First iteration: calculate with a dummy admin to get initial prediction
+	dummyAdmin := "xion1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
+	for i := 0; i < 3; i++ {
+		adminToUse := dummyAdmin
+		if i > 0 {
+			adminToUse = predictedAddrStr
+		}
+
+		iterMsg := TreasuryInstantiateMsg{
+			Admin:        &adminToUse,
+			TypeUrls:     []string{testAuth.MsgTypeURL()},
+			GrantConfigs: []GrantConfig{grantConfig},
+			FeeConfig: FeeConfig{
+				Description: "test fee grant",
+				Allowance:   &allowanceAny,
+				Expiration:  int32(18000),
+			},
+			// Include empty Params to match the structure
+			Params: Params{
+				RedirectURL: "",
+				IconURL:     "",
+				Metadata:    "{}",
+			},
+		}
+
+		// Marshal and canonicalize like instantiate2 does
+		iterMsgBytes, err := json.Marshal(iterMsg)
+		require.NoError(t, err)
+
+		var parsed interface{}
+		err = json.Unmarshal(iterMsgBytes, &parsed)
+		require.NoError(t, err)
+
+		canonicalMsg, err := json.Marshal(parsed)
+		require.NoError(t, err)
+
+		// Calculate the address with this message
+		predictedAddr = wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), canonicalMsg)
+		newPredictedAddrStr := predictedAddr.String()
+
+		t.Logf("Iteration %d: admin=%s, predicted=%s", i, adminToUse, newPredictedAddrStr)
+
+		// Check for convergence
+		if newPredictedAddrStr == adminToUse {
+			t.Log("Address converged!")
+			break
+		}
+
+		predictedAddrStr = newPredictedAddrStr
+	}
+
+	t.Logf("Final predicted treasury address: %s", predictedAddrStr)
+
+	// Now create the actual instantiate message with the predicted address
 	instantiateMsg := TreasuryInstantiateMsg{
-		// Admin field is omitted - will be set via instantiate2
+		Admin:        &predictedAddrStr, // Set the predicted address as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
-		FeeConfig: &FeeConfig{
+		FeeConfig: FeeConfig{
 			Description: "test fee grant",
 			Allowance:   &allowanceAny,
 			Expiration:  int32(18000),
 		},
 		// Include empty Params to match the structure
-		Params: &Params{
+		Params: Params{
 			RedirectURL: "",
 			IconURL:     "",
-			Metadata:    map[string]string{},
+			Metadata:    "{}",
 		},
 	}
 
@@ -678,7 +836,6 @@ func TestTreasuryMulti(t *testing.T) {
 
 	// Use instantiate2 with a salt to get predictable address
 	// Setting admin=true will make the contract its own admin
-	salt := "treasury-multi-test-1"
 	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, true)
 	require.NoError(t, err)
 	t.Logf("created treasury instance with instantiate2: %s", treasuryAddr)

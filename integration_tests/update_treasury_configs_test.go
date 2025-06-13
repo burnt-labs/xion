@@ -59,8 +59,13 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 	instantiateMsg := TreasuryInstantiateMsg{
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
-		FeeConfig: &FeeConfig{
+		FeeConfig: FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: Params{
+			RedirectURL: "",
+			IconURL:     "",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
@@ -252,11 +257,16 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	t.Log("Instantiating Treasury contract")
 	instantiateMsg := TreasuryInstantiateMsg{
-		Admin:        aaContractAddr, // Use string directly
+		Admin:        &aaContractAddr, // Use pointer to string
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
-		FeeConfig: &FeeConfig{
+		FeeConfig: FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: Params{
+			RedirectURL: "",
+			IconURL:     "",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)

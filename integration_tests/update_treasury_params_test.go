@@ -46,8 +46,13 @@ func TestUpdateTreasuryContractParams(t *testing.T) {
 	instantiateMsg := TreasuryInstantiateMsg{
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
-		FeeConfig: &FeeConfig{
+		FeeConfig: FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: Params{
+			RedirectURL: "",
+			IconURL:     "",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)

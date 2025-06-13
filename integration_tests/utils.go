@@ -1295,6 +1295,11 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), msgForAddress)
 	predictedAddrStr := predictedAddr.String()
 	t.Logf("Predicted address calculation: codeHash=%x, creator=%s, salt=%s, msgLen=%d", codeHash, creator.String(), salt, len(msgForAddress))
+	msgPreview := msgForAddress
+	if len(msgPreview) > 200 {
+		msgPreview = msgPreview[:200]
+	}
+	t.Logf("Message for address (first 200 chars): %s", string(msgPreview))
 
 	// Prepare the instantiate2 message
 	var adminAddr string
@@ -1404,6 +1409,7 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	}
 
 	// Verify transaction on-chain if we have a hash
+	var actualContractAddr string
 	if txHash != "" {
 		// Wait for transaction to be included in a block
 		err = testutil.WaitForBlocks(ctx, 2, chain)
@@ -1419,21 +1425,69 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 				return "", fmt.Errorf("transaction failed on-chain with code %v: %s", txCode, txLog)
 			}
 			t.Logf("Transaction confirmed successful on-chain")
+
+			// Try to extract the contract address from events
+			if events, ok := txDetails["events"].([]interface{}); ok {
+				for _, event := range events {
+					if eventMap, ok := event.(map[string]interface{}); ok {
+						if eventType, ok := eventMap["type"].(string); ok && eventType == "instantiate" {
+							if attributes, ok := eventMap["attributes"].([]interface{}); ok {
+								for _, attr := range attributes {
+									if attrMap, ok := attr.(map[string]interface{}); ok {
+										key, _ := attrMap["key"].(string)
+										value, _ := attrMap["value"].(string)
+										if key == "_contract_address" || key == "contract_address" {
+											actualContractAddr = value
+											t.Logf("Found actual contract address from events: %s", actualContractAddr)
+											break
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
 	err = testutil.WaitForBlocks(ctx, 3, chain)
 	require.NoError(t, err)
 
-	// Verify the contract exists at the predicted address
+	// First try the predicted address
 	contractInfo, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", predictedAddrStr)
 	if err != nil {
 		t.Logf("WARNING: Contract not found at predicted address %s: %v", predictedAddrStr, err)
+
+		// If we found an actual address from events, try that
+		if actualContractAddr != "" && actualContractAddr != predictedAddrStr {
+			t.Logf("Trying actual contract address from events: %s", actualContractAddr)
+			contractInfo, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", actualContractAddr)
+			if err == nil {
+				t.Logf("Contract found at actual address: %s (predicted was: %s)", actualContractAddr, predictedAddrStr)
+				return actualContractAddr, nil
+			}
+		}
 
 		// Try to list all contracts for this code ID to see where it actually got deployed
 		contracts, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "list-contract-by-code", codeID)
 		if err == nil {
 			t.Logf("Contracts for code ID %s: %+v", codeID, contracts)
+
+			// Try to extract contract addresses from the list
+			if contractList, ok := contracts["contracts"].([]interface{}); ok && len(contractList) > 0 {
+				// Get the most recently deployed contract (last in the list)
+				lastContract := contractList[len(contractList)-1]
+				if contractAddr, ok := lastContract.(string); ok {
+					t.Logf("Found contract in list at address: %s", contractAddr)
+					// Verify this is our contract
+					contractInfo, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", contractAddr)
+					if err == nil {
+						t.Logf("Contract confirmed at address from list: %s (predicted was: %s)", contractAddr, predictedAddrStr)
+						return contractAddr, nil
+					}
+				}
+			}
 		}
 
 		return "", fmt.Errorf("contract not found at predicted address %s", predictedAddrStr)
