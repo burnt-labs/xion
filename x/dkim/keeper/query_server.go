@@ -137,15 +137,17 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	var verified bool
 	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
+		e := errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
+		return nil, e
 	}
 	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
+		return nil, e
 	}
 	txBz, err := CalculateTxBodyCommitment(string(req.TxBytes))
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
+		e := errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
+		return nil, e
 	}
 	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
@@ -157,13 +159,15 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	if err != nil {
 		return nil, err
 	}
-
 	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
 	if err != nil {
 		return nil, err
 	}
 
-	k.Keeper.Verify(c, snarkProof, snarkVk, &inputs)
+	verified, err = k.Keeper.Verify(c, snarkProof, snarkVk, &inputs)
+	if err != nil {
+		return nil, err
+	}
 	return &types.QueryVerifyResponse{Verified: verified}, nil
 }
 

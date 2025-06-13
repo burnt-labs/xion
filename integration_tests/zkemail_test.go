@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
@@ -172,10 +173,10 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	var response map[string]any
 	data := queryResult["data"].(string)
-	//base64 decode the data
+	// base64 decode the data
 	decodedData, err := base64.StdEncoding.DecodeString(data)
 	require.NoError(t, err)
-	//unmarshal the decoded data
+	// unmarshal the decoded data
 	err = json.Unmarshal(decodedData, &response)
 	require.NoError(t, err)
 
@@ -303,6 +304,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 
+	fmt.Println("going to sleep")
+	time.Sleep(10 * time.Minute)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)
