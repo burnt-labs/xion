@@ -128,82 +128,9 @@ func TestTreasuryContract(t *testing.T) {
 		Optional:      false,
 	}
 
-	// Get code info to extract the hash for address prediction
-	codeResp, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "code-info", codeIDStr)
-	require.NoError(t, err)
-
-	codeHashStr, ok := codeResp["checksum"].(string)
-	require.True(t, ok, "code hash not found in response")
-
-	codeHash, err := hex.DecodeString(codeHashStr)
-	require.NoError(t, err)
-
-	// Get the creator address
-	creatorAddrBytes, err := xion.GetAddress(ctx, xionUser.KeyName())
-	require.NoError(t, err)
-
-	creator := types.AccAddress(creatorAddrBytes)
 	salt := "treasury-test-1"
 
-	// To predict the address, we need to iterate because:
-	// 1. The address depends on the instantiate message
-	// 2. The instantiate message needs to contain the address as admin
-	// 3. This creates a circular dependency
-
-	// Solution: Use a fixed-point iteration
-	// Start with a dummy address and iterate until convergence
-
-	var predictedAddr types.AccAddress
-	var predictedAddrStr string
-
-	// First iteration: calculate with a dummy admin to get initial prediction
-	dummyAdmin := "xion1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
-	for i := 0; i < 3; i++ {
-		adminToUse := dummyAdmin
-		if i > 0 {
-			adminToUse = predictedAddrStr
-		}
-
-		iterMsg := TreasuryInstantiateMsg{
-			Admin:        &adminToUse,
-			TypeUrls:     []string{testAuth.MsgTypeURL()},
-			GrantConfigs: []GrantConfig{grantConfig},
-			FeeConfig: &FeeConfig{
-				Description: "test fee grant",
-				Allowance:   &allowanceAny,
-				Expiration:  int32(18000),
-			},
-			Params: &Params{
-				RedirectURL: "https://example.com",
-				IconURL:     "https://example.com/icon.png",
-				Metadata:    "{}",
-			},
-		}
-
-		// Marshal and canonicalize like instantiate2 does
-		iterMsgBytes, err := json.Marshal(iterMsg)
-		require.NoError(t, err)
-
-		var parsed interface{}
-		err = json.Unmarshal(iterMsgBytes, &parsed)
-		require.NoError(t, err)
-
-		canonicalMsg, err := json.Marshal(parsed)
-		require.NoError(t, err)
-
-		// Calculate the address with this message
-		predictedAddr = wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), canonicalMsg)
-		newPredictedAddrStr := predictedAddr.String()
-
-		// Check for convergence
-		if newPredictedAddrStr == adminToUse {
-			break
-		}
-
-		predictedAddrStr = newPredictedAddrStr
-	}
-
-	// Now create the actual instantiate message with the predicted address
+	// Now create the actual instantiate message
 	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
 		Admin:        &userAddrStr, // Set the user as admin (pointer)
