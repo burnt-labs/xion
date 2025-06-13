@@ -209,8 +209,9 @@ func TestTreasuryContract(t *testing.T) {
 	t.Logf("Final predicted treasury address: %s", predictedAddrStr)
 
 	// Now create the actual instantiate message with the predicted address
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
-		Admin:        &predictedAddrStr, // Set the predicted address as admin (pointer)
+		Admin:        &userAddrStr, // Set the user as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
 		FeeConfig: &FeeConfig{
