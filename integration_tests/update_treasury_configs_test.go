@@ -63,8 +63,8 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 			Description: "test fee grant",
 		},
 		Params: &Params{
-			RedirectURL: "",
-			IconURL:     "",
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
 			Metadata:    "{}",
 		},
 	}
@@ -264,8 +264,8 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 			Description: "test fee grant",
 		},
 		Params: &Params{
-			RedirectURL: "",
-			IconURL:     "",
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
 			Metadata:    "{}",
 		},
 	}
