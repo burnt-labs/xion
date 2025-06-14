@@ -92,7 +92,7 @@ func TestTreasuryContract(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		path.Join(fp, "testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -599,7 +599,7 @@ func TestTreasuryMulti(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		path.Join(fp, "testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -724,8 +724,9 @@ func TestTreasuryMulti(t *testing.T) {
 	}
 
 	// Now create the actual instantiate message with the predicted address
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
-		Admin:        &predictedAddrStr, // Set the predicted address as admin (pointer)
+		Admin:        &userAddrStr, // Set the user as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
 		FeeConfig: &FeeConfig{
