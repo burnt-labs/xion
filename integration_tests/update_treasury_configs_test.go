@@ -56,7 +56,9 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 
 	// Instantiate contract
 	t.Log("Instantiating contract")
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddrStr, // Set the user as admin (pointer)
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
