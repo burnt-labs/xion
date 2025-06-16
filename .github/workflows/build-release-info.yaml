@@ -10,6 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+    outputs:
+      cosmos_sdk_version: ${{ steps.version.outputs.cosmos_sdk_version }}
+      go_version: ${{ steps.version.outputs.go_version }}
+      consensus_version: ${{ steps.version.outputs.consensus_version }}
+      cosmwasm_version: ${{ steps.version.outputs.cosmwasm_version }}
+      ibc_version: ${{ steps.version.outputs.ibc_version }}
+      height: ${{ steps.version.outputs.height }}
+      proposal: ${{ steps.version.outputs.proposal }}
+      checksum_darwin_amd64: ${{ steps.version.outputs.checksum_darwin_amd64 }}
+      checksum_darwin_arm64: ${{ steps.version.outputs.checksum_darwin_arm64 }}
+      checksum_linux_amd64: ${{ steps.version.outputs.checksum_linux_amd64 }}
+      checksum_linux_arm64: ${{ steps.version.outputs.checksum_linux_arm64 }}
 
     steps:
       - name: checkout
@@ -45,6 +57,22 @@ jobs:
                 version: (.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version)
               }
             }') binaries.json | tee version.json
+
+      - name: Extract version info
+        working-directory: release
+        run: |
+          VERSION_JSON=$(cat version.json)
+          echo "cosmos_sdk_version=$(echo $VERSION_JSON | jq -r '.cosmos_sdk_version')" >> $GITHUB_OUTPUT
+          echo "go_version=$(echo $VERSION_JSON | jq -r '.go_version')" >> $GITHUB_OUTPUT
+          echo "consensus_version=$(echo $VERSION_JSON | jq -r '.consensus.version')" >> $GITHUB_OUTPUT
+          echo "cosmwasm_version=$(echo $VERSION_JSON | jq -r '.cosmwasm_version')" >> $GITHUB_OUTPUT
+          echo "ibc_version=$(echo $VERSION_JSON | jq -r '.ibc_go_version')" >> $GITHUB_OUTPUT
+          echo "height=$(echo $VERSION_JSON | jq -r '.height')" >> $GITHUB_OUTPUT
+          echo "proposal=$(echo $VERSION_JSON | jq -r '.proposal')" >> $GITHUB_OUTPUT
+          echo "checksum_darwin_amd64=$(echo $VERSION_JSON | jq -r '.binaries."darwin/amd64" | split("?checksum=sha256:")[1]')" >> $GITHUB_OUTPUT
+          echo "checksum_darwin_arm64=$(echo $VERSION_JSON | jq -r '.binaries."darwin/arm64" | split("?checksum=sha256:")[1]')" >> $GITHUB_OUTPUT
+          echo "checksum_linux_amd64=$(echo $VERSION_JSON | jq -r '.binaries."linux/amd64" | split("?checksum=sha256:")[1]')" >> $GITHUB_OUTPUT
+          echo "checksum_linux_arm64=$(echo $VERSION_JSON | jq -r '.binaries."linux/arm64" | split("?checksum=sha256:")[1]')" >> $GITHUB_OUTPUT
 
       - name: Upload version.json files
         uses: actions/upload-artifact@v4
