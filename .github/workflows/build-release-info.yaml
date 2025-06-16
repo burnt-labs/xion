@@ -22,6 +22,8 @@ jobs:
       checksum_darwin_arm64: ${{ steps.version.outputs.checksum_darwin_arm64 }}
       checksum_linux_amd64: ${{ steps.version.outputs.checksum_linux_amd64 }}
       checksum_linux_arm64: ${{ steps.version.outputs.checksum_linux_arm64 }}
+      #
+      binaries_json_checksum: ${{ steps.checksum.outputs.binaries_json_checksum }}
 
     steps:
       - name: checkout
@@ -36,6 +38,60 @@ jobs:
           path: release
           pattern: xiond-*
           merge-multiple: true
+
+      - name: Download checksums
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          pattern: checksum.txt
+          merge-multiple: true
+
+      - name: Create binaries.json
+        working-directory: release
+        env:
+          BASE_URL: https://github.com/burnt-labs/xion/releases/download
+        run: |
+          # Read checksums from checksum.txt
+          DARWIN_AMD64_CHECKSUM=$(grep "xiond-darwin-amd64" checksum.txt | cut -d' ' -f1)
+          DARWIN_ARM64_CHECKSUM=$(grep "xiond-darwin-arm64" checksum.txt | cut -d' ' -f1)
+          LINUX_AMD64_CHECKSUM=$(grep "xiond-linux-amd64" checksum.txt | cut -d' ' -f1)
+          LINUX_ARM64_CHECKSUM=$(grep "xiond-linux-arm64" checksum.txt | cut -d' ' -f1)
+
+          # Create binaries.json with checksums
+          jq -n --arg version "${{ github.ref_name }}" \
+            --arg darwin_amd64_checksum "$DARWIN_AMD64_CHECKSUM" \
+            --arg darwin_arm64_checksum "$DARWIN_ARM64_CHECKSUM" \
+            --arg linux_amd64_checksum "$LINUX_AMD64_CHECKSUM" \
+            --arg linux_arm64_checksum "$LINUX_ARM64_CHECKSUM" \
+            '{
+              "version": $version,
+              "binaries": {
+                "darwin/amd64": {
+                  "url": $BASE_URL + "/" + $version + "/xiond_" + $version + "_darwin_amd64.tar.gz",
+                  "checksum": $darwin_amd64_checksum
+                },
+                "darwin/arm64": {
+                  "url": $BASE_URL + "/" + $version + "/xiond_" + $version + "_darwin_arm64.tar.gz",
+                  "checksum": $darwin_arm64_checksum
+                },
+                "linux/amd64": {
+                  "url": $BASE_URL + "/" + $version + "/xiond_" + $version + "_linux_amd64.tar.gz",
+                  "checksum": $linux_amd64_checksum
+                },
+                "linux/arm64": {
+                  "url": $BASE_URL + "/" + $version + "/xiond_" + $version + "_linux_arm64.tar.gz",
+                  "checksum": $linux_arm64_checksum
+                }
+              }
+            }' | tee binaries.json
+
+      - name: Create checksum for binaries.json
+        id: checksum
+        working-directory: release
+        run: |
+          BINARIES_JSON_CHECKSUM=$(sha256sum binaries.json | cut -d' ' -f1)
+          echo "binaries_json_checksum=$BINARIES_JSON_CHECKSUM" >> $GITHUB_OUTPUT
+          echo "Created checksum for binaries.json: $BINARIES_JSON_CHECKSUM"
 
       - name: Create version.json
         working-directory: release
@@ -79,5 +135,15 @@ jobs:
         with:
           name: version.json
           path: release/version.json
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Upload binaries.json and its checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries.json
+          path: |
+            release/binaries.json
+            release/binaries.json.sha256
           retention-days: 3
           if-no-files-found: error
