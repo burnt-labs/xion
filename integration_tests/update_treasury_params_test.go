@@ -43,11 +43,18 @@ func TestUpdateTreasuryContractParams(t *testing.T) {
 
 	// Instantiate contract
 	t.Log("Instantiating contract")
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddrStr, // Set the user as admin (pointer)
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
@@ -57,22 +64,22 @@ func TestUpdateTreasuryContractParams(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("Deployed and instantiated contract at address: %s", contractAddr)
 
-	// CLI command to update params
+	// Update params using direct contract execution
 	t.Log("Updating contract parameters")
-	cmd := []string{
-		"xion", "update-params", contractAddr,
-		"https://example.com/display",
-		"https://example.com/redirect",
-		"https://example.com/icon.png",
-		"--chain-id", xion.Config().ChainID,
-		"--from", xionUser.KeyName(),
-		"--gas-prices", "1uxion",
-		"--gas-adjustment", "1.4",
-		"--gas", "400000",
-		"-y",
+	updateParamsMsg := map[string]interface{}{
+		"update_params": map[string]interface{}{
+			"params": Params{
+				RedirectURL: "https://example.com/redirect",
+				IconURL:     "https://example.com/icon.png",
+				Metadata:    `{"updated": "true"}`,
+			},
+		},
 	}
+	updateParamsMsgBz, err := json.Marshal(updateParamsMsg)
+	require.NoError(t, err)
 
-	_, err = ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), cmd...)
+	// Execute the update params message
+	_, err = xion.ExecuteContract(ctx, xionUser.KeyName(), contractAddr, string(updateParamsMsgBz))
 	require.NoError(t, err)
 
 	// Wait for the transaction to be included in a block
@@ -98,16 +105,12 @@ func validateUpdatedParams(t *testing.T, ctx context.Context, xion *cosmos.Cosmo
 	queryBytes, err := json.Marshal(queryRaw["data"])
 	require.NoError(t, err)
 
-	var queriedParams struct {
-		DisplayURL  string `json:"display_url"`
-		RedirectURL string `json:"redirect_url"`
-		IconURL     string `json:"icon_url"`
-	}
+	var queriedParams Params
 	err = json.Unmarshal(queryBytes, &queriedParams)
 	require.NoError(t, err)
 
 	// Validate the updated contract state
-	require.Equal(t, "https://example.com/display", queriedParams.DisplayURL)
 	require.Equal(t, "https://example.com/redirect", queriedParams.RedirectURL)
 	require.Equal(t, "https://example.com/icon.png", queriedParams.IconURL)
+	require.Equal(t, `{"updated": "true"}`, queriedParams.Metadata)
 }

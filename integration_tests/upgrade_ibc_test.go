@@ -52,7 +52,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -168,10 +168,18 @@ func TestXionUpgradeIBC(t *testing.T) {
 		relayerName = "relayer"
 	)
 
+	// Get log level from environment variable, default to Warn
+	logLevel := zapcore.WarnLevel
+	if levelStr := os.Getenv("TEST_LOG_LEVEL"); levelStr != "" {
+		if err := logLevel.UnmarshalText([]byte(levelStr)); err != nil {
+			t.Logf("Invalid log level %s, using default Warn level", levelStr)
+		}
+	}
+
 	// Get a relayer instance
 	rf := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
-		zaptest.NewLogger(t),
+		createTestLogger(t, logLevel),
 		relayer.StartupFlags("-b", "100"),
 	)
 

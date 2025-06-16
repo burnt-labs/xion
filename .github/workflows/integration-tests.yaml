@@ -79,6 +79,7 @@ jobs:
         env:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: heighliner:${{ matrix.os }}-${{ matrix.arch }}
+          SHOW_CONTAINER_LOGS: never
         run: |
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
           chmod a+x ./dist/test-${{ matrix.os }}-${{ matrix.arch }}
