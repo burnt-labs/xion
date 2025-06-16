@@ -240,13 +240,8 @@ func TestTreasuryContract(t *testing.T) {
 
 	// todo: validate that the feegrant was created correctly
 	res, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), signedTx, "--output", "json")
-
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
-
-	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
@@ -310,10 +305,6 @@ func TestTreasuryContract(t *testing.T) {
 	res, err = ExecBroadcastWithFlags(t, ctx, xion.GetNode(), revokeSignedTx, "--output", "json")
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
-
-	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
@@ -834,13 +825,8 @@ func TestTreasuryMulti(t *testing.T) {
 
 	// todo: validate that the feegrant was created correctly
 	res, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), signedTx, "--output", "json")
-
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
-
-	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
@@ -904,10 +890,6 @@ func TestTreasuryMulti(t *testing.T) {
 	res, err = ExecBroadcastWithFlags(t, ctx, xion.GetNode(), revokeSignedTx, "--output", "json")
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
-
-	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
