@@ -3,13 +3,14 @@ package types
 import (
 	"cosmossdk.io/x/feegrant"
 
-	xionMintTypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+
+	xionMintTypes "github.com/burnt-labs/xion/x/mint/types"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/bank interfaces and concrete types

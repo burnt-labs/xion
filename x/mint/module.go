@@ -55,12 +55,12 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterLegacyAminoCodec registers the mint module's types on the given LegacyAmino codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
 	// types.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(r cdctypes.InterfaceRegistry) {
+func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {
 	// types.RegisterInterfaces(r)
 }
 
