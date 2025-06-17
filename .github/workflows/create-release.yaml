@@ -118,3 +118,21 @@ jobs:
     needs: build-release
     uses: burnt-labs/xion/.github/workflows/verify-installers.yaml@workflows/main
     secrets: inherit
+  
+  update-chain-registry:
+    name: Update Chain Registry
+    needs: build-release
+    uses: burnt-labs/xion-assets/.github/workflows/update_chain_registry_on_release.yaml@main
+    with:
+      version_tag: ${{ github.ref_name }}
+      cosmos_sdk_version: ${{ needs.build-release.outputs.cosmos_sdk_version }}
+      go_version: ${{ needs.build-release.outputs.go_version }}
+      consensus_version: ${{ needs.build-release.outputs.consensus_version }}
+      cosmwasm_version: ${{ needs.build-release.outputs.cosmwasm_version }}
+      ibc_version: ${{ needs.build-release.outputs.ibc_version }}
+      height: ${{ needs.build-release.outputs.height }}
+      proposal: ${{ needs.build-release.outputs.proposal }}
+      checksum_darwin_amd64: ${{ needs.build-release.outputs.checksum_darwin_amd64 }}
+      checksum_darwin_arm64: ${{ needs.build-release.outputs.checksum_darwin_arm64 }}
+      checksum_linux_amd64: ${{ needs.build-release.outputs.checksum_linux_amd64 }}
+      checksum_linux_arm64: ${{ needs.build-release.outputs.checksum_linux_arm64 }}
