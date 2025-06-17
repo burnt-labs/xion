@@ -6,8 +6,8 @@ import (
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"embed"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
@@ -71,16 +73,19 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 )
 
-//go:embed configuredChains.yaml
-var configuredChainsFile embed.FS
+// createTestLogger creates a test logger with the specified log level
+func createTestLogger(t *testing.T, level zapcore.Level) *zap.Logger {
+	return zaptest.NewLogger(t, zaptest.Level(level))
+}
 
 const (
 	votingPeriod     = "10s"
 	maxDepositPeriod = "10s"
-	packetforward    = "0.0"
 	minInflation     = "0.0"
 	maxInflation     = "0.0"
 	mintDenom        = "uxion"
@@ -281,8 +286,16 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 		}(),
 	}
 
+	// Get log level from environment variable, default to Warn
+	logLevel := zapcore.WarnLevel
+	if levelStr := os.Getenv("TEST_LOG_LEVEL"); levelStr != "" {
+		if err := logLevel.UnmarshalText([]byte(levelStr)); err != nil {
+			t.Logf("Invalid log level %s, using default Warn level", levelStr)
+		}
+	}
+
 	// Chain factory
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
+	cf := interchaintest.NewBuiltinChainFactory(createTestLogger(t, logLevel), []*interchaintest.ChainSpec{
 		{
 			Name:          imageTagComponents[0],
 			Version:       imageTagComponents[1],
@@ -369,21 +382,6 @@ func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, para
 	return out, nil
 }
 
-func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, "0.0", "app_state", "packetfowardmiddleware", "params", "fee_percentage"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
-}
-
 // This function modifies the inflation parameters of the mint module in the genesis file
 func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
 	g := make(map[string]interface{})
@@ -430,6 +428,667 @@ func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, pa
 		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
 	}
 	return out, nil
+}
+
+func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
+	command = append([]string{"tx"}, command...)
+	cmd := tn.NodeCommand(append(command,
+		"--from", keyName,
+		"--gas-prices", tn.Chain.Config().GasPrices,
+		"--gas-adjustment", fmt.Sprint(tn.Chain.Config().GasAdjustment),
+		"--gas", "auto",
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+	)...)
+	t.Logf("cmd: %s", cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal(stdout, &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, nil
+}
+
+func ExecTxWithGas(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, gas string, command ...string) (string, error) {
+	command = append([]string{"tx"}, command...)
+	cmd := tn.NodeCommand(append(command,
+		"--from", keyName,
+		"--gas-prices", gas,
+		"--gas-adjustment", fmt.Sprint(tn.Chain.Config().GasAdjustment),
+		"--gas", "auto",
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"-y",
+	)...)
+	t.Logf("cmd: %s", cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal(stdout, &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, nil
+}
+
+func GenerateTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
+	cmd := append([]string{"tx"}, command...)
+	cmd = tn.NodeCommand(append(cmd,
+		"--from", keyName,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"--generate-only",
+	)...)
+	t.Logf("cmd: %s", cmd)
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), nil
+}
+
+func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	t.Logf("querying with cmd: %s", command)
+	output, _, err := tn.ExecQuery(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
+}
+
+func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
+	jsonRes := make(map[string]interface{})
+	output, _, err := tn.ExecBin(ctx, command...)
+	if err != nil {
+		return jsonRes, err
+	}
+	require.NoError(t, json.Unmarshal(output, &jsonRes))
+
+	return jsonRes, nil
+}
+
+func ExecBinRaw(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) ([]byte, error) {
+	output, _, err := tn.ExecBin(ctx, command...)
+	if err != nil {
+		return output, err
+	}
+
+	return output, nil
+}
+
+func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
+	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
+		return "", err
+	}
+
+	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"), "--output", "json")
+
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+	return string(stdout), err
+}
+
+func ExecBroadcastWithFlags(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte, command ...string) (string, error) {
+	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
+		return "", err
+	}
+	c := append([]string{"tx", "broadcast", path.Join(tn.HomeDir(), "tx.json")}, command...)
+	cmd := tn.NodeCommand(c...)
+
+	stdout, _, err := tn.Exec(ctx, cmd, nil)
+	if err != nil {
+		return "", err
+	}
+
+	output := cosmos.CosmosTx{}
+	err = json.Unmarshal(stdout, &output)
+	if err != nil {
+		return "", err
+	}
+	if output.Code != 0 {
+		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
+	}
+	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
+		return "", err
+	}
+	return output.TxHash, err
+}
+
+func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
+	content, err := os.ReadFile(file.Name())
+	if err != nil {
+		return err
+	}
+	path := strings.Split(file.Name(), "/")
+	return tn.WriteFile(ctx, content, path[len(path)-1])
+}
+
+var (
+	credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
+	AAGUID       = []byte("AAGUIDAAGUIDAA==")
+)
+
+func CreateWebAuthn(t *testing.T) (webauthn.Config, *webauthn.WebAuthn, error) {
+	webAuthnConfig := webauthn.Config{
+		RPDisplayName:         "Xion",
+		RPID:                  "xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+		RPOrigins:             []string{"https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"},
+		AttestationPreference: "none",
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			AuthenticatorAttachment: protocol.Platform,
+			UserVerification:        protocol.VerificationPreferred,
+		},
+	}
+	webAuthn, err := webauthn.New(&webAuthnConfig)
+	require.NoError(t, err)
+
+	return webAuthnConfig, webAuthn, nil
+}
+
+func CreateWebAuthNAttestationCred(t *testing.T, challenge string) []byte {
+	webAuthnConfig, _, err := CreateWebAuthn(t)
+	require.NoError(t, err)
+	clientData := protocol.CollectedClientData{
+		Type:      "webauthn.create",
+		Challenge: challenge,
+		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+	}
+
+	// Inline webauthn key generation
+	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")
+	require.NoError(t, err)
+	publicKey := privateKey.PublicKey
+	publicKeyModulus := publicKey.N.Bytes()
+	pubKeyData := webauthncose.RSAPublicKeyData{
+		PublicKeyData: webauthncose.PublicKeyData{
+			KeyType:   int64(webauthncose.RSAKey),
+			Algorithm: int64(webauthncose.AlgRS256),
+		},
+		Modulus:  publicKeyModulus,
+		Exponent: big.NewInt(int64(publicKey.E)).Bytes(),
+	}
+	publicKeyBuf, err := webauthncbor.Marshal(pubKeyData)
+	require.NoError(t, err)
+
+	clientDataJSON, err := json.Marshal(clientData)
+	require.NoError(t, err)
+
+	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
+	authData := protocol.AuthenticatorData{
+		RPIDHash: RPIDHash[:],
+		Counter:  0,
+		AttData: protocol.AttestedCredentialData{
+			AAGUID:              AAGUID,
+			CredentialID:        credentialID,
+			CredentialPublicKey: publicKeyBuf,
+		},
+		Flags: 69,
+	}
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	counterBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(counterBytes, 0)
+	authDataBz = append(authDataBz, counterBytes...)
+
+	var attData []byte
+
+	// Concatenate AAGUID
+	attData = append(attData, AAGUID...)
+
+	// Add CredentialIDLength
+	credentialIDLengthBytes := make([]byte, 2)
+	credentialIDLength := uint16(len(credentialID))
+	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
+	attData = append(attData, credentialIDLengthBytes...)
+
+	// Add CredentialID
+	attData = append(attData, credentialID...)
+
+	// Add CredentialPublicKey
+	attData = append(attData, publicKeyBuf...)
+
+	authDataBz = append(authDataBz, attData...)
+
+	attestationObject := protocol.AttestationObject{
+		AuthData:    authData,
+		RawAuthData: authDataBz,
+		Format:      "none",
+	}
+	attestationObjectJSON, err := webauthncbor.Marshal(attestationObject)
+	require.NoError(t, err)
+
+	attestationResponse := protocol.AuthenticatorAttestationResponse{
+		AuthenticatorResponse: protocol.AuthenticatorResponse{
+			ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
+		},
+		AttestationObject: attestationObjectJSON,
+	}
+	_, err = attestationResponse.Parse()
+	require.NoError(t, err)
+
+	credentialCreationResponse := protocol.CredentialCreationResponse{
+		PublicKeyCredential: protocol.PublicKeyCredential{
+			Credential: protocol.Credential{
+				ID:   string(credentialID),
+				Type: "public-key",
+			},
+			RawID:                   credentialID,
+			AuthenticatorAttachment: string(protocol.Platform),
+		},
+		AttestationResponse: attestationResponse,
+	}
+	_, err = credentialCreationResponse.Parse()
+	require.NoError(t, err)
+
+	credCreationRes, err := json.Marshal(credentialCreationResponse)
+	require.NoError(t, err)
+	return credCreationRes
+}
+
+func CreateWebAuthNSignature(t *testing.T, challenge string, address string) []byte {
+	webAuthnConfig, _, err := CreateWebAuthn(t)
+	require.NoError(t, err)
+	// Inline webauthn key generation
+	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")
+	require.NoError(t, err)
+	publicKey := privateKey.PublicKey
+	publicKeyModulus := publicKey.N.Bytes()
+	pubKeyData := webauthncose.RSAPublicKeyData{
+		PublicKeyData: webauthncose.PublicKeyData{
+			KeyType:   int64(webauthncose.RSAKey),
+			Algorithm: int64(webauthncose.AlgRS256),
+		},
+		Modulus:  publicKeyModulus,
+		Exponent: big.NewInt(int64(publicKey.E)).Bytes(),
+	}
+	publicKeyBuf, err := webauthncbor.Marshal(pubKeyData)
+	require.NoError(t, err)
+
+	webAuthnUser := types.SmartContractUser{
+		Address: address,
+		Credential: &webauthn.Credential{
+			ID:              credentialID,
+			AttestationType: "none",
+			PublicKey:       publicKeyBuf,
+			Transport:       []protocol.AuthenticatorTransport{protocol.Internal},
+			Flags: webauthn.CredentialFlags{
+				UserPresent:  false,
+				UserVerified: false,
+			},
+			Authenticator: webauthn.Authenticator{
+				AAGUID:     AAGUID,
+				SignCount:  0,
+				Attachment: protocol.Platform,
+			},
+		},
+	}
+
+	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
+	clientData := protocol.CollectedClientData{
+		Type:      "webauthn.get",
+		Challenge: challenge,
+		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
+	}
+	clientDataJSON, err := json.Marshal(clientData)
+	require.NoError(t, err)
+	clientDataHash := sha256.Sum256(clientDataJSON)
+	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
+	counterBytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(counterBytes, 0)
+	authDataBz = append(authDataBz, counterBytes...)
+
+	var attData []byte
+
+	// Concatenate AAGUID
+	attData = append(attData, AAGUID...)
+
+	// Add CredentialIDLength
+	credentialIDLengthBytes := make([]byte, 2)
+	credentialIDLength := uint16(len(credentialID))
+	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
+	attData = append(attData, credentialIDLengthBytes...)
+
+	// Add CredentialID
+	attData = append(attData, credentialID...)
+
+	// Add CredentialPublicKey
+	attData = append(attData, publicKeyBuf...)
+
+	authDataBz = append(authDataBz, attData...)
+	require.NoError(t, err)
+
+	signData := append(authDataBz[:], clientDataHash[:]...)
+	signHash := sha256.Sum256(signData)
+	// Use crypto.SHA256 directly since RSA signing with PSS requires a hash function
+	signature, err := rsa.SignPKCS1v15(cryptoRand.Reader, privateKey, crypto.SHA256, signHash[:])
+	require.NoError(t, err)
+	verified, err := pubKeyData.Verify(signData[:], signature)
+	require.NoError(t, err)
+	require.True(t, verified)
+
+	credentialAssertionData := &protocol.CredentialAssertionResponse{
+		PublicKeyCredential: protocol.PublicKeyCredential{
+			Credential: protocol.Credential{
+				ID:   string(credentialID),
+				Type: "public-key",
+			},
+			RawID:                   credentialID,
+			AuthenticatorAttachment: string(protocol.Platform),
+		},
+		AssertionResponse: protocol.AuthenticatorAssertionResponse{
+			AuthenticatorResponse: protocol.AuthenticatorResponse{
+				ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
+			},
+			AuthenticatorData: authDataBz,
+			Signature:         signature,
+			UserHandle:        webAuthnUser.WebAuthnID(),
+		},
+	}
+	// validate signature
+	assertionResponse, err := json.Marshal(credentialAssertionData)
+	require.NoError(t, err)
+	return assertionResponse
+}
+
+func CreateTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, subDenomName, feeCoin string) (fullDenom string) {
+	// TF gas to create cost 2mil, so we set to 2.5 to be safe
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "create-denom", subDenomName,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", user.KeyName(),
+		"--gas", "2500000",
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+
+	if feeCoin != "" {
+		cmd = append(cmd, "--fees", feeCoin)
+	}
+
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+
+	return "factory/" + user.FormattedAddress() + "/" + subDenomName
+}
+
+func MintTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, amount uint64, fullDenom string) {
+	denom := strconv.FormatUint(amount, 10) + fullDenom
+
+	// mint new tokens to the account
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "mint", denom,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", admin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func MintToTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, toWallet ibc.Wallet, amount uint64, fullDenom string) {
+	denom := strconv.FormatUint(amount, 10) + fullDenom
+
+	receiver := toWallet.FormattedAddress()
+
+	t.Log("minting", denom, "to", receiver)
+
+	// mint new tokens to the account
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "mint-to", receiver, denom,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", admin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func TransferTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, currentAdmin ibc.Wallet, newAdminBech32 string, fullDenom string) {
+	cmd := []string{
+		"xiond", "tx", "tokenfactory", "change-admin", fullDenom, newAdminBech32,
+		"--node", chain.GetRPCAddress(),
+		"--home", chain.HomeDir(),
+		"--chain-id", chain.Config().ChainID,
+		"--from", currentAdmin.KeyName(),
+		"--keyring-dir", chain.HomeDir(),
+		"--keyring-backend", keyring.BackendTest,
+		"-y",
+	}
+	_, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+}
+
+func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, fullDenom string) string {
+	cmd := []string{
+		"xiond", "query", "tokenfactory", "denom-authority-metadata", fullDenom,
+		"--node", chain.GetRPCAddress(),
+		//"--chain-id", chain.Config().ChainID,
+		"--output", "json",
+	}
+	stdout, _, err := chain.Exec(ctx, cmd, nil)
+	require.NoError(t, err)
+
+	results := &tokenfactorytypes.QueryDenomAuthorityMetadataResponse{}
+	err = json.Unmarshal(stdout, results)
+	require.NoError(t, err)
+
+	t.Log(results)
+
+	return results.AuthorityMetadata.Admin
+}
+
+// InstantiateContract2 deploys a contract with a predictable address using instantiate2
+func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, keyName, codeID, initMsg, salt string, admin bool) (string, error) {
+	// Get code info to extract the hash
+	codeResp, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "code-info", codeID)
+	require.NoError(t, err)
+
+	codeHashStr, ok := codeResp["checksum"].(string)
+	require.True(t, ok, "code hash not found in response")
+
+	codeHash, err := hex.DecodeString(codeHashStr)
+	require.NoError(t, err)
+
+	// Get the creator address
+	creatorAddrBytes, err := chain.GetAddress(ctx, keyName)
+	require.NoError(t, err)
+
+	creator := sdk.AccAddress(creatorAddrBytes)
+	creatorAddrStr, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, creatorAddrBytes)
+	require.NoError(t, err)
+
+	// Calculate the predictable address
+	// When FixMsg is true, we need to calculate with the canonical form of the message
+	var msgForAddress []byte
+	if initMsg != "" {
+		// Parse and re-marshal to get canonical JSON
+		var parsed interface{}
+		if err := json.Unmarshal([]byte(initMsg), &parsed); err == nil {
+			canonical, err := json.Marshal(parsed)
+			if err == nil {
+				msgForAddress = canonical
+			} else {
+				msgForAddress = []byte(initMsg)
+			}
+		} else {
+			msgForAddress = []byte(initMsg)
+		}
+	}
+
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), msgForAddress)
+	predictedAddrStr := predictedAddr.String()
+
+	// Prepare the instantiate2 message
+	var adminAddr string
+	if admin {
+		adminAddr = predictedAddrStr // Set the contract itself as admin
+	}
+
+	codeIDUint, err := strconv.ParseUint(codeID, 10, 64)
+	require.NoError(t, err)
+
+	instantiate2Msg := wasmtypes.MsgInstantiateContract2{
+		Sender: creatorAddrStr,
+		Admin:  adminAddr,
+		CodeID: codeIDUint,
+		Label:  fmt.Sprintf("contract-%s", salt),
+		Msg:    []byte(initMsg),
+		Funds:  sdk.Coins{},
+		Salt:   []byte(salt),
+		FixMsg: true, // This is important for predictable addresses
+	}
+
+	// Build and broadcast the transaction
+	txBuilder := chain.Config().EncodingConfig.TxConfig.NewTxBuilder()
+	err = txBuilder.SetMsgs(&instantiate2Msg)
+	require.NoError(t, err)
+	txBuilder.SetGasLimit(2000000)
+
+	tx := txBuilder.GetTx()
+	txJSONStr, err := chain.Config().EncodingConfig.TxConfig.TxJSONEncoder()(tx)
+	require.NoError(t, err)
+
+	sendFile, err := os.CreateTemp("", "*-instantiate2-tx.json")
+	require.NoError(t, err)
+	defer os.Remove(sendFile.Name())
+
+	_, err = sendFile.Write([]byte(txJSONStr))
+	require.NoError(t, err)
+	err = UploadFileToContainer(t, ctx, chain.GetNode(), sendFile)
+	require.NoError(t, err)
+
+	sendFilePath := strings.Split(sendFile.Name(), "/")
+
+	signedTx, err := ExecBinRaw(t, ctx, chain.GetNode(),
+		"tx", "sign", path.Join(chain.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
+		"--from", keyName,
+		"--chain-id", chain.Config().ChainID,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"--overwrite",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", chain.GetNode().HostName()))
+	require.NoError(t, err)
+
+	txHash, err := ExecBroadcastWithFlags(t, ctx, chain.GetNode(), signedTx, "--output", "json")
+	if err != nil {
+		return "", err
+	}
+
+	// Wait for transaction to be included in a block
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+
+	// Query the transaction to extract the contract address from events
+	var actualContractAddr string
+	txDetails, err := ExecQuery(t, ctx, chain.GetNode(), "tx", txHash)
+	if err != nil {
+		t.Logf("Warning: could not query transaction details: %v", err)
+	} else {
+		// Try to extract the contract address from events
+		if events, ok := txDetails["events"].([]interface{}); ok {
+			for _, event := range events {
+				if eventMap, ok := event.(map[string]interface{}); ok {
+					if eventType, ok := eventMap["type"].(string); ok && eventType == "instantiate" {
+						if attributes, ok := eventMap["attributes"].([]interface{}); ok {
+							for _, attr := range attributes {
+								if attrMap, ok := attr.(map[string]interface{}); ok {
+									key, _ := attrMap["key"].(string)
+									value, _ := attrMap["value"].(string)
+									if key == "_contract_address" || key == "contract_address" {
+										actualContractAddr = value
+										break
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	err = testutil.WaitForBlocks(ctx, 1, chain)
+	require.NoError(t, err)
+
+	// First try the predicted address
+	_, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", predictedAddrStr)
+	if err != nil {
+		// If we found an actual address from events, try that
+		if actualContractAddr != "" && actualContractAddr != predictedAddrStr {
+			_, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", actualContractAddr)
+			if err == nil {
+				return actualContractAddr, nil
+			}
+		}
+
+		// Try to list all contracts for this code ID to see where it actually got deployed
+		contracts, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "list-contract-by-code", codeID)
+		if err == nil {
+			// Try to extract contract addresses from the list
+			if contractList, ok := contracts["contracts"].([]interface{}); ok && len(contractList) > 0 {
+				// Get the most recently deployed contract (last in the list)
+				lastContract := contractList[len(contractList)-1]
+				if contractAddr, ok := lastContract.(string); ok {
+					// Verify this is our contract
+					_, err = ExecQuery(t, ctx, chain.GetNode(), "wasm", "contract", contractAddr)
+					if err == nil {
+						return contractAddr, nil
+					}
+				}
+			}
+		}
+
+		return "", fmt.Errorf("contract not found at predicted address %s", predictedAddrStr)
+	}
+
+	return predictedAddrStr, nil
 }
 
 // Helper method to retrieve the total token supply for a chain at some particular history denoted by the block height
@@ -656,524 +1315,4 @@ func VerifyMintModuleTest(t *testing.T, xion *cosmos.CosmosChain, ctx context.Co
 		t.Logf("Bank send msg %d BH: %d", i, txResp.Height)
 		MintModuleTestHarness(t, xion, ctx, int(txResp.Height)+1, assertion) // check my block and the next one
 	}
-}
-
-func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas string, command ...string) []string {
-	command = append([]string{"tx"}, command...)
-	return tn.NodeCommand(append(command,
-		"--from", keyName,
-		"--gas-prices", gas,
-		"--gas-adjustment", fmt.Sprint(tn.Chain.Config().GasAdjustment),
-		"--gas", "auto",
-		"--keyring-backend", keyring.BackendTest,
-		"--output", "json",
-		"-y",
-	)...)
-}
-
-func ExecTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
-	cmd := TxCommandOverrideGas(t, tn, keyName, tn.Chain.Config().GasPrices, command...)
-	t.Logf("cmd: %s", cmd)
-	stdout, _, err := tn.Exec(ctx, cmd, nil)
-	if err != nil {
-		return "", err
-	}
-	output := cosmos.CosmosTx{}
-	err = json.Unmarshal(stdout, &output)
-	if err != nil {
-		return "", err
-	}
-	if output.Code != 0 {
-		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
-	}
-	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
-		return "", err
-	}
-	return output.TxHash, nil
-}
-
-func ExecTxWithGas(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, gas string, command ...string) (string, error) {
-	cmd := TxCommandOverrideGas(t, tn, keyName, gas, command...)
-	t.Logf("cmd: %s", cmd)
-	stdout, _, err := tn.Exec(ctx, cmd, nil)
-	if err != nil {
-		return "", err
-	}
-	output := cosmos.CosmosTx{}
-	err = json.Unmarshal(stdout, &output)
-	if err != nil {
-		return "", err
-	}
-	if output.Code != 0 {
-		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
-	}
-	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
-		return "", err
-	}
-	return output.TxHash, nil
-}
-
-func GenerateTx(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, keyName string, command ...string) (string, error) {
-	cmd := append([]string{"tx"}, command...)
-	cmd = tn.NodeCommand(append(cmd,
-		"--from", keyName,
-		"--keyring-backend", keyring.BackendTest,
-		"--output", "json",
-		"--generate-only",
-	)...)
-	t.Logf("cmd: %s", cmd)
-	stdout, _, err := tn.Exec(ctx, cmd, nil)
-	if err != nil {
-		return "", err
-	}
-	return string(stdout), nil
-}
-
-func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
-	jsonRes := make(map[string]interface{})
-	t.Logf("querying with cmd: %s", command)
-	output, _, err := tn.ExecQuery(ctx, command...)
-	if err != nil {
-		return jsonRes, err
-	}
-	require.NoError(t, json.Unmarshal(output, &jsonRes))
-
-	return jsonRes, nil
-}
-
-func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
-	jsonRes := make(map[string]interface{})
-	output, _, err := tn.ExecBin(ctx, command...)
-	if err != nil {
-		return jsonRes, err
-	}
-	require.NoError(t, json.Unmarshal(output, &jsonRes))
-
-	return jsonRes, nil
-}
-
-func ExecBinStr(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (string, error) {
-	output, _, err := tn.ExecBin(ctx, command...)
-	require.NoError(t, err)
-	return string(output), nil
-}
-
-func ExecBinRaw(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) ([]byte, error) {
-	output, _, err := tn.ExecBin(ctx, command...)
-	if err != nil {
-		return output, err
-	}
-
-	return output, nil
-}
-
-func ExecBroadcast(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte) (string, error) {
-	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
-		return "", err
-	}
-
-	cmd := tn.NodeCommand("tx", "broadcast", path.Join(tn.HomeDir(), "tx.json"), "--output", "json")
-
-	stdout, _, err := tn.Exec(ctx, cmd, nil)
-	if err != nil {
-		return "", err
-	}
-	return string(stdout), err
-}
-
-func ExecBroadcastWithFlags(_ *testing.T, ctx context.Context, tn *cosmos.ChainNode, tx []byte, command ...string) (string, error) {
-	if err := tn.WriteFile(ctx, tx, "tx.json"); err != nil {
-		return "", err
-	}
-	c := append([]string{"tx", "broadcast", path.Join(tn.HomeDir(), "tx.json")}, command...)
-	cmd := tn.NodeCommand(c...)
-
-	stdout, _, err := tn.Exec(ctx, cmd, nil)
-	if err != nil {
-		return "", err
-	}
-
-	output := cosmos.CosmosTx{}
-	err = json.Unmarshal(stdout, &output)
-	if err != nil {
-		return "", err
-	}
-	if output.Code != 0 {
-		return output.TxHash, fmt.Errorf("transaction failed with code %d: %s", output.Code, output.RawLog)
-	}
-	if err := testutil.WaitForBlocks(ctx, 2, tn); err != nil {
-		return "", err
-	}
-	return output.TxHash, err
-}
-
-func UploadFileToContainer(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, file *os.File) error {
-	content, err := os.ReadFile(file.Name())
-	if err != nil {
-		return err
-	}
-	path := strings.Split(file.Name(), "/")
-	return tn.WriteFile(ctx, content, path[len(path)-1])
-}
-
-type signOpts struct{}
-
-func (*signOpts) HashFunc() crypto.Hash {
-	return crypto.SHA256
-}
-
-var (
-	credentialID = []byte("UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg")
-	AAGUID       = []byte("AAGUIDAAGUIDAA==")
-)
-
-func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
-	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")
-	require.NoError(t, err)
-	publicKey := privateKey.PublicKey
-	publicKeyModulus := publicKey.N.Bytes()
-	require.NoError(t, err)
-	pubKeyData := webauthncose.RSAPublicKeyData{
-		PublicKeyData: webauthncose.PublicKeyData{
-			KeyType:   int64(webauthncose.RSAKey),
-			Algorithm: int64(webauthncose.AlgRS256),
-		},
-		Modulus:  publicKeyModulus,
-		Exponent: big.NewInt(int64(publicKey.E)).Bytes(),
-	}
-	publicKeyBuf, err := webauthncbor.Marshal(pubKeyData)
-	require.NoError(t, err)
-	return privateKey, publicKeyBuf, pubKeyData
-}
-
-func CreateWebAuthn(t *testing.T) (webauthn.Config, *webauthn.WebAuthn, error) {
-	webAuthnConfig := webauthn.Config{
-		RPDisplayName:         "Xion",
-		RPID:                  "xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-		RPOrigins:             []string{"https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app"},
-		AttestationPreference: "none",
-		AuthenticatorSelection: protocol.AuthenticatorSelection{
-			AuthenticatorAttachment: protocol.Platform,
-			UserVerification:        protocol.VerificationPreferred,
-		},
-	}
-	webAuthn, err := webauthn.New(&webAuthnConfig)
-	require.NoError(t, err)
-
-	return webAuthnConfig, webAuthn, nil
-}
-
-func CreateWebAuthNAttestationCred(t *testing.T, challenge string) []byte {
-	webAuthnConfig, _, err := CreateWebAuthn(t)
-	require.NoError(t, err)
-	clientData := protocol.CollectedClientData{
-		Type:      "webauthn.create",
-		Challenge: challenge,
-		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-	}
-
-	_, publicKeyBuf, _ := getWebAuthNKeys(t)
-
-	clientDataJSON, err := json.Marshal(clientData)
-	require.NoError(t, err)
-
-	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
-	authData := protocol.AuthenticatorData{
-		RPIDHash: RPIDHash[:],
-		Counter:  0,
-		AttData: protocol.AttestedCredentialData{
-			AAGUID:              AAGUID,
-			CredentialID:        credentialID,
-			CredentialPublicKey: publicKeyBuf,
-		},
-		Flags: 69,
-	}
-	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
-	counterBytes := make([]byte, 4)
-	binary.LittleEndian.PutUint32(counterBytes, 0)
-	authDataBz = append(authDataBz, counterBytes...)
-
-	var attData []byte
-
-	// Concatenate AAGUID
-	attData = append(attData, AAGUID...)
-
-	// Add CredentialIDLength
-	credentialIDLengthBytes := make([]byte, 2)
-	credentialIDLength := uint16(len(credentialID))
-	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
-	attData = append(attData, credentialIDLengthBytes...)
-
-	// Add CredentialID
-	attData = append(attData, credentialID...)
-
-	// Add CredentialPublicKey
-	attData = append(attData, publicKeyBuf...)
-
-	authDataBz = append(authDataBz, attData...)
-
-	attestationObject := protocol.AttestationObject{
-		AuthData:    authData,
-		RawAuthData: authDataBz,
-		Format:      "none",
-	}
-	attestationObjectJSON, err := webauthncbor.Marshal(attestationObject)
-	require.NoError(t, err)
-
-	attestationResponse := protocol.AuthenticatorAttestationResponse{
-		AuthenticatorResponse: protocol.AuthenticatorResponse{
-			ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
-		},
-		AttestationObject: attestationObjectJSON,
-	}
-	_, err = attestationResponse.Parse()
-	require.NoError(t, err)
-
-	credentialCreationResponse := protocol.CredentialCreationResponse{
-		PublicKeyCredential: protocol.PublicKeyCredential{
-			Credential: protocol.Credential{
-				ID:   string(credentialID),
-				Type: "public-key",
-			},
-			RawID:                   credentialID,
-			AuthenticatorAttachment: string(protocol.Platform),
-		},
-		AttestationResponse: attestationResponse,
-	}
-	_, err = credentialCreationResponse.Parse()
-	require.NoError(t, err)
-
-	credCreationRes, err := json.Marshal(credentialCreationResponse)
-	require.NoError(t, err)
-	return credCreationRes
-}
-
-func CreateWebAuthNSignature(t *testing.T, challenge string, address string) []byte {
-	webAuthnConfig, _, err := CreateWebAuthn(t)
-	require.NoError(t, err)
-	privateKey, publicKeyBuf, pubKeyData := getWebAuthNKeys(t)
-
-	webAuthnUser := types.SmartContractUser{
-		Address: address,
-		Credential: &webauthn.Credential{
-			ID:              credentialID,
-			AttestationType: "none",
-			PublicKey:       publicKeyBuf,
-			Transport:       []protocol.AuthenticatorTransport{protocol.Internal},
-			Flags: webauthn.CredentialFlags{
-				UserPresent:  false,
-				UserVerified: false,
-			},
-			Authenticator: webauthn.Authenticator{
-				AAGUID:     AAGUID,
-				SignCount:  0,
-				Attachment: protocol.Platform,
-			},
-		},
-	}
-
-	RPIDHash := sha256.Sum256([]byte(webAuthnConfig.RPID))
-	clientData := protocol.CollectedClientData{
-		Type:      "webauthn.get",
-		Challenge: challenge,
-		Origin:    "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-	}
-	clientDataJSON, err := json.Marshal(clientData)
-	require.NoError(t, err)
-	clientDataHash := sha256.Sum256(clientDataJSON)
-	authDataBz := append(RPIDHash[:], big.NewInt(69).Bytes()[:]...)
-	counterBytes := make([]byte, 4)
-	binary.LittleEndian.PutUint32(counterBytes, 0)
-	authDataBz = append(authDataBz, counterBytes...)
-
-	var attData []byte
-
-	// Concatenate AAGUID
-	attData = append(attData, AAGUID...)
-
-	// Add CredentialIDLength
-	credentialIDLengthBytes := make([]byte, 2)
-	credentialIDLength := uint16(len(credentialID))
-	binary.BigEndian.PutUint16(credentialIDLengthBytes, credentialIDLength)
-	attData = append(attData, credentialIDLengthBytes...)
-
-	// Add CredentialID
-	attData = append(attData, credentialID...)
-
-	// Add CredentialPublicKey
-	attData = append(attData, publicKeyBuf...)
-
-	authDataBz = append(authDataBz, attData...)
-	require.NoError(t, err)
-
-	signData := append(authDataBz[:], clientDataHash[:]...)
-	signHash := sha256.Sum256(signData)
-	signature, err := privateKey.Sign(cryptoRand.Reader, signHash[:], &signOpts{})
-	require.NoError(t, err)
-	verified, err := pubKeyData.Verify(signData[:], signature)
-	require.NoError(t, err)
-	require.True(t, verified)
-
-	credentialAssertionData := &protocol.CredentialAssertionResponse{
-		PublicKeyCredential: protocol.PublicKeyCredential{
-			Credential: protocol.Credential{
-				ID:   string(credentialID),
-				Type: "public-key",
-			},
-			RawID:                   credentialID,
-			AuthenticatorAttachment: string(protocol.Platform),
-		},
-		AssertionResponse: protocol.AuthenticatorAssertionResponse{
-			AuthenticatorResponse: protocol.AuthenticatorResponse{
-				ClientDataJSON: protocol.URLEncodedBase64(clientDataJSON),
-			},
-			AuthenticatorData: authDataBz,
-			Signature:         signature,
-			UserHandle:        webAuthnUser.WebAuthnID(),
-		},
-	}
-	// validate signature
-	assertionResponse, err := json.Marshal(credentialAssertionData)
-	require.NoError(t, err)
-	return assertionResponse
-}
-
-func CreateTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, subDenomName, feeCoin string) (fullDenom string) {
-	// TF gas to create cost 2mil, so we set to 2.5 to be safe
-	cmd := []string{
-		"xiond", "tx", "tokenfactory", "create-denom", subDenomName,
-		"--node", chain.GetRPCAddress(),
-		"--home", chain.HomeDir(),
-		"--chain-id", chain.Config().ChainID,
-		"--from", user.KeyName(),
-		"--gas", "2500000",
-		"--keyring-dir", chain.HomeDir(),
-		"--keyring-backend", keyring.BackendTest,
-		"-y",
-	}
-
-	if feeCoin != "" {
-		cmd = append(cmd, "--fees", feeCoin)
-	}
-
-	_, _, err := chain.Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 2, chain)
-	require.NoError(t, err)
-
-	return "factory/" + user.FormattedAddress() + "/" + subDenomName
-}
-
-func MintTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, amount uint64, fullDenom string) {
-	denom := strconv.FormatUint(amount, 10) + fullDenom
-
-	// mint new tokens to the account
-	cmd := []string{
-		"xiond", "tx", "tokenfactory", "mint", denom,
-		"--node", chain.GetRPCAddress(),
-		"--home", chain.HomeDir(),
-		"--chain-id", chain.Config().ChainID,
-		"--from", admin.KeyName(),
-		"--keyring-dir", chain.HomeDir(),
-		"--keyring-backend", keyring.BackendTest,
-		"-y",
-	}
-	_, _, err := chain.Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 2, chain)
-	require.NoError(t, err)
-}
-
-func MintToTokenFactoryDenom(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, admin ibc.Wallet, toWallet ibc.Wallet, amount uint64, fullDenom string) {
-	denom := strconv.FormatUint(amount, 10) + fullDenom
-
-	receiver := toWallet.FormattedAddress()
-
-	t.Log("minting", denom, "to", receiver)
-
-	// mint new tokens to the account
-	cmd := []string{
-		"xiond", "tx", "tokenfactory", "mint-to", receiver, denom,
-		"--node", chain.GetRPCAddress(),
-		"--home", chain.HomeDir(),
-		"--chain-id", chain.Config().ChainID,
-		"--from", admin.KeyName(),
-		"--keyring-dir", chain.HomeDir(),
-		"--keyring-backend", keyring.BackendTest,
-		"-y",
-	}
-	_, _, err := chain.Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 2, chain)
-	require.NoError(t, err)
-}
-
-func TransferTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, currentAdmin ibc.Wallet, newAdminBech32 string, fullDenom string) {
-	cmd := []string{
-		"xiond", "tx", "tokenfactory", "change-admin", fullDenom, newAdminBech32,
-		"--node", chain.GetRPCAddress(),
-		"--home", chain.HomeDir(),
-		"--chain-id", chain.Config().ChainID,
-		"--from", currentAdmin.KeyName(),
-		"--keyring-dir", chain.HomeDir(),
-		"--keyring-backend", keyring.BackendTest,
-		"-y",
-	}
-	_, _, err := chain.Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	err = testutil.WaitForBlocks(ctx, 2, chain)
-	require.NoError(t, err)
-}
-
-func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, fullDenom string) string {
-	cmd := []string{
-		"xiond", "query", "tokenfactory", "denom-authority-metadata", fullDenom,
-		"--node", chain.GetRPCAddress(),
-		//"--chain-id", chain.Config().ChainID,
-		"--output", "json",
-	}
-	stdout, _, err := chain.Exec(ctx, cmd, nil)
-	require.NoError(t, err)
-
-	results := &tokenfactorytypes.QueryDenomAuthorityMetadataResponse{}
-	err = json.Unmarshal(stdout, results)
-	require.NoError(t, err)
-
-	t.Log(results)
-
-	return results.AuthorityMetadata.Admin
-}
-
-// OverrideConfiguredChainsYaml overrides the interchaintests configuredChains.yaml file with an embedded tmpfile
-func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
-	// Extract the embedded file to a temporary file
-	tempFile, err := os.CreateTemp("", "configuredChains-*.yaml")
-	if err != nil {
-		t.Errorf("error creating temporary file: %v", err)
-	}
-
-	content, err := configuredChainsFile.ReadFile("configuredChains.yaml")
-	if err != nil {
-		t.Errorf("error reading embedded file: %v", err)
-	}
-
-	if _, err := tempFile.Write(content); err != nil {
-		t.Errorf("error writing to temporary file: %v", err)
-	}
-	if err := tempFile.Close(); err != nil {
-		t.Errorf("error closing temporary file: %v", err)
-	}
-
-	// Set the environment variable to the path of the temporary file
-	err = os.Setenv("IBCTEST_CONFIGURED_CHAINS", tempFile.Name())
-	t.Logf("set env var IBCTEST_CONFIGURED_CHAINS to %s", tempFile.Name())
-	if err != nil {
-		t.Errorf("error setting env var: %v", err)
-	}
-
-	return tempFile
 }
