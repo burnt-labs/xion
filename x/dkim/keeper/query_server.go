@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	b64 "encoding/base64"
+	"fmt"
 
 	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	"cosmossdk.io/errors"
@@ -137,17 +139,17 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	var verified bool
 	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
 	if err != nil {
-		e := errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
-		return nil, e
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
 	}
 	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
 	if err != nil {
-		return nil, e
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
 	}
-	txBz, err := CalculateTxBodyCommitment(string(req.TxBytes))
+	encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
+	txBz, err := CalculateTxBodyCommitment(encodedTxBytes)
+	// txBz, err := CalculateTxBodyCommitment(string(req.TxBytes))
 	if err != nil {
-		e := errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
-		return nil, e
+		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
 	}
 	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
@@ -164,10 +166,12 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, err
 	}
 
-	verified, err = k.Keeper.Verify(c, snarkProof, snarkVk, &inputs)
+	verified, err = k.Verify(c, snarkProof, snarkVk, &inputs)
 	if err != nil {
+		fmt.Printf("we have passed verifications with errors??: %s\n", err.Error())
 		return nil, err
 	}
+	fmt.Println("we have passed verifications with no errors")
 	return &types.QueryVerifyResponse{Verified: verified}, nil
 }
 

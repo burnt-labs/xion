@@ -278,7 +278,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
-	txBuilder.SetGasLimit(2_000_000) // 20 million because verification takes a lot of gas
+	txBuilder.SetGasLimit(1_900_000) // 20 million because verification takes a lot of gas
 
 	builtTx := txBuilder.GetTx()
 	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
@@ -304,8 +304,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 
-	fmt.Println("going to sleep")
-	time.Sleep(10 * time.Minute)
+	fmt.Println("waiting")
+	time.Sleep(5 * time.Minute)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)
