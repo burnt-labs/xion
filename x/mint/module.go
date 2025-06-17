@@ -55,13 +55,13 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterLegacyAminoCodec registers the mint module's types on the given LegacyAmino codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
+func (AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
+	// types.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers the module's interface types
-func (b AppModuleBasic) RegisterInterfaces(r cdctypes.InterfaceRegistry) {
-	types.RegisterInterfaces(r)
+func (b AppModuleBasic) RegisterInterfaces(_ cdctypes.InterfaceRegistry) {
+	// types.RegisterInterfaces(r)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the mint
