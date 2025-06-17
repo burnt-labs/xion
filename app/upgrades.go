@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	storetypes "cosmossdk.io/store/types"
+	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -34,7 +35,9 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
-		Added:   []string{},
+		Added: []string{
+			circuittypes.ModuleName,
+		},
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
 	}
