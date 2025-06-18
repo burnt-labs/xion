@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+
 	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 
 	"cosmossdk.io/math"
