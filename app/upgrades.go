@@ -83,10 +83,13 @@ func (app *WasmApp) V20StakingForceMinimumCommission(ctx context.Context) (err e
 		if validator.GetCommission().LT(minCommission) {
 			val := validator.(stakingtypes.Validator)
 			val.Commission = stakingtypes.NewCommission(minCommission, val.Commission.MaxRate, val.Commission.MaxChangeRate)
-			_, err = app.StakingKeeper.UpdateValidatorCommission(ctx, val, minCommission)
+			// UpdateValidatorCommission has some sanity checks but does not save the validator
+			_, err := app.StakingKeeper.UpdateValidatorCommission(ctx, val, minCommission)
 			if err != nil {
 				return true
 			}
+			// SetValidator sets the main record holding validator details
+			app.StakingKeeper.SetValidator(ctx, val)
 		}
 		return false
 	})
