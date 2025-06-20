@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -89,7 +88,10 @@ func (app *WasmApp) V20StakingForceMinimumCommission(ctx context.Context) (err e
 				return true
 			}
 			// SetValidator sets the main record holding validator details
-			app.StakingKeeper.SetValidator(ctx, val)
+			err = app.StakingKeeper.SetValidator(ctx, val)
+			if err != nil {
+				return true
+			}
 		}
 		return false
 	})
