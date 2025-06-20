@@ -9,6 +9,8 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+
+	xionMintTypes "github.com/burnt-labs/xion/x/mint/types"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/bank interfaces and concrete types
@@ -17,10 +19,12 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgSend{}, "xion/MsgSend")
 	legacy.RegisterAminoMsg(cdc, &MsgMultiSend{}, "xion/MsgMultiSend")
 	legacy.RegisterAminoMsg(cdc, &MsgSetPlatformPercentage{}, "xion/MsgSetPlatformPercentage")
+	legacy.RegisterAminoMsg(cdc, &xionMintTypes.MsgUpdateParams{}, "xion/x/mint/MsgUpdateParams")
 
 	cdc.RegisterConcrete(&AuthzAllowance{}, "xion/AuthzAllowance", nil)
 	cdc.RegisterConcrete(&ContractsAllowance{}, "xion/ContractsAllowance", nil)
 	cdc.RegisterConcrete(&MultiAnyAllowance{}, "xion/MultiAnyAllowance", nil)
+	cdc.RegisterConcrete(xionMintTypes.Params{}, "xion/x/mint/Params", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -28,6 +32,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgSend{},
 		&MsgMultiSend{},
 		&MsgSetPlatformPercentage{},
+		&xionMintTypes.MsgUpdateParams{},
 	)
 
 	registry.RegisterInterface(

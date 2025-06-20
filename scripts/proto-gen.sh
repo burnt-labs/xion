@@ -51,7 +51,7 @@ get_proto_dirs() {
 gen_gogo() {
   local dirs=$(get_proto_dirs $proto_dir)
 
-  for dir in $xion_dirs; do
+  for dir in $dirs; do
     for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
       if grep "option go_package" $file &> /dev/null ; then
       buf generate --output $proto_dir --template $proto_dir/buf.gen.gogo.yaml $file
