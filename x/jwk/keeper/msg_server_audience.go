@@ -123,17 +123,17 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 	}
 
 	// if changing the aud, make sure a claim exists under this admin, and that it won't override
-	if valFound.Aud != msg.Aud {
+	if msg.NewAud != "" {
 		// Check if the value already exists
 		_, isFound := k.GetAudience(
 			ctx,
-			msg.Aud,
+			msg.NewAud,
 		)
 		if isFound {
 			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "audience already created")
 		}
 
-		audHash := sha256.Sum256([]byte(msg.Aud))
+		audHash := sha256.Sum256([]byte(msg.NewAud))
 
 		claim, isFound := k.GetAudienceClaim(ctx, audHash[:])
 		if !isFound {
@@ -145,6 +145,7 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 		}
 
 		k.RemoveAudience(ctx, valFound.Aud)
+		audience.Aud = msg.NewAud
 	}
 
 	k.SetAudience(ctx, audience)
