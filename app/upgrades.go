@@ -73,7 +73,7 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	return migrations, err
 }
 
-// V19StakingParamsChange is a migration function that sets the minimum commission rate for validators to 0.05
+// V19StakingForceMinimumCommission is a migration function that sets the minimum commission rate for validators to 0.05
 func (app *WasmApp) V19StakingForceMinimumCommission(ctx context.Context) (err error) {
 	// Get Staking params
 	stakingParams, err := app.StakingKeeper.GetParams(ctx)
