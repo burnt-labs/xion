@@ -39,7 +39,7 @@ go mod edit -json |
     recommended_version: $tag,
     language: {
       type: "go",
-      version: .Go
+      version: ("v" + (.Go | split(".") | first + "." + (.[1] // "")))
     },
     binaries: ($binaries | fromjson).binaries,
     sdk: {
