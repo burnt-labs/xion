@@ -19,7 +19,6 @@ import (
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 	"github.com/burnt-labs/xion/x/xion/keeper"
 	"github.com/burnt-labs/xion/x/xion/types"
-
 )
 
 var (
