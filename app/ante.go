@@ -5,8 +5,6 @@ import (
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
-	feeabsante "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/ante"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/keeper"
 
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
@@ -35,7 +33,6 @@ type HandlerOptions struct {
 	GlobalFeeSubspace     paramtypes.Subspace
 	StakingKeeper         *stakingkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
-	FeeAbsKeeper          *feeabskeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -60,9 +57,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.TXCounterStoreService == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm store service is required for ante builder")
 	}
-	if options.FeeAbsKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "fee abstraction keeper is required for AnteHandler")
-	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
@@ -78,15 +72,12 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 			}
 			return bondDenom
 		}),
-		feeabsante.NewFeeAbstrationMempoolFeeDecorator(*options.FeeAbsKeeper),
 
 		// validation checks
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		// fee abstraction fee deduction replaces sdk fee deduction
-		feeabsante.NewFeeAbstractionDeductFeeDecorate(options.AccountKeeper, options.BankKeeper, *options.FeeAbsKeeper, options.FeegrantKeeper),
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
