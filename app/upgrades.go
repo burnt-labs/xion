@@ -16,7 +16,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
-const UpgradeName = "v19"
+const UpgradeName = "v20"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -38,7 +38,7 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) {
 	app.Logger().Info("setting upgrade store loaders")
 	storeUpgrades := storetypes.StoreUpgrades{
 		// Added:  []string{""},
-		// Deleted: []string{""},
+		Deleted: []string{feeabstypes.StoreKey},
 	}
 	storeLoader := upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
 	app.SetStoreLoader(storeLoader)
@@ -48,21 +48,6 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) {
 func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
-
-	// Set the new parameters for mint and staking
-	if err := app.V19StakingForceMinimumCommission(ctx); err != nil {
-		panic(fmt.Sprintf("failed set minimum commissions: %s", err))
-	}
-
-	// Set the new parameters for mint
-	if err := app.V19MintParamsChange(sdkCtx, plan); err != nil {
-		panic(fmt.Sprintf("failed to run mint module migrations: %s", err))
-	}
-
-	// Add query and swap epochs to the feeabs module
-	if err := app.V19FeeabsEpochAdd(sdkCtx, plan); err != nil {
-		panic(fmt.Sprintf("failed to run feeabs module epoch additions: %s", err))
-	}
 
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
@@ -118,26 +103,6 @@ func (app *WasmApp) V19MintParamsChange(sdkCtx sdktypes.Context, plan upgradetyp
 	// Prepare subspace for mint module migration
 	mintSubspace := app.GetSubspace(minttypes.ModuleName).WithKeyTable(minttypes.ParamKeyTable()) //nolint:staticcheck
 	mintSubspace.SetParamSet(sdkCtx, &p)
-
-	return nil
-}
-
-// V19FeeabsEpochAdd adds the query and swap epochs to the feeabs module
-func (app *WasmApp) V19FeeabsEpochAdd(sdkCtx sdktypes.Context, plan upgradetypes.Plan) (err error) {
-	sdkCtx.Logger().Info("running feeabs module migrations", "name", plan.Name)
-
-	epochs := []feeabstypes.EpochInfo{
-		feeabstypes.NewGenesisEpochInfo(feeabstypes.DefaultQueryEpochIdentifier, feeabstypes.DefaultQueryPeriod),
-		feeabstypes.NewGenesisEpochInfo(feeabstypes.DefaultSwapEpochIdentifier, feeabstypes.DefaultSwapPeriod),
-	}
-
-	// Set the epochs
-	for _, epoch := range epochs {
-		err := app.FeeAbsKeeper.AddEpochInfo(sdkCtx, epoch)
-		if err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
