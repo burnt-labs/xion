@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
+	"github.com/spf13/cobra"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
