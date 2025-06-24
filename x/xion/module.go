@@ -6,6 +6,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
@@ -19,7 +20,6 @@ import (
 	"github.com/burnt-labs/xion/x/xion/keeper"
 	"github.com/burnt-labs/xion/x/xion/types"
 
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 )
 
 var (
