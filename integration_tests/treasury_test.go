@@ -714,10 +714,11 @@ func TestTreasuryMulti(t *testing.T) {
 		predictedAddrStr = newPredictedAddrStr
 	}
 
+	t.Logf("TestTreasuryMulti predicted address after iteration: %s", predictedAddrStr)
+
 	// Now create the actual instantiate message with the predicted address
-	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
-		Admin:        &userAddrStr, // Set the user as admin (pointer)
+		Admin:        &predictedAddrStr, // Set the contract as its own admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
 		FeeConfig: &FeeConfig{
@@ -737,8 +738,8 @@ func TestTreasuryMulti(t *testing.T) {
 	require.NoError(t, err)
 
 	// Use instantiate2 with a salt to get predictable address
-	// Setting admin=true will make the contract its own admin
-	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, true)
+	// Setting admin=false since we already set the admin in the instantiate message
+	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, false)
 	require.NoError(t, err)
 	t.Logf("created treasury instance: %s", treasuryAddr)
 	err = testutil.WaitForBlocks(ctx, 2, xion)

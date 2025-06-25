@@ -1249,5 +1249,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	require.NoError(t, err)
 
 	// Return the predicted address - this is the whole point of instantiate2
+	t.Logf("InstantiateContract2 predicted address: %s", predictedAddr.String())
 	return predictedAddr.String(), nil
 }
