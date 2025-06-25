@@ -1,6 +1,8 @@
 package integration_tests
 
 import (
+	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -13,6 +15,7 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 
 	"cosmossdk.io/x/feegrant"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -21,6 +24,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
 	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
@@ -42,15 +46,22 @@ type FeeConfig struct {
 	Expiration  int32        `json:"expiration,omitempty"`
 }
 type TreasuryInstantiateMsg struct {
-	Admin        types.AccAddress `json:"admin,omitempty"`
-	TypeUrls     []string         `json:"type_urls"`
-	GrantConfigs []GrantConfig    `json:"grant_configs"`
-	FeeConfig    *FeeConfig       `json:"fee_config"`
+	Admin        *string       `json:"admin,omitempty"` // Option<Addr> in Rust
+	TypeUrls     []string      `json:"type_urls"`
+	GrantConfigs []GrantConfig `json:"grant_configs"`
+	FeeConfig    *FeeConfig    `json:"fee_config"` // Required field
+	Params       *Params       `json:"params"`     // Required field
 }
 
 type ExplicitAny struct {
 	TypeURL string `json:"type_url"`
 	Value   []byte `json:"value"`
+}
+
+type Params struct {
+	RedirectURL string `json:"redirect_url"`
+	IconURL     string `json:"icon_url"`
+	Metadata    string `json:"metadata"`
 }
 
 func TestTreasuryContract(t *testing.T) {
@@ -117,8 +128,12 @@ func TestTreasuryContract(t *testing.T) {
 		Optional:      false,
 	}
 
-	// NOTE: Start the Treasury
+	salt := "treasury-test-1"
+
+	// Now create the actual instantiate message
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddrStr, // Set the user as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
 		FeeConfig: &FeeConfig{
@@ -126,12 +141,19 @@ func TestTreasuryContract(t *testing.T) {
 			Allowance:   &allowanceAny,
 			Expiration:  int32(18000),
 		},
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
+		},
 	}
 
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 
-	treasuryAddr, err := xion.InstantiateContract(ctx, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), true)
+	// Use instantiate2 with a salt to get predictable address
+	// Setting admin=true will make the contract its own admin at the blockchain level
+	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, true)
 	require.NoError(t, err)
 	t.Logf("created treasury instance: %s", treasuryAddr)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
@@ -218,13 +240,8 @@ func TestTreasuryContract(t *testing.T) {
 
 	// todo: validate that the feegrant was created correctly
 	res, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), signedTx, "--output", "json")
-
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
-
-	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
@@ -289,10 +306,6 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
 
-	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
-
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
@@ -305,6 +318,248 @@ func TestTreasuryContract(t *testing.T) {
 		finalAllowances := finalAllowancesStr.([]interface{})
 		require.Equal(t, 0, len(finalAllowances))
 	}
+
+	// Test additional ExecuteMsg variants
+	t.Log("Testing additional treasury contract messages")
+
+	// Create a new admin user for admin tests
+	newAdminUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "newadmin", "", fundAmount, xion)
+	require.NoError(t, err)
+
+	// Test ProposeAdmin
+	t.Log("Testing ProposeAdmin")
+	proposeAdminMsg := map[string]interface{}{
+		"propose_admin": map[string]interface{}{
+			"new_admin": newAdminUser.FormattedAddress(),
+		},
+	}
+	proposeAdminMsgBz, err := json.Marshal(proposeAdminMsg)
+	require.NoError(t, err)
+
+	_, err = executeTreasuryMsg(t, ctx, xion, xionUser, treasuryAddr, proposeAdminMsgBz)
+	require.NoError(t, err)
+
+	// Query PendingAdmin
+	pendingAdminQuery := map[string]interface{}{"pending_admin": map[string]interface{}{}}
+	var pendingAdminRes map[string]interface{}
+	err = xion.QueryContract(ctx, treasuryAddr, pendingAdminQuery, &pendingAdminRes)
+	require.NoError(t, err)
+
+	// Test CancelProposedAdmin
+	t.Log("Testing CancelProposedAdmin")
+	cancelAdminMsg := map[string]interface{}{
+		"cancel_proposed_admin": map[string]interface{}{},
+	}
+	cancelAdminMsgBz, err := json.Marshal(cancelAdminMsg)
+	require.NoError(t, err)
+
+	_, err = executeTreasuryMsg(t, ctx, xion, xionUser, treasuryAddr, cancelAdminMsgBz)
+	require.NoError(t, err)
+
+	// Test UpdateGrantConfig
+	t.Log("Testing UpdateGrantConfig")
+	testAuth2 := authz.NewGenericAuthorization("/" + proto.MessageName(&banktypes.MsgMultiSend{}))
+	testGrant2, err := authz.NewGrant(time.Now(), testAuth2, &inFive)
+	require.NoError(t, err)
+
+	updatedGrantConfig := GrantConfig{
+		Description: "updated authorization",
+		Authorization: ExplicitAny{
+			TypeURL: testGrant2.Authorization.TypeUrl,
+			Value:   testGrant2.Authorization.Value,
+		},
+		Optional: true,
+	}
+
+	updateGrantConfigMsg := map[string]interface{}{
+		"update_grant_config": map[string]interface{}{
+			"msg_type_url": testAuth.MsgTypeURL(),
+			"grant_config": updatedGrantConfig,
+		},
+	}
+	updateGrantConfigMsgBz, err := json.Marshal(updateGrantConfigMsg)
+	require.NoError(t, err)
+
+	_, err = executeTreasuryMsg(t, ctx, xion, xionUser, treasuryAddr, updateGrantConfigMsgBz)
+	require.NoError(t, err)
+
+	// Test UpdateFeeConfig
+	t.Log("Testing UpdateFeeConfig")
+	newAllowance := feegrant.BasicAllowance{
+		SpendLimit: types.NewCoins(types.NewCoin("uxion", math.NewInt(1000))),
+		Expiration: &inFive,
+	}
+
+	newFeeGrant, err := feegrant.NewGrant(xionUserAddr, xionUserAddr, &newAllowance)
+	require.NoError(t, err)
+	updateFeeConfigMsg := map[string]interface{}{
+		"update_fee_config": map[string]interface{}{
+			"fee_config": FeeConfig{
+				Description: "updated fee grant",
+				Allowance: &ExplicitAny{
+					TypeURL: newFeeGrant.Allowance.TypeUrl,
+					Value:   newFeeGrant.Allowance.Value,
+				},
+				Expiration: int32(36000),
+			},
+		},
+	}
+	updateFeeConfigMsgBz, err := json.Marshal(updateFeeConfigMsg)
+	require.NoError(t, err)
+
+	_, err = executeTreasuryMsg(t, ctx, xion, xionUser, treasuryAddr, updateFeeConfigMsgBz)
+	require.NoError(t, err)
+
+	// Test UpdateParams
+	t.Log("Testing UpdateParams")
+	updateParamsMsg := map[string]interface{}{
+		"update_params": map[string]interface{}{
+			"params": Params{
+				RedirectURL: "https://newexample.com",
+				IconURL:     "https://newexample.com/newicon.png",
+				Metadata:    `{"updated_key": "updated_value"}`,
+			},
+		},
+	}
+	updateParamsMsgBz, err := json.Marshal(updateParamsMsg)
+	require.NoError(t, err)
+
+	_, err = executeTreasuryMsg(t, ctx, xion, xionUser, treasuryAddr, updateParamsMsgBz)
+	require.NoError(t, err)
+
+	// Query Params to verify update
+	paramsQuery := map[string]interface{}{"params": map[string]interface{}{}}
+	var paramsRes map[string]interface{}
+	err = xion.QueryContract(ctx, treasuryAddr, paramsQuery, &paramsRes)
+	require.NoError(t, err)
+
+	// Test Withdraw
+	t.Log("Testing Withdraw")
+	// First fund the treasury
+	err = xion.SendFunds(ctx, xionUser.KeyName(), ibc.WalletAmount{
+		Address: treasuryAddr,
+		Denom:   "uxion",
+		Amount:  math.NewInt(5000),
+	})
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	require.NoError(t, err)
+
+	withdrawMsg := map[string]interface{}{
+		"withdraw": map[string]interface{}{
+			"coins": []map[string]interface{}{
+				{
+					"denom":  "uxion",
+					"amount": "3000",
+				},
+			},
+		},
+	}
+	withdrawMsgBz, err := json.Marshal(withdrawMsg)
+	require.NoError(t, err)
+
+	_, err = executeTreasuryMsg(t, ctx, xion, xionUser, treasuryAddr, withdrawMsgBz)
+	require.NoError(t, err)
+
+	// Test RemoveGrantConfig
+	t.Log("Testing RemoveGrantConfig")
+	removeGrantConfigMsg := map[string]interface{}{
+		"remove_grant_config": map[string]interface{}{
+			"msg_type_url": testAuth.MsgTypeURL(),
+		},
+	}
+	removeGrantConfigMsgBz, err := json.Marshal(removeGrantConfigMsg)
+	require.NoError(t, err)
+
+	_, err = executeTreasuryMsg(t, ctx, xion, xionUser, treasuryAddr, removeGrantConfigMsgBz)
+	require.NoError(t, err)
+
+	// Query grant config type urls to verify removal
+	grantConfigUrlsQuery := map[string]interface{}{"grant_config_type_urls": map[string]interface{}{}}
+	var grantConfigUrlsRes map[string]interface{}
+	err = xion.QueryContract(ctx, treasuryAddr, grantConfigUrlsQuery, &grantConfigUrlsRes)
+	require.NoError(t, err)
+
+	// Test all Query messages
+	t.Log("Testing all query messages")
+
+	// Query Admin
+	adminQuery := map[string]interface{}{"admin": map[string]interface{}{}}
+	var adminRes map[string]interface{}
+	err = xion.QueryContract(ctx, treasuryAddr, adminQuery, &adminRes)
+	require.NoError(t, err)
+
+	// Query FeeConfig
+	feeConfigQuery := map[string]interface{}{"fee_config": map[string]interface{}{}}
+	var feeConfigRes map[string]interface{}
+	err = xion.QueryContract(ctx, treasuryAddr, feeConfigQuery, &feeConfigRes)
+	require.NoError(t, err)
+}
+
+// Helper function to execute treasury contract messages
+func executeTreasuryMsg(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, sender ibc.Wallet, contractAddr string, msgBz []byte) (string, error) {
+	contractMsg := wasmtypes.MsgExecuteContract{
+		Sender:   sender.FormattedAddress(),
+		Contract: contractAddr,
+		Msg:      msgBz,
+		Funds:    nil,
+	}
+
+	// build the tx
+	txBuilder := xion.Config().EncodingConfig.TxConfig.NewTxBuilder()
+	err := txBuilder.SetMsgs(&contractMsg)
+	if err != nil {
+		return "", err
+	}
+	txBuilder.SetGasLimit(2000000)
+	tx := txBuilder.GetTx()
+
+	txJSONStr, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(tx)
+	if err != nil {
+		return "", err
+	}
+
+	sendFile, err := os.CreateTemp("", "*-treasury-msg-tx.json")
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(sendFile.Name())
+
+	_, err = sendFile.Write([]byte(txJSONStr))
+	if err != nil {
+		return "", err
+	}
+	err = UploadFileToContainer(t, ctx, xion.GetNode(), sendFile)
+	if err != nil {
+		return "", err
+	}
+
+	sendFilePath := strings.Split(sendFile.Name(), "/")
+
+	signedTx, err := ExecBinRaw(t, ctx, xion.GetNode(),
+		"tx", "sign", path.Join(xion.GetNode().HomeDir(), sendFilePath[len(sendFilePath)-1]),
+		"--from", sender.KeyName(),
+		"--chain-id", xion.Config().ChainID,
+		"--keyring-backend", keyring.BackendTest,
+		"--output", "json",
+		"--overwrite",
+		"-y",
+		"--node", fmt.Sprintf("tcp://%s:26657", xion.GetNode().HostName()))
+	if err != nil {
+		return "", err
+	}
+
+	res, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), signedTx, "--output", "json")
+	if err != nil {
+		return "", err
+	}
+
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	if err != nil {
+		return "", err
+	}
+
+	return res, nil
 }
 
 func TestTreasuryMulti(t *testing.T) {
@@ -383,8 +638,86 @@ func TestTreasuryMulti(t *testing.T) {
 		Optional:      false,
 	}
 
-	// NOTE: Start the Treasury
+	// Get code info to extract the hash for address prediction
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "code-info", codeIDStr)
+	require.NoError(t, err)
+
+	codeHashStr, ok := codeResp["checksum"].(string)
+	require.True(t, ok, "code hash not found in response")
+
+	codeHash, err := hex.DecodeString(codeHashStr)
+	require.NoError(t, err)
+
+	// Get the creator address
+	creatorAddrBytes, err := xion.GetAddress(ctx, xionUser.KeyName())
+	require.NoError(t, err)
+
+	creator := types.AccAddress(creatorAddrBytes)
+	salt := "treasury-multi-test-1"
+
+	// To predict the address, we need to iterate because:
+	// 1. The address depends on the instantiate message
+	// 2. The instantiate message needs to contain the address as admin
+	// 3. This creates a circular dependency
+
+	// Solution: Use a fixed-point iteration
+	// Start with a dummy address and iterate until convergence
+
+	var predictedAddr types.AccAddress
+	var predictedAddrStr string
+
+	// First iteration: calculate with a dummy admin to get initial prediction
+	dummyAdmin := "xion1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
+	for i := 0; i < 3; i++ {
+		adminToUse := dummyAdmin
+		if i > 0 {
+			adminToUse = predictedAddrStr
+		}
+
+		iterMsg := TreasuryInstantiateMsg{
+			Admin:        &adminToUse,
+			TypeUrls:     []string{testAuth.MsgTypeURL()},
+			GrantConfigs: []GrantConfig{grantConfig},
+			FeeConfig: &FeeConfig{
+				Description: "test fee grant",
+				Allowance:   &allowanceAny,
+				Expiration:  int32(18000),
+			},
+			// Include empty Params to match the structure
+			Params: &Params{
+				RedirectURL: "",
+				IconURL:     "",
+				Metadata:    "{}",
+			},
+		}
+
+		// Marshal and canonicalize like instantiate2 does
+		iterMsgBytes, err := json.Marshal(iterMsg)
+		require.NoError(t, err)
+
+		var parsed interface{}
+		err = json.Unmarshal(iterMsgBytes, &parsed)
+		require.NoError(t, err)
+
+		canonicalMsg, err := json.Marshal(parsed)
+		require.NoError(t, err)
+
+		// Calculate the address with this message
+		predictedAddr = wasmkeeper.BuildContractAddressPredictable(codeHash, creator, []byte(salt), canonicalMsg)
+		newPredictedAddrStr := predictedAddr.String()
+
+		// Check for convergence
+		if newPredictedAddrStr == adminToUse {
+			break
+		}
+
+		predictedAddrStr = newPredictedAddrStr
+	}
+
+	// Now create the actual instantiate message with the predicted address
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddrStr, // Set the user as admin (pointer)
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
 		FeeConfig: &FeeConfig{
@@ -392,12 +725,20 @@ func TestTreasuryMulti(t *testing.T) {
 			Allowance:   &allowanceAny,
 			Expiration:  int32(18000),
 		},
+		// Include empty Params to match the structure
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
+		},
 	}
 
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
 
-	treasuryAddr, err := xion.InstantiateContract(ctx, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), true)
+	// Use instantiate2 with a salt to get predictable address
+	// Setting admin=true will make the contract its own admin
+	treasuryAddr, err := InstantiateContract2(t, ctx, xion, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), salt, true)
 	require.NoError(t, err)
 	t.Logf("created treasury instance: %s", treasuryAddr)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
@@ -484,13 +825,8 @@ func TestTreasuryMulti(t *testing.T) {
 
 	// todo: validate that the feegrant was created correctly
 	res, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), signedTx, "--output", "json")
-
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
-
-	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
@@ -554,10 +890,6 @@ func TestTreasuryMulti(t *testing.T) {
 	res, err = ExecBroadcastWithFlags(t, ctx, xion.GetNode(), revokeSignedTx, "--output", "json")
 	require.NoError(t, err)
 	t.Logf("broadcasted tx: %s", res)
-
-	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", res)
-	require.NoError(t, err)
-	t.Logf("TxDetails: %s", txDetails)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
