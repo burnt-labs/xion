@@ -1190,6 +1190,35 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	codeHashStr, ok := codeResp["checksum"].(string)
 	require.True(t, ok, "code hash not found in response")
 
+	// Calculate predicted address (needed for both admin and non-admin cases)
+	codeHash, err := hex.DecodeString(codeHashStr)
+	require.NoError(t, err)
+
+	creatorAddrBytes, err := chain.GetAddress(ctx, keyName)
+	require.NoError(t, err)
+
+	// Canonicalize the init message for address calculation
+	var msgForAddress []byte
+	if initMsg != "" {
+		var parsed interface{}
+		if err := json.Unmarshal([]byte(initMsg), &parsed); err == nil {
+			if canonical, err := json.Marshal(parsed); err == nil {
+				msgForAddress = canonical
+			} else {
+				msgForAddress = []byte(initMsg)
+			}
+		} else {
+			msgForAddress = []byte(initMsg)
+		}
+	}
+
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(
+		codeHash,
+		sdk.AccAddress(creatorAddrBytes),
+		[]byte(salt),
+		msgForAddress,
+	)
+
 	// Convert salt to hex encoding
 	saltHex := hex.EncodeToString([]byte(salt))
 
@@ -1204,41 +1233,13 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	}
 
 	if admin {
-		// Calculate predicted address to set as self-admin
-		codeHash, err := hex.DecodeString(codeHashStr)
-		require.NoError(t, err)
-
-		creatorAddrBytes, err := chain.GetAddress(ctx, keyName)
-		require.NoError(t, err)
-
-		// Canonicalize the init message for address calculation
-		var msgForAddress []byte
-		if initMsg != "" {
-			var parsed interface{}
-			if err := json.Unmarshal([]byte(initMsg), &parsed); err == nil {
-				if canonical, err := json.Marshal(parsed); err == nil {
-					msgForAddress = canonical
-				} else {
-					msgForAddress = []byte(initMsg)
-				}
-			} else {
-				msgForAddress = []byte(initMsg)
-			}
-		}
-
-		predictedAddr := wasmkeeper.BuildContractAddressPredictable(
-			codeHash,
-			sdk.AccAddress(creatorAddrBytes),
-			[]byte(salt),
-			msgForAddress,
-		)
 		cmd = append(cmd, "--admin", predictedAddr.String())
 	} else {
 		cmd = append(cmd, "--no-admin")
 	}
 
 	// Execute the instantiate2 command
-	txHash, err := ExecTx(t, ctx, chain.GetNode(), keyName, cmd...)
+	_, err = ExecTx(t, ctx, chain.GetNode(), keyName, cmd...)
 	if err != nil {
 		return "", err
 	}
@@ -1247,32 +1248,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	err = testutil.WaitForBlocks(ctx, 2, chain)
 	require.NoError(t, err)
 
-	// Extract contract address from transaction events
-	txDetails, err := ExecQuery(t, ctx, chain.GetNode(), "tx", txHash)
-	if err != nil {
-		return "", fmt.Errorf("failed to query transaction: %w", err)
-	}
-
-	// Find the instantiate event and extract contract address
-	if events, ok := txDetails["events"].([]interface{}); ok {
-		for _, event := range events {
-			if eventMap, ok := event.(map[string]interface{}); ok {
-				if eventType, ok := eventMap["type"].(string); ok && eventType == "instantiate" {
-					if attributes, ok := eventMap["attributes"].([]interface{}); ok {
-						for _, attr := range attributes {
-							if attrMap, ok := attr.(map[string]interface{}); ok {
-								key, _ := attrMap["key"].(string)
-								value, _ := attrMap["value"].(string)
-								if key == "_contract_address" || key == "contract_address" {
-									return value, nil
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return "", fmt.Errorf("contract address not found in transaction events")
+	// Return the predicted address - this is the whole point of instantiate2
+	return predictedAddr.String(), nil
 }
