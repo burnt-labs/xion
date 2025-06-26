@@ -1215,10 +1215,9 @@ func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
 // Why we need this:
 // 1. The treasury contract must be its own admin so it can autonomously manage fee grants
 //    (only the granter of a fee grant can revoke it in Cosmos SDK)
-// 2. Setting a contract as its own admin creates a circular dependency:
-//    - The admin address must be in the instantiate message
-//    - The contract address depends on the instantiate message
-//    - We need to know the address before deployment
+// 2. Setting a contract as its own admin requires knowing the contract address before deployment:
+//    - The admin address must be specified when instantiating the contract
+//    - We need to predict what the contract address will be
 // 3. This requires instantiate2 for deterministic addresses based on salt
 //
 // Why we extract from events instead of returning the predicted address:
