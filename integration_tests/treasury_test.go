@@ -714,8 +714,6 @@ func TestTreasuryMulti(t *testing.T) {
 		predictedAddrStr = newPredictedAddrStr
 	}
 
-	t.Logf("Iteration predicted address: %s", predictedAddrStr)
-
 	// Now create the actual instantiate message with the predicted address
 	instantiateMsg := TreasuryInstantiateMsg{
 		Admin:        &predictedAddrStr, // Set the contract as its own admin (pointer)

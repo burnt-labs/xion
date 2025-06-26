@@ -73,11 +73,37 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 )
 
 //go:embed configuredChains.yaml
 var configuredChainsFile embed.FS
+
+// GetTestLogger creates a logger for integration tests with configurable log level
+// The log level can be set via INTEGRATION_TEST_LOG_LEVEL environment variable
+// Valid levels: debug, info, warn, error, dpanic, panic, fatal
+// Default: warn
+//
+// Example usage:
+//   INTEGRATION_TEST_LOG_LEVEL=debug make test-treasury-multi
+//   INTEGRATION_TEST_LOG_LEVEL=info go test ./integration_tests/...
+func GetTestLogger(t *testing.T) *zap.Logger {
+	levelStr := os.Getenv("INTEGRATION_TEST_LOG_LEVEL")
+	if levelStr == "" {
+		levelStr = "warn"
+	}
+
+	var level zapcore.Level
+	err := level.UnmarshalText([]byte(levelStr))
+	if err != nil {
+		t.Logf("Invalid log level '%s', using 'warn' instead. Valid levels: debug, info, warn, error, dpanic, panic, fatal", levelStr)
+		level = zapcore.WarnLevel
+	}
+	
+	return zaptest.NewLogger(t, zaptest.WrapOptions(zap.IncreaseLevel(level)))
+}
 
 const (
 	votingPeriod     = "10s"
@@ -284,7 +310,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	}
 
 	// Chain factory
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
+	cf := interchaintest.NewBuiltinChainFactory(GetTestLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:          imageTagComponents[0],
 			Version:       imageTagComponents[1],
@@ -1242,8 +1268,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 		[]byte(salt),
 		msgForAddress,
 	)
-	t.Logf("InstantiateContract2 predicted: %s (salt: %s, codeHash: %x, creator: %s)", 
-		predictedAddr.String(), salt, codeHash, sdk.AccAddress(creatorAddrBytes).String())
 
 	// Convert salt to hex encoding
 	saltHex := hex.EncodeToString([]byte(salt))

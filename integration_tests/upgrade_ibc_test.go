@@ -52,7 +52,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
 
 const (
@@ -171,7 +170,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 	// Get a relayer instance
 	rf := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
-		zaptest.NewLogger(t),
+		GetTestLogger(t),
 		relayer.StartupFlags("-b", "100"),
 	)
 
