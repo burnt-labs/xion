@@ -56,11 +56,18 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 
 	// Instantiate contract
 	t.Log("Instantiating contract")
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddrStr, // Set the user as admin (pointer)
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
@@ -251,14 +258,17 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Instantiating Treasury contract")
-	accAddr, err := types.AccAddressFromBech32(aaContractAddr)
-	require.NoError(t, err)
 	instantiateMsg := TreasuryInstantiateMsg{
-		Admin:        accAddr,
+		Admin:        &aaContractAddr, // Use pointer to string
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)

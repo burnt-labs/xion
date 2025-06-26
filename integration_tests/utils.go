@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"embed"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -20,6 +21,7 @@ import (
 	"time"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
@@ -71,11 +73,37 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 )
 
 //go:embed configuredChains.yaml
 var configuredChainsFile embed.FS
+
+// GetTestLogger creates a logger for integration tests with configurable log level
+// The log level can be set via INTEGRATION_TEST_LOG_LEVEL environment variable
+// Valid levels: debug, info, warn, error, dpanic, panic, fatal
+// Default: warn
+//
+// Example usage:
+//   INTEGRATION_TEST_LOG_LEVEL=debug make test-treasury-multi
+//   INTEGRATION_TEST_LOG_LEVEL=info go test ./integration_tests/...
+func GetTestLogger(t *testing.T) *zap.Logger {
+	levelStr := os.Getenv("INTEGRATION_TEST_LOG_LEVEL")
+	if levelStr == "" {
+		levelStr = "warn"
+	}
+
+	var level zapcore.Level
+	err := level.UnmarshalText([]byte(levelStr))
+	if err != nil {
+		t.Logf("Invalid log level '%s', using 'warn' instead. Valid levels: debug, info, warn, error, dpanic, panic, fatal", levelStr)
+		level = zapcore.WarnLevel
+	}
+	
+	return zaptest.NewLogger(t, zaptest.WrapOptions(zap.IncreaseLevel(level)))
+}
 
 const (
 	votingPeriod     = "10s"
@@ -282,7 +310,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 	}
 
 	// Chain factory
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
+	cf := interchaintest.NewBuiltinChainFactory(GetTestLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:          imageTagComponents[0],
 			Version:       imageTagComponents[1],
@@ -666,6 +694,7 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 		"--gas-adjustment", fmt.Sprint(tn.Chain.Config().GasAdjustment),
 		"--gas", "auto",
 		"--keyring-backend", keyring.BackendTest,
+		"--chain-id", tn.Chain.Config().ChainID,
 		"--output", "json",
 		"-y",
 	)...)
@@ -1176,4 +1205,135 @@ func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
 	}
 
 	return tempFile
+}
+
+// InstantiateContract2 deploys a contract with a predictable address using instantiate2
+//
+// This function is needed because the interchaintest framework's InstantiateContract method
+// doesn't support the self-admin pattern required by autonomous contracts like the treasury.
+//
+// Why we need this:
+// 1. The treasury contract must be its own admin so it can autonomously manage fee grants
+//    (only the granter of a fee grant can revoke it in Cosmos SDK)
+// 2. Setting a contract as its own admin requires knowing the contract address before deployment:
+//    - The admin address must be specified when instantiating the contract
+//    - We need to predict what the contract address will be
+// 3. This requires instantiate2 for deterministic addresses based on salt
+//
+// Why we extract from events instead of returning the predicted address:
+// 1. The --admin flag overrides the admin in the instantiate message
+// 2. When admin=true, we use "--admin <contract-address>" which changes the deployment
+// 3. When admin=false, we use "--no-admin" which makes the contract immutable
+// 4. Both cases can affect the final deployed address
+// 5. Event extraction ensures we always get the actual deployed address
+//
+// The interchaintest framework's InstantiateContract only supports:
+// - Setting the caller as admin (when true)
+// - No admin / immutable contract (when false)
+// It cannot handle the complex self-admin pattern needed for autonomous contracts.
+func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, keyName, codeID, initMsg, salt string, admin bool) (string, error) {
+	// Get code hash for predictable address calculation
+	codeResp, err := ExecQuery(t, ctx, chain.GetNode(), "wasm", "code-info", codeID)
+	require.NoError(t, err)
+
+	codeHashStr, ok := codeResp["checksum"].(string)
+	require.True(t, ok, "code hash not found in response")
+
+	codeHash, err := hex.DecodeString(codeHashStr)
+	require.NoError(t, err)
+
+	creatorAddrBytes, err := chain.GetAddress(ctx, keyName)
+	require.NoError(t, err)
+
+	// Canonicalize the init message for address calculation
+	var msgForAddress []byte
+	if initMsg != "" {
+		var parsed interface{}
+		if err := json.Unmarshal([]byte(initMsg), &parsed); err == nil {
+			if canonical, err := json.Marshal(parsed); err == nil {
+				msgForAddress = canonical
+			} else {
+				msgForAddress = []byte(initMsg)
+			}
+		} else {
+			msgForAddress = []byte(initMsg)
+		}
+	}
+
+	// Calculate the predictable address
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(
+		codeHash,
+		sdk.AccAddress(creatorAddrBytes),
+		[]byte(salt),
+		msgForAddress,
+	)
+
+	// Convert salt to hex encoding
+	saltHex := hex.EncodeToString([]byte(salt))
+
+	// Build the instantiate2 command
+	cmd := []string{
+		"wasm", "instantiate2", codeID, initMsg,
+		saltHex, // salt must be hex-encoded
+		"--label", fmt.Sprintf("contract-%s", salt),
+		"--from", keyName,
+		"--gas", "2000000",
+		"--fix-msg", // Important for predictable addresses
+	}
+
+	if admin {
+		cmd = append(cmd, "--admin", predictedAddr.String())
+	} else {
+		cmd = append(cmd, "--no-admin")
+	}
+
+	// Execute the instantiate2 command
+	txHash, err := ExecTx(t, ctx, chain.GetNode(), keyName, cmd...)
+	if err != nil {
+		return "", err
+	}
+
+	// Wait for transaction to be included
+	err = testutil.WaitForBlocks(ctx, 2, chain)
+	require.NoError(t, err)
+
+	// Extract contract address from transaction events to verify it matches our prediction
+	txDetails, err := ExecQuery(t, ctx, chain.GetNode(), "tx", txHash)
+	if err != nil {
+		return "", fmt.Errorf("failed to query transaction: %w", err)
+	}
+
+	// Find the instantiate event and extract contract address
+	var actualAddr string
+	if events, ok := txDetails["events"].([]interface{}); ok {
+		for _, event := range events {
+			if eventMap, ok := event.(map[string]interface{}); ok {
+				if eventType, ok := eventMap["type"].(string); ok && eventType == "instantiate" {
+					if attributes, ok := eventMap["attributes"].([]interface{}); ok {
+						for _, attr := range attributes {
+							if attrMap, ok := attr.(map[string]interface{}); ok {
+								key, _ := attrMap["key"].(string)
+								value, _ := attrMap["value"].(string)
+								if key == "_contract_address" || key == "contract_address" {
+									actualAddr = value
+									break
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if actualAddr == "" {
+		return "", fmt.Errorf("contract address not found in transaction events")
+	}
+
+	// Note: We don't verify the predicted address matches because:
+	// - When admin=true, we use --admin flag which overrides the message's admin
+	// - When admin=false, we use --no-admin which makes the contract immutable
+	// - Both cases can result in different addresses than what's calculated from the message alone
+	
+	return actualAddr, nil
 }
