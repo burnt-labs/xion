@@ -36,14 +36,16 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 
 	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount math.Int) {
 		// NOTE: Tx should be rejected inssufficient gas
+		amount := 1 // less than minimum send amount
 		_, err := ExecTxWithGas(t, ctx, xion.GetNode(),
 			xionUser.KeyName(),
 			"0.024uxion",
 			"xion", "send", xionUser.KeyName(),
 			"--chain-id", xion.Config().ChainID,
-			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+			recipientAddress, fmt.Sprintf("%d%s", amount, xion.Config().Denom),
 		)
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "minimum send amount not met")
 
 		// NOTE: Uses default Gas
 		_, err = ExecTx(t, ctx, xion.GetNode(),
