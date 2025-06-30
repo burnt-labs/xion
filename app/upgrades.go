@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
+
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
@@ -13,7 +15,6 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 )
 
 const UpgradeName = "v20"
