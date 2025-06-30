@@ -88,30 +88,12 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/goreleaser.yaml@workflows/main
     secrets: inherit
 
-  # # TODO: move to goreleaser
-  # build-release-info:
-  #   name: Build Release Info
-  #   needs:
-  #     - build-darwin
-  #     - build-linux
-  #   uses: burnt-labs/xion/.github/workflows/build-release-info.yaml@workflows/main
-  #   secrets: inherit
-
   # TODO: move to goreleaser
   publish-types:
     name: Publish Typescript Types
     needs: build-release
     uses: burnt-labs/xion/.github/workflows/publish-types.yaml@workflows/main
     secrets: inherit
-
-  # TODO: move to triggered action in burnt-networks repo
-  # update-networks:
-  #   name: Update Networks Repo
-  #   needs:
-  #     - build-release
-  #     - build-release-info
-  #   uses: burnt-labs/xion/.github/workflows/update-networks.yaml@workflows/main
-  #   secrets: inherit
 
   verify-installers:
     name: Verify Package Installers
