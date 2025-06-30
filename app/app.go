@@ -18,9 +18,6 @@ import (
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/osmosis-labs/fee-abstraction/v8/x/feeabs"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/keeper"
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings"
@@ -231,7 +228,6 @@ var (
 		jwktypes.ModuleName:            nil,
 		packetforwardtypes.ModuleName:  nil,
 		ibchookstypes.ModuleName:       nil,
-		feeabstypes.ModuleName:         nil,
 	}
 	tokenFactoryCapabilities = []string{
 		tokenfactorytypes.EnableBurnFrom,
@@ -289,7 +285,6 @@ type WasmApp struct {
 	IBCHooksKeeper        *ibchookskeeper.Keeper
 	ContractKeeper        *wasmkeeper.PermissionedKeeper
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
-	FeeAbsKeeper          feeabskeeper.Keeper
 
 	XionKeeper         xionkeeper.Keeper
 	JwkKeeper          jwkkeeper.Keeper
@@ -301,7 +296,6 @@ type WasmApp struct {
 	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
 	ScopedIBCFeeKeeper        capabilitykeeper.ScopedKeeper
 	ScopedWasmKeeper          capabilitykeeper.ScopedKeeper
-	ScopedFeeabsKeeper        capabilitykeeper.ScopedKeeper
 
 	// IBC middleware wrappers
 	Ics20WasmHooks   *ibchooks.WasmHooks
@@ -372,7 +366,7 @@ func NewWasmApp(
 		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, ibchookstypes.StoreKey, packetforwardtypes.StoreKey,
-		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey,
+		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -422,7 +416,6 @@ func NewWasmApp(
 	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
-	scopedFeeabsKeeper := app.CapabilityKeeper.ScopeToModule(feeabstypes.ModuleName)
 	app.CapabilityKeeper.Seal()
 
 	// add keepers
@@ -678,31 +671,13 @@ func NewWasmApp(
 
 	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
 
-	app.FeeAbsKeeper = feeabskeeper.NewKeeper(
-		appCodec,
-		keys[feeabstypes.StoreKey],
-		app.GetSubspace(feeabstypes.ModuleName),
-		app.StakingKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.TransferKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		scopedFeeabsKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
-	feeabsModule := feeabs.NewAppModule(appCodec, app.FeeAbsKeeper)
-	feeabsIBCModule := feeabs.NewIBCModule(appCodec, app.FeeAbsKeeper)
-
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
 	// See: https://docs.cosmos.network/main/modules/gov#proposal-messages
 	govRouter := govv1beta1.NewRouter()
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(feeabstypes.ModuleName, feeabs.NewHostZoneProposal(app.FeeAbsKeeper))
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper))
 
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec,
@@ -857,8 +832,7 @@ func NewWasmApp(
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(wasmtypes.ModuleName, wasmStack).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(feeabstypes.ModuleName, feeabsIBCModule)
+		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	/****  Module Options ****/
@@ -909,7 +883,6 @@ func NewWasmApp(
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		ibchooks.NewAppModule(app.AccountKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
-		feeabsModule,
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	)
 
@@ -954,7 +927,6 @@ func NewWasmApp(
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		ibcwasmtypes.ModuleName,
@@ -980,7 +952,6 @@ func NewWasmApp(
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		ibcwasmtypes.ModuleName,
@@ -1013,7 +984,6 @@ func NewWasmApp(
 		jwktypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		feeabstypes.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		ibcwasmtypes.ModuleName,
@@ -1148,7 +1118,6 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, nodeConfig wasmtype
 			TXCounterStoreService: runtime.NewKVStoreService(txCounterStoreKey),
 			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
 			StakingKeeper:         app.StakingKeeper,
-			FeeAbsKeeper:          &app.FeeAbsKeeper,
 			CircuitKeeper:         &app.CircuitKeeper,
 		},
 	)
@@ -1360,7 +1329,6 @@ func BlockedAddresses() map[string]bool {
 
 	// allow the following addresses to receive funds
 	delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	delete(modAccAddrs, authtypes.NewModuleAddress(feeabstypes.ModuleName).String())
 
 	return modAccAddrs
 }
@@ -1384,7 +1352,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
-	paramsKeeper.Subspace(feeabstypes.ModuleName)
 	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
 
 	// IBC params migration - legacySubspace to selfManaged

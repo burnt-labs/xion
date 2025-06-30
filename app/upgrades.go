@@ -13,6 +13,7 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 )
 
 const UpgradeName = "v20"
@@ -38,10 +39,12 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
 		Added: []string{
-			circuittypes.ModuleName,
+			circuittypes.StoreKey,
 		},
 		Renamed: []storetypes.StoreRename{},
-		Deleted: []string{},
+		Deleted: []string{
+			feeabstypes.StoreKey,
+		},
 	}
 	if len(storeUpgrades.Added) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)
