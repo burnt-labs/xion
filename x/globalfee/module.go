@@ -20,9 +20,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/burnt-labs/xion/x/globalfee/client/cli"
-	"github.com/burnt-labs/xion/x/globalfee/keeper"
-	"github.com/burnt-labs/xion/x/globalfee/types"
+	"github.com/cosmos/gaia/v17/x/globalfee/client/cli"
+	"github.com/cosmos/gaia/v17/x/globalfee/keeper"
+	"github.com/cosmos/gaia/v17/x/globalfee/types"
 )
 
 var (
@@ -83,51 +83,49 @@ func (a AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
 
 type AppModule struct {
 	AppModuleBasic
-	globalfeeSubspace paramstypes.Subspace
-}
-
-func (a AppModule) IsOnePerModuleType() {
-}
-
-func (a AppModule) IsAppModule() {
+	paramSpace paramstypes.Subspace
 }
 
 // NewAppModule constructor
-func NewAppModule(globalfeeSubspace paramstypes.Subspace) *AppModule {
-	if !globalfeeSubspace.HasKeyTable() {
-		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
+func NewAppModule(paramSpace paramstypes.Subspace) *AppModule {
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
-	return &AppModule{globalfeeSubspace: globalfeeSubspace}
+
+	return &AppModule{paramSpace: paramSpace}
 }
 
 func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
 
-	a.globalfeeSubspace.SetParamSet(ctx, &genesisState.Params)
+	a.paramSpace.SetParamSet(ctx, &genesisState.Params)
 	return nil
 }
 
 func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
 	var genState types.GenesisState
-	a.globalfeeSubspace.GetParamSet(ctx, &genState.Params)
+	a.paramSpace.GetParamSet(ctx, &genState.Params)
 	return marshaler.MustMarshalJSON(&genState)
 }
 
 func (a AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 }
 
-func (a AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
 func (a AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.globalfeeSubspace))
+	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.paramSpace))
 
-	m := keeper.NewMigrator(a.globalfeeSubspace)
+	m := keeper.NewMigrator(a.paramSpace)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/globalfee from version 1 to 2: %v", err))
 	}
+}
+
+func (a AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
+}
+
+func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return nil
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the
