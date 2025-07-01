@@ -210,15 +210,13 @@ func TestMultiDenomMinGlobalFee(t *testing.T) {
 			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
 		)
 		require.NoError(t, err)
-		hash, err := ExecTx(t, ctx, xion.GetNode(),
+		_, err = ExecTx(t, ctx, xion.GetNode(),
 			xionUser.KeyName(),
 			"bank", "send", xionUser.KeyName(),
 			"--chain-id", xion.Config().ChainID,
 			recipientAddress, fmt.Sprintf("%d%s", 100, xion.Config().Denom),
 		)
 		require.NoError(t, err)
-		fmt.Printf("we are waiting, this is the hash: %s", hash)
-		time.Sleep(10 * time.Minute)
 	}
 
 	testMultiDenomFee(t, &td, assertion)
@@ -315,9 +313,6 @@ func testMultiDenomFee(t *testing.T, td *TestData, assert assertionFn) {
 	t.Log(stdout, err)
 	require.NoError(t, err)
 
-	// verify metadata
-	// md, err := xion.GetNode().QueryBankMetadata(ctx, tfDenom)
-
 	md, _, err := xion.GetNode().ExecQuery(ctx, "bank", "denom-metadata", tfDenom)
 	require.NoError(t, err)
 
@@ -337,37 +332,9 @@ func testMultiDenomFee(t *testing.T, td *TestData, assert assertionFn) {
 	require.NoError(t, err)
 	require.Equal(t, balance, math.NewInt(10))
 
-	// mint-to
 	// step 3: upgrade minimum through governance
-	//
-	//
 	rawValueBz, err := formatJSON(tfDenom)
 	require.NoError(t, err)
-	/*
-		rawValue := fmt.Sprintf("[{\"denom\":\"%s\",\"amount\":\"0.005000000000000000\"},{\"denom\":\"uxion\",\"amount\":\"0.025000000000000000\"}]", tfDenom)
-
-		paramChange := proposal.ParameterChangeProposal{
-			Title:       "add token to globalfee",
-			Description: ".",
-			Changes: []proposal.ParamChange{
-				{
-					Subspace: "globalfee",
-					Key:      "MinimumGasPricesParam",
-					Value:    rawValue,
-				},
-			},
-		}
-		msg, err = cdc.MarshalInterfaceJSON(&paramChange)
-		require.NoError(t, err)
-
-		prop = cosmos.TxProposalv1{
-			Messages: []json.RawMessage{msg},
-			Metadata: "",
-			Deposit:  "100uxion",
-			Title:    "add token to globalfee",
-			Summary:  ".",
-		}
-	*/
 
 	paramChangeJSON := paramsutils.ParamChangeProposalJSON{
 		Title:       "add token to globalfee",
