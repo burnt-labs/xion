@@ -70,13 +70,25 @@ func Find(coins sdk.DecCoins, denom string) (bool, sdk.DecCoin) {
 
 // Returns the largest coins given 2 sets of coins
 func MaxCoins(a, b sdk.DecCoins) sdk.DecCoins {
-	if IsAllGT(a, b) {
+	if IsAllGTG[sdk.DecCoin, sdkmath.LegacyDec, sdk.DecCoins](a, b) {
 		return a
 	}
 	return b
 }
 
-func IsAllGT(a, b sdk.DecCoins) bool {
+type number[K any] interface {
+	LT(K) bool
+	IsZero() bool
+}
+
+type coinSlice[T any, A number[A]] interface {
+	~[]T
+	AmountOf(string) A
+	GetDenomByIndex(int) string
+}
+
+// IsAllGT checks if all coins in a have amounts greater than or equal to the corresponding coins in b.
+func IsAllGTG[T any, A number[A], S coinSlice[T, A]](a, b S) bool {
 	if len(a) == 0 {
 		return false
 	}
@@ -85,12 +97,12 @@ func IsAllGT(a, b sdk.DecCoins) bool {
 		return true
 	}
 
-	if !DenomsSubsetOf(b, a) {
+	if !DenomsSubsetOfG[T, A, S](b, a) {
 		return false
 	}
 
-	for _, coinB := range b {
-		amountA, amountB := a.AmountOf(coinB.Denom), coinB.Amount
+	for idx := range b {
+		amountA, amountB := a.AmountOf(b.GetDenomByIndex(idx)), b.AmountOf(b.GetDenomByIndex(idx))
 		if amountA.LT(amountB) {
 			return false
 		}
@@ -99,14 +111,14 @@ func IsAllGT(a, b sdk.DecCoins) bool {
 	return true
 }
 
-func DenomsSubsetOf(a, b sdk.DecCoins) bool {
-	// more denoms in B than in a
+// DenomsSubsetOf checks if the denominations in a are a subset of those in b.
+func DenomsSubsetOfG[T any, A number[A], S coinSlice[T, A]](a, b S) bool {
 	if len(a) > len(b) {
 		return false
 	}
 
-	for _, coin := range a {
-		if b.AmountOf(coin.Denom).IsZero() {
+	for idx := range a {
+		if b.AmountOf(a.GetDenomByIndex(idx)).IsZero() {
 			return false
 		}
 	}
@@ -140,7 +152,7 @@ func CheckTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 			requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 		}
 
-		if !IsAllGTCoins(feeCoins, requiredFees) {
+		if !IsAllGTG[sdk.Coin, sdkmath.Int, sdk.Coins](feeCoins, requiredFees) {
 			return nil, 0, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
 		}
 	}
@@ -167,42 +179,4 @@ func getTxPriority(fee sdk.Coins, gas int64) int64 {
 	}
 
 	return priority
-}
-
-func CoinsDenomsSubsetOf(a, b sdk.Coins) bool {
-	// more denoms in B than in a
-	if len(a) > len(b) {
-		return false
-	}
-
-	for _, coin := range a {
-		if b.AmountOf(coin.Denom).IsZero() {
-			return false
-		}
-	}
-
-	return true
-}
-
-func IsAllGTCoins(a, b sdk.Coins) bool {
-	if len(a) == 0 {
-		return false
-	}
-
-	if len(b) == 0 {
-		return true
-	}
-
-	if !CoinsDenomsSubsetOf(b, a) {
-		return false
-	}
-
-	for _, coinB := range b {
-		amountA, amountB := a.AmountOf(coinB.Denom), coinB.Amount
-		if amountA.LT(amountB) {
-			return false
-		}
-	}
-
-	return true
 }
