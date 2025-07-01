@@ -2,6 +2,7 @@ package ante
 
 import (
 	"errors"
+	"fmt"
 
 	tmstrings "github.com/cometbft/cometbft/libs/strings"
 
@@ -40,13 +41,14 @@ func NewFeeDecorator(globalfeeSubspace paramtypes.Subspace, stakingKeeperDenom f
 	}
 
 	return FeeDecorator{
-		GlobalMinFeeParamSource: globalfeeSubspace,
+		GlobalMinFeeParamSource: globalfeeSubspace, // NOTE: seems decoupled ?
 		StakingKeeperBondDenom:  stakingKeeperDenom,
 	}
 }
 
 // AnteHandle implements the AnteDecorator interface
 func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	l := ctx.Logger()
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
 		return ctx, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must implement the sdk.FeeTx interface")
@@ -63,6 +65,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	if err != nil {
 		return ctx, err
 	}
+	l.Info(fmt.Sprintf("[globalfee] fee requried: %s", feeRequired))
 
 	return next(ctx.WithMinGasPrices(feeRequired), tx, simulate)
 }
@@ -110,11 +113,14 @@ func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context) (sdk.DecCoins, error) {
 		globalMinGasPrices sdk.DecCoins
 		err                error
 	)
+	l := ctx.Logger()
 
 	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMinGasPrices) {
+		l.Info(fmt.Sprintf("[globalfee] subspace has found key: "))
 		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMinGasPrices, &globalMinGasPrices)
 	}
 
+	l.Info(fmt.Sprintf("[globalfee] from subspace: %s", globalMinGasPrices.String()))
 	// global fee is empty set, set global fee to 0uxion
 	if len(globalMinGasPrices) == 0 {
 		globalMinGasPrices, err = mfd.DefaultZeroGlobalFee(ctx)

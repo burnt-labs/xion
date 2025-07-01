@@ -1,8 +1,12 @@
 package ante
 
 import (
+	"fmt"
+	"math"
+
 	errorsmod "cosmossdk.io/errors"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -104,6 +108,106 @@ func DenomsSubsetOf(a, b sdk.DecCoins) bool {
 
 	for _, coin := range a {
 		if b.AmountOf(coin.Denom).IsZero() {
+			return false
+		}
+	}
+
+	return true
+}
+
+// checkTxFeeWithValidatorMinGasPrices implements the default fee logic, where the minimum price per
+// unit of gas is fixed and set by each validator, can the tx priority is computed from the gas price.
+func CheckTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
+	l := ctx.Logger()
+	l.Info("we are inside the CheckTx")
+	feeTx, ok := tx.(sdk.FeeTx)
+	if !ok {
+		return nil, 0, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
+	}
+
+	feeCoins := feeTx.GetFee()
+	gas := feeTx.GetGas()
+	l.Info(fmt.Sprintf("[checkFee]feeCoins: %s", feeCoins.String()))
+	l.Info(fmt.Sprintf("[checkFee]gas: %d", gas))
+
+	// Ensure that the provided fees meet a minimum threshold for the validator,
+	// if this is a CheckTx. This is only for local mempool purposes, and thus
+	// is only ran on check tx.
+	minGasPrices := ctx.MinGasPrices()
+	l.Info(fmt.Sprintf("[checkFee]minGasPrices: %s", minGasPrices.String()))
+	if !minGasPrices.IsZero() {
+		requiredFees := make(sdk.Coins, len(minGasPrices))
+		// NOTE: triple check this
+
+		// Determine the required fees by multiplying each required minimum gas
+		// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
+		glDec := sdkmath.LegacyNewDec(int64(gas))
+		for i, gp := range minGasPrices {
+			fee := gp.Amount.Mul(glDec)
+			requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
+		}
+
+		l.Info(fmt.Sprintf("[checkFee]requiredFees: %s", requiredFees.String()))
+		if !IsAllGTCoins(feeCoins, requiredFees) {
+			return nil, 0, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
+		}
+	}
+
+	priority := getTxPriority(feeCoins, int64(gas))
+	return feeCoins, priority, nil
+}
+
+// getTxPriority returns a naive tx priority based on the amount of the smallest denomination of the gas price
+// provided in a transaction.
+// NOTE: This implementation should be used with a great consideration as it opens potential attack vectors
+// where txs with multiple coins could not be prioritize as expected.
+func getTxPriority(fee sdk.Coins, gas int64) int64 {
+	var priority int64
+	for _, c := range fee {
+		p := int64(math.MaxInt64)
+		gasPrice := c.Amount.QuoRaw(gas)
+		if gasPrice.IsInt64() {
+			p = gasPrice.Int64()
+		}
+		if priority == 0 || p < priority {
+			priority = p
+		}
+	}
+
+	return priority
+}
+
+func CoinsDenomsSubsetOf(a, b sdk.Coins) bool {
+	// more denoms in B than in a
+	if len(a) > len(b) {
+		return false
+	}
+
+	for _, coin := range a {
+		if b.AmountOf(coin.Denom).IsZero() {
+			return false
+		}
+	}
+
+	return true
+}
+
+func IsAllGTCoins(a, b sdk.Coins) bool {
+	if len(a) == 0 {
+		return false
+	}
+
+	if len(b) == 0 {
+		return true
+	}
+
+	if !CoinsDenomsSubsetOf(b, a) {
+		return false
+	}
+
+	for _, coinB := range b {
+		amountA, amountB := a.AmountOf(coinB.Denom), coinB.Amount
+		if amountA.LT(amountB) {
 			return false
 		}
 	}

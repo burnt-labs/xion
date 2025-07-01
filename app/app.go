@@ -158,6 +158,7 @@ import (
 	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
+	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -1110,6 +1111,7 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, nodeConfig wasmtype
 				SignModeHandler: txConfig.SignModeHandler(),
 				FeegrantKeeper:  app.FeeGrantKeeper,
 				SigGasConsumer:  aa.SigVerificationGasConsumer,
+				TxFeeChecker:    globalfeeante.CheckTxFeeWithValidatorMinGasPrices,
 			},
 
 			AbstractAccountKeeper: app.AbstractAccountKeeper,
