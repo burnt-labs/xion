@@ -1,7 +1,6 @@
 package ante
 
 import (
-	"fmt"
 	"math"
 
 	errorsmod "cosmossdk.io/errors"
@@ -118,8 +117,6 @@ func DenomsSubsetOf(a, b sdk.DecCoins) bool {
 // checkTxFeeWithValidatorMinGasPrices implements the default fee logic, where the minimum price per
 // unit of gas is fixed and set by each validator, can the tx priority is computed from the gas price.
 func CheckTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
-	l := ctx.Logger()
-	l.Info("we are inside the CheckTx")
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
 		return nil, 0, errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
@@ -127,17 +124,13 @@ func CheckTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 
 	feeCoins := feeTx.GetFee()
 	gas := feeTx.GetGas()
-	l.Info(fmt.Sprintf("[checkFee]feeCoins: %s", feeCoins.String()))
-	l.Info(fmt.Sprintf("[checkFee]gas: %d", gas))
 
 	// Ensure that the provided fees meet a minimum threshold for the validator,
 	// if this is a CheckTx. This is only for local mempool purposes, and thus
 	// is only ran on check tx.
 	minGasPrices := ctx.MinGasPrices()
-	l.Info(fmt.Sprintf("[checkFee]minGasPrices: %s", minGasPrices.String()))
 	if !minGasPrices.IsZero() {
 		requiredFees := make(sdk.Coins, len(minGasPrices))
-		// NOTE: triple check this
 
 		// Determine the required fees by multiplying each required minimum gas
 		// price by the gas limit, where fee = ceil(minGasPrice * gasLimit).
@@ -147,7 +140,6 @@ func CheckTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 			requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 		}
 
-		l.Info(fmt.Sprintf("[checkFee]requiredFees: %s", requiredFees.String()))
 		if !IsAllGTCoins(feeCoins, requiredFees) {
 			return nil, 0, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
 		}
