@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"embed"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -19,15 +20,18 @@ import (
 	"testing"
 	"time"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+
 	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/mint"
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/burnt-labs/xion/x/xion"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	ibccore "github.com/cosmos/ibc-go/v10/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+
+	// ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
 	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
@@ -276,7 +280,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				aa.AppModuleBasic{},
 			)
 			// TODO: add encoding types here for the modules you want to use
-			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+			// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}
@@ -1176,4 +1180,31 @@ func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
 	}
 
 	return tempFile
+}
+
+func attributeValue(events []abcitypes.Event, eventType, attrKey string) (string, bool) {
+	for _, event := range events {
+		if event.Type != eventType {
+			continue
+		}
+		for _, attr := range event.Attributes {
+			if attr.Key == attrKey {
+				return attr.Value, true
+			}
+
+			// tendermint < v0.37-alpha returns base64 encoded strings in events.
+			key, err := base64.StdEncoding.DecodeString(attr.Key)
+			if err != nil {
+				continue
+			}
+			if string(key) == attrKey {
+				value, err := base64.StdEncoding.DecodeString(attr.Value)
+				if err != nil {
+					continue
+				}
+				return string(value), true
+			}
+		}
+	}
+	return "", false
 }

@@ -32,11 +32,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/ibc-go/modules/capability"
 	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ibccore "github.com/cosmos/ibc-go/v10/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+
+	// ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
 	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
@@ -130,7 +131,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 						aa.AppModuleBasic{},
 					)
 					// TODO: add encoding types here for the modules you want to use
-					ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+					// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 					return &cfg
 				}(),
 

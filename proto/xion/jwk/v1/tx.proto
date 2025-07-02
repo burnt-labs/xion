@@ -9,13 +9,19 @@ option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 // Msg defines the Msg service.
 service Msg {
+  // CreateAudienceClaim defines a method to create an audience claim.
   rpc CreateAudienceClaim (MsgCreateAudienceClaim) returns (MsgCreateAudienceClaimResponse);
+  // DeleteAudienceClaim defines a method to delete an audience claim.
   rpc DeleteAudienceClaim (MsgDeleteAudienceClaim) returns (MsgDeleteAudienceClaimResponse);
+  // CreateAudience defines a method to create a new audience.
   rpc CreateAudience (MsgCreateAudience) returns (MsgCreateAudienceResponse);
+  // UpdateAudience defines a method to update an audience.
   rpc UpdateAudience (MsgUpdateAudience) returns (MsgUpdateAudienceResponse);
+  // DeleteAudience defines a method to delete an audience.
   rpc DeleteAudience (MsgDeleteAudience) returns (MsgDeleteAudienceResponse);
 }
 
+// MsgCreateAudienceClaim defines a message to create an audience claim.
 message MsgCreateAudienceClaim {
   option (cosmos.msg.v1.signer) = "admin";
 
@@ -23,8 +29,10 @@ message MsgCreateAudienceClaim {
   bytes aud_hash = 2;
 }
 
+// MsgCreateAudienceClaimResponse defines the Msg/CreateAudienceClaim response type.
 message MsgCreateAudienceClaimResponse {}
 
+// MsgDeleteAudienceClaim defines a message to delete an audience claim.
 message MsgDeleteAudienceClaim {
   option (cosmos.msg.v1.signer) = "admin";
 
@@ -32,9 +40,11 @@ message MsgDeleteAudienceClaim {
   bytes aud_hash = 2;
 }
 
+// MsgDeleteAudienceClaimResponse defines the Msg/DeleteAudienceClaim response type.
 message MsgDeleteAudienceClaimResponse {}
 
 
+// MsgCreateAudience defines a message to create a new audience.
 message MsgCreateAudience {
   option (cosmos.msg.v1.signer) = "admin";
 
@@ -43,10 +53,12 @@ message MsgCreateAudience {
   string key   = 3;
 }
 
+// MsgCreateAudienceResponse defines the Msg/CreateAudience response type.
 message MsgCreateAudienceResponse {
   Audience audience = 1;
 }
 
+// MsgUpdateAudience defines a message to update an audience.
 message MsgUpdateAudience {
   option (cosmos.msg.v1.signer) = "admin";
 
@@ -57,10 +69,12 @@ message MsgUpdateAudience {
   string new_aud = 5;
 }
 
+// MsgUpdateAudienceResponse defines the Msg/UpdateAudience response type.
 message MsgUpdateAudienceResponse {
   Audience audience = 1;
 }
 
+// MsgDeleteAudience defines a message to delete an audience.
 message MsgDeleteAudience {
   option (cosmos.msg.v1.signer) = "admin";
 
@@ -68,5 +82,6 @@ message MsgDeleteAudience {
   string aud   = 2;
 }
 
+// MsgDeleteAudienceResponse defines the Msg/DeleteAudience response type.
 message MsgDeleteAudienceResponse {}
 
