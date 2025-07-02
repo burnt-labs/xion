@@ -17,7 +17,7 @@ fi
 deps=$(cat <<EOF
   github.com/cosmos/cosmos-sdk
   github.com/cosmos/cosmos-proto
-  github.com/cosmos/ibc-go/10
+  github.com/cosmos/ibc-go/v10
   github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
   github.com/CosmWasm/wasmd
 EOF

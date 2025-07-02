@@ -32,9 +32,6 @@ import (
 	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
-	ibchooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
-	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/keeper"
-	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
 	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
 	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
 	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
@@ -221,7 +218,6 @@ var (
 		xiontypes.ModuleName:           nil,
 		jwktypes.ModuleName:            nil,
 		packetforwardtypes.ModuleName:  nil,
-		ibchookstypes.ModuleName:       nil,
 	}
 	tokenFactoryCapabilities = []string{
 		tokenfactorytypes.EnableBurnFrom,
@@ -274,7 +270,6 @@ type WasmApp struct {
 	TransferKeeper      ibctransferkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
 	WasmClientKeeper    ibcwasmkeeper.Keeper
-	IBCHooksKeeper      *ibchookskeeper.Keeper
 	ContractKeeper      *wasmkeeper.PermissionedKeeper
 	PacketForwardKeeper *packetforwardkeeper.Keeper
 
@@ -285,8 +280,8 @@ type WasmApp struct {
 	TokenFactoryKeeper    tokenfactorykeeper.Keeper
 
 	// IBC middleware wrappers
-	Ics20WasmHooks   *ibchooks.WasmHooks
-	HooksICS4Wrapper ibchooks.ICS4Middleware
+	// Ics20WasmHooks   *ibchooks.WasmHooks
+	// HooksICS4Wrapper ibchooks.ICS4Middleware
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -361,7 +356,7 @@ func NewWasmApp(
 		ibcexported.StoreKey,
 		ibctransfertypes.StoreKey,
 		ibcwasmtypes.StoreKey,
-		ibchookstypes.StoreKey,
+		// ibchookstypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		wasmtypes.StoreKey,
 		icahosttypes.StoreKey,
@@ -680,14 +675,14 @@ func NewWasmApp(
 		app.GetSubspace(jwktypes.ModuleName))
 
 	// Configure the hooks keeper
-	hooksKeeper := ibchookskeeper.NewKeeper(
-		keys[ibchookstypes.StoreKey],
-	)
-	app.IBCHooksKeeper = &hooksKeeper
+	// hooksKeeper := ibchookskeeper.NewKeeper(
+	// 	keys[ibchookstypes.StoreKey],
+	// )
+	// app.IBCHooksKeeper = &hooksKeeper
 
-	xionPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
-	wasmHooks := ibchooks.NewWasmHooks(app.IBCHooksKeeper, nil, xionPrefix) // The contract keeper needs to be set later
-	app.Ics20WasmHooks = &wasmHooks
+	// xionPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
+	// wasmHooks := ibchooks.NewWasmHooks(app.IBCHooksKeeper, nil, xionPrefix) // The contract keeper needs to be set later
+	// app.Ics20WasmHooks = &wasmHooks
 	// app.HooksICS4Wrapper = ibchooks.NewICS4Middleware(
 	// 	app.IBCKeeper.ChannelKeeper,
 	// 	app.Ics20WasmHooks,
@@ -813,7 +808,7 @@ func NewWasmApp(
 	)
 
 	app.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
-	app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
+	// app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
 
 	app.XionKeeper = xionkeeper.NewKeeper(
 		appCodec,
@@ -913,7 +908,7 @@ func NewWasmApp(
 		ibcwasm.NewAppModule(app.WasmClientKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		ibchooks.NewAppModule(app.AccountKeeper),
+		// ibchooks.NewAppModule(app.AccountKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 	)
 
@@ -969,7 +964,7 @@ func NewWasmApp(
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		xiontypes.ModuleName,
-		ibchookstypes.ModuleName,
+		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	)
 
@@ -1002,7 +997,7 @@ func NewWasmApp(
 		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
-		ibchookstypes.ModuleName,
+		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	)
 
@@ -1047,7 +1042,7 @@ func NewWasmApp(
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
-		ibchookstypes.ModuleName,
+		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	}
 
@@ -1083,7 +1078,7 @@ func NewWasmApp(
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
-		ibchookstypes.ModuleName,
+		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	}
 
@@ -1150,7 +1145,7 @@ func NewWasmApp(
 
 	// set the contract keeper for the Ics20WasmHooks
 	app.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
-	app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
+	// app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
 
 	// In v0.46, the SDK introduces _postHandlers_. PostHandlers are like
 	// antehandlers, but are run _after_ the `runMsgs` execution. They are also

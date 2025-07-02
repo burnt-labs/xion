@@ -9,6 +9,7 @@ option go_package = "github.com/burnt-labs/xion/x/globalfee/types";
 
 // Query defines the gRPC querier service.
 service Query {
+  // Params returns the global fee parameters.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/xion/globalfee/v1/params";
   }
