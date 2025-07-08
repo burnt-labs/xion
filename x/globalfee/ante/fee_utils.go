@@ -152,7 +152,7 @@ func CheckTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins,
 			requiredFees[i] = sdk.NewCoin(gp.Denom, fee.Ceil().RoundInt())
 		}
 
-		if !IsAllGTG[sdk.Coin, sdkmath.Int, sdk.Coins](feeCoins, requiredFees) {
+		if !feeCoins.IsAnyGTE(requiredFees) {
 			return nil, 0, errorsmod.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeCoins, requiredFees)
 		}
 	}
