@@ -7,7 +7,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	"github.com/cosmos/gogoproto/proto"
-	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
 	feegranttypes "cosmossdk.io/x/feegrant"
 
@@ -37,7 +37,7 @@ var stargateWhitelist sync.Map
 
 func init() {
 	// ibc queries
-	setWhitelistedQuery("/ibc.applications.transfer.v1.Query/DenomTrace", &ibctransfertypes.QueryDenomResponse{})
+	setWhitelistedQuery("/ibc.applications.transfer.v1.Query/DenomTrace", &ibctransfertypes.QueryDenomTraceResponse{})
 
 	// cosmos-sdk queries
 
@@ -82,7 +82,7 @@ func init() {
 	// xion queries
 	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyRegister", &xiontypes.QueryWebAuthNVerifyRegisterResponse{})
 	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyAuthenticate", &xiontypes.QueryWebAuthNVerifyAuthenticateResponse{})
-	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", &jwktypes.QueryGetAllAudienceResponse{})
+	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", &jwktypes.QueryAudienceAllResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/Audience", &jwktypes.QueryGetAudienceResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/Params", &jwktypes.QueryParamsResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/ValidateJWT", &jwktypes.QueryValidateJWTResponse{})

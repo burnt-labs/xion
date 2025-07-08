@@ -22,15 +22,15 @@ import (
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 
 	"github.com/cosmos/cosmos-sdk/types"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
 // TODO:
-// param change test (in the upcoming interchain v8 upgrade)
+// param change test (in the upcoming interchain v10 upgrade)
 
 func TestXionMinimumFeeDefault(t *testing.T) {
 	if testing.Short() {

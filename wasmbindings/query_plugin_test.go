@@ -229,7 +229,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 			testSetup: func() {
 				SetUpAudience(suite)
 			},
-			responseProtoStruct: &jwktypes.QueryAllAudienceResponse{
+			responseProtoStruct: &jwktypes.QueryAudienceAllResponse{
 				Audience: []jwktypes.Audience{
 					{
 						Admin: admin,
