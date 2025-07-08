@@ -70,25 +70,13 @@ func Find(coins sdk.DecCoins, denom string) (bool, sdk.DecCoin) {
 
 // Returns the largest coins given 2 sets of coins
 func MaxCoins(a, b sdk.DecCoins) sdk.DecCoins {
-	if IsAllGTG[sdk.DecCoin, sdkmath.LegacyDec, sdk.DecCoins](a, b) {
+	if IsAllGT(a, b) {
 		return a
 	}
 	return b
 }
 
-type number[K any] interface {
-	LT(K) bool
-	IsZero() bool
-}
-
-type coinSlice[T any, A number[A]] interface {
-	~[]T
-	AmountOf(string) A
-	GetDenomByIndex(int) string
-}
-
-// IsAllGT checks if all coins in a have amounts greater than or equal to the corresponding coins in b.
-func IsAllGTG[T any, A number[A], S coinSlice[T, A]](a, b S) bool {
+func IsAllGT(a, b sdk.DecCoins) bool {
 	if len(a) == 0 {
 		return false
 	}
@@ -97,12 +85,12 @@ func IsAllGTG[T any, A number[A], S coinSlice[T, A]](a, b S) bool {
 		return true
 	}
 
-	if !DenomsSubsetOfG[T, A, S](b, a) {
+	if !DenomsSubsetOf(b, a) {
 		return false
 	}
 
-	for idx := range b {
-		amountA, amountB := a.AmountOf(b.GetDenomByIndex(idx)), b.AmountOf(b.GetDenomByIndex(idx))
+	for _, coinB := range b {
+		amountA, amountB := a.AmountOf(coinB.Denom), coinB.Amount
 		if amountA.LT(amountB) {
 			return false
 		}
@@ -111,14 +99,14 @@ func IsAllGTG[T any, A number[A], S coinSlice[T, A]](a, b S) bool {
 	return true
 }
 
-// DenomsSubsetOf checks if the denominations in a are a subset of those in b.
-func DenomsSubsetOfG[T any, A number[A], S coinSlice[T, A]](a, b S) bool {
+func DenomsSubsetOf(a, b sdk.DecCoins) bool {
+	// more denoms in B than in a
 	if len(a) > len(b) {
 		return false
 	}
 
-	for idx := range a {
-		if b.AmountOf(a.GetDenomByIndex(idx)).IsZero() {
+	for _, coin := range a {
+		if b.AmountOf(coin.Denom).IsZero() {
 			return false
 		}
 	}
