@@ -28,6 +28,7 @@ import (
 var (
 	_ module.AppModuleBasic   = AppModuleBasic{}
 	_ module.AppModuleGenesis = AppModule{}
+	_ module.AppModule        = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the wasm module.
@@ -82,36 +83,45 @@ func (a AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
 
 type AppModule struct {
 	AppModuleBasic
-	paramSpace paramstypes.Subspace
+	globalfeeSubspace paramstypes.Subspace
+}
+
+func (a AppModule) IsOnePerModuleType() {
+}
+
+func (a AppModule) IsAppModule() {
 }
 
 // NewAppModule constructor
-func NewAppModule(paramSpace paramstypes.Subspace) *AppModule {
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+func NewAppModule(globalfeeSubspace paramstypes.Subspace) *AppModule {
+	if !globalfeeSubspace.HasKeyTable() {
+		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &AppModule{paramSpace: paramSpace}
+	return &AppModule{globalfeeSubspace: globalfeeSubspace}
 }
 
 func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
 
-	a.paramSpace.SetParamSet(ctx, &genesisState.Params)
+	a.globalfeeSubspace.SetParamSet(ctx, &genesisState.Params)
 	return nil
 }
 
 func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
 	var genState types.GenesisState
-	a.paramSpace.GetParamSet(ctx, &genState.Params)
+	a.globalfeeSubspace.GetParamSet(ctx, &genState.Params)
 	return marshaler.MustMarshalJSON(&genState)
 }
 
-func (a AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.paramSpace))
+func (a AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+}
 
-	m := keeper.NewMigrator(a.paramSpace)
+func (a AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.globalfeeSubspace))
+
+	m := keeper.NewMigrator(a.globalfeeSubspace)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/globalfee from version 1 to 2: %v", err))
 	}
