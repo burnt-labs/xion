@@ -20,15 +20,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/cosmos/gaia/v17/x/globalfee/client/cli"
-	"github.com/cosmos/gaia/v17/x/globalfee/keeper"
-	"github.com/cosmos/gaia/v17/x/globalfee/types"
+	"github.com/burnt-labs/xion/x/globalfee/client/cli"
+	"github.com/burnt-labs/xion/x/globalfee/keeper"
+	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 var (
 	_ module.AppModuleBasic   = AppModuleBasic{}
 	_ module.AppModuleGenesis = AppModule{}
-	_ module.AppModule        = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the wasm module.
@@ -109,9 +108,6 @@ func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) jso
 	return marshaler.MustMarshalJSON(&genState)
 }
 
-func (a AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-}
-
 func (a AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.paramSpace))
 
@@ -121,10 +117,7 @@ func (a AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
-func (a AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
-}
-
-func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestFinalizeBlock) []abci.ValidatorUpdate {
 	return nil
 }
 
