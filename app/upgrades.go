@@ -38,10 +38,12 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
 		Added: []string{
-			circuittypes.ModuleName,
+			circuittypes.StoreKey,
 		},
 		Renamed: []storetypes.StoreRename{},
-		Deleted: []string{},
+		Deleted: []string{
+			"feeabs",
+		},
 	}
 	if len(storeUpgrades.Added) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)

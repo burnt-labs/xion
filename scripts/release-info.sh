@@ -36,6 +36,11 @@ go mod edit -json |
   jq --rawfile binaries "$binaries_json" --arg name "$upgrade_name" --arg tag "$GITHUB_REF_NAME" '{
     name: $name,
     tag: $tag,
+    go_version: .Go,
+    cosmos_sdk_version: (.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version),
+    cosmwasm_enabled: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") != null),
+    cosmwasm_version: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version),
+    ibc_go_version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v10") | .Version),
     recommended_version: $tag,
     language: {
       type: "go",
@@ -56,6 +61,6 @@ go mod edit -json |
     },
     ibc: {
       type: "go",
-      version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v8") | .Version)
+      version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v10") | .Version)
     }
   }' | tee "$release_dir/version.json"

@@ -25,8 +25,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/lestrrat-go/jwx/jwk"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -604,22 +604,31 @@ func TestXionAbstractAccount(t *testing.T) {
 }
 
 func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string {
-	logs, ok := txDetails["events"].([]interface{})
-	require.True(t, ok)
+	eventsRaw, ok := txDetails["events"].([]interface{})
+	require.True(t, ok, "expected 'events' field to be a slice")
 
-	log, ok := logs[9].(map[string]interface{})
-	require.True(t, ok)
+	for _, eventRaw := range eventsRaw {
+		event, ok := eventRaw.(map[string]interface{})
+		require.True(t, ok, "event must be a map")
 
-	attributes, ok := log["attributes"].([]interface{})
-	require.True(t, ok)
+		attributesRaw, ok := event["attributes"].([]interface{})
+		require.True(t, ok, "event 'attributes' must be a slice")
 
-	attribute, ok := attributes[0].(map[string]interface{})
-	require.True(t, ok)
+		for _, attrRaw := range attributesRaw {
+			attr, ok := attrRaw.(map[string]interface{})
+			require.True(t, ok, "attribute must be a map")
 
-	addr, ok := attribute["value"].(string)
-	require.True(t, ok)
+			key, keyOk := attr["key"].(string)
+			value, valueOk := attr["value"].(string)
 
-	return addr
+			if keyOk && valueOk && key == "_contract_address" {
+				return value
+			}
+		}
+	}
+
+	t.Fatal("no _contract_address found in events")
+	return ""
 }
 
 func TestXionClientEvent(t *testing.T) {

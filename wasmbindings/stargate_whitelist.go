@@ -82,7 +82,7 @@ func init() {
 	// xion queries
 	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyRegister", &xiontypes.QueryWebAuthNVerifyRegisterResponse{})
 	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyAuthenticate", &xiontypes.QueryWebAuthNVerifyAuthenticateResponse{})
-	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", &jwktypes.QueryAllAudienceResponse{})
+	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", &jwktypes.QueryAudienceAllResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/Audience", &jwktypes.QueryGetAudienceResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/Params", &jwktypes.QueryParamsResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/ValidateJWT", &jwktypes.QueryValidateJWTResponse{})

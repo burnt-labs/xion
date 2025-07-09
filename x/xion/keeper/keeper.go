@@ -42,19 +42,17 @@ func NewKeeper(cdc codec.BinaryCodec,
 	wasmViewKeeper wasmtypes.ViewKeeper,
 	aaKeeper types.AbstractAccountKeeper,
 	authority string,
-	xionMintKeeper xionMint.Keeper,
 ) Keeper {
 	return Keeper{
-		storeKey:             key,
-		cdc:                  cdc,
-		paramSpace:           paramSpace,
-		bankKeeper:           bankKeeper,
-		accountKeeper:        accountKeeper,
-		ContractOpsKeeper:    wasmOpsKeeper,
-		ContractViewKeeper:   wasmViewKeeper,
-		AAKeeper:             aaKeeper,
-		authority:            authority,
-		XionLegacyMintKeeper: xionMintKeeper,
+		storeKey:           key,
+		cdc:                cdc,
+		paramSpace:         paramSpace,
+		bankKeeper:         bankKeeper,
+		accountKeeper:      accountKeeper,
+		ContractOpsKeeper:  wasmOpsKeeper,
+		ContractViewKeeper: wasmViewKeeper,
+		AAKeeper:           aaKeeper,
+		authority:          authority,
 	}
 }
 

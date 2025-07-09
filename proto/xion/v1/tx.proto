@@ -10,6 +10,7 @@ import "cosmos/bank/v1beta1/bank.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
+// Msg defines the xion Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
@@ -70,6 +71,8 @@ message MsgMultiSend {
 // MsgMultiSendResponse defines the Msg/MultiSend response type.
 message MsgMultiSendResponse {}
 
+// MsgSetPlatformPercentage represents a message to update the platform fee
+// percentage.
 message MsgSetPlatformPercentage {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "xion/MsgSetPlatformPercentage";
@@ -80,8 +83,13 @@ message MsgSetPlatformPercentage {
   uint32 platform_percentage = 2;
 }
 
+// MsgSetPlatformPercentageResponse defines the Msg/SetPlatformPercentage
+// response type. This response is empty as the SetPlatformPercentage operation
+// doesn't return any data.
 message MsgSetPlatformPercentageResponse {}
 
+// MsgSetPlatformMinimum represents a message to set the minimum platform fee
+// for transactions.
 message MsgSetPlatformMinimum {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "xion/MsgSetPlatformMinimum";
@@ -95,4 +103,7 @@ message MsgSetPlatformMinimum {
   ];
 }
 
+// MsgSetPlatformMinimumResponse defines the Msg/SetPlatformMinimum response
+// type. This response is empty as the SetPlatformMinimum operation doesn't
+// return any data.
 message MsgSetPlatformMinimumResponse {}

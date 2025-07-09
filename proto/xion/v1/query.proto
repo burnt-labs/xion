@@ -4,16 +4,26 @@ package xion.v1;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
+// Query defines the gRPC querier service for the xion module.
 service Query {
-  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest) returns (QueryWebAuthNVerifyRegisterResponse) {}
-  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest) returns (QueryWebAuthNVerifyAuthenticateResponse) {}
-  rpc PlatformPercentage(QueryPlatformPercentageRequest) returns (QueryPlatformPercentageResponse) {}
-  rpc PlatformMinimum(QueryPlatformMinimumRequest) returns (QueryPlatformMinimumResponse) {}
+  // WebAuthNVerifyRegister verifies a WebAuthN registration request.
+  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest)
+      returns (QueryWebAuthNVerifyRegisterResponse) {}
+  // WebAuthNVerifyAuthenticate verifies a WebAuthN authentication request.
+  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest)
+      returns (QueryWebAuthNVerifyAuthenticateResponse) {}
+  // PlatformPercentage returns the current platform fee percentage.
+  rpc PlatformPercentage(QueryPlatformPercentageRequest)
+      returns (QueryPlatformPercentageResponse) {}
+  // PlatformMinimum returns the minimum platform fee for transactions.
+  rpc PlatformMinimum(QueryPlatformMinimumRequest)
+      returns (QueryPlatformMinimumResponse) {}
 }
 
+// QueryWebAuthNVerifyRegisterRequest is a request message for the
+// WebAuthNVerifyRegister RPC method.
 message QueryWebAuthNVerifyRegisterRequest {
   string addr = 1;
   string challenge = 2;
@@ -21,10 +31,17 @@ message QueryWebAuthNVerifyRegisterRequest {
   bytes data = 4;
 }
 
+// QueryWebAuthNVerifyRegisterResponse is a response message for the
+// WebAuthNVerifyRegister RPC method.
 message QueryWebAuthNVerifyRegisterResponse {
+  // credential is the WebAuthN credential resulting from the registration
+  // verification
   bytes credential = 1;
 }
 
+// QueryWebAuthNVerifyAuthenticateRequest is a request message for the
+// WebAuthNVerifyAuthenticate RPC method. It contains the necessary data to
+// authenticate a WebAuthN credential.
 message QueryWebAuthNVerifyAuthenticateRequest {
   string addr = 1;
   string challenge = 2;
@@ -33,16 +50,24 @@ message QueryWebAuthNVerifyAuthenticateRequest {
   bytes data = 5;
 }
 
+// QueryWebAuthNVerifyAuthenticateResponse is a response message for the
+// WebAuthNVerifyAuthenticate RPC method.
 message QueryWebAuthNVerifyAuthenticateResponse {}
 
+// QueryPlatformPercentageRequest is a request message for the
+// PlatformPercentage RPC method.
 message QueryPlatformPercentageRequest {}
 
-message QueryPlatformPercentageResponse {
-  uint64 platform_percentage = 1;
-}
+// QueryPlatformPercentageResponse is a response message for the
+// PlatformPercentage RPC method.
+message QueryPlatformPercentageResponse { uint64 platform_percentage = 1; }
 
+// QueryPlatformMinimumRequest is a request message for the PlatformMinimum RPC
+// method.
 message QueryPlatformMinimumRequest {}
 
+// QueryPlatformMinimumResponse is a response message for the PlatformMinimum
+// RPC method.
 message QueryPlatformMinimumResponse {
   repeated cosmos.base.v1beta1.Coin minimums = 3 [
     (gogoproto.nullable) = false,
