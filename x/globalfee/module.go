@@ -127,10 +127,6 @@ func (a AppModule) RegisterServices(cfg module.Configurator) {
 	}
 }
 
-func (a AppModule) EndBlock(_ sdk.Context, _ abci.RequestFinalizeBlock) []abci.ValidatorUpdate {
-	return nil
-}
-
 // ConsensusVersion is a sequence number for state-breaking change of the
 // module. It should be incremented on each consensus-breaking change
 // introduced by the module. To avoid wrong/empty versions, the initial version
