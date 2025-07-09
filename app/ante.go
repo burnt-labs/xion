@@ -5,14 +5,14 @@ import (
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/larry0x/abstract-account/x/abstractaccount"
 	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
-	feeabsante "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/ante"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/keeper"
 
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
 
 	corestoretypes "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
+	circuitante "cosmossdk.io/x/circuit/ante"
+	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -35,7 +35,7 @@ type HandlerOptions struct {
 	GlobalFeeSubspace     paramtypes.Subspace
 	StakingKeeper         *stakingkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
-	FeeAbsKeeper          *feeabskeeper.Keeper
+	CircuitKeeper         *circuitkeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -60,14 +60,15 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.TXCounterStoreService == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm store service is required for ante builder")
 	}
-	if options.FeeAbsKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "fee abstraction keeper is required for AnteHandler")
+	if options.CircuitKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "circuit keeper is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		wasmkeeper.NewLimitSimulationGasDecorator(options.NodeConfig.SimulationGasLimit), // after setup context to enforce limits early
 		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreService),
+		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// this changes the minGasFees,
 		// and must occur before gas fee checks
@@ -78,15 +79,18 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 			}
 			return bondDenom
 		}),
-		feeabsante.NewFeeAbstrationMempoolFeeDecorator(*options.FeeAbsKeeper),
 
 		// validation checks
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		// fee abstraction fee deduction replaces sdk fee deduction
-		feeabsante.NewFeeAbstractionDeductFeeDecorate(options.AccountKeeper, options.BankKeeper, *options.FeeAbsKeeper, options.FeegrantKeeper),
+		ante.NewDeductFeeDecorator(
+			options.AccountKeeper,
+			options.BankKeeper,
+			options.FeegrantKeeper,
+			options.TxFeeChecker,
+		),
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),

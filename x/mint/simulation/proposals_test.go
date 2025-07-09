@@ -21,6 +21,7 @@ import (
 func TestProposalMsgs(t *testing.T) {
 	// initialize parameters
 	s := rand.NewSource(1)
+	//nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 	r := rand.New(s)
 
 	ctx := sdk.NewContext(nil, tmproto.Header{}, true, nil)

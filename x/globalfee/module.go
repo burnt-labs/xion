@@ -97,6 +97,7 @@ func NewAppModule(globalfeeSubspace paramstypes.Subspace) *AppModule {
 	if !globalfeeSubspace.HasKeyTable() {
 		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
 	}
+
 	return &AppModule{globalfeeSubspace: globalfeeSubspace}
 }
 
@@ -112,13 +113,6 @@ func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) jso
 	var genState types.GenesisState
 	a.globalfeeSubspace.GetParamSet(ctx, &genState.Params)
 	return marshaler.MustMarshalJSON(&genState)
-}
-
-func (a AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-}
-
-func (a AppModule) QuerierRoute() string {
-	return types.QuerierRoute
 }
 
 func (a AppModule) RegisterServices(cfg module.Configurator) {
