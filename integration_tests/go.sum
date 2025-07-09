@@ -757,6 +757,8 @@ github.com/burnt-labs/abstract-account v0.0.0-20241017182826-e40d245c944a h1:bvO
 github.com/burnt-labs/abstract-account v0.0.0-20241017182826-e40d245c944a/go.mod h1:0q/LBlPChRsvsub88tL4wgvx7RuWGrjcAXFiZf4uSjo=
 github.com/burnt-labs/interchaintest/v10 v10.0.0-rc1 h1:wSfzpIM6Eft8eRS5DAS3JSnVJQYY2FC0C9ePAqjBwWY=
 github.com/burnt-labs/interchaintest/v10 v10.0.0-rc1/go.mod h1:jSZinxwDXt1JZbVu/cO52zPjntMYtqdjhhfN0fvHkYI=
+github.com/burnt-labs/tokenfactory v0.53.0-wasmvm2 h1:EDu6pHujMQzytlsPDoWD7sTjbK/Mi8ZUqW/7R/rpqVk=
+github.com/burnt-labs/tokenfactory v0.53.0-wasmvm2/go.mod h1:Dlzc+fAZBDqtLSpJ9rbT84zCqUB9wcd+//CAsKB1vpQ=
 github.com/bytedance/sonic v1.13.2 h1:8/H1FempDZqC4VqjptGo14QQlJx8VdZJegxs6wwfqpQ=
 github.com/bytedance/sonic v1.13.2/go.mod h1:o68xyaF9u2gvVBuGHPlUVCy+ZfmNNO5ETf1+KgkJhz4=
 github.com/bytedance/sonic/loader v0.1.1/go.mod h1:ncP89zfokxS5LZrJxl5z0UJcsk4M4yY2JpfqGeCtNLU=
@@ -1686,8 +1688,6 @@ github.com/spf13/viper v1.20.1 h1:ZMi+z/lvLyPSCoNtFCpqjy0S4kPbirhpTMwl8BkW9X4=
 github.com/spf13/viper v1.20.1/go.mod h1:P9Mdzt1zoHIG8m2eZQinpiBjo6kCmZSKBClNNqjJvu4=
 github.com/spiffe/go-spiffe/v2 v2.5.0 h1:N2I01KCUkv1FAjZXJMwh95KK1ZIQLYbPfhaxw8WS0hE=
 github.com/spiffe/go-spiffe/v2 v2.5.0/go.mod h1:P+NxobPc6wXhVtINNtFjNWGBTreew1GBUCwT2wPmb7g=
-github.com/strangelove-ventures/tokenfactory v0.50.6-wasmvm2 h1:vquO/4JhaiT5bkJDCwjySXgxv0ZEnEqQNyxKE+MQ2Hw=
-github.com/strangelove-ventures/tokenfactory v0.50.6-wasmvm2/go.mod h1:L8XfncoH1M6fOrzqfRVQZePqo54ZlTDdatUpEr0Iz/E=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/handy v0.0.0-20190108123426-d5acb3125c2a/go.mod h1:qNTQ5P5JnDBl6z3cMAg/SywNDC5ABu5ApDIw6lUbRmI=

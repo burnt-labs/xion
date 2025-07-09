@@ -1,6 +1,6 @@
 module integration_tests
 
-go 1.23.10
+go 1.23.11
 
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
@@ -10,6 +10,7 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/larry0x/abstract-account => github.com/burnt-labs/abstract-account v0.0.0-20241017182826-e40d245c944a
 	github.com/strangelove-ventures/interchaintest/v10 v10.0.0 => github.com/burnt-labs/interchaintest/v10 v10.0.0-rc1
+	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm2 => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm2
 
 	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
 )
@@ -21,7 +22,7 @@ require (
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/CosmWasm/wasmd v0.60.1
-	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
+	github.com/burnt-labs/xion v0.0.0
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-sdk v0.53.3
 	github.com/cosmos/gogoproto v1.7.0
@@ -36,11 +37,13 @@ require (
 	github.com/larry0x/abstract-account v0.0.0-20240904201714-f31e8234ed64
 	github.com/lestrrat-go/jwx v1.2.29
 	github.com/strangelove-ventures/interchaintest/v10 v10.0.0
-	github.com/strangelove-ventures/tokenfactory v0.50.6-wasmvm2
+	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm2
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/protobuf v1.36.6
 )
+
+require github.com/cosmos/ics23/go v0.11.0 // indirect
 
 require (
 	cel.dev/expr v0.23.0 // indirect
@@ -102,8 +105,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.4 // indirect
-	github.com/cosmos/ibc-go/v8 v8.4.0 // indirect
-	github.com/cosmos/ics23/go v0.11.0 // indirect
+	github.com/cosmos/ibc-go/v8 v8.4.0 // indirect; indirectcs23/go v0.11.0 // indirect
 	github.com/cosmos/interchain-security/v7 v7.0.1 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.3.0 // indirect
