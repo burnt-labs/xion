@@ -115,9 +115,6 @@ func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) jso
 	return marshaler.MustMarshalJSON(&genState)
 }
 
-func (a AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
-}
-
 func (a AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), NewGrpcQuerier(a.globalfeeSubspace))
 
