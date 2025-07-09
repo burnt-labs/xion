@@ -305,6 +305,7 @@ func TestAppStateDeterminism(t *testing.T) {
 	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
 
 	for i := 0; i < numSeeds; i++ {
+		//nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 		config.Seed = rand.Int63()
 
 		for j := 0; j < numTimesToRunPerSeed; j++ {

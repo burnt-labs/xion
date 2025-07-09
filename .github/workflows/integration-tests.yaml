@@ -26,6 +26,8 @@ jobs:
             - "MintModuleInflationLowFees"
             - "MintModuleInflationNoFees"
             - "MintModuleNoInflationNoFees"
+            - "MultiDenomMinGlobalFee"
+            - "MultiDenomMinGlobalFeeIBC"
             - "Simulate"
             - "SingleAbstractAccountMigration"
             - "TreasuryContract"
