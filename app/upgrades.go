@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
+
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
@@ -38,10 +40,12 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
 		Added: []string{
-			circuittypes.ModuleName,
+			circuittypes.StoreKey,
 		},
 		Renamed: []storetypes.StoreRename{},
-		Deleted: []string{},
+		Deleted: []string{
+			feeabstypes.StoreKey,
+		},
 	}
 	if len(storeUpgrades.Added) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)

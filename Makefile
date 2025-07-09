@@ -243,6 +243,12 @@ test-integration-xion-abstract-account-event: compile_integration_tests
 test-integration-xion-min-default: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
 
+test-integration-xion-min-multi-denom: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestMultiDenomMinGlobalFee
+
+test-integration-xion-min-multi-denom-ibc: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestMultiDenomMinGlobalFeeIBC
+
 test-integration-xion-min-zero: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeZero
 
