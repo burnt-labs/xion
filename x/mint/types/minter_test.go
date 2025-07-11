@@ -100,6 +100,7 @@ func BenchmarkBlockProvision(b *testing.B) {
 	params := DefaultParams()
 
 	s1 := rand.NewSource(100)
+	//nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 	r1 := rand.New(s1)
 	minter.AnnualProvisions = math.LegacyNewDec(r1.Int63n(1000000))
 

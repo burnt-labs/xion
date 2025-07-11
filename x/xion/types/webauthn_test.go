@@ -237,7 +237,9 @@ func CreateWebAuthNSignature(t *testing.T, challenge []byte) []byte {
 	authenticatorDataBz, err := protocol.URLEncodedBase64.MarshalJSON(authDataBz)
 	require.NoError(t, err)
 
-	signData := append(authenticatorDataBz, clientDataHash[:]...)
+	signData := make([]byte, 0, len(authenticatorDataBz)+len(clientDataHash[:]))
+	signData = append(signData, authenticatorDataBz...)
+	signData = append(signData, clientDataHash[:]...)
 	signHash := sha256.Sum256(signData)
 	signature, err := privateKey.Sign(rand.Reader, signHash[:], &signOpts{})
 	require.NoError(t, err)
