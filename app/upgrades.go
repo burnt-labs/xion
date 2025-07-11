@@ -53,7 +53,7 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 	if len(storeUpgrades.Renamed) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will rename stores", storeUpgrades.Renamed)
 	}
-	if len(storeUpgrades.Deleted) == 0 {
+	if len(storeUpgrades.Deleted) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will delete stores", storeUpgrades.Deleted)
 	}
 	storeLoader = upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
