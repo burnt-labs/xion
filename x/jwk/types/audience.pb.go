@@ -22,6 +22,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Audience defines the structure for an audience entity in the jwk module.
+// It contains the audience identifier, associated key, and admin address.
 type Audience struct {
 	Aud   string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 	Key   string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
@@ -82,6 +84,8 @@ func (m *Audience) GetAdmin() string {
 	return ""
 }
 
+// AudienceClaim defines the structure for a claim associated with an audience.
+// It contains the signer's address that makes the claim.
 type AudienceClaim struct {
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 }

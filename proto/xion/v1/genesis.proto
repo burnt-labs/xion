@@ -6,6 +6,7 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
+// GenesisState defines the xion module's genesis state.
 message GenesisState {
   uint32 platform_percentage = 1;
   repeated cosmos.base.v1beta1.Coin platform_minimums = 2 [

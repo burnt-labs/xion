@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 	"github.com/golang-jwt/jwt/v5"
 	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
 	jwk "github.com/lestrrat-go/jwx/jwk"
@@ -229,7 +229,7 @@ func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 			testSetup: func() {
 				SetUpAudience(suite)
 			},
-			responseProtoStruct: &jwktypes.QueryAllAudienceResponse{
+			responseProtoStruct: &jwktypes.QueryAudienceAllResponse{
 				Audience: []jwktypes.Audience{
 					{
 						Admin: admin,

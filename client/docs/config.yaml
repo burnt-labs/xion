@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   title: XION - gRPC Gateway docs
   description: A REST interface for state queries
-  version: v20.0.0
+  version: v21.0.0
 apis:
   - url: ./cosmos/auth/v1beta1/query.swagger.json
     operationIds:
@@ -39,6 +39,15 @@ apis:
     tags:
       rename:
         Query: Consensus
+  - url: ./cosmos/circuit/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: CircuitParams
+        Account: CircuitAccount
+        Accounts: CircuitAccounts
+    tags:
+      rename:
+        Query: Circuit
   - url: ./cosmos/distribution/v1beta1/query.swagger.json
     operationIds:
       rename:
@@ -151,13 +160,6 @@ apis:
     tags:
       rename:
         Query: CosmWasm
-  - url: ./ibc/applications/fee/v1/query.swagger.json
-    operationIds:
-      rename:
-        Params: IBCFeeParams
-    tags:
-      rename:
-        Query: IBC/Apps
   - url: ./ibc/applications/interchain_accounts/controller/v1/query.swagger.json
     operationIds:
       rename:
@@ -229,7 +231,6 @@ apis:
 
 # not included
 # ./cosmos/app/v1alpha1/query.swagger.json
-# ./cosmos/circuit/v1/query.swagger.json
 # ./cosmos/orm/query/v1alpha1/query.swagger.json
 # ./cosmos/query/v1/query.swagger.json
 # ./cosmos/autocli/v1/query.swagger.json

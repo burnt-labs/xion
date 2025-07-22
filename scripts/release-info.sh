@@ -56,6 +56,10 @@ go mod edit -json |
     },
     ibc: {
       type: "go",
+<<<<<<< HEAD
+      version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v10") | .Version)
+=======
       version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v8") | .Version)
+>>>>>>> v20.0.0
     }
   }' | tee "$release_dir/version.json"

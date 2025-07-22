@@ -4,17 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
-
-	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 const UpgradeName = "v20"
@@ -39,13 +34,9 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
-		Added: []string{
-			circuittypes.StoreKey,
-		},
+		Added:   []string{},
 		Renamed: []storetypes.StoreRename{},
-		Deleted: []string{
-			feeabstypes.StoreKey,
-		},
+		Deleted: []string{},
 	}
 	if len(storeUpgrades.Added) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)
@@ -65,10 +56,7 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
 
-	// Set the new parameters for mint and staking
-	if err := app.V20StakingForceMinimumCommission(ctx); err != nil {
-		panic(fmt.Sprintf("failed set minimum commissions: %s", err))
-	}
+	// Execute the upgrade logic here
 
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
@@ -77,33 +65,4 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	}
 
 	return migrations, err
-}
-
-// V20StakingParamsChange is a migration function that sets the minimum commission rate for validators to 0.05
-func (app *WasmApp) V20StakingForceMinimumCommission(ctx context.Context) (err error) {
-	// Set the minimum commission rate to 0.05
-	minCommission := math.LegacyMustNewDecFromStr("0.05")
-
-	// Iterate over all validators and update their commission rate if it's less than 0.05
-	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, validator stakingtypes.ValidatorI) (stop bool) {
-		if validator.GetCommission().LT(minCommission) {
-			val := validator.(stakingtypes.Validator)
-			val.Commission = stakingtypes.NewCommission(minCommission, val.Commission.MaxRate, val.Commission.MaxChangeRate)
-			// UpdateValidatorCommission has some sanity checks but does not save the validator
-			_, err := app.StakingKeeper.UpdateValidatorCommission(ctx, val, minCommission)
-			if err != nil {
-				return true
-			}
-			// SetValidator sets the main record holding validator details
-			err = app.StakingKeeper.SetValidator(ctx, val)
-			if err != nil {
-				return true
-			}
-		}
-		return false
-	})
-	if err != nil {
-		return fmt.Errorf("failed to update validator commission %s", err)
-	}
-	return nil
 }

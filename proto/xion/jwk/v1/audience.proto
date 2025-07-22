@@ -3,12 +3,14 @@ package xion.jwk.v1;
 
 option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
+// Audience defines the structure for an audience entity in the jwk module.
+// It contains the audience identifier, associated key, and admin address.
 message Audience {
-  string aud = 1; 
-  string key = 2; 
+  string aud = 1;
+  string key = 2;
   string admin = 3;
 }
 
-message AudienceClaim {
-  string signer = 1;
-}
+// AudienceClaim defines the structure for a claim associated with an audience.
+// It contains the signer's address that makes the claim.
+message AudienceClaim { string signer = 1; }

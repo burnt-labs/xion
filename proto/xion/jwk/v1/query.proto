@@ -13,26 +13,30 @@ option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 // Query defines the gRPC querier service.
 service Query {
   // Parameters queries the parameters of the module.
-  rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/xion/jwk/params";
   }
 
-  rpc AudienceClaim (QueryGetAudienceClaimRequest) returns (QueryGetAudienceClaimResponse) {
+  // AudienceClaim queries for an audience claim by its hash.
+  rpc AudienceClaim(QueryGetAudienceClaimRequest)
+      returns (QueryAudienceClaimResponse) {
     option (google.api.http).get = "/xion/jwk/audience_claim/{hash}";
   }
 
   // Queries a list of Audience items.
-  rpc Audience    (QueryGetAudienceRequest) returns (QueryGetAudienceResponse) {
+  rpc Audience(QueryGetAudienceRequest) returns (QueryGetAudienceResponse) {
     option (google.api.http).get = "/xion/jwk/audience/{aud}";
   }
 
-  rpc AudienceAll (QueryAllAudienceRequest) returns (QueryAllAudienceResponse) {
+  // AudienceAll queries a list of all Audience items with pagination.
+  rpc AudienceAll(QueryAllAudienceRequest) returns (QueryAudienceAllResponse) {
     option (google.api.http).get = "/xion/jwk/audience";
   }
 
   // Queries a list of ValidateJWT items.
-  rpc ValidateJWT (QueryValidateJWTRequest) returns (QueryValidateJWTResponse) {
-    option (google.api.http).get = "/xion/jwk/validate_jwt/{aud}/{sub}/{sigBytes}";
+  rpc ValidateJWT(QueryValidateJWTRequest) returns (QueryValidateJWTResponse) {
+    option (google.api.http).get =
+        "/xion/jwk/validate_jwt/{aud}/{sub}/{sigBytes}";
   }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -41,45 +45,62 @@ message QueryParamsRequest {}
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
   // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
 
-message QueryGetAudienceClaimRequest {
-  bytes hash = 1;
-}
+// QueryGetAudienceClaimRequest is the request type for the Query/AudienceClaim
+// RPC method. It contains the hash of the audience claim to query for.
+message QueryGetAudienceClaimRequest { bytes hash = 1; }
 
-message QueryGetAudienceClaimResponse {
-  AudienceClaim claim = 1;
-}
+// QueryAudienceClaimResponse is the response type for the
+// Query/AudienceClaim RPC method. It contains the audience claim that was
+// retrieved by the hash.
+message QueryAudienceClaimResponse { AudienceClaim claim = 1; }
 
-message QueryGetAudienceRequest {
-  string aud = 1;
-}
+// QueryGetAudienceClaimResponse is the response type for the
+// Query/AudienceClaim RPC method. It contains the audience claim that was
+// retrieved.
+message QueryGetAudienceClaimResponse { AudienceClaim claim = 1; }
 
+// QueryGetAudienceRequest is the request type for the Query/Audience RPC
+// method. It contains the audience identifier to query for.
+message QueryGetAudienceRequest { string aud = 1; }
+
+// QueryGetAudienceResponse is the response type for the Query/Audience RPC
+// method. It contains the details of the requested audience.
 message QueryGetAudienceResponse {
-  Audience audience = 1 [(gogoproto.nullable) = false];
+  Audience audience = 1 [ (gogoproto.nullable) = false ];
 }
 
+// QueryAllAudienceRequest is the request type for the Query/AudienceAll RPC
+// method. It includes pagination parameters to fetch a subset of all audiences.
 message QueryAllAudienceRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
-
-message QueryAllAudienceResponse {
-  repeated Audience                               audience   = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination = 2;
+// QueryAudienceAllResponse is the response type for the Query/AudienceAll RPC
+// method. It contains a list of audiences and pagination information.
+message QueryAudienceAllResponse {
+  repeated Audience audience = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
+// QueryValidateJWTRequest is the request type for the Query/ValidateJWT RPC
+// method. It contains the audience, subject, and signature bytes for JWT
+// validation.
 message QueryValidateJWTRequest {
-  string aud      = 1;
-  string sub      = 2;
+  string aud = 1;
+  string sub = 2;
   string sigBytes = 3;
 }
 
+// PrivateClaim represents a key-value pair for a private claim in a JWT.
+// It contains the claim's key and its corresponding value.
 message PrivateClaim {
   string key = 1;
   string value = 2;
 }
 
-message QueryValidateJWTResponse {
-  repeated PrivateClaim privateClaims = 1;
-}
+// QueryValidateJWTResponse is the response type for the Query/ValidateJWT RPC
+// method. It contains a list of private claims extracted from the validated
+// JWT.
+message QueryValidateJWTResponse { repeated PrivateClaim privateClaims = 1; }

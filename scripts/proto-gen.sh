@@ -17,12 +17,12 @@ fi
 deps=$(cat <<EOF
   github.com/cosmos/cosmos-sdk
   github.com/cosmos/cosmos-proto
-  github.com/cosmos/ibc-go/v8
-  github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8
-  github.com/osmosis-labs/fee-abstraction/v8
+  github.com/cosmos/ibc-go/v10
+  github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
   github.com/CosmWasm/wasmd
 EOF
 )
+  #github.com/osmosis-labs/fee-abstraction/v10
 
 # Install selected dependencies from go.mod
 go mod download $deps

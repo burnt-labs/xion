@@ -28,6 +28,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgCreateAudienceClaim defines a message to create an audience claim.
 type MsgCreateAudienceClaim struct {
 	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
 	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
@@ -80,6 +81,8 @@ func (m *MsgCreateAudienceClaim) GetAudHash() []byte {
 	return nil
 }
 
+// MsgCreateAudienceClaimResponse defines the Msg/CreateAudienceClaim response
+// type.
 type MsgCreateAudienceClaimResponse struct {
 }
 
@@ -116,6 +119,7 @@ func (m *MsgCreateAudienceClaimResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateAudienceClaimResponse proto.InternalMessageInfo
 
+// MsgDeleteAudienceClaim defines a message to delete an audience claim.
 type MsgDeleteAudienceClaim struct {
 	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
 	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
@@ -168,6 +172,8 @@ func (m *MsgDeleteAudienceClaim) GetAudHash() []byte {
 	return nil
 }
 
+// MsgDeleteAudienceClaimResponse defines the Msg/DeleteAudienceClaim response
+// type.
 type MsgDeleteAudienceClaimResponse struct {
 }
 
@@ -204,6 +210,7 @@ func (m *MsgDeleteAudienceClaimResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDeleteAudienceClaimResponse proto.InternalMessageInfo
 
+// MsgCreateAudience defines a message to create a new audience.
 type MsgCreateAudience struct {
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
 	Aud   string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
@@ -264,6 +271,7 @@ func (m *MsgCreateAudience) GetKey() string {
 	return ""
 }
 
+// MsgCreateAudienceResponse defines the Msg/CreateAudience response type.
 type MsgCreateAudienceResponse struct {
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
@@ -308,6 +316,7 @@ func (m *MsgCreateAudienceResponse) GetAudience() *Audience {
 	return nil
 }
 
+// MsgUpdateAudience defines a message to update an audience.
 type MsgUpdateAudience struct {
 	Admin    string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
 	NewAdmin string `protobuf:"bytes,2,opt,name=new_admin,json=newAdmin,proto3" json:"new_admin,omitempty"`
@@ -384,6 +393,7 @@ func (m *MsgUpdateAudience) GetNewAud() string {
 	return ""
 }
 
+// MsgUpdateAudienceResponse defines the Msg/UpdateAudience response type.
 type MsgUpdateAudienceResponse struct {
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
@@ -428,6 +438,7 @@ func (m *MsgUpdateAudienceResponse) GetAudience() *Audience {
 	return nil
 }
 
+// MsgDeleteAudience defines a message to delete an audience.
 type MsgDeleteAudience struct {
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
 	Aud   string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
@@ -480,6 +491,7 @@ func (m *MsgDeleteAudience) GetAud() string {
 	return ""
 }
 
+// MsgDeleteAudienceResponse defines the Msg/DeleteAudience response type.
 type MsgDeleteAudienceResponse struct {
 }
 
@@ -578,10 +590,15 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// CreateAudienceClaim defines a method to create an audience claim.
 	CreateAudienceClaim(ctx context.Context, in *MsgCreateAudienceClaim, opts ...grpc.CallOption) (*MsgCreateAudienceClaimResponse, error)
+	// DeleteAudienceClaim defines a method to delete an audience claim.
 	DeleteAudienceClaim(ctx context.Context, in *MsgDeleteAudienceClaim, opts ...grpc.CallOption) (*MsgDeleteAudienceClaimResponse, error)
+	// CreateAudience defines a method to create a new audience.
 	CreateAudience(ctx context.Context, in *MsgCreateAudience, opts ...grpc.CallOption) (*MsgCreateAudienceResponse, error)
+	// UpdateAudience defines a method to update an audience.
 	UpdateAudience(ctx context.Context, in *MsgUpdateAudience, opts ...grpc.CallOption) (*MsgUpdateAudienceResponse, error)
+	// DeleteAudience defines a method to delete an audience.
 	DeleteAudience(ctx context.Context, in *MsgDeleteAudience, opts ...grpc.CallOption) (*MsgDeleteAudienceResponse, error)
 }
 
@@ -640,10 +657,15 @@ func (c *msgClient) DeleteAudience(ctx context.Context, in *MsgDeleteAudience, o
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// CreateAudienceClaim defines a method to create an audience claim.
 	CreateAudienceClaim(context.Context, *MsgCreateAudienceClaim) (*MsgCreateAudienceClaimResponse, error)
+	// DeleteAudienceClaim defines a method to delete an audience claim.
 	DeleteAudienceClaim(context.Context, *MsgDeleteAudienceClaim) (*MsgDeleteAudienceClaimResponse, error)
+	// CreateAudience defines a method to create a new audience.
 	CreateAudience(context.Context, *MsgCreateAudience) (*MsgCreateAudienceResponse, error)
+	// UpdateAudience defines a method to update an audience.
 	UpdateAudience(context.Context, *MsgUpdateAudience) (*MsgUpdateAudienceResponse, error)
+	// DeleteAudience defines a method to delete an audience.
 	DeleteAudience(context.Context, *MsgDeleteAudience) (*MsgDeleteAudienceResponse, error)
 }
 

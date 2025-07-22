@@ -113,6 +113,8 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
+// QueryGetAudienceClaimRequest is the request type for the Query/AudienceClaim
+// RPC method. It contains the hash of the audience claim to query for.
 type QueryGetAudienceClaimRequest struct {
 	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 }
@@ -157,6 +159,56 @@ func (m *QueryGetAudienceClaimRequest) GetHash() []byte {
 	return nil
 }
 
+// QueryAudienceClaimResponse is the response type for the
+// Query/AudienceClaim RPC method. It contains the audience claim that was
+// retrieved by the hash.
+type QueryAudienceClaimResponse struct {
+	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
+}
+
+func (m *QueryAudienceClaimResponse) Reset()         { *m = QueryAudienceClaimResponse{} }
+func (m *QueryAudienceClaimResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAudienceClaimResponse) ProtoMessage()    {}
+func (*QueryAudienceClaimResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{3}
+}
+func (m *QueryAudienceClaimResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryAudienceClaimResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryAudienceClaimResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryAudienceClaimResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAudienceClaimResponse.Merge(m, src)
+}
+func (m *QueryAudienceClaimResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryAudienceClaimResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAudienceClaimResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryAudienceClaimResponse proto.InternalMessageInfo
+
+func (m *QueryAudienceClaimResponse) GetClaim() *AudienceClaim {
+	if m != nil {
+		return m.Claim
+	}
+	return nil
+}
+
+// QueryGetAudienceClaimResponse is the response type for the
+// Query/AudienceClaim RPC method. It contains the audience claim that was
+// retrieved.
 type QueryGetAudienceClaimResponse struct {
 	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
 }
@@ -165,7 +217,7 @@ func (m *QueryGetAudienceClaimResponse) Reset()         { *m = QueryGetAudienceC
 func (m *QueryGetAudienceClaimResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetAudienceClaimResponse) ProtoMessage()    {}
 func (*QueryGetAudienceClaimResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{3}
+	return fileDescriptor_6aa237fef6ed9f02, []int{4}
 }
 func (m *QueryGetAudienceClaimResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -201,6 +253,8 @@ func (m *QueryGetAudienceClaimResponse) GetClaim() *AudienceClaim {
 	return nil
 }
 
+// QueryGetAudienceRequest is the request type for the Query/Audience RPC
+// method. It contains the audience identifier to query for.
 type QueryGetAudienceRequest struct {
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 }
@@ -209,7 +263,7 @@ func (m *QueryGetAudienceRequest) Reset()         { *m = QueryGetAudienceRequest
 func (m *QueryGetAudienceRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGetAudienceRequest) ProtoMessage()    {}
 func (*QueryGetAudienceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{4}
+	return fileDescriptor_6aa237fef6ed9f02, []int{5}
 }
 func (m *QueryGetAudienceRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -245,6 +299,8 @@ func (m *QueryGetAudienceRequest) GetAud() string {
 	return ""
 }
 
+// QueryGetAudienceResponse is the response type for the Query/Audience RPC
+// method. It contains the details of the requested audience.
 type QueryGetAudienceResponse struct {
 	Audience Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience"`
 }
@@ -253,7 +309,7 @@ func (m *QueryGetAudienceResponse) Reset()         { *m = QueryGetAudienceRespon
 func (m *QueryGetAudienceResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetAudienceResponse) ProtoMessage()    {}
 func (*QueryGetAudienceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{5}
+	return fileDescriptor_6aa237fef6ed9f02, []int{6}
 }
 func (m *QueryGetAudienceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -289,6 +345,8 @@ func (m *QueryGetAudienceResponse) GetAudience() Audience {
 	return Audience{}
 }
 
+// QueryAllAudienceRequest is the request type for the Query/AudienceAll RPC
+// method. It includes pagination parameters to fetch a subset of all audiences.
 type QueryAllAudienceRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
@@ -297,7 +355,7 @@ func (m *QueryAllAudienceRequest) Reset()         { *m = QueryAllAudienceRequest
 func (m *QueryAllAudienceRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAllAudienceRequest) ProtoMessage()    {}
 func (*QueryAllAudienceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{6}
+	return fileDescriptor_6aa237fef6ed9f02, []int{7}
 }
 func (m *QueryAllAudienceRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -333,23 +391,25 @@ func (m *QueryAllAudienceRequest) GetPagination() *query.PageRequest {
 	return nil
 }
 
-type QueryAllAudienceResponse struct {
+// QueryAudienceAllResponse is the response type for the Query/AudienceAll RPC
+// method. It contains a list of audiences and pagination information.
+type QueryAudienceAllResponse struct {
 	Audience   []Audience          `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience"`
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllAudienceResponse) Reset()         { *m = QueryAllAudienceResponse{} }
-func (m *QueryAllAudienceResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllAudienceResponse) ProtoMessage()    {}
-func (*QueryAllAudienceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{7}
+func (m *QueryAudienceAllResponse) Reset()         { *m = QueryAudienceAllResponse{} }
+func (m *QueryAudienceAllResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAudienceAllResponse) ProtoMessage()    {}
+func (*QueryAudienceAllResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{8}
 }
-func (m *QueryAllAudienceResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryAudienceAllResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllAudienceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryAudienceAllResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllAudienceResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryAudienceAllResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -359,32 +419,35 @@ func (m *QueryAllAudienceResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *QueryAllAudienceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllAudienceResponse.Merge(m, src)
+func (m *QueryAudienceAllResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAudienceAllResponse.Merge(m, src)
 }
-func (m *QueryAllAudienceResponse) XXX_Size() int {
+func (m *QueryAudienceAllResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllAudienceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllAudienceResponse.DiscardUnknown(m)
+func (m *QueryAudienceAllResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAudienceAllResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllAudienceResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryAudienceAllResponse proto.InternalMessageInfo
 
-func (m *QueryAllAudienceResponse) GetAudience() []Audience {
+func (m *QueryAudienceAllResponse) GetAudience() []Audience {
 	if m != nil {
 		return m.Audience
 	}
 	return nil
 }
 
-func (m *QueryAllAudienceResponse) GetPagination() *query.PageResponse {
+func (m *QueryAudienceAllResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
+// QueryValidateJWTRequest is the request type for the Query/ValidateJWT RPC
+// method. It contains the audience, subject, and signature bytes for JWT
+// validation.
 type QueryValidateJWTRequest struct {
 	Aud      string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 	Sub      string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
@@ -395,7 +458,7 @@ func (m *QueryValidateJWTRequest) Reset()         { *m = QueryValidateJWTRequest
 func (m *QueryValidateJWTRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryValidateJWTRequest) ProtoMessage()    {}
 func (*QueryValidateJWTRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{8}
+	return fileDescriptor_6aa237fef6ed9f02, []int{9}
 }
 func (m *QueryValidateJWTRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -445,6 +508,8 @@ func (m *QueryValidateJWTRequest) GetSigBytes() string {
 	return ""
 }
 
+// PrivateClaim represents a key-value pair for a private claim in a JWT.
+// It contains the claim's key and its corresponding value.
 type PrivateClaim struct {
 	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
@@ -454,7 +519,7 @@ func (m *PrivateClaim) Reset()         { *m = PrivateClaim{} }
 func (m *PrivateClaim) String() string { return proto.CompactTextString(m) }
 func (*PrivateClaim) ProtoMessage()    {}
 func (*PrivateClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{9}
+	return fileDescriptor_6aa237fef6ed9f02, []int{10}
 }
 func (m *PrivateClaim) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -497,6 +562,9 @@ func (m *PrivateClaim) GetValue() string {
 	return ""
 }
 
+// QueryValidateJWTResponse is the response type for the Query/ValidateJWT RPC
+// method. It contains a list of private claims extracted from the validated
+// JWT.
 type QueryValidateJWTResponse struct {
 	PrivateClaims []*PrivateClaim `protobuf:"bytes,1,rep,name=privateClaims,proto3" json:"privateClaims,omitempty"`
 }
@@ -505,7 +573,7 @@ func (m *QueryValidateJWTResponse) Reset()         { *m = QueryValidateJWTRespon
 func (m *QueryValidateJWTResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryValidateJWTResponse) ProtoMessage()    {}
 func (*QueryValidateJWTResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6aa237fef6ed9f02, []int{10}
+	return fileDescriptor_6aa237fef6ed9f02, []int{11}
 }
 func (m *QueryValidateJWTResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -545,11 +613,12 @@ func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "xion.jwk.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "xion.jwk.v1.QueryParamsResponse")
 	proto.RegisterType((*QueryGetAudienceClaimRequest)(nil), "xion.jwk.v1.QueryGetAudienceClaimRequest")
+	proto.RegisterType((*QueryAudienceClaimResponse)(nil), "xion.jwk.v1.QueryAudienceClaimResponse")
 	proto.RegisterType((*QueryGetAudienceClaimResponse)(nil), "xion.jwk.v1.QueryGetAudienceClaimResponse")
 	proto.RegisterType((*QueryGetAudienceRequest)(nil), "xion.jwk.v1.QueryGetAudienceRequest")
 	proto.RegisterType((*QueryGetAudienceResponse)(nil), "xion.jwk.v1.QueryGetAudienceResponse")
 	proto.RegisterType((*QueryAllAudienceRequest)(nil), "xion.jwk.v1.QueryAllAudienceRequest")
-	proto.RegisterType((*QueryAllAudienceResponse)(nil), "xion.jwk.v1.QueryAllAudienceResponse")
+	proto.RegisterType((*QueryAudienceAllResponse)(nil), "xion.jwk.v1.QueryAudienceAllResponse")
 	proto.RegisterType((*QueryValidateJWTRequest)(nil), "xion.jwk.v1.QueryValidateJWTRequest")
 	proto.RegisterType((*PrivateClaim)(nil), "xion.jwk.v1.PrivateClaim")
 	proto.RegisterType((*QueryValidateJWTResponse)(nil), "xion.jwk.v1.QueryValidateJWTResponse")
@@ -558,52 +627,52 @@ func init() {
 func init() { proto.RegisterFile("xion/jwk/v1/query.proto", fileDescriptor_6aa237fef6ed9f02) }
 
 var fileDescriptor_6aa237fef6ed9f02 = []byte{
-	// 706 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x95, 0xc1, 0x4f, 0xd4, 0x4a,
-	0x1c, 0xc7, 0xb7, 0xc0, 0x12, 0x98, 0x85, 0x84, 0x0c, 0xfb, 0xc2, 0xbe, 0x86, 0xb7, 0xf0, 0x26,
-	0xef, 0x81, 0x62, 0xe8, 0xb8, 0x18, 0xf5, 0xa8, 0x60, 0x22, 0xc6, 0x13, 0x54, 0xa3, 0x51, 0x0f,
-	0x64, 0xba, 0x3b, 0x29, 0x65, 0xbb, 0x9d, 0xb2, 0x33, 0x2d, 0x6c, 0x08, 0x17, 0x2f, 0x1e, 0xd5,
-	0x78, 0xf5, 0x0f, 0xe2, 0x48, 0xe2, 0xc5, 0x93, 0x31, 0xe0, 0x1f, 0x62, 0x3a, 0x33, 0x85, 0x96,
-	0x76, 0x85, 0x0b, 0x99, 0x9d, 0xf9, 0xfe, 0xbe, 0xdf, 0x4f, 0x67, 0x7e, 0xbf, 0x00, 0xe6, 0x0e,
-	0x3d, 0x16, 0xe0, 0xbd, 0x83, 0x2e, 0x8e, 0x5b, 0x78, 0x3f, 0xa2, 0xfd, 0x81, 0x15, 0xf6, 0x99,
-	0x60, 0xb0, 0x96, 0x1c, 0x58, 0x7b, 0x07, 0x5d, 0x2b, 0x6e, 0x99, 0x75, 0x97, 0xb9, 0x4c, 0xee,
-	0xe3, 0x64, 0xa5, 0x24, 0xe6, 0xbc, 0xcb, 0x98, 0xeb, 0x53, 0x4c, 0x42, 0x0f, 0x93, 0x20, 0x60,
-	0x82, 0x08, 0x8f, 0x05, 0x5c, 0x9f, 0xae, 0xb4, 0x19, 0xef, 0x31, 0x8e, 0x1d, 0xc2, 0xa9, 0x72,
-	0xc6, 0x71, 0xcb, 0xa1, 0x82, 0xb4, 0x70, 0x48, 0x5c, 0x2f, 0x90, 0x62, 0xad, 0x6d, 0x64, 0x29,
-	0x42, 0xd2, 0x27, 0xbd, 0xd4, 0xc5, 0xcc, 0x9e, 0x90, 0xa8, 0xe3, 0xd1, 0xa0, 0x4d, 0xd5, 0x19,
-	0xaa, 0x03, 0xb8, 0x9d, 0xf8, 0x6e, 0xc9, 0x02, 0x9b, 0xee, 0x47, 0x94, 0x0b, 0xf4, 0x0c, 0xcc,
-	0xe6, 0x76, 0x79, 0xc8, 0x02, 0x4e, 0x61, 0x0b, 0x8c, 0x2b, 0xe3, 0x86, 0xb1, 0x68, 0xdc, 0xaa,
-	0xad, 0xcd, 0x5a, 0x99, 0x0f, 0xb4, 0x94, 0x78, 0x63, 0xec, 0xe4, 0xc7, 0x42, 0xc5, 0xd6, 0x42,
-	0xb4, 0x06, 0xe6, 0xa5, 0xd3, 0x26, 0x15, 0xeb, 0x3a, 0xf9, 0x89, 0x4f, 0xbc, 0x9e, 0x4e, 0x82,
-	0x10, 0x8c, 0xed, 0x12, 0xbe, 0x2b, 0x0d, 0xa7, 0x6c, 0xb9, 0x46, 0xdb, 0xe0, 0x9f, 0x21, 0x35,
-	0x9a, 0xe3, 0x2e, 0xa8, 0xb6, 0x93, 0x0d, 0x8d, 0x61, 0xe6, 0x30, 0xf2, 0x25, 0x4a, 0x88, 0xee,
-	0x80, 0xb9, 0xab, 0x96, 0x29, 0xc1, 0x0c, 0x18, 0x25, 0x51, 0x47, 0x5a, 0x4d, 0xda, 0xc9, 0x12,
-	0xbd, 0x00, 0x8d, 0xa2, 0x58, 0x47, 0x3f, 0x04, 0x13, 0xe9, 0x0d, 0xea, 0xf4, 0xbf, 0x4a, 0xd3,
-	0xf5, 0x35, 0x5c, 0x88, 0x11, 0xd1, 0x04, 0xeb, 0xbe, 0x7f, 0x95, 0xe0, 0x29, 0x00, 0x97, 0xaf,
-	0xa9, 0x5d, 0x97, 0x2c, 0xf5, 0xf4, 0x56, 0xf2, 0xf4, 0x96, 0x6a, 0x2a, 0xfd, 0xf4, 0xd6, 0x16,
-	0x71, 0xd3, 0x5a, 0x3b, 0x53, 0x89, 0xbe, 0x1a, 0x1a, 0x3c, 0x97, 0x51, 0x0a, 0x3e, 0x7a, 0x63,
-	0x70, 0xb8, 0x99, 0xa3, 0x1b, 0x91, 0x74, 0xcb, 0xd7, 0xd2, 0xa9, 0xd4, 0x1c, 0xde, 0x1b, 0x7d,
-	0x03, 0xaf, 0x88, 0xef, 0x75, 0x88, 0xa0, 0xcf, 0x5f, 0xbf, 0x1c, 0xfa, 0x06, 0xc9, 0x0e, 0x8f,
-	0x1c, 0x19, 0x37, 0x69, 0x27, 0x4b, 0x68, 0x82, 0x09, 0xee, 0xb9, 0x1b, 0x03, 0x41, 0x79, 0x63,
-	0x54, 0x6e, 0x5f, 0xfc, 0x46, 0x0f, 0xc0, 0xd4, 0x56, 0xdf, 0x8b, 0x89, 0x50, 0xaf, 0x9e, 0x54,
-	0x77, 0xe9, 0x20, 0xf5, 0xeb, 0xd2, 0x01, 0xac, 0x83, 0x6a, 0x4c, 0xfc, 0x88, 0x6a, 0x47, 0xf5,
-	0x03, 0xbd, 0xd3, 0x17, 0x96, 0x43, 0xd2, 0x17, 0xf6, 0x08, 0x4c, 0x87, 0x19, 0x4f, 0xae, 0x6f,
-	0xed, 0xef, 0x7c, 0xcf, 0x67, 0x14, 0x76, 0x5e, 0xbf, 0xf6, 0xa1, 0x0a, 0xaa, 0xd2, 0x1d, 0x52,
-	0x30, 0xae, 0x86, 0x03, 0x2e, 0xe4, 0xaa, 0x8b, 0x93, 0x67, 0x2e, 0x0e, 0x17, 0x28, 0x2e, 0xd4,
-	0x78, 0xff, 0xed, 0xd7, 0x97, 0x11, 0x08, 0x67, 0xf0, 0xc5, 0x58, 0xab, 0x59, 0x83, 0x1f, 0x0d,
-	0x30, 0x9d, 0xeb, 0x7e, 0x78, 0xbb, 0xe8, 0x36, 0x64, 0x10, 0xcd, 0x95, 0x9b, 0x48, 0x35, 0xc2,
-	0xb2, 0x44, 0xf8, 0x17, 0x2e, 0x5c, 0x22, 0xa4, 0xed, 0xb2, 0x23, 0xe7, 0x0d, 0x1f, 0x25, 0x83,
-	0x7c, 0x0c, 0x07, 0x60, 0x22, 0x75, 0x80, 0xff, 0xfd, 0x31, 0x20, 0xc5, 0xf8, 0xff, 0x1a, 0x95,
-	0x26, 0x58, 0x94, 0x04, 0x26, 0x6c, 0x14, 0x09, 0xf0, 0x11, 0x89, 0x3a, 0xc7, 0x30, 0x06, 0xb5,
-	0xb4, 0x6a, 0xdd, 0xf7, 0xcb, 0xd2, 0x8b, 0x93, 0x58, 0x96, 0x5e, 0x32, 0x4b, 0xc8, 0x94, 0xe9,
-	0x75, 0x08, 0x8b, 0xe9, 0xf0, 0xb3, 0x01, 0x6a, 0x99, 0x76, 0x2a, 0x0b, 0x2e, 0x0e, 0x40, 0x59,
-	0x70, 0x49, 0x4f, 0xa2, 0xfb, 0x32, 0x18, 0xc3, 0xd5, 0xcb, 0xe0, 0x58, 0xcb, 0x76, 0xf6, 0x0e,
-	0x84, 0xfa, 0x74, 0x7c, 0xc4, 0x23, 0x27, 0xf9, 0xab, 0xa7, 0xe3, 0x78, 0xe3, 0xf1, 0xc9, 0x59,
-	0xd3, 0x38, 0x3d, 0x6b, 0x1a, 0x3f, 0xcf, 0x9a, 0xc6, 0xa7, 0xf3, 0x66, 0xe5, 0xf4, 0xbc, 0x59,
-	0xf9, 0x7e, 0xde, 0xac, 0xbc, 0x5d, 0x72, 0x3d, 0xb1, 0x1b, 0x39, 0x56, 0x9b, 0xf5, 0xb0, 0x13,
-	0xf5, 0x03, 0xb1, 0xea, 0x13, 0x87, 0x2b, 0xf7, 0x43, 0xe9, 0x2f, 0x06, 0x21, 0xe5, 0xce, 0xb8,
-	0xfc, 0x6f, 0x71, 0xef, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0x19, 0x5a, 0xe3, 0xba, 0xeb, 0x06,
-	0x00, 0x00,
+	// 719 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xcf, 0x4f, 0xd4, 0x4c,
+	0x18, 0xde, 0x02, 0x4b, 0x60, 0x16, 0x12, 0x32, 0xec, 0x17, 0xf6, 0x6b, 0xf8, 0x16, 0xbe, 0xc9,
+	0xf7, 0x81, 0x3f, 0x42, 0xc7, 0xc5, 0xa8, 0x47, 0x05, 0x13, 0x31, 0x1e, 0x0c, 0x54, 0xa3, 0x51,
+	0x0f, 0x64, 0xba, 0x3b, 0x29, 0x65, 0xbb, 0x9d, 0xb2, 0x33, 0x2d, 0x6c, 0x08, 0x17, 0xe3, 0xd1,
+	0x83, 0xc6, 0xab, 0x7f, 0x10, 0x47, 0x12, 0x2f, 0x9e, 0x8c, 0x01, 0xff, 0x10, 0xd3, 0x99, 0x29,
+	0xb4, 0xb4, 0x2b, 0xc6, 0xcb, 0x66, 0x3a, 0xf3, 0xbc, 0xcf, 0xf3, 0xf4, 0x9d, 0xf7, 0xe9, 0x82,
+	0xb9, 0x03, 0x8f, 0x05, 0x78, 0x77, 0xbf, 0x8b, 0xe3, 0x16, 0xde, 0x8b, 0x68, 0x7f, 0x60, 0x85,
+	0x7d, 0x26, 0x18, 0xac, 0x25, 0x07, 0xd6, 0xee, 0x7e, 0xd7, 0x8a, 0x5b, 0x66, 0xdd, 0x65, 0x2e,
+	0x93, 0xfb, 0x38, 0x59, 0x29, 0x88, 0x39, 0xef, 0x32, 0xe6, 0xfa, 0x14, 0x93, 0xd0, 0xc3, 0x24,
+	0x08, 0x98, 0x20, 0xc2, 0x63, 0x01, 0xd7, 0xa7, 0x37, 0xda, 0x8c, 0xf7, 0x18, 0xc7, 0x0e, 0xe1,
+	0x54, 0x31, 0xe3, 0xb8, 0xe5, 0x50, 0x41, 0x5a, 0x38, 0x24, 0xae, 0x17, 0x48, 0xb0, 0xc6, 0x36,
+	0xb2, 0x2e, 0x42, 0xd2, 0x27, 0xbd, 0x94, 0xc5, 0xcc, 0x9e, 0x90, 0xa8, 0xe3, 0xd1, 0xa0, 0x4d,
+	0xd5, 0x19, 0xaa, 0x03, 0xb8, 0x95, 0xf0, 0x6e, 0xca, 0x02, 0x9b, 0xee, 0x45, 0x94, 0x0b, 0xf4,
+	0x18, 0xcc, 0xe6, 0x76, 0x79, 0xc8, 0x02, 0x4e, 0x61, 0x0b, 0x8c, 0x2b, 0xe2, 0x86, 0xb1, 0x68,
+	0x5c, 0xab, 0xad, 0xce, 0x5a, 0x99, 0x17, 0xb4, 0x14, 0x78, 0x7d, 0xec, 0xf8, 0xdb, 0x42, 0xc5,
+	0xd6, 0x40, 0xb4, 0x0a, 0xe6, 0x25, 0xd3, 0x06, 0x15, 0x6b, 0x5a, 0xf9, 0xa1, 0x4f, 0xbc, 0x9e,
+	0x56, 0x82, 0x10, 0x8c, 0xed, 0x10, 0xbe, 0x23, 0x09, 0xa7, 0x6c, 0xb9, 0x46, 0x4f, 0x81, 0x29,
+	0x6b, 0x2e, 0x15, 0x68, 0x13, 0xb7, 0x40, 0xb5, 0x9d, 0x6c, 0x68, 0x0f, 0x66, 0xce, 0x43, 0xbe,
+	0x44, 0x01, 0xd1, 0x16, 0xf8, 0x67, 0x88, 0x87, 0x3f, 0xa6, 0xbc, 0x09, 0xe6, 0x2e, 0x53, 0xa6,
+	0x6f, 0x34, 0x03, 0x46, 0x49, 0xd4, 0x91, 0x54, 0x93, 0x76, 0xb2, 0x44, 0xcf, 0x40, 0xa3, 0x08,
+	0xd6, 0xd2, 0xf7, 0xc0, 0x44, 0x7a, 0x23, 0x5a, 0xfd, 0xaf, 0x52, 0x75, 0xdd, 0xd6, 0x73, 0x30,
+	0x22, 0xda, 0xc1, 0x9a, 0xef, 0x5f, 0x76, 0xf0, 0x08, 0x80, 0x8b, 0xe9, 0xd0, 0xac, 0x4b, 0x96,
+	0x1a, 0x25, 0x2b, 0x19, 0x25, 0x4b, 0x0d, 0xa9, 0x1e, 0x25, 0x6b, 0x93, 0xb8, 0x69, 0xad, 0x9d,
+	0xa9, 0x44, 0x9f, 0x0d, 0x6d, 0x3c, 0x15, 0x58, 0xf3, 0xfd, 0x21, 0xc6, 0x47, 0x7f, 0xdb, 0x38,
+	0xdc, 0xc8, 0xb9, 0x1b, 0x91, 0xee, 0x96, 0xaf, 0x74, 0xa7, 0x54, 0x73, 0xf6, 0x5e, 0xe9, 0x0e,
+	0xbc, 0x20, 0xbe, 0xd7, 0x21, 0x82, 0x3e, 0x79, 0xf9, 0x7c, 0xe8, 0x1d, 0x24, 0x3b, 0x3c, 0x72,
+	0xa4, 0xdc, 0xa4, 0x9d, 0x2c, 0xa1, 0x09, 0x26, 0xb8, 0xe7, 0xae, 0x0f, 0x04, 0xe5, 0x8d, 0x51,
+	0xb9, 0x7d, 0xfe, 0x8c, 0xee, 0x82, 0xa9, 0xcd, 0xbe, 0x17, 0x13, 0xa1, 0x6e, 0x3d, 0xa9, 0xee,
+	0xd2, 0x41, 0xca, 0xd7, 0xa5, 0x03, 0x58, 0x07, 0xd5, 0x98, 0xf8, 0x11, 0xd5, 0x8c, 0xea, 0x01,
+	0xbd, 0xd1, 0x0d, 0xcb, 0x59, 0xd2, 0x0d, 0xbb, 0x0f, 0xa6, 0xc3, 0x0c, 0x27, 0xd7, 0x5d, 0xfb,
+	0x3b, 0x9f, 0xa1, 0x0c, 0xc2, 0xce, 0xe3, 0x57, 0xdf, 0x55, 0x41, 0x55, 0xb2, 0x43, 0x0a, 0xc6,
+	0x55, 0xd8, 0xe0, 0x42, 0xae, 0xba, 0x98, 0x64, 0x73, 0x71, 0x38, 0x40, 0xf9, 0x42, 0x8d, 0xb7,
+	0x5f, 0x7e, 0x7c, 0x1a, 0x81, 0x70, 0x06, 0x9f, 0x7f, 0x26, 0x54, 0x76, 0xe1, 0x7b, 0x03, 0x4c,
+	0xe7, 0xa6, 0x1f, 0x5e, 0x2f, 0xb2, 0x0d, 0x09, 0xb6, 0xb9, 0x5c, 0x84, 0x96, 0x86, 0x0f, 0x2d,
+	0x4b, 0xfd, 0x7f, 0xe1, 0xc2, 0x85, 0x7e, 0x3a, 0x2b, 0xdb, 0x32, 0x6c, 0xf8, 0x30, 0xf9, 0x2a,
+	0x1c, 0xc1, 0x01, 0x98, 0x48, 0x19, 0xe0, 0x7f, 0xbf, 0x34, 0x92, 0x7a, 0xf8, 0xff, 0x0a, 0x94,
+	0x76, 0xb0, 0x28, 0x1d, 0x98, 0xb0, 0x51, 0x74, 0x80, 0x0f, 0x49, 0xd4, 0x39, 0x82, 0x31, 0xa8,
+	0x65, 0x32, 0x50, 0xa6, 0x5e, 0x8c, 0x61, 0x99, 0x7a, 0x49, 0x90, 0x90, 0x29, 0xd5, 0xeb, 0x10,
+	0x16, 0xd5, 0xe1, 0x47, 0x03, 0xd4, 0x32, 0xb3, 0x54, 0x26, 0x5c, 0x9c, 0xfe, 0x32, 0xe1, 0x92,
+	0x81, 0x44, 0x77, 0xa4, 0x30, 0x86, 0x2b, 0x17, 0xc2, 0xb1, 0x86, 0x6d, 0xef, 0xee, 0x0b, 0xf5,
+	0xea, 0xf8, 0x90, 0x47, 0x4e, 0xf2, 0xab, 0xa3, 0x71, 0xb4, 0xfe, 0xe0, 0xf8, 0xb4, 0x69, 0x9c,
+	0x9c, 0x36, 0x8d, 0xef, 0xa7, 0x4d, 0xe3, 0xc3, 0x59, 0xb3, 0x72, 0x72, 0xd6, 0xac, 0x7c, 0x3d,
+	0x6b, 0x56, 0x5e, 0x2f, 0xb9, 0x9e, 0xd8, 0x89, 0x1c, 0xab, 0xcd, 0x7a, 0xd8, 0x89, 0xfa, 0x81,
+	0x58, 0xf1, 0x89, 0xc3, 0x15, 0xfb, 0x81, 0xe4, 0x17, 0x83, 0x90, 0x72, 0x67, 0x5c, 0xfe, 0xf5,
+	0xdc, 0xfe, 0x19, 0x00, 0x00, 0xff, 0xff, 0xd5, 0xde, 0x13, 0x16, 0x38, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -620,10 +689,12 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryGetAudienceClaimResponse, error)
+	// AudienceClaim queries for an audience claim by its hash.
+	AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryAudienceClaimResponse, error)
 	// Queries a list of Audience items.
 	Audience(ctx context.Context, in *QueryGetAudienceRequest, opts ...grpc.CallOption) (*QueryGetAudienceResponse, error)
-	AudienceAll(ctx context.Context, in *QueryAllAudienceRequest, opts ...grpc.CallOption) (*QueryAllAudienceResponse, error)
+	// AudienceAll queries a list of all Audience items with pagination.
+	AudienceAll(ctx context.Context, in *QueryAllAudienceRequest, opts ...grpc.CallOption) (*QueryAudienceAllResponse, error)
 	// Queries a list of ValidateJWT items.
 	ValidateJWT(ctx context.Context, in *QueryValidateJWTRequest, opts ...grpc.CallOption) (*QueryValidateJWTResponse, error)
 }
@@ -645,8 +716,8 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryGetAudienceClaimResponse, error) {
-	out := new(QueryGetAudienceClaimResponse)
+func (c *queryClient) AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryAudienceClaimResponse, error) {
+	out := new(QueryAudienceClaimResponse)
 	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Query/AudienceClaim", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -663,8 +734,8 @@ func (c *queryClient) Audience(ctx context.Context, in *QueryGetAudienceRequest,
 	return out, nil
 }
 
-func (c *queryClient) AudienceAll(ctx context.Context, in *QueryAllAudienceRequest, opts ...grpc.CallOption) (*QueryAllAudienceResponse, error) {
-	out := new(QueryAllAudienceResponse)
+func (c *queryClient) AudienceAll(ctx context.Context, in *QueryAllAudienceRequest, opts ...grpc.CallOption) (*QueryAudienceAllResponse, error) {
+	out := new(QueryAudienceAllResponse)
 	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Query/AudienceAll", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -685,10 +756,12 @@ func (c *queryClient) ValidateJWT(ctx context.Context, in *QueryValidateJWTReque
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	AudienceClaim(context.Context, *QueryGetAudienceClaimRequest) (*QueryGetAudienceClaimResponse, error)
+	// AudienceClaim queries for an audience claim by its hash.
+	AudienceClaim(context.Context, *QueryGetAudienceClaimRequest) (*QueryAudienceClaimResponse, error)
 	// Queries a list of Audience items.
 	Audience(context.Context, *QueryGetAudienceRequest) (*QueryGetAudienceResponse, error)
-	AudienceAll(context.Context, *QueryAllAudienceRequest) (*QueryAllAudienceResponse, error)
+	// AudienceAll queries a list of all Audience items with pagination.
+	AudienceAll(context.Context, *QueryAllAudienceRequest) (*QueryAudienceAllResponse, error)
 	// Queries a list of ValidateJWT items.
 	ValidateJWT(context.Context, *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error)
 }
@@ -700,13 +773,13 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (*UnimplementedQueryServer) AudienceClaim(ctx context.Context, req *QueryGetAudienceClaimRequest) (*QueryGetAudienceClaimResponse, error) {
+func (*UnimplementedQueryServer) AudienceClaim(ctx context.Context, req *QueryGetAudienceClaimRequest) (*QueryAudienceClaimResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AudienceClaim not implemented")
 }
 func (*UnimplementedQueryServer) Audience(ctx context.Context, req *QueryGetAudienceRequest) (*QueryGetAudienceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Audience not implemented")
 }
-func (*UnimplementedQueryServer) AudienceAll(ctx context.Context, req *QueryAllAudienceRequest) (*QueryAllAudienceResponse, error) {
+func (*UnimplementedQueryServer) AudienceAll(ctx context.Context, req *QueryAllAudienceRequest) (*QueryAudienceAllResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AudienceAll not implemented")
 }
 func (*UnimplementedQueryServer) ValidateJWT(ctx context.Context, req *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error) {
@@ -922,6 +995,41 @@ func (m *QueryGetAudienceClaimRequest) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryAudienceClaimResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryAudienceClaimResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryAudienceClaimResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Claim != nil {
+		{
+			size, err := m.Claim.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *QueryGetAudienceClaimResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1055,7 +1163,7 @@ func (m *QueryAllAudienceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllAudienceResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryAudienceAllResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1065,12 +1173,12 @@ func (m *QueryAllAudienceResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllAudienceResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryAudienceAllResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllAudienceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryAudienceAllResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1266,6 +1374,19 @@ func (m *QueryGetAudienceClaimRequest) Size() (n int) {
 	return n
 }
 
+func (m *QueryAudienceClaimResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Claim != nil {
+		l = m.Claim.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
 func (m *QueryGetAudienceClaimResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1316,7 +1437,7 @@ func (m *QueryAllAudienceRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllAudienceResponse) Size() (n int) {
+func (m *QueryAudienceAllResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1588,6 +1709,92 @@ func (m *QueryGetAudienceClaimRequest) Unmarshal(dAtA []byte) error {
 			m.Hash = append(m.Hash[:0], dAtA[iNdEx:postIndex]...)
 			if m.Hash == nil {
 				m.Hash = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryAudienceClaimResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryAudienceClaimResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryAudienceClaimResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Claim", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Claim == nil {
+				m.Claim = &AudienceClaim{}
+			}
+			if err := m.Claim.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		default:
@@ -1948,7 +2155,7 @@ func (m *QueryAllAudienceRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllAudienceResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryAudienceAllResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1971,10 +2178,10 @@ func (m *QueryAllAudienceResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllAudienceResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryAudienceAllResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllAudienceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryAudienceAllResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
