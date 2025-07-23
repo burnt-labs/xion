@@ -54,7 +54,6 @@ require (
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
 	github.com/cosmos/ibc-go/v10 v10.3.0
-	github.com/cosmos/ibc-go/v8 v8.7.0
 	github.com/cosmos/rosetta v0.50.6
 	github.com/dvsekhvalnov/jose2go v1.7.0
 	github.com/go-webauthn/webauthn v0.9.1
@@ -64,7 +63,6 @@ require (
 	github.com/hashicorp/go-metrics v0.5.4
 	github.com/larry0x/abstract-account v0.0.0-20240202022305-255071ed91ee
 	github.com/lestrrat-go/jwx/v2 v2.0.21
-	github.com/osmosis-labs/fee-abstraction/v8 v8.0.2
 	github.com/prometheus/client_golang v1.22.0
 	github.com/spf13/cast v1.8.0
 	github.com/spf13/cobra v1.9.1
