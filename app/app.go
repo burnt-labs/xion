@@ -778,8 +778,8 @@ func NewWasmApp(
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
-	var icaHostStack porttypes.IBCModule
-	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	// var icaHostStack porttypes.IBCModule
+	icaHostStack := icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// Create Transfer Stack
 	var transferStack porttypes.IBCModule
@@ -806,9 +806,7 @@ func NewWasmApp(
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// IBC v2 transfer stack
-	var ibcv2TransferStack ibcapi.IBCModule
-	ibcv2TransferStack = transferv2.NewIBCModule(app.TransferKeeper)
-	ibcv2TransferStack = ibccallbacksv2.NewIBCMiddleware(
+	ibcv2TransferStack := ibccallbacksv2.NewIBCMiddleware(
 		transferv2.NewIBCModule(app.TransferKeeper),
 		app.IBCKeeper.ChannelKeeperV2,
 		wasmStackIBCHandler,

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,7 +21,7 @@ import (
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 
 	"github.com/cosmos/cosmos-sdk/types"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 
 	"cosmossdk.io/x/upgrade"
 
@@ -45,30 +45,30 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/ibc-go/modules/capability"
 	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ibccore "github.com/cosmos/ibc-go/v10/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	// ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
 	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
 	aa "github.com/larry0x/abstract-account/x/abstractaccount"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 
 	"cosmossdk.io/math"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v10/relayer"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
 
 // TODO:
-// param change test (in the upcoming interchain v8 upgrade)
+// param change test (in the upcoming interchain v10 upgrade)
 
 func TestXionMinimumFeeDefault(t *testing.T) {
 	if testing.Short() {
@@ -275,7 +275,7 @@ func TestMultiDenomMinGlobalFeeIBC(t *testing.T) {
 					{
 						Repository: xionImageFrom,
 						Version:    xionVersionFrom,
-						UidGid:     "1025:1025",
+						UIDGID:     "1025:1025",
 					},
 				},
 				GasPrices:      "0.0uxion",
@@ -320,7 +320,7 @@ func TestMultiDenomMinGlobalFeeIBC(t *testing.T) {
 						aa.AppModuleBasic{},
 					)
 					// TODO: add encoding types here for the modules you want to use
-					ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+					// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 					return &cfg
 				}(),
 
@@ -335,7 +335,7 @@ func TestMultiDenomMinGlobalFeeIBC(t *testing.T) {
 					{
 						Repository: osmosisImage,
 						Version:    osmosisVersion,
-						UidGid:     "1025:1025",
+						UIDGID:     "1025:1025",
 					},
 				},
 				Type:           "cosmos",
