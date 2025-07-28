@@ -329,6 +329,7 @@ func NewWasmApp(
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
+	// TODO missing a key ?
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey,
 		banktypes.StoreKey,
@@ -353,6 +354,7 @@ func NewWasmApp(
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, packetforwardtypes.StoreKey,
 		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
+		ibcwasmtypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)

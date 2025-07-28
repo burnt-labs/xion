@@ -36,13 +36,11 @@ func (AppModuleBasic) Name() string {
 // RegisterLegacyAminoCodec implements AppModuleBasic interface
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
-	feeabstypes.RegisterCodec(cdc)
 }
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
-	feeabstypes.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
