@@ -21,9 +21,9 @@ import (
 
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang-jwt/jwt/v4"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/lestrrat-go/jwx/jwk"
 	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"

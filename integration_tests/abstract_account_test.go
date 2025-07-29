@@ -30,12 +30,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	cometClient "github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
 type jsonAuthenticator map[string]map[string]string
