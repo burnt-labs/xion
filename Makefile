@@ -270,8 +270,11 @@ test-integration-xion-update-treasury-params: compile-integration-tests
 test-integration-single-aa-mig: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestSingleAbstractAccountMigration
 
-test-treasury-multi: compile-integration-tests
+test-integgration-treasury-multi: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestTreasuryMulti
+
+test-integration-treasury-contract: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestTreasuryContract
 
 test-integration-min-fee: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault

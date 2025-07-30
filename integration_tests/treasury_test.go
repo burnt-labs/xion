@@ -235,7 +235,7 @@ func TestTreasuryContract(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["type"].(string)
-	require.Contains(t, allowanceType, "cosmos-sdk/BasicAllowance")
+	require.Contains(t, allowanceType, "/cosmos.feegrant.v1beta1.BasicAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
@@ -501,7 +501,7 @@ func TestTreasuryMulti(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["type"].(string)
-	require.Contains(t, allowanceType, "xion/MultiAnyAllowance")
+	require.Contains(t, allowanceType, "xion.v1.MultiAnyAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
