@@ -3,11 +3,11 @@ package types
 import (
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	codec "github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 const (

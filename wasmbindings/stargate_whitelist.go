@@ -7,6 +7,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	"github.com/cosmos/gogoproto/proto"
+	// nolint: gci
 	// ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	feegranttypes "cosmossdk.io/x/feegrant"
