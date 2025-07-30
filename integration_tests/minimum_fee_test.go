@@ -44,7 +44,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/ibc-go/modules/capability"
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibccore "github.com/cosmos/ibc-go/v10/modules/core"
 	ibcsolomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
@@ -52,7 +52,7 @@ import (
 
 	// ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
 	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
-	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
+	ccvprovider "github.com/cosmos/interchain-security/v7/x/ccv/provider"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 
 	"cosmossdk.io/math"

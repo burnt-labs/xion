@@ -33,7 +33,7 @@ import (
 
 	// ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
 	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
-	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
+	ccvprovider "github.com/cosmos/interchain-security/v7/x/ccv/provider"
 	ibcwasm "github.com/strangelove-ventures/interchaintest/v10/chain/cosmos/08-wasm-types"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 

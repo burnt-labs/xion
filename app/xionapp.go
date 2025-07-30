@@ -1,10 +1,11 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/burnt-labs/xion/client/docs"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 // RegisterSwaggerAPI registers swagger route with API Server

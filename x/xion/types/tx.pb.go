@@ -203,8 +203,6 @@ func (m *MsgMultiSendResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMultiSendResponse proto.InternalMessageInfo
 
-// MsgSetPlatformPercentage represents a message to update the platform fee
-// percentage.
 type MsgSetPlatformPercentage struct {
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// platform_percentage is the platform fee percentage to multiplied by 10000
@@ -258,9 +256,6 @@ func (m *MsgSetPlatformPercentage) GetPlatformPercentage() uint32 {
 	return 0
 }
 
-// MsgSetPlatformPercentageResponse defines the Msg/SetPlatformPercentage
-// response type. This response is empty as the SetPlatformPercentage operation
-// doesn't return any data.
 type MsgSetPlatformPercentageResponse struct {
 }
 
@@ -297,8 +292,6 @@ func (m *MsgSetPlatformPercentageResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSetPlatformPercentageResponse proto.InternalMessageInfo
 
-// MsgSetPlatformMinimum represents a message to set the minimum platform fee
-// for transactions.
 type MsgSetPlatformMinimum struct {
 	Authority string                                   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	Minimums  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=minimums,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"minimums"`
@@ -351,9 +344,6 @@ func (m *MsgSetPlatformMinimum) GetMinimums() github_com_cosmos_cosmos_sdk_types
 	return nil
 }
 
-// MsgSetPlatformMinimumResponse defines the Msg/SetPlatformMinimum response
-// type. This response is empty as the SetPlatformMinimum operation doesn't
-// return any data.
 type MsgSetPlatformMinimumResponse struct {
 }
 

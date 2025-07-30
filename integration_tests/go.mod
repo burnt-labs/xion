@@ -7,6 +7,7 @@ replace (
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/burnt-labs/xion => ../
+	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/strangelove-ventures/interchaintest/v10 v10.0.0 => github.com/burnt-labs/interchaintest/v10 v10.0.0-rc1
 	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm2 => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm2
@@ -22,15 +23,14 @@ require (
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/CosmWasm/wasmd v0.60.1
 	github.com/burnt-labs/abstract-account v0.0.0-20250725211404-8f79e998e3fa
-	github.com/burnt-labs/xion v0.1.0
+	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-sdk v0.53.3
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.4.2-0.20240730185033-ccd4dc278e72
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
 	github.com/cosmos/ibc-go/v10 v10.3.0
-	github.com/cosmos/interchain-security/v5 v5.1.1
+	github.com/cosmos/interchain-security/v7 v7.0.0-20250220171855-c39340d2cf4c
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/dvsekhvalnov/jose2go v1.7.0
 	github.com/go-webauthn/webauthn v0.9.1
@@ -104,9 +104,7 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.4 // indirect
-	github.com/cosmos/ibc-go/v8 v8.7.0 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
-	github.com/cosmos/interchain-security/v7 v7.0.0-20250220171855-c39340d2cf4c // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.3.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect

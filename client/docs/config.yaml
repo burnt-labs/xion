@@ -151,13 +151,6 @@ apis:
     tags:
       rename:
         Query: CosmWasm
-  - url: ./ibc/applications/fee/v1/query.swagger.json
-    operationIds:
-      rename:
-        Params: IBCFeeParams
-    tags:
-      rename:
-        Query: IBC/Apps
   - url: ./ibc/applications/interchain_accounts/controller/v1/query.swagger.json
     operationIds:
       rename:

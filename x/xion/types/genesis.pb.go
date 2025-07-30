@@ -25,7 +25,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the xion module's genesis state.
 type GenesisState struct {
 	PlatformPercentage uint32                                   `protobuf:"varint,1,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
 	PlatformMinimums   github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=platform_minimums,json=platformMinimums,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"platform_minimums,omitempty" yaml:"platform_minimums"`

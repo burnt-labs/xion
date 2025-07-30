@@ -350,11 +350,10 @@ func NewWasmApp(
 		group.StoreKey,
 		// non sdk store keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey,
-		wasmtypes.StoreKey, icahosttypes.StoreKey,
+		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, packetforwardtypes.StoreKey,
 		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
-		ibcwasmtypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
