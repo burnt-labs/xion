@@ -12,7 +12,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvm "github.com/CosmWasm/wasmvm/v3"
 	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
 	aakeeper "github.com/burnt-labs/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
@@ -719,6 +719,7 @@ func NewWasmApp(
 		distrkeeper.NewQuerier(app.DistrKeeper),
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeperV2,
 		app.TransferKeeper,
 		app.MsgServiceRouter(),
 		app.GRPCQueryRouter(),
@@ -732,14 +733,19 @@ func NewWasmApp(
 
 	// Create fee enabled wasm ibc Stack
 	// var wasmStackIBCHandler porttypes.IBCModule
-	wasmStackIBCHandler := wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper)
+	wasmStackIBCHandler := wasm.NewIBCHandler(
+		app.WasmKeeper,              // IBCContractKeeper
+		app.IBCKeeper.ChannelKeeper, // ChannelKeeper
+		app.TransferKeeper,          // ICS20TransferPortSource
+		nil,                         // appVersionGetter (or provide an implementation if needed)
+	)
 
 	app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
 		appCodec,
 		runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
 		app.IBCKeeper.ClientKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		wasmVM,
+		app.WasmClientKeeper.GetVM(),
 		app.GRPCQueryRouter(),
 	)
 

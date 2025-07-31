@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
 	"github.com/cosmos/gogoproto/proto"
 	// nolint: gci
