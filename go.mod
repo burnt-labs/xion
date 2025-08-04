@@ -66,7 +66,7 @@ require (
 	github.com/spf13/cast v1.9.2
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
-	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm2
+	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm3
 	github.com/stretchr/testify v1.10.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	go.uber.org/mock v0.5.2
