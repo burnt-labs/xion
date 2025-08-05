@@ -1,6 +1,6 @@
 module github.com/burnt-labs/xion
 
-go 1.23.11
+go 1.24.5
 
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
@@ -18,7 +18,7 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.8.1
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm2 => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm2
+	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm3 => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm3
 
 	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -70,7 +70,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	go.uber.org/mock v0.5.2
-	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a
+	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822
 	google.golang.org/grpc v1.72.2
 	gotest.tools/v3 v3.5.2
 	sigs.k8s.io/yaml v1.6.0

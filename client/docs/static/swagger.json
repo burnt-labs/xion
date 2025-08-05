@@ -18683,6 +18683,9 @@
                     "ibc_port_id": {
                       "type": "string"
                     },
+                    "ibc2_port_id": {
+                      "type": "string"
+                    },
                     "extension": {
                       "type": "object",
                       "properties": {
@@ -42560,6 +42563,9 @@
         "ibc_port_id": {
           "type": "string"
         },
+        "ibc2_port_id": {
+          "type": "string"
+        },
         "extension": {
           "type": "object",
           "properties": {
@@ -42957,6 +42963,9 @@
               }
             },
             "ibc_port_id": {
+              "type": "string"
+            },
+            "ibc2_port_id": {
               "type": "string"
             },
             "extension": {

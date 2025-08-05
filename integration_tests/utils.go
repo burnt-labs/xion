@@ -232,7 +232,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 			{
 				Repository: imageTagComponents[0],
 				Version:    imageTagComponents[1],
-				UIDGID:     "1025:1025",
+				UidGid:     "1025:1025",
 			},
 		},
 		// GasPrices:              "0.1uxion",

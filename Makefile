@@ -12,7 +12,7 @@ SIMAPP = ./app
 # docker and goreleaser
 DOCKER := $(shell which docker)
 GORELEASER_CROSS_IMAGE := $(if $(GORELEASER_KEY),ghcr.io/goreleaser/goreleaser-cross-pro,ghcr.io/goreleaser/goreleaser-cross)
-GORELEASER_CROSS_VERSION ?= v1.23.6
+GORELEASER_CROSS_VERSION ?= v1.24.4
 # need custom image
 GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
 GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)

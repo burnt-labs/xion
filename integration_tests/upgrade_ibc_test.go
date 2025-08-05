@@ -86,7 +86,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 					{
 						Repository: xionImageFrom,
 						Version:    xionVersionFrom,
-						UIDGID:     "1025:1025",
+						UidGid:     "1025:1025",
 					},
 				},
 				GasPrices:      "0.0uxion",
@@ -146,7 +146,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 					{
 						Repository: osmosisImage,
 						Version:    osmosisVersion,
-						UIDGID:     "1025:1025",
+						UidGid:     "1025:1025",
 					},
 				},
 				Type:           "cosmos",
