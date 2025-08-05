@@ -12,7 +12,7 @@ SIMAPP = ./app
 # docker and goreleaser
 DOCKER := $(shell which docker)
 GORELEASER_CROSS_IMAGE := $(if $(GORELEASER_KEY),ghcr.io/goreleaser/goreleaser-cross-pro,ghcr.io/goreleaser/goreleaser-cross)
-GORELEASER_CROSS_VERSION ?= v1.24.4
+GORELEASER_CROSS_VERSION ?= v1.24.5
 # need custom image
 GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
 GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
@@ -270,7 +270,7 @@ test-integration-xion-update-treasury-params: compile-integration-tests
 test-integration-single-aa-mig: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestSingleAbstractAccountMigration
 
-test-integgration-treasury-multi: compile-integration-tests
+test-integration-treasury-multi: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestTreasuryMulti
 
 test-integration-treasury-contract: compile-integration-tests

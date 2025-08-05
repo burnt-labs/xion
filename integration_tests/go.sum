@@ -861,8 +861,8 @@ github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10 v10.1.0 h1:e
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10 v10.1.0/go.mod h1:S4ZQwf5/LhpOi8JXSAese/6QQDk87nTdicJPlZ5q9UQ=
 github.com/cosmos/ibc-go/modules/capability v1.0.1 h1:ibwhrpJ3SftEEZRxCRkH0fQZ9svjthrX2+oXdZvzgGI=
 github.com/cosmos/ibc-go/modules/capability v1.0.1/go.mod h1:rquyOV262nGJplkumH+/LeYs04P3eV8oB7ZM4Ygqk4E=
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0 h1:m7ngaGY7/eeBC7Ly+/sGrUKCp/HNMeKWao8ksWlxH8Q=
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0/go.mod h1:T4hi2bTWs+37XOhXyKNNL6knOVDvmb4TtHxSmhXsyfM=
+github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.1-0.20250608140020-0b90af42abff h1:VmMIUL3jx3l2LlBVIgq4lXKHcbO7Qpz31RqyDWDnW7s=
+github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.1-0.20250608140020-0b90af42abff/go.mod h1:wjrAA+JdUzF6239S9VKaHLvqmqNuqcOY2PMAoPgVwBA=
 github.com/cosmos/ibc-go/v10 v10.3.0 h1:w5DkHih8qn15deAeFoTk778WJU+xC1krJ5kDnicfUBc=
 github.com/cosmos/ibc-go/v10 v10.3.0/go.mod h1:CthaR7n4d23PJJ7wZHegmNgbVcLXCQql7EwHrAXnMtw=
 github.com/cosmos/ics23/go v0.11.0 h1:jk5skjT0TqX5e5QJbEnwXIS2yI2vnmLOgpQPeM5RtnU=
