@@ -5,18 +5,18 @@ go 1.24.5
 exclude github.com/CosmWasm/wasmvm/v2 v2.2.4
 
 replace (
-	cosmossdk.io/core => cosmossdk.io/core v0.11.3
-	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
-	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/burnt-labs/xion => ../
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
-	// wasmvm2 -> wasmvm3
-	github.com/CosmWasm/wasmvm/v2 => github.com/CosmWasm/wasmvm/v3 v3.0.0
+
+	// ibc-go fork with wasmvm3 support
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.0.0-20250806192340-56aa57121fba
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/strangelove-ventures/interchaintest/v10 v10.0.0 => github.com/burnt-labs/interchaintest/v10 v10.0.0-wasmvm3
-	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm3 => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm3
-	github.com/vedhavyas/go-subkey => github.com/strangelove-ventures/go-subkey v1.0.7
-	github.com/vektra/mockery/v2 => github.com/vektra/mockery/v2 v2.14.0
+
+	// interchains test fork with ibc10 and wasmvm3 support
+	github.com/strangelove-ventures/interchaintest/v10 => github.com/burnt-labs/interchaintest/v10 v10.0.0-wasmvm3
+
+	// wasmvm3 tokenfactory fork
+	github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm3
 )
 
 require (
@@ -58,7 +58,7 @@ require (
 	cloud.google.com/go/monitoring v1.21.2 // indirect
 	cloud.google.com/go/storage v1.49.0 // indirect
 	cosmossdk.io/collections v1.3.1 // indirect
-	cosmossdk.io/core v0.12.0 // indirect
+	cosmossdk.io/core v0.11.3 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/errors v1.0.2 // indirect
 	cosmossdk.io/log v1.6.0 // indirect
@@ -69,6 +69,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
+	github.com/CosmWasm/wasmvm/v3 v3.0.0 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0 // indirect
@@ -124,7 +125,7 @@ require (
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
-	github.com/ethereum/c-kzg-4844/v2 v2.1.0 // indirect
+	github.com/ethereum/c-kzg-4844/v2 v2.1.1 // indirect
 	github.com/ethereum/go-ethereum v1.15.11 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/fatih/color v1.17.0 // indirect
@@ -262,7 +263,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.35.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.58.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0 // indirect
