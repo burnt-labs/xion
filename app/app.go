@@ -745,7 +745,7 @@ func NewWasmApp(
 		runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
 		app.IBCKeeper.ClientKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		app.WasmClientKeeper.GetVM(),
+		wasmVM,
 		app.GRPCQueryRouter(),
 	)
 
