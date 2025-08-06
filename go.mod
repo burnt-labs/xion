@@ -2,6 +2,8 @@ module github.com/burnt-labs/xion
 
 go 1.24.5
 
+exclude github.com/CosmWasm/wasmvm/v2 v2.2.4
+
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
@@ -10,7 +12,7 @@ replace (
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
 
 	// wasmvm2 -> wasmvm3
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0 => github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.1-0.20250608140020-0b90af42abff
+	github.com/CosmWasm/wasmvm/v2 => github.com/CosmWasm/wasmvm/v3 v3.0.0
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
@@ -78,8 +80,6 @@ require (
 	gotest.tools/v3 v3.5.2
 	sigs.k8s.io/yaml v1.6.0
 )
-
-require github.com/CosmWasm/wasmvm/v2 v2.2.4 // indirect
 
 require (
 	cel.dev/expr v0.20.0 // indirect

@@ -45,15 +45,11 @@ builds:
     tags:
       - netgo
       - ledger
+      - static_wasm
+      - muslc
       - >-
         {{- if eq .Os "linux" -}}
           osusergo
-        {{- end }}
-      - >-
-        {{- if eq .Os "darwin" -}}
-          static_wasm
-        {{- else if eq .Os "linux" -}}
-          muslc
         {{- end }}
     flags:
       - -mod=readonly

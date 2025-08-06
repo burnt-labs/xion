@@ -201,7 +201,7 @@ test-unit:
 	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
 compile-integration-tests:
-	@cd integration_tests && go test -c 
+	@cd integration_tests && go test -c -mod=readonly -tags='ledger test_ledger_mock' $(BUILD_FLAGS) 
 
 test-integration:
 	@XION_IMAGE=$(HEIGHLINER_IMAGE) cd ./integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...

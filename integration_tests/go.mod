@@ -2,12 +2,16 @@ module integration_tests
 
 go 1.24.5
 
+exclude github.com/CosmWasm/wasmvm/v2 v2.2.4
+
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
 	github.com/burnt-labs/xion => ../
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
+	// wasmvm2 -> wasmvm3
+	github.com/CosmWasm/wasmvm/v2 => github.com/CosmWasm/wasmvm/v3 v3.0.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/strangelove-ventures/interchaintest/v10 v10.0.0 => github.com/burnt-labs/interchaintest/v10 v10.0.0-wasmvm3
 	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm3 => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm3
@@ -28,7 +32,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.53.4
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.1-0.20250608140020-0b90af42abff
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
 	github.com/cosmos/ibc-go/v10 v10.3.0
 	github.com/cosmos/interchain-security/v7 v7.0.0-20250220171855-c39340d2cf4c
 	github.com/docker/docker v28.0.0+incompatible
@@ -65,8 +69,6 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c // indirect
-	github.com/CosmWasm/wasmvm/v2 v2.2.4 // indirect
-	github.com/CosmWasm/wasmvm/v3 v3.0.0 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0 // indirect
