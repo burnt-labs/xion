@@ -737,7 +737,7 @@ func NewWasmApp(
 		app.WasmKeeper,              // IBCContractKeeper
 		app.IBCKeeper.ChannelKeeper, // ChannelKeeper
 		app.TransferKeeper,          // ICS20TransferPortSource
-		nil,                         // appVersionGetter (or provide an implementation if needed)
+		app.IBCKeeper.ChannelKeeper, // appVersionGetter (or provide an implementation if needed)
 	)
 
 	app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
