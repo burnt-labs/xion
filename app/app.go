@@ -4,6 +4,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -156,6 +157,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/burnt-labs/xion/client/docs"
+	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
@@ -310,6 +312,9 @@ type WasmApp struct {
 
 	// module configurator
 	configurator module.Configurator
+
+	// indexer
+	indexerService *indexer.StreamService
 }
 
 // NewWasmApp returns a reference to an initialized WasmApp.
@@ -1006,6 +1011,27 @@ func NewWasmApp(
 		panic(err)
 	}
 
+	// Configure Indexer
+	app.indexerService = indexer.New(homePath, app.appCodec, authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), app.Logger())
+	app.indexerService.RegisterServices(app.configurator)
+
+	// Add listeners to commitmultistore
+	// otherwise the ABCILister attached to the streammanager
+	// will receive block information but empty []ChangeSet
+	listenKeys := []storetypes.StoreKey{
+		keys[feegrant.StoreKey],
+		keys[authzkeeper.StoreKey],
+	}
+	app.CommitMultiStore().AddListeners(listenKeys)
+	streamManager := storetypes.StreamingManager{
+		ABCIListeners: []storetypes.ABCIListener{
+			app.indexerService,
+		},
+		StopNodeOnErr: true,
+	}
+	// attach stream manager
+	app.SetStreamingManager(streamManager)
+
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
 	app.RegisterUpgradeHandlers()
@@ -1264,6 +1290,9 @@ func (app *WasmApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICo
 	// Register grpc-gateway routes for all modules.
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
+	// Register indexer service routes
+	app.indexerService.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
 	// register swagger API from root so that other applications can override easily
 	if err := RegisterSwaggerAPI(clientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
@@ -1306,6 +1335,27 @@ func (app *WasmApp) RegisterTendermintService(clientCtx client.Context) {
 
 func (app *WasmApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
+}
+
+// Close wraps BaseApp Close() to
+// perform graceful shutdown of our own services.
+func (app *WasmApp) Close() error {
+	var errs []error
+
+	err := app.BaseApp.Close()
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	err = app.indexerService.Close()
+	if err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
+}
+
+func (app *WasmApp) IndexerService() *indexer.StreamService {
+	return app.indexerService
 }
 
 // GetMaccPerms returns a copy of the module account permissions
