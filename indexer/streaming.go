@@ -3,9 +3,6 @@ package indexer
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
-	"fmt"
-	"log/slog"
 	"path/filepath"
 
 	"cosmossdk.io/collections/corecompat"
@@ -31,7 +28,6 @@ var (
 )
 
 type StreamService struct {
-	dataDir         string
 	db              db.DB
 	log             log.Logger
 	authzHandler    *AuthzHandler
@@ -50,16 +46,20 @@ func (k *kvAccessor) OpenKVStore(ctx context.Context) corecompat.KVStore {
 	return k.db
 }
 
+// New creates a new StreamService with a new PebbleDB instance
 func New(homeDir string, cdc codec.Codec, addrCodec address.Codec, log log.Logger) *StreamService {
 	dataDir := filepath.Join(homeDir, "data")
 	storeDB, err := db.NewPebbleDB("xion_indexer", dataDir, nil)
-	fmt.Println("dataDir", dataDir)
 	if err != nil {
 		panic(err)
 	}
+	return NewWithDB(storeDB, cdc, addrCodec, log)
+}
 
-	authzDB := db.NewPrefixDB(storeDB, AuthzStorePrefix)
-	feegrantDb := db.NewPrefixDB(storeDB, FeeGrantStorePrefix)
+// NewWithDB creates a new StreamService with an existing db instance
+func NewWithDB(store db.DB, cdc codec.Codec, addrCodec address.Codec, log log.Logger) *StreamService {
+	authzDB := db.NewPrefixDB(store, AuthzStorePrefix)
+	feegrantDb := db.NewPrefixDB(store, FeeGrantStorePrefix)
 
 	authzHandler, err := NewAuthzHandler(&kvAccessor{db: authzDB}, cdc)
 	if err != nil {
@@ -70,8 +70,7 @@ func New(homeDir string, cdc codec.Codec, addrCodec address.Codec, log log.Logge
 		panic(err)
 	}
 	return &StreamService{
-		dataDir:         dataDir,
-		db:              storeDB,
+		db:              store,
 		log:             log,
 		authzHandler:    authzHandler,
 		feeGrantHandler: feeGrantHandler,
@@ -113,17 +112,17 @@ func (ss *StreamService) ListenFinalizeBlock(ctx context.Context, req abci.Reque
 
 }
 
+// ListenCommit will receive the request and response of a block
+// and the change set of the block
+// NOTE: in order to receive change sets, the app must be configured with StoreListeners.
 func (ss *StreamService) ListenCommit(ctx context.Context, res abci.ResponseCommit, changeSet []*storetypes.StoreKVPair) error {
-	slog.Info("changset", "changeSetSize", len(changeSet))
 	for _, pair := range changeSet {
 		switch pair.StoreKey {
 		case authz.ModuleName:
 			// if the key is a grant index it
 			if bytes.HasPrefix(pair.Key, authzkeeper.GrantKey) {
-				slog.Info("authz_handler", "action", "update", "key", hex.EncodeToString(pair.Key), "delete", pair.Delete)
 				err := ss.authzHandler.HandleUpdate(ctx, pair)
 				if err != nil {
-					slog.Error("authz_handler", "error", err)
 					return err
 				}
 			}
@@ -131,7 +130,6 @@ func (ss *StreamService) ListenCommit(ctx context.Context, res abci.ResponseComm
 			if bytes.HasPrefix(pair.Key, feegrant.FeeAllowanceKeyPrefix) {
 				err := ss.feeGrantHandler.HandleUpdate(ctx, pair)
 				if err != nil {
-					slog.Error("feegrant_handler", "error", err)
 					return err
 				}
 			}

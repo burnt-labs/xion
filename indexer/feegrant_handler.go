@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"context"
-	"log/slog"
 
 	"cosmossdk.io/collections"
 	core "cosmossdk.io/collections/corecompat"
@@ -88,10 +87,8 @@ func (ah *FeeGrantHandler) HandleUpdate(ctx context.Context, pair *storetypes.St
 		if has, err := ah.FeeAllowances.Has(ctx, collections.Join(granterAddr, granteeAddr)); err != nil {
 			return err
 		} else if !has {
-			slog.Info("does not have for deletion")
-			return nil
+			return ErrAllowanceNotFound
 		}
-		slog.Info("feegrant_handler", "action", "delete", "granter", granterAddr.String(), "grantee", granteeAddr.String())
 		return ah.FeeAllowances.Remove(ctx, collections.Join(granterAddr, granteeAddr))
 	}
 

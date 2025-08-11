@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"context"
-	"log/slog"
 	"reflect"
 	"unsafe"
 
@@ -99,13 +98,11 @@ func (ah *AuthzHandler) HandleUpdate(ctx context.Context, pair *storetypes.Store
 		if has, err := ah.Authorizations.Has(ctx, collections.Join3(granterAddr, granteeAddr, msgType)); err != nil {
 			return err
 		} else if !has {
-			slog.Info("does not have for deletion")
-			return nil
+			return ErrGrantNotFound
 		}
-		slog.Info("authz_handler", "action", "delete", "granter", granterAddr.String(), "grantee", granteeAddr.String(), "msgType", msgType)
 		return ah.Authorizations.Remove(ctx, collections.Join3(granterAddr, granteeAddr, msgType))
 	}
-	slog.Info("authz_handler", "action", "set", "granter", granterAddr.String(), "grantee", granteeAddr.String(), "msgType", msgType)
+
 	grant := authz.Grant{}
 	err := ah.cdc.Unmarshal(pair.Value, &grant)
 	if err != nil {

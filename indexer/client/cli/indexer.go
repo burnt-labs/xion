@@ -11,22 +11,44 @@ import (
 	"cosmossdk.io/log"
 	"cosmossdk.io/x/feegrant"
 	xionapp "github.com/burnt-labs/xion/app"
-	"github.com/burnt-labs/xion/indexer"
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
+	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
 const FlagAppDBBackend = "app-db-backend"
 
+func Indexer(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "indexer",
+		Short: "indexer",
+		Long: `
+		Indexer support for xion. Indexing Authz and FeeGrant grants and allowances with streaming support.
+		`,
+
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return nil
+		},
+	}
+
+	cmd.AddCommand(ReIndex(appCreator, defaultNodeHome))
+	cmd.AddCommand(QueryGrantsByGrantee())
+	cmd.AddCommand(QueryGrantsByGranter())
+	cmd.AddCommand(QueryAllowancesByGrantee())
+	cmd.AddCommand(QueryAllowancesByGranter())
+	return cmd
+}
+
 func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reindex",
+		Use:   "re-index",
 		Short: "re-index",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -71,14 +93,6 @@ func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 						return true
 					}
 					totalAuthz++
-					if totalAuthz%100000 == 0 {
-						slog.Info("granter", "granter", granterAddr.String(), "grantee", granteeAddr.String())
-
-						slog.Info("authz grants imported", "total", totalAuthz)
-					}
-					if granteeAddr.String() == "xion1t4qcjjseqstaqtsnjxrvahqejcrgyuxp9tf9hv" {
-						slog.Info("granter", "msgType", msgType, "granter", granterAddr.String(), "grantee", granteeAddr.String())
-					}
 					return false
 				})
 
@@ -103,12 +117,10 @@ func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 					return true
 				}
 				totalFeeGrant++
-				if totalFeeGrant%100000 == 0 {
-					slog.Info("fee grants imported", "total", totalFeeGrant)
-				}
 				return false
 			})
 			slog.Info("totals", "authz grants", totalAuthz, "fee grants", totalFeeGrant)
+			// close to flush the db
 			err = wasmApp.Close()
 			if err != nil {
 				return err
@@ -121,55 +133,107 @@ func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 	return cmd
 }
 
-func Query(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.Command {
+func QueryGrantsByGrantee() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reindex",
-		Short: "re-index",
-		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		Use:   "query-grants-by-grantee [grantee]",
+		Short: "query authz grants by grantee",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			grantee := args[0]
 
-			serverCtx := server.GetServerContextFromCmd(cmd)
-			config := serverCtx.Config
-
-			homeDir, _ := cmd.Flags().GetString(flags.FlagHome)
-			config.SetRoot(homeDir)
-
-			if _, err := os.Stat(config.GenesisFile()); os.IsNotExist(err) {
-				return err
-			}
-
-			db, err := openDB(config.RootDir, server.GetAppDBBackend(serverCtx.Viper))
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// in our test, it's important to close db explicitly for pebbledb to write to disk.
-			defer db.Close()
-
-			logger := log.NewLogger(cmd.OutOrStdout(), log.LevelOption(zerolog.ErrorLevel))
-
-			app := appCreator(logger, db, nil, serverCtx.Viper)
-			wasmApp := app.(*xionapp.WasmApp)
-
-			authzHandler := wasmApp.IndexerService().AuthzHandler()
-			querier := indexer.NewAuthzQuerier(authzHandler, wasmApp.AppCodec(), wasmApp.AccountKeeper.AddressCodec())
-			querier.GranteeGrants(wasmApp.NewContext(true), &indexerauthz.QueryGranteeGrantsRequest{
-				Grantee: "xion1t4qcjjseqstaqtsnjxrvahqejcrgyuxp9tf9hv",
-				Pagination: &query.PageRequest{
-					Key:        []byte{},
-					Limit:      1000,
-					CountTotal: true,
-				},
+			queryClient := indexerauthz.NewQueryClient(clientCtx)
+			res, err := queryClient.GranteeGrants(cmd.Context(), &indexerauthz.QueryGranteeGrantsRequest{
+				Grantee: grantee,
 			})
-			err = wasmApp.Close()
 			if err != nil {
 				return err
 			}
-			return nil
+			return clientCtx.PrintProto(res)
 		},
 	}
-	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
-	cmd.Flags().String(FlagAppDBBackend, "", "The type of database for application and snapshots databases")
+	return cmd
+}
+
+func QueryGrantsByGranter() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "query-grants-by-granter [granter]",
+		Short: "query grants by granter",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			granter := args[0]
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := indexerauthz.NewQueryClient(clientCtx)
+			res, err := queryClient.GranterGrants(cmd.Context(), &indexerauthz.QueryGranterGrantsRequest{
+				Granter: granter,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func QueryAllowancesByGrantee() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "query-grants-by-grantee [grantee]",
+		Short: "query grants by grantee",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			grantee := args[0]
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := indexerfeegrant.NewQueryClient(clientCtx)
+			res, err := queryClient.Allowances(cmd.Context(), &indexerfeegrant.QueryAllowancesRequest{
+				Grantee: grantee,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	return cmd
+}
+
+func QueryAllowancesByGranter() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "query-allowances-by-granter [granter]",
+		Short: "query allowances by granter",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			granter := args[0]
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := indexerfeegrant.NewQueryClient(clientCtx)
+			res, err := queryClient.AllowancesByGranter(cmd.Context(), &indexerfeegrant.QueryAllowancesByGranterRequest{
+				Granter: granter,
+			})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
 	return cmd
 }
 
