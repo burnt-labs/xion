@@ -12,7 +12,7 @@ SIMAPP = ./app
 # docker and goreleaser
 DOCKER := $(shell which docker)
 GORELEASER_CROSS_IMAGE := $(if $(GORELEASER_KEY),ghcr.io/goreleaser/goreleaser-cross-pro,ghcr.io/goreleaser/goreleaser-cross)
-GORELEASER_CROSS_VERSION ?= v1.23.6
+GORELEASER_CROSS_VERSION ?= v1.24.5
 # need custom image
 GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
 GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
@@ -201,7 +201,7 @@ test-unit:
 	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
 compile-integration-tests:
-	@cd integration_tests && go test -c 
+	@cd integration_tests && go test -c -mod=readonly -tags='ledger test_ledger_mock' $(BUILD_FLAGS) 
 
 test-integration:
 	@XION_IMAGE=$(HEIGHLINER_IMAGE) cd ./integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
@@ -270,8 +270,11 @@ test-integration-xion-update-treasury-params: compile-integration-tests
 test-integration-single-aa-mig: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestSingleAbstractAccountMigration
 
-test-treasury-multi: compile-integration-tests
+test-integration-treasury-multi: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestTreasuryMulti
+
+test-integration-treasury-contract: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestTreasuryContract
 
 test-integration-min-fee: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
@@ -324,9 +327,9 @@ lint: format-tools
 
 format: format-tools
 	golangci-lint run --fix
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
 
 
 ################################################################################

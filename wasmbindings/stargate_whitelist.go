@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"sync"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
 	"github.com/cosmos/gogoproto/proto"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	// nolint: gci
+	// ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	feegranttypes "cosmossdk.io/x/feegrant"
 
@@ -37,7 +38,8 @@ var stargateWhitelist sync.Map
 
 func init() {
 	// ibc queries
-	setWhitelistedQuery("/ibc.applications.transfer.v1.Query/DenomTrace", &ibctransfertypes.QueryDenomTraceResponse{})
+	// TODO: fix
+	// setWhitelistedQuery("/ibc.applications.transfer.v1.Query/DenomTrace", &ibctransfertypes.QueryDenomTraceResponse{})
 
 	// cosmos-sdk queries
 

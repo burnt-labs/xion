@@ -12,7 +12,7 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/gogoproto/proto"

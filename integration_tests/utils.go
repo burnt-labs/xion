@@ -27,13 +27,14 @@ import (
 	"github.com/burnt-labs/xion/x/mint"
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
 	"github.com/burnt-labs/xion/x/xion"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
-	aa "github.com/larry0x/abstract-account/x/abstractaccount"
-	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
+	ibccore "github.com/cosmos/ibc-go/v10/modules/core"
+	ibcsolomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+
+	// ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
+	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
+	ccvprovider "github.com/cosmos/interchain-security/v7/x/ccv/provider"
+	ibcwasm "github.com/strangelove-ventures/interchaintest/v10/chain/cosmos/08-wasm-types"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
@@ -58,7 +59,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/ibc-go/modules/capability"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
@@ -67,11 +68,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -279,7 +280,7 @@ func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig
 				aa.AppModuleBasic{},
 			)
 			// TODO: add encoding types here for the modules you want to use
-			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+			// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 			return &cfg
 		}(),
 	}

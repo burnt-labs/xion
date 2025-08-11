@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -20,8 +20,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -235,7 +235,7 @@ func TestTreasuryContract(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["type"].(string)
-	require.Contains(t, allowanceType, "cosmos-sdk/BasicAllowance")
+	require.Contains(t, allowanceType, "/cosmos.feegrant.v1beta1.BasicAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
@@ -501,7 +501,7 @@ func TestTreasuryMulti(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["type"].(string)
-	require.Contains(t, allowanceType, "xion/MultiAnyAllowance")
+	require.Contains(t, allowanceType, "xion.v1.MultiAnyAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
