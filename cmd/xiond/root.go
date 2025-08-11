@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"time"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -122,9 +123,15 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 func initTendermintConfig() *tmcfg.Config {
 	cfg := tmcfg.DefaultConfig()
 
-	// these values put a higher strain on node memory
-	// cfg.P2P.MaxNumInboundPeers = 100
-	// cfg.P2P.MaxNumOutboundPeers = 40
+	// Check for consensus.timeout_commit flag
+	if viper.IsSet("consensus.timeout_commit") {
+		timeoutCommitStr := viper.GetString("consensus.timeout_commit")
+		if timeoutCommitStr != "" {
+			if timeoutCommit, err := time.ParseDuration(timeoutCommitStr); err == nil {
+				cfg.Consensus.TimeoutCommit = timeoutCommit
+			}
+		}
+	}
 
 	return cfg
 }
@@ -199,6 +206,9 @@ func initRootCmd(rootCmd *cobra.Command,
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd) // nolint:staticcheck
 	wasm.AddModuleInitFlags(startCmd)
+
+	// Add consensus timeout_commit flag
+	startCmd.Flags().String("consensus.timeout_commit", "", "How long to wait after committing a block, before starting on the new height (e.g. 1s, 500ms)")
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter

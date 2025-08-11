@@ -3,7 +3,6 @@ package integration_tests
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"path"
@@ -19,19 +18,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var configFileUrl string // Global variable to hold the file location argument
-func init() {
-	// Define command-line flags
-	flag.StringVar(&configFileUrl, "configUrl", "", "URL to the configuration file")
-}
+// Global variable to hold the file location argument
+var configFileUrl = "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/main/integration_tests/testdata/unsigned_msgs/plain_config.json"
 
 func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
-	flag.Parse()
-	// require.NotNil(t, configFileUrl, "No config file is provided via the configUrl flag")
-	configFileUrl = "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/main/integration_tests/testdata/unsigned_msgs/plain_config.json"
+	ctx := t.Context()
+
 	// Setup Xion chain
-	td := BuildXionChain(t, "0.0uxion", nil)
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -183,11 +177,10 @@ func validateFeeConfig(t *testing.T, ctx context.Context, xion *cosmos.CosmosCha
 }
 
 func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
-	configFileUrl = "https://raw.githubusercontent.com/burnt-labs/xion/refs/heads/main/integration_tests/testdata/unsigned_msgs/plain_config.json"
-	// require.NotNil(t, configFileUrl, "Skipping test as no config file is provided via the --config flag")
+	ctx := t.Context()
+
 	// Setup Xion chain
-	td := BuildXionChain(t, "0.0uxion", nil)
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")

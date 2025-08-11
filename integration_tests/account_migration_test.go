@@ -36,13 +36,13 @@ import (
 )
 
 func TestAbstractAccountMigration(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -82,19 +82,19 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", newCodeResp)
 
-	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v6")
+	CosmosChainUpgradeTest(t, xion, "xion", "upgrade", "v6")
 	// todo: validate that verification or tx submission still works
 
-	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.GetNode(),
+	newCodeResp, err = ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", newCodeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %+v", newCodeResp)
 
-	err = testutil.WaitForBlocks(ctx, int(blocksAfterUpgrade), td.xionChain)
+	err = testutil.WaitForBlocks(ctx, int(blocksAfterUpgrade), xion)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
 	for _, predictedAddr := range predictedAddrs {
-		rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.GetNode(),
+		rawUpdatedContractInfo, err := ExecQuery(t, ctx, xion.GetNode(),
 			"wasm", "contract", predictedAddr.String())
 		require.NoError(t, err)
 		t.Logf("updated contract info: %s", rawUpdatedContractInfo)
@@ -230,13 +230,13 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 }
 
 func TestSingleAbstractAccountMigration(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -532,7 +532,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	// confirm the new contract code ID
-	rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.GetNode(),
+	rawUpdatedContractInfo, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "contract", account.GetAddress().String())
 	require.NoError(t, err)
 	t.Logf("updated contract info: %s", rawUpdatedContractInfo)

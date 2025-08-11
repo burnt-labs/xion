@@ -6,8 +6,6 @@ import (
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"embed"
-	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -18,88 +16,28 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
-	abcitypes "github.com/cometbft/cometbft/abci/types"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
-	"github.com/burnt-labs/xion/x/jwk"
-	"github.com/burnt-labs/xion/x/mint"
 	mintTypes "github.com/burnt-labs/xion/x/mint/types"
-	"github.com/burnt-labs/xion/x/xion"
-	ibccore "github.com/cosmos/ibc-go/v10/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	// ibclocalhost "github.com/cosmos/ibc-go/v10/modules/light-clients/09-localhost"
-	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
-	ccvprovider "github.com/cosmos/interchain-security/v7/x/ccv/provider"
-	ibcwasm "github.com/strangelove-ventures/interchaintest/v10/chain/cosmos/08-wasm-types"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
-
-	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 
 	"cosmossdk.io/math"
-	"cosmossdk.io/x/upgrade"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/consensus"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/ibc-go/modules/capability"
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/docker/docker/client"
 	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v10/ibc"
-	"github.com/strangelove-ventures/interchaintest/v10/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 )
-
-//go:embed configuredChains.yaml
-var configuredChainsFile embed.FS
-
-const (
-	votingPeriod     = "10s"
-	maxDepositPeriod = "10s"
-	packetforward    = "0.0"
-	minInflation     = "0.0"
-	maxInflation     = "0.0"
-	mintDenom        = "uxion"
-)
-
-var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
-
-// Function type for any function that modify the genesis file
-type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
-
-type TestData struct {
-	xionChain *cosmos.CosmosChain
-	ctx       context.Context
-	client    *client.Client
-}
 
 func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
 	msg := fmt.Sprintf(`
@@ -213,227 +151,6 @@ func RawJSONMsgMigrateContract(sender string, codeID string) []byte {
 	`, sender, sender, codeID)
 	var rawMsg json.RawMessage = []byte(msg)
 	return rawMsg
-}
-
-func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
-	ctx := context.Background()
-
-	numFullNodes := 1
-	numValidators := 3
-
-	// pulling image from env to foster local dev
-	imageTag := os.Getenv("XION_IMAGE")
-	println("image tag:", imageTag)
-	imageTagComponents := strings.Split(imageTag, ":")
-
-	// config
-	cfg := ibc.ChainConfig{
-		Images: []ibc.DockerImage{
-			{
-				Repository: imageTagComponents[0],
-				Version:    imageTagComponents[1],
-				UidGid:     "1025:1025",
-			},
-		},
-		// GasPrices:              "0.1uxion",
-		GasPrices:      gas,
-		GasAdjustment:  2.0,
-		Type:           "cosmos",
-		ChainID:        "xion-1",
-		Bin:            "xiond",
-		Bech32Prefix:   "xion",
-		Denom:          "uxion",
-		TrustingPeriod: "336h",
-		ModifyGenesis:  modifyGenesis,
-		// UsingNewGenesisCommand: true,
-		EncodingConfig: func() *moduletestutil.TestEncodingConfig {
-			cfg := moduletestutil.MakeTestEncodingConfig(
-				auth.AppModuleBasic{},
-				genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-				bank.AppModuleBasic{},
-				capability.AppModuleBasic{},
-				staking.AppModuleBasic{},
-				mint.AppModuleBasic{},
-				distr.AppModuleBasic{},
-				gov.NewAppModuleBasic(
-					[]govclient.ProposalHandler{
-						paramsclient.ProposalHandler,
-					},
-				),
-				params.AppModuleBasic{},
-				slashing.AppModuleBasic{},
-				upgrade.AppModuleBasic{},
-				consensus.AppModuleBasic{},
-				transfer.AppModuleBasic{},
-				ibccore.AppModuleBasic{},
-				ibctm.AppModuleBasic{},
-				ibcwasm.AppModuleBasic{},
-				ccvprovider.AppModuleBasic{},
-				ibcsolomachine.AppModuleBasic{},
-
-				// custom
-				wasm.AppModuleBasic{},
-				authz.AppModuleBasic{},
-				tokenfactory.AppModuleBasic{},
-				xion.AppModuleBasic{},
-				jwk.AppModuleBasic{},
-				aa.AppModuleBasic{},
-			)
-			// TODO: add encoding types here for the modules you want to use
-			// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
-			return &cfg
-		}(),
-	}
-
-	// Chain factory
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
-		{
-			Name:          imageTagComponents[0],
-			Version:       imageTagComponents[1],
-			ChainConfig:   cfg,
-			NumValidators: &numValidators,
-			NumFullNodes:  &numFullNodes,
-		},
-	})
-
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	xion := chains[0].(*cosmos.CosmosChain)
-
-	client, network := interchaintest.DockerSetup(t)
-
-	// Prep Interchain
-	ic := interchaintest.NewInterchain().
-		AddChain(xion)
-
-	// Log location
-	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
-	require.NoError(t, err)
-	// Reporter/logs
-	rep := testreporter.NewReporter(f)
-	eRep := rep.RelayerExecReporter(t)
-
-	// Build Interchain
-	require.NoError(t, ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
-		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
-
-		SkipPathCreation: false,
-	},
-	),
-	)
-	return TestData{xion, ctx, client}
-}
-
-/*
- * This function is a helper to run all functions that modify the genesis file
- * in a chain. It takes a list of functions of the type ModifyInterChainGenesisFn and a list of list of parameters for each
- * function. Each array in the parameter list are the parameters for a functions of the same index
- */
-func ModifyInterChainGenesis(fns ModifyInterChainGenesisFn, params [][]string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		res := genbz
-		var err error
-
-		for i, fn := range fns {
-			res, err = fn(chainConfig, res, params[i]...)
-			if err != nil {
-				return nil, fmt.Errorf("failed to modify genesis: %w", err)
-			}
-		}
-		return res, nil
-	}
-}
-
-// This function modifies the proposal parameters of the gov module in the genesis file
-func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, params[0], "app_state", "gov", "params", "voting_period"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[1], "app_state", "gov", "params", "max_deposit_period"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, "100", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
-}
-
-func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, "0.0", "app_state", "packetfowardmiddleware", "params", "fee_percentage"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
-}
-
-// This function modifies the inflation parameters of the mint module in the genesis file
-func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, params[0], "app_state", "mint", "params", "inflation_min"); err != nil {
-		return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[1], "app_state", "mint", "params", "inflation_max"); err != nil {
-		return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[2], "app_state", "mint", "params", "inflation_rate_change"); err != nil {
-		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[3], "app_state", "mint", "params", "blocks_per_year"); err != nil {
-		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
-	}
-
-	if err := dyno.Set(g, params[4], "app_state", "mint", "params", "mint_denom"); err != nil {
-		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
-}
-
-func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, []int64{1}, "app_state", "abstractaccount", "params", "allowed_code_ids"); err != nil {
-		return nil, fmt.Errorf("failed to set allowed code ids in genesis json: %w", err)
-	}
-
-	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
-		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
 }
 
 // Helper method to retrieve the total token supply for a chain at some particular history denoted by the block height
@@ -1150,61 +867,4 @@ func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	t.Log(results)
 
 	return results.AuthorityMetadata.Admin
-}
-
-// OverrideConfiguredChainsYaml overrides the interchaintests configuredChains.yaml file with an embedded tmpfile
-func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
-	// Extract the embedded file to a temporary file
-	tempFile, err := os.CreateTemp("", "configuredChains-*.yaml")
-	if err != nil {
-		t.Errorf("error creating temporary file: %v", err)
-	}
-
-	content, err := configuredChainsFile.ReadFile("configuredChains.yaml")
-	if err != nil {
-		t.Errorf("error reading embedded file: %v", err)
-	}
-
-	if _, err := tempFile.Write(content); err != nil {
-		t.Errorf("error writing to temporary file: %v", err)
-	}
-	if err := tempFile.Close(); err != nil {
-		t.Errorf("error closing temporary file: %v", err)
-	}
-
-	// Set the environment variable to the path of the temporary file
-	err = os.Setenv("IBCTEST_CONFIGURED_CHAINS", tempFile.Name())
-	t.Logf("set env var IBCTEST_CONFIGURED_CHAINS to %s", tempFile.Name())
-	if err != nil {
-		t.Errorf("error setting env var: %v", err)
-	}
-
-	return tempFile
-}
-
-func attributeValue(events []abcitypes.Event, eventType, attrKey string) (string, bool) {
-	for _, event := range events {
-		if event.Type != eventType {
-			continue
-		}
-		for _, attr := range event.Attributes {
-			if attr.Key == attrKey {
-				return attr.Value, true
-			}
-
-			// tendermint < v0.37-alpha returns base64 encoded strings in events.
-			key, err := base64.StdEncoding.DecodeString(attr.Key)
-			if err != nil {
-				continue
-			}
-			if string(key) == attrKey {
-				value, err := base64.StdEncoding.DecodeString(attr.Value)
-				if err != nil {
-					continue
-				}
-				return string(value), true
-			}
-		}
-	}
-	return "", false
 }

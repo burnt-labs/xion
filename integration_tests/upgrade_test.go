@@ -3,7 +3,6 @@ package integration_tests
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -16,8 +15,10 @@ import (
 
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
+	"github.com/burnt-labs/xion/integration_tests/helpers"
 	"github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
@@ -28,40 +29,53 @@ const (
 	authority          = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
 
-/*
-* CONTRACT: This test requires manual setup before running
-* 1- Git checkout to current version of the network
-* 2- Build current using heighliner pass in the flag `-t current`. (for instructions on how to build check README.md on the root of the project)
-* 3- Git checkout to upgrade-version version of the network
-* 4- Build using heighliner pass in the flag `-t upgrade`. (for instructions on how to build check README.md on the root of the project)
-* 5- Mark upgrade name as the last parameter of the function
-* 6- cd integration_test
-* 7- XION_IMAGE=[current version of the network] go test -run TestXionUpgrade ./...
-
-As of Aug 17 2023 this is the necessary process to run this test, this is due to the fact that AWS & docker-hub auto deleting old images, therefore you might lose what the version currently running is image wise
-current-testnet: v18
-upgrade-version: v19
-*/
-
 func TestXionUpgradeNetwork(t *testing.T) {
 	t.Parallel()
 
-	// pull "recent" version, that is the upgrade target
-	imageTag := os.Getenv("XION_IMAGE")
-	imageTagComponents := strings.Split(imageTag, ":")
-
-	// set "previous" to the value in the test const
-	err := os.Setenv("XION_IMAGE", fmt.Sprintf("%s:%s", imageTagComponents[0], imageTagComponents[1]))
+	// Get the "from" image (current version in repo)
+	xionFromImage, err := helpers.GetGHCRPackageNameCurrentRepo()
 	require.NoError(t, err)
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs, ModifyGenesisInflation}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}, {minInflation, maxInflation, inflationRateChange, BlocksPerYear, mintDenom}}))
 
-	// issue the upgrade with "recent" again
-	CosmosChainUpgradeTest(t, &td, imageTagComponents[0], xionUpgradeName, xionUpgradeName)
+	// Get the "to" from (local image) which is where we want to upgrade from
+	xionFromImageParts := strings.SplitN(xionFromImage, ":", 2)
+	require.GreaterOrEqual(t, len(xionFromImageParts), 2, "xionFromImage should have repository:tag format")
+
+	// Get the "to" image (local image) which is where we want to upgrade to
+	xionToImageParts, err := GetXionImageTagComponents()
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(xionToImageParts), 2, "xionToImage should have repository:tag format")
+
+	xionToRepo := xionToImageParts[0]
+	xionToVersion := xionToImageParts[1]
+
+	// Use "recent" as upgrade name for local builds, otherwise use version-based name
+	upgradeName := "recent"
+	if xionToVersion != "local" {
+		// For non-local builds, use version as upgrade name (e.g., "v20")
+		upgradeName = xionToVersion
+	}
+
+	chainSpec := XionChainSpec(3, 1)
+	chainSpec.Version = xionFromImageParts[1]
+	chainSpec.ChainConfig.Images = []ibc.DockerImage{
+		{
+			Repository: xionFromImageParts[0],
+			Version:    xionFromImageParts[1],
+			UidGid:     "1025:1025",
+		},
+	}
+
+	// Build chain starting with the "from" image
+	xion := BuildXionChainWithSpec(t, chainSpec)
+
+	// Upgrade from current version in repo to local image
+	CosmosChainUpgradeTest(t, xion, xionToRepo, xionToVersion, upgradeName)
 }
 
-func CosmosChainUpgradeTest(t *testing.T, td *TestData, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
+func CosmosChainUpgradeTest(t *testing.T, xion *cosmos.CosmosChain, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
+	ctx := t.Context()
 	// t.Skip("ComosChainUpgradeTest should be run manually, please comment skip and follow instructions when running")
-	chain, ctx, client := td.xionChain, td.ctx, td.client
+	chain, client := xion, xion.GetNode().DockerClient
 
 	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)

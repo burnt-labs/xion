@@ -10,9 +10,10 @@ import (
 	"io"
 	"net/url"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 
@@ -28,18 +29,18 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 	}
 	credentials := bytes.NewReader(request.Data)
 	if err := validateAttestation(credentials); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, "%s", err.Error())
 	}
 
 	data, err := protocol.ParseCredentialCreationResponseBody(credentials)
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, "%s", err.Error())
 	}
 
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx) // NOTE: verify this is the same for X nodes
 	credential, err := types.VerifyRegistration(sdkCtx, rp, request.Addr, request.Challenge, data)
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, "%s", err.Error())
 	}
 
 	credentialBz, err := json.Marshal(&credential)
@@ -58,12 +59,12 @@ func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.Que
 
 	credentials := bytes.NewReader(request.Data)
 	if err := validateAttestation(credentials); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, "%s", err.Error())
 	}
 
 	data, err := protocol.ParseCredentialRequestResponseBody(credentials)
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, "%s", err.Error())
 	}
 
 	var credential webauthn.Credential
@@ -115,7 +116,7 @@ func validateAttestation(body io.Reader) error {
 
 	minAuthDataLength := 37
 	if minAuthDataLength > len(rawAuthData) {
-		return errors.New(fmt.Sprintf("Expected data greater than %d bytes. Got %d bytes", minAuthDataLength, len(rawAuthData)))
+		return fmt.Errorf("expected data greater than %d bytes. Got %d bytes", minAuthDataLength, len(rawAuthData))
 	}
 
 	a.RPIDHash = rawAuthData[:32]
@@ -126,9 +127,10 @@ func validateAttestation(body io.Reader) error {
 	if a.Flags.HasExtensions() {
 		if remaining != 0 {
 			if len(rawAuthData)-remaining > len(rawAuthData) {
-				return errors.New(fmt.Sprint("Raw Auth Data seems to be malformed"))
+				return errors.New("raw auth data seems to be malformed")
 			}
 			a.ExtData = rawAuthData[len(rawAuthData)-remaining:]
+			//nolint:ineffassign
 			remaining -= len(a.ExtData)
 		}
 	}

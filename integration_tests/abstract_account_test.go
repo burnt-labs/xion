@@ -19,6 +19,7 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/golang-jwt/jwt/v4"
@@ -37,19 +38,18 @@ import (
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 )
 
 type jsonAuthenticator map[string]map[string]string
 
 func TestXionAbstractAccountJWTCLI(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -378,13 +378,13 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 }
 
 func TestXionAbstractAccount(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -634,13 +634,13 @@ func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string
 }
 
 func TestXionClientEvent(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -923,9 +923,8 @@ func TestXionAbstractAccountPanic(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("inst msg: %s", string(instantiateMsgStr))
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
-
+	xion := BuildXionChain(t)
+	ctx := t.Context()
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 

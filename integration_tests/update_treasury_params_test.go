@@ -16,9 +16,9 @@ import (
 )
 
 func TestUpdateTreasuryContractParams(t *testing.T) {
+	ctx := t.Context()
 	// Setup Xion chain
-	td := BuildXionChain(t, "0.0uxion", nil)
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
