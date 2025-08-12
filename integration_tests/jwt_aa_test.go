@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -57,7 +56,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
@@ -137,10 +136,8 @@ func TestJWTAbstractAccount(t *testing.T) {
 	t.Logf("audiences: \n%s", audienceQuery)
 
 	// deploy the contract
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -282,7 +279,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	 },
 	 "signatures": []
 	}
-		`, contract, xionUser.FormattedAddress(), "uxion")
+		`, contract, xionUser.FormattedAddress(), xion.Config().Denom)
 
 	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)

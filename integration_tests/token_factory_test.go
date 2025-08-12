@@ -2,8 +2,6 @@ package integration_tests
 
 import (
 	"fmt"
-	"os"
-	"path"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -58,10 +56,8 @@ func TestXionTokenFactory(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, balance.Int64(), int64(expectedMint), "balance not 70")
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "tokenfactory_core.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "tokenfactory_core.wasm"))
 	require.NoError(t, err)
 
 	// This allows the uaddr here to mint tokens on behalf of the contract. Typically you only allow a contract here, but this is testing.

@@ -6,8 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path"
 	"testing"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
@@ -51,12 +49,9 @@ func setupChain(t *testing.T) (*cosmos.CosmosChain, ibc.Wallet, []byte, string, 
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-
 	// deploy the contract
 	codeIDStr, err := xion.StoreContract(ctx, deployerAddr.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -152,7 +147,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	err = xion.Config().EncodingConfig.Codec.UnmarshalJSON(accountJSON, &account)
 	require.NoError(t, err)
 
-	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: "uxion", Amount: math.NewInt(10_000)})
+	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: xion.Config().Denom, Amount: math.NewInt(10_000)})
 	require.NoError(t, err)
 	// create the raw tx
 	sendMsg := fmt.Sprintf(`
@@ -188,7 +183,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	 },
 	 "signatures": []
 	}
-		`, contract, deployerAddr.FormattedAddress(), "uxion")
+		`, contract, deployerAddr.FormattedAddress(), xion.Config().Denom)
 
 	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)

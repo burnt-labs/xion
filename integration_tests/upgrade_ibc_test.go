@@ -3,8 +3,6 @@ package integration_tests
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"path"
 	"strconv"
 	"strings"
 	"testing"
@@ -129,10 +127,8 @@ func TestXionUpgradeIBC(t *testing.T) {
 	chainUser := users[0]
 
 	// deploy the account contract, and pin it
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := chain.StoreContract(ctx, chainUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	authority, err := chain.UpgradeQueryAuthority(ctx)

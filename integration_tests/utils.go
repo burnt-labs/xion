@@ -39,6 +39,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// IntegrationTestPath constructs a file path for integration test resources.
+// It handles both cases where the path may or may not include the "integration_tests" prefix.
+// This is useful when running tests from different working directories.
+func IntegrationTestPath(pathElements ...string) string {
+	if len(pathElements) == 0 {
+		return ""
+	}
+
+	// Check if the first element is already "integration_tests"
+	if pathElements[0] == "integration_tests" {
+		// Path already includes integration_tests prefix
+		return path.Join(pathElements...)
+	}
+
+	// Check if we're already in the integration_tests directory
+	if wd, err := os.Getwd(); err == nil && strings.HasSuffix(wd, "integration_tests") {
+		// We're in integration_tests, so use path as-is
+		return path.Join(pathElements...)
+	}
+
+	// Add integration_tests prefix
+	return path.Join(append([]string{"integration_tests"}, pathElements...)...)
+}
+
 func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
 	msg := fmt.Sprintf(`
 {
@@ -549,7 +573,7 @@ var (
 )
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
-	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKey, _, err := wasmbinding.SetupPublicKeys(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	publicKey := privateKey.PublicKey
 	publicKeyModulus := publicKey.N.Bytes()

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -22,35 +21,6 @@ import (
 
 	xionapp "github.com/burnt-labs/xion/app"
 )
-
-func init() {
-	// Automatically set ICTEST_CONFIGURED_CHAINS to use our custom chain configurations
-	// Only set it if it's not already set by the user
-	if os.Getenv("ICTEST_CONFIGURED_CHAINS") == "" {
-		// Try different possible paths for the config file
-		var configPath string
-
-		// Get the current working directory
-		if wd, err := os.Getwd(); err == nil {
-			// Try path relative to current directory
-			path1 := filepath.Join(wd, "integration_tests", "configuredChains.yaml")
-			path2 := filepath.Join(wd, "configuredChains.yaml")
-
-			// If running from project root
-			if _, err := os.Stat(path1); err == nil {
-				configPath = path1
-			} else if _, err := os.Stat(path2); err == nil {
-				// If running from integration_tests directory
-				configPath = path2
-			}
-		}
-
-		// If we found a valid config file, set the environment variable
-		if configPath != "" {
-			os.Setenv("ICTEST_CONFIGURED_CHAINS", configPath)
-		}
-	}
-}
 
 type TestData struct {
 	xionChain *cosmos.CosmosChain

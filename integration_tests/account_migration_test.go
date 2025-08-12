@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -61,19 +60,17 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// prepare the JWT key and data
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 
 	// deploy the contract
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
 	require.NoError(t, err)
 
 	predictedAddrs := addAccounts(t, ctx, xion, 50, codeIDStr, xionUser)
 
 	// deploy the new contract
 	newCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the new hash
@@ -134,7 +131,7 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 		t.Logf("predicted address: %s", predictedAddr.String())
 
-		privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+		privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 		require.NoError(t, err)
 		privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 		require.NoError(t, err)
@@ -256,7 +253,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
@@ -308,15 +305,13 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	t.Logf("create audience hash: %s", createAudienceHash)
 
 	// Store Wasm Contracts
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
+	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
 	require.NoError(t, err)
 	t.Logf("loaded previous contract at ID %s", codeIDStr)
 
-	migrateTargetCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	migrateTargetCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("loaded new contract at ID %s", migrateTargetCodeIDStr)
 

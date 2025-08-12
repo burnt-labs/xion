@@ -41,11 +41,9 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 
 	// Deploy contract
 	t.Log("Deploying contract")
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// Instantiate contract
@@ -66,7 +64,7 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 
 	// Local File Test
 	t.Log("Testing with local file")
-	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "plain_config.json"))
+	configData, err := os.ReadFile(IntegrationTestPath("testdata", "unsigned_msgs", "plain_config.json"))
 	require.NoError(t, err)
 
 	file, err := os.CreateTemp("", "*-config.json")
@@ -185,16 +183,13 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-
 	// Create and fund test user
 	t.Log("Creating and funding user accounts")
 	fundAmount := math.NewInt(100_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 
-	err = testutil.WaitForBlocks(ctx, 2, xion)
+	err := testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
 	// Create a Secondary Key For Rotation
@@ -215,8 +210,8 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	// Store AA Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	depositedFunds := fmt.Sprintf("%d%s", 10000000, xion.Config().Denom)
@@ -240,7 +235,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	t.Logf("AA Contract Address: %s", aaContractAddr)
 
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 
 	t.Log("Instantiating Treasury contract")
@@ -265,7 +260,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 
 	// Test with local config file
 	t.Log("Testing with local config file")
-	configData, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "unsigned_msgs", "plain_config.json"))
+	configData, err := os.ReadFile(IntegrationTestPath("testdata", "unsigned_msgs", "plain_config.json"))
 	require.NoError(t, err)
 
 	file, err := os.CreateTemp("", "*-config.json")
