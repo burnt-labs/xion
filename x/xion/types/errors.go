@@ -12,5 +12,4 @@ var (
 	ErrNoValidAllowances  = errorsmod.Register(DefaultCodespace, 3, "none of the allowances accepted the msg")
 	ErrInconsistentExpiry = errorsmod.Register(DefaultCodespace, 4, "multi allowances must all expire together")
 	ErrMinimumNotMet      = errorsmod.Register(DefaultCodespace, 5, "minimum send amount not met")
-	ErrNoValidWebAuth     = errorsmod.Register(DefaultCodespace, 6, "Web auth is not valid")
 )
