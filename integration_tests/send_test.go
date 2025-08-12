@@ -22,14 +22,14 @@ import (
 )
 
 func TestXionSendPlatformFee(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
@@ -57,6 +57,11 @@ func TestXionSendPlatformFee(t *testing.T) {
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
+	// Convert gov module address to the correct bech32 prefix
+	govModuleAddr := authtypes.NewModuleAddress("gov")
+	authorityAddr, err := types.Bech32ifyAddressBytes("xion", govModuleAddr)
+	require.NoError(t, err)
+
 	// query to make sure minimums are empty
 
 	minimums, err := ExecQuery(t, ctx, xion.GetNode(), "xion", "platform-minimum")
@@ -65,7 +70,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	require.Equal(t, []interface{}{}, minimums["minimums"])
 
 	setPlatformMinimumsMsg := xiontypes.MsgSetPlatformMinimum{
-		Authority: authtypes.NewModuleAddress("gov").String(),
+		Authority: authorityAddr,
 		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(10), Denom: "uxion"}},
 	}
 
@@ -152,7 +157,7 @@ func TestXionSendPlatformFee(t *testing.T) {
 	// step 2: update the platform percentage to 5%
 
 	setPlatformPercentageMsg := xiontypes.MsgSetPlatformPercentage{
-		Authority:          authtypes.NewModuleAddress("gov").String(),
+		Authority:          authorityAddr,
 		PlatformPercentage: 500,
 	}
 	msg, err = cdc.MarshalInterfaceJSON(&setPlatformPercentageMsg)

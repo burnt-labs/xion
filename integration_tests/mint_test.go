@@ -15,13 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	inflationMin        = "0.0"
-	inflationMax        = "0.0"
-	inflationRateChange = "0.0"
-	BlocksPerYear       = "13892511" // (86400*365)/2.27) xion mainnet parity
-)
-
 // In this test case, the mint module inflation is set to 0 by setting the inflation rate
 // and inflation max and min values to 0 in the genesis file. We then send a bunch of
 // transactions without fees and check if the total supply stays the same.
@@ -29,12 +22,20 @@ const (
 // tx fees to pay validators with. This is a base test case to ensure that the mint module
 // is not minting tokens when it shouldn't.
 func TestMintModuleNoInflationNoFees(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisInflation}, [][]string{{votingPeriod, maxDepositPeriod}, {minInflation, maxInflation, inflationRateChange, BlocksPerYear, mintDenom}}))
-	xion, ctx := td.xionChain, td.ctx
+	// Create custom chain spec with inflation set to 0
+	chainSpec := XionLocalChainSpec(t, 3, 1)
+	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(append(defaultGenesisKVMods,
+		cosmos.NewGenesisKV("app_state.mint.params.inflation_min", "0.0"),
+		cosmos.NewGenesisKV("app_state.mint.params.inflation_max", "0.0"),
+		cosmos.NewGenesisKV("app_state.mint.params.inflation_rate_change", "0.0"),
+	))
+
+	xion := BuildXionChainWithSpec(t, chainSpec)
 
 	// Wait for some blocks and check if that supply stays the same
 	chainHeight, _ := xion.Height(ctx)
@@ -54,14 +55,15 @@ func TestMintModuleNoInflationNoFees(t *testing.T) {
 // if the total supply increases. The supply should increase because the mint module
 // is minting tokens to pay validators with.
 func TestMintModuleInflationNoFees(t *testing.T) {
+	ctx := t.Context()
+
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	chainHeight, _ := xion.Height(ctx)
 	testutil.WaitForBlocks(ctx, int(chainHeight)+10, xion)
@@ -165,14 +167,15 @@ type MintModuleTest struct {
 // and checking if the total supply increases. We also check if the total supply
 // increases by the correct amount.
 func TestMintModuleInflationHighFees(t *testing.T) {
+	ctx := t.Context()
+
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.00uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	txHashes := MintModuleTest{
 		TxHashes: []string{},
@@ -203,14 +206,14 @@ func TestMintModuleInflationHighFees(t *testing.T) {
 // and checking if the total supply increases. We also check if the total supply
 // increases by the correct amount.
 func TestMintModuleInflationLowFees(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.00uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	txHashes := MintModuleTest{
 		TxHashes: []string{},

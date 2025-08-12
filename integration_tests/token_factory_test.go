@@ -14,14 +14,14 @@ import (
 )
 
 func TestXionTokenFactory(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")

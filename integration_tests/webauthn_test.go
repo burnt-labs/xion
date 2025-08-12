@@ -24,16 +24,15 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v10/ibc"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
-var deployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
-
-func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+func setupChain(t *testing.T) (*cosmos.CosmosChain, ibc.Wallet, []byte, string, error) {
+	ctx := t.Context()
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -69,19 +68,19 @@ func setupChain(t *testing.T) (TestData, ibc.Wallet, []byte, string, error) {
 	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
 	require.NoError(t, err)
 
-	return td, deployerAddr, codeHash, codeIDStr, nil
+	return xion, deployerAddr, codeHash, codeIDStr, nil
 }
 
 func TestWebAuthNAbstractAccount(t *testing.T) {
+	ctx := t.Context()
 	t.Parallel()
+
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
-	td, deployerAddr, codeHash, codeIDStr, err := setupChain(t)
+	xion, deployerAddr, codeHash, codeIDStr, err := setupChain(t)
 	require.NoError(t, err)
-
-	xion, ctx := td.xionChain, td.ctx
 
 	// predict the contract address so it can be verified
 	salt := "0"
@@ -111,6 +110,7 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	instantiateMsg["authenticator"] = authenticator
 
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
+	t.Logf("instantiate msg: %s", instantiateMsgStr)
 	require.NoError(t, err)
 
 	registerCmd := []string{
