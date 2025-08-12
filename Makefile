@@ -291,7 +291,6 @@ test-integration-upgrade-network: compile-integration-tests
 test-integration-simulate: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestSimulate
 
-
 test-integration-xion-abstract-account-panic: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=XionAbstractAccountPanic
 
