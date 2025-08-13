@@ -1,0 +1,58 @@
+syntax = "proto3";
+package feeabstraction.feeabs.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// HostChainFeeAbsStatus
+enum HostChainFeeAbsStatus {
+  UPDATED = 0;
+  OUTDATED = 1;
+  FROZEN = 2;
+}
+
+// HostChainFeeAbsConfig
+message HostChainFeeAbsConfig {
+  // ibc token is allowed to be used as fee token
+  string ibc_denom = 1 [ (gogoproto.moretags) = "yaml:\"allowed_token\"" ];
+  // token_in in cross_chain swap contract.
+  string osmosis_pool_token_denom_in = 2;
+  // pool id
+  uint64 pool_id = 3;
+  // Host chain fee abstraction connection status
+  HostChainFeeAbsStatus status = 4;
+}
+
+// AddHostZoneProposal
+message AddHostZoneProposal {
+  option (gogoproto.goproto_getters) = false;
+  // the title of the proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the host chain config
+  HostChainFeeAbsConfig host_chain_config = 3;
+}
+
+// DeleteHostZoneProposal
+message DeleteHostZoneProposal {
+  option (gogoproto.goproto_getters) = false;
+  // the title of the proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the  ibc denom of this token
+  string ibc_denom = 3;
+}
+
+// SetHostZoneProposal
+message SetHostZoneProposal {
+  option (gogoproto.goproto_getters) = false;
+  // the title of the proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the host chain config
+  HostChainFeeAbsConfig host_chain_config = 3;
+}

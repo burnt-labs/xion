@@ -3,8 +3,9 @@ package cli
 import (
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
 )
 
 func TestGetQueryCmd(t *testing.T) {
@@ -30,6 +31,31 @@ func TestGetCmdShowGlobalFeeParams(t *testing.T) {
 	require.Equal(t, "Show globalfee requirement: minimum_gas_prices, bypass_min_fee_msg_types, max_total_bypass_minFee_msg_gas_usage", cmd.Long)
 	require.NotNil(t, cmd.RunE)
 
-	// Test that it expects exactly 0 args
-	require.Equal(t, cobra.ExactArgs(0), cmd.Args)
+	// Test that it expects exactly 0 args by testing the function behavior
+	require.NotNil(t, cmd.Args)
+	// Test with 0 args (should pass)
+	err := cmd.Args(cmd, []string{})
+	require.NoError(t, err)
+	// Test with 1 arg (should fail)
+	err = cmd.Args(cmd, []string{"extra"})
+	require.Error(t, err)
+
+	// Test that flags are added
+	flagSet := cmd.Flags()
+	require.NotNil(t, flagSet)
+
+	// Check that query flags are added
+	flag := flagSet.Lookup(flags.FlagOutput)
+	require.NotNil(t, flag)
+}
+
+func TestGetCmdShowGlobalFeeParamsExecution(t *testing.T) {
+	cmd := GetCmdShowGlobalFeeParams()
+
+	// Test that command has no arguments validator
+	require.NotNil(t, cmd.Args)
+
+	// Test execution with args (should return error about no arguments)
+	err := cmd.Args(cmd, []string{"extra"})
+	require.Error(t, err)
 }

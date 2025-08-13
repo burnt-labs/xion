@@ -150,18 +150,18 @@ func TestMaxCoins(t *testing.T) {
 	require.Equal(t, expected, result)
 
 	// Test with multiple denoms - debug to understand AmountOf issue
-	coin1Uatom := sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))
+	coin1Uxion := sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))
 	coin1Stake := sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(3, 3))
-	coin2Uatom := sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))
+	coin2Uxion := sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))
 	coin2Stake := sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(4, 3))
 
-	t.Logf("coin1Uatom: %s", coin1Uatom)
+	t.Logf("coin1Uxion: %s", coin1Uxion)
 	t.Logf("coin1Stake: %s", coin1Stake)
-	t.Logf("coin2Uatom: %s", coin2Uatom)
+	t.Logf("coin2Uxion: %s", coin2Uxion)
 	t.Logf("coin2Stake: %s", coin2Stake)
 
-	coins1 = sdk.DecCoins{coin1Uatom, coin1Stake}
-	coins2 = sdk.DecCoins{coin2Uatom, coin2Stake}
+	coins1 = sdk.DecCoins{coin1Uxion, coin1Stake}
+	coins2 = sdk.DecCoins{coin2Uxion, coin2Stake}
 
 	t.Logf("coins1 before sort: %s", coins1)
 	t.Logf("coins2 before sort: %s", coins2)

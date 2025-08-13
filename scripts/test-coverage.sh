@@ -29,9 +29,9 @@ echo "Overall Coverage: $total_coverage"
 # Show modules with 0% coverage
 echo ""
 echo "=== MODULES WITH 0% COVERAGE ==="
-go tool cover -func=coverage_filtered.out | grep "0.0%" | head -10
+go tool cover -func=coverage_filtered.out | grep "0.0%" | grep -v "100.0%"
 
 # Show modules with low coverage (less than 50%)
 echo ""
 echo "=== MODULES WITH LOW COVERAGE (<50%) ==="
-go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[0-4][0-9]\.[0-9]%$/ || $3 ~ /^[0-9]\.[0-9]%$/' | head -10
+go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[0-4][0-9]\.[0-9]%$/ || $3 ~ /^[0-9]\.[0-9]%$/'

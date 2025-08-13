@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
+	feeabstypes "github.com/burnt-labs/xion/x/feeabs/types"
 	xionMintTypes "github.com/burnt-labs/xion/x/mint/types"
 )
 
@@ -25,6 +26,9 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&ContractsAllowance{}, "xion/ContractsAllowance", nil)
 	cdc.RegisterConcrete(&MultiAnyAllowance{}, "xion/MultiAnyAllowance", nil)
 	cdc.RegisterConcrete(xionMintTypes.Params{}, "xion/x/mint/Params", nil)
+
+	// Register feeabs types for reading historical proposals
+	feeabstypes.RegisterCodec(cdc)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -42,6 +46,9 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&ContractsAllowance{},
 		&MultiAnyAllowance{},
 	)
+
+	// Register feeabs interfaces for reading historical proposals
+	feeabstypes.RegisterInterfaces(registry)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

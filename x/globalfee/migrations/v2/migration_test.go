@@ -37,11 +37,11 @@ func TestMigrateStore(t *testing.T) {
 		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3)),
 	}
 
-	// Set old params without key table
+	// Set old params with key table first
 	subspaceWithKeyTable := subspace.WithKeyTable(types.ParamKeyTable())
 	subspaceWithKeyTable.Set(ctx.Ctx, types.ParamStoreKeyMinGasPrices, oldGlobalMinGasPrices)
 
-	// Remove key table to test migration with no key table
+	// Create subspace without key table to test migration
 	subspaceNoKeyTable := paramstypes.NewSubspace(
 		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
 		codec.NewLegacyAmino(),
@@ -49,9 +49,8 @@ func TestMigrateStore(t *testing.T) {
 		tkey,
 		types.ModuleName,
 	)
-	subspaceNoKeyTable.Set(ctx.Ctx, types.ParamStoreKeyMinGasPrices, oldGlobalMinGasPrices)
 
-	// Test migration
+	// Test migration - the migration function should handle adding the key table
 	err := MigrateStore(ctx.Ctx, subspaceNoKeyTable)
 	require.NoError(t, err)
 

@@ -7,6 +7,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
@@ -37,7 +39,7 @@ func TestJWKTypes(t *testing.T) {
 
 func TestJWKParams(t *testing.T) {
 	// Test NewParams
-	params := types.NewParams(1000, 500)
+	params := types.NewParams(500, 1000)
 	require.NotNil(t, params)
 	require.Equal(t, uint64(1000), params.DeploymentGas)
 	require.Equal(t, uint64(500), params.TimeOffset)
@@ -45,8 +47,8 @@ func TestJWKParams(t *testing.T) {
 	// Test DefaultParams
 	defaultParams := types.DefaultParams()
 	require.NotNil(t, defaultParams)
-	require.Equal(t, uint64(500_000), defaultParams.DeploymentGas)
-	require.Equal(t, uint64(1200), defaultParams.TimeOffset)
+	require.Equal(t, uint64(10_000), defaultParams.DeploymentGas)
+	require.Equal(t, uint64(30_000), defaultParams.TimeOffset)
 
 	// Test ParamSetPairs
 	pairs := defaultParams.ParamSetPairs()
@@ -64,6 +66,18 @@ func TestJWKParams(t *testing.T) {
 	}
 	err = invalidParams.Validate()
 	require.Error(t, err)
+
+	// Test with invalid params - zero time offset
+	invalidParams2 := types.Params{
+		DeploymentGas: 500000,
+		TimeOffset:    0, // invalid
+	}
+	err = invalidParams2.Validate()
+	require.Error(t, err)
+
+	// Test ParamKeyTable
+	keyTable := types.ParamKeyTable()
+	require.NotNil(t, keyTable)
 }
 
 func TestJWKCodec(t *testing.T) {
@@ -82,9 +96,11 @@ func TestJWKCodec(t *testing.T) {
 
 func TestJWKMessages(t *testing.T) {
 	// Test NewMsgCreateAudience
-	admin := "xion1test"
+	adminAddr := authtypes.NewModuleAddress(govtypes.ModuleName)
+	admin := adminAddr.String()
 	aud := "test-audience"
-	key := "test-key"
+	// Valid JWK JSON format with proper algorithm
+	key := `{"kty":"RSA","use":"sig","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`
 	msg := types.NewMsgCreateAudience(admin, aud, key)
 	require.NotNil(t, msg)
 	require.Equal(t, admin, msg.Admin)

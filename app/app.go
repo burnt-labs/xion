@@ -153,7 +153,6 @@ import (
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	xionMintKeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
@@ -447,16 +446,6 @@ func NewWasmApp(
 			minttypes.DefaultInflationCalculationFn,
 			app.BankKeeper, app.AccountKeeper, app.StakingKeeper)))
 
-	// NOTE: it's not wired to Module Manager, used to bootstrap changes for the v53 mint module from the SDK should be removed on v20 or v19.1 whichever comes first.
-	xionLegacyMintKeeper := xionMintKeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[minttypes.StoreKey]),
-		app.StakingKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
 	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[distrtypes.StoreKey]),
@@ -770,7 +759,7 @@ func NewWasmApp(
 		app.WasmKeeper,
 		app.AbstractAccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		xionLegacyMintKeeper)
+	)
 
 	// Set legacy router for backwards compatibility with gov v1beta1
 	app.GovKeeper.SetLegacyRouter(govRouter)

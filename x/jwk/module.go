@@ -97,9 +97,13 @@ type AppModule struct {
 }
 
 func (am AppModule) IsOnePerModuleType() {
+	// Interface marker method - indicates this module should only be instantiated once per chain
+	_ = am.keeper
 }
 
 func (am AppModule) IsAppModule() {
+	// Interface marker method - indicates this implements the AppModule interface
+	_ = am.keeper
 }
 
 func NewAppModule(
@@ -116,9 +120,11 @@ func NewAppModule(
 
 // RegisterServices registers a gRPC query service to respond to the module-specific gRPC queries
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	// Register message and query servers
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
+	// Register migration
 	m := keeper.NewMigrator(am.jwkSubspace)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1To2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/jwk v3: %v", err))

@@ -1,0 +1,25 @@
+syntax = "proto3";
+package feeabstraction.feeabs.v1beta1;
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// Params defines the parameters for the feeabs module.
+message Params {
+  // native ibced in osmosis
+  string native_ibced_in_osmosis = 1;
+
+  // osmosis query TWAP path
+  string osmosis_query_twap_path = 2;
+
+  // chain name for ibc path unwinding
+  string chain_name = 3;
+
+  // transfer channel for cross chain swap with osmosis
+  string ibc_transfer_channel = 4;
+
+  // query twap price icq channel with osmosis
+  string ibc_query_icq_channel = 5;
+
+  // osmosis crosschain swap contract address
+  string osmosis_crosschain_swap_address = 6;
+}

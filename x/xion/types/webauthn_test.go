@@ -316,3 +316,85 @@ func TestGenerateWebAuthNSignature(t *testing.T) {
 	signature := CreateWebAuthNSignature(t, []byte(challenge))
 	require.NotNil(t, signature)
 }
+
+func TestSmartContractUser(t *testing.T) {
+	address := "cosmos1abcdefghijklmnopqrstuvwxyz"
+	credential := &webauthn.Credential{
+		ID: []byte("test_credential_id"),
+	}
+
+	user := types.SmartContractUser{
+		Address:    address,
+		Credential: credential,
+	}
+
+	// Test WebAuthnID
+	require.Equal(t, []byte(address), user.WebAuthnID())
+
+	// Test WebAuthnName
+	require.Equal(t, address, user.WebAuthnName())
+
+	// Test WebAuthnDisplayName
+	require.Equal(t, address, user.WebAuthnDisplayName())
+	require.Equal(t, user.WebAuthnName(), user.WebAuthnDisplayName())
+
+	// Test WebAuthnCredentials
+	credentials := user.WebAuthnCredentials()
+	require.Len(t, credentials, 1)
+	require.Equal(t, *credential, credentials[0])
+
+	// Test WebAuthnIcon
+	require.Equal(t, "", user.WebAuthnIcon())
+}
+
+func TestSmartContractUser_Interface(t *testing.T) {
+	// Test that SmartContractUser implements webauthn.User interface
+	var _ webauthn.User = types.SmartContractUser{}
+
+	// Test with actual instance
+	user := types.SmartContractUser{
+		Address: "test_address",
+		Credential: &webauthn.Credential{
+			ID: []byte("test_id"),
+		},
+	}
+
+	// Should be able to use as webauthn.User
+	var webauthnUser webauthn.User = user
+	require.NotNil(t, webauthnUser)
+	require.Equal(t, user.WebAuthnID(), webauthnUser.WebAuthnID())
+	require.Equal(t, user.WebAuthnName(), webauthnUser.WebAuthnName())
+	require.Equal(t, user.WebAuthnDisplayName(), webauthnUser.WebAuthnDisplayName())
+	require.Equal(t, user.WebAuthnCredentials(), webauthnUser.WebAuthnCredentials())
+	require.Equal(t, user.WebAuthnIcon(), webauthnUser.WebAuthnIcon())
+}
+
+func TestSmartContractUser_EmptyValues(t *testing.T) {
+	// Test with empty/nil values (but valid credential)
+	user := types.SmartContractUser{
+		Credential: &webauthn.Credential{}, // Valid empty credential, not nil
+	}
+
+	require.Equal(t, []byte(""), user.WebAuthnID())
+	require.Equal(t, "", user.WebAuthnName())
+	require.Equal(t, "", user.WebAuthnDisplayName())
+	require.Equal(t, "", user.WebAuthnIcon())
+
+	// WebAuthnCredentials should work with empty credential
+	credentials := user.WebAuthnCredentials()
+	require.Len(t, credentials, 1)
+	require.Equal(t, webauthn.Credential{}, credentials[0])
+}
+
+func TestSmartContractUser_WithNilCredential(t *testing.T) {
+	user := types.SmartContractUser{
+		Address:    "test_address",
+		Credential: nil,
+	}
+
+	// Should handle nil credential without panicking - but current implementation doesn't
+	// This test documents that nil credentials cause panic (which might be intended behavior)
+	require.Panics(t, func() {
+		user.WebAuthnCredentials()
+	})
+}

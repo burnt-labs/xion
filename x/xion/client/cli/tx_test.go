@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 
@@ -18,6 +21,7 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 )
@@ -45,9 +49,7 @@ func (s *CLITestSuite) TestSendTxCmd() {
 	}{
 		{
 			"valid transaction",
-			func() client.Context {
-				return s.baseCtx
-			},
+			func() client.Context { return s.baseCtx },
 			accounts[0].Address,
 			accounts[0].Address,
 			sdk.NewCoins(
@@ -59,9 +61,7 @@ func (s *CLITestSuite) TestSendTxCmd() {
 		},
 		{
 			"invalid to Address",
-			func() client.Context {
-				return s.baseCtx
-			},
+			func() client.Context { return s.baseCtx },
 			accounts[0].Address,
 			sdk.AccAddress{},
 			sdk.NewCoins(
@@ -73,9 +73,7 @@ func (s *CLITestSuite) TestSendTxCmd() {
 		},
 		{
 			"invalid coins",
-			func() client.Context {
-				return s.baseCtx
-			},
+			func() client.Context { return s.baseCtx },
 			accounts[0].Address,
 			accounts[0].Address,
 			nil,
@@ -87,12 +85,9 @@ func (s *CLITestSuite) TestSendTxCmd() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			ctx := svrcmd.CreateExecuteContext(context.Background())
-
 			cmd.SetContext(ctx)
 			cmd.SetArgs(append([]string{tc.from.String(), tc.to.String(), tc.amount.String()}, tc.extraArgs...))
-
 			s.Require().NoError(client.SetCmdClientContextHandler(tc.ctxGen(), cmd))
-
 			err := cmd.Execute()
 			if tc.expectErr {
 				s.Require().Error(err)
@@ -102,7 +97,6 @@ func (s *CLITestSuite) TestSendTxCmd() {
 		})
 	}
 }
-
 func (s *CLITestSuite) TestMultiSendTxCmd() {
 	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 3)
 
@@ -224,7 +218,6 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	cmd.SetOut(io.Discard)
 
 	configFile := "plain_config.json"
-	configFileURL := "https://raw.githubusercontent.com/burnt-labs/xion/6ce7bb89562d5a2964788cb64a623eec170c8748/integration_tests/testdata/unsigned_msgs/plain_config.json"
 
 	// Create temporary JSON files for testing
 	configData := []byte(`{"grant_config":[
@@ -268,8 +261,16 @@ func (s *CLITestSuite) TestUpdateConfigsCmd() {
 	require.NoError(s.T(), os.WriteFile(configFile, configData, 0o600))
 	defer os.Remove(configFile)
 
-	// Mock valid Bech32 contract address
-	validContractAddress := "cosmos1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
+	// local server to avoid network flakiness
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(configData)
+	}))
+	defer srv.Close()
+	configFileURL := srv.URL + "/plain_config.json"
+
+	// Mock valid Bech32 contract address with xion prefix (placeholder length/padding)
+	validContractAddress := accounts[0].Address.String()
 
 	extraArgs := []string{
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
@@ -401,4 +402,203 @@ func (s *CLITestSuite) TestSerializeJSONAllowanceToProto() {
 	require.True(s.T(), ok, "Fourth-level Protobuf message is not of type *feegrant.BasicAllowance")
 	require.Equal(s.T(), sdk.Coins{{Denom: "atom", Amount: math.NewInt(1000)}}, fourthLevelAllowance.SpendLimit)
 	require.NotNil(s.T(), fourthLevelAllowance.Expiration, "Expiration should not be nil")
+}
+
+// TestNewTxCmd tests the main transaction command creation
+func (s *CLITestSuite) TestNewTxCmd() {
+	cmd := cli.NewTxCmd()
+	require.NotNil(s.T(), cmd)
+	require.Equal(s.T(), "xion", cmd.Use)
+	require.Equal(s.T(), "Xion transaction subcommands", cmd.Short)
+	require.True(s.T(), cmd.DisableFlagParsing)
+	require.Equal(s.T(), 2, cmd.SuggestionsMinimumDistance)
+	require.NotNil(s.T(), cmd.RunE)
+
+	// Test that all expected subcommands are added
+	subcommands := cmd.Commands()
+	require.Len(s.T(), subcommands, 8) // Should have 8 subcommands
+
+	// Check first few commands exist (order may vary)
+	cmdNames := make([]string, len(subcommands))
+	for i, subcmd := range subcommands {
+		cmdNames[i] = subcmd.Name()
+	}
+	require.Contains(s.T(), cmdNames, "send")
+	require.Contains(s.T(), cmdNames, "multi-send")
+	require.Contains(s.T(), cmdNames, "register")
+
+	// Test RunE validation
+	err := cmd.RunE(cmd, []string{})
+	require.NoError(s.T(), err) // ValidateCmd should pass with no args
+}
+
+// Consolidated command metadata & arg validation (reduces multiple redundant tests)
+func TestCommandMetadataAndArgs(t *testing.T) {
+	cases := []struct {
+		name        string
+		newCmd      func() *cobra.Command
+		useContains string
+		short       string
+		validArgs   [][]string // arg sets expected to pass
+		invalidArgs [][]string // arg sets expected to fail
+	}{
+		{
+			name:        "register",
+			newCmd:      cli.NewRegisterCmd,
+			useContains: "register",
+			short:       "Register an abstract account",
+			validArgs:   [][]string{{}, {"1"}, {"1", "key"}},
+			invalidArgs: [][]string{{"1", "key", "extra"}},
+		},
+		{
+			name:        "add-authenticator",
+			newCmd:      cli.NewAddAuthenticatorCmd,
+			useContains: "add-authenticator",
+			short:       "Add the signing key as an authenticator to an abstract account",
+			validArgs:   [][]string{{"addr"}},
+			invalidArgs: [][]string{{}, {"a", "b"}},
+		},
+		{
+			name:        "sign",
+			newCmd:      cli.NewSignCmd,
+			useContains: "sign",
+			short:       "sign a transaction",
+			validArgs:   [][]string{{"k", "acct", "file"}},
+			invalidArgs: [][]string{{}, {"k"}, {"k", "a"}, {"k", "a", "b", "c"}},
+		},
+		{
+			name:        "emit",
+			newCmd:      cli.NewEmitArbitraryDataCmd,
+			useContains: "emit",
+			short:       "Emit an arbitrary data from the chain",
+			validArgs:   [][]string{{"data", "contract"}},
+			invalidArgs: [][]string{{}, {"only"}, {"a", "b", "c"}},
+		},
+		{
+			name:        "update-params",
+			newCmd:      cli.NewUpdateParamsCmd,
+			useContains: "update-params",
+			short:       "Update treasury contract parameters",
+			validArgs:   [][]string{{"c", "d", "r", "i"}},
+			invalidArgs: [][]string{{}, {"c"}, {"c", "d", "r"}, {"c", "d", "r", "i", "x"}},
+		},
+		{
+			name:        "update-configs",
+			newCmd:      cli.NewUpdateConfigsCmd,
+			useContains: "update-configs",
+			short:       "Batch update grant configs and fee config for the treasury",
+			validArgs:   [][]string{{"c", "path"}},
+			invalidArgs: [][]string{{}, {"c"}, {"c", "p", "x"}},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := tc.newCmd()
+			require.Contains(t, cmd.Use, tc.useContains)
+			require.Equal(t, tc.short, cmd.Short)
+			for _, a := range tc.validArgs {
+				require.NoError(t, cmd.Args(cmd, a), "args should be valid: %v", a)
+			}
+			for _, a := range tc.invalidArgs {
+				require.Error(t, cmd.Args(cmd, a), "args should be invalid: %v", a)
+			}
+			// smoke help
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			cmd.SetArgs([]string{"--help"})
+			ctx := svrcmd.CreateExecuteContext(context.Background())
+			cmd.SetContext(ctx)
+			require.NoError(t, cmd.Execute())
+		})
+	}
+}
+
+// TestConvertJSONToAny tests the ConvertJSONToAny function
+func (s *CLITestSuite) TestConvertJSONToAny() {
+	testCases := []struct {
+		name      string
+		jsonInput map[string]interface{}
+		expectErr bool
+		errMsg    string
+	}{
+		{
+			name: "missing @type field",
+			jsonInput: map[string]interface{}{
+				"amount": "100",
+			},
+			expectErr: true,
+			errMsg:    "failed to parse type URL from JSON",
+		},
+		{
+			name: "invalid @type value",
+			jsonInput: map[string]interface{}{
+				"@type":  123, // not a string
+				"amount": "100",
+			},
+			expectErr: true,
+			errMsg:    "failed to parse type URL from JSON",
+		},
+		{
+			name: "unknown type URL",
+			jsonInput: map[string]interface{}{
+				"@type":  "/unknown.Type",
+				"amount": "100",
+			},
+			expectErr: true,
+			errMsg:    "failed to resolve type URL",
+		},
+		{
+			name: "valid BasicAllowance type",
+			jsonInput: map[string]interface{}{
+				"@type": "/cosmos.feegrant.v1beta1.BasicAllowance",
+				"spend_limit": []interface{}{
+					map[string]interface{}{
+						"denom":  "atom",
+						"amount": "1000",
+					},
+				},
+			},
+			expectErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			result, err := cli.ConvertJSONToAny(s.baseCtx.Codec, tc.jsonInput)
+			if tc.expectErr {
+				s.Require().Error(err)
+				if tc.errMsg != "" {
+					s.Require().Contains(err.Error(), tc.errMsg)
+				}
+			} else {
+				s.Require().NoError(err)
+				s.Require().NotEmpty(result.TypeURL)
+				s.Require().NotEmpty(result.Value)
+			}
+		})
+	}
+}
+
+// Simplified flag presence test
+func TestCommandCommonFlags(t *testing.T) {
+	cmds := []struct {
+		name string
+		cmd  func() *cobra.Command
+	}{
+		{"register", cli.NewRegisterCmd},
+		{"add-authenticator", cli.NewAddAuthenticatorCmd},
+		{"sign", cli.NewSignCmd},
+		{"emit", cli.NewEmitArbitraryDataCmd},
+		{"update-params", cli.NewUpdateParamsCmd},
+		{"update-configs", cli.NewUpdateConfigsCmd},
+	}
+	for _, c := range cmds {
+		t.Run(c.name, func(t *testing.T) {
+			cmd := c.cmd()
+			require.NotNil(t, cmd.Flag(flags.FlagChainID))
+			require.NotNil(t, cmd.Flag(flags.FlagFrom))
+			require.NotNil(t, cmd.Flag(flags.FlagGas))
+		})
+	}
 }
