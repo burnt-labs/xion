@@ -368,7 +368,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
-	err = testutil.WaitForBlocks(ctx, 2, xion)
+	err = testutil.WaitForBlocks(ctx, 6, xion)
 	require.NoError(t, err)
 	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
