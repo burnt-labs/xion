@@ -43,6 +43,7 @@ jobs:
             - "XionMinimumFeeZero"
             - "XionSendPlatformFee"
             - "XionTokenFactory"
+            - "XionAbstractAccountPanic"
             # - "XionUpgradeNetwork" # broken
 
     steps:

@@ -277,5 +277,5 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.True(t, math.NewInt(10_000-1337).Equal(newBalance))
+	require.True(t, math.NewInt(10_000-1337).Equal(newBalance), "expected: %d, got: %d", 10_000-1337, newBalance)
 }
