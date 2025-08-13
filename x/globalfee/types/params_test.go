@@ -252,10 +252,11 @@ func TestValidate(t *testing.T) {
 	err := params.ValidateBasic()
 	require.NoError(t, err)
 
-	// Test with invalid params
+	// Test with invalid params - create invalid params without using NewDecCoin with empty denom
+	// which would panic. Instead, we create valid DecCoins and then manually set invalid values
 	invalidParams := Params{
 		MinimumGasPrices: sdk.DecCoins{
-			sdk.NewDecCoin("", math.OneInt()), // Empty denom
+			{Denom: "", Amount: math.LegacyOneDec()}, // Create invalid DecCoin with empty denom directly
 		},
 		BypassMinFeeMsgTypes:            DefaultBypassMinFeeMsgTypes,
 		MaxTotalBypassMinFeeMsgGasUsage: DefaultmaxTotalBypassMinFeeMsgGasUsage,

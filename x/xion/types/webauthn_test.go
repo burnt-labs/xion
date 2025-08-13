@@ -751,7 +751,7 @@ func buildCredentialCreationJSON(attBytes []byte, clientDataJSON []byte) []byte 
 func TestWebAuthnTimeConsensus(t *testing.T) {
 	// Test with a fixed block time (deterministic)
 	baseTime := time.Now()
-	
+
 	// Create a certificate that expires in 5 seconds from baseTime
 	certDER, priv, err := createShortLivedCert(baseTime, 5*time.Second)
 	require.NoError(t, err)

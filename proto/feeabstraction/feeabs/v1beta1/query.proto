@@ -1,0 +1,87 @@
+syntax = "proto3";
+package feeabstraction.feeabs.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "feeabstraction/feeabs/v1beta1/proposal.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // OsmosisArithmeticTwap return spot price of pair Osmo/nativeToken
+  rpc OsmosisArithmeticTwap(QueryOsmosisArithmeticTwapRequest)
+      returns (QueryOsmosisArithmeticTwapResponse) {
+    option (google.api.http).get =
+        "/fee-abstraction/feeabs/v1/osmosis-arithmetic-twap/{ibc_denom}";
+  }
+  // FeeabsModuleBalances return total balances of feeabs module
+  rpc FeeabsModuleBalances(QueryFeeabsModuleBalacesRequest)
+      returns (QueryFeeabsModuleBalacesResponse) {
+    option (google.api.http).get = "/fee-abstraction/feeabs/v1/module-balances";
+  }
+
+  // HostChainConfig
+  rpc HostChainConfig(QueryHostChainConfigRequest)
+      returns (QueryHostChainConfigResponse) {
+    option (google.api.http).get =
+        "/fee-abstraction/feeabs/v1/host-chain-config/{ibc_denom}";
+  }
+
+  // AllHostChainConfig
+  rpc AllHostChainConfig(AllQueryHostChainConfigRequest)
+      returns (AllQueryHostChainConfigResponse) {
+    option (google.api.http).get =
+        "/fee-abstraction/feeabs/v1/all-host-chain-config";
+  }
+}
+
+// QueryHostChainConfigRequest
+message QueryHostChainConfigRequest { string ibc_denom = 1; }
+
+// QueryHostChainConfigResponse
+message QueryHostChainConfigResponse {
+  HostChainFeeAbsConfig host_chain_config = 1 [
+    (gogoproto.moretags) = "yaml:\"host_chain_config\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryOsmosisArithmeticTwapRequest is the request type for the Query/Feeabs
+// RPC method.
+message QueryOsmosisArithmeticTwapRequest { string ibc_denom = 1; }
+
+// QueryOsmosisArithmeticTwapResponse
+message QueryOsmosisArithmeticTwapResponse {
+  string arithmetic_twap = 1 [
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.moretags) = "yaml:\"arithmetic_twap\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryFeeabsModuleBalacesRequest is the request type for the Query/Feeabs RPC
+// method.
+message QueryFeeabsModuleBalacesRequest {}
+
+// QueryFeeabsModuleBalacesResponse
+message QueryFeeabsModuleBalacesResponse {
+  repeated cosmos.base.v1beta1.Coin balances = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"balances\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  string address = 2;
+}
+
+// AllQueryHostChainConfigRequest
+message AllQueryHostChainConfigRequest {}
+
+// AllQueryHostChainConfigResponse
+message AllQueryHostChainConfigResponse {
+  repeated HostChainFeeAbsConfig all_host_chain_config = 1 [
+    (gogoproto.moretags) = "yaml:\"all_host_chain_config\"",
+    (gogoproto.nullable) = false
+  ];
+}
