@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"net/url"
 
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 type SmartContractUser struct {

@@ -5,15 +5,15 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/url"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/webauthn"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 
@@ -131,7 +131,7 @@ func validateAttestation(rawAuthData []byte) error {
 
 	minAuthDataLength := 37
 	if minAuthDataLength > len(rawAuthData) {
-		return errors.New(fmt.Sprintf("Expected data greater than %d bytes. Got %d bytes", minAuthDataLength, len(rawAuthData)))
+		return fmt.Errorf("expected data greater than %d bytes. Got %d bytes", minAuthDataLength, len(rawAuthData))
 	}
 
 	a.RPIDHash = rawAuthData[:32]
@@ -142,7 +142,7 @@ func validateAttestation(rawAuthData []byte) error {
 
 	if a.Flags.HasExtensions() {
 		if remaining != 0 && len(rawAuthData)-remaining > len(rawAuthData) {
-			return errors.New(fmt.Sprint("Raw Auth Data seems to be malformed"))
+			return fmt.Errorf("raw auth data seems to be malformed")
 		}
 	}
 	return nil
