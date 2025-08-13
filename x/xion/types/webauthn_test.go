@@ -14,13 +14,14 @@ import (
 	"testing"
 	"time"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/require"
+
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 

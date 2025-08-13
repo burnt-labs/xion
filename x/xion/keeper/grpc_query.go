@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/url"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/webauthn"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 
@@ -26,20 +27,20 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 	if err != nil {
 		return nil, err
 	}
-	credentials := bytes.NewReader(request.Data)
-	if err := validateAttestation(credentials); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+
+	if err := validateCredentialCreation(bytes.NewReader(request.Data)); err != nil {
+		return nil, errorsmod.Wrap(types.ErrNoValidWebAuth, err.Error())
 	}
 
-	data, err := protocol.ParseCredentialCreationResponseBody(credentials)
+	data, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(request.Data))
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrap(types.ErrNoValidWebAuth, err.Error())
 	}
 
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx) // NOTE: verify this is the same for X nodes
 	credential, err := types.VerifyRegistration(sdkCtx, rp, request.Addr, request.Challenge, data)
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrap(types.ErrNoValidWebAuth, err.Error())
 	}
 
 	credentialBz, err := json.Marshal(&credential)
@@ -56,14 +57,13 @@ func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.Que
 		return nil, err
 	}
 
-	credentials := bytes.NewReader(request.Data)
-	if err := validateAttestation(credentials); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+	if err := validateCredentialRequest(bytes.NewReader(request.Data)); err != nil {
+		return nil, errorsmod.Wrap(types.ErrNoValidWebAuth, err.Error())
 	}
 
-	data, err := protocol.ParseCredentialRequestResponseBody(credentials)
+	data, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(request.Data))
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrNoValidWebAuth, err.Error())
+		return nil, errorsmod.Wrap(types.ErrNoValidWebAuth, err.Error())
 	}
 
 	var credential webauthn.Credential
@@ -98,7 +98,7 @@ func (k Keeper) PlatformMinimum(ctx context.Context, _ *types.QueryPlatformMinim
 	return &types.QueryPlatformMinimumResponse{Minimums: coins}, nil
 }
 
-func validateAttestation(body io.Reader) error {
+func validateCredentialCreation(body io.Reader) error {
 	var ccr protocol.CredentialCreationResponse
 
 	if err := json.NewDecoder(body).Decode(&ccr); err != nil {
@@ -110,12 +110,28 @@ func validateAttestation(body io.Reader) error {
 	if err := json.Unmarshal(ccr.AttestationResponse.ClientDataJSON, &p.CollectedClientData); err != nil {
 		return err
 	}
-	rawAuthData := p.AttestationObject.RawAuthData
-	a := p.AttestationObject.AuthData
+
+	if err := webauthncbor.Unmarshal(ccr.AttestationResponse.AttestationObject, &p.AttestationObject); err != nil {
+		return err
+	}
+	return validateAttestation(p.AttestationObject.RawAuthData)
+}
+
+func validateCredentialRequest(body io.Reader) error {
+	var car protocol.CredentialAssertionResponse
+	if err := json.NewDecoder(body).Decode(&car); err != nil {
+		return err
+	}
+
+	return validateAttestation(car.AssertionResponse.AuthenticatorData)
+}
+
+func validateAttestation(rawAuthData []byte) error {
+	var a protocol.AuthenticatorData
 
 	minAuthDataLength := 37
 	if minAuthDataLength > len(rawAuthData) {
-		return errors.New(fmt.Sprintf("Expected data greater than %d bytes. Got %d bytes", minAuthDataLength, len(rawAuthData)))
+		return fmt.Errorf("expected data greater than %d bytes. Got %d bytes", minAuthDataLength, len(rawAuthData))
 	}
 
 	a.RPIDHash = rawAuthData[:32]
@@ -123,13 +139,10 @@ func validateAttestation(body io.Reader) error {
 	a.Counter = binary.BigEndian.Uint32(rawAuthData[33:37])
 
 	remaining := len(rawAuthData) - minAuthDataLength
+
 	if a.Flags.HasExtensions() {
-		if remaining != 0 {
-			if len(rawAuthData)-remaining > len(rawAuthData) {
-				return errors.New(fmt.Sprint("Raw Auth Data seems to be malformed"))
-			}
-			a.ExtData = rawAuthData[len(rawAuthData)-remaining:]
-			remaining -= len(a.ExtData)
+		if remaining != 0 && len(rawAuthData)-remaining > len(rawAuthData) {
+			return fmt.Errorf("raw auth data seems to be malformed")
 		}
 	}
 	return nil
