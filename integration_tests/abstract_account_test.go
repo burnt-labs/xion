@@ -19,6 +19,7 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/golang-jwt/jwt/v4"
@@ -37,19 +38,18 @@ import (
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 )
 
 type jsonAuthenticator map[string]map[string]string
 
 func TestXionAbstractAccountJWTCLI(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -68,7 +68,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
@@ -120,10 +120,8 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	t.Logf("create audience hash: %s", createAudienceHash)
 
 	// deploy the contract
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	audienceQuery, err := ExecQuery(t, ctx, xion.GetNode(), "jwk", "list-audience")
@@ -271,7 +269,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 		 },
 		 "signatures": []
 		}
-			`, contract, xionUser.FormattedAddress(), "uxion")
+			`, contract, xionUser.FormattedAddress(), xion.Config().Denom)
 
 	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)
@@ -370,7 +368,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
-	err = testutil.WaitForBlocks(ctx, 2, xion)
+	err = testutil.WaitForBlocks(ctx, 6, xion)
 	require.NoError(t, err)
 	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
@@ -378,13 +376,13 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 }
 
 func TestXionAbstractAccount(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -425,12 +423,9 @@ func TestXionAbstractAccount(t *testing.T) {
 		t.Logf("[%s]: %v", k, v)
 	}
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -634,13 +629,13 @@ func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string
 }
 
 func TestXionClientEvent(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -681,12 +676,9 @@ func TestXionClientEvent(t *testing.T) {
 		t.Logf("[%s]: %v", k, v)
 	}
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account-wasm-updatable-event-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account-wasm-updatable-event-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -909,7 +901,7 @@ func TestXionAbstractAccountPanic(t *testing.T) {
 	credentialBase64 := base64.StdEncoding.EncodeToString(credentialJSONBytes)
 
 	authenticatorDetails := map[string]interface{}{}
-	authenticatorDetails["url"] = "https://fuzzinglabs.com"
+	authenticatorDetails["url"] = "https://burnt.com"
 	authenticatorDetails["credential"] = credentialBase64
 	authenticatorDetails["id"] = 0
 
@@ -923,8 +915,8 @@ func TestXionAbstractAccountPanic(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("inst msg: %s", string(instantiateMsgStr))
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
+	ctx := t.Context()
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -956,10 +948,8 @@ func TestXionAbstractAccountPanic(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("TxDetails: %s", txDetails)
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),

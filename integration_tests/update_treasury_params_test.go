@@ -3,8 +3,6 @@ package integration_tests
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"path"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -16,9 +14,9 @@ import (
 )
 
 func TestUpdateTreasuryContractParams(t *testing.T) {
+	ctx := t.Context()
 	// Setup Xion chain
-	td := BuildXionChain(t, "0.0uxion", nil)
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -34,11 +32,9 @@ func TestUpdateTreasuryContractParams(t *testing.T) {
 
 	// Deploy contract
 	t.Log("Deploying contract")
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// Instantiate contract

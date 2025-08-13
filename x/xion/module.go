@@ -95,6 +95,12 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	// TODO(froch, 20240415): Migration to be applied later
+	// m := keeper.NewMigrator(am.keeper.ContractOpsKeeper, am.keeper.ContractViewKeeper, am.keeper.AAKeeper)
+	// if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+	//	panic(fmt.Sprintf("failed to migrate x/xion from version 1 to 2: %v", err))
+	// }
 }
 
 // InitGenesis performs genesis initialization for the ibc-29-fee module. It returns

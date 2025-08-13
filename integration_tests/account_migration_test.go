@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -36,13 +35,13 @@ import (
 )
 
 func TestAbstractAccountMigration(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisAAAllowedCodeIDs}, [][]string{{votingPeriod, maxDepositPeriod}, {votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -61,19 +60,17 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// prepare the JWT key and data
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 
 	// deploy the contract
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
 	require.NoError(t, err)
 
 	predictedAddrs := addAccounts(t, ctx, xion, 50, codeIDStr, xionUser)
 
 	// deploy the new contract
 	newCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the new hash
@@ -82,19 +79,19 @@ func TestAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("code response: %s", newCodeResp)
 
-	CosmosChainUpgradeTest(t, &td, "xion", "upgrade", "v6")
+	CosmosChainUpgradeTest(t, xion, "xion", "upgrade", "v6")
 	// todo: validate that verification or tx submission still works
 
-	newCodeResp, err = ExecQuery(t, ctx, td.xionChain.GetNode(),
+	newCodeResp, err = ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "code-info", newCodeIDStr)
 	require.NoError(t, err)
 	t.Logf("code response: %+v", newCodeResp)
 
-	err = testutil.WaitForBlocks(ctx, int(blocksAfterUpgrade), td.xionChain)
+	err = testutil.WaitForBlocks(ctx, int(blocksAfterUpgrade), xion)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
 	for _, predictedAddr := range predictedAddrs {
-		rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.GetNode(),
+		rawUpdatedContractInfo, err := ExecQuery(t, ctx, xion.GetNode(),
 			"wasm", "contract", predictedAddr.String())
 		require.NoError(t, err)
 		t.Logf("updated contract info: %s", rawUpdatedContractInfo)
@@ -134,7 +131,7 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 		t.Logf("predicted address: %s", predictedAddr.String())
 
-		privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+		privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 		require.NoError(t, err)
 		privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 		require.NoError(t, err)
@@ -230,13 +227,13 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 }
 
 func TestSingleAbstractAccountMigration(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -256,7 +253,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
@@ -308,15 +305,13 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	t.Logf("create audience hash: %s", createAudienceHash)
 
 	// Store Wasm Contracts
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
+	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64-previous.wasm"))
 	require.NoError(t, err)
 	t.Logf("loaded previous contract at ID %s", codeIDStr)
 
-	migrateTargetCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	migrateTargetCodeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("loaded new contract at ID %s", migrateTargetCodeIDStr)
 
@@ -532,7 +527,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	require.NoError(t, err)
 
 	// confirm the new contract code ID
-	rawUpdatedContractInfo, err := ExecQuery(t, ctx, td.xionChain.GetNode(),
+	rawUpdatedContractInfo, err := ExecQuery(t, ctx, xion.GetNode(),
 		"wasm", "contract", account.GetAddress().String())
 	require.NoError(t, err)
 	t.Logf("updated contract info: %s", rawUpdatedContractInfo)

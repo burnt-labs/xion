@@ -37,14 +37,15 @@ jobs:
             - "UpdateTreasuryContractParams"
             - "WebAuthNAbstractAccount"
             - "XionAbstractAccount"
+            - "XionAbstractAccountPanic"
             - "XionAbstractAccountJWTCLI"
             - "XionClientEvent"
             - "XionMinimumFeeDefault"
             - "XionMinimumFeeZero"
             - "XionSendPlatformFee"
             - "XionTokenFactory"
-            - "XionAbstractAccountPanic"
-            # - "XionUpgradeNetwork" # broken
+            # - "XionUpgradeIBC"
+            # - "XionUpgradeNetwork
 
     steps:
       - name: checkout

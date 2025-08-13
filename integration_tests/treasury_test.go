@@ -54,13 +54,13 @@ type ExplicitAny struct {
 }
 
 func TestTreasuryContract(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -78,10 +78,8 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -308,13 +306,13 @@ func TestTreasuryContract(t *testing.T) {
 }
 
 func TestTreasuryMulti(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -332,10 +330,8 @@ func TestTreasuryMulti(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
