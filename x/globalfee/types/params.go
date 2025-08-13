@@ -22,7 +22,7 @@ var (
 	ParamStoreKeyBypassMinFeeMsgTypes            = []byte("BypassMinFeeMsgTypes")
 	ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage = []byte("MaxTotalBypassMinFeeMsgGasUsage")
 
-	// DefaultMinGasPrices is set at runtime to the staking token with zero amount i.e. "0uatom"
+	// DefaultMinGasPrices is set at runtime to the staking token with zero amount i.e. "0uxion"
 	// see DefaultZeroGlobalFee method in xion/x/globalfee/ante/fee.go.
 	DefaultMinGasPrices = sdk.DecCoins{}
 

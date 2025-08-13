@@ -67,10 +67,33 @@ func Find(coins sdk.DecCoins, denom string) (bool, sdk.DecCoin) {
 
 // Returns the largest coins given 2 sets of coins
 func MaxCoins(a, b sdk.DecCoins) sdk.DecCoins {
-	if IsAllGT(a, b) {
-		return a
+	// Sort input coins to ensure AmountOf works correctly
+	a = a.Sort()
+	b = b.Sort()
+
+	result := sdk.DecCoins{}
+
+	// Collect all unique denominations
+	denoms := make(map[string]bool)
+	for _, coin := range a {
+		denoms[coin.Denom] = true
 	}
-	return b
+	for _, coin := range b {
+		denoms[coin.Denom] = true
+	}
+
+	// For each denom, take the maximum amount
+	for denom := range denoms {
+		amountA := a.AmountOf(denom)
+		amountB := b.AmountOf(denom)
+		maxAmount := amountA
+		if amountB.GT(amountA) {
+			maxAmount = amountB
+		}
+		result = append(result, sdk.NewDecCoinFromDec(denom, maxAmount))
+	}
+
+	return result.Sort()
 }
 
 func IsAllGT(a, b sdk.DecCoins) bool {
@@ -88,7 +111,7 @@ func IsAllGT(a, b sdk.DecCoins) bool {
 
 	for _, coinB := range b {
 		amountA, amountB := a.AmountOf(coinB.Denom), coinB.Amount
-		if amountA.LT(amountB) {
+		if !amountA.GT(amountB) {
 			return false
 		}
 	}
@@ -103,7 +126,8 @@ func DenomsSubsetOf(a, b sdk.DecCoins) bool {
 	}
 
 	for _, coin := range a {
-		if b.AmountOf(coin.Denom).IsZero() {
+		amount := b.AmountOf(coin.Denom)
+		if amount.IsZero() {
 			return false
 		}
 	}
