@@ -917,6 +917,7 @@ func TestXionAbstractAccountPanic(t *testing.T) {
 
 	xion := BuildXionChain(t)
 	ctx := t.Context()
+
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
