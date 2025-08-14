@@ -20,18 +20,16 @@ func DefaultGenesisState() *GenesisState {
 	return NewGenesisState(DefaultParams())
 }
 
-// GetGenesisStateFromAppState returns x/globalfee GenesisState given raw application
+// GetGenesisStateFromAppState returns x/auth GenesisState given raw application
 // genesis state.
 func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMessage) *GenesisState {
 	var genesisState GenesisState
 
 	if appState[ModuleName] != nil {
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
-		return &genesisState
 	}
 
-	// If no genesis state is provided, return the default genesis state
-	return DefaultGenesisState()
+	return &genesisState
 }
 
 func ValidateGenesis(data GenesisState) error {

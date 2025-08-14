@@ -44,26 +44,18 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 func validateDeploymentGas(i interface{}) error {
-	v, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
-	}
-
-	if v == 0 {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "deployment gas must be positive")
 	}
 
 	return nil
 }
 
 func validateTimeOffset(i interface{}) error {
-	v, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidType, "type: %T, expected uint64", i)
-	}
-
-	if v == 0 {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "time offset must be positive")
 	}
 
 	return nil
