@@ -398,3 +398,168 @@ func TestSmartContractUser_WithNilCredential(t *testing.T) {
 		user.WebAuthnCredentials()
 	})
 }
+
+func TestCreateCredential_ErrorPaths(t *testing.T) {
+	config := webauthn.Config{
+		RPID:          "example.com",
+		RPDisplayName: "Example",
+		RPOrigins:     []string{"https://example.com"},
+	}
+	webAuthn, err := webauthn.New(&config)
+	require.NoError(t, err)
+
+	user := types.SmartContractUser{
+		Address: "test_user",
+		Credential: &webauthn.Credential{
+			ID: []byte("test_id"),
+		},
+	}
+
+	ctx := sdktypes.NewContext(nil, cmtproto.Header{Time: time.Now()}, false, nil)
+
+	// Test ID mismatch error
+	session := webauthn.SessionData{
+		Challenge:        "test_challenge",
+		UserID:           []byte("different_user_id"), // Mismatch with user.WebAuthnID()
+		UserVerification: protocol.VerificationPreferred,
+	}
+
+	parsedResponse := &protocol.ParsedCredentialCreationData{}
+
+	_, err = types.CreateCredential(webAuthn, ctx, user, session, parsedResponse)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "ID mismatch for User and Session")
+
+	// Test session expiry error
+	pastTime := time.Now().Add(-1 * time.Hour)
+	expiredSession := webauthn.SessionData{
+		Challenge:        "test_challenge",
+		UserID:           user.WebAuthnID(),
+		UserVerification: protocol.VerificationPreferred,
+		Expires:          pastTime, // Session expired
+	}
+
+	_, err = types.CreateCredential(webAuthn, ctx, user, expiredSession, parsedResponse)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Session has Expired")
+
+	// Test verification error - invalid parsed response
+	validSession := webauthn.SessionData{
+		Challenge:        "test_challenge",
+		UserID:           user.WebAuthnID(),
+		UserVerification: protocol.VerificationRequired, // Test UserVerification Required path
+	}
+
+	// parsedResponse with invalid data will cause Verify to fail
+	invalidParsedResponse := &protocol.ParsedCredentialCreationData{
+		ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
+			ParsedCredential: protocol.ParsedCredential{
+				ID:   "invalid",
+				Type: "public-key",
+			},
+		},
+		Response: protocol.ParsedAttestationResponse{
+			CollectedClientData: protocol.CollectedClientData{
+				Type:      "webauthn.create",
+				Challenge: "different_challenge", // Mismatch will cause verification error
+				Origin:    "https://badorigin.com",
+			},
+		},
+	}
+
+	_, err = types.CreateCredential(webAuthn, ctx, user, validSession, invalidParsedResponse)
+	require.Error(t, err)
+	// This should trigger the verification error path
+}
+
+func TestSmartContractUser_AllMethods(t *testing.T) {
+	address := "cosmos1test"
+	credential := &webauthn.Credential{
+		ID:              []byte("test_credential_id"),
+		AttestationType: "none",
+		PublicKey:       []byte("test_public_key"),
+	}
+
+	user := types.SmartContractUser{
+		Address:    address,
+		Credential: credential,
+	}
+
+	// Test all SmartContractUser methods to get 100% coverage
+	require.Equal(t, []byte(address), user.WebAuthnID())
+	require.Equal(t, address, user.WebAuthnName())
+	require.Equal(t, address, user.WebAuthnDisplayName())
+	require.Equal(t, "", user.WebAuthnIcon())
+
+	credentials := user.WebAuthnCredentials()
+	require.Len(t, credentials, 1)
+	require.Equal(t, *credential, credentials[0])
+}
+
+func TestVerifyRegistration_ErrorPath(t *testing.T) {
+	// Test invalid URL/config error path in VerifyRegistration
+	invalidRP := &url.URL{Host: ""} // Invalid config will cause webauthn.New to fail
+
+	ctx := sdktypes.NewContext(nil, cmtproto.Header{Time: time.Now()}, false, nil)
+	challenge := "test_challenge"
+	contractAddr := "test_contract"
+
+	data := &protocol.ParsedCredentialCreationData{}
+
+	_, err := types.VerifyRegistration(ctx, invalidRP, contractAddr, challenge, data)
+	require.Error(t, err)
+	// Should get error from webauthn.New with invalid config
+}
+
+func TestVerifyAuthentication_ErrorPath(t *testing.T) {
+	// Test invalid URL/config error path in VerifyAuthentication
+	invalidRP := &url.URL{Host: ""} // Invalid config will cause webauthn.New to fail
+
+	challenge := "test_challenge"
+	contractAddr := "test_contract"
+	credential := &webauthn.Credential{
+		ID: []byte("test_id"),
+	}
+
+	data := &protocol.ParsedCredentialAssertionData{}
+
+	_, err := types.VerifyAuthentication(invalidRP, contractAddr, challenge, credential, data)
+	require.Error(t, err)
+	// Should get error from webauthn.New with invalid config
+}
+
+func TestVerifyAuthentication_ValidateLoginError(t *testing.T) {
+	// Test ValidateLogin error path with valid config but invalid assertion data
+	rp, err := url.Parse("https://example.com")
+	require.NoError(t, err)
+
+	challenge := "test_challenge"
+	contractAddr := "test_contract"
+	credential := &webauthn.Credential{
+		ID:        []byte("test_id"),
+		PublicKey: []byte("invalid_public_key"),
+	}
+
+	// Create invalid assertion data that will cause ValidateLogin to fail
+	invalidData := &protocol.ParsedCredentialAssertionData{
+		ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
+			ParsedCredential: protocol.ParsedCredential{
+				ID:   "test_id",
+				Type: "public-key",
+			},
+		},
+		Response: protocol.ParsedAssertionResponse{
+			CollectedClientData: protocol.CollectedClientData{
+				Type:      "webauthn.get",
+				Challenge: "different_challenge", // Wrong challenge will cause validation to fail
+				Origin:    "https://badorigin.com",
+			},
+			Signature: []byte("invalid_signature"),
+		},
+	}
+
+	verified, err := types.VerifyAuthentication(rp, contractAddr, challenge, credential, invalidData)
+	require.Error(t, err)
+	require.False(t, verified)
+	// Should get error from ValidateLogin with invalid assertion data
+}

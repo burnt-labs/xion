@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/feegrant"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,6 +25,7 @@ func TestXionAllowanceValidAllow(t *testing.T) {
 	key := storetypes.NewKVStoreKey(feegrant.StoreKey)
 	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
 
+	// msg we will call in the all cases
 	sendMsg := banktypes.MsgSend{}
 
 	cases := map[string]struct {
@@ -39,30 +40,30 @@ func TestXionAllowanceValidAllow(t *testing.T) {
 	}{
 		"correct granter": {
 			allowance:    &feegrant.BasicAllowance{},
-			authzGrantee: sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
-			testGrantee:  sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
+			authzGrantee: sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
+			testGrantee:  sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
 			accept:       true,
 		},
 		"incorrect granter": {
 			allowance:    &feegrant.BasicAllowance{},
-			authzGrantee: sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
-			testGrantee:  sdk.MustAccAddressFromBech32("xion14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr"),
+			authzGrantee: sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
+			testGrantee:  sdk.MustAccAddressFromBech32("cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr"),
 			accept:       false,
 		},
 		"authz for valid contract": {
 			allowance:        &feegrant.BasicAllowance{},
-			authzGrantee:     sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
-			testGrantee:      sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
-			contract:         sdk.MustAccAddressFromBech32("xion14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr"),
-			allowedContracts: []sdk.AccAddress{sdk.MustAccAddressFromBech32("xion14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr")},
+			authzGrantee:     sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
+			testGrantee:      sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
+			contract:         sdk.MustAccAddressFromBech32("cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr"),
+			allowedContracts: []sdk.AccAddress{sdk.MustAccAddressFromBech32("cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr")},
 			accept:           true,
 		},
 		"authz for invalid contract": {
 			allowance:        &feegrant.BasicAllowance{},
-			authzGrantee:     sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
-			testGrantee:      sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
-			contract:         sdk.MustAccAddressFromBech32("xion14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr"),
-			allowedContracts: []sdk.AccAddress{sdk.MustAccAddressFromBech32("xion1vx8knpllrj7n963p9ttd80w47kpacrhuts497x")},
+			authzGrantee:     sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
+			testGrantee:      sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x"),
+			contract:         sdk.MustAccAddressFromBech32("cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr"),
+			allowedContracts: []sdk.AccAddress{sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x")},
 			accept:           false,
 		},
 	}
@@ -195,11 +196,11 @@ func TestXionMultiAllowance(t *testing.T) {
 				allowances = append(allowances, tc.allowanceOne)
 			}
 			if tc.allowanceTwo != nil {
-			if tc.allowanceTwo != nil {
 				allowances = append(allowances, tc.allowanceTwo)
 			}
 			allowance, err := xiontypes.NewMultiAnyAllowance(allowances)
 			require.NoError(t, err)
+
 			err = allowance.ValidateBasic()
 			if tc.validate {
 				require.NoError(t, err)
@@ -218,482 +219,277 @@ func TestXionMultiAllowance(t *testing.T) {
 	}
 }
 
-func TestAuthzAllowance_UnpackInterfaces_Complete(t *testing.T) {
-	// Create a basic allowance first
-	basicAllowance := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-	}
-
-	authzAllowance, err := xiontypes.NewAuthzAllowance(basicAllowance, sdk.AccAddress("test"))
-	authzAllowance, err := xiontypes.NewAuthzAllowance(basicAllowance, sdk.AccAddress("test"))
+func TestAuthzAllowance_GetAllowance_Error(t *testing.T) {
+	// Create an invalid Any that will fail type assertion - use a string which doesn't implement FeeAllowanceI
+	invalidAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{}) // A type that doesn't implement FeeAllowanceI
 	require.NoError(t, err)
 
-	registry := codectypes.NewInterfaceRegistry()
-	feegrant.RegisterInterfaces(registry)
-
-	// Test UnpackInterfaces
-	err = authzAllowance.UnpackInterfaces(unpacker)
-	require.NoError(t, err)
-}
-
-func TestNewAuthzAllowance_Complete(t *testing.T) {
-	grantee := sdk.AccAddress("test_grantee_address")
-
-	tests := []struct {
-		name        string
-		allowance   feegrant.FeeAllowanceI
-		grantee     sdk.AccAddress
-		expectError bool
-		errorMsg    string
-	}{
-		{
-			name: "valid basic allowance",
-			allowance: &feegrant.BasicAllowance{
-				SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-			},
-			grantee:     grantee,
-			expectError: false,
-		},
-		{
-			name: "valid periodic allowance",
-			allowance: &feegrant.PeriodicAllowance{
-				Basic: feegrant.BasicAllowance{
-					SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-				},
-				Period:           time.Hour,
-				PeriodSpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 100)),
-			},
-			grantee:     grantee,
-			expectError: false,
-		},
-		{
-			name:        "nil allowance",
-			allowance:   nil,
-			grantee:     grantee,
-			expectError: true,
-		},
+	authzAllowance := &xiontypes.AuthzAllowance{
+		Allowance: invalidAny,
 	}
 
-	for _, tt := range tests {
-			result, err := xiontypes.NewAuthzAllowance(tt.allowance, tt.grantee)
-			result, err := xionTypes.NewAuthzAllowance(tt.allowance, tt.grantee)
-	for _, tt := range tests {
-		result, err := xiontypes.NewAuthzAllowance(tt.allowance, tt.grantee)
-		if tt.expectError {
-			require.Error(t, err)
-			require.Nil(t, result)
-		} else {
-			require.NoError(t, err)
-			require.NotNil(t, result)
-			require.Equal(t, tt.grantee.String(), result.AuthzGrantee)
-		}
-	}
-	grantee := sdk.AccAddress("test_grantee_address")
-	basicAllowance := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-	}
-
-	authzAllowance, err := xiontypes.NewAuthzAllowance(basicAllowance, grantee)
-	authzAllowance, err := xionTypes.NewAuthzAllowance(basicAllowance, grantee)
-	require.NoError(t, err)
-
-	retrievedAllowance, err := authzAllowance.GetAllowance()
-	authzAllowance, err := xiontypes.NewAuthzAllowance(basicAllowance, grantee)
-	require.NoError(t, err)
-	// Verify it's the same type as what we put in
-	basicRetrieved, ok := retrievedAllowance.(*feegrant.BasicAllowance)
-	require.True(t, ok)
-	require.Equal(t, basicAllowance.SpendLimit, basicRetrieved.SpendLimit)
-}
-
-func TestAuthzAllowance_SetAllowance_Complete(t *testing.T) {
-	grantee := sdk.AccAddress("test_grantee_address")
-
-	// Create initial allowance
-	basicAllowance := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-	}
-	authzAllowance, err := xionTypes.NewAuthzAllowance(basicAllowance, grantee)
-	require.NoError(t, err)
-
-	// Test setting a new allowance
-	newAllowance := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 2000)),
-	}
-	err = authzAllowance.SetAllowance(newAllowance)
-	require.NoError(t, err)
-
-	// Verify the allowance was set
-	retrievedAllowance, err := authzAllowance.GetAllowance()
-	require.NoError(t, err)
-	basicRetrieved, ok := retrievedAllowance.(*feegrant.BasicAllowance)
-	require.True(t, ok)
-	require.Equal(t, newAllowance.SpendLimit, basicRetrieved.SpendLimit)
-
-	// Test with nil allowance (should cause panic/error)
-	require.Panics(t, func() {
-		authzAllowance.SetAllowance(nil)
-	})
-}
-
-func TestAuthzAllowance_Accept_Complete(t *testing.T) {
-	key := storetypes.NewKVStoreKey(feegrant.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
-
-	grantee := sdk.AccAddress("test_grantee_address")
-	granter := sdk.AccAddress("test_granter_address")
-
-	// Create basic allowance
-	basicAllowance := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-	}
-	authzAllowance, err := xionTypes.NewAuthzAllowance(basicAllowance, grantee)
-	require.NoError(t, err)
-
-	// Test with authz message
-	execMsg := &authz.MsgExec{
-		Msgs:    []*codectypes.Any{}, // Empty for simplicity
-		Msgs:    []*types.Any{}, // Empty for simplicity
-	}
-
-	fee := sdk.NewCoins(sdk.NewInt64Coin("atom", 100))
-	execMsg := &authz.MsgExec{
-		Msgs: []*codectypes.Any{}, // Empty for simplicity
-	}
-	// Test with non-authz message
-	sendMsg := &banktypes.MsgSend{
-		FromAddress: granter.String(),
-		ToAddress:   grantee.String(),
-		Amount:      sdk.NewCoins(sdk.NewInt64Coin("atom", 100)),
-	}
-
-	_, err = authzAllowance.Accept(testCtx.Ctx, fee, []sdk.Msg{sendMsg})
+	// Should return error when type assertion fails
+	allowance, err := authzAllowance.GetAllowance()
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "messages are not authz")
+	require.Nil(t, allowance)
+	require.Contains(t, err.Error(), "failed to get allowance")
 }
 
-func TestAuthzAllowance_allMsgTypesAuthz_Complete(t *testing.T) {
-	key := storetypes.NewKVStoreKey(feegrant.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
-
-	grantee := sdk.AccAddress("test_grantee_address")
-	granter := sdk.AccAddress("test_granter_address")
-
-	// Create basic allowance first
-	basicAllowance := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-	}
-
-	// Create proper AuthzAllowance with internal allowance
-	authzAllowance, err := xionTypes.NewAuthzAllowance(basicAllowance, grantee)
+func TestContractsAllowance_GetAllowance_Error(t *testing.T) {
+	// Create an invalid Any that will fail type assertion - use a type that doesn't implement FeeAllowanceI
+	invalidAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{}) // A type that doesn't implement FeeAllowanceI
 	require.NoError(t, err)
 
-	// Test with all authz messages
-	execMsg := &authz.MsgExec{
-		Msgs:    []*codectypes.Any{},
-		Msgs:    []*types.Any{},
-	}
-	grantMsg := &authz.MsgGrant{
-		Granter: granter.String(),
-		Grantee: grantee.String(),
-	execMsg := &authz.MsgExec{
-		Msgs: []*codectypes.Any{},
-	}
+	contractsAllowance := &xiontypes.ContractsAllowance{
+		Allowance: invalidAny,
 	}
 
-	// Note: allMsgTypesAuthz is unexported, so we test through Accept method
-	fee := sdk.NewCoins(sdk.NewInt64Coin("atom", 100))
-
-	// Test that Accept works with authz messages
-	_, err = authzAllowance.Accept(testCtx.Ctx, fee, []sdk.Msg{execMsg, grantMsg, revokeMsg})
-	// This may error due to internal validation, but it tests the authz message type checking
-
-	// Test with mixed messages (should fail)
-	sendMsg := &banktypes.MsgSend{
-		FromAddress: granter.String(),
-		ToAddress:   grantee.String(),
-		Amount:      sdk.NewCoins(sdk.NewInt64Coin("atom", 100)),
-	}
-
-	_, err = authzAllowance.Accept(testCtx.Ctx, fee, []sdk.Msg{execMsg, sendMsg})
+	// Should return error when type assertion fails
+	allowance, err := contractsAllowance.GetAllowance()
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "messages are not authz")
-
-	// Test with empty messages
-	_, err = authzAllowance.Accept(testCtx.Ctx, fee, []sdk.Msg{})
-	// This tests the empty message case through Accept
+	require.Nil(t, allowance)
+	require.Contains(t, err.Error(), "failed to get allowance")
 }
 
-func TestAuthzAllowance_ValidateBasic_Complete(t *testing.T) {
-	grantee := sdk.AccAddress("test_grantee_address")
-
-	tests := []struct {
-		allowance   *xiontypes.AuthzAllowance
-		allowance   *xionTypes.AuthzAllowance
-		expectError bool
-		errorMsg    string
-	}{
-		{
-			allowance: func() *xiontypes.AuthzAllowance {
-	tests := []struct {
-		name        string
-		allowance   *xiontypes.AuthzAllowance
-		expectError bool
-		errorMsg    string
-	}{
-		{
-			name: "valid",
-			allowance: func() *xiontypes.AuthzAllowance {
-				basic := &feegrant.BasicAllowance{
-					SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-				}
-				authz, _ := xiontypes.NewAuthzAllowance(basic, grantee)
-				return authz
-			}(),
-			expectError: false,
-		},
-		{
-			name: "nil allowance",
-			allowance: &xiontypes.AuthzAllowance{
-				Allowance:    nil,
-				AuthzGrantee: grantee.String(),
-			},
-			expectError: true,
-			errorMsg:    "allowance should not be empty",
-		},
-		{
-			name: "invalid grantee address",
-			allowance: &xiontypes.AuthzAllowance{
-				AuthzGrantee: "invalid_address",
-			},
-			expectError: true,
-		},
-	}
-				}
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
-}
-
-func TestAuthzAllowance_ExpiresAt_Complete(t *testing.T) {
-	grantee := sdk.AccAddress("test_grantee_address")
-
-	// Test with basic allowance (no expiry)
-	basicAllowance := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-	}
-	authzAllowance, err := xionTypes.NewAuthzAllowance(basicAllowance, grantee)
+func TestMultiAnyAllowance_GetAllowance_Error(t *testing.T) {
+	// Create an invalid Any that will fail type assertion - use a type that doesn't implement FeeAllowanceI
+	invalidAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{}) // A type that doesn't implement FeeAllowanceI
 	require.NoError(t, err)
 
-	expiry, err := authzAllowance.ExpiresAt()
-	require.NoError(t, err)
-	require.Nil(t, expiry) // Basic allowance doesn't expire
-
-	// Test with allowance that has expiry
-	expireTime := time.Now().Add(time.Hour)
-	basicWithExpiry := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-		Expiration: &expireTime,
-	authzWithExpiry, err := xiontypes.NewAuthzAllowance(basicWithExpiry, grantee)
-	authzWithExpiry, err := xionTypes.NewAuthzAllowance(basicWithExpiry, grantee)
-	require.NoError(t, err)
-
-	expiry, err = authzWithExpiry.ExpiresAt()
-	basicWithExpiry := &feegrant.BasicAllowance{
-		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("atom", 1000)),
-		Expiration: &expireTime,
+	multiAllowance := &xiontypes.MultiAnyAllowance{
+		Allowances: []*codectypes.Any{invalidAny},
 	}
-	authzWithExpiry, err := xiontypes.NewAuthzAllowance(basicWithExpiry, grantee)
-	require.NoError(t, err)
-	addr := sdk.AccAddress("test_address_12345678901234567890")
 
-	tests := []struct {
-		allowance *xiontypes.AuthzAllowance
-		allowance *xionTypes.AuthzAllowance
-		wantErr   bool
-		errMsg    string
-	}{
-		{
-			name: "nil allowance",
-	tests := []struct {
-		name      string
-		allowance *xiontypes.AuthzAllowance
-		wantErr   bool
-		errMsg    string
-	}{
-		{
-			name: "nil allowance",
-			allowance: &xiontypes.AuthzAllowance{
-				Allowance:    nil,
-				AuthzGrantee: addr.String(),
-			},
-			wantErr: true,
-			errMsg:  "allowance should not be empty",
-		},
-		{
-			name: "invalid grantee address",
-			allowance: &xiontypes.AuthzAllowance{
-				AuthzGrantee: "invalid_address",
-			},
-			wantErr: true,
-		},
-	}
-				}
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
+	// Should return error when type assertion fails
+	allowance, err := multiAllowance.GetAllowance(0)
+	require.Error(t, err)
+	require.Nil(t, allowance)
+	require.Contains(t, err.Error(), "failed to get allowance")
 }
 
-func TestAuthzAllowance_ExpiresAt(t *testing.T) {
-	// Test that ExpiresAt handles errors from GetAllowance properly
-	// We can't easily test this without a valid allowance, so we skip this test
-	// and focus on testing the ValidateBasic method which catches the nil allowance case
-	t.Skip("ExpiresAt requires valid allowance setup which is complex to mock")
+// MockNonProtoAllowance is a mock that implements FeeAllowanceI but not proto.Message
+type MockNonProtoAllowance struct{}
+
+func (m *MockNonProtoAllowance) Accept(ctx context.Context, fee sdk.Coins, msgs []sdk.Msg) (bool, error) {
+	return true, nil
 }
 
-func TestAuthzAllowance_UnpackInterfaces(t *testing.T) {
-	// UnpackInterfaces is typically called by the codec system
-	// Testing with nil unpacker may cause panic, so we skip this
-	t.Skip("UnpackInterfaces testing requires proper codec setup")
+func (m *MockNonProtoAllowance) ValidateBasic() error {
+	return nil
 }
 
-func TestContractsAllowance_ValidateBasic(t *testing.T) {
-	tests := []struct {
-		allowance *xiontypes.ContractsAllowance
-		allowance *xionTypes.ContractsAllowance
-		wantErr   bool
-		errMsg    string
-	}{
-		{
-			allowance: &xiontypes.ContractsAllowance{
-	tests := []struct {
-		name      string
-		allowance *xiontypes.ContractsAllowance
-		wantErr   bool
-		errMsg    string
-	}{
-		{
-			name: "nil allowance",
-			allowance: &xiontypes.ContractsAllowance{
-				Allowance: nil,
-			},
-			wantErr: true,
-			errMsg:  "allowance should not be empty",
-		},
-	}
-				}
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
+func (m *MockNonProtoAllowance) ExpiresAt() (*time.Time, error) {
+	return nil, nil
 }
 
-func TestContractsAllowance_ExpiresAt(t *testing.T) {
-	// Test that ExpiresAt handles errors from GetAllowance properly
-	// We can't easily test this without a valid allowance, so we skip this test
-	// and focus on testing the ValidateBasic method which catches the nil allowance case
-	t.Skip("ExpiresAt requires valid allowance setup which is complex to mock")
-}
+func TestNewAuthzAllowance_NonProtoMessage_Error(t *testing.T) {
+	// Create an allowance that implements FeeAllowanceI but not proto.Message
+	mockAllowance := &MockNonProtoAllowance{}
 
-func TestContractsAllowance_UnpackInterfaces(t *testing.T) {
-	// UnpackInterfaces is typically called by the codec system
-	// Testing with nil unpacker may cause panic, so we skip this
-	t.Skip("UnpackInterfaces testing requires proper codec setup")
-}
+	// Should return error when allowance doesn't implement proto.Message
+	authzGrantee, _ := sdk.AccAddressFromBech32("xion1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7")
 
-func TestMultiAnyAllowance_UnpackInterfaces(t *testing.T) {
-	// UnpackInterfaces is typically called by the codec system
-	// Testing with nil unpacker may cause panic, so we skip this
-	t.Skip("UnpackInterfaces testing requires proper codec setup")
-}
-
-func TestMultiAnyAllowance_ValidateBasic(t *testing.T) {
-	tests := []struct {
-		allowance *xiontypes.MultiAnyAllowance
-		allowance *xionTypes.MultiAnyAllowance
-		wantErr   bool
-		errMsg    string
-	}{
-		{
-			allowance: &xiontypes.MultiAnyAllowance{
-	tests := []struct {
-		name      string
-		allowance *xiontypes.MultiAnyAllowance
-		wantErr   bool
-		errMsg    string
-	}{
-		{
-			name: "empty list",
-			allowance: &xiontypes.MultiAnyAllowance{
-				Allowances: []*codectypes.Any{},
-			},
-			wantErr: true,
-			errMsg:  "allowance list should contain at least one",
-		},
-	}
-				}
-			} else {
-				require.NoError(t, err)
-			}
-		})
-	}
+	result, err := xiontypes.NewAuthzAllowance(mockAllowance, authzGrantee)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "cannot proto marshal")
 }
 
 func TestEqTime(t *testing.T) {
 	now := time.Now()
-	later := now.Add(time.Hour)
+	future := now.Add(time.Hour)
 
-	tests := []struct {
-		name     string
-		t1       *time.Time
-		t2       *time.Time
-		expected bool
+	// Test case 1: Both times are non-nil and equal
+	require.True(t, xiontypes.EqTime(&now, &now))
+
+	// Test case 2: Both times are non-nil but different
+	require.False(t, xiontypes.EqTime(&now, &future))
+
+	// Test case 3: Both times are nil
+	require.True(t, xiontypes.EqTime(nil, nil))
+
+	// Test case 4: First is nil, second is not
+	require.False(t, xiontypes.EqTime(nil, &now))
+
+	// Test case 5: First is not nil, second is nil
+	require.False(t, xiontypes.EqTime(&now, nil))
+}
+
+func TestNewContractsAllowance_NonProtoMessage_Error(t *testing.T) {
+	// Create an allowance that implements FeeAllowanceI but not proto.Message
+	mockAllowance := &MockNonProtoAllowance{}
+
+	// Should return error when allowance doesn't implement proto.Message
+	addresses := []sdk.AccAddress{
+		sdk.AccAddress("address1"),
+	}
+
+	result, err := xiontypes.NewContractsAllowance(mockAllowance, addresses)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "cannot proto marshal")
+}
+
+func TestNewMultiAnyAllowance_NonProtoMessage_Error(t *testing.T) {
+	// Create an allowance that implements FeeAllowanceI but not proto.Message
+	mockAllowance := &MockNonProtoAllowance{}
+
+	// Should return error when allowance doesn't implement proto.Message
+	allowances := []feegrant.FeeAllowanceI{mockAllowance}
+
+	result, err := xiontypes.NewMultiAnyAllowance(allowances)
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "cannot proto marshal")
+}
+
+func TestAuthzAllowance_ValidateBasic(t *testing.T) {
+	validAllowance := &feegrant.BasicAllowance{
+		SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
+	}
+	validGrantee := sdk.AccAddress("validgrantee123456789012345")
+
+	tests := map[string]struct {
+		allowance     *xiontypes.AuthzAllowance
+		expectError   bool
+		errorContains string
 	}{
-		{
-			name:     "both nil",
-			t1:       nil,
-			t2:       nil,
-			expected: true,
+		"valid allowance": {
+			allowance: func() *xiontypes.AuthzAllowance {
+				authz, _ := xiontypes.NewAuthzAllowance(validAllowance, validGrantee)
+				return authz
+			}(),
+			expectError: false,
 		},
-		{
-			name:     "first nil, second not",
-			t1:       nil,
-			t2:       &now,
-			expected: false,
+		"nil allowance": {
+			allowance: &xiontypes.AuthzAllowance{
+				Allowance:    nil,
+				AuthzGrantee: validGrantee.String(),
+			},
+			expectError:   true,
+			errorContains: "allowance should not be empty",
 		},
-		{
-			name:     "first not nil, second nil",
-			t1:       &now,
-			t2:       nil,
-			expected: false,
-		},
-		{
-			name:     "same time",
-			t1:       &now,
-			t2:       &now,
-			expected: true,
-		},
-		{
-			name:     "different times",
-			t1:       &now,
-			t2:       &later,
-			expected: false,
+		"invalid grantee address": {
+			allowance: func() *xiontypes.AuthzAllowance {
+				authz, _ := xiontypes.NewAuthzAllowance(validAllowance, validGrantee)
+				authz.AuthzGrantee = "invalid-address"
+				return authz
+			}(),
+			expectError: true,
 		},
 	}
 
-	for _, tt := range tests {
-			result := xiontypes.EqTime(tt.t1, tt.t2)
-			result := xionTypes.EqTime(tt.t1, tt.t2)
-			require.Equal(t, tt.expected, result)
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.allowance.ValidateBasic()
+			if tc.expectError {
+				require.Error(t, err)
+				if tc.errorContains != "" {
+					require.Contains(t, err.Error(), tc.errorContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
-	for _, tt := range tests {
-		result := xiontypes.EqTime(tt.t1, tt.t2)
-		require.Equal(t, tt.expected, result)
+
+func TestContractsAllowance_ValidateBasic(t *testing.T) {
+	validAllowance := &feegrant.BasicAllowance{
+		SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
 	}
+	validAddress := sdk.AccAddress("validcontract123456789012345")
+
+	tests := map[string]struct {
+		allowance     *xiontypes.ContractsAllowance
+		expectError   bool
+		errorContains string
+	}{
+		"valid allowance": {
+			allowance: func() *xiontypes.ContractsAllowance {
+				contracts, _ := xiontypes.NewContractsAllowance(validAllowance, []sdk.AccAddress{validAddress})
+				return contracts
+			}(),
+			expectError: false,
+		},
+		"nil allowance": {
+			allowance: &xiontypes.ContractsAllowance{
+				Allowance:         nil,
+				ContractAddresses: []string{validAddress.String()},
+			},
+			expectError:   true,
+			errorContains: "allowance should not be empty",
+		},
+		"no contract addresses": {
+			allowance: func() *xiontypes.ContractsAllowance {
+				contracts, _ := xiontypes.NewContractsAllowance(validAllowance, []sdk.AccAddress{})
+				return contracts
+			}(),
+			expectError:   true,
+			errorContains: "must set contracts for feegrant",
+		},
+		"invalid contract address": {
+			allowance: func() *xiontypes.ContractsAllowance {
+				contracts, _ := xiontypes.NewContractsAllowance(validAllowance, []sdk.AccAddress{validAddress})
+				contracts.ContractAddresses = []string{"invalid-address"}
+				return contracts
+			}(),
+			expectError: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.allowance.ValidateBasic()
+			if tc.expectError {
+				require.Error(t, err)
+				if tc.errorContains != "" {
+					require.Contains(t, err.Error(), tc.errorContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestMultiAnyAllowance_ValidateBasic(t *testing.T) {
+	validAllowance := &feegrant.BasicAllowance{
+		SpendLimit: sdk.Coins{sdk.Coin{Denom: "uxion", Amount: sdkmath.NewInt(100)}},
+	}
+
+	tests := map[string]struct {
+		allowance     *xiontypes.MultiAnyAllowance
+		expectError   bool
+		errorContains string
+	}{
+		"valid allowance": {
+			allowance: func() *xiontypes.MultiAnyAllowance {
+				multi, _ := xiontypes.NewMultiAnyAllowance([]feegrant.FeeAllowanceI{validAllowance})
+				return multi
+			}(),
+			expectError: false,
+		},
+		"empty allowances": {
+			allowance: &xiontypes.MultiAnyAllowance{
+				Allowances: []*codectypes.Any{},
+			},
+			expectError:   true,
+			errorContains: "allowance list should contain at least one",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.allowance.ValidateBasic()
+			if tc.expectError {
+				require.Error(t, err)
+				if tc.errorContains != "" {
+					require.Contains(t, err.Error(), tc.errorContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
