@@ -1013,7 +1013,10 @@ func NewWasmApp(
 
 	// Configure Indexer
 	app.indexerService = indexer.New(homePath, app.appCodec, authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), app.Logger())
-	app.indexerService.RegisterServices(app.configurator)
+	err = app.indexerService.RegisterServices(app.configurator)
+	if err != nil {
+		panic(err)
+	}
 
 	// Add listeners to commitmultistore
 	// otherwise the ABCILister attached to the streammanager
