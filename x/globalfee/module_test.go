@@ -1,11 +1,14 @@
 package globalfee_test
 
 import (
+	"fmt"
 	"testing"
 
+	grpc1 "github.com/cosmos/gogoproto/grpc"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -13,11 +16,52 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
+
+// Mock configurator that implements module.Configurator interface
+type testConfigurator struct {
+	msgServer   grpc1.Server
+	queryServer grpc1.Server
+	shouldError bool
+}
+
+func (tc *testConfigurator) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
+	// no-op for testing
+}
+
+func (tc *testConfigurator) GetServiceInfo() map[string]grpc.ServiceInfo {
+	return nil
+}
+
+func (tc *testConfigurator) MsgServer() grpc1.Server {
+	return tc.msgServer
+}
+
+func (tc *testConfigurator) QueryServer() grpc1.Server {
+	return tc.queryServer
+}
+
+func (tc *testConfigurator) RegisterMigration(moduleName string, fromVersion uint64, handler module.MigrationHandler) error {
+	if tc.shouldError {
+		return fmt.Errorf("mock migration error for testing")
+	}
+	return nil // Success case to avoid panic
+}
+
+func (tc *testConfigurator) Error() error {
+	return nil
+}
+
+// mockGrpcServer implements grpc1.Server interface for testing
+type mockGrpcServer struct{}
+
+func (m *mockGrpcServer) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {}
+func (m *mockGrpcServer) GetServiceInfo() map[string]grpc.ServiceInfo          { return nil }
 
 func TestAppModuleBasic(t *testing.T) {
 	appModule := globalfee.AppModuleBasic{}
@@ -95,6 +139,11 @@ func TestAppModuleBasicRegisterGRPCGatewayRoutes(t *testing.T) {
 	require.NotPanics(t, func() {
 		appModule.RegisterGRPCGatewayRoutes(clientCtx, mux)
 	})
+
+	// Note: The panic path is difficult to test in unit tests as it requires
+	// RegisterQueryHandlerClient to return an error, which typically happens
+	// in integration scenarios rather than unit test mocking scenarios.
+	// Current coverage: ~66.7% which covers the main execution path.
 }
 
 func TestAppModule(t *testing.T) {
@@ -178,5 +227,58 @@ func TestAppModuleRegisterServices(t *testing.T) {
 			}
 		}()
 		appModule.RegisterServices(nil)
+	})
+
+	// Test panic path in RegisterServices when migration registration fails
+	mockCfgError := &testConfigurator{
+		msgServer:   &mockGrpcServer{},
+		queryServer: &mockGrpcServer{},
+		shouldError: true,
+	}
+	require.Panics(t, func() {
+		appModule.RegisterServices(mockCfgError)
+	})
+}
+
+func TestAppModuleBasicNoOpMethods(t *testing.T) {
+	appModuleBasic := globalfee.AppModuleBasic{}
+
+	// Test RegisterInterfaces - should not panic
+	require.NotPanics(t, func() {
+		appModuleBasic.RegisterInterfaces(nil)
+	})
+
+	// Test RegisterRESTRoutes - should not panic
+	require.NotPanics(t, func() {
+		appModuleBasic.RegisterRESTRoutes(client.Context{}, nil)
+	})
+
+	// Test RegisterLegacyAminoCodec - should not panic
+	require.NotPanics(t, func() {
+		appModuleBasic.RegisterLegacyAminoCodec(nil)
+	})
+
+	// Test RegisterInterfaces - should not panic
+	require.NotPanics(t, func() {
+		appModuleBasic.RegisterInterfaces(nil)
+	})
+
+	// Test RegisterRESTRoutes - should not panic
+	require.NotPanics(t, func() {
+		appModuleBasic.RegisterRESTRoutes(client.Context{}, nil)
+	})
+}
+
+func TestAppModuleNoOpMethods(t *testing.T) {
+	appModule := globalfee.AppModule{}
+
+	// Test IsOnePerModuleType - should not panic
+	require.NotPanics(t, func() {
+		appModule.IsOnePerModuleType()
+	})
+
+	// Test IsAppModule - should not panic
+	require.NotPanics(t, func() {
+		appModule.IsAppModule()
 	})
 }

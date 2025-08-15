@@ -22,7 +22,15 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (*types.QueryWebAuthNVerifyRegisterResponse, error) {
+func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (response *types.QueryWebAuthNVerifyRegisterResponse, err error) {
+	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
+	defer func() {
+		if r := recover(); r != nil {
+			response = nil
+			err = errorsmod.Wrap(types.ErrNoValidWebAuth, fmt.Sprintf("panic during WebAuthn verification: %v", r))
+		}
+	}()
+
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
 		return nil, err
@@ -51,7 +59,15 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 	return &types.QueryWebAuthNVerifyRegisterResponse{Credential: credentialBz}, nil
 }
 
-func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (*types.QueryWebAuthNVerifyAuthenticateResponse, error) {
+func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (response *types.QueryWebAuthNVerifyAuthenticateResponse, err error) {
+	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
+	defer func() {
+		if r := recover(); r != nil {
+			response = nil
+			err = errorsmod.Wrap(types.ErrNoValidWebAuth, fmt.Sprintf("panic during WebAuthn verification: %v", r))
+		}
+	}()
+
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
 		return nil, err
@@ -72,7 +88,8 @@ func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.Que
 		return nil, err
 	}
 
-	_, err = types.VerifyAuthentication(rp, request.Addr, request.Challenge, &credential, data)
+	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+	_, err = types.VerifyAuthentication(sdkCtx, rp, request.Addr, request.Challenge, &credential, data)
 	if err != nil {
 		return nil, err
 	}
