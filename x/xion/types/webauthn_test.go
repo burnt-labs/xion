@@ -569,41 +569,41 @@ func TestVerifyAuthentication_ValidateLoginError(t *testing.T) {
 
 // === Consensus Determinism Tests ===
 
-// // Helper function to create a short-lived certificate for testing time-based consensus issues
-// func createCertForTimeValidation(referenceTime time.Time, validityPeriod time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
-// 	priv, err = rsa.GenerateKey(rand.Reader, 2048)
-// 	if err != nil {
-// 		return
-// 	}
+// Helper function to create a short-lived certificate for testing time-based consensus issues
+func createCertForTimeValidation(referenceTime time.Time, validityPeriod time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
+	priv, err = rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return
+	}
 
-// 	// Create certificate with specific validity period relative to reference time
-// 	startTime := referenceTime
-// 	endTime := referenceTime.Add(validityPeriod)
+	// Create certificate with specific validity period relative to reference time
+	startTime := referenceTime
+	endTime := referenceTime.Add(validityPeriod)
 
-// 	template := &x509.Certificate{
-// 		SerialNumber: big.NewInt(2025),
-// 		Subject: pkix.Name{
-// 			Country:            []string{"US"},
-// 			Organization:       []string{"Test Authenticator"},
-// 			OrganizationalUnit: []string{"Authenticator Attestation"},
-// 			CommonName:         "Test-WebAuthn-Cert",
-// 		},
-// 		NotBefore:             startTime,
-// 		NotAfter:              endTime,
-// 		KeyUsage:              x509.KeyUsageDigitalSignature,
-// 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
-// 		BasicConstraintsValid: true,
-// 		IsCA:                  false,
-// 	}
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(2025),
+		Subject: pkix.Name{
+			Country:            []string{"US"},
+			Organization:       []string{"Test Authenticator"},
+			OrganizationalUnit: []string{"Authenticator Attestation"},
+			CommonName:         "Test-WebAuthn-Cert",
+		},
+		NotBefore:             startTime,
+		NotAfter:              endTime,
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+		BasicConstraintsValid: true,
+		IsCA:                  false,
+	}
 
-// 	certDER, err = x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
-// 	return
-// }
+	certDER, err = x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
+	return
+}
 
-// // Helper to encode time as bytes for certificate extension
-// func encodeTime(t time.Time) []byte {
-// 	return []byte(t.Format(time.RFC3339))
-// }
+// Helper to encode time as bytes for certificate extension
+func encodeTime(t time.Time) []byte {
+	return []byte(t.Format(time.RFC3339))
+}
 
 func createShortLivedCert(referenceTime time.Time, validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
 	priv, err = rsa.GenerateKey(rand.Reader, 2048)
@@ -751,7 +751,7 @@ func buildCredentialCreationJSON(attBytes []byte, clientDataJSON []byte) []byte 
 func TestWebAuthnTimeConsensus(t *testing.T) {
 	// Test with a fixed block time (deterministic)
 	baseTime := time.Now()
-
+	
 	// Create a certificate that expires in 5 seconds from baseTime
 	certDER, priv, err := createShortLivedCert(baseTime, 5*time.Second)
 	require.NoError(t, err)

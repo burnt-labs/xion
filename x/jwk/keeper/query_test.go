@@ -274,6 +274,31 @@ func TestQueryValidateJWTAdditionalErrorPaths(t *testing.T) {
 	}
 }
 
+// Test to improve ValidateJWT coverage - targeting the panic recovery path
+func TestQueryValidateJWTPanicRecovery(t *testing.T) {
+	k, ctx := setupKeeper(t)
+	wctx := sdk.WrapSDKContext(ctx)
+
+	// Create an audience with malformed/invalid key that might cause a panic
+	audience := types.Audience{
+		Admin: "cosmos1admin",
+		Aud:   "panic-test-audience",
+		Key:   `{"kty":"invalid","corrupted":"data"}`, // Invalid key format
+	}
+	k.SetAudience(ctx, audience)
+
+	req := &types.QueryValidateJWTRequest{
+		Aud:      "panic-test-audience",
+		Sub:      "test-subject",
+		SigBytes: "invalid.jwt.token",
+	}
+
+	// This might trigger the panic recovery path
+	resp, err := k.ValidateJWT(wctx, req)
+	require.Error(t, err)
+	require.Nil(t, resp)
+}
+
 func TestQueryParamsNil(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)

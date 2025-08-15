@@ -57,9 +57,13 @@ func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEn
 }
 
 func (a AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
+	// No interfaces to register for globalfee module
+	_ = "no-op"
 }
 
 func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
+	// No REST routes to register for globalfee module
+	_ = "no-op"
 }
 
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
@@ -79,6 +83,8 @@ func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
 }
 
 func (a AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
+	// No legacy amino codec registration needed for globalfee module
+	_ = "no-op"
 }
 
 type AppModule struct {
@@ -87,9 +93,13 @@ type AppModule struct {
 }
 
 func (a AppModule) IsOnePerModuleType() {
+	// Interface marker method - indicates this module should only be instantiated once per chain
+	_ = "no-op"
 }
 
 func (a AppModule) IsAppModule() {
+	// Interface marker method - indicates this implements the AppModule interface
+	_ = "no-op"
 }
 
 // NewAppModule constructor

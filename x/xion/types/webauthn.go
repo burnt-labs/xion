@@ -59,7 +59,7 @@ func VerifyRegistration(ctx sdktypes.Context, rp *url.URL, contractAddr string, 
 		UserVerification: protocol.VerificationPreferred,
 	}
 
-	return CreateCredential(webAuthn, ctx, smartContractUser, session, credentialCreationData)
+	return CreateDeterministicCredential(webAuthn, ctx, smartContractUser, session, credentialCreationData)
 }
 
 func VerifyAuthentication(ctx sdktypes.Context, rp *url.URL, contractAddr string, challenge string, credential *webauthn.Credential, credentialAssertionData *protocol.ParsedCredentialAssertionData) (bool, error) {
@@ -86,7 +86,7 @@ func VerifyAuthentication(ctx sdktypes.Context, rp *url.URL, contractAddr string
 		AllowedCredentialIDs: [][]byte{credential.ID},
 	}
 
-	if _, err := webAuthn.ValidateLogin(smartContractUser, session, credentialAssertionData); err != nil {
+	if _, err := ValidateLoginWithBlockTime(webAuthn, smartContractUser, session, credentialAssertionData, ctx.BlockTime()); err != nil {
 		return false, err
 	}
 
