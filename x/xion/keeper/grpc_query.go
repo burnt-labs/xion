@@ -51,7 +51,9 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 	return &types.QueryWebAuthNVerifyRegisterResponse{Credential: credentialBz}, nil
 }
 
-func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (*types.QueryWebAuthNVerifyAuthenticateResponse, error) {
+func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (*types.QueryWebAuthNVerifyAuthenticateResponse, error) {
+	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
 		return nil, err
@@ -72,7 +74,7 @@ func (k Keeper) WebAuthNVerifyAuthenticate(_ context.Context, request *types.Que
 		return nil, err
 	}
 
-	_, err = types.VerifyAuthentication(rp, request.Addr, request.Challenge, &credential, data)
+	_, err = types.VerifyAuthentication(sdkCtx, rp, request.Addr, request.Challenge, &credential, data)
 	if err != nil {
 		return nil, err
 	}
