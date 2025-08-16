@@ -36,7 +36,7 @@ require (
 	github.com/cosmos/ibc-go/v10 v10.3.0
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/dvsekhvalnov/jose2go v1.7.0
-	github.com/go-webauthn/webauthn v0.9.1
+	github.com/go-webauthn/webauthn v0.13.4
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845
 	github.com/lestrrat-go/jwx v1.2.29
@@ -146,7 +146,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
-	github.com/go-webauthn/x v0.1.4 // indirect
+	github.com/go-webauthn/x v0.1.23 // indirect
 	github.com/goccy/go-json v0.10.4 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
