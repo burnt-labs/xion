@@ -20,12 +20,6 @@ go tool cover -html=coverage_filtered.out -o coverage.html
 echo "HTML coverage report generated: coverage.html"
 echo "Filtered coverage file: coverage_filtered.out"
 
-# Show summary statistics
-echo ""
-echo "=== COVERAGE SUMMARY ==="
-total_coverage=$(go tool cover -func=coverage_filtered.out | tail -1 | awk '{print $3}')
-echo "Overall Coverage: $total_coverage"
-
 # Show modules with ok coverage (less than 80% - 99%)
 echo ""
 echo "=== OK COVERAGE (<80%) ==="
@@ -40,3 +34,9 @@ go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[0-7]?[0-9]\.[0-9]%$/' |
 echo ""
 echo "=== NO COVERAGE (0%) ==="
 go tool cover -func=coverage_filtered.out | grep -E "[^0-9]0.0%" 
+
+# Show summary statistics
+echo ""
+echo "=== COVERAGE SUMMARY ==="
+total_coverage=$(go tool cover -func=coverage_filtered.out | tail -1 | awk '{print $3}')
+echo "Overall Coverage: $total_coverage"

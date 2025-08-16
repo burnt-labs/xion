@@ -60,6 +60,7 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 }
 
 func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (response *types.QueryWebAuthNVerifyAuthenticateResponse, err error) {
+	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
 	defer func() {
 		if r := recover(); r != nil {
@@ -88,7 +89,6 @@ func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.Q
 		return nil, err
 	}
 
-	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	_, err = types.VerifyAuthentication(sdkCtx, rp, request.Addr, request.Challenge, &credential, data)
 	if err != nil {
 		return nil, err
