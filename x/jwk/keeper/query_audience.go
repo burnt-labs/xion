@@ -19,7 +19,7 @@ func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRe
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	if req.Pagination.Limit > 100 {
+	if req.Pagination != nil && req.Pagination.Limit > 100 {
 		return nil, status.Error(codes.ResourceExhausted, "requests audience page size >100, too large")
 	}
 
