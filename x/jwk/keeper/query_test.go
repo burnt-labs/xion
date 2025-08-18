@@ -5,14 +5,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/stretchr/testify/require"
+
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -20,15 +23,11 @@ import (
 
 	"github.com/burnt-labs/xion/x/jwk/keeper"
 	"github.com/burnt-labs/xion/x/jwk/types"
-
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 func TestQueryParams(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	params := types.DefaultParams()
 	k.SetParams(ctx, params)
@@ -40,7 +39,7 @@ func TestQueryParams(t *testing.T) {
 
 func TestQueryAudience(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -89,7 +88,7 @@ func TestQueryAudience(t *testing.T) {
 
 func TestQueryAudienceClaim(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName)
 	hash := []byte("test-hash")
@@ -110,7 +109,7 @@ func TestQueryAudienceClaim(t *testing.T) {
 
 func TestQueryValidateJWT(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// First, create an audience for testing
 	audience := types.Audience{
@@ -224,7 +223,7 @@ func TestQueryValidateJWT(t *testing.T) {
 
 func TestQueryValidateJWTAdditionalErrorPaths(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with missing required fields
 	tests := []struct {
@@ -276,7 +275,7 @@ func TestQueryValidateJWTAdditionalErrorPaths(t *testing.T) {
 
 func TestQueryParamsNil(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with nil request - should return an error
 	response, err := k.Params(wctx, nil)
@@ -287,7 +286,7 @@ func TestQueryParamsNil(t *testing.T) {
 
 func TestQueryAudienceAllPagination(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with nil request
 	resp, err := k.AudienceAll(wctx, nil)
@@ -318,7 +317,7 @@ func TestQueryAudienceAllPagination(t *testing.T) {
 
 func TestQueryAudienceNotFound(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with nil request
 	resp, err := k.Audience(wctx, nil)
@@ -336,7 +335,7 @@ func TestQueryAudienceNotFound(t *testing.T) {
 
 func TestQueryAudienceClaimNotFound(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with nil request
 	resp, err := k.AudienceClaim(wctx, nil)
@@ -354,7 +353,7 @@ func TestQueryAudienceClaimNotFound(t *testing.T) {
 
 func TestQueryAudienceAllNilAndError(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with nil request
 	resp, err := k.AudienceAll(wctx, nil)
@@ -387,7 +386,7 @@ func TestQueryAudienceAllNilAndError(t *testing.T) {
 
 func TestQueryAudienceNil(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with nil request
 	resp, err := k.Audience(wctx, nil)
@@ -398,7 +397,7 @@ func TestQueryAudienceNil(t *testing.T) {
 
 func TestQueryValidateJWTComprehensiveErrorPaths(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Create audience with various key types for comprehensive testing
 	audienceWithRSA := types.Audience{
@@ -510,7 +509,7 @@ func TestQueryValidateJWTComprehensiveErrorPaths(t *testing.T) {
 
 func TestQueryValidateJWTPrivateClaimsAndSorting(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Create audience for testing private claims
 	audience := types.Audience{
@@ -536,7 +535,7 @@ func TestQueryValidateJWTPrivateClaimsAndSorting(t *testing.T) {
 
 func TestQueryParamsComprehensive(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	// Test with valid request
 	req := &types.QueryParamsRequest{}
@@ -555,7 +554,7 @@ func TestQueryParamsComprehensive(t *testing.T) {
 // Comprehensive tests to improve AudienceAll coverage to 100%
 func TestQueryAudienceAllComprehensive(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -607,7 +606,7 @@ func TestQueryAudienceAllComprehensive(t *testing.T) {
 // Comprehensive tests to improve ValidateJWT coverage to 100%
 func TestQueryValidateJWTComprehensive(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -718,7 +717,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 // Test successful JWT validation to exercise private claims processing
 func TestQueryValidateJWTSuccessAndTimeOffset(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -765,12 +764,13 @@ func TestQueryValidateJWTSuccessAndTimeOffset(t *testing.T) {
 // Test successful JWT validation that actually reaches the private claims processing
 func TestQueryValidateJWTActualSuccess(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// Use a simpler HMAC key that we can work with
 	// This is the base64 encoding of "secret"
+	//nolint: gosec
 	hmacKeySecret := `{
 		"kty": "oct",
 		"k": "c2VjcmV0",
@@ -822,7 +822,7 @@ func TestQueryValidateJWTActualSuccess(t *testing.T) {
 // Test that generates a valid JWT to reach 100% ValidateJWT coverage
 func TestQueryValidateJWTRealSuccess(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -930,7 +930,7 @@ func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 	// Initialize with default params
 	k.SetParams(ctx.Ctx, types.DefaultParams())
 
-	wctx := sdk.WrapSDKContext(ctx.Ctx)
+	wctx := ctx.Ctx.Context()
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// First create a valid audience
@@ -960,7 +960,7 @@ func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 // Test that creates a valid JWT using the actual jwx library to achieve 100% ValidateJWT coverage
 func TestQueryValidateJWTGeneratedSuccess(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
