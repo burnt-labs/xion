@@ -344,6 +344,9 @@ func TestSmartContractUser(t *testing.T) {
 	credentials := user.WebAuthnCredentials()
 	require.Len(t, credentials, 1)
 	require.Equal(t, *credential, credentials[0])
+
+	// Test WebAuthnIcon
+	require.Equal(t, "", user.WebAuthnIcon())
 }
 
 func TestSmartContractUser_Interface(t *testing.T) {
@@ -365,6 +368,7 @@ func TestSmartContractUser_Interface(t *testing.T) {
 	require.Equal(t, user.WebAuthnName(), webauthnUser.WebAuthnName())
 	require.Equal(t, user.WebAuthnDisplayName(), webauthnUser.WebAuthnDisplayName())
 	require.Equal(t, user.WebAuthnCredentials(), webauthnUser.WebAuthnCredentials())
+	require.Equal(t, user.WebAuthnIcon(), webauthnUser.WebAuthnIcon())
 }
 
 func TestSmartContractUser_EmptyValues(t *testing.T) {
@@ -376,6 +380,7 @@ func TestSmartContractUser_EmptyValues(t *testing.T) {
 	require.Equal(t, []byte(""), user.WebAuthnID())
 	require.Equal(t, "", user.WebAuthnName())
 	require.Equal(t, "", user.WebAuthnDisplayName())
+	require.Equal(t, "", user.WebAuthnIcon())
 
 	// WebAuthnCredentials should work with empty credential
 	credentials := user.WebAuthnCredentials()
@@ -486,6 +491,7 @@ func TestSmartContractUser_AllMethods(t *testing.T) {
 	require.Equal(t, []byte(address), user.WebAuthnID())
 	require.Equal(t, address, user.WebAuthnName())
 	require.Equal(t, address, user.WebAuthnDisplayName())
+	require.Equal(t, "", user.WebAuthnIcon())
 
 	credentials := user.WebAuthnCredentials()
 	require.Len(t, credentials, 1)
@@ -604,12 +610,7 @@ func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rs
 	return createShortLivedCertAtTime(validDuration, time.Now())
 }
 
-func createShortLivedCertAtTime(validDuration time.Duration, referenceTime time.Time) (certDER []byte, priv *rsa.PrivateKey, err error) {
-	priv, err = rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return
-	}
-
+func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
 	// Create certificate that starts well before the reference time to avoid timing issues
 	// Make sure it's also valid during actual test execution (current time)
 	startTime := referenceTime.Add(-2 * time.Hour)
