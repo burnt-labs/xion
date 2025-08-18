@@ -368,7 +368,6 @@ func TestSmartContractUser_Interface(t *testing.T) {
 	require.Equal(t, user.WebAuthnName(), webauthnUser.WebAuthnName())
 	require.Equal(t, user.WebAuthnDisplayName(), webauthnUser.WebAuthnDisplayName())
 	require.Equal(t, user.WebAuthnCredentials(), webauthnUser.WebAuthnCredentials())
-	require.Equal(t, user.WebAuthnIcon(), webauthnUser.WebAuthnIcon())
 }
 
 func TestSmartContractUser_EmptyValues(t *testing.T) {
@@ -580,7 +579,7 @@ func createCertForTimeValidation(referenceTime time.Time, validityPeriod time.Du
 	// Create certificate with specific validity period relative to reference time
 	startTime := referenceTime
 	endTime := referenceTime.Add(validityPeriod)
-	
+
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(2025),
 		Subject: pkix.Name{
@@ -606,15 +605,16 @@ func encodeTime(t time.Time) []byte {
 	return []byte(t.Format(time.RFC3339))
 }
 
-func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
-	return createShortLivedCertAtTime(validDuration, time.Now())
-}
+func createShortLivedCert(referenceTime time.Time, validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
+	priv, err = rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return
+	}
 
-func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
 	// Create certificate that starts well before the reference time to avoid timing issues
 	// Make sure it's also valid during actual test execution (current time)
 	startTime := referenceTime.Add(-2 * time.Hour)
-	
+
 	// For very short certificates (meant to test expiry), don't add buffer
 	// For longer certificates, add buffer to avoid expiry during test runs
 	var endTime time.Time
@@ -625,7 +625,7 @@ func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rs
 		// Longer certificate - add buffer to avoid test timing issues
 		endTime = startTime.Add(validDuration + 48*time.Hour)
 	}
-	
+
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(2025),
 		Subject: pkix.Name{
@@ -749,8 +749,11 @@ func buildCredentialCreationJSON(attBytes []byte, clientDataJSON []byte) []byte 
 
 // TestWebAuthnTimeConsensus tests that WebAuthn verification is deterministic across validators
 func TestWebAuthnTimeConsensus(t *testing.T) {
-	// Create a certificate that expires in 5 seconds
-	certDER, priv, err := createShortLivedCert(5 * time.Second)
+	// Test with a fixed block time (deterministic)
+	baseTime := time.Now()
+	
+	// Create a certificate that expires in 5 seconds from baseTime
+	certDER, priv, err := createShortLivedCert(baseTime, 5*time.Second)
 	require.NoError(t, err)
 
 	// Create test data
@@ -772,8 +775,7 @@ func TestWebAuthnTimeConsensus(t *testing.T) {
 
 	rp, _ := url.Parse("https://test.example")
 
-	// Test with a fixed block time (deterministic)
-	baseTime := time.Now()
+	// Both contexts should produce the same result (deterministic)
 	ctx1 := sdktypes.NewContext(nil, cmtproto.Header{Time: baseTime}, false, nil)
 	ctx2 := sdktypes.NewContext(nil, cmtproto.Header{Time: baseTime}, false, nil)
 
@@ -793,6 +795,26 @@ func TestWebAuthnTimeConsensus(t *testing.T) {
 	futureTime := baseTime.Add(10 * time.Second) // After cert expires
 	ctx3 := sdktypes.NewContext(nil, cmtproto.Header{Time: futureTime}, false, nil)
 
+	certDER, priv, err = createShortLivedCert(baseTime, 5*time.Second)
+	require.NoError(t, err)
+
+	// Create test data
+	clientData2 := map[string]string{
+		"type":      "webauthn.create",
+		"challenge": "test_challenge_123",
+		"origin":    "https://test.example",
+	}
+	clientDataJSON2, _ := json.Marshal(clientData2)
+	clientDataHash2 := sha256.Sum256(clientDataJSON2)
+
+	attObj, err = buildPackedAttestation(certDER, priv, clientDataHash2[:])
+	require.NoError(t, err)
+
+	bodyJSON = buildCredentialCreationJSON(attObj, clientDataJSON2)
+
+	parsed, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
+	require.NoError(t, err)
+
 	cred3, err3 := types.VerifyRegistration(ctx3, rp, "contract1", "test_challenge_123", parsed)
 	require.Error(t, err3, "Should fail when certificate is expired according to block time")
 	require.Nil(t, cred3, "Credential should be nil on failure")
@@ -803,7 +825,8 @@ func TestWebAuthnTimeConsensus(t *testing.T) {
 // TestWebAuthnBlockTimeConsistency verifies that the same block time produces identical results
 func TestWebAuthnBlockTimeConsistency(t *testing.T) {
 	// Create a long-lived certificate to avoid expiry issues during test
-	certDER, priv, err := createShortLivedCert(1 * time.Hour)
+	baseTime := time.Now()
+	certDER, priv, err := createShortLivedCert(baseTime, 1*time.Hour)
 	require.NoError(t, err)
 
 	clientData := map[string]string{
@@ -854,12 +877,12 @@ func TestWebAuthnCertificateValidation(t *testing.T) {
 	// Use fixed dates that are stable and well in the past/future
 	// This ensures we can test specific time scenarios without flakiness
 	testBaseTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
-	
+
 	// Create a long-lived certificate that covers all our test scenarios
 	// This certificate will be valid from 2024-01-01 to 2025-12-31
 	certStart := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	certEnd := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
-	
+
 	cert, priv, err := createCertWithValidityPeriod(certStart, certEnd)
 	require.NoError(t, err)
 
@@ -904,7 +927,7 @@ func TestWebAuthnCertificateValidation(t *testing.T) {
 			t.Logf("Certificate NotAfter: %v", cert.NotAfter)
 			t.Logf("Block time: %v", tc.blockTime)
 			t.Logf("Is valid at block time: %v", tc.blockTime.After(cert.NotBefore) && tc.blockTime.Before(cert.NotAfter))
-			
+
 			clientData := map[string]string{
 				"type":      "webauthn.create",
 				"challenge": "cert_validation_test",
@@ -958,7 +981,8 @@ func TestCreateCredential(t *testing.T) {
 	}
 
 	// Test with valid certificate and current block time
-	certDER, priv, err := createShortLivedCert(1 * time.Hour)
+	baseTime := time.Now()
+	certDER, priv, err := createShortLivedCert(baseTime, 1*time.Hour)
 	require.NoError(t, err)
 
 	clientData := map[string]string{
@@ -1006,7 +1030,8 @@ func TestCreateCredential_IDMismatch(t *testing.T) {
 	}
 
 	// Create minimal valid parsed response
-	certDER, priv, err := createShortLivedCert(1 * time.Hour)
+	baseTime := time.Now()
+	certDER, priv, err := createShortLivedCert(baseTime, 1*time.Hour)
 	require.NoError(t, err)
 
 	clientData := map[string]string{
@@ -1054,7 +1079,8 @@ func TestCreateCredential_SessionExpired(t *testing.T) {
 	}
 
 	// Create valid parsed response
-	certDER, priv, err := createShortLivedCert(1 * time.Hour)
+	baseTime := time.Now()
+	certDER, priv, err := createShortLivedCert(baseTime, 1*time.Hour)
 	require.NoError(t, err)
 
 	clientData := map[string]string{
