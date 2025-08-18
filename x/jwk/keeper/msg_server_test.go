@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -16,6 +17,7 @@ import (
 func TestMsgServerCreate(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
+	wctx := sdk.WrapSDKContext(ctx)
 
 	require.NotNil(t, srv)
 
@@ -29,7 +31,7 @@ func TestMsgServerCreate(t *testing.T) {
 		AudHash: audHash[:],
 	}
 
-	claimResp, err := srv.CreateAudienceClaim(ctx, claimMsg)
+	claimResp, err := srv.CreateAudienceClaim(wctx, claimMsg)
 	require.NoError(t, err)
 	require.NotNil(t, claimResp)
 
@@ -40,7 +42,7 @@ func TestMsgServerCreate(t *testing.T) {
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`,
 	}
 
-	resp, err := srv.CreateAudience(ctx, msg)
+	resp, err := srv.CreateAudience(wctx, msg)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
@@ -56,7 +58,7 @@ func TestMsgServerCreate(t *testing.T) {
 		AudHash: []byte("test-hash"),
 	}
 
-	claimResp2, err := srv.CreateAudienceClaim(ctx, claimMsg2)
+	claimResp2, err := srv.CreateAudienceClaim(wctx, claimMsg2)
 	require.NoError(t, err)
 	require.NotNil(t, claimResp2)
 
@@ -69,7 +71,7 @@ func TestMsgServerCreate(t *testing.T) {
 func TestMsgServerUpdate(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	// Use ctx directly instead of wrapping
+	wctx := sdk.WrapSDKContext(ctx)
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -80,7 +82,7 @@ func TestMsgServerUpdate(t *testing.T) {
 		AudHash: audHash[:],
 	}
 
-	_, err := srv.CreateAudienceClaim(ctx, claimMsg)
+	_, err := srv.CreateAudienceClaim(wctx, claimMsg)
 	require.NoError(t, err)
 
 	// Now create an audience
@@ -89,7 +91,7 @@ func TestMsgServerUpdate(t *testing.T) {
 		Aud:   "test-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`,
 	}
-	_, err = srv.CreateAudience(ctx, createMsg)
+	_, err = srv.CreateAudience(wctx, createMsg)
 	require.NoError(t, err)
 
 	// Test UpdateAudience - basic update
@@ -100,7 +102,7 @@ func TestMsgServerUpdate(t *testing.T) {
 		Key:      `{"kty":"RSA","use":"sig","kid":"updated","n":"updated","e":"AQAB"}`,
 	}
 
-	resp, err := srv.UpdateAudience(ctx, updateMsg)
+	resp, err := srv.UpdateAudience(wctx, updateMsg)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
@@ -118,7 +120,7 @@ func TestMsgServerUpdate(t *testing.T) {
 		NewAdmin: newAdmin,
 	}
 
-	resp2, err := srv.UpdateAudience(ctx, updateWithNewAdminMsg)
+	resp2, err := srv.UpdateAudience(wctx, updateWithNewAdminMsg)
 	require.NoError(t, err)
 	require.NotNil(t, resp2)
 	require.Equal(t, newAdmin, resp2.Audience.Admin)
@@ -134,7 +136,7 @@ func TestMsgServerUpdate(t *testing.T) {
 		Key:      `{"kty":"RSA","use":"sig","kid":"test","n":"test","e":"AQAB"}`,
 	}
 
-	_, err = srv.UpdateAudience(ctx, updateNonExistentMsg)
+	_, err = srv.UpdateAudience(wctx, updateNonExistentMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "index not set")
 
@@ -147,7 +149,7 @@ func TestMsgServerUpdate(t *testing.T) {
 		Key:      `{"kty":"RSA","use":"sig","kid":"test","n":"test","e":"AQAB"}`,
 	}
 
-	_, err = srv.UpdateAudience(ctx, updateUnauthorizedMsg)
+	_, err = srv.UpdateAudience(wctx, updateUnauthorizedMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "incorrect owner")
 }
@@ -155,7 +157,7 @@ func TestMsgServerUpdate(t *testing.T) {
 func TestMsgServerUpdateWithNewAud(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	// Use ctx directly instead of wrapping
+	wctx := sdk.WrapSDKContext(ctx)
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -165,7 +167,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Admin:   admin,
 		AudHash: audHash[:],
 	}
-	_, err := srv.CreateAudienceClaim(ctx, claimMsg)
+	_, err := srv.CreateAudienceClaim(wctx, claimMsg)
 	require.NoError(t, err)
 
 	createMsg := &types.MsgCreateAudience{
@@ -173,7 +175,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Aud:   "test-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`,
 	}
-	_, err = srv.CreateAudience(ctx, createMsg)
+	_, err = srv.CreateAudience(wctx, createMsg)
 	require.NoError(t, err)
 
 	// Create claim for new audience name
@@ -182,7 +184,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Admin:   admin,
 		AudHash: newAudHash[:],
 	}
-	_, err = srv.CreateAudienceClaim(ctx, newClaimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, newClaimMsg)
 	require.NoError(t, err)
 
 	// Test UpdateAudience with NewAud
@@ -194,7 +196,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Key:      `{"kty":"RSA","use":"sig","kid":"updated","n":"updated","e":"AQAB"}`,
 	}
 
-	resp, err := srv.UpdateAudience(ctx, updateMsg)
+	resp, err := srv.UpdateAudience(wctx, updateMsg)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Equal(t, "new-audience", resp.Audience.Aud)
@@ -213,7 +215,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Admin:   admin,
 		AudHash: existingAudHash[:],
 	}
-	_, err = srv.CreateAudienceClaim(ctx, existingClaimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, existingClaimMsg)
 	require.NoError(t, err)
 
 	existingCreateMsg := &types.MsgCreateAudience{
@@ -221,7 +223,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Aud:   "existing-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`,
 	}
-	_, err = srv.CreateAudience(ctx, existingCreateMsg)
+	_, err = srv.CreateAudience(wctx, existingCreateMsg)
 	require.NoError(t, err)
 
 	// Use the actual admin of the "new-audience" audience for the update request
@@ -233,7 +235,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Key:      `{"kty":"RSA","use":"sig","kid":"test","n":"test","e":"AQAB"}`,
 	}
 
-	_, err = srv.UpdateAudience(ctx, updateToExistingMsg)
+	_, err = srv.UpdateAudience(wctx, updateToExistingMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "audience already created")
 
@@ -246,7 +248,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Key:      `{"kty":"RSA","use":"sig","kid":"test","n":"test","e":"AQAB"}`,
 	}
 
-	_, err = srv.UpdateAudience(ctx, updateWithoutClaimMsg)
+	_, err = srv.UpdateAudience(wctx, updateWithoutClaimMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "claim not found")
 
@@ -257,7 +259,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Admin:   wrongSigner,
 		AudHash: wrongSignerAudHash[:],
 	}
-	_, err = srv.CreateAudienceClaim(ctx, wrongSignerClaimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, wrongSignerClaimMsg)
 	require.NoError(t, err)
 
 	updateWithWrongSignerMsg := &types.MsgUpdateAudience{
@@ -268,7 +270,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 		Key:      `{"kty":"RSA","use":"sig","kid":"test","n":"test","e":"AQAB"}`,
 	}
 
-	_, err = srv.UpdateAudience(ctx, updateWithWrongSignerMsg)
+	_, err = srv.UpdateAudience(wctx, updateWithWrongSignerMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "expected "+wrongSigner+", got")
 }
@@ -276,7 +278,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 func TestMsgServerDelete(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	// Use ctx directly instead of wrapping
+	wctx := sdk.WrapSDKContext(ctx)
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -287,7 +289,7 @@ func TestMsgServerDelete(t *testing.T) {
 		AudHash: audHash[:],
 	}
 
-	_, err := srv.CreateAudienceClaim(ctx, claimMsg)
+	_, err := srv.CreateAudienceClaim(wctx, claimMsg)
 	require.NoError(t, err)
 
 	// Now create an audience
@@ -296,7 +298,7 @@ func TestMsgServerDelete(t *testing.T) {
 		Aud:   "test-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`,
 	}
-	_, err = srv.CreateAudience(ctx, createMsg)
+	_, err = srv.CreateAudience(wctx, createMsg)
 	require.NoError(t, err)
 
 	// Test DeleteAudienceClaim
@@ -305,7 +307,7 @@ func TestMsgServerDelete(t *testing.T) {
 		AudHash: audHash[:], // Use the same hash that was created
 	}
 
-	resp, err := srv.DeleteAudienceClaim(ctx, deleteClaimMsg)
+	resp, err := srv.DeleteAudienceClaim(wctx, deleteClaimMsg)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
@@ -319,7 +321,7 @@ func TestMsgServerDelete(t *testing.T) {
 		Aud:   "test-audience",
 	}
 
-	deleteResp, err := srv.DeleteAudience(ctx, deleteMsg)
+	deleteResp, err := srv.DeleteAudience(wctx, deleteMsg)
 	require.NoError(t, err)
 	require.NotNil(t, deleteResp)
 
@@ -331,7 +333,7 @@ func TestMsgServerDelete(t *testing.T) {
 func TestMsgServerErrorCases(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	// Use ctx directly instead of wrapping
+	wctx := sdk.WrapSDKContext(ctx)
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -341,7 +343,7 @@ func TestMsgServerErrorCases(t *testing.T) {
 		Admin:   "invalid-address",
 		AudHash: audHash[:],
 	}
-	_, err := srv.CreateAudienceClaim(ctx, invalidClaimMsg)
+	_, err := srv.CreateAudienceClaim(wctx, invalidClaimMsg)
 	require.Error(t, err)
 
 	// Test CreateAudienceClaim duplicate claim (already exists)
@@ -349,11 +351,11 @@ func TestMsgServerErrorCases(t *testing.T) {
 		Admin:   admin,
 		AudHash: audHash[:],
 	}
-	_, err = srv.CreateAudienceClaim(ctx, validClaimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, validClaimMsg)
 	require.NoError(t, err)
 
 	// Try to create the same claim again - should fail
-	_, err = srv.CreateAudienceClaim(ctx, validClaimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, validClaimMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "audience already claimed")
 
@@ -362,7 +364,7 @@ func TestMsgServerErrorCases(t *testing.T) {
 		Admin:   admin,
 		AudHash: []byte("non-existent"),
 	}
-	_, err = srv.DeleteAudienceClaim(ctx, deleteClaimMsg)
+	_, err = srv.DeleteAudienceClaim(wctx, deleteClaimMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "index not set")
 
@@ -372,7 +374,7 @@ func TestMsgServerErrorCases(t *testing.T) {
 		Aud:   "no-claim-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err = srv.CreateAudience(ctx, createMsg)
+	_, err = srv.CreateAudience(wctx, createMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "claim not found")
 
@@ -381,7 +383,7 @@ func TestMsgServerErrorCases(t *testing.T) {
 		Admin: admin,
 		Aud:   "non-existent",
 	}
-	_, err = srv.DeleteAudience(ctx, deleteMsg)
+	_, err = srv.DeleteAudience(wctx, deleteMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 
@@ -393,7 +395,7 @@ func TestMsgServerErrorCases(t *testing.T) {
 		NewAud:   "new-aud",
 		Key:      `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err = srv.UpdateAudience(ctx, updateMsg)
+	_, err = srv.UpdateAudience(wctx, updateMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 }
@@ -401,7 +403,7 @@ func TestMsgServerErrorCases(t *testing.T) {
 func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	// Use ctx directly instead of wrapping
+	wctx := sdk.WrapSDKContext(ctx)
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	wrongAdmin := authtypes.NewModuleAddress("wrongadmin").String()
@@ -412,7 +414,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Aud:   "no-claim-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err := srv.CreateAudience(ctx, createMsg)
+	_, err := srv.CreateAudience(wctx, createMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "claim not found")
 
@@ -422,7 +424,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Admin:   wrongAdmin,
 		AudHash: audHash[:],
 	}
-	_, err = srv.CreateAudienceClaim(ctx, claimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, claimMsg)
 	require.NoError(t, err)
 
 	// Test CreateAudience with wrong signer
@@ -431,7 +433,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Aud:   "wrong-signer-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err = srv.CreateAudience(ctx, createMsgWrongSigner)
+	_, err = srv.CreateAudience(wctx, createMsgWrongSigner)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "expected "+wrongAdmin+", got")
 
@@ -440,7 +442,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Admin:   admin,
 		AudHash: []byte("non-existent-hash"),
 	}
-	_, err = srv.DeleteAudienceClaim(ctx, deleteClaimMsg)
+	_, err = srv.DeleteAudienceClaim(wctx, deleteClaimMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 
@@ -450,7 +452,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Admin:   admin,
 		AudHash: validAudHash[:],
 	}
-	_, err = srv.CreateAudienceClaim(ctx, validClaimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, validClaimMsg)
 	require.NoError(t, err)
 
 	validCreateMsg := &types.MsgCreateAudience{
@@ -458,7 +460,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Aud:   "valid-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err = srv.CreateAudience(ctx, validCreateMsg)
+	_, err = srv.CreateAudience(wctx, validCreateMsg)
 	require.NoError(t, err)
 
 	// Test DeleteAudienceClaim with wrong admin
@@ -466,7 +468,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Admin:   wrongAdmin,
 		AudHash: validAudHash[:],
 	}
-	_, err = srv.DeleteAudienceClaim(ctx, wrongDeleteClaimMsg)
+	_, err = srv.DeleteAudienceClaim(wctx, wrongDeleteClaimMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "incorrect owner")
 
@@ -475,7 +477,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 		Admin: wrongAdmin,
 		Aud:   "valid-audience",
 	}
-	_, err = srv.DeleteAudience(ctx, wrongDeleteMsg)
+	_, err = srv.DeleteAudience(wctx, wrongDeleteMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "incorrect owner")
 }
@@ -484,7 +486,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	// Use ctx directly instead of wrapping
+	wctx := sdk.WrapSDKContext(ctx)
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	wrongAdmin := "cosmos1wrong"
@@ -495,7 +497,7 @@ func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 		Admin:   admin,
 		AudHash: audHash[:],
 	}
-	_, err := srv.CreateAudienceClaim(ctx, claimMsg)
+	_, err := srv.CreateAudienceClaim(wctx, claimMsg)
 	require.NoError(t, err)
 
 	// Create initial audience
@@ -504,7 +506,7 @@ func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 		Aud:   "existing-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err = srv.CreateAudience(ctx, createMsg)
+	_, err = srv.CreateAudience(wctx, createMsg)
 	require.NoError(t, err)
 
 	// Try to create same audience again - should fail
@@ -513,7 +515,7 @@ func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 		Aud:   "existing-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test2","e":"AQAB"}`,
 	}
-	_, err = srv.CreateAudience(ctx, duplicateMsg)
+	_, err = srv.CreateAudience(wctx, duplicateMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "audience already created")
 
@@ -523,7 +525,7 @@ func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 		Aud:   "no-claim-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err = srv.CreateAudience(ctx, noclaimMsg)
+	_, err = srv.CreateAudience(wctx, noclaimMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "claim not found for aud")
 
@@ -533,7 +535,7 @@ func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 		Admin:   admin,
 		AudHash: wrongAdminHash[:],
 	}
-	_, err = srv.CreateAudienceClaim(ctx, wrongAdminClaimMsg)
+	_, err = srv.CreateAudienceClaim(wctx, wrongAdminClaimMsg)
 	require.NoError(t, err)
 
 	// Try to create audience with different admin
@@ -542,7 +544,7 @@ func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 		Aud:   "wrong-admin-audience",
 		Key:   `{"kty":"RSA","use":"sig","alg":"RS256","n":"test","e":"AQAB"}`,
 	}
-	_, err = srv.CreateAudience(ctx, wrongAdminAudienceMsg)
+	_, err = srv.CreateAudience(wctx, wrongAdminAudienceMsg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "expected")
 	require.Contains(t, err.Error(), "got")

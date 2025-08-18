@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
+
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
-
-	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -125,14 +125,12 @@ func TestConvertPemToJSONCases(t *testing.T) {
 	// Invalid content
 	tmpInvalid, _ := os.CreateTemp("", "bad*.pem")
 	defer os.Remove(tmpInvalid.Name())
-	_, err = tmpInvalid.WriteString("not a pem")
-	require.NoError(t, err)
+	tmpInvalid.WriteString("not a pem")
 	tmpInvalid.Close()
 	_, err = clitestutil.ExecTestCLICmd(ctx, cli.CmdConvertPemToJSON(), []string{tmpInvalid.Name()})
 	require.Error(t, err)
 
 	// Valid PEM (RSA public key) one & algorithm branch
-	// nolint: goconst
 	validPEM := `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjR+4XbCgepL6/I7KLqUJ
 m3sUNwcCCLJDMiIZbHS3duf7oYdOtVeAykP4ga6cmJZZE+1+TiiXZArXwOx6fO1N
@@ -144,8 +142,7 @@ AwIDAQAB
 -----END PUBLIC KEY-----`
 	tmpValid, _ := os.CreateTemp("", "valid*.pem")
 	defer os.Remove(tmpValid.Name())
-	_, err = tmpValid.WriteString(validPEM)
-	require.NoError(t, err)
+	tmpValid.WriteString(validPEM)
 	tmpValid.Close()
 
 	out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdConvertPemToJSON(), []string{tmpValid.Name()})
@@ -306,8 +303,7 @@ iTo7Tu6KPAqv7D7gS2XpJFbZiItSs3m9+9Ue6GnvHw/GW2ZZaVtszggXIw==
 -----END PUBLIC KEY-----`
 	tmpEC, _ := os.CreateTemp("", "ec*.pem")
 	defer os.Remove(tmpEC.Name())
-	_, err := tmpEC.WriteString(ecPEM)
-	require.NoError(t, err)
+	tmpEC.WriteString(ecPEM)
 	tmpEC.Close()
 
 	out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdConvertPemToJSON(), []string{tmpEC.Name()})
@@ -436,8 +432,7 @@ AwIDAQAB
 -----END PUBLIC KEY-----`
 	tmpValid, _ := os.CreateTemp("", "test*.pem")
 	defer os.Remove(tmpValid.Name())
-	_, err := tmpValid.WriteString(validPEM)
-	require.NoError(t, err)
+	tmpValid.WriteString(validPEM)
 	tmpValid.Close()
 
 	// With empty context, may succeed with parsing but fail on output
@@ -513,20 +508,16 @@ func TestUpdateAudienceAdditionalPaths(t *testing.T) {
 
 	// Test with flags - should use default admin when new-admin is empty
 	args := []string{"aud", "key"}
-	err := cmd.Flags().Set("new-admin", "") // Empty admin should use default
-	require.NoError(t, err)
-	err = cmd.Flags().Set("new-aud", "new-aud")
-	require.NoError(t, err)
+	cmd.Flags().Set("new-admin", "") // Empty admin should use default
+	cmd.Flags().Set("new-aud", "new-aud")
 	// This should fail because the mock context doesn't provide a valid from address
-	_, err = clitestutil.ExecTestCLICmd(ctx, cmd, args)
+	_, err := clitestutil.ExecTestCLICmd(ctx, cmd, args)
 	require.Error(t, err) // Expecting error due to invalid address
 
 	// Test with explicit new-admin
 	cmd2 := cli.CmdUpdateAudience()
-	err = cmd2.Flags().Set("new-admin", "cosmos1testadmin")
-	require.NoError(t, err)
-	err = cmd2.Flags().Set("new-aud", "new-aud")
-	require.NoError(t, err)
+	cmd2.Flags().Set("new-admin", "cosmos1testadmin")
+	cmd2.Flags().Set("new-aud", "new-aud")
 	_, err = clitestutil.ExecTestCLICmd(ctx, cmd2, args)
 	require.Error(t, err) // Still expecting error due to invalid bech32 format
 }
@@ -553,9 +544,8 @@ func TestQueryCommandsFullCoverage(t *testing.T) {
 	listCmd := cli.CmdListAudience()
 
 	// Test with page-key
-	err := listCmd.Flags().Set("page-key", "test-key")
-	require.NoError(t, err)
-	_, err = clitestutil.ExecTestCLICmd(ctx, listCmd, []string{})
+	listCmd.Flags().Set("page-key", "test-key")
+	_, err := clitestutil.ExecTestCLICmd(ctx, listCmd, []string{})
 	require.NoError(t, err)
 
 	// Test params command
@@ -589,12 +579,10 @@ func TestListAudiencePaginationError(t *testing.T) {
 
 	// Set invalid pagination values that should cause ReadPageRequest to fail
 	// Use both page and page-key which should be mutually exclusive
-	err := cmd.Flags().Set("page", "1")
-	require.NoError(t, err)
-	err = cmd.Flags().Set("page-key", "somekey")
-	require.NoError(t, err)
+	cmd.Flags().Set("page", "1")
+	cmd.Flags().Set("page-key", "somekey")
 
-	_, err = clitestutil.ExecTestCLICmd(ctx, cmd, []string{})
+	_, err := clitestutil.ExecTestCLICmd(ctx, cmd, []string{})
 	// The pagination test may not fail with negative limit, so let's check any pagination error
 	if err != nil {
 		// Good, we got an error from pagination validation
@@ -637,10 +625,8 @@ func TestTxContextErrors(t *testing.T) {
 
 	// Test CmdUpdateAudience with empty context
 	updateCmd := cli.CmdUpdateAudience()
-	err = updateCmd.Flags().Set("new-admin", "cosmos1test")
-	require.NoError(t, err)
-	err = updateCmd.Flags().Set("new-aud", "new-aud")
-	require.NoError(t, err)
+	updateCmd.Flags().Set("new-admin", "cosmos1test")
+	updateCmd.Flags().Set("new-aud", "new-aud")
 	_, err = clitestutil.ExecTestCLICmd(emptyCtx, updateCmd, []string{"aud", "key"})
 	require.Error(t, err) // Should fail with tx context error
 
