@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -17,7 +16,7 @@ import (
 func TestMsgServerCreate(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	require.NotNil(t, srv)
 
@@ -71,7 +70,7 @@ func TestMsgServerCreate(t *testing.T) {
 func TestMsgServerUpdate(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -157,7 +156,7 @@ func TestMsgServerUpdate(t *testing.T) {
 func TestMsgServerUpdateWithNewAud(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -278,7 +277,7 @@ func TestMsgServerUpdateWithNewAud(t *testing.T) {
 func TestMsgServerDelete(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -333,7 +332,7 @@ func TestMsgServerDelete(t *testing.T) {
 func TestMsgServerErrorCases(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -403,7 +402,7 @@ func TestMsgServerErrorCases(t *testing.T) {
 func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	wrongAdmin := authtypes.NewModuleAddress("wrongadmin").String()
@@ -486,7 +485,7 @@ func TestMsgServerComprehensiveErrorCoverage(t *testing.T) {
 func TestMsgServerCreateAudienceComprehensiveErrorPaths(t *testing.T) {
 	k, ctx := setupKeeper(t)
 	srv := keeper.NewMsgServerImpl(k)
-	wctx := sdk.WrapSDKContext(ctx)
+	wctx := ctx.Context()
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	wrongAdmin := "cosmos1wrong"
