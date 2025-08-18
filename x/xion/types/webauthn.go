@@ -112,12 +112,41 @@ func CreateCredential(webauth *webauthn.WebAuthn, ctx sdktypes.Context, user web
 		return nil, err
 	}
 
-	// Call original verification
-	if err := parsedResponse.Verify(session.Challenge, shouldVerifyUser, webauth.Config.RPID, webauth.Config.RPOrigins); err != nil {
+	// Call original verification with all required parameters
+	// Based on webauthn v13.4 API, Verify now takes more parameters including credential parameters
+	credParams := []protocol.CredentialParameter{
+		{Type: "public-key", Algorithm: -7},   // ES256
+		{Type: "public-key", Algorithm: -257}, // RS256
+	}
+
+	if _, err := parsedResponse.Verify(
+		session.Challenge,                        // storedChallenge
+		shouldVerifyUser,                         // verifyUser
+		false,                                    // allowSetUserVerificationHint - set to false for deterministic behavior
+		webauth.Config.RPID,                      // relyingPartyID
+		webauth.Config.RPOrigins,                 // relyingPartyOrigin
+		nil,                                      // attestationObject (optional)
+		protocol.TopOriginIgnoreVerificationMode, // topOriginVerification
+		nil,                                      // extensions
+		credParams,                               // credParams
+	); err != nil {
 		return nil, err
 	}
 
-	return webauthn.MakeNewCredential(parsedResponse)
+	return &webauthn.Credential{
+		ID:              parsedResponse.Response.AttestationObject.AuthData.AttData.CredentialID,
+		PublicKey:       parsedResponse.Response.AttestationObject.AuthData.AttData.CredentialPublicKey,
+		AttestationType: parsedResponse.Response.AttestationObject.Format,
+		Transport:       parsedResponse.Response.Transports, // Populate from parsed response
+		Flags: webauthn.CredentialFlags{
+			UserPresent:  parsedResponse.Response.AttestationObject.AuthData.Flags.UserPresent(),
+			UserVerified: parsedResponse.Response.AttestationObject.AuthData.Flags.UserVerified(),
+		},
+		Authenticator: webauthn.Authenticator{
+			AAGUID:    parsedResponse.Response.AttestationObject.AuthData.AttData.AAGUID,
+			SignCount: parsedResponse.Response.AttestationObject.AuthData.Counter,
+		},
+	}, nil
 }
 
 // validateCertificatesWithBlockTime validates X.509 certificates using block time instead of system time
