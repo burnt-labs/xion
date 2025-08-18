@@ -2,7 +2,9 @@ package types
 
 import (
 	"bytes"
+	"crypto/x509"
 	"net/url"
+	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -60,7 +62,7 @@ func VerifyRegistration(ctx sdktypes.Context, rp *url.URL, contractAddr string, 
 	return CreateCredential(webAuthn, ctx, smartContractUser, session, credentialCreationData)
 }
 
-func VerifyAuthentication(rp *url.URL, contractAddr string, challenge string, credential *webauthn.Credential, credentialAssertionData *protocol.ParsedCredentialAssertionData) (bool, error) {
+func VerifyAuthentication(ctx sdktypes.Context, rp *url.URL, contractAddr string, challenge string, credential *webauthn.Credential, credentialAssertionData *protocol.ParsedCredentialAssertionData) (bool, error) {
 	config := webauthn.Config{
 		RPID:                   rp.Host,
 		RPDisplayName:          rp.String(),
@@ -93,20 +95,56 @@ func VerifyAuthentication(rp *url.URL, contractAddr string, challenge string, cr
 
 // CreateCredential verifies a parsed response against the user's credentials and session data.
 func CreateCredential(webauth *webauthn.WebAuthn, ctx sdktypes.Context, user webauthn.User, session webauthn.SessionData, parsedResponse *protocol.ParsedCredentialCreationData) (*webauthn.Credential, error) {
+	// First do the basic validations that don't involve time
 	if !bytes.Equal(user.WebAuthnID(), session.UserID) {
 		return nil, protocol.ErrBadRequest.WithDetails("ID mismatch for User and Session")
 	}
 
+	// Use block time for session expiry check (deterministic)
 	if !session.Expires.IsZero() && session.Expires.Before(ctx.BlockTime()) {
 		return nil, protocol.ErrBadRequest.WithDetails("Session has Expired")
 	}
 
 	shouldVerifyUser := session.UserVerification == protocol.VerificationRequired
 
-	invalidErr := parsedResponse.Verify(session.Challenge, shouldVerifyUser, webauth.Config.RPID, webauth.Config.RPOrigins)
-	if invalidErr != nil {
-		return nil, invalidErr
+	// Validate certificates using block time BEFORE calling original verification
+	if err := validateCertificatesWithBlockTime(parsedResponse, ctx.BlockTime()); err != nil {
+		return nil, err
+	}
+
+	// Call original verification
+	if err := parsedResponse.Verify(session.Challenge, shouldVerifyUser, webauth.Config.RPID, webauth.Config.RPOrigins); err != nil {
+		return nil, err
 	}
 
 	return webauthn.MakeNewCredential(parsedResponse)
+}
+
+// validateCertificatesWithBlockTime validates X.509 certificates using block time instead of system time
+func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredentialCreationData, blockTime time.Time) error {
+	attStmt := parsedResponse.Response.AttestationObject.AttStatement
+	if attStmt == nil {
+		return nil // No certificates to validate
+	}
+
+	// Look for x5c (X.509 certificate chain) in the attestation statement
+	if x5cRaw, exists := attStmt["x5c"]; exists {
+		if x5cSlice, ok := x5cRaw.([]interface{}); ok {
+			for _, certRaw := range x5cSlice {
+				if certBytes, ok := certRaw.([]byte); ok {
+					cert, err := x509.ParseCertificate(certBytes)
+					if err != nil {
+						return protocol.ErrInvalidAttestation.WithDetails("Failed to parse X.509 certificate")
+					}
+
+					// Use block time for certificate validity check (deterministic)
+					if blockTime.Before(cert.NotBefore) || blockTime.After(cert.NotAfter) {
+						return protocol.ErrInvalidAttestation.WithDetails("Certificate not valid at block time")
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
