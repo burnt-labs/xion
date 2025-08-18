@@ -22,7 +22,15 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
-func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (*types.QueryWebAuthNVerifyRegisterResponse, error) {
+func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (response *types.QueryWebAuthNVerifyRegisterResponse, err error) {
+	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
+	defer func() {
+		if r := recover(); r != nil {
+			response = nil
+			err = errorsmod.Wrap(types.ErrNoValidWebAuth, fmt.Sprintf("panic during WebAuthn verification: %v", r))
+		}
+	}()
+
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
 		return nil, err
