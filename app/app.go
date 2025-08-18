@@ -87,6 +87,8 @@ import (
 	upgrademodule "cosmossdk.io/x/upgrade"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/burnt-labs/xion/x/grantmanager"
+	grantmanagerkeeper "github.com/burnt-labs/xion/x/grantmanager/keeper"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -284,6 +286,7 @@ type WasmApp struct {
 	WasmKeeper            wasmkeeper.Keeper
 	WasmClientKeeper      ibcwasmkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
+	GrantManagerKeeper    grantmanagerkeeper.Keeper
 	IBCHooksKeeper        *ibchookskeeper.Keeper
 	ContractKeeper        *wasmkeeper.PermissionedKeeper
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
@@ -627,6 +630,12 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.GrantManagerKeeper = grantmanagerkeeper.NewKeeper(
+		runtime.NewKVStoreService(keys[authzkeeper.StoreKey]),
+		runtime.NewKVStoreService(keys[feegrant.StoreKey]),
+		app.AuthzKeeper,
+		app.FeeGrantKeeper.SetBankKeeper(app.BankKeeper),
+	)
 	// Configure the hooks keeper
 	hooksKeeper := ibchookskeeper.NewKeeper(
 		keys[ibchookstypes.StoreKey],
@@ -888,6 +897,7 @@ func NewWasmApp(
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		ibchooks.NewAppModule(app.AccountKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		grantmanager.NewAppModule(appCodec, app.GrantManagerKeeper),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	)
 
@@ -940,6 +950,7 @@ func NewWasmApp(
 		xiontypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		grantmanager.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -964,6 +975,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		grantmanager.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -997,6 +1009,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		grantmanager.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)

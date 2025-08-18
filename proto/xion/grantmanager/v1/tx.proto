@@ -1,0 +1,35 @@
+syntax = "proto3";
+package xion.grantmanager.v1;
+
+option go_package = "github.com/burnt-labs/xion/x/grantmanager/types";
+
+import "cosmos/msg/v1/msg.proto";
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+// Msg defines the x/grantmanager MsgServer
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc RevokeAuthzGrants(MsgRevokeAuthzGrants) returns (MsgRevokeAuthzGrantsResponse);
+  rpc RevokeFeegrantAllowances(MsgRevokeFeegrantAllowances) returns(MsgRevokeFeegrantAllowancesResponse);
+}
+
+message MsgRevokeAuthzGrants {
+    option (amino.name) = "grantmanager/MsgRevokeAuthzGrants";
+    option (cosmos.msg.v1.signer) = "granter";
+    string granter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+    uint32 limit = 2;
+}
+
+
+message MsgRevokeFeegrantAllowances {
+    option (amino.name) = "grantmanager/MsgRevokeFeegrantAllowances";
+    option (cosmos.msg.v1.signer) = "granter";
+    string granter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+    uint32 limit = 2;
+}
+
+message MsgRevokeAuthzGrantsResponse{}
+message MsgRevokeFeegrantAllowancesResponse{}
