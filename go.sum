@@ -237,10 +237,8 @@ github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 h1:L/gRVlceqvL25
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CosmWasm/wasmd v0.54.0 h1:/txsBehV1xnAi46H1xwuuY6D4NySujBy+wa5+ryItS8=
-github.com/CosmWasm/wasmd v0.54.0/go.mod h1:8Zu/rj6RHbJ8Gx0WdqsGeHvgnEQb0rqchpqhgMxASRU=
-github.com/CosmWasm/wasmvm/v2 v2.2.2 h1:MaQMtaZN8L08N0uAlBlOICP+GWolibJsajHGo3fQ03w=
-github.com/CosmWasm/wasmvm/v2 v2.2.2/go.mod h1:bMhLQL4Yp9CzJi9A83aR7VO9wockOsSlZbT4ztOl6bg=
+github.com/CosmWasm/wasmvm/v2 v2.2.4 h1:V3UwXJMA8TNOuQETppDQkaXAevF7gOWLYpKvrThPv7o=
+github.com/CosmWasm/wasmvm/v2 v2.2.4/go.mod h1:Aj/rB2KMRM8nAdbWxkO23rnQYb5KsoPuH9ZizSi0sVg=
 github.com/DataDog/datadog-go v3.2.0+incompatible h1:qSG2N4FghB1He/r2mFrWKCaL7dXCilEuNEeAn20fdD4=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.7 h1:ybO8RBeh29qrxIhCA9E8gKY6xfONU9T6G6aP9DTKfLE=
@@ -776,6 +774,8 @@ github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLf
 github.com/influxdata/influxdb1-client v0.0.0-20191209144304-8bf82d3c094d/go.mod h1:qj24IKcXYK6Iy9ceXlo3Tc+vtHo9lIhSX5JddghvEPo=
 github.com/jhernandezb/cosmos-sdk/collections v0.0.0-20250808231741-fb92d24b92fe h1:XApCCG39RAdzgkMHJypyVTlMjAG3MQkTBRNeevl1YjI=
 github.com/jhernandezb/cosmos-sdk/collections v0.0.0-20250808231741-fb92d24b92fe/go.mod h1:PSsEJ/fqny0VPsHLFT6gXDj/2C1tBOTS9eByK0+PBFU=
+github.com/jhernandezb/wasmd v0.20.1-0.20250818014733-0c31fbccd9fa h1:OqQ3oe/4cJhk5Rr//3LINFYeXwaKZY8B4tObl2uQSFA=
+github.com/jhernandezb/wasmd v0.20.1-0.20250818014733-0c31fbccd9fa/go.mod h1:33OJ+Rj6nhX1HAPMvNo2WyuaNc+CgAEg24TPXjefdM0=
 github.com/jhump/protoreflect v1.17.0 h1:qOEr613fac2lOuTgWN4tPAtLL7fUSbuJL5X5XumQh94=
 github.com/jhump/protoreflect v1.17.0/go.mod h1:h9+vUUL38jiBzck8ck+6G/aeMX8Z4QUY/NiJPwPNi+8=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=

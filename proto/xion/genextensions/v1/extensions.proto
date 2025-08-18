@@ -1,0 +1,43 @@
+syntax = "proto3";
+package xion.genextensions.v1;
+
+import "gogoproto/gogo.proto";
+option go_package = "github.com/burnt-labs/xion/x/genextensions/types";
+
+message ModuleExport {
+    string format = 1 [
+        (gogoproto.jsontag) = "format,omitempty"
+    ];
+    string version = 2 [
+        (gogoproto.jsontag) = "version,omitempty"
+    ];
+    File file = 3 [
+        (gogoproto.nullable) = false,
+        (gogoproto.jsontag) = "file,omitempty"
+    ];
+}
+
+message File {
+    string path = 1 [
+        (gogoproto.jsontag) = "path,omitempty"
+    ];
+    string checksum = 2 [
+        (gogoproto.jsontag) = "checksum,omitempty"
+    ];
+    uint64 total_items = 3 [
+        (gogoproto.jsontag) = "total_items,omitempty"
+    ];
+}
+
+// GenesisState - initial state of module
+message GenesisState {
+    map<string, ModuleExport> modules = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.jsontag) = "modules,omitempty"
+    ];
+}
+
+message ExportItem {
+  int32 type = 1;
+  bytes value = 2;
+}

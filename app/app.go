@@ -159,6 +159,7 @@ import (
 	"github.com/burnt-labs/xion/client/docs"
 	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
+	"github.com/burnt-labs/xion/x/genextensions"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
@@ -846,6 +847,8 @@ func NewWasmApp(
 	// we prefer to be more strict in what arguments the modules expect.
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
+	genesisDir := filepath.Join(homePath, "config", "genextensions")
+
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.ModuleManager = module.NewManager(
@@ -888,6 +891,7 @@ func NewWasmApp(
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		ibchooks.NewAppModule(app.AccountKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		genextensions.NewAppModule(genesisDir, app.AuthzKeeper, app.FeeGrantKeeper, app.BankKeeper, &app.WasmKeeper, app.appCodec, app.AccountKeeper.AddressCodec()),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	)
 
@@ -940,6 +944,7 @@ func NewWasmApp(
 		xiontypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		genextensions.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -964,6 +969,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		genextensions.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -997,6 +1003,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		genextensions.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)

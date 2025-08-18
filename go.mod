@@ -6,6 +6,7 @@ replace (
 	cosmossdk.io/collections => github.com/jhernandezb/cosmos-sdk/collections v0.0.0-20250808231741-fb92d24b92fe
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	github.com/CosmWasm/wasmd => github.com/jhernandezb/wasmd v0.20.1-0.20250818014733-0c31fbccd9fa
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
@@ -45,7 +46,7 @@ require (
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/CosmWasm/wasmd v0.54.0
-	github.com/CosmWasm/wasmvm/v2 v2.2.2
+	github.com/CosmWasm/wasmvm/v2 v2.2.4
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
@@ -199,7 +200,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.18.0
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
