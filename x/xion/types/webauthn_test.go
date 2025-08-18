@@ -565,14 +565,16 @@ func TestVerifyAuthentication_ValidateLoginError(t *testing.T) {
 // === Consensus Determinism Tests ===
 
 // Helper function to create a short-lived certificate for testing time-based consensus issues
-func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
+func createCertForTimeValidation(referenceTime time.Time, validityPeriod time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
 	priv, err = rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return
 	}
 
-	// Create certificate that starts well before now to avoid timing issues
-	now := time.Now().Add(-1 * time.Hour)
+	// Create certificate with specific validity period relative to reference time
+	startTime := referenceTime
+	endTime := referenceTime.Add(validityPeriod)
+	
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(2025),
 		Subject: pkix.Name{
@@ -581,8 +583,8 @@ func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rs
 			OrganizationalUnit: []string{"Authenticator Attestation"},
 			CommonName:         "Test-WebAuthn-Cert",
 		},
-		NotBefore:             now,
-		NotAfter:              now.Add(validDuration + time.Hour), // Add extra hour for safety
+		NotBefore:             startTime,
+		NotAfter:              endTime,
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 		BasicConstraintsValid: true,
@@ -591,6 +593,83 @@ func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rs
 
 	certDER, err = x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
 	return
+}
+
+// Helper to encode time as bytes for certificate extension
+func encodeTime(t time.Time) []byte {
+	return []byte(t.Format(time.RFC3339))
+}
+
+func createShortLivedCert(validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
+	return createShortLivedCertAtTime(validDuration, time.Now())
+}
+
+func createShortLivedCertAtTime(validDuration time.Duration, referenceTime time.Time) (certDER []byte, priv *rsa.PrivateKey, err error) {
+	priv, err = rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return
+	}
+
+	// Create certificate that starts well before the reference time to avoid timing issues
+	// Make sure it's also valid during actual test execution (current time)
+	startTime := referenceTime.Add(-2 * time.Hour)
+	
+	// For very short certificates (meant to test expiry), don't add buffer
+	// For longer certificates, add buffer to avoid expiry during test runs
+	var endTime time.Time
+	if validDuration <= 30*time.Second {
+		// Short-lived certificate for testing expiry - use exact duration
+		endTime = referenceTime.Add(validDuration)
+	} else {
+		// Longer certificate - add buffer to avoid test timing issues
+		endTime = startTime.Add(validDuration + 48*time.Hour)
+	}
+	
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(2025),
+		Subject: pkix.Name{
+			Country:            []string{"US"},
+			Organization:       []string{"Test Authenticator"},
+			OrganizationalUnit: []string{"Authenticator Attestation"},
+			CommonName:         "Test-WebAuthn-Cert",
+		},
+		NotBefore:             startTime,
+		NotAfter:              endTime,
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+		BasicConstraintsValid: true,
+		IsCA:                  false,
+	}
+
+	certDER, err = x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
+	return
+}
+
+// createCertWithValidityPeriod creates a certificate valid between start and end times
+func createCertWithValidityPeriod(notBefore, notAfter time.Time) ([]byte, *rsa.PrivateKey, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(2025),
+		Subject: pkix.Name{
+			Country:            []string{"US"},
+			Organization:       []string{"Test Authenticator"},
+			OrganizationalUnit: []string{"Authenticator Attestation"},
+			CommonName:         "Test-WebAuthn-Cert",
+		},
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+		BasicConstraintsValid: true,
+		IsCA:                  false,
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
+	return certDER, priv, err
 }
 
 // Helper to build a WebAuthn attestation object with the given certificate
@@ -771,11 +850,16 @@ func TestWebAuthnBlockTimeConsistency(t *testing.T) {
 
 // TestWebAuthnCertificateValidation tests that certificate validation uses block time
 func TestWebAuthnCertificateValidation(t *testing.T) {
-	// Create certificates with different validity periods
-	shortCert, shortPriv, err := createShortLivedCert(1 * time.Second)
-	require.NoError(t, err)
-
-	longCert, longPriv, err := createShortLivedCert(1 * time.Hour)
+	// Use fixed dates that are stable and well in the past/future
+	// This ensures we can test specific time scenarios without flakiness
+	testBaseTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+	
+	// Create a long-lived certificate that covers all our test scenarios
+	// This certificate will be valid from 2024-01-01 to 2025-12-31
+	certStart := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	certEnd := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
+	
+	cert, priv, err := createCertWithValidityPeriod(certStart, certEnd)
 	require.NoError(t, err)
 
 	rp, _ := url.Parse("https://test.example")
@@ -788,30 +872,38 @@ func TestWebAuthnCertificateValidation(t *testing.T) {
 		shouldSucceed bool
 	}{
 		{
-			name:          "short_cert_before_expiry",
-			certDER:       shortCert,
-			priv:          shortPriv,
-			blockTime:     time.Now().Add(-30 * time.Minute), // Well within the validity period
-			shouldSucceed: true,
-		},
-		{
-			name:          "short_cert_after_expiry",
-			certDER:       shortCert,
-			priv:          shortPriv,
-			blockTime:     time.Now().Add(2 * time.Hour), // Well after the 1 second + 1 hour validity period
+			name:          "block_time_before_cert_valid",
+			certDER:       cert,
+			priv:          priv,
+			blockTime:     time.Date(2023, 12, 31, 23, 59, 59, 0, time.UTC), // Before cert starts
 			shouldSucceed: false,
 		},
 		{
-			name:          "long_cert_valid",
-			certDER:       longCert,
-			priv:          longPriv,
-			blockTime:     time.Now().Add(30 * time.Minute), // Should still be valid
+			name:          "block_time_during_cert_valid",
+			certDER:       cert,
+			priv:          priv,
+			blockTime:     testBaseTime, // Well within cert validity
 			shouldSucceed: true,
+		},
+		{
+			name:          "block_time_after_cert_expires",
+			certDER:       cert,
+			priv:          priv,
+			blockTime:     time.Date(2026, 1, 1, 0, 0, 1, 0, time.UTC), // After cert expires
+			shouldSucceed: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// Debug: Let's check the certificate validity period
+			cert, err := x509.ParseCertificate(tc.certDER)
+			require.NoError(t, err)
+			t.Logf("Certificate NotBefore: %v", cert.NotBefore)
+			t.Logf("Certificate NotAfter: %v", cert.NotAfter)
+			t.Logf("Block time: %v", tc.blockTime)
+			t.Logf("Is valid at block time: %v", tc.blockTime.After(cert.NotBefore) && tc.blockTime.Before(cert.NotAfter))
+			
 			clientData := map[string]string{
 				"type":      "webauthn.create",
 				"challenge": "cert_validation_test",
