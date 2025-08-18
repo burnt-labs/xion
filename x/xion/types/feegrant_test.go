@@ -493,3 +493,413 @@ func TestMultiAnyAllowance_ValidateBasic(t *testing.T) {
 		})
 	}
 }
+
+// Test UnpackInterfaces methods
+
+func TestAuthzAllowance_UnpackInterfaces(t *testing.T) {
+	// Create a basic allowance
+	basicAllowance := &feegrant.BasicAllowance{
+		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)),
+	}
+
+	// Create AuthzAllowance
+	authzAddr := sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x")
+	authzAllowance, err := xiontypes.NewAuthzAllowance(basicAllowance, authzAddr)
+	require.NoError(t, err)
+	require.NotNil(t, authzAllowance)
+
+	// Create a mock unpacker
+	registry := codectypes.NewInterfaceRegistry()
+	feegrant.RegisterInterfaces(registry)
+
+	// Test successful unpacking
+	err = authzAllowance.UnpackInterfaces(registry)
+	require.NoError(t, err)
+
+	// Test with nil allowance - should not panic but may or may not error
+	authzAllowanceNil := &xiontypes.AuthzAllowance{
+		Allowance: nil,
+	}
+	err = authzAllowanceNil.UnpackInterfaces(registry)
+	// This may or may not error depending on implementation - just ensure it doesn't panic
+	_ = err
+}
+
+func TestContractsAllowance_UnpackInterfaces(t *testing.T) {
+	// Create a basic allowance
+	basicAllowance := &feegrant.BasicAllowance{
+		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)),
+	}
+
+	// Create ContractsAllowance
+	contractAddr := sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x")
+	contractsAllowance, err := xiontypes.NewContractsAllowance(basicAllowance, []sdk.AccAddress{contractAddr})
+	require.NoError(t, err)
+	require.NotNil(t, contractsAllowance)
+
+	// Create a mock unpacker
+	registry := codectypes.NewInterfaceRegistry()
+	feegrant.RegisterInterfaces(registry)
+
+	// Test successful unpacking
+	err = contractsAllowance.UnpackInterfaces(registry)
+	require.NoError(t, err)
+
+	// Test with nil allowance - should not panic but may or may not error
+	contractsAllowanceNil := &xiontypes.ContractsAllowance{
+		Allowance: nil,
+	}
+	err = contractsAllowanceNil.UnpackInterfaces(registry)
+	// This may or may not error depending on implementation - just ensure it doesn't panic
+	_ = err
+}
+
+func TestMultiAnyAllowance_UnpackInterfaces(t *testing.T) {
+	// Create multiple allowances
+	basicAllowance1 := &feegrant.BasicAllowance{
+		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)),
+	}
+	basicAllowance2 := &feegrant.BasicAllowance{
+		SpendLimit: sdk.NewCoins(sdk.NewInt64Coin("uatom", 500)),
+	}
+
+	allowances := []feegrant.FeeAllowanceI{basicAllowance1, basicAllowance2}
+
+	// Create MultiAnyAllowance
+	multiAllowance, err := xiontypes.NewMultiAnyAllowance(allowances)
+	require.NoError(t, err)
+	require.NotNil(t, multiAllowance)
+
+	// Create a mock unpacker
+	registry := codectypes.NewInterfaceRegistry()
+	feegrant.RegisterInterfaces(registry)
+
+	// Test successful unpacking
+	err = multiAllowance.UnpackInterfaces(registry)
+	require.NoError(t, err)
+
+	// Test with empty allowances list
+	emptyMultiAllowance := &xiontypes.MultiAnyAllowance{
+		Allowances: []*codectypes.Any{},
+	}
+	err = emptyMultiAllowance.UnpackInterfaces(registry)
+	require.NoError(t, err) // Should succeed with empty list
+
+	// Test with nil allowances list
+	nilMultiAllowance := &xiontypes.MultiAnyAllowance{
+		Allowances: nil,
+	}
+	err = nilMultiAllowance.UnpackInterfaces(registry)
+	require.NoError(t, err) // Should succeed with nil list
+}
+
+// Test ExpiresAt methods
+
+func TestAuthzAllowance_ExpiresAt(t *testing.T) {
+	testCases := []struct {
+		name        string
+		allowance   feegrant.FeeAllowanceI
+		expectError bool
+		expectTime  bool
+	}{
+		{
+			name:        "BasicAllowance without expiration",
+			allowance:   &feegrant.BasicAllowance{},
+			expectError: false,
+			expectTime:  false,
+		},
+		{
+			name: "BasicAllowance with expiration",
+			allowance: &feegrant.BasicAllowance{
+				Expiration: &time.Time{},
+			},
+			expectError: false,
+			expectTime:  true,
+		},
+		{
+			name: "PeriodicAllowance with expiration",
+			allowance: &feegrant.PeriodicAllowance{
+				Basic: feegrant.BasicAllowance{
+					Expiration: &time.Time{},
+				},
+			},
+			expectError: false,
+			expectTime:  true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create AuthzAllowance
+			authzAddr := sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x")
+			authzAllowance, err := xiontypes.NewAuthzAllowance(tc.allowance, authzAddr)
+			require.NoError(t, err)
+
+			// Test ExpiresAt
+			expiry, err := authzAllowance.ExpiresAt()
+			if tc.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				if tc.expectTime {
+					require.NotNil(t, expiry)
+				} else {
+					require.Nil(t, expiry)
+				}
+			}
+		})
+	}
+
+	// Test error case where GetAllowance fails
+	t.Run("invalid allowance type", func(t *testing.T) {
+		// Create an AuthzAllowance with invalid Any content
+		authzAllowance := &xiontypes.AuthzAllowance{
+			AuthzGrantee: "cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x",
+		}
+		// Set Allowance to an Any containing a non-FeeAllowanceI type
+		invalidAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{})
+		require.NoError(t, err)
+		authzAllowance.Allowance = invalidAny
+
+		// This should error when trying to get allowance
+		expiry, err := authzAllowance.ExpiresAt()
+		require.Error(t, err)
+		require.Nil(t, expiry)
+		require.Contains(t, err.Error(), "failed to get allowance")
+	})
+}
+
+func TestContractsAllowance_ExpiresAt(t *testing.T) {
+	testCases := []struct {
+		name        string
+		allowance   feegrant.FeeAllowanceI
+		expectError bool
+		expectTime  bool
+	}{
+		{
+			name:        "BasicAllowance without expiration",
+			allowance:   &feegrant.BasicAllowance{},
+			expectError: false,
+			expectTime:  false,
+		},
+		{
+			name: "BasicAllowance with expiration",
+			allowance: &feegrant.BasicAllowance{
+				Expiration: &time.Time{},
+			},
+			expectError: false,
+			expectTime:  true,
+		},
+		{
+			name: "PeriodicAllowance with expiration",
+			allowance: &feegrant.PeriodicAllowance{
+				Basic: feegrant.BasicAllowance{
+					Expiration: &time.Time{},
+				},
+			},
+			expectError: false,
+			expectTime:  true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create ContractsAllowance
+			contractAddr := sdk.MustAccAddressFromBech32("cosmos1vx8knpllrj7n963p9ttd80w47kpacrhuts497x")
+			contractsAllowance, err := xiontypes.NewContractsAllowance(tc.allowance, []sdk.AccAddress{contractAddr})
+			require.NoError(t, err)
+
+			// Test ExpiresAt
+			expiry, err := contractsAllowance.ExpiresAt()
+			if tc.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				if tc.expectTime {
+					require.NotNil(t, expiry)
+				} else {
+					require.Nil(t, expiry)
+				}
+			}
+		})
+	}
+
+	// Test error case where GetAllowance fails
+	t.Run("invalid allowance type", func(t *testing.T) {
+		// Create a ContractsAllowance with invalid Any content
+		invalidAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{})
+		require.NoError(t, err)
+
+		contractsAllowance := &xiontypes.ContractsAllowance{
+			Allowance: invalidAny,
+		}
+
+		// This should error when trying to get allowance
+		expiry, err := contractsAllowance.ExpiresAt()
+		require.Error(t, err)
+		require.Nil(t, expiry)
+		require.Contains(t, err.Error(), "failed to get allowance")
+	})
+}
+
+func TestMultiAnyAllowance_UnpackInterfaces_ErrorCases(t *testing.T) {
+	// Test with invalid Any type that can't be unpacked
+	invalidAny := &codectypes.Any{
+		TypeUrl: "invalid/type/url",
+		Value:   []byte("invalid data"),
+	}
+
+	multiAllowance := &xiontypes.MultiAnyAllowance{
+		Allowances: []*codectypes.Any{invalidAny},
+	}
+
+	registry := codectypes.NewInterfaceRegistry()
+	feegrant.RegisterInterfaces(registry)
+
+	err := multiAllowance.UnpackInterfaces(registry)
+	require.Error(t, err) // Should error with invalid type
+}
+
+func TestMultiAnyAllowance_ExpiresAt(t *testing.T) {
+	testCases := []struct {
+		name         string
+		allowances   []feegrant.FeeAllowanceI
+		expectError  bool
+		expectedTime *time.Time
+	}{
+		{
+			name:         "empty allowances",
+			allowances:   []feegrant.FeeAllowanceI{},
+			expectError:  false,
+			expectedTime: nil,
+		},
+		{
+			name: "single allowance without expiration",
+			allowances: []feegrant.FeeAllowanceI{
+				&feegrant.BasicAllowance{},
+			},
+			expectError:  false,
+			expectedTime: nil,
+		},
+		{
+			name: "single allowance with expiration",
+			allowances: []feegrant.FeeAllowanceI{
+				&feegrant.BasicAllowance{
+					Expiration: &time.Time{},
+				},
+			},
+			expectError:  false,
+			expectedTime: &time.Time{},
+		},
+		{
+			name: "multiple allowances with same expiration",
+			allowances: []feegrant.FeeAllowanceI{
+				&feegrant.BasicAllowance{
+					Expiration: &time.Time{},
+				},
+				&feegrant.BasicAllowance{
+					Expiration: &time.Time{},
+				},
+			},
+			expectError:  false,
+			expectedTime: &time.Time{},
+		},
+		{
+			name: "multiple allowances with different expirations",
+			allowances: []feegrant.FeeAllowanceI{
+				&feegrant.BasicAllowance{
+					Expiration: &time.Time{},
+				},
+				&feegrant.BasicAllowance{
+					Expiration: func() *time.Time {
+						t := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+						return &t
+					}(),
+				},
+			},
+			expectError:  true,
+			expectedTime: nil,
+		},
+		{
+			name: "multiple allowances with nil vs non-nil expiration",
+			allowances: []feegrant.FeeAllowanceI{
+				&feegrant.BasicAllowance{}, // no expiration (nil)
+				&feegrant.BasicAllowance{
+					Expiration: func() *time.Time {
+						t := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+						return &t
+					}(),
+				},
+			},
+			expectError:  true,
+			expectedTime: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create MultiAnyAllowance
+			multiAllowance, err := xiontypes.NewMultiAnyAllowance(tc.allowances)
+			require.NoError(t, err)
+
+			// Test ExpiresAt
+			expiry, err := multiAllowance.ExpiresAt()
+			if tc.expectError {
+				require.Error(t, err)
+				require.Nil(t, expiry)
+			} else {
+				require.NoError(t, err)
+				if tc.expectedTime != nil {
+					require.NotNil(t, expiry)
+				} else {
+					require.Nil(t, expiry)
+				}
+			}
+		})
+	}
+
+	// Test error case where GetAllowance fails
+	t.Run("invalid allowance type in multi", func(t *testing.T) {
+		// Create a MultiAnyAllowance with invalid Any content
+		invalidAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{})
+		require.NoError(t, err)
+
+		multiAllowance := &xiontypes.MultiAnyAllowance{
+			Allowances: []*codectypes.Any{invalidAny},
+		}
+
+		// This should error when trying to get allowance
+		expiry, err := multiAllowance.ExpiresAt()
+		require.Error(t, err)
+		require.Nil(t, expiry)
+		require.Contains(t, err.Error(), "failed to get allowance")
+	})
+
+	// Test error case where an allowance's ExpiresAt method fails
+	t.Run("allowance ExpiresAt error", func(t *testing.T) {
+		// Create a valid allowance and an invalid one that would cause ExpiresAt to fail
+		validAllowance := &feegrant.BasicAllowance{}
+
+		// Create an invalid Any for the second allowance
+		invalidAny, err := codectypes.NewAnyWithValue(&banktypes.MsgSend{})
+		require.NoError(t, err)
+
+		multiAllowance := &xiontypes.MultiAnyAllowance{
+			Allowances: []*codectypes.Any{},
+		}
+
+		// Add the valid allowance first
+		validAny, err := codectypes.NewAnyWithValue(validAllowance)
+		require.NoError(t, err)
+		multiAllowance.Allowances = append(multiAllowance.Allowances, validAny)
+
+		// Add the invalid allowance
+		multiAllowance.Allowances = append(multiAllowance.Allowances, invalidAny)
+
+		// This should error when trying to get the second allowance
+		expiry, err := multiAllowance.ExpiresAt()
+		require.Error(t, err)
+		require.Nil(t, expiry)
+		require.Contains(t, err.Error(), "failed to get allowance")
+	})
+}

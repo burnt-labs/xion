@@ -51,8 +51,15 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 	return &types.QueryWebAuthNVerifyRegisterResponse{Credential: credentialBz}, nil
 }
 
-func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (*types.QueryWebAuthNVerifyAuthenticateResponse, error) {
+func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (response *types.QueryWebAuthNVerifyAuthenticateResponse, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
+	defer func() {
+		if r := recover(); r != nil {
+			response = nil
+			err = errorsmod.Wrap(types.ErrNoValidWebAuth, fmt.Sprintf("panic during WebAuthn verification: %v", r))
+		}
+	}()
 
 	rp, err := url.Parse(request.Rp)
 	if err != nil {
