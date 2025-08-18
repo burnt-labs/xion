@@ -16,6 +16,7 @@ import (
 	feegrant "cosmossdk.io/x/feegrant"
 	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	authzgenesisextension "github.com/burnt-labs/xion/x/genextensions/authz"
 	feegrantgenesisextension "github.com/burnt-labs/xion/x/genextensions/feegrant"
 	"github.com/burnt-labs/xion/x/genextensions/types"
@@ -28,6 +29,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/klauspost/compress/zstd"
@@ -122,11 +124,11 @@ func (AppModule) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig,
 func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	importOrder := []string{"authz", "feegrant", "wasm"}
+	importOrder := []string{authz.ModuleName, feegrant.ModuleName, wasmtypes.ModuleName}
 	for _, module := range importOrder {
 		fmt.Println("importing module", module)
 		switch module {
-		case "authz":
+		case authz.ModuleName:
 			m, ok := genesisState.Modules[module]
 			if !ok {
 				continue
@@ -140,7 +142,7 @@ func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.R
 				panic(fmt.Errorf("imported items %d != %d", importedItems, m.File.TotalItems))
 			}
 			fmt.Println("imported authz items", importedItems)
-		case "feegrant":
+		case feegrant.ModuleName:
 			m, ok := genesisState.Modules[module]
 			if !ok {
 				continue
@@ -154,7 +156,7 @@ func (a AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.R
 				panic(fmt.Errorf("imported items %d != %d", importedItems, m.File.TotalItems))
 			}
 			fmt.Println("imported feegrant items", importedItems)
-		case "wasm":
+		case wasmtypes.ModuleName:
 			m, ok := genesisState.Modules[module]
 			if !ok {
 				continue
@@ -189,9 +191,9 @@ func (a AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawM
 		Modules: make(map[string]types.ModuleExport),
 	}
 
-	genesis.Modules["feegrant"] = a.export(ctx, exportDir, "feegrant.pb.zst", a.feegrantExtension)
-	genesis.Modules["authz"] = a.export(ctx, exportDir, "authz.pb.zst", a.authzExtension)
-	genesis.Modules["wasm"] = a.export(ctx, exportDir, "wasm.pb.zst", a.wasmExtension)
+	genesis.Modules[feegrant.ModuleName] = a.export(ctx, exportDir, fmt.Sprintf("%s.pb.zst", feegrant.ModuleName), a.feegrantExtension)
+	genesis.Modules[authz.ModuleName] = a.export(ctx, exportDir, fmt.Sprintf("%s.pb.zst", authz.ModuleName), a.authzExtension)
+	genesis.Modules[wasmtypes.ModuleName] = a.export(ctx, exportDir, fmt.Sprintf("%s.pb.zst", wasmtypes.ModuleName), a.wasmExtension)
 
 	return cdc.MustMarshalJSON(&genesis)
 }
@@ -283,7 +285,8 @@ func (a AppModule) importExtension(ctx sdk.Context, fileName string, importer Im
 	}
 	defer zstdReader.Close()
 
-	reader := protoio.NewDelimitedReader(zstdReader, 3*1024*1024*1024) // 512MB max per item size
+	// Currently read up to 3GB per item size until contract state is split into multiple files
+	reader := protoio.NewDelimitedReader(zstdReader, 3*1024*1024*1024) // 3GB max per item size
 
 	defer reader.Close()
 
