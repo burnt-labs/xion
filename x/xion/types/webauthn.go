@@ -3,12 +3,15 @@ package types
 import (
 	"bytes"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	"crypto/x509"
 =======
 	"crypto/sha256"
 >>>>>>> 8bb6835 (feat: update go-webauthn)
+=======
+	"crypto/sha256"
+>>>>>>> 5cc08d2 (chore: remove unneeded function)
 	"net/url"
-	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
@@ -178,6 +181,7 @@ func CreateCredential(webauth *webauthn.WebAuthn, ctx sdktypes.Context, user web
 		},
 	}, nil
 }
+<<<<<<< HEAD
 
 // validateCertificatesWithBlockTime validates X.509 certificates using block time instead of system time
 func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredentialCreationData, blockTime time.Time) error {
@@ -215,3 +219,5 @@ func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredential
 	return webauthn.NewCredential(clientDataHash[:], parsedResponse)
 >>>>>>> 8bb6835 (feat: update go-webauthn)
 }
+=======
+>>>>>>> 5cc08d2 (chore: remove unneeded function)
