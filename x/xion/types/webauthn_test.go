@@ -299,41 +299,7 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 
 	challengeStr := "xion1ncx0a0jnsyay7udd03ah2gf64772g02qswj52996dy80qfvgnmzq6eplqq"
 	challenge := base64url.Encode([]byte(challengeStr))
-	// _ = protocol.PublicKeyCredentialCreationOptions{
-	// 	RelyingParty: protocol.RelyingPartyEntity{
-	// 		ID:   rp.Host,
-	// 		CredentialEntity: protocol.CredentialEntity{
-	// 			Name: "Xion Relying Party",
-	// 		},
-	// 	},
-	// 	User: protocol.UserEntity{
-	// 		ID:          []byte(bec32Addr),
-	// 		CredentialEntity: protocol.CredentialEntity{
-	// 			Name: "Xion User",
-	// 		},
-	// 		DisplayName: "Xion User",
-	// 	},
-	// 	Challenge: protocol.URLEncodedBase64(challenge),
-	// 	Parameters: []protocol.CredentialParameter{
-	// 		{
-	// 			Type:     protocol.PublicKeyCredentialType,
-	// 			Algorithm: webauthncose.AlgES256K,
-	// 		},
-	// 		{
-	// 			Type: protocol.PublicKeyCredentialType,
-	// 			Algorithm: webauthncose.AlgES256,
-	// 		},
-	// 		{
-	// 			Type: protocol.PublicKeyCredentialType,
-	// 			Algorithm: webauthncose.AlgEdDSA,
-	// 		},
-	// 	},
-	// 	AuthenticatorSelection: protocol.AuthenticatorSelection{
-	// 		AuthenticatorAttachment: protocol.CrossPlatform,
-	// 		ResidentKey: protocol.ResidentKeyRequirementPreferred,
-	// 		UserVerification:        protocol.VerificationPreferred,
-	// 	},
-	// }
+
 	attestation := CreateWebAuthNAttestationCred(t, []byte(challenge))
 	require.NotNil(t, attestation)
 	data, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(attestation))
