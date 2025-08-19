@@ -299,8 +299,44 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 
 	challengeStr := "xion1ncx0a0jnsyay7udd03ah2gf64772g02qswj52996dy80qfvgnmzq6eplqq"
 	challenge := base64url.Encode([]byte(challengeStr))
-	const registerStr = `{"id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","type":"public-key","rawId":"VVd4WS15UmRJbHM4SVQtdnlNUzZsYTFaaXFFU09BZmY3YldaX0xXVjBQZw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRnVZM2d3WVRCcWJuTjVZWGszZFdSa01ETmhhREpuWmpZME56Y3laekF5Y1hOM2FqVXlPVGsyWkhrNE1IRm1kbWR1YlhweE5tVndiSEZ4Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAifQ","attestationObject":"o2NmbXRkbm9uZWhBdXRoRGF0YaVkcnBpZFggsGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1lZmxhZ3MYRWhhdHRfZGF0YaNmYWFndWlkUEFBR1VJREFBR1VJREFBPT1qcHVibGljX2tleVkCEKQBAwM5AQAgWQIAolg7TF3aai-wR4HTDe5oR-WRhEsdW3u-O3IJHl0BiHkmR4MLskHG9HzivWoXsloUBnBMrFNxOH0x5cNMI07oi4PeRbHySiogRW9CXPjJaNlTi-pT_IgKFsyJNXsLyzrnajLkDbQU6pRsHmNeL0hAOUv48rtXv8VVWWN8okJehD2q9N7LHoFAOmIUEPg_VTHTt8K__O-9eMZKN4eMjh_4-sxRX6NXPSPT87XRlrK4GZ4pUdp86K0tOFLhwO4Uj0JkMNfI82eVZ1tAbDlqjd8jFnAb8fWm8wtdaTNbL_AAXmbDhswwJOyrw8fARZIhrXSdKBWa6e4k7sLwTIy-OO8saebnlARsjGst7ZCzmw5KCm2ctEVl3hYhHwyXu_A5rOblMrV3H0G7WqeKMCMVSJ11ssrlsmfVhNIwu1Qlt5GYmPTTJiCgGUGRxZkgDyOyjFNHglYpZamCGyJ9oyofsukEGoqMQ6WzjFi_hjVapzXi7Li-Q0OjEopIUUDDgeUrgjbGY0eiHI6sAz5hoaD0Qjc9e3Hk6-y7VcKCTCAanZOlJV0vJkHB98LBLh9qAoVUei_VaLFe2IcfVlrL_43aXlsHhr_SUQY5pHPlUMbQihE_57dpPRh31qDX_w6ye8dilniP8JmpKM2uIwnJ0x7hfJ45Qa0oLHmrGlzY9wi-RGP0YUkhQwEAAW1jcmVkZW50aWFsX2lkWCtVV3hZLXlSZElsczhJVC12eU1TNmxhMVppcUVTT0FmZjdiV1pfTFdWMFBnaGV4dF9kYXRh9mpzaWduX2NvdW50AGhhdXRoRGF0YVkCcrBjAYg3BKaYjH8UNdEzwntvhWiqy3k5L6c8XM54EzMNRQAAAABBQUdVSURBQUdVSURBQT09ACtVV3hZLXlSZElsczhJVC12eU1TNmxhMVppcUVTT0FmZjdiV1pfTFdWMFBnpAEDAzkBACBZAgCiWDtMXdpqL7BHgdMN7mhH5ZGESx1be747cgkeXQGIeSZHgwuyQcb0fOK9aheyWhQGcEysU3E4fTHlw0wjTuiLg95FsfJKKiBFb0Jc-Mlo2VOL6lP8iAoWzIk1ewvLOudqMuQNtBTqlGweY14vSEA5S_jyu1e_xVVZY3yiQl6EPar03ssegUA6YhQQ-D9VMdO3wr_87714xko3h4yOH_j6zFFfo1c9I9PztdGWsrgZnilR2nzorS04UuHA7hSPQmQw18jzZ5VnW0BsOWqN3yMWcBvx9abzC11pM1sv8ABeZsOGzDAk7KvDx8BFkiGtdJ0oFZrp7iTuwvBMjL447yxp5ueUBGyMay3tkLObDkoKbZy0RWXeFiEfDJe78Dms5uUytXcfQbtap4owIxVInXWyyuWyZ9WE0jC7VCW3kZiY9NMmIKAZQZHFmSAPI7KMU0eCVillqYIbIn2jKh-y6QQaioxDpbOMWL-GNVqnNeLsuL5DQ6MSikhRQMOB5SuCNsZjR6IcjqwDPmGhoPRCNz17ceTr7LtVwoJMIBqdk6UlXS8mQcH3wsEuH2oChVR6L9VosV7Yhx9WWsv_jdpeWweGv9JRBjmkc-VQxtCKET_nt2k9GHfWoNf_DrJ7x2KWeI_wmakoza4jCcnTHuF8njlBrSgseasaXNj3CL5EY_RhSSFDAQAB"}}`
-	data, err := protocol.ParseCredentialCreationResponseBody(strings.NewReader(registerStr))
+	// _ = protocol.PublicKeyCredentialCreationOptions{
+	// 	RelyingParty: protocol.RelyingPartyEntity{
+	// 		ID:   rp.Host,
+	// 		CredentialEntity: protocol.CredentialEntity{
+	// 			Name: "Xion Relying Party",
+	// 		},
+	// 	},
+	// 	User: protocol.UserEntity{
+	// 		ID:          []byte(bec32Addr),
+	// 		CredentialEntity: protocol.CredentialEntity{
+	// 			Name: "Xion User",
+	// 		},
+	// 		DisplayName: "Xion User",
+	// 	},
+	// 	Challenge: protocol.URLEncodedBase64(challenge),
+	// 	Parameters: []protocol.CredentialParameter{
+	// 		{
+	// 			Type:     protocol.PublicKeyCredentialType,
+	// 			Algorithm: webauthncose.AlgES256K,
+	// 		},
+	// 		{
+	// 			Type: protocol.PublicKeyCredentialType,
+	// 			Algorithm: webauthncose.AlgES256,
+	// 		},
+	// 		{
+	// 			Type: protocol.PublicKeyCredentialType,
+	// 			Algorithm: webauthncose.AlgEdDSA,
+	// 		},
+	// 	},
+	// 	AuthenticatorSelection: protocol.AuthenticatorSelection{
+	// 		AuthenticatorAttachment: protocol.CrossPlatform,
+	// 		ResidentKey: protocol.ResidentKeyRequirementPreferred,
+	// 		UserVerification:        protocol.VerificationPreferred,
+	// 	},
+	// }
+	attestation := CreateWebAuthNAttestationCred(t, []byte(challenge))
+	require.NotNil(t, attestation)
+	data, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(attestation))
 	require.NoError(t, err)
 
 	sdkCtx := sdktypes.NewContext(nil, cmtproto.Header{Time: time.Now()}, false, nil)
@@ -323,6 +359,7 @@ func TestGenerateWebAuthNSignature(t *testing.T) {
 	require.NotNil(t, cred)
 	signature := CreateWebAuthNSignature(t, []byte(challenge))
 	require.NotNil(t, signature)
+<<<<<<< HEAD
 }
 
 func TestSmartContractUser(t *testing.T) {
@@ -1133,3 +1170,6 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 	require.Nil(t, cred)
 	require.Contains(t, err.Error(), "Failed to parse X.509 certificate")
 }
+=======
+}
+>>>>>>> 8bb6835 (feat: update go-webauthn)

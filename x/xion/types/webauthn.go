@@ -2,11 +2,16 @@ package types
 
 import (
 	"bytes"
+<<<<<<< HEAD
 	"crypto/x509"
+=======
+	"crypto/sha256"
+>>>>>>> 8bb6835 (feat: update go-webauthn)
 	"net/url"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -41,11 +46,16 @@ var _ webauthn.User = SmartContractUser{}
 
 func VerifyRegistration(ctx sdktypes.Context, rp *url.URL, contractAddr string, challenge string, credentialCreationData *protocol.ParsedCredentialCreationData) (*webauthn.Credential, error) {
 	config := webauthn.Config{
-		RPID:                   rp.Host,
-		RPDisplayName:          rp.String(),
-		RPOrigins:              []string{rp.String()},
-		AttestationPreference:  "",
-		AuthenticatorSelection: protocol.AuthenticatorSelection{},
+		RPID:                        rp.Host,
+		RPDisplayName:               rp.String(),
+		RPOrigins:                   []string{rp.String()},
+		RPTopOrigins:                []string{rp.String()},
+		RPTopOriginVerificationMode: protocol.TopOriginIgnoreVerificationMode,
+		AttestationPreference:       "none",
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			UserVerification: protocol.VerificationPreferred,
+			ResidentKey:      protocol.ResidentKeyRequirementPreferred,
+		},
 	}
 	webAuthn, err := webauthn.New(&config)
 	if err != nil {
@@ -57,6 +67,25 @@ func VerifyRegistration(ctx sdktypes.Context, rp *url.URL, contractAddr string, 
 		Challenge:        challenge,
 		UserID:           smartContractUser.WebAuthnID(),
 		UserVerification: protocol.VerificationPreferred,
+		RelyingPartyID:   rp.Host,
+		CredParams: []protocol.CredentialParameter{
+			{
+				Type:      protocol.PublicKeyCredentialType,
+				Algorithm: webauthncose.AlgES256K,
+			},
+			{
+				Type:      protocol.PublicKeyCredentialType,
+				Algorithm: webauthncose.AlgES256,
+			},
+			{
+				Type:      protocol.PublicKeyCredentialType,
+				Algorithm: webauthncose.AlgEdDSA,
+			},
+			{
+				Type:      protocol.PublicKeyCredentialType,
+				Algorithm: webauthncose.AlgRS256,
+			},
+		},
 	}
 
 	return CreateCredential(webAuthn, ctx, smartContractUser, session, credentialCreationData)
@@ -107,6 +136,7 @@ func CreateCredential(webauth *webauthn.WebAuthn, ctx sdktypes.Context, user web
 
 	shouldVerifyUser := session.UserVerification == protocol.VerificationRequired
 
+<<<<<<< HEAD
 	// Validate certificates using block time BEFORE calling original verification
 	if err := validateCertificatesWithBlockTime(parsedResponse, ctx.BlockTime()); err != nil {
 		return nil, err
@@ -176,4 +206,12 @@ func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredential
 	}
 
 	return nil
+=======
+	_, invalidErr := parsedResponse.Verify(session.Challenge, shouldVerifyUser, false, webauth.Config.RPID, webauth.Config.RPOrigins, webauth.Config.RPTopOrigins, webauth.Config.RPTopOriginVerificationMode, nil, session.CredParams)
+	if invalidErr != nil {
+		return nil, invalidErr
+	}
+	clientDataHash := sha256.Sum256(parsedResponse.Raw.AttestationResponse.ClientDataJSON)
+	return webauthn.NewCredential(clientDataHash[:], parsedResponse)
+>>>>>>> 8bb6835 (feat: update go-webauthn)
 }
