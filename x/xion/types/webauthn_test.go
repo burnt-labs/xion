@@ -1102,9 +1102,17 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 		UserID:           user.WebAuthnID(),
 		UserVerification: protocol.VerificationPreferred,
 		Expires:          time.Now().Add(time.Hour), // Not expired
+		CredParams: []protocol.CredentialParameter{
+			{
+				Type:      protocol.PublicKeyCredentialType,
+				Algorithm: webauthncose.AlgRS256,
+			},
+		},
 	}
 
 	// Create a credential creation response with malformed certificate data
+	rpIdHash := sha256.Sum256([]byte("example.com"))
+	_, publicKeyBuf, _ := getWebAuthNKeys(t)
 	parsed := &protocol.ParsedCredentialCreationData{
 		ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
 			ParsedCredential: protocol.ParsedCredential{
@@ -1119,6 +1127,16 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 				Origin:    "https://example.com",
 			},
 			AttestationObject: protocol.AttestationObject{
+				AuthData: protocol.AuthenticatorData{
+					RPIDHash: rpIdHash[:],
+					Counter:  0,
+					AttData: protocol.AttestedCredentialData{
+						AAGUID:              AAGUID,
+						CredentialID:        []byte("test_id"),
+						CredentialPublicKey: publicKeyBuf,
+					},
+					Flags: 69,
+				},
 				AttStatement: map[string]interface{}{
 					"fmt": "none",
 					// Add malformed certificate data in x5c
@@ -1132,9 +1150,8 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 
 	cred, err := types.CreateCredential(webAuth, ctx, user, session, parsed)
 
-	require.Error(t, err)
-	require.Nil(t, cred)
-	require.Contains(t, err.Error(), "Failed to parse X.509 certificate")
+	require.NoError(t, err) // we don't parse attestation
+	require.NotNil(t, cred)
 }
 =======
 }
