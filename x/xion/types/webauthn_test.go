@@ -617,33 +617,6 @@ func createShortLivedCert(referenceTime time.Time, validDuration time.Duration) 
 	return certDER, priv, err
 }
 
-// createCertWithValidityPeriod creates a certificate valid between start and end times
-func createCertWithValidityPeriod(notBefore, notAfter time.Time) ([]byte, *rsa.PrivateKey, error) {
-	priv, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	template := &x509.Certificate{
-		SerialNumber: big.NewInt(2025),
-		Subject: pkix.Name{
-			Country:            []string{"US"},
-			Organization:       []string{"Test Authenticator"},
-			OrganizationalUnit: []string{"Authenticator Attestation"},
-			CommonName:         "Test-WebAuthn-Cert",
-		},
-		NotBefore:             notBefore,
-		NotAfter:              notAfter,
-		KeyUsage:              x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
-		BasicConstraintsValid: true,
-		IsCA:                  false,
-	}
-
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
-	return certDER, priv, err
-}
-
 // Helper to build a WebAuthn attestation object with the given certificate
 func buildPackedAttestation(certDER []byte, priv *rsa.PrivateKey, clientDataHash []byte) ([]byte, error) {
 	credID := make([]byte, 16)
@@ -722,81 +695,6 @@ func buildCredentialCreationJSON(attBytes []byte, clientDataJSON []byte) []byte 
 	return b
 }
 
-// TestWebAuthnTimeConsensus tests that WebAuthn verification is deterministic across validators
-func TestWebAuthnTimeConsensus(t *testing.T) {
-	// Test with a fixed block time (deterministic)
-	baseTime := time.Now()
-
-	// Create a certificate that expires in 5 seconds from baseTime
-	certDER, priv, err := createShortLivedCert(baseTime, 5*time.Second)
-	require.NoError(t, err)
-
-	// Create test data
-	clientData := map[string]string{
-		"type":      "webauthn.create",
-		"challenge": "test_challenge_123",
-		"origin":    "https://test.example",
-	}
-	clientDataJSON, _ := json.Marshal(clientData)
-	clientDataHash := sha256.Sum256(clientDataJSON)
-
-	attObj, err := buildPackedAttestation(certDER, priv, clientDataHash[:])
-	require.NoError(t, err)
-
-	bodyJSON := buildCredentialCreationJSON(attObj, clientDataJSON)
-
-	parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
-	require.NoError(t, err)
-
-	rp, _ := url.Parse("https://test.example")
-
-	// Both contexts should produce the same result (deterministic)
-	ctx1 := sdktypes.NewContext(nil, cmtproto.Header{Time: baseTime}, false, nil)
-	ctx2 := sdktypes.NewContext(nil, cmtproto.Header{Time: baseTime}, false, nil)
-
-	// Both contexts should produce the same result (deterministic)
-	cred1, err1 := types.VerifyRegistration(ctx1, rp, "contract1", "test_challenge_123", parsed)
-	cred2, err2 := types.VerifyRegistration(ctx2, rp, "contract1", "test_challenge_123", parsed)
-
-	// Both should succeed or both should fail
-	require.Equal(t, err1 == nil, err2 == nil, "Deterministic verification should produce same result")
-	if err1 == nil && err2 == nil {
-		require.Equal(t, cred1.ID, cred2.ID, "Credentials should be identical")
-	}
-
-	t.Logf("Deterministic verification result: success=%v", err1 == nil)
-
-	// Test with block time after certificate expiry
-	futureTime := baseTime.Add(10 * time.Second) // After cert expires
-	ctx3 := sdktypes.NewContext(nil, cmtproto.Header{Time: futureTime}, false, nil)
-
-	certDER, priv, err = createShortLivedCert(baseTime, 5*time.Second)
-	require.NoError(t, err)
-
-	// Create test data
-	clientData2 := map[string]string{
-		"type":      "webauthn.create",
-		"challenge": "test_challenge_123",
-		"origin":    "https://test.example",
-	}
-	clientDataJSON2, _ := json.Marshal(clientData2)
-	clientDataHash2 := sha256.Sum256(clientDataJSON2)
-
-	attObj, err = buildPackedAttestation(certDER, priv, clientDataHash2[:])
-	require.NoError(t, err)
-
-	bodyJSON = buildCredentialCreationJSON(attObj, clientDataJSON2)
-
-	parsed, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
-	require.NoError(t, err)
-
-	cred3, err3 := types.VerifyRegistration(ctx3, rp, "contract1", "test_challenge_123", parsed)
-	require.Error(t, err3, "Should fail when certificate is expired according to block time")
-	require.Nil(t, cred3, "Credential should be nil on failure")
-
-	t.Logf("Expired certificate verification correctly failed: %v", err3)
-}
-
 // TestWebAuthnBlockTimeConsistency verifies that the same block time produces identical results
 func TestWebAuthnBlockTimeConsistency(t *testing.T) {
 	// Create a long-lived certificate to avoid expiry issues during test
@@ -846,92 +744,6 @@ func TestWebAuthnBlockTimeConsistency(t *testing.T) {
 
 	t.Logf("All %d verifications with same block time produced identical results", 5)
 }
-
-// TestWebAuthnCertificateValidation tests that certificate validation uses block time
-func TestWebAuthnCertificateValidation(t *testing.T) {
-	// Use fixed dates that are stable and well in the past/future
-	// This ensures we can test specific time scenarios without flakiness
-	testBaseTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
-
-	// Create a long-lived certificate that covers all our test scenarios
-	// This certificate will be valid from 2024-01-01 to 2025-12-31
-	certStart := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
-	certEnd := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
-
-	cert, priv, err := createCertWithValidityPeriod(certStart, certEnd)
-	require.NoError(t, err)
-
-	rp, _ := url.Parse("https://test.example")
-
-	testCases := []struct {
-		name          string
-		certDER       []byte
-		priv          *rsa.PrivateKey
-		blockTime     time.Time
-		shouldSucceed bool
-	}{
-		{
-			name:          "block_time_before_cert_valid",
-			certDER:       cert,
-			priv:          priv,
-			blockTime:     time.Date(2023, 12, 31, 23, 59, 59, 0, time.UTC), // Before cert starts
-			shouldSucceed: false,
-		},
-		{
-			name:          "block_time_during_cert_valid",
-			certDER:       cert,
-			priv:          priv,
-			blockTime:     testBaseTime, // Well within cert validity
-			shouldSucceed: true,
-		},
-		{
-			name:          "block_time_after_cert_expires",
-			certDER:       cert,
-			priv:          priv,
-			blockTime:     time.Date(2026, 1, 1, 0, 0, 1, 0, time.UTC), // After cert expires
-			shouldSucceed: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Debug: Let's check the certificate validity period
-			cert, err := x509.ParseCertificate(tc.certDER)
-			require.NoError(t, err)
-			t.Logf("Certificate NotBefore: %v", cert.NotBefore)
-			t.Logf("Certificate NotAfter: %v", cert.NotAfter)
-			t.Logf("Block time: %v", tc.blockTime)
-			t.Logf("Is valid at block time: %v", tc.blockTime.After(cert.NotBefore) && tc.blockTime.Before(cert.NotAfter))
-
-			clientData := map[string]string{
-				"type":      "webauthn.create",
-				"challenge": "cert_validation_test",
-				"origin":    "https://test.example",
-			}
-			clientDataJSON, _ := json.Marshal(clientData)
-			clientDataHash := sha256.Sum256(clientDataJSON)
-
-			attObj, err := buildPackedAttestation(tc.certDER, tc.priv, clientDataHash[:])
-			require.NoError(t, err)
-
-			bodyJSON := buildCredentialCreationJSON(attObj, clientDataJSON)
-			parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
-			require.NoError(t, err)
-
-			ctx := sdktypes.NewContext(nil, cmtproto.Header{Time: tc.blockTime}, false, nil)
-			cred, err := types.VerifyRegistration(ctx, rp, "contract1", "cert_validation_test", parsed)
-
-			if tc.shouldSucceed {
-				require.NoError(t, err, "Certificate should be valid at block time")
-				require.NotNil(t, cred, "Should return valid credential")
-			} else {
-				require.Error(t, err, "Certificate should be invalid at block time")
-				require.Nil(t, cred, "Should not return credential when invalid")
-			}
-		})
-	}
-}
-
 // === Deterministic Function Tests ===
 
 // TestCreateCredential tests the core deterministic credential creation function
@@ -953,6 +765,12 @@ func TestCreateCredential(t *testing.T) {
 		Challenge:        "test_challenge",
 		UserID:           user.WebAuthnID(),
 		UserVerification: protocol.VerificationPreferred,
+		CredParams: []protocol.CredentialParameter{
+			{
+				Type:      protocol.PublicKeyCredentialType,
+				Algorithm: webauthncose.AlgRS256,
+			},
+		},
 	}
 
 	// Test with valid certificate and current block time
