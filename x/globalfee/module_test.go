@@ -1,6 +1,7 @@
 package globalfee_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -140,10 +141,23 @@ func TestAppModuleBasicRegisterGRPCGatewayRoutes(t *testing.T) {
 		appModule.RegisterGRPCGatewayRoutes(clientCtx, mux)
 	})
 
-	// Note: The panic path is difficult to test in unit tests as it requires
-	// RegisterQueryHandlerClient to return an error, which typically happens
-	// in integration scenarios rather than unit test mocking scenarios.
-	// Current coverage: ~66.7% which covers the main execution path.
+	// Test the panic path with nil ServeMux which should cause a panic
+	require.Panics(t, func() {
+		appModule.RegisterGRPCGatewayRoutes(clientCtx, nil)
+	})
+
+	// Force error path by overriding RegisterQueryHandlerClientFn
+	orig := globalfee.RegisterQueryHandlerClientFn
+	defer func() { globalfee.RegisterQueryHandlerClientFn = orig }()
+	globalfee.RegisterQueryHandlerClientFn = func(_ context.Context, _ *runtime.ServeMux, _ types.QueryClient) error {
+		return fmt.Errorf("forced error")
+	}
+	require.Panics(t, func() {
+		appModule.RegisterGRPCGatewayRoutes(clientCtx, mux)
+	})
+
+	// Note: The panic-on-error path is now tested by injecting a failing implementation
+	// via the exported RegisterQueryHandlerClientFn hook.
 }
 
 func TestAppModule(t *testing.T) {
@@ -160,12 +174,12 @@ func TestAppModule(t *testing.T) {
 		types.ModuleName,
 	)
 
-	// Test NewAppModule with subspace that has key table
+	// Test NewAppModule with subspace that has key table (should NOT trigger WithKeyTable path)
 	subspaceWithKeyTable := subspace.WithKeyTable(types.ParamKeyTable())
 	appModule := globalfee.NewAppModule(subspaceWithKeyTable)
 	require.NotNil(t, appModule)
 
-	// Test NewAppModule with subspace that doesn't have key table
+	// Test NewAppModule with subspace that doesn't have key table (should trigger WithKeyTable path)
 	appModule2 := globalfee.NewAppModule(subspace)
 	require.NotNil(t, appModule2)
 
@@ -199,6 +213,37 @@ func TestAppModule(t *testing.T) {
 	var exportedState types.GenesisState
 	err = cdc.UnmarshalJSON(exportedGenesis, &exportedState)
 	require.NoError(t, err)
+}
+
+func TestNewAppModuleBothPaths(t *testing.T) {
+	// Create test store keys
+	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
+	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+
+	// Test path 1: subspace without key table (should call WithKeyTable)
+	subspace1 := paramstypes.NewSubspace(
+		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
+		codec.NewLegacyAmino(),
+		storeKey,
+		tkey,
+		types.ModuleName,
+	)
+	require.False(t, subspace1.HasKeyTable(), "Test setup: subspace should not have key table initially")
+	appModule1 := globalfee.NewAppModule(subspace1)
+	require.NotNil(t, appModule1)
+
+	// Test path 2: subspace with key table (should NOT call WithKeyTable)
+	subspace2 := paramstypes.NewSubspace(
+		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
+		codec.NewLegacyAmino(),
+		storeKey,
+		tkey,
+		types.ModuleName+"2", // Different module name to avoid conflicts
+	)
+	subspaceWithKeyTable := subspace2.WithKeyTable(types.ParamKeyTable())
+	require.True(t, subspaceWithKeyTable.HasKeyTable(), "Test setup: subspace should have key table")
+	appModule2 := globalfee.NewAppModule(subspaceWithKeyTable)
+	require.NotNil(t, appModule2)
 }
 
 func TestAppModuleRegisterServices(t *testing.T) {

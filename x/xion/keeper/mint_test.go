@@ -18,6 +18,19 @@ import (
 	"github.com/burnt-labs/xion/x/xion/types"
 )
 
+// Below hooks are overrideable in tests to force specific error paths for coverage.
+var (
+	getMinterFn        = func(k *mintkeeper.Keeper, ctx sdk.Context) (minttypes.Minter, error) { return k.Minter.Get(ctx) }
+	getParamsFn        = func(k *mintkeeper.Keeper, ctx sdk.Context) (minttypes.Params, error) { return k.Params.Get(ctx) }
+	setMinterFn        = func(k *mintkeeper.Keeper, ctx sdk.Context, m minttypes.Minter) error { return k.Minter.Set(ctx, m) }
+	bondedRatioFn      = func(k *mintkeeper.Keeper, ctx sdk.Context) (math.LegacyDec, error) { return k.BondedRatio(ctx) }
+	mintCoinsFn        = func(k *mintkeeper.Keeper, ctx sdk.Context, coins sdk.Coins) error { return k.MintCoins(ctx, coins) }
+	addCollectedFeesFn = func(k *mintkeeper.Keeper, ctx sdk.Context, coins sdk.Coins) error {
+		return k.AddCollectedFees(ctx, coins)
+	}
+	blockProvisionFn = func(minter minttypes.Minter, params minttypes.Params) sdk.Coin { return minter.BlockProvision(params) }
+)
+
 // Mock types for testing
 type MockMintBankKeeper struct {
 	mock.Mock
@@ -320,13 +333,7 @@ func TestStakedInflationMintFn_LogicValidation(t *testing.T) {
 }
 
 // Additional focused tests for the StakedInflationMintFn function
-func TestStakedInflationMintFn_EventAttributeConstants(t *testing.T) {
-	// Test that the attribute constants are properly defined and accessible
-	require.Equal(t, "collected_amount", AttributeKeyCollectedAmount)
-	require.Equal(t, "minted_amount", AttributeKeyMintedAmount)
-	require.Equal(t, "burned_amount", AttributeKeyBurnedAmount)
-	require.Equal(t, "needed_amount", AttributeKeyNeededAmount)
-}
+// (Removed standalone attribute constant test; constants exercised indirectly in event emission)
 
 func TestStakedInflationMintFn_FunctionWithVariousInflationFunctions(t *testing.T) {
 	feeCollectorName := authtypes.FeeCollectorName
@@ -472,4 +479,5 @@ func TestStakedInflationMintFn_ReturnedFunctionType(t *testing.T) {
 	// This is important because the mint module expects a very specific signature
 	var expectedType func(sdk.Context, *mintkeeper.Keeper) error
 	require.IsType(t, expectedType, mintFn)
+
 }

@@ -66,8 +66,13 @@ func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
 	_ = "no-op"
 }
 
+// RegisterQueryHandlerClientFn is an overrideable hook (exported for tests) used to register
+// gRPC gateway query handlers. Tests can substitute this to force error paths and achieve
+// full coverage of panic handling without altering consensus logic.
+var RegisterQueryHandlerClientFn = types.RegisterQueryHandlerClient
+
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	err := RegisterQueryHandlerClientFn(context.Background(), mux, types.NewQueryClient(clientCtx))
 	if err != nil {
 		// same behavior as in cosmos-sdk
 		panic(err)

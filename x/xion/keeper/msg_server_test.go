@@ -58,6 +58,16 @@ func (m *MockBankKeeper) InputOutputCoins(ctx context.Context, input banktypes.I
 	return args.Error(0)
 }
 
+// Mock account keeper for testing
+type MockAccountKeeper struct {
+	mock.Mock
+}
+
+func (m *MockAccountKeeper) GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI {
+	// Return a simple mock that implements the basic interface
+	return authtypes.NewEmptyModuleAccount(moduleName, authtypes.Minter, authtypes.Burner)
+}
+
 func (m *MockBankKeeper) GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin {
 	args := m.Called(ctx, addr, denom)
 	return args.Get(0).(sdk.Coin)
@@ -92,11 +102,13 @@ func setupMsgServerTest(t *testing.T) (context.Context, types.MsgServer, *Keeper
 	ctx := testCtx.Ctx
 
 	mockBankKeeper := &MockBankKeeper{}
+	mockAccountKeeper := &MockAccountKeeper{}
 
 	keeper := Keeper{
-		storeKey:   key,
-		bankKeeper: mockBankKeeper,
-		authority:  "", // Initialize with empty authority, tests can set it explicitly
+		storeKey:      key,
+		bankKeeper:    mockBankKeeper,
+		accountKeeper: mockAccountKeeper,
+		authority:     "", // Initialize with empty authority, tests can set it explicitly
 	}
 
 	server := NewMsgServerImpl(keeper)
@@ -493,4 +505,132 @@ func TestMsgServer_SetPlatformMinimum_InvalidAuthority(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, response)
 	require.Contains(t, err.Error(), "invalid authority")
+}
+
+func TestMsgServer_MultiSend_BlockedAddress(t *testing.T) {
+	goCtx, server, keeper, mockBankKeeper := setupMsgServerTest(t)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr := sdk.AccAddress("from_address_12345678")
+	blockedAddr := sdk.AccAddress("blocked_address_123456")
+
+	inputs := []banktypes.Input{{
+		Address: fromAddr.String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+	}}
+
+	outputs := []banktypes.Output{{
+		Address: blockedAddr.String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+	}}
+
+	msg := &types.MsgMultiSend{
+		Inputs:  inputs,
+		Outputs: outputs,
+	}
+
+	// Set platform minimums to pass minimum check
+	minimums := sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100)))
+	err := keeper.OverwritePlatformMinimum(ctx, minimums)
+	require.NoError(t, err)
+
+	// Set up mocks - blocked address returns true
+	mockBankKeeper.On("IsSendEnabledCoins", mock.Anything, mock.Anything).Return(nil)
+	mockBankKeeper.On("BlockedAddr", blockedAddr).Return(true)
+
+	// Execute
+	response, err := server.MultiSend(goCtx, msg)
+
+	// Assert
+	require.Error(t, err)
+	require.Nil(t, response)
+	require.Contains(t, err.Error(), "is not allowed to receive funds")
+}
+
+func TestMsgServer_MultiSend_WithPlatformFee(t *testing.T) {
+	goCtx, server, keeper, mockBankKeeper := setupMsgServerTest(t)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr := sdk.AccAddress("from_address_12345678")
+	toAddr := sdk.AccAddress("to_address_123456789")
+
+	inputs := []banktypes.Input{{
+		Address: fromAddr.String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+	}}
+
+	outputs := []banktypes.Output{{
+		Address: toAddr.String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+	}}
+
+	msg := &types.MsgMultiSend{
+		Inputs:  inputs,
+		Outputs: outputs,
+	}
+
+	// Set platform percentage to 5%
+	keeper.OverwritePlatformPercentage(ctx, 500) // 5% = 500 basis points
+
+	minimums := sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(10)))
+	err := keeper.OverwritePlatformMinimum(ctx, minimums)
+	require.NoError(t, err)
+
+	// Set up mocks
+	mockBankKeeper.On("IsSendEnabledCoins", mock.Anything, mock.Anything).Return(nil)
+	mockBankKeeper.On("BlockedAddr", mock.Anything).Return(false)
+	mockBankKeeper.On("InputOutputCoins", mock.Anything, mock.Anything, mock.MatchedBy(func(outputs []banktypes.Output) bool {
+		// Should have 2 outputs: recipient + fee collector
+		return len(outputs) == 2
+	})).Return(nil)
+
+	// Execute
+	response, err := server.MultiSend(goCtx, msg)
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, response)
+	mockBankKeeper.AssertExpectations(t)
+}
+
+func TestMsgServer_MultiSend_HighPlatformFee(t *testing.T) {
+	goCtx, server, keeper, mockBankKeeper := setupMsgServerTest(t)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr := sdk.AccAddress("from_address_12345678")
+	toAddr := sdk.AccAddress("to_address_123456789")
+
+	inputs := []banktypes.Input{{
+		Address: fromAddr.String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100))),
+	}}
+
+	outputs := []banktypes.Output{{
+		Address: toAddr.String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100))),
+	}}
+
+	msg := &types.MsgMultiSend{
+		Inputs:  inputs,
+		Outputs: outputs,
+	}
+
+	// Set high platform percentage
+	keeper.OverwritePlatformPercentage(ctx, 9000) // 90%
+
+	minimums := sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1)))
+	err := keeper.OverwritePlatformMinimum(ctx, minimums)
+	require.NoError(t, err)
+
+	// Set up mocks
+	mockBankKeeper.On("IsSendEnabledCoins", mock.Anything, mock.Anything).Return(nil)
+	mockBankKeeper.On("BlockedAddr", mock.Anything).Return(false)
+	mockBankKeeper.On("InputOutputCoins", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	// Execute
+	response, err := server.MultiSend(goCtx, msg)
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, response)
 }

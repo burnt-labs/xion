@@ -69,10 +69,13 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 			expectedErr: true,
 			errContains: "invalid authority address",
 		},
+		// The following param validation tests use a valid bech32 authority so that
+		// ValidateBasic progresses past the authority check and exercises the
+		// Params.Validate() branch.
 		{
 			name: "invalid params - negative inflation max",
 			msg: &MsgUpdateParams{
-				Authority: "invalid-authority", // We're testing params validation, not address validation
+				Authority: sdk.AccAddress(make([]byte, 20)).String(), // valid bech32 address of 20 zero bytes
 				Params: Params{
 					MintDenom:           "uxion",
 					InflationRateChange: math.LegacyNewDecWithPrec(13, 2),
@@ -87,7 +90,7 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid params - empty denom",
 			msg: &MsgUpdateParams{
-				Authority: "invalid-authority", // We're testing params validation, not address validation
+				Authority: sdk.AccAddress(make([]byte, 20)).String(), // valid bech32
 				Params: Params{
 					MintDenom:           "", // Invalid
 					InflationRateChange: math.LegacyNewDecWithPrec(13, 2),
@@ -98,6 +101,14 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 				},
 			},
 			expectedErr: true,
+		},
+		{
+			name: "valid params and authority",
+			msg: &MsgUpdateParams{
+				Authority: sdk.AccAddress(make([]byte, 20)).String(),
+				Params:    DefaultParams(),
+			},
+			expectedErr: false,
 		},
 	}
 

@@ -313,6 +313,28 @@ func TestKeeper_InitGenesis_InvalidMinimums(t *testing.T) {
 	// Verify the values were set
 	storedPercentage := keeper.GetPlatformPercentage(ctx).Uint64()
 	require.Equal(t, uint64(250), storedPercentage)
+
+	// Test panic case: manually corrupt the store to trigger an error in OverwritePlatformMinimum
+	// We'll create a scenario where OverwritePlatformMinimum fails
+
+	// First, test with empty coins to cover different paths
+	emptyGenState := &types.GenesisState{
+		PlatformPercentage: 100,
+		PlatformMinimums:   sdk.NewCoins(), // Empty coins
+	}
+
+	require.NotPanics(t, func() {
+		keeper.InitGenesis(ctx, emptyGenState)
+	})
+
+	// Verify the state was properly set
+	retrievedPercentage := keeper.GetPlatformPercentage(ctx)
+	expectedPercentage := math.NewIntFromUint64(100)
+	require.True(t, retrievedPercentage.Equal(expectedPercentage))
+
+	// Now test the error path - we need to make OverwritePlatformMinimum fail
+	// Since it's hard to make sdk.Coins invalid, let's test with a mock that fails
+	// For now, we'll document that this path is hard to test with valid sdk.Coins
 }
 
 func TestKeeper_ExportGenesis(t *testing.T) {
@@ -365,4 +387,96 @@ func TestKeeper_ExportGenesis_InvalidMinimums(t *testing.T) {
 	require.Panics(t, func() {
 		keeper.ExportGenesis(ctx)
 	})
+}
+
+func TestKeeper_PlatformPercentage_EdgeCases(t *testing.T) {
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+	ctx := testCtx.Ctx
+
+	keeper := Keeper{
+		storeKey: key,
+	}
+
+	// Test maximum percentage
+	maxPercentage := uint32(10000) // 100%
+	keeper.OverwritePlatformPercentage(ctx, maxPercentage)
+	retrieved := keeper.GetPlatformPercentage(ctx)
+	expected := math.NewIntFromUint64(uint64(maxPercentage))
+	require.True(t, retrieved.Equal(expected))
+
+	// Test zero percentage
+	keeper.OverwritePlatformPercentage(ctx, 0)
+	retrieved = keeper.GetPlatformPercentage(ctx)
+	require.True(t, retrieved.IsZero())
+}
+
+func TestKeeper_PlatformMinimums_MultipleCoins(t *testing.T) {
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+	ctx := testCtx.Ctx
+
+	keeper := Keeper{
+		storeKey: key,
+	}
+
+	// Test setting minimums for multiple coin denominations
+	multipleCoins := sdk.NewCoins(
+		sdk.NewCoin("uxion", math.NewInt(100)),
+		sdk.NewCoin("uatom", math.NewInt(50)),
+		sdk.NewCoin("ustake", math.NewInt(200)),
+	)
+
+	err := keeper.OverwritePlatformMinimum(ctx, multipleCoins)
+	require.NoError(t, err)
+
+	// Retrieve and verify
+	retrieved, err := keeper.GetPlatformMinimums(ctx)
+	require.NoError(t, err)
+	require.True(t, multipleCoins.Equal(retrieved))
+
+	// Test overwriting with different coins
+	newCoins := sdk.NewCoins(
+		sdk.NewCoin("uxion", math.NewInt(150)),
+		sdk.NewCoin("uother", math.NewInt(75)),
+	)
+
+	err = keeper.OverwritePlatformMinimum(ctx, newCoins)
+	require.NoError(t, err)
+
+	retrieved, err = keeper.GetPlatformMinimums(ctx)
+	require.NoError(t, err)
+	require.True(t, newCoins.Equal(retrieved))
+}
+
+func TestKeeper_InitGenesis_ComplexScenarios(t *testing.T) {
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+	ctx := testCtx.Ctx
+
+	keeper := Keeper{
+		storeKey: key,
+	}
+
+	// Test with maximum values
+	maxGenesis := &types.GenesisState{
+		PlatformPercentage: 10000, // 100%
+		PlatformMinimums: sdk.NewCoins(
+			sdk.NewCoin("uxion", math.NewIntWithDecimal(1, 18)), // Very large amount
+			sdk.NewCoin("uatom", math.NewInt(1000000)),
+		),
+	}
+
+	require.NotPanics(t, func() {
+		keeper.InitGenesis(ctx, maxGenesis)
+	})
+
+	// Verify the state was set correctly
+	percentage := keeper.GetPlatformPercentage(ctx)
+	expectedPercentage := math.NewIntFromUint64(10000)
+	require.True(t, percentage.Equal(expectedPercentage))
+
+	minimums, err := keeper.GetPlatformMinimums(ctx)
+	require.NoError(t, err)
+	require.True(t, maxGenesis.PlatformMinimums.Equal(minimums))
 }

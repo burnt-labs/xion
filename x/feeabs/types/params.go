@@ -50,6 +50,18 @@ func (p Params) Validate() error {
 	if err := validateString(p.NativeIbcedInOsmosis); err != nil {
 		return err
 	}
+	if err := validateString(p.ChainName); err != nil {
+		return err
+	}
+	if err := validateString(p.IbcTransferChannel); err != nil {
+		return err
+	}
+	if err := validateString(p.IbcQueryIcqChannel); err != nil {
+		return err
+	}
+	if err := validateString(p.OsmosisCrosschainSwapAddress); err != nil {
+		return err
+	}
 
 	return nil
 }

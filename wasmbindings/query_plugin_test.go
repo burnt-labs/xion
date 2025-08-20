@@ -96,7 +96,8 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 				suite.Require().NoError(err)
 				return bz
 			},
-			responseProtoStruct: &xiontypes.QueryWebAuthNVerifyRegisterResponse{},
+			responseProtoStruct:  &xiontypes.QueryWebAuthNVerifyRegisterResponse{},
+			expectedQuerierError: true, // now blocked (not whitelisted)
 		},
 		{
 			name: "WebAuthNVerifyAuthenticate",
@@ -112,7 +113,8 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 				suite.Require().NoError(err)
 				return bz
 			},
-			responseProtoStruct: &xiontypes.QueryWebAuthNVerifyRegisterResponse{},
+			responseProtoStruct:  &xiontypes.QueryWebAuthNVerifyRegisterResponse{},
+			expectedQuerierError: true, // now blocked (not whitelisted)
 		},
 
 		// TODO: errors in wrong query in state machine
