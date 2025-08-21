@@ -149,6 +149,9 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 
 	err = xion.SendFunds(ctx, deployerAddr.FormattedAddress(), ibc.WalletAmount{Address: contract, Denom: xion.Config().Denom, Amount: math.NewInt(10_000)})
 	require.NoError(t, err)
+	// ensure funds are committed before building/signing the next tx
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	require.NoError(t, err)
 	// create the raw tx
 	sendMsg := fmt.Sprintf(`
 	{
@@ -264,13 +267,16 @@ func TestWebAuthNAbstractAccount(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err := ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
+	// broadcast and ensure success; this returns an error if the tx code != 0
+	output, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--output", "json")
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
-	err = testutil.WaitForBlocks(ctx, 2, xion)
+	// ExecBroadcastWithFlags already waits for blocks, but keep a short extra wait for safety
+	err = testutil.WaitForBlocks(ctx, 1, xion)
 	require.NoError(t, err)
 	newBalance, err := xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
-	require.True(t, math.NewInt(10_000-1337).Equal(newBalance), "expected: %d, got: %d", 10_000-1337, newBalance)
+	// use deterministic assertion and formatting to avoid misleading output
+	require.Equal(t, int64(10_000-1337), newBalance.Int64(), "expected %d, got %s", 10_000-1337, newBalance.String())
 }

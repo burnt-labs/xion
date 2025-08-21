@@ -53,9 +53,17 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	}
 
 	// Do not check minimum-gas-prices and global fees during simulations
-	// short-circuit bypass messages
-	if simulate || mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
+	// short-circuit bypass messages when under the configured gas cap
+	if simulate {
 		return next(ctx, tx, simulate)
+	}
+
+	if mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
+		maxBypassGas := mfd.GetMaxTotalBypassMinFeeMsgGasUsage(ctx)
+		if feeTx.GetGas() <= maxBypassGas {
+			return next(ctx, tx, simulate)
+		}
+		// gas wanted exceeds bypass cap; fall through to normal fee enforcement
 	}
 
 	// Get the required fees, as per xion specification max(network_fees, local_validator_fees)
