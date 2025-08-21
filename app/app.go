@@ -604,7 +604,6 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// TODO: Replace ibc hooks with callbacks?
 	// Configure the hooks keeper
 	// hooksKeeper := ibchookskeeper.NewKeeper(
 	// 	keys[ibchookstypes.StoreKey],

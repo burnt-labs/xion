@@ -7,8 +7,6 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
 	"github.com/cosmos/gogoproto/proto"
-	// nolint: gci
-	// ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	feegranttypes "cosmossdk.io/x/feegrant"
 
@@ -37,10 +35,6 @@ var stargateWhitelist sync.Map
 // In the future we may want to find a better way to keep these in sync
 
 func init() {
-	// ibc queries
-	// TODO: fix
-	// setWhitelistedQuery("/ibc.applications.transfer.v1.Query/DenomTrace", &ibctransfertypes.QueryDenomTraceResponse{})
-
 	// cosmos-sdk queries
 
 	// auth
