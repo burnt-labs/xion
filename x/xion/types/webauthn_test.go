@@ -42,11 +42,21 @@ var (
 	AAGUID       = []byte("AAGUIDAAGUIDAA==")
 )
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+var _ webauthn.User = types.SmartContractUser{}
+=======
+>>>>>>> f370285 (Feat/unit tests (#370))
 // common test constants to satisfy goconst linter
 const (
 	testChallenge    = "test_challenge"
 	testContractAddr = "test_contract"
 )
+<<<<<<< HEAD
+=======
+>>>>>>> c305573 (Feat/unit tests (#370))
+>>>>>>> f370285 (Feat/unit tests (#370))
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
 	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
@@ -693,6 +703,81 @@ func buildCredentialCreationJSON(attBytes []byte, clientDataJSON []byte) []byte 
 	}
 	b, _ := json.Marshal(cred)
 	return b
+}
+
+// TestWebAuthnTimeConsensus tests that WebAuthn verification is deterministic across validators
+func TestWebAuthnTimeConsensus(t *testing.T) {
+	// Test with a fixed block time (deterministic)
+	baseTime := time.Now()
+
+	// Create a certificate that expires in 5 seconds from baseTime
+	certDER, priv, err := createShortLivedCert(baseTime, 5*time.Second)
+	require.NoError(t, err)
+
+	// Create test data
+	clientData := map[string]string{
+		"type":      "webauthn.create",
+		"challenge": "test_challenge_123",
+		"origin":    "https://test.example",
+	}
+	clientDataJSON, _ := json.Marshal(clientData)
+	clientDataHash := sha256.Sum256(clientDataJSON)
+
+	attObj, err := buildPackedAttestation(certDER, priv, clientDataHash[:])
+	require.NoError(t, err)
+
+	bodyJSON := buildCredentialCreationJSON(attObj, clientDataJSON)
+
+	parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
+	require.NoError(t, err)
+
+	rp, _ := url.Parse("https://test.example")
+
+	// Both contexts should produce the same result (deterministic)
+	ctx1 := sdktypes.NewContext(nil, cmtproto.Header{Time: baseTime}, false, nil)
+	ctx2 := sdktypes.NewContext(nil, cmtproto.Header{Time: baseTime}, false, nil)
+
+	// Both contexts should produce the same result (deterministic)
+	cred1, err1 := types.VerifyRegistration(ctx1, rp, "contract1", "test_challenge_123", parsed)
+	cred2, err2 := types.VerifyRegistration(ctx2, rp, "contract1", "test_challenge_123", parsed)
+
+	// Both should succeed or both should fail
+	require.Equal(t, err1 == nil, err2 == nil, "Deterministic verification should produce same result")
+	if err1 == nil && err2 == nil {
+		require.Equal(t, cred1.ID, cred2.ID, "Credentials should be identical")
+	}
+
+	t.Logf("Deterministic verification result: success=%v", err1 == nil)
+
+	// Test with block time after certificate expiry
+	futureTime := baseTime.Add(10 * time.Second) // After cert expires
+	ctx3 := sdktypes.NewContext(nil, cmtproto.Header{Time: futureTime}, false, nil)
+
+	certDER, priv, err = createShortLivedCert(baseTime, 5*time.Second)
+	require.NoError(t, err)
+
+	// Create test data
+	clientData2 := map[string]string{
+		"type":      "webauthn.create",
+		"challenge": "test_challenge_123",
+		"origin":    "https://test.example",
+	}
+	clientDataJSON2, _ := json.Marshal(clientData2)
+	clientDataHash2 := sha256.Sum256(clientDataJSON2)
+
+	attObj, err = buildPackedAttestation(certDER, priv, clientDataHash2[:])
+	require.NoError(t, err)
+
+	bodyJSON = buildCredentialCreationJSON(attObj, clientDataJSON2)
+
+	parsed, err = protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
+	require.NoError(t, err)
+
+	cred3, err3 := types.VerifyRegistration(ctx3, rp, "contract1", "test_challenge_123", parsed)
+	require.Error(t, err3, "Should fail when certificate is expired according to block time")
+	require.Nil(t, cred3, "Credential should be nil on failure")
+
+	t.Logf("Expired certificate verification correctly failed: %v", err3)
 }
 
 // TestWebAuthnBlockTimeConsistency verifies that the same block time produces identical results
