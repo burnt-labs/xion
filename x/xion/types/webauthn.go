@@ -2,19 +2,8 @@ package types
 
 import (
 	"bytes"
-<<<<<<< HEAD
-<<<<<<< HEAD
-	"crypto/x509"
-=======
 	"crypto/sha256"
-<<<<<<< HEAD
->>>>>>> 8bb6835 (feat: update go-webauthn)
-=======
-	"crypto/sha256"
->>>>>>> 5cc08d2 (chore: remove unneeded function)
-=======
 	"crypto/x509"
->>>>>>> 49db7bf (restore blocktime cheeck)
 	"net/url"
 	"time"
 
@@ -146,10 +135,6 @@ func CreateCredential(webauth *webauthn.WebAuthn, ctx sdktypes.Context, user web
 
 	shouldVerifyUser := session.UserVerification == protocol.VerificationRequired
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 49db7bf (restore blocktime cheeck)
 	// Validate certificates using block time BEFORE calling original verification
 	if err := validateCertificatesWithBlockTime(parsedResponse, ctx.BlockTime()); err != nil {
 		return nil, err
@@ -157,79 +142,11 @@ func CreateCredential(webauth *webauthn.WebAuthn, ctx sdktypes.Context, user web
 
 	// Call original verification with all required parameters
 	// Based on webauthn v13.4 API, Verify now takes more parameters including credential parameters
-<<<<<<< HEAD
-	credParams := []protocol.CredentialParameter{
-		{Type: "public-key", Algorithm: -7},   // ES256
-		{Type: "public-key", Algorithm: -257}, // RS256
-	}
-
-	if _, err := parsedResponse.Verify(
-		session.Challenge,                        // storedChallenge
-		shouldVerifyUser,                         // verifyUser
-		false,                                    // allowSetUserVerificationHint - set to false for deterministic behavior
-		webauth.Config.RPID,                      // relyingPartyID
-		webauth.Config.RPOrigins,                 // relyingPartyOrigin
-		nil,                                      // attestationObject (optional)
-		protocol.TopOriginIgnoreVerificationMode, // topOriginVerification
-		nil,                                      // extensions
-		credParams,                               // credParams
-	); err != nil {
-		return nil, err
-	}
-
-	return &webauthn.Credential{
-		ID:              parsedResponse.Response.AttestationObject.AuthData.AttData.CredentialID,
-		PublicKey:       parsedResponse.Response.AttestationObject.AuthData.AttData.CredentialPublicKey,
-		AttestationType: parsedResponse.Response.AttestationObject.Format,
-		Transport:       parsedResponse.Response.Transports, // Populate from parsed response
-		Flags: webauthn.CredentialFlags{
-			UserPresent:  parsedResponse.Response.AttestationObject.AuthData.Flags.UserPresent(),
-			UserVerified: parsedResponse.Response.AttestationObject.AuthData.Flags.UserVerified(),
-		},
-		Authenticator: webauthn.Authenticator{
-			AAGUID:    parsedResponse.Response.AttestationObject.AuthData.AttData.AAGUID,
-			SignCount: parsedResponse.Response.AttestationObject.AuthData.Counter,
-		},
-	}, nil
-}
-<<<<<<< HEAD
-
-// validateCertificatesWithBlockTime validates X.509 certificates using block time instead of system time
-func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredentialCreationData, blockTime time.Time) error {
-	attStmt := parsedResponse.Response.AttestationObject.AttStatement
-	if attStmt == nil {
-		return nil // No certificates to validate
-	}
-
-	// Look for x5c (X.509 certificate chain) in the attestation statement
-	if x5cRaw, exists := attStmt["x5c"]; exists {
-		if x5cSlice, ok := x5cRaw.([]interface{}); ok {
-			for _, certRaw := range x5cSlice {
-				if certBytes, ok := certRaw.([]byte); ok {
-					cert, err := x509.ParseCertificate(certBytes)
-					if err != nil {
-						return protocol.ErrInvalidAttestation.WithDetails("Failed to parse X.509 certificate")
-					}
-
-					// Use block time for certificate validity check (deterministic)
-					if blockTime.Before(cert.NotBefore) || blockTime.After(cert.NotAfter) {
-						return protocol.ErrInvalidAttestation.WithDetails("Certificate not valid at block time")
-					}
-				}
-			}
-		}
-	}
-
-	return nil
-=======
-	_, invalidErr := parsedResponse.Verify(session.Challenge, shouldVerifyUser, false, webauth.Config.RPID, webauth.Config.RPOrigins, webauth.Config.RPTopOrigins, webauth.Config.RPTopOriginVerificationMode, nil, session.CredParams)
-	if invalidErr != nil {
-		return nil, invalidErr
-=======
 	// we don't want to verify the attestation statement to avoid network calls
 	// so we set the attestation statement to nil even if the parsed response has one
 	parsedResponse.Response.AttestationObject.AttStatement = nil
 	parsedResponse.Response.AttestationObject.Format = attestationFormatNone
+
 	if _, err := parsedResponse.Verify(
 		session.Challenge,           // storedChallenge
 		shouldVerifyUser,            // verifyUser
@@ -242,17 +159,11 @@ func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredential
 		session.CredParams,
 	); err != nil {
 		return nil, err
->>>>>>> 49db7bf (restore blocktime cheeck)
 	}
 
 	clientDataHash := sha256.Sum256(parsedResponse.Raw.AttestationResponse.ClientDataJSON)
 	return webauthn.NewCredential(clientDataHash[:], parsedResponse)
->>>>>>> 8bb6835 (feat: update go-webauthn)
 }
-<<<<<<< HEAD
-=======
->>>>>>> 5cc08d2 (chore: remove unneeded function)
-=======
 
 // validateCertificatesWithBlockTime validates X.509 certificates using block time instead of system time
 func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredentialCreationData, blockTime time.Time) error {
@@ -299,4 +210,3 @@ func validateCertificatesWithBlockTime(parsedResponse *protocol.ParsedCredential
 
 	return nil
 }
->>>>>>> 49db7bf (restore blocktime cheeck)

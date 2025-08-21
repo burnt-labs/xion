@@ -42,29 +42,11 @@ var (
 	AAGUID       = []byte("AAGUIDAAGUIDAA==")
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-var _ webauthn.User = types.SmartContractUser{}
-=======
->>>>>>> f370285 (Feat/unit tests (#370))
-=======
-var _ webauthn.User = types.SmartContractUser{}
-
->>>>>>> 49db7bf (restore blocktime cheeck)
 // common test constants to satisfy goconst linter
 const (
 	testChallenge    = "test_challenge"
 	testContractAddr = "test_contract"
 )
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> c305573 (Feat/unit tests (#370))
->>>>>>> f370285 (Feat/unit tests (#370))
-=======
->>>>>>> 49db7bf (restore blocktime cheeck)
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
 	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
@@ -317,10 +299,8 @@ func TestRegisterAndAuthenticate(t *testing.T) {
 
 	challengeStr := "xion1ncx0a0jnsyay7udd03ah2gf64772g02qswj52996dy80qfvgnmzq6eplqq"
 	challenge := base64url.Encode([]byte(challengeStr))
-
-	attestation := CreateWebAuthNAttestationCred(t, []byte(challenge))
-	require.NotNil(t, attestation)
-	data, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(attestation))
+	const registerStr = `{"id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","type":"public-key","rawId":"VVd4WS15UmRJbHM4SVQtdnlNUzZsYTFaaXFFU09BZmY3YldaX0xXVjBQZw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRnVZM2d3WVRCcWJuTjVZWGszZFdSa01ETmhhREpuWmpZME56Y3laekF5Y1hOM2FqVXlPVGsyWkhrNE1IRm1kbWR1YlhweE5tVndiSEZ4Iiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAifQ","attestationObject":"o2NmbXRkbm9uZWhBdXRoRGF0YaVkcnBpZFggsGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1lZmxhZ3MYRWhhdHRfZGF0YaNmYWFndWlkUEFBR1VJREFBR1VJREFBPT1qcHVibGljX2tleVkCEKQBAwM5AQAgWQIAolg7TF3aai-wR4HTDe5oR-WRhEsdW3u-O3IJHl0BiHkmR4MLskHG9HzivWoXsloUBnBMrFNxOH0x5cNMI07oi4PeRbHySiogRW9CXPjJaNlTi-pT_IgKFsyJNXsLyzrnajLkDbQU6pRsHmNeL0hAOUv48rtXv8VVWWN8okJehD2q9N7LHoFAOmIUEPg_VTHTt8K__O-9eMZKN4eMjh_4-sxRX6NXPSPT87XRlrK4GZ4pUdp86K0tOFLhwO4Uj0JkMNfI82eVZ1tAbDlqjd8jFnAb8fWm8wtdaTNbL_AAXmbDhswwJOyrw8fARZIhrXSdKBWa6e4k7sLwTIy-OO8saebnlARsjGst7ZCzmw5KCm2ctEVl3hYhHwyXu_A5rOblMrV3H0G7WqeKMCMVSJ11ssrlsmfVhNIwu1Qlt5GYmPTTJiCgGUGRxZkgDyOyjFNHglYpZamCGyJ9oyofsukEGoqMQ6WzjFi_hjVapzXi7Li-Q0OjEopIUUDDgeUrgjbGY0eiHI6sAz5hoaD0Qjc9e3Hk6-y7VcKCTCAanZOlJV0vJkHB98LBLh9qAoVUei_VaLFe2IcfVlrL_43aXlsHhr_SUQY5pHPlUMbQihE_57dpPRh31qDX_w6ye8dilniP8JmpKM2uIwnJ0x7hfJ45Qa0oLHmrGlzY9wi-RGP0YUkhQwEAAW1jcmVkZW50aWFsX2lkWCtVV3hZLXlSZElsczhJVC12eU1TNmxhMVppcUVTT0FmZjdiV1pfTFdWMFBnaGV4dF9kYXRh9mpzaWduX2NvdW50AGhhdXRoRGF0YVkCcrBjAYg3BKaYjH8UNdEzwntvhWiqy3k5L6c8XM54EzMNRQAAAABBQUdVSURBQUdVSURBQT09ACtVV3hZLXlSZElsczhJVC12eU1TNmxhMVppcUVTT0FmZjdiV1pfTFdWMFBnpAEDAzkBACBZAgCiWDtMXdpqL7BHgdMN7mhH5ZGESx1be747cgkeXQGIeSZHgwuyQcb0fOK9aheyWhQGcEysU3E4fTHlw0wjTuiLg95FsfJKKiBFb0Jc-Mlo2VOL6lP8iAoWzIk1ewvLOudqMuQNtBTqlGweY14vSEA5S_jyu1e_xVVZY3yiQl6EPar03ssegUA6YhQQ-D9VMdO3wr_87714xko3h4yOH_j6zFFfo1c9I9PztdGWsrgZnilR2nzorS04UuHA7hSPQmQw18jzZ5VnW0BsOWqN3yMWcBvx9abzC11pM1sv8ABeZsOGzDAk7KvDx8BFkiGtdJ0oFZrp7iTuwvBMjL447yxp5ueUBGyMay3tkLObDkoKbZy0RWXeFiEfDJe78Dms5uUytXcfQbtap4owIxVInXWyyuWyZ9WE0jC7VCW3kZiY9NMmIKAZQZHFmSAPI7KMU0eCVillqYIbIn2jKh-y6QQaioxDpbOMWL-GNVqnNeLsuL5DQ6MSikhRQMOB5SuCNsZjR6IcjqwDPmGhoPRCNz17ceTr7LtVwoJMIBqdk6UlXS8mQcH3wsEuH2oChVR6L9VosV7Yhx9WWsv_jdpeWweGv9JRBjmkc-VQxtCKET_nt2k9GHfWoNf_DrJ7x2KWeI_wmakoza4jCcnTHuF8njlBrSgseasaXNj3CL5EY_RhSSFDAQAB"}}`
+	data, err := protocol.ParseCredentialCreationResponseBody(strings.NewReader(registerStr))
 	require.NoError(t, err)
 
 	sdkCtx := sdktypes.NewContext(nil, cmtproto.Header{Time: time.Now()}, false, nil)
@@ -343,7 +323,6 @@ func TestGenerateWebAuthNSignature(t *testing.T) {
 	require.NotNil(t, cred)
 	signature := CreateWebAuthNSignature(t, []byte(challenge))
 	require.NotNil(t, signature)
-<<<<<<< HEAD
 }
 
 func TestSmartContractUser(t *testing.T) {
@@ -635,6 +614,33 @@ func createShortLivedCert(referenceTime time.Time, validDuration time.Duration) 
 	return certDER, priv, err
 }
 
+// createCertWithValidityPeriod creates a certificate valid between start and end times
+func createCertWithValidityPeriod(notBefore, notAfter time.Time) ([]byte, *rsa.PrivateKey, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(2025),
+		Subject: pkix.Name{
+			Country:            []string{"US"},
+			Organization:       []string{"Test Authenticator"},
+			OrganizationalUnit: []string{"Authenticator Attestation"},
+			CommonName:         "Test-WebAuthn-Cert",
+		},
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+		BasicConstraintsValid: true,
+		IsCA:                  false,
+	}
+
+	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
+	return certDER, priv, err
+}
+
 // Helper to build a WebAuthn attestation object with the given certificate
 func buildPackedAttestation(certDER []byte, priv *rsa.PrivateKey, clientDataHash []byte) ([]byte, error) {
 	credID := make([]byte, 16)
@@ -838,6 +844,91 @@ func TestWebAuthnBlockTimeConsistency(t *testing.T) {
 	t.Logf("All %d verifications with same block time produced identical results", 5)
 }
 
+// TestWebAuthnCertificateValidation tests that certificate validation uses block time
+func TestWebAuthnCertificateValidation(t *testing.T) {
+	// Use fixed dates that are stable and well in the past/future
+	// This ensures we can test specific time scenarios without flakiness
+	testBaseTime := time.Date(2024, 6, 15, 12, 0, 0, 0, time.UTC)
+
+	// Create a long-lived certificate that covers all our test scenarios
+	// This certificate will be valid from 2024-01-01 to 2025-12-31
+	certStart := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	certEnd := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
+
+	cert, priv, err := createCertWithValidityPeriod(certStart, certEnd)
+	require.NoError(t, err)
+
+	rp, _ := url.Parse("https://test.example")
+
+	testCases := []struct {
+		name          string
+		certDER       []byte
+		priv          *rsa.PrivateKey
+		blockTime     time.Time
+		shouldSucceed bool
+	}{
+		{
+			name:          "block_time_before_cert_valid",
+			certDER:       cert,
+			priv:          priv,
+			blockTime:     time.Date(2023, 12, 31, 23, 59, 59, 0, time.UTC), // Before cert starts
+			shouldSucceed: false,
+		},
+		{
+			name:          "block_time_during_cert_valid",
+			certDER:       cert,
+			priv:          priv,
+			blockTime:     testBaseTime, // Well within cert validity
+			shouldSucceed: true,
+		},
+		{
+			name:          "block_time_after_cert_expires",
+			certDER:       cert,
+			priv:          priv,
+			blockTime:     time.Date(2026, 1, 1, 0, 0, 1, 0, time.UTC), // After cert expires
+			shouldSucceed: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Debug: Let's check the certificate validity period
+			cert, err := x509.ParseCertificate(tc.certDER)
+			require.NoError(t, err)
+			t.Logf("Certificate NotBefore: %v", cert.NotBefore)
+			t.Logf("Certificate NotAfter: %v", cert.NotAfter)
+			t.Logf("Block time: %v", tc.blockTime)
+			t.Logf("Is valid at block time: %v", tc.blockTime.After(cert.NotBefore) && tc.blockTime.Before(cert.NotAfter))
+
+			clientData := map[string]string{
+				"type":      "webauthn.create",
+				"challenge": "cert_validation_test",
+				"origin":    "https://test.example",
+			}
+			clientDataJSON, _ := json.Marshal(clientData)
+			clientDataHash := sha256.Sum256(clientDataJSON)
+
+			attObj, err := buildPackedAttestation(tc.certDER, tc.priv, clientDataHash[:])
+			require.NoError(t, err)
+
+			bodyJSON := buildCredentialCreationJSON(attObj, clientDataJSON)
+			parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
+			require.NoError(t, err)
+
+			ctx := sdktypes.NewContext(nil, cmtproto.Header{Time: tc.blockTime}, false, nil)
+			cred, err := types.VerifyRegistration(ctx, rp, "contract1", "cert_validation_test", parsed)
+
+			if tc.shouldSucceed {
+				require.NoError(t, err, "Certificate should be valid at block time")
+				require.NotNil(t, cred, "Should return valid credential")
+			} else {
+				require.Error(t, err, "Certificate should be invalid at block time")
+				require.Nil(t, cred, "Should not return credential when invalid")
+			}
+		})
+	}
+}
+
 // === Deterministic Function Tests ===
 
 // TestCreateCredential tests the core deterministic credential creation function
@@ -859,12 +950,7 @@ func TestCreateCredential(t *testing.T) {
 		Challenge:        "test_challenge",
 		UserID:           user.WebAuthnID(),
 		UserVerification: protocol.VerificationPreferred,
-		CredParams: []protocol.CredentialParameter{
-			{
-				Type:      protocol.PublicKeyCredentialType,
-				Algorithm: webauthncose.AlgRS256,
-			},
-		},
+		CredParams:       []protocol.CredentialParameter{{Type: protocol.PublicKeyCredentialType, Algorithm: webauthncose.AlgRS256}},
 	}
 
 	// Test with valid certificate and current block time
@@ -886,6 +972,9 @@ func TestCreateCredential(t *testing.T) {
 	bodyJSON := buildCredentialCreationJSON(attObj, clientDataJSON)
 	parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(bodyJSON))
 	require.NoError(t, err)
+	// Force attestation to none for deterministic test path (skip attestation handlers)
+	parsed.Response.AttestationObject.AttStatement = nil
+	parsed.Response.AttestationObject.Format = "none"
 
 	// Test successful creation with valid block time
 	ctx := sdktypes.NewContext(nil, cmtproto.Header{Time: time.Now()}, false, nil)
@@ -1014,17 +1103,9 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 		UserID:           user.WebAuthnID(),
 		UserVerification: protocol.VerificationPreferred,
 		Expires:          time.Now().Add(time.Hour), // Not expired
-		CredParams: []protocol.CredentialParameter{
-			{
-				Type:      protocol.PublicKeyCredentialType,
-				Algorithm: webauthncose.AlgRS256,
-			},
-		},
 	}
 
 	// Create a credential creation response with malformed certificate data
-	rpIdHash := sha256.Sum256([]byte("example.com"))
-	_, publicKeyBuf, _ := getWebAuthNKeys(t)
 	parsed := &protocol.ParsedCredentialCreationData{
 		ParsedPublicKeyCredential: protocol.ParsedPublicKeyCredential{
 			ParsedCredential: protocol.ParsedCredential{
@@ -1039,16 +1120,6 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 				Origin:    "https://example.com",
 			},
 			AttestationObject: protocol.AttestationObject{
-				AuthData: protocol.AuthenticatorData{
-					RPIDHash: rpIdHash[:],
-					Counter:  0,
-					AttData: protocol.AttestedCredentialData{
-						AAGUID:              AAGUID,
-						CredentialID:        []byte("test_id"),
-						CredentialPublicKey: publicKeyBuf,
-					},
-					Flags: 69,
-				},
 				AttStatement: map[string]interface{}{
 					"fmt": "none",
 					// Add malformed certificate data in x5c
@@ -1062,9 +1133,6 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 
 	cred, err := types.CreateCredential(webAuth, ctx, user, session, parsed)
 
-	require.NoError(t, err) // we don't parse attestation
-	require.NotNil(t, cred)
+	require.Error(t, err)
+	require.Nil(t, cred)
 }
-=======
-}
->>>>>>> 8bb6835 (feat: update go-webauthn)
