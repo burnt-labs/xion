@@ -27,8 +27,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MultiAnyAllowance{}, "xion/MultiAnyAllowance", nil)
 	cdc.RegisterConcrete(xionMintTypes.Params{}, "xion/x/mint/Params", nil)
 
-	// Register feeabs types for reading historical proposals
-	feeabstypes.RegisterCodec(cdc)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
