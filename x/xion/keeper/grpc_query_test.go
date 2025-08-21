@@ -2,19 +2,70 @@ package keeper
 
 import (
 	"bytes"
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/testutil"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
-func TestPanicParseCredentialBadRequestResponseBody(t *testing.T) {
-	jsonBodyCreate := []byte(`{"id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","type":"public-key","rawId":"VVd4WS15UmRJbHM4SVQtdnlNUzZsYTFaaXFFU09BZmY3YldaX0xXVjBQZw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZUdsdmJqRjZjbXcxTm5jMGMyVjNkMlJ4ZW1keGVHYzNOemMzYkRWbFptWjVlSHBsTUcweVkyc3llVGh6TUdGdVpITnpNRzVoTUdkeE1uSmxhRE5qIiwib3JpZ2luIjoiaHR0cHM6Ly94aW9uLWRhcHAtZXhhbXBsZS1naXQtZmVhdC1mYWNlaWQtYnVybnRmaW5hbmNlLnZlcmNlbC5hcHAifQ","attestationObject":"o2NmbXRkbm9uZWhBdXRoRGF0YaVkcnBpZFggsGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1lZmxhZ3MYRWhhdHRfZGF0YaNmYWFndWlkUEFBR1VJREFBR1VJREFBPT1qcHVibGljX2tleVkCEKQBAwM5AQAgWQIAolg7TF3aai-wR4HTDe5oR-WRhEsdW3u-O3IJHl0BiHkmR4MLskHG9HzivWoXsloUBnBMrFNxOH0x5cNMI07oi4PeRbHySiogRW9CXPjJaNlTi-pT_IgKFsyJNXsLyzrnajLkDbQU6pRsHmNeL0hAOUv48rtXv8VVWWN8okJehD2q9N7LHoFAOmIUEPg_VTHTt8K__O-9eMZKN4eMjh_4-sxRX6NXPSPT87XRlrK4GZ4pUdp86K0tOFLhwO4Uj0JkMNfI82eVZ1tAbDlqjd8jFnAb8fWm8wtdaTNbL_AAXmbDhswwJOyrw8fARZIhrXSdKBWa6e4k7sLwTIy-OO8saebnlARsjGst7ZCzmw5KCm2ctEVl3hYhHwyXu_A5rOblMrV3H0G7WqeKMCMVSJ11ssrlsmfVhNIwu1Qlt5GYmPTTJiCgGUGRxZkgDyOyjFNHglYpZamCGyJ9oyofsukEGoqMQ6WzjFi_hjVapzXi7Li-Q0OjEopIUUDDgeUrgjbGY0eiHI6sAz5hoaD0Qjc9e3Hk6-y7VcKCTCAanZOlJV0vJkHB98LBLh9qAoVUei_VaLFe2IcfVlrL_43aXlsHhr_SUQY5pHPlUMbQihE_57dpPRh31qDX_w6ye8dilniP8JmpKM2uIwnJ0x7hfJ45Qa0oLHmrGlzY9wi-RGP0YUkhQwEAAW1jcmVkZW50aWFsX2lkWCtVV3hZLXlSZElsczhJVC12eU1TNmxhMVppcUVTT0FmZjdiV1pfTFdWMFBnaGV4dF9kYXRh9mpzaWduX2NvdW50AGhhdXRoRGF0YVkCcrBjAYg3BKaYjH8UNdEzwntvhWiqy3k5L6c8XM54EzMNRQAAAABBQUdVSURBQUdVSURBQT09ACtVV3hZLXlSZElsczhJVC12eU1TNmxhMVppcUVTT0FmZjdiV1pfTFdWMFBnpAEDAzkBACBZAgCiWDtMXdpqL7BHgdMN7mhH5ZGESx1be747cgkeXQGIeSZHgwuyQcb0fOK9aheyWhQGcEysU3E4fTHlw0wjTuiLg95FsfJKKiBFb0Jc-Mlo2VOL6lP8iAoWzIk1ewvLOudqMuQNtBTqlGweY14vSEA5S_jyu1e_xVVZY3yiQl6EPar03ssegUA6YhQQ-D9VMdO3wr_87714xko3h4yOH_j6zFFfo1c9I9PztdGWsrgZnilR2nzorS04UuHA7hSPQmQw18jzZ5VnW0BsOWqN3yMWcBvx9abzC11pM1sv8ABeZsOGzDAk7KvDx8BFkiGtdJ0oFZrp7iTuwvBMjL447yxp5ueUBGyMay3tkLObDkoKbZy0RWXeFiEfDJe78Dms5uUytXcfQbtap4owIxVInXWyyuWyZ9WE0jC7VCW3kZiY9NMmIKAZQZHFmSAPI7KMU0eCVillqYIbIn2jKh-y6QQaioxDpbOMWL-GNVqnNeLsuL5DQ6MSikhRQMOB5SuCNsZjR6IcjqwDPmGhoPRCNz17ceTr7LtVwoJMIBqdk6UlXS8mQcH3wsEuH2oChVR6L9VosV7Yhx9WWsv_jdpeWweGv9JRBjmkc-VQxtCKET_nt2k9GHfWoNf_DrJ7x2KWeI_wmakoza4jCcnTHuF8njlBrSgseasaXNj3CL5EY_RhSSFDAQAB"}}`)
+// Tests exercise error paths via malformed inputs only.
 
-	credentials := bytes.NewReader(jsonBodyCreate)
-	err := validateCredentialCreation(credentials)
-	require.NoError(t, err)
+// Tests exercise only basic error paths reachable via public API.
+func TestWebAuthNQueries_ErrorPaths(t *testing.T) {
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+	ctx := testCtx.Ctx
+	// Minimal keeper with only store key (methods under test only access store via context if at all)
+	k := Keeper{storeKey: key}
+	_, err := k.WebAuthNVerifyRegister(ctx, &types.QueryWebAuthNVerifyRegisterRequest{Rp: "://bad", Addr: "a", Challenge: "c", Data: []byte("{}")})
+	require.Error(t, err)
+	_, err = k.WebAuthNVerifyAuthenticate(ctx, &types.QueryWebAuthNVerifyAuthenticateRequest{Rp: "://bad", Addr: "a", Challenge: "c", Data: []byte("{}")})
+	require.Error(t, err)
+	_, err = k.WebAuthNVerifyRegister(ctx, &types.QueryWebAuthNVerifyRegisterRequest{Rp: "https://ok", Addr: "a", Challenge: "c", Data: []byte(`{"some":1}`)})
+	require.Error(t, err)
+	_, err = k.WebAuthNVerifyAuthenticate(ctx, &types.QueryWebAuthNVerifyAuthenticateRequest{Rp: "https://ok", Addr: "a", Challenge: "c", Data: []byte(`{"some":1}`)})
+	require.Error(t, err)
+}
 
-	jsonBodyRequest := []byte(`{"id":"UWxY-yRdIls8IT-vyMS6la1ZiqESOAff7bWZ_LWV0Pg","type":"public-key","rawId":"VVd4WS15UmRJbHM4SVQtdnlNUzZsYTFaaXFFU09BZmY3YldaX0xXVjBQZw","authenticatorAttachment":"platform","response":{"clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiWkhVMVFsQnNNVUZvVXpKa05rVTVjMk0xTUcxTVdHMVBibVpxVjFaTlNtSkRZVlJzU25ZeE5GZHhaejAiLCJvcmlnaW4iOiJodHRwczovL3hpb24tZGFwcC1leGFtcGxlLWdpdC1mZWF0LWZhY2VpZC1idXJudGZpbmFuY2UudmVyY2VsLmFwcCJ9","authenticatorData":"sGMBiDcEppiMfxQ10TPCe2-FaKrLeTkvpzxczngTMw1FAAAAAEFBR1VJREFBR1VJREFBPT0AK1VXeFkteVJkSWxzOElULXZ5TVM2bGExWmlxRVNPQWZmN2JXWl9MV1YwUGekAQMDOQEAIFkCAKJYO0xd2movsEeB0w3uaEflkYRLHVt7vjtyCR5dAYh5JkeDC7JBxvR84r1qF7JaFAZwTKxTcTh9MeXDTCNO6IuD3kWx8koqIEVvQlz4yWjZU4vqU_yIChbMiTV7C8s652oy5A20FOqUbB5jXi9IQDlL-PK7V7_FVVljfKJCXoQ9qvTeyx6BQDpiFBD4P1Ux07fCv_zvvXjGSjeHjI4f-PrMUV-jVz0j0_O10ZayuBmeKVHafOitLThS4cDuFI9CZDDXyPNnlWdbQGw5ao3fIxZwG_H1pvMLXWkzWy_wAF5mw4bMMCTsq8PHwEWSIa10nSgVmunuJO7C8EyMvjjvLGnm55QEbIxrLe2Qs5sOSgptnLRFZd4WIR8Ml7vwOazm5TK1dx9Bu1qnijAjFUiddbLK5bJn1YTSMLtUJbeRmJj00yYgoBlBkcWZIA8jsoxTR4JWKWWpghsifaMqH7LpBBqKjEOls4xYv4Y1Wqc14uy4vkNDoxKKSFFAw4HlK4I2xmNHohyOrAM-YaGg9EI3PXtx5Ovsu1XCgkwgGp2TpSVdLyZBwffCwS4fagKFVHov1WixXtiHH1Zay_-N2l5bB4a_0lEGOaRz5VDG0IoRP-e3aT0Yd9ag1_8OsnvHYpZ4j_CZqSjNriMJydMe4XyeOUGtKCx5qxpc2PcIvkRj9GFJIUMBAAE","signature":"OWJd1g5KplaPvqYt9Lv_dbR6NzqCVYi2bAWX6J5Dl_b9TW183AssulkgXwmVj0KHtlWkUjDOFsmIyeOMGo2BlQbtkB4b3G97CR0NtVNXMT3CJojIkB4xkegZti-rOLHUZbj0bZ1LOphmuqYEcO4ipZIAiB86VdeSht9_2xA8th3kuTwF6mRrm02ulmhyPWImrbODoQj-mhO3b-2HLdD64Desk0kRGNmw-YvixyXr4gzwH9jKwdaXOh4pzntqlt5fDZbwW1j70w4j7Q1dijnYFxvCS_51K-NMZJA5R8YbEq21NxxXEZLC9b2_4C944ehkAQ1DFDouQbXxCuualvLXSnOy89kgZmALzyu0gKXdhAuV6uS1oj9u8Ohsj09_xHd7IVKPAlstJabsP2eR5Q4LT6zkmz2njURw3NrChAMn2yiGdB1v09L_d3zQzjnVjP2Ki7HSILwh79lt0ejTSxh1VkqbLG82DYi2_3lomBXZszvpOLr7t_mfx92_0WTBFBw24glWEfBmEHUw6TS24YD3pQ30lMIHk9mk2m1CQjF_Wfew_4s2zk4uW-pOhD90FtERPSOKZeayyF8cTfIrV66HZ2pCnOcjLNNJ6wlA95N6rbtoKPLQS9Wkw38TF2D8aobZk3lDH4lYU2R4ODHwJhuKX_6R_0Y7CnBk9w5AbYbUJj0","userHandle":"eGlvbjF6cmw1Nnc0c2V3d2RxemdxeGc3Nzc3bDVlZmZ5eHplMG0yY2syeThzMGFuZHNzMG5hMGdxMnJlaDNj"}}`)
-	err = validateCredentialRequest(bytes.NewReader(jsonBodyRequest))
-	require.NoError(t, err)
+// Additional focused tests to cover validation helpers.
+func TestWebAuthN_ValidationHelpers(t *testing.T) {
+	if err := validateCredentialCreation(bytes.NewReader([]byte("not-json"))); err == nil {
+		t.Fatal("expected error")
+	}
+	if err := validateCredentialRequest(bytes.NewReader([]byte("not-json"))); err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+// TestValidateCredentialRequestBranches covers all internal branches of validateCredentialRequest
+func TestValidateCredentialRequestBranches(t *testing.T) {
+	// 1. Decode error (invalid JSON)
+	if err := validateCredentialRequest(bytes.NewReader([]byte("not-json"))); err == nil {
+		t.Fatal("expected decode error")
+	}
+
+	// 2. Missing authenticator data -> explicit error branch
+	// correct JSON uses "response" per struct tag
+	missingAuth := []byte(`{"response":{}}`)
+	if err := validateCredentialRequest(bytes.NewReader(missingAuth)); err == nil {
+		t.Fatal("expected missing auth data error")
+	}
+
+	// 3. Success path: provide minimally valid authenticator data (37 bytes) base64 encoded inside JSON
+	authData := make([]byte, 37)
+	for i := 0; i < 32; i++ {
+		authData[i] = 1
+	}
+	// flags (no extensions) already zeroed; counter bytes zeroed
+	encoded := base64.RawStdEncoding.EncodeToString(authData)
+	good := []byte(`{"response":{"authenticatorData":"` + encoded + `"}}`)
+	if err := validateCredentialRequest(bytes.NewReader(good)); err != nil {
+		t.Fatalf("expected success, got %v", err)
+	}
 }

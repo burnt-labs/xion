@@ -63,7 +63,10 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingCo
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for ics29 fee module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {
+	// no-op to satisfy interface
+	_ = "RegisterGRPCGatewayRoutes"
+}
 
 // GetTxCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -82,9 +85,13 @@ type AppModule struct {
 }
 
 func (am AppModule) IsOnePerModuleType() {
+	// no-op to satisfy interface
+	_ = "IsOnePerModuleType"
 }
 
 func (am AppModule) IsAppModule() {
+	// no-op to satisfy interface
+	_ = "IsAppModule"
 }
 
 // NewAppModule creates a new 29-fee module

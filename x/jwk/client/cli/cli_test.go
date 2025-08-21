@@ -654,3 +654,46 @@ func TestTxContextErrors(t *testing.T) {
 	_, err = clitestutil.ExecTestCLICmd(emptyCtx, claimCmd, []string{"aud"})
 	require.Error(t, err) // Should fail with tx context error
 }
+
+// Additional RunE handler tests to improve coverage (inspired by globalfee improvements)
+func TestCLIRunEHandlerErrorPaths(t *testing.T) {
+	// Test CmdDeleteAudience RunE with no client context - should fail early
+	deleteCmd := cli.CmdDeleteAudience()
+	require.NotNil(t, deleteCmd.RunE)
+	require.Panics(t, func() {
+		_ = deleteCmd.RunE(deleteCmd, []string{"aud"})
+	}, "Expected panic when no client context")
+
+	// Test CmdCreateAudience RunE with no client context
+	createCmd := cli.CmdCreateAudience()
+	require.NotNil(t, createCmd.RunE)
+	require.Panics(t, func() {
+		_ = createCmd.RunE(createCmd, []string{"aud", "key"})
+	}, "Expected panic when no client context")
+
+	// Test CmdUpdateAudience RunE with no client context
+	updateCmd := cli.CmdUpdateAudience()
+	require.NotNil(t, updateCmd.RunE)
+	require.Panics(t, func() {
+		_ = updateCmd.RunE(updateCmd, []string{"aud", "key"})
+	}, "Expected panic when no client context")
+}
+
+func TestCLIFlagErrorPaths(t *testing.T) {
+	// Test CmdUpdateAudience flag parsing errors
+	updateCmd := cli.CmdUpdateAudience()
+
+	// Test accessing flags without setting them (should not error, will return empty string)
+	require.NotPanics(t, func() {
+		_, err := updateCmd.Flags().GetString("new-admin")
+		_ = err // This actually shouldn't error, just return empty string
+	})
+
+	// Test flag setting and retrieval
+	err := updateCmd.Flags().Set("new-admin", "test-admin")
+	require.NoError(t, err)
+
+	value, err := updateCmd.Flags().GetString("new-admin")
+	require.NoError(t, err)
+	require.Equal(t, "test-admin", value)
+}

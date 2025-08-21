@@ -72,7 +72,7 @@ func (s *IntegrationTestSuite) SetupTestGlobalFeeStoreAndMinGasPrice(minGasPrice
 	return feeDecorator, antehandler
 }
 
-// SetupTestStakingSubspace sets uatom as bond denom for the fee tests.
+// SetupTestStakingSubspace sets uxion as bond denom for the fee tests.
 func (s *IntegrationTestSuite) SetupTestStakingSubspace(params stakingtypes.Params) types.Subspace {
 	s.app.GetSubspace(stakingtypes.ModuleName).SetParamSet(s.ctx, &params)
 	return s.app.GetSubspace(stakingtypes.ModuleName)

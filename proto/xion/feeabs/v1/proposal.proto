@@ -1,0 +1,75 @@
+syntax = "proto3";
+package xion.feeabs.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// HostChainFeeAbsStatus defines the status of a host chain
+enum HostChainFeeAbsStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+  
+  // Frozen status
+  FROZEN = 0 [(gogoproto.enumvalue_customname) = "Frozen"];
+  
+  // Active status  
+  ACTIVE = 1 [(gogoproto.enumvalue_customname) = "Active"];
+}
+
+// HostChainFeeAbsConfig defines the configuration for a host chain
+message HostChainFeeAbsConfig {
+  // IBC denom
+  string ibc_denom = 1;
+  
+  // Native denom on the host chain
+  string native_denom = 2;
+  
+  // Channel ID for IBC
+  string channel_id = 3;
+  
+  // Status of this host chain configuration
+  HostChainFeeAbsStatus status = 4;
+}
+
+// AddHostZoneProposal defines a proposal to add a new host zone
+message AddHostZoneProposal {
+  option (cosmos_proto.implements_interface) = "cosmos.gov.v1beta1.Content";
+  
+  // Title of the proposal
+  string title = 1;
+  
+  // Description of the proposal
+  string description = 2;
+  
+  // Host zone configuration
+  HostChainFeeAbsConfig host_zone_config = 3 [(gogoproto.nullable) = false];
+}
+
+// DeleteHostZoneProposal defines a proposal to delete a host zone
+message DeleteHostZoneProposal {
+  option (cosmos_proto.implements_interface) = "cosmos.gov.v1beta1.Content";
+  
+  // Title of the proposal
+  string title = 1;
+  
+  // Description of the proposal  
+  string description = 2;
+  
+  // IBC denom to delete
+  string ibc_denom = 3;
+}
+
+// SetHostZoneProposal defines a proposal to update a host zone
+message SetHostZoneProposal {
+  option (cosmos_proto.implements_interface) = "cosmos.gov.v1beta1.Content";
+  
+  // Title of the proposal
+  string title = 1;
+  
+  // Description of the proposal
+  string description = 2;
+  
+  // Host zone configuration
+  HostChainFeeAbsConfig host_zone_config = 3 [(gogoproto.nullable) = false];
+}
