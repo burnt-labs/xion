@@ -36,6 +36,8 @@ func TestAminoCodec(t *testing.T) {
 	require.NotNil(t, amino)
 
 	// Test encoding/decoding a message
+
+	// nolint: goconst
 	validAddr := "cosmos1fl48vsnmsdzcv85q5d2q4z5ajdha8yu34mf0eh"
 	senderAddr, err := sdk.AccAddressFromBech32(validAddr)
 	require.NoError(t, err)
@@ -59,6 +61,8 @@ func TestInit(t *testing.T) {
 	require.NotNil(t, amino)
 
 	// Test that we can encode a basic SDK message
+
+	// nolint: goconst
 	validAddr := "cosmos1fl48vsnmsdzcv85q5d2q4z5ajdha8yu34mf0eh"
 	senderAddr, err := sdk.AccAddressFromBech32(validAddr)
 	require.NoError(t, err)

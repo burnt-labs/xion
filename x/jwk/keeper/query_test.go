@@ -5,14 +5,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/stretchr/testify/require"
+
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -20,27 +23,23 @@ import (
 
 	"github.com/burnt-labs/xion/x/jwk/keeper"
 	"github.com/burnt-labs/xion/x/jwk/types"
-
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jwt"
 )
 
 func TestQueryParams(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	params := types.DefaultParams()
 	k.SetParams(ctx, params)
 
-	response, err := k.Params(wctx, &types.QueryParamsRequest{})
+	response, err := k.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
 }
 
 func TestQueryAudience(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -63,33 +62,33 @@ func TestQueryAudience(t *testing.T) {
 	}
 
 	// Test AudienceAll query
-	resp, err := k.AudienceAll(wctx, &types.QueryAllAudienceRequest{})
+	resp, err := k.AudienceAll(ctx, &types.QueryAllAudienceRequest{})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 2)
 
 	// Test AudienceAll with pagination
 	pageReq := &query.PageRequest{Limit: 1}
-	resp, err = k.AudienceAll(wctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 1)
 
 	// Test Audience query for specific audience
-	audienceResp, err := k.Audience(wctx, &types.QueryGetAudienceRequest{Aud: "audience1"})
+	audienceResp, err := k.Audience(ctx, &types.QueryGetAudienceRequest{Aud: "audience1"})
 	require.NoError(t, err)
 	require.NotNil(t, audienceResp)
 	require.Equal(t, "audience1", audienceResp.Audience.Aud)
 	require.Equal(t, admin, audienceResp.Audience.Admin)
 
 	// Test Audience query for non-existent audience
-	_, err = k.Audience(wctx, &types.QueryGetAudienceRequest{Aud: "non-existent"})
+	_, err = k.Audience(ctx, &types.QueryGetAudienceRequest{Aud: "non-existent"})
 	require.Error(t, err)
 }
 
 func TestQueryAudienceClaim(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName)
 	hash := []byte("test-hash")
@@ -98,19 +97,19 @@ func TestQueryAudienceClaim(t *testing.T) {
 	k.SetAudienceClaim(ctx, hash, admin)
 
 	// Test AudienceClaim query
-	resp, err := k.AudienceClaim(wctx, &types.QueryGetAudienceClaimRequest{Hash: hash})
+	resp, err := k.AudienceClaim(ctx, &types.QueryGetAudienceClaimRequest{Hash: hash})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Equal(t, admin.String(), resp.Claim.Signer)
 
 	// Test AudienceClaim query for non-existent claim
-	_, err = k.AudienceClaim(wctx, &types.QueryGetAudienceClaimRequest{Hash: []byte("non-existent")})
+	_, err = k.AudienceClaim(ctx, &types.QueryGetAudienceClaimRequest{Hash: []byte("non-existent")})
 	require.Error(t, err)
 }
 
 func TestQueryValidateJWT(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// First, create an audience for testing
 	audience := types.Audience{
@@ -121,7 +120,7 @@ func TestQueryValidateJWT(t *testing.T) {
 	k.SetAudience(ctx, audience)
 
 	// Test with nil request
-	resp, err := k.ValidateJWT(wctx, nil)
+	resp, err := k.ValidateJWT(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "invalid request")
@@ -132,7 +131,7 @@ func TestQueryValidateJWT(t *testing.T) {
 		Sub:      "test-subject",
 		SigBytes: "test.jwt.token",
 	}
-	resp, err = k.ValidateJWT(wctx, req)
+	resp, err = k.ValidateJWT(ctx, req)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "not found")
@@ -150,7 +149,7 @@ func TestQueryValidateJWT(t *testing.T) {
 		Sub:      "test-subject",
 		SigBytes: "test.jwt.token",
 	}
-	resp, err = k.ValidateJWT(wctx, reqBadJWK)
+	resp, err = k.ValidateJWT(ctx, reqBadJWK)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -160,7 +159,7 @@ func TestQueryValidateJWT(t *testing.T) {
 		Sub:      "test-subject",
 		SigBytes: "invalid.jwt.format",
 	}
-	resp, err = k.ValidateJWT(wctx, reqInvalidJWT)
+	resp, err = k.ValidateJWT(ctx, reqInvalidJWT)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -170,7 +169,7 @@ func TestQueryValidateJWT(t *testing.T) {
 		Sub:      "test-subject",
 		SigBytes: "not-a-jwt",
 	}
-	resp, err = k.ValidateJWT(wctx, reqMalformedJWT)
+	resp, err = k.ValidateJWT(ctx, reqMalformedJWT)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -180,7 +179,7 @@ func TestQueryValidateJWT(t *testing.T) {
 		Sub:      "test-subject",
 		SigBytes: "",
 	}
-	resp, err = k.ValidateJWT(wctx, reqEmptyJWT)
+	resp, err = k.ValidateJWT(ctx, reqEmptyJWT)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -200,7 +199,7 @@ func TestQueryValidateJWT(t *testing.T) {
 		Sub:      "test-subject",
 		SigBytes: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ2YWxpZC1hdWRpZW5jZSIsInN1YiI6InRlc3Qtc3ViamVjdCIsImV4cCI6OTk5OTk5OTk5OSwiY3VzdG9tX2NsYWltIjoidmFsdWUifQ.invalid-signature",
 	}
-	resp, err = k.ValidateJWT(wctx, reqWithClaims)
+	resp, err = k.ValidateJWT(ctx, reqWithClaims)
 	// This will error due to invalid signature but exercises the parsing logic
 	require.Error(t, err)
 	require.Nil(t, resp)
@@ -213,7 +212,7 @@ func TestQueryValidateJWT(t *testing.T) {
 		Sub:      "test-subject",
 		SigBytes: "not-a-jwt-at-all",
 	}
-	resp, err = k.ValidateJWT(wctx, reqMalformed)
+	resp, err = k.ValidateJWT(ctx, reqMalformed)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -224,7 +223,7 @@ func TestQueryValidateJWT(t *testing.T) {
 
 func TestQueryValidateJWTAdditionalErrorPaths(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with missing required fields
 	tests := []struct {
@@ -267,7 +266,7 @@ func TestQueryValidateJWTAdditionalErrorPaths(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := k.ValidateJWT(wctx, tt.req)
+			resp, err := k.ValidateJWT(ctx, tt.req)
 			require.Error(t, err)
 			require.Nil(t, resp)
 		})
@@ -301,10 +300,10 @@ func TestQueryValidateJWTPanicRecovery(t *testing.T) {
 
 func TestQueryParamsNil(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with nil request - should return an error
-	response, err := k.Params(wctx, nil)
+	response, err := k.Params(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, response)
 	require.Contains(t, err.Error(), "invalid request")
@@ -312,10 +311,10 @@ func TestQueryParamsNil(t *testing.T) {
 
 func TestQueryAudienceAllPagination(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with nil request
-	resp, err := k.AudienceAll(wctx, nil)
+	resp, err := k.AudienceAll(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -325,7 +324,7 @@ func TestQueryAudienceAllPagination(t *testing.T) {
 			Limit: 101, // Invalid limit (too large)
 		},
 	}
-	resp, err = k.AudienceAll(wctx, req)
+	resp, err = k.AudienceAll(ctx, req)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "too large")
@@ -336,17 +335,17 @@ func TestQueryAudienceAllPagination(t *testing.T) {
 			Limit: 50, // Valid limit
 		},
 	}
-	resp, err = k.AudienceAll(wctx, validReq)
+	resp, err = k.AudienceAll(ctx, validReq)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 }
 
 func TestQueryAudienceNotFound(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with nil request
-	resp, err := k.Audience(wctx, nil)
+	resp, err := k.Audience(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -354,17 +353,17 @@ func TestQueryAudienceNotFound(t *testing.T) {
 	req := &types.QueryGetAudienceRequest{
 		Aud: "non-existent",
 	}
-	resp, err = k.Audience(wctx, req)
+	resp, err = k.Audience(ctx, req)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
 
 func TestQueryAudienceClaimNotFound(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with nil request
-	resp, err := k.AudienceClaim(wctx, nil)
+	resp, err := k.AudienceClaim(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -372,24 +371,24 @@ func TestQueryAudienceClaimNotFound(t *testing.T) {
 	req := &types.QueryGetAudienceClaimRequest{
 		Hash: []byte("non-existent-hash"),
 	}
-	resp, err = k.AudienceClaim(wctx, req)
+	resp, err = k.AudienceClaim(ctx, req)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
 
 func TestQueryAudienceAllNilAndError(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with nil request
-	resp, err := k.AudienceAll(wctx, nil)
+	resp, err := k.AudienceAll(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "invalid request")
 
 	// Test with empty store (should return empty list)
 	validReq := &types.QueryAllAudienceRequest{}
-	resp, err = k.AudienceAll(wctx, validReq)
+	resp, err = k.AudienceAll(ctx, validReq)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Empty(t, resp.Audience)
@@ -404,7 +403,7 @@ func TestQueryAudienceAllNilAndError(t *testing.T) {
 	k.SetAudience(ctx, audience)
 
 	pageReq := &query.PageRequest{Offset: 100, Limit: 10}
-	resp, err = k.AudienceAll(wctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Empty(t, resp.Audience)
@@ -412,10 +411,10 @@ func TestQueryAudienceAllNilAndError(t *testing.T) {
 
 func TestQueryAudienceNil(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with nil request
-	resp, err := k.Audience(wctx, nil)
+	resp, err := k.Audience(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "invalid request")
@@ -423,7 +422,7 @@ func TestQueryAudienceNil(t *testing.T) {
 
 func TestQueryValidateJWTComprehensiveErrorPaths(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Create audience with various key types for comprehensive testing
 	audienceWithRSA := types.Audience{
@@ -520,7 +519,7 @@ func TestQueryValidateJWTComprehensiveErrorPaths(t *testing.T) {
 				Sub:      tt.sub,
 				SigBytes: tt.jwt,
 			}
-			resp, err := k.ValidateJWT(wctx, req)
+			resp, err := k.ValidateJWT(ctx, req)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -535,7 +534,7 @@ func TestQueryValidateJWTComprehensiveErrorPaths(t *testing.T) {
 
 func TestQueryValidateJWTPrivateClaimsAndSorting(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Create audience for testing private claims
 	audience := types.Audience{
@@ -554,24 +553,24 @@ func TestQueryValidateJWTPrivateClaimsAndSorting(t *testing.T) {
 	}
 
 	// This will fail validation but will exercise the private claims sorting code
-	resp, err := k.ValidateJWT(wctx, req)
+	resp, err := k.ValidateJWT(ctx, req)
 	require.Error(t, err) // Expected to fail due to invalid signature
 	require.Nil(t, resp)
 }
 
 func TestQueryParamsComprehensive(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	// Test with valid request
 	req := &types.QueryParamsRequest{}
-	resp, err := k.Params(wctx, req)
+	resp, err := k.Params(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.NotNil(t, resp.Params)
 
 	// Test with nil request - should return error
-	resp, err = k.Params(wctx, nil)
+	resp, err = k.Params(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "invalid request")
@@ -580,26 +579,26 @@ func TestQueryParamsComprehensive(t *testing.T) {
 // Comprehensive tests to improve AudienceAll coverage to 100%
 func TestQueryAudienceAllComprehensive(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// Test with nil request
-	resp, err := k.AudienceAll(wctx, nil)
+	resp, err := k.AudienceAll(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "invalid request")
 
 	// Test with pagination limit > 100 (should fail)
 	largePageReq := &query.PageRequest{Limit: 101}
-	resp, err = k.AudienceAll(wctx, &types.QueryAllAudienceRequest{Pagination: largePageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: largePageReq})
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "too large")
 
 	// Test with valid large request (limit = 100, should work)
 	validLargePageReq := &query.PageRequest{Limit: 100}
-	resp, err = k.AudienceAll(wctx, &types.QueryAllAudienceRequest{Pagination: validLargePageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: validLargePageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
@@ -616,14 +615,14 @@ func TestQueryAudienceAllComprehensive(t *testing.T) {
 
 	// Test pagination with limit and offset
 	pageReq := &query.PageRequest{Limit: 2, Offset: 1}
-	resp, err = k.AudienceAll(wctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 2)
 	require.NotNil(t, resp.Pagination)
 
 	// Test with no pagination (nil)
-	resp, err = k.AudienceAll(wctx, &types.QueryAllAudienceRequest{Pagination: nil})
+	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: nil})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 3) // Should return all audiences
@@ -632,12 +631,12 @@ func TestQueryAudienceAllComprehensive(t *testing.T) {
 // Comprehensive tests to improve ValidateJWT coverage to 100%
 func TestQueryValidateJWTComprehensive(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// Test with nil request
-	resp, err := k.ValidateJWT(wctx, nil)
+	resp, err := k.ValidateJWT(ctx, nil)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "invalid request")
@@ -648,7 +647,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 		Sub:      "test",
 		SigBytes: "test-jwt",
 	}
-	resp, err = k.ValidateJWT(wctx, req)
+	resp, err = k.ValidateJWT(ctx, req)
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "not found")
@@ -667,7 +666,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 		Sub:      "test",
 		SigBytes: "test-jwt",
 	}
-	resp, err = k.ValidateJWT(wctx, invalidKeyReq)
+	resp, err = k.ValidateJWT(ctx, invalidKeyReq)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -694,7 +693,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 		Sub:      "test",
 		SigBytes: "invalid.jwt.format",
 	}
-	resp, err = k.ValidateJWT(wctx, invalidJWTReq)
+	resp, err = k.ValidateJWT(ctx, invalidJWTReq)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -704,7 +703,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 		Sub:      "test",
 		SigBytes: "invalid-jwt",
 	}
-	resp, err = k.ValidateJWT(wctx, malformedJWTReq)
+	resp, err = k.ValidateJWT(ctx, malformedJWTReq)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -714,7 +713,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 		Sub:      "test",
 		SigBytes: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0ZXN0IiwiaXNzIjoidGVzdCIsInN1YiI6InRlc3QifQ.invalid-signature",
 	}
-	resp, err = k.ValidateJWT(wctx, invalidStructuredJWTReq)
+	resp, err = k.ValidateJWT(ctx, invalidStructuredJWTReq)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -725,7 +724,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 		Sub:      "test",
 		SigBytes: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ3cm9uZy1hdWRpZW5jZSIsImlzcyI6InRlc3QiLCJzdWIiOiJ0ZXN0In0.signature",
 	}
-	resp, err = k.ValidateJWT(wctx, wrongAudJWTReq)
+	resp, err = k.ValidateJWT(ctx, wrongAudJWTReq)
 	require.Error(t, err)
 	require.Nil(t, resp)
 
@@ -735,7 +734,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 		Sub:      "expected-sub",
 		SigBytes: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ2YWxpZC1hdWRpZW5jZSIsImlzcyI6InRlc3QiLCJzdWIiOiJ3cm9uZy1zdWIifQ.signature",
 	}
-	resp, err = k.ValidateJWT(wctx, wrongSubJWTReq)
+	resp, err = k.ValidateJWT(ctx, wrongSubJWTReq)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }
@@ -743,7 +742,7 @@ func TestQueryValidateJWTComprehensive(t *testing.T) {
 // Test successful JWT validation to exercise private claims processing
 func TestQueryValidateJWTSuccessAndTimeOffset(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -782,7 +781,7 @@ func TestQueryValidateJWTSuccessAndTimeOffset(t *testing.T) {
 	// 3. GetTimeOffset call ✓
 	// 4. ClockFunc with time offset calculation ✓
 	// 5. JWT parsing setup with all options ✓
-	resp, err := k.ValidateJWT(wctx, req)
+	resp, err := k.ValidateJWT(ctx, req)
 	require.Error(t, err) // Will fail due to invalid signature, but exercises more code paths
 	require.Nil(t, resp)
 }
@@ -790,12 +789,13 @@ func TestQueryValidateJWTSuccessAndTimeOffset(t *testing.T) {
 // Test successful JWT validation that actually reaches the private claims processing
 func TestQueryValidateJWTActualSuccess(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// Use a simpler HMAC key that we can work with
 	// This is the base64 encoding of "secret"
+	//nolint: gosec
 	hmacKeySecret := `{
 		"kty": "oct",
 		"k": "c2VjcmV0",
@@ -823,7 +823,7 @@ func TestQueryValidateJWTActualSuccess(t *testing.T) {
 	}
 
 	// This should succeed and exercise the private claims processing logic
-	resp, err := k.ValidateJWT(wctx, req)
+	resp, err := k.ValidateJWT(ctx, req)
 	if err != nil {
 		// If it still fails, it at least exercises more of the validation logic
 		require.Error(t, err)
@@ -847,7 +847,7 @@ func TestQueryValidateJWTActualSuccess(t *testing.T) {
 // Test that generates a valid JWT to reach 100% ValidateJWT coverage
 func TestQueryValidateJWTRealSuccess(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -880,7 +880,7 @@ func TestQueryValidateJWTRealSuccess(t *testing.T) {
 	}
 
 	// This JWT should have the correct signature for our secret key and hit private claims processing
-	resp, err := k.ValidateJWT(wctx, req)
+	resp, err := k.ValidateJWT(ctx, req)
 	if err != nil {
 		t.Logf("JWT validation failed (still working to get valid signature): %v", err)
 		require.Error(t, err)
@@ -896,7 +896,7 @@ func TestQueryValidateJWTRealSuccess(t *testing.T) {
 			SigBytes: simpleJWT,
 		}
 
-		resp2, err2 := k.ValidateJWT(wctx, simpleReq)
+		resp2, err2 := k.ValidateJWT(ctx, simpleReq)
 		if err2 != nil {
 			t.Logf("Second JWT attempt also failed: %v", err2)
 			require.Error(t, err2)
@@ -955,7 +955,7 @@ func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 	// Initialize with default params
 	k.SetParams(ctx.Ctx, types.DefaultParams())
 
-	wctx := sdk.WrapSDKContext(ctx.Ctx)
+	// Use ctx directly instead of wrapping
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	// First create a valid audience
@@ -976,7 +976,7 @@ func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 	audienceStore.Set(audienceKey, corruptedData)
 
 	// Try to query all audiences - this should trigger the unmarshaling error path
-	resp, err := k.AudienceAll(wctx, &types.QueryAllAudienceRequest{})
+	resp, err := k.AudienceAll(ctx.Ctx, &types.QueryAllAudienceRequest{})
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "Internal")
@@ -985,7 +985,7 @@ func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 // Test that creates a valid JWT using the actual jwx library to achieve 100% ValidateJWT coverage
 func TestQueryValidateJWTGeneratedSuccess(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
+	// Use ctx directly instead of wrapping
 
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -1033,7 +1033,7 @@ func TestQueryValidateJWTGeneratedSuccess(t *testing.T) {
 	}
 
 	// This should succeed and hit the private claims processing logic
-	resp, err := k.ValidateJWT(wctx, req)
+	resp, err := k.ValidateJWT(ctx, req)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.NotNil(t, resp.PrivateClaims)
