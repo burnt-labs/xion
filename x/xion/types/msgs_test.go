@@ -411,3 +411,19 @@ func TestMsgSetPlatformMinimum_Basics(t *testing.T) {
 	require.NotNil(t, bz)
 	require.True(t, len(bz) > 0)
 }
+
+func TestNewMsgSetPlatformMinimum(t *testing.T) {
+	auth := sdk.AccAddress("authority_12345678901234567890")
+	mins := sdk.NewCoins(
+		sdk.NewInt64Coin("uxion", 1),
+		sdk.NewInt64Coin("bar", 2),
+	)
+
+	msg := types.NewMsgSetPlatformMinimum(auth, mins)
+	require.NotNil(t, msg)
+	require.Equal(t, auth.String(), msg.Authority)
+	require.Equal(t, mins, msg.Minimums)
+	require.Equal(t, types.RouterKey, msg.Route())
+	require.Equal(t, types.TypeMsgSetPlatformMinimum, msg.Type())
+	require.NoError(t, msg.ValidateBasic())
+}
