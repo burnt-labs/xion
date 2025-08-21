@@ -43,20 +43,28 @@ var (
 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 var _ webauthn.User = types.SmartContractUser{}
 =======
 >>>>>>> f370285 (Feat/unit tests (#370))
+=======
+var _ webauthn.User = types.SmartContractUser{}
+
+>>>>>>> 49db7bf (restore blocktime cheeck)
 // common test constants to satisfy goconst linter
 const (
 	testChallenge    = "test_challenge"
 	testContractAddr = "test_contract"
 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c305573 (Feat/unit tests (#370))
 >>>>>>> f370285 (Feat/unit tests (#370))
+=======
+>>>>>>> 49db7bf (restore blocktime cheeck)
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
 	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
@@ -829,6 +837,7 @@ func TestWebAuthnBlockTimeConsistency(t *testing.T) {
 
 	t.Logf("All %d verifications with same block time produced identical results", 5)
 }
+
 // === Deterministic Function Tests ===
 
 // TestCreateCredential tests the core deterministic credential creation function
