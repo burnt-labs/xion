@@ -21,6 +21,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 // stargateWhitelist keeps whitelist and its deterministic
@@ -81,8 +82,8 @@ func init() {
 	setWhitelistedQuery("/cosmos.staking.v1beta1.Query/Validator", &stakingtypes.QueryValidatorResponse{})
 
 	// xion queries
-	// NOTE: WebAuthNVerifyRegister & WebAuthNVerifyAuthenticate intentionally NOT whitelisted
-	// due to non-deterministic time validation within X.509 parsing; see tests in stargate_whitelist_test.go.
+	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyRegister", &xiontypes.QueryWebAuthNVerifyRegisterResponse{})
+	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyAuthenticate", &xiontypes.QueryWebAuthNVerifyAuthenticateResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", &jwktypes.QueryAllAudienceResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/Audience", &jwktypes.QueryGetAudienceResponse{})
 	setWhitelistedQuery("/xion.jwk.v1.Query/Params", &jwktypes.QueryParamsResponse{})

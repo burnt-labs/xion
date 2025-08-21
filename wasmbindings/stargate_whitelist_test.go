@@ -4,34 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 	"github.com/stretchr/testify/require"
 )
-
-// TestWebAuthNRemovedFromWhitelist verifies that the non-deterministic WebAuthn endpoints
-// are no longer accessible from smart contracts, preventing consensus failures
-func TestWebAuthNRemovedFromWhitelist(t *testing.T) {
-	// These paths should be blocked because they contain non-deterministic time checks
-	webauthnPaths := []string{
-		"/xion.v1.Query/WebAuthNVerifyRegister",
-		"/xion.v1.Query/WebAuthNVerifyAuthenticate",
-	}
-
-	for _, path := range webauthnPaths {
-		t.Run(fmt.Sprintf("Path_%s_should_be_blocked", path), func(t *testing.T) {
-			_, err := GetWhitelistedQuery(path)
-			require.Error(t, err, "VULNERABILITY: Query path %s is still whitelisted! This path contains non-deterministic time checks.", path)
-
-			// Verify it's specifically an UnsupportedRequest error
-			var unsupportedErr wasmvmtypes.UnsupportedRequest
-			require.ErrorAs(t, err, &unsupportedErr, "Expected UnsupportedRequest error for %s, got: %T", path, err)
-
-			// Verify the error message indicates the path is not allowed
-			require.Contains(t, err.Error(), "is not allowed from the contract",
-				"Error message should indicate the path is not allowed")
-		})
-	}
-}
 
 // TestDeterministicPathsStillAllowed verifies that deterministic query paths remain whitelisted
 func TestDeterministicPathsStillAllowed(t *testing.T) {
@@ -55,26 +29,15 @@ func TestDeterministicPathsStillAllowed(t *testing.T) {
 
 // TestWhitelistSecurityInvariants verifies critical security properties of the whitelist
 func TestWhitelistSecurityInvariants(t *testing.T) {
-	t.Run("No_time_dependent_queries_allowed", func(t *testing.T) {
-		// Any query that uses time.Now() or system time should be blocked
-		timeDependentPaths := []string{
-			"/xion.v1.Query/WebAuthNVerifyRegister",     // Uses X.509 cert time validation
-			"/xion.v1.Query/WebAuthNVerifyAuthenticate", // Uses X.509 cert time validation
-		}
-
-		for _, path := range timeDependentPaths {
-			_, err := GetWhitelistedQuery(path)
-			require.Error(t, err, "Time-dependent query %s must not be whitelisted", path)
-		}
-	})
-
 	t.Run("All_whitelisted_queries_deterministic", func(t *testing.T) {
 		// This test documents that all remaining whitelisted queries should be deterministic
 		// If a new query is added that might be non-deterministic, this test should catch it
 		deterministicPaths := map[string]string{
 			// Auth module - deterministic (account state)
-			"/cosmos.auth.v1beta1.Query/Account": "deterministic_account_state",
-			"/cosmos.auth.v1beta1.Query/Params":  "deterministic_module_params",
+			"/cosmos.auth.v1beta1.Query/Account":        "deterministic_account_state",
+			"/cosmos.auth.v1beta1.Query/Params":         "deterministic_module_params",
+			"/xion.v1.Query/WebAuthNVerifyRegister":     "deterministic_webauthn_register",
+			"/xion.v1.Query/WebAuthNVerifyAuthenticate": "deterministic_webauthn_authenticate",
 
 			// Bank module - deterministic (balances, metadata)
 			"/cosmos.bank.v1beta1.Query/Balance":       "deterministic_account_balance",
