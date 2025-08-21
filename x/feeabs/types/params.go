@@ -63,7 +63,6 @@ func (p Params) Validate() error {
 		return err
 	}
 
-
 	return nil
 }
 

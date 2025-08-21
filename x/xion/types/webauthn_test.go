@@ -42,6 +42,12 @@ var (
 	AAGUID       = []byte("AAGUIDAAGUIDAA==")
 )
 
+// common test constants to satisfy goconst linter
+const (
+	testChallenge    = "test_challenge"
+	testContractAddr = "test_contract"
+)
+
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
 	privateKey, _, err := wasmbinding.SetupPublicKeys("../../../wasmbindings/keys/jwtRS256.key")
 	require.NoError(t, err)
@@ -502,8 +508,8 @@ func TestVerifyRegistration_ErrorPath(t *testing.T) {
 	invalidRP := &url.URL{Host: ""} // Invalid config will cause webauthn.New to fail
 
 	ctx := sdktypes.NewContext(nil, cmtproto.Header{Time: time.Now()}, false, nil)
-	challenge := "test_challenge"
-	contractAddr := "test_contract"
+	challenge := testChallenge
+	contractAddr := testContractAddr
 
 	data := &protocol.ParsedCredentialCreationData{}
 
@@ -516,8 +522,8 @@ func TestVerifyAuthentication_ErrorPath(t *testing.T) {
 	// Test invalid URL/config error path in VerifyAuthentication
 	invalidRP := &url.URL{Host: ""} // Invalid config will cause webauthn.New to fail
 
-	challenge := "test_challenge"
-	contractAddr := "test_contract"
+	challenge := testChallenge
+	contractAddr := testContractAddr
 	credential := &webauthn.Credential{
 		ID: []byte("test_id"),
 	}
@@ -535,8 +541,8 @@ func TestVerifyAuthentication_ValidateLoginError(t *testing.T) {
 	rp, err := url.Parse("https://example.com")
 	require.NoError(t, err)
 
-	challenge := "test_challenge"
-	contractAddr := "test_contract"
+	challenge := testChallenge
+	contractAddr := testContractAddr
 	credential := &webauthn.Credential{
 		ID:        []byte("test_id"),
 		PublicKey: []byte("invalid_public_key"),
@@ -567,48 +573,10 @@ func TestVerifyAuthentication_ValidateLoginError(t *testing.T) {
 	// Should get error from ValidateLogin with invalid assertion data
 }
 
-// === Consensus Determinism Tests ===
-
-// Helper function to create a short-lived certificate for testing time-based consensus issues
-func createCertForTimeValidation(referenceTime time.Time, validityPeriod time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
-	priv, err = rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return
-	}
-
-	// Create certificate with specific validity period relative to reference time
-	startTime := referenceTime
-	endTime := referenceTime.Add(validityPeriod)
-
-	template := &x509.Certificate{
-		SerialNumber: big.NewInt(2025),
-		Subject: pkix.Name{
-			Country:            []string{"US"},
-			Organization:       []string{"Test Authenticator"},
-			OrganizationalUnit: []string{"Authenticator Attestation"},
-			CommonName:         "Test-WebAuthn-Cert",
-		},
-		NotBefore:             startTime,
-		NotAfter:              endTime,
-		KeyUsage:              x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
-		BasicConstraintsValid: true,
-		IsCA:                  false,
-	}
-
-	certDER, err = x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
-	return
-}
-
-// Helper to encode time as bytes for certificate extension
-func encodeTime(t time.Time) []byte {
-	return []byte(t.Format(time.RFC3339))
-}
-
 func createShortLivedCert(referenceTime time.Time, validDuration time.Duration) (certDER []byte, priv *rsa.PrivateKey, err error) {
 	priv, err = rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return
+		return certDER, priv, err
 	}
 
 	// Create certificate that starts well before the reference time to avoid timing issues
@@ -643,7 +611,7 @@ func createShortLivedCert(referenceTime time.Time, validDuration time.Duration) 
 	}
 
 	certDER, err = x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
-	return
+	return certDER, priv, err
 }
 
 // createCertWithValidityPeriod creates a certificate valid between start and end times
@@ -676,7 +644,9 @@ func createCertWithValidityPeriod(notBefore, notAfter time.Time) ([]byte, *rsa.P
 // Helper to build a WebAuthn attestation object with the given certificate
 func buildPackedAttestation(certDER []byte, priv *rsa.PrivateKey, clientDataHash []byte) ([]byte, error) {
 	credID := make([]byte, 16)
-	rand.Read(credID)
+	if _, err := rand.Read(credID); err != nil { // #nosec G404 - non-crypto critical test randomness
+		return nil, err
+	}
 
 	authData := &bytes.Buffer{}
 
@@ -732,7 +702,9 @@ func encodeRSAPublicKeyAsCOSE(pubKey *rsa.PublicKey) ([]byte, error) {
 
 func buildCredentialCreationJSON(attBytes []byte, clientDataJSON []byte) []byte {
 	credID := make([]byte, 16)
-	rand.Read(credID)
+	if _, err := rand.Read(credID); err != nil { // #nosec G404 - test helper
+		return nil
+	}
 
 	cred := map[string]interface{}{
 		"id":    base64url.Encode(credID),
@@ -751,7 +723,7 @@ func buildCredentialCreationJSON(attBytes []byte, clientDataJSON []byte) []byte 
 func TestWebAuthnTimeConsensus(t *testing.T) {
 	// Test with a fixed block time (deterministic)
 	baseTime := time.Now()
-	
+
 	// Create a certificate that expires in 5 seconds from baseTime
 	certDER, priv, err := createShortLivedCert(baseTime, 5*time.Second)
 	require.NoError(t, err)

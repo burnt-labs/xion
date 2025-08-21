@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 func Test_ParamString(t *testing.T) {
@@ -580,4 +581,3 @@ func TestParamsValidateViaParamSetPairs(t *testing.T) {
 		}
 	})
 }
-

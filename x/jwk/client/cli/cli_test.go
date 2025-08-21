@@ -661,21 +661,21 @@ func TestCLIRunEHandlerErrorPaths(t *testing.T) {
 	deleteCmd := cli.CmdDeleteAudience()
 	require.NotNil(t, deleteCmd.RunE)
 	require.Panics(t, func() {
-		deleteCmd.RunE(deleteCmd, []string{"aud"})
+		_ = deleteCmd.RunE(deleteCmd, []string{"aud"})
 	}, "Expected panic when no client context")
 
 	// Test CmdCreateAudience RunE with no client context
 	createCmd := cli.CmdCreateAudience()
 	require.NotNil(t, createCmd.RunE)
 	require.Panics(t, func() {
-		createCmd.RunE(createCmd, []string{"aud", "key"})
+		_ = createCmd.RunE(createCmd, []string{"aud", "key"})
 	}, "Expected panic when no client context")
 
 	// Test CmdUpdateAudience RunE with no client context
 	updateCmd := cli.CmdUpdateAudience()
 	require.NotNil(t, updateCmd.RunE)
 	require.Panics(t, func() {
-		updateCmd.RunE(updateCmd, []string{"aud", "key"})
+		_ = updateCmd.RunE(updateCmd, []string{"aud", "key"})
 	}, "Expected panic when no client context")
 }
 

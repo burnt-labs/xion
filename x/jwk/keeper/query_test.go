@@ -23,7 +23,6 @@ import (
 
 	"github.com/burnt-labs/xion/x/jwk/keeper"
 	"github.com/burnt-labs/xion/x/jwk/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestQueryParams(t *testing.T) {
@@ -277,7 +276,6 @@ func TestQueryValidateJWTAdditionalErrorPaths(t *testing.T) {
 // Test to improve ValidateJWT coverage - targeting the panic recovery path
 func TestQueryValidateJWTPanicRecovery(t *testing.T) {
 	k, ctx := setupKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
 
 	// Create an audience with malformed/invalid key that might cause a panic
 	audience := types.Audience{
@@ -294,7 +292,7 @@ func TestQueryValidateJWTPanicRecovery(t *testing.T) {
 	}
 
 	// This might trigger the panic recovery path
-	resp, err := k.ValidateJWT(wctx, req)
+	resp, err := k.ValidateJWT(ctx, req)
 	require.Error(t, err)
 	require.Nil(t, resp)
 }

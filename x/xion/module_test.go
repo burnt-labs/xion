@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/stretchr/testify/require"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/burnt-labs/xion/x/xion"
-	"github.com/burnt-labs/xion/x/xion/keeper"
-	"github.com/burnt-labs/xion/x/xion/types"
+	"cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -18,8 +19,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/x/xion"
+	"github.com/burnt-labs/xion/x/xion/keeper"
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 // minimal mocks for required keeper interfaces

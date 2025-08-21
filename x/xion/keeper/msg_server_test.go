@@ -18,6 +18,10 @@ import (
 	"github.com/burnt-labs/xion/x/xion/types"
 )
 
+const (
+	testAuthorityConst = "test_authority"
+)
+
 // Mock bank keeper for testing
 type MockBankKeeper struct {
 	mock.Mock
@@ -78,7 +82,7 @@ func (m *MockBankKeeper) BurnCoins(ctx context.Context, moduleName string, amt s
 	return args.Error(0)
 }
 
-func setupMsgServerTestWithAuthority(t *testing.T, authority string) (context.Context, types.MsgServer, *Keeper, *MockBankKeeper) {
+func setupMsgServerTestWithAuthority(t *testing.T, authority string) (context.Context, types.MsgServer, *Keeper, *MockBankKeeper) { // nolint:unparam (authority variations tested)
 	key := storetypes.NewKVStoreKey(types.StoreKey)
 	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
 	ctx := testCtx.Ctx
@@ -93,7 +97,7 @@ func setupMsgServerTestWithAuthority(t *testing.T, authority string) (context.Co
 
 	server := NewMsgServerImpl(keeper)
 
-	return sdk.WrapSDKContext(ctx), server, &keeper, mockBankKeeper
+	return ctx, server, &keeper, mockBankKeeper
 }
 
 func setupMsgServerTest(t *testing.T) (context.Context, types.MsgServer, *Keeper, *MockBankKeeper) {
@@ -113,7 +117,7 @@ func setupMsgServerTest(t *testing.T) (context.Context, types.MsgServer, *Keeper
 
 	server := NewMsgServerImpl(keeper)
 
-	return sdk.WrapSDKContext(ctx), server, &keeper, mockBankKeeper
+	return ctx, server, &keeper, mockBankKeeper
 }
 
 func TestNewMsgServerImpl(t *testing.T) {
@@ -416,12 +420,12 @@ func TestMsgServer_MultiSend_MinimumNotMet(t *testing.T) {
 }
 
 func TestMsgServer_SetPlatformPercentage_Success(t *testing.T) {
-	testAuthority := "test_authority"
-	goCtx, server, keeper, _ := setupMsgServerTestWithAuthority(t, testAuthority)
+	goCtx, server, keeper, mockBankKeeper := setupMsgServerTestWithAuthority(t, testAuthorityConst)
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	require.NotNil(t, mockBankKeeper)
 
 	msg := &types.MsgSetPlatformPercentage{
-		Authority:          testAuthority,
+		Authority:          testAuthorityConst,
 		PlatformPercentage: 500, // 5%
 	}
 
@@ -458,8 +462,7 @@ func TestMsgServer_SetPlatformPercentage_InvalidAuthority(t *testing.T) {
 }
 
 func TestMsgServer_SetPlatformMinimum_Success(t *testing.T) {
-	testAuthority := "test_authority"
-	goCtx, server, keeper, _ := setupMsgServerTestWithAuthority(t, testAuthority)
+	goCtx, server, keeper, _ := setupMsgServerTestWithAuthority(t, testAuthorityConst)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	testMinimums := sdk.NewCoins(
@@ -468,7 +471,7 @@ func TestMsgServer_SetPlatformMinimum_Success(t *testing.T) {
 	)
 
 	msg := &types.MsgSetPlatformMinimum{
-		Authority: testAuthority,
+		Authority: testAuthorityConst,
 		Minimums:  testMinimums,
 	}
 

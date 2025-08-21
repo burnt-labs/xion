@@ -10,14 +10,17 @@ import (
 	"strings"
 	"testing"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	"cosmossdk.io/math"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -27,7 +30,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/gogoproto/proto"
+)
+
+// shared test constants to avoid duplication (goconst) and clarify intent
+const (
+	testValidBech32Addr = "xion1234567890abcdef1234567890abcdef12345678"
+	// test-only static token value; not a credential. #nosec G101
+	// nolint: gosec
+	testJWTToken = "test-jwt-token"
 )
 
 // Helper functions to create test data
@@ -279,8 +289,14 @@ func TestNewSignCmdComprehensive(t *testing.T) {
 		testCmd := NewSignCmd()
 		testCmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
 
-		// Set invalid authenticator ID to trigger error
-		testCmd.Flags().Set(flagAuthenticatorID, "invalid")
+		// Set invalid authenticator ID to trigger parsing error; assert it occurs, then proceed (default flag value is used).
+		if errSet := testCmd.Flags().Set(flagAuthenticatorID, "invalid"); errSet != nil {
+			// confirm the error is the expected parse failure
+			require.Error(t, errSet)
+		} else {
+			// Defensive: if it unexpectedly succeeds, fail the test so we notice behavior change.
+			t.Fatalf("expected flag set to fail with invalid value")
+		}
 		err := testCmd.RunE(testCmd, []string{"keyname", "validaddr", "validfile.json"})
 		require.Error(t, err)
 	})
@@ -324,7 +340,7 @@ func TestNewSignCmdComprehensive(t *testing.T) {
 		testCmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
 
 		// Valid address format but nonexistent file
-		validAddr := "xion1234567890abcdef1234567890abcdef12345678"
+		validAddr := testValidBech32Addr
 		err := testCmd.RunE(testCmd, []string{"keyname", validAddr, "nonexistent.json"})
 		require.Error(t, err)
 		// Should be a file not found error
@@ -346,7 +362,7 @@ func TestNewSignCmdComprehensive(t *testing.T) {
 		require.NoError(t, err)
 		defer cleanup()
 
-		validAddr := "xion1234567890abcdef1234567890abcdef12345678"
+		validAddr := testValidBech32Addr
 		err = testCmd.RunE(testCmd, []string{"keyname", validAddr, tmpFile})
 		require.Error(t, err)
 		// Should be a JSON decode error
@@ -368,7 +384,7 @@ func TestNewSignCmdComprehensive(t *testing.T) {
 		require.NoError(t, err)
 		defer cleanup()
 
-		validAddr := "xion1234567890abcdef1234567890abcdef12345678"
+		validAddr := testValidBech32Addr
 		err = testCmd.RunE(testCmd, []string{"keyname", validAddr, tmpFile})
 		require.Error(t, err)
 		// Should be a TX decode error
@@ -520,7 +536,9 @@ func TestNewSignCmdComprehensive(t *testing.T) {
 			t.Run("auth_id_"+authID, func(t *testing.T) {
 				testCmd := NewSignCmd()
 				testCmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
-				testCmd.Flags().Set(flagAuthenticatorID, authID)
+				if err := testCmd.Flags().Set(flagAuthenticatorID, authID); err != nil {
+					t.Fatalf("setting flagAuthenticatorID: %v", err)
+				}
 
 				err := testCmd.RunE(testCmd, []string{"test", validAddr, tmpFile})
 				require.Error(t, err)
@@ -785,7 +803,8 @@ func TestPrivateFunctions(t *testing.T) {
 	})
 
 	t.Run("newInstantiateJwtMsg", func(t *testing.T) {
-		token := "test-jwt-token"
+		// token constant declared at top with #nosec justification
+		token := testJWTToken
 		authenticatorType := "Jwt"
 		sub := "test-subject"
 		aud := "test-audience"
@@ -853,7 +872,7 @@ func TestAddAuthenticatorCmdExecutionPaths(t *testing.T) {
 
 			cmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
 			cmd.SetArgs([]string{"xion1contractaddress123"})
-			cmd.Flags().Set(flagAuthenticatorID, "1")
+			require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
 
 			// Execute - will fail but exercises the sign mode switch statement
 			err = cmd.Execute()
@@ -888,7 +907,7 @@ func TestSignCmdExecutionPaths(t *testing.T) {
 		"signatures": []
 	}`
 
-	err := os.WriteFile(txFile, []byte(txJSON), 0644)
+	err := os.WriteFile(txFile, []byte(txJSON), 0o600)
 	require.NoError(t, err)
 
 	cmd := NewSignCmd()
@@ -918,7 +937,7 @@ func TestSignCmdExecutionPaths(t *testing.T) {
 
 	// Test with invalid signer address first
 	cmd.SetArgs([]string{"test", "invalid-signer-addr", txFile})
-	cmd.Flags().Set(flagAuthenticatorID, "1")
+	require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
 	err = cmd.Execute()
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "decoding bech32 failed")
@@ -942,7 +961,7 @@ func TestUpdateConfigsCmdPaths(t *testing.T) {
 			configJSON, err := json.Marshal(config)
 			require.NoError(t, err)
 
-			err = os.WriteFile(configFile, configJSON, 0644)
+			err = os.WriteFile(configFile, configJSON, 0o600)
 			require.NoError(t, err)
 
 			cmd := NewUpdateConfigsCmd()
@@ -956,7 +975,7 @@ func TestUpdateConfigsCmdPaths(t *testing.T) {
 
 	// Test with invalid JSON file
 	invalidFile := filepath.Join(tempDir, "invalid.json")
-	err := os.WriteFile(invalidFile, []byte("invalid json"), 0644)
+	err := os.WriteFile(invalidFile, []byte("invalid json"), 0o600)
 	require.NoError(t, err)
 
 	cmd := NewUpdateConfigsCmd()
@@ -1176,9 +1195,9 @@ func TestGetSignerOfTx(t *testing.T) {
 
 		// Create a valid AbstractAccount
 		abstractAcc := &aatypes.AbstractAccount{}
-		abstractAcc.SetAddress(testAddr)
-		abstractAcc.SetAccountNumber(1)
-		abstractAcc.SetSequence(0)
+		require.NoError(t, abstractAcc.SetAddress(testAddr))
+		require.NoError(t, abstractAcc.SetAccountNumber(1))
+		require.NoError(t, abstractAcc.SetSequence(0))
 
 		// Marshal the account
 		accBytes, err := abstractAcc.Marshal()
@@ -1444,10 +1463,10 @@ func TestNewRegisterCmd(t *testing.T) {
 		cmd.SetArgs([]string{"1", "test"})
 
 		// Set some basic flags to get further into the function
-		cmd.Flags().Set(flagAuthenticatorID, "1")
-		cmd.Flags().Set(flagSalt, "test-salt")
-		cmd.Flags().Set(flagFunds, "")
-		cmd.Flags().Set(flagAuthenticator, "Secp256k1")
+		require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
+		require.NoError(t, cmd.Flags().Set(flagSalt, "test-salt"))
+		require.NoError(t, cmd.Flags().Set(flagFunds, ""))
+		require.NoError(t, cmd.Flags().Set(flagAuthenticator, "Secp256k1"))
 
 		runErr := cmd.RunE(cmd, []string{"1", "test"})
 		require.Error(t, runErr)
@@ -1480,10 +1499,10 @@ func TestNewRegisterCmd(t *testing.T) {
 
 		// Test with invalid coin format
 		cmd.SetArgs([]string{"1", "test"})
-		cmd.Flags().Set(flagAuthenticatorID, "1")
-		cmd.Flags().Set(flagSalt, "test-salt")
-		cmd.Flags().Set(flagFunds, "invalid-coin-format")
-		cmd.Flags().Set(flagAuthenticator, "Secp256k1")
+		require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
+		require.NoError(t, cmd.Flags().Set(flagSalt, "test-salt"))
+		require.NoError(t, cmd.Flags().Set(flagFunds, "invalid-coin-format"))
+		require.NoError(t, cmd.Flags().Set(flagAuthenticator, "Secp256k1"))
 
 		runErr := cmd.RunE(cmd, []string{"1", "test"})
 		require.Error(t, runErr)
@@ -1516,10 +1535,10 @@ func TestNewRegisterCmd(t *testing.T) {
 
 		// Test JWT authenticator path but missing flags
 		cmd.SetArgs([]string{"1", "test"})
-		cmd.Flags().Set(flagAuthenticatorID, "1")
-		cmd.Flags().Set(flagSalt, "test-salt")
-		cmd.Flags().Set(flagFunds, "1000stake")
-		cmd.Flags().Set(flagAuthenticator, "Jwt")
+		require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
+		require.NoError(t, cmd.Flags().Set(flagSalt, "test-salt"))
+		require.NoError(t, cmd.Flags().Set(flagFunds, "1000stake"))
+		require.NoError(t, cmd.Flags().Set(flagAuthenticator, "Jwt"))
 		// Don't set JWT-specific flags to trigger errors
 
 		runErr := cmd.RunE(cmd, []string{"1", "test"})
@@ -1566,10 +1585,10 @@ func TestNewRegisterCmd(t *testing.T) {
 			{
 				name: "missing subject",
 				setupFlags: func(c *cobra.Command) {
-					c.Flags().Set(flagAuthenticatorID, "1")
-					c.Flags().Set(flagSalt, "test-salt")
-					c.Flags().Set(flagFunds, "1000stake")
-					c.Flags().Set(flagAuthenticator, "Jwt")
+					require.NoError(t, c.Flags().Set(flagAuthenticatorID, "1"))
+					require.NoError(t, c.Flags().Set(flagSalt, "test-salt"))
+					require.NoError(t, c.Flags().Set(flagFunds, "1000stake"))
+					require.NoError(t, c.Flags().Set(flagAuthenticator, "Jwt"))
 					// Missing subject flag
 				},
 				expectError: "subject:",
@@ -1629,7 +1648,7 @@ func TestNewRegisterCmd(t *testing.T) {
 					cmd := NewRegisterCmd()
 					cmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
 					cmd.SetArgs([]string{"1", "test"})
-					cmd.Flags().Set(flagAuthenticatorID, "1")
+					require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
 					// Don't set salt flag to trigger error
 					return cmd
 				},
@@ -1640,8 +1659,8 @@ func TestNewRegisterCmd(t *testing.T) {
 					cmd := NewRegisterCmd()
 					cmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
 					cmd.SetArgs([]string{"1", "test"})
-					cmd.Flags().Set(flagAuthenticatorID, "1")
-					cmd.Flags().Set(flagSalt, "test-salt")
+					require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
+					require.NoError(t, cmd.Flags().Set(flagSalt, "test-salt"))
 					// Don't set funds flag to trigger error
 					return cmd
 				},
@@ -1652,9 +1671,9 @@ func TestNewRegisterCmd(t *testing.T) {
 					cmd := NewRegisterCmd()
 					cmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
 					cmd.SetArgs([]string{"1", "test"})
-					cmd.Flags().Set(flagAuthenticatorID, "1")
-					cmd.Flags().Set(flagSalt, "test-salt")
-					cmd.Flags().Set(flagFunds, "1000stake")
+					require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
+					require.NoError(t, cmd.Flags().Set(flagSalt, "test-salt"))
+					require.NoError(t, cmd.Flags().Set(flagFunds, "1000stake"))
 					// Don't set authenticator flag to trigger error
 					return cmd
 				},
@@ -1696,10 +1715,10 @@ func TestNewRegisterCmd(t *testing.T) {
 
 		// Test default authenticator path (non-JWT)
 		cmd.SetArgs([]string{"1", "test"})
-		cmd.Flags().Set(flagAuthenticatorID, "1")
-		cmd.Flags().Set(flagSalt, "test-salt")
-		cmd.Flags().Set(flagFunds, "1000stake")
-		cmd.Flags().Set(flagAuthenticator, "Secp256k1") // Use default path
+		require.NoError(t, cmd.Flags().Set(flagAuthenticatorID, "1"))
+		require.NoError(t, cmd.Flags().Set(flagSalt, "test-salt"))
+		require.NoError(t, cmd.Flags().Set(flagFunds, "1000stake"))
+		require.NoError(t, cmd.Flags().Set(flagAuthenticator, "Secp256k1")) // Use default path
 
 		runErr := cmd.RunE(cmd, []string{"1", "test"})
 		require.Error(t, runErr)

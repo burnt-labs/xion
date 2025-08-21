@@ -3,8 +3,9 @@ package types
 import (
 	"testing"
 
-	sdkerrors "cosmossdk.io/errors"
 	"github.com/stretchr/testify/require"
+
+	sdkerrors "cosmossdk.io/errors"
 )
 
 func TestErrors(t *testing.T) {

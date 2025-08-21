@@ -5,11 +5,13 @@ import (
 	"encoding/base64"
 	"testing"
 
-	storetypes "cosmossdk.io/store/types"
-	"github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/cosmos-sdk/testutil"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	storetypes "cosmossdk.io/store/types"
+
+	"github.com/cosmos/cosmos-sdk/testutil"
+
+	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 // Tests exercise error paths via malformed inputs only.
@@ -21,13 +23,13 @@ func TestWebAuthNQueries_ErrorPaths(t *testing.T) {
 	ctx := testCtx.Ctx
 	// Minimal keeper with only store key (methods under test only access store via context if at all)
 	k := Keeper{storeKey: key}
-	_, err := k.WebAuthNVerifyRegister(sdktypes.WrapSDKContext(ctx), &types.QueryWebAuthNVerifyRegisterRequest{Rp: "://bad", Addr: "a", Challenge: "c", Data: []byte("{}")})
+	_, err := k.WebAuthNVerifyRegister(ctx, &types.QueryWebAuthNVerifyRegisterRequest{Rp: "://bad", Addr: "a", Challenge: "c", Data: []byte("{}")})
 	require.Error(t, err)
-	_, err = k.WebAuthNVerifyAuthenticate(sdktypes.WrapSDKContext(ctx), &types.QueryWebAuthNVerifyAuthenticateRequest{Rp: "://bad", Addr: "a", Challenge: "c", Data: []byte("{}")})
+	_, err = k.WebAuthNVerifyAuthenticate(ctx, &types.QueryWebAuthNVerifyAuthenticateRequest{Rp: "://bad", Addr: "a", Challenge: "c", Data: []byte("{}")})
 	require.Error(t, err)
-	_, err = k.WebAuthNVerifyRegister(sdktypes.WrapSDKContext(ctx), &types.QueryWebAuthNVerifyRegisterRequest{Rp: "https://ok", Addr: "a", Challenge: "c", Data: []byte(`{"some":1}`)})
+	_, err = k.WebAuthNVerifyRegister(ctx, &types.QueryWebAuthNVerifyRegisterRequest{Rp: "https://ok", Addr: "a", Challenge: "c", Data: []byte(`{"some":1}`)})
 	require.Error(t, err)
-	_, err = k.WebAuthNVerifyAuthenticate(sdktypes.WrapSDKContext(ctx), &types.QueryWebAuthNVerifyAuthenticateRequest{Rp: "https://ok", Addr: "a", Challenge: "c", Data: []byte(`{"some":1}`)})
+	_, err = k.WebAuthNVerifyAuthenticate(ctx, &types.QueryWebAuthNVerifyAuthenticateRequest{Rp: "https://ok", Addr: "a", Challenge: "c", Data: []byte(`{"some":1}`)})
 	require.Error(t, err)
 }
 

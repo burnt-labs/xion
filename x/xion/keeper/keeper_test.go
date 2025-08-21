@@ -189,10 +189,8 @@ func TestKeeper_PlatformPercentage_Query(t *testing.T) {
 	keeper.OverwritePlatformPercentage(ctx, 500) // 5%
 
 	// Test the query
-	goCtx := sdk.WrapSDKContext(ctx)
 	req := &types.QueryPlatformPercentageRequest{}
-
-	response, err := keeper.PlatformPercentage(goCtx, req)
+	response, err := keeper.PlatformPercentage(ctx, req)
 
 	require.NoError(t, err)
 	require.NotNil(t, response)
@@ -217,10 +215,8 @@ func TestKeeper_PlatformMinimum_Query(t *testing.T) {
 	require.NoError(t, err)
 
 	// Test the query
-	goCtx := sdk.WrapSDKContext(ctx)
 	req := &types.QueryPlatformMinimumRequest{}
-
-	response, err := keeper.PlatformMinimum(goCtx, req)
+	response, err := keeper.PlatformMinimum(ctx, req)
 
 	require.NoError(t, err)
 	require.NotNil(t, response)
@@ -241,10 +237,8 @@ func TestKeeper_PlatformMinimum_Query_Error(t *testing.T) {
 	store.Set(types.PlatformMinimumKey, []byte("invalid_json"))
 
 	// Test the query
-	goCtx := sdk.WrapSDKContext(ctx)
 	req := &types.QueryPlatformMinimumRequest{}
-
-	response, err := keeper.PlatformMinimum(goCtx, req)
+	response, err := keeper.PlatformMinimum(ctx, req)
 
 	require.Error(t, err)
 	require.Nil(t, response)

@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	grpc1 "github.com/cosmos/gogoproto/grpc"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+
+	grpc1 "github.com/cosmos/gogoproto/grpc"
 
 	storetypes "cosmossdk.io/store/types"
 
@@ -264,15 +265,10 @@ func TestAppModuleRegisterServices(t *testing.T) {
 	// Test that RegisterServices doesn't panic when called
 	// We can't easily test the actual registration without more complex mocking
 	// but we can test that the function exists and doesn't panic with nil input
-	require.NotPanics(t, func() {
-		// This would panic in real usage but tests that the method exists
-		defer func() {
-			if r := recover(); r != nil {
-				// Expected to panic with nil configurator, that's ok for this test
-			}
-		}()
+	// Expect a panic when passing nil configurator; verify panic occurs (previously empty branch)
+	require.Panics(t, func() {
 		appModule.RegisterServices(nil)
-	})
+	}, "expected panic when calling RegisterServices with nil configurator")
 
 	// Test panic path in RegisterServices when migration registration fails
 	mockCfgError := &testConfigurator{

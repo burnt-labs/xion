@@ -5,11 +5,12 @@ import (
 	"io"
 	"testing"
 
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/require"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 )
@@ -58,8 +59,8 @@ func TestQueryCommandsFullCoverage(t *testing.T) {
 			args:    []string{},
 			setup: func(cmd *cobra.Command) {
 				// Set up flags that will be used in the query
-				cmd.Flags().Set(flags.FlagOutput, "json")
-				cmd.Flags().Set(flags.FlagHeight, "0")
+				require.NoError(t, cmd.Flags().Set(flags.FlagOutput, "json"))
+				require.NoError(t, cmd.Flags().Set(flags.FlagHeight, "0"))
 			},
 		},
 		{
@@ -68,8 +69,8 @@ func TestQueryCommandsFullCoverage(t *testing.T) {
 			args:    []string{},
 			setup: func(cmd *cobra.Command) {
 				// Set up flags that will be used in the query
-				cmd.Flags().Set(flags.FlagOutput, "text")
-				cmd.Flags().Set(flags.FlagHeight, "1")
+				require.NoError(t, cmd.Flags().Set(flags.FlagOutput, "text"))
+				require.NoError(t, cmd.Flags().Set(flags.FlagHeight, "1"))
 			},
 		},
 		{
@@ -77,7 +78,7 @@ func TestQueryCommandsFullCoverage(t *testing.T) {
 			cmdFunc: cli.CmdWebAuthNVerifyRegister,
 			args:    []string{"xion1addr", "challenge123", "localhost", "testdata"},
 			setup: func(cmd *cobra.Command) {
-				cmd.Flags().Set(flags.FlagOutput, "json")
+				require.NoError(t, cmd.Flags().Set(flags.FlagOutput, "json"))
 			},
 		},
 		{
@@ -85,7 +86,7 @@ func TestQueryCommandsFullCoverage(t *testing.T) {
 			cmdFunc: cli.CmdWebAuthNVerifyAuthenticate,
 			args:    []string{"xion1addr", "challenge123", "localhost", "credential", "testdata"},
 			setup: func(cmd *cobra.Command) {
-				cmd.Flags().Set(flags.FlagOutput, "text")
+				require.NoError(t, cmd.Flags().Set(flags.FlagOutput, "text"))
 			},
 		},
 	}

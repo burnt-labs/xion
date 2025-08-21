@@ -26,7 +26,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&ContractsAllowance{}, "xion/ContractsAllowance", nil)
 	cdc.RegisterConcrete(&MultiAnyAllowance{}, "xion/MultiAnyAllowance", nil)
 	cdc.RegisterConcrete(xionMintTypes.Params{}, "xion/x/mint/Params", nil)
-
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {

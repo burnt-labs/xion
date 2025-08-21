@@ -21,6 +21,10 @@ import (
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
+const (
+	testStakingDenom = "stake"
+)
+
 func TestNewFeeDecorator(t *testing.T) {
 	// Create a test subspace without key table
 	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
@@ -34,9 +38,7 @@ func TestNewFeeDecorator(t *testing.T) {
 		types.ModuleName,
 	)
 
-	stakingDenomFunc := func(ctx sdk.Context) string {
-		return "stake"
-	}
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
 	// Test with subspace that doesn't have key table - should panic
 	require.Panics(t, func() {
@@ -71,9 +73,7 @@ func TestFeeDecoratorMethods(t *testing.T) {
 	}
 	subspace.SetParamSet(ctx.Ctx, &params)
 
-	stakingDenomFunc := func(ctx sdk.Context) string {
-		return "stake"
-	}
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
 	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
 
@@ -89,7 +89,7 @@ func TestFeeDecoratorMethods(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, zeroFees)
 	require.Len(t, zeroFees, 1)
-	require.Equal(t, "stake", zeroFees[0].Denom)
+	require.Equal(t, testStakingDenom, zeroFees[0].Denom)
 	require.True(t, zeroFees[0].Amount.IsZero())
 
 	// Test ContainsOnlyBypassMinFeeMsgs
@@ -147,9 +147,7 @@ func TestGetGlobalFeeEmptyParams(t *testing.T) {
 	}
 	subspace.SetParamSet(ctx.Ctx, &params)
 
-	stakingDenomFunc := func(ctx sdk.Context) string {
-		return "stake"
-	}
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
 	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
 
@@ -158,7 +156,7 @@ func TestGetGlobalFeeEmptyParams(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, globalFees)
 	require.Len(t, globalFees, 1)
-	require.Equal(t, "stake", globalFees[0].Denom)
+	require.Equal(t, testStakingDenom, globalFees[0].Denom)
 	require.True(t, globalFees[0].Amount.IsZero())
 }
 
@@ -216,9 +214,7 @@ func TestContainsOnlyBypassMinFeeMsgsEdgeCases(t *testing.T) {
 		types.ModuleName,
 	).WithKeyTable(types.ParamKeyTable())
 
-	stakingDenomFunc := func(ctx sdk.Context) string {
-		return "stake"
-	}
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
 	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
 
@@ -310,9 +306,7 @@ func TestContainsOnlyBypassMinFeeMsgsWithMessages(t *testing.T) {
 		types.ModuleName,
 	).WithKeyTable(types.ParamKeyTable())
 
-	stakingDenomFunc := func(ctx sdk.Context) string {
-		return "stake"
-	}
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
 	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
 
@@ -450,9 +444,7 @@ func TestAnteHandle(t *testing.T) {
 	params := types.DefaultParams()
 	subspace.SetParamSet(ctx.Ctx, &params)
 
-	stakingDenomFunc := func(ctx sdk.Context) string {
-		return "stake"
-	}
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
 	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
 

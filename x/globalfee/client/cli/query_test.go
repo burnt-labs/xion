@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
 	"github.com/stretchr/testify/require"
+
+	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -192,7 +193,8 @@ func TestGetCmdShowGlobalFeeParamsRunEErrorPath(t *testing.T) {
 
 	// Test RunE with no client context (should panic, which we recover)
 	require.Panics(t, func() {
-		cmd.RunE(cmd, []string{})
+		// capture error value explicitly to satisfy errcheck while still triggering panic path
+		_ = cmd.RunE(cmd, []string{})
 	}, "Expected panic when no client context is set")
 }
 

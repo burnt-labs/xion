@@ -4,31 +4,18 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/testutil"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 
 	"github.com/burnt-labs/xion/x/xion/types"
-)
-
-// Below hooks are overrideable in tests to force specific error paths for coverage.
-var (
-	getMinterFn        = func(k *mintkeeper.Keeper, ctx sdk.Context) (minttypes.Minter, error) { return k.Minter.Get(ctx) }
-	getParamsFn        = func(k *mintkeeper.Keeper, ctx sdk.Context) (minttypes.Params, error) { return k.Params.Get(ctx) }
-	setMinterFn        = func(k *mintkeeper.Keeper, ctx sdk.Context, m minttypes.Minter) error { return k.Minter.Set(ctx, m) }
-	bondedRatioFn      = func(k *mintkeeper.Keeper, ctx sdk.Context) (math.LegacyDec, error) { return k.BondedRatio(ctx) }
-	mintCoinsFn        = func(k *mintkeeper.Keeper, ctx sdk.Context, coins sdk.Coins) error { return k.MintCoins(ctx, coins) }
-	addCollectedFeesFn = func(k *mintkeeper.Keeper, ctx sdk.Context, coins sdk.Coins) error {
-		return k.AddCollectedFees(ctx, coins)
-	}
-	blockProvisionFn = func(minter minttypes.Minter, params minttypes.Params) sdk.Coin { return minter.BlockProvision(params) }
 )
 
 // Mock types for testing
@@ -102,18 +89,6 @@ func (m *MockMintStakingKeeper) TotalBondedTokens(ctx context.Context) (math.Int
 func (m *MockMintStakingKeeper) BondedRatio(ctx context.Context) (math.LegacyDec, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(math.LegacyDec), args.Error(1)
-}
-
-func setupMintTest(t *testing.T) (sdk.Context, *MockMintBankKeeper, *MockMintAccountKeeper, *MockMintStakingKeeper) {
-	key := storetypes.NewKVStoreKey(minttypes.StoreKey)
-	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
-	ctx := testCtx.Ctx
-
-	bankKeeper := &MockMintBankKeeper{}
-	accountKeeper := &MockMintAccountKeeper{}
-	stakingKeeper := &MockMintStakingKeeper{}
-
-	return ctx, bankKeeper, accountKeeper, stakingKeeper
 }
 
 func TestStakedInflationMintFn_FunctionCreation(t *testing.T) {
@@ -479,5 +454,4 @@ func TestStakedInflationMintFn_ReturnedFunctionType(t *testing.T) {
 	// This is important because the mint module expects a very specific signature
 	var expectedType func(sdk.Context, *mintkeeper.Keeper) error
 	require.IsType(t, expectedType, mintFn)
-
 }

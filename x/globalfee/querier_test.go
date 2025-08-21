@@ -5,13 +5,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/globalfee/types"

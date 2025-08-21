@@ -710,7 +710,7 @@ func (s *CLITestSuite) TestNewAddAuthenticatorCmd() {
 
 	for _, tc := range testCases {
 		// capture loop variable
-		tc := tc
+
 		s.Run(tc.name, func() {
 			ctx := svrcmd.CreateExecuteContext(context.Background())
 			cmd.SetContext(ctx)
@@ -737,7 +737,7 @@ func (s *CLITestSuite) TestNewAddAuthenticatorCmd_RunESignModes() {
 	modes := []string{"", flags.SignModeDirect, flags.SignModeLegacyAminoJSON, flags.SignModeDirectAux, flags.SignModeTextual, flags.SignModeEIP191}
 
 	for _, mode := range modes {
-		mode := mode // capture
+		// capture
 		s.Run("signmode="+mode, func() {
 			cmd := cli.NewAddAuthenticatorCmd()
 			cmd.SetOut(io.Discard)

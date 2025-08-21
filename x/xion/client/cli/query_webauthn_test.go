@@ -4,10 +4,12 @@ import (
 	"context"
 	"io"
 
-	"github.com/burnt-labs/xion/x/xion/client/cli"
-	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
+
+	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
+
+	"github.com/burnt-labs/xion/x/xion/client/cli"
 )
 
 // TestCmdWebAuthNVerifyRegister tests the webauthn verify register command structure

@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/require"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 func TestIBCConstants(t *testing.T) {
