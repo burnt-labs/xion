@@ -2,26 +2,24 @@ package integration_tests
 
 import (
 	"fmt"
-	"os"
-	"path"
 	"testing"
 
 	"cosmossdk.io/math"
 
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
 func TestXionTokenFactory(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
@@ -58,10 +56,8 @@ func TestXionTokenFactory(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, balance.Int64(), int64(expectedMint), "balance not 70")
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "tokenfactory_core.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "tokenfactory_core.wasm"))
 	require.NoError(t, err)
 
 	// This allows the uaddr here to mint tokens on behalf of the contract. Typically you only allow a contract here, but this is testing.

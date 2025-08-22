@@ -2,15 +2,32 @@ package integration_tests
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"crypto"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"embed"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
+	mintTypes "github.com/burnt-labs/xion/x/mint/types"
+	"github.com/burnt-labs/xion/x/xion/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
+	"github.com/go-webauthn/webauthn/protocol/webauthncose"
+	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/icza/dyno"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
+	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
+	"github.com/stretchr/testify/require"
 	"math/big"
 	"math/rand"
 	"os"
@@ -18,111 +35,30 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/burnt-labs/xion/x/jwk"
-	"github.com/burnt-labs/xion/x/mint"
-	mintTypes "github.com/burnt-labs/xion/x/mint/types"
-	"github.com/burnt-labs/xion/x/xion"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
-	aa "github.com/larry0x/abstract-account/x/abstractaccount"
-	ibcwasm "github.com/strangelove-ventures/interchaintest/v8/chain/cosmos/08-wasm-types"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
-
-	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
-
-	"cosmossdk.io/math"
-	"cosmossdk.io/x/upgrade"
-	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
-	"github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/consensus"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/ibc-go/modules/capability"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
-	"github.com/go-webauthn/webauthn/protocol/webauthncose"
-	"github.com/go-webauthn/webauthn/webauthn"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/docker/docker/client"
-	"github.com/icza/dyno"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
-	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest"
 )
 
-//go:embed configuredChains.yaml
-var configuredChainsFile embed.FS
-
-// GetTestLogger creates a logger for integration tests with configurable log level
-// The log level can be set via INTEGRATION_TEST_LOG_LEVEL environment variable
-// Valid levels: debug, info, warn, error, dpanic, panic, fatal
-// Default: warn
-//
-// Example usage:
-//   INTEGRATION_TEST_LOG_LEVEL=debug make test-treasury-multi
-//   INTEGRATION_TEST_LOG_LEVEL=info go test ./integration_tests/...
-func GetTestLogger(t *testing.T) *zap.Logger {
-	levelStr := os.Getenv("INTEGRATION_TEST_LOG_LEVEL")
-	if levelStr == "" {
-		levelStr = "warn"
+// IntegrationTestPath constructs a file path for integration test resources.
+// It handles both cases where the path may or may not include the "integration_tests" prefix.
+// This is useful when running tests from different working directories.
+func IntegrationTestPath(pathElements ...string) string {
+	if len(pathElements) == 0 {
+		return ""
 	}
 
-	var level zapcore.Level
-	err := level.UnmarshalText([]byte(levelStr))
-	if err != nil {
-		t.Logf("Invalid log level '%s', using 'warn' instead. Valid levels: debug, info, warn, error, dpanic, panic, fatal", levelStr)
-		level = zapcore.WarnLevel
+	// Check if the first element is already "integration_tests"
+	if pathElements[0] == "integration_tests" {
+		// Path already includes integration_tests prefix
+		return path.Join(pathElements...)
 	}
-	
-	return zaptest.NewLogger(t, zaptest.WrapOptions(zap.IncreaseLevel(level)))
-}
 
-const (
-	votingPeriod     = "10s"
-	maxDepositPeriod = "10s"
-	packetforward    = "0.0"
-	minInflation     = "0.0"
-	maxInflation     = "0.0"
-	mintDenom        = "uxion"
-)
+	// Check if we're already in the integration_tests directory
+	if wd, err := os.Getwd(); err == nil && strings.HasSuffix(wd, "integration_tests") {
+		// We're in integration_tests, so use path as-is
+		return path.Join(pathElements...)
+	}
 
-var defaultMinGasPrices = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
-
-// Function type for any function that modify the genesis file
-type ModifyInterChainGenesisFn []func(ibc.ChainConfig, []byte, ...string) ([]byte, error)
-
-type TestData struct {
-	xionChain *cosmos.CosmosChain
-	ctx       context.Context
-	client    *client.Client
+	// Add integration_tests prefix
+	return path.Join(append([]string{"integration_tests"}, pathElements...)...)
 }
 
 func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
@@ -237,227 +173,6 @@ func RawJSONMsgMigrateContract(sender string, codeID string) []byte {
 	`, sender, sender, codeID)
 	var rawMsg json.RawMessage = []byte(msg)
 	return rawMsg
-}
-
-func BuildXionChain(t *testing.T, gas string, modifyGenesis func(ibc.ChainConfig, []byte) ([]byte, error)) TestData {
-	ctx := context.Background()
-
-	numFullNodes := 1
-	numValidators := 3
-
-	// pulling image from env to foster local dev
-	imageTag := os.Getenv("XION_IMAGE")
-	println("image tag:", imageTag)
-	imageTagComponents := strings.Split(imageTag, ":")
-
-	// config
-	cfg := ibc.ChainConfig{
-		Images: []ibc.DockerImage{
-			{
-				Repository: imageTagComponents[0],
-				Version:    imageTagComponents[1],
-				UidGid:     "1025:1025",
-			},
-		},
-		// GasPrices:              "0.1uxion",
-		GasPrices:      gas,
-		GasAdjustment:  2.0,
-		Type:           "cosmos",
-		ChainID:        "xion-1",
-		Bin:            "xiond",
-		Bech32Prefix:   "xion",
-		Denom:          "uxion",
-		TrustingPeriod: "336h",
-		ModifyGenesis:  modifyGenesis,
-		// UsingNewGenesisCommand: true,
-		EncodingConfig: func() *moduletestutil.TestEncodingConfig {
-			cfg := moduletestutil.MakeTestEncodingConfig(
-				auth.AppModuleBasic{},
-				genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-				bank.AppModuleBasic{},
-				capability.AppModuleBasic{},
-				staking.AppModuleBasic{},
-				mint.AppModuleBasic{},
-				distr.AppModuleBasic{},
-				gov.NewAppModuleBasic(
-					[]govclient.ProposalHandler{
-						paramsclient.ProposalHandler,
-					},
-				),
-				params.AppModuleBasic{},
-				slashing.AppModuleBasic{},
-				upgrade.AppModuleBasic{},
-				consensus.AppModuleBasic{},
-				transfer.AppModuleBasic{},
-				ibccore.AppModuleBasic{},
-				ibctm.AppModuleBasic{},
-				ibcwasm.AppModuleBasic{},
-				ccvprovider.AppModuleBasic{},
-				ibcsolomachine.AppModuleBasic{},
-
-				// custom
-				wasm.AppModuleBasic{},
-				authz.AppModuleBasic{},
-				tokenfactory.AppModuleBasic{},
-				xion.AppModuleBasic{},
-				jwk.AppModuleBasic{},
-				aa.AppModuleBasic{},
-			)
-			// TODO: add encoding types here for the modules you want to use
-			ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
-			return &cfg
-		}(),
-	}
-
-	// Chain factory
-	cf := interchaintest.NewBuiltinChainFactory(GetTestLogger(t), []*interchaintest.ChainSpec{
-		{
-			Name:          imageTagComponents[0],
-			Version:       imageTagComponents[1],
-			ChainConfig:   cfg,
-			NumValidators: &numValidators,
-			NumFullNodes:  &numFullNodes,
-		},
-	})
-
-	chains, err := cf.Chains(t.Name())
-	require.NoError(t, err)
-
-	xion := chains[0].(*cosmos.CosmosChain)
-
-	client, network := interchaintest.DockerSetup(t)
-
-	// Prep Interchain
-	ic := interchaintest.NewInterchain().
-		AddChain(xion)
-
-	// Log location
-	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
-	require.NoError(t, err)
-	// Reporter/logs
-	rep := testreporter.NewReporter(f)
-	eRep := rep.RelayerExecReporter(t)
-
-	// Build Interchain
-	require.NoError(t, ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
-		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
-		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
-
-		SkipPathCreation: false,
-	},
-	),
-	)
-	return TestData{xion, ctx, client}
-}
-
-/*
- * This function is a helper to run all functions that modify the genesis file
- * in a chain. It takes a list of functions of the type ModifyInterChainGenesisFn and a list of list of parameters for each
- * function. Each array in the parameter list are the parameters for a functions of the same index
- */
-func ModifyInterChainGenesis(fns ModifyInterChainGenesisFn, params [][]string) func(ibc.ChainConfig, []byte) ([]byte, error) {
-	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		res := genbz
-		var err error
-
-		for i, fn := range fns {
-			res, err = fn(chainConfig, res, params[i]...)
-			if err != nil {
-				return nil, fmt.Errorf("failed to modify genesis: %w", err)
-			}
-		}
-		return res, nil
-	}
-}
-
-// This function modifies the proposal parameters of the gov module in the genesis file
-func ModifyGenesisShortProposals(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, params[0], "app_state", "gov", "params", "voting_period"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[1], "app_state", "gov", "params", "max_deposit_period"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, chainConfig.Denom, "app_state", "gov", "params", "min_deposit", 0, "denom"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, "100", "app_state", "gov", "params", "min_deposit", 0, "amount"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
-}
-
-func ModifyGenesispacketForwardMiddleware(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, "0.0", "app_state", "packetfowardmiddleware", "params", "fee_percentage"); err != nil {
-		return nil, fmt.Errorf("failed to set voting period in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
-}
-
-// This function modifies the inflation parameters of the mint module in the genesis file
-func ModifyGenesisInflation(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, params[0], "app_state", "mint", "params", "inflation_min"); err != nil {
-		return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[1], "app_state", "mint", "params", "inflation_max"); err != nil {
-		return nil, fmt.Errorf("failed to set inflation in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[2], "app_state", "mint", "params", "inflation_rate_change"); err != nil {
-		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
-	}
-	if err := dyno.Set(g, params[3], "app_state", "mint", "params", "blocks_per_year"); err != nil {
-		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
-	}
-
-	if err := dyno.Set(g, params[4], "app_state", "mint", "params", "mint_denom"); err != nil {
-		return nil, fmt.Errorf("failed to set rate of inflation change in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
-}
-
-func ModifyGenesisAAAllowedCodeIDs(chainConfig ibc.ChainConfig, genbz []byte, params ...string) ([]byte, error) {
-	g := make(map[string]interface{})
-	if err := json.Unmarshal(genbz, &g); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal genesis file: %w", err)
-	}
-	if err := dyno.Set(g, []int64{1}, "app_state", "abstractaccount", "params", "allowed_code_ids"); err != nil {
-		return nil, fmt.Errorf("failed to set allowed code ids in genesis json: %w", err)
-	}
-
-	if err := dyno.Set(g, false, "app_state", "abstractaccount", "params", "allow_all_code_ids"); err != nil {
-		return nil, fmt.Errorf("failed to set allow all code ids in genesis json: %w", err)
-	}
-	out, err := json.Marshal(g)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal genesis bytes to json: %w", err)
-	}
-	return out, nil
 }
 
 // Helper method to retrieve the total token supply for a chain at some particular history denoted by the block height
@@ -694,7 +409,6 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 		"--gas-adjustment", fmt.Sprint(tn.Chain.Config().GasAdjustment),
 		"--gas", "auto",
 		"--keyring-backend", keyring.BackendTest,
-		"--chain-id", tn.Chain.Config().ChainID,
 		"--output", "json",
 		"-y",
 	)...)
@@ -857,7 +571,7 @@ var (
 )
 
 func getWebAuthNKeys(t *testing.T) (*rsa.PrivateKey, []byte, webauthncose.RSAPublicKeyData) {
-	privateKey, _, err := wasmbinding.SetupPublicKeys("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKey, _, err := wasmbinding.SetupPublicKeys(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	publicKey := privateKey.PublicKey
 	publicKeyModulus := publicKey.N.Bytes()
@@ -1177,48 +891,18 @@ func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	return results.AuthorityMetadata.Admin
 }
 
-// OverrideConfiguredChainsYaml overrides the interchaintests configuredChains.yaml file with an embedded tmpfile
-func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
-	// Extract the embedded file to a temporary file
-	tempFile, err := os.CreateTemp("", "configuredChains-*.yaml")
-	if err != nil {
-		t.Errorf("error creating temporary file: %v", err)
-	}
-
-	content, err := configuredChainsFile.ReadFile("configuredChains.yaml")
-	if err != nil {
-		t.Errorf("error reading embedded file: %v", err)
-	}
-
-	if _, err := tempFile.Write(content); err != nil {
-		t.Errorf("error writing to temporary file: %v", err)
-	}
-	if err := tempFile.Close(); err != nil {
-		t.Errorf("error closing temporary file: %v", err)
-	}
-
-	// Set the environment variable to the path of the temporary file
-	err = os.Setenv("IBCTEST_CONFIGURED_CHAINS", tempFile.Name())
-	t.Logf("set env var IBCTEST_CONFIGURED_CHAINS to %s", tempFile.Name())
-	if err != nil {
-		t.Errorf("error setting env var: %v", err)
-	}
-
-	return tempFile
-}
-
 // InstantiateContract2 deploys a contract with a predictable address using instantiate2
 //
 // This function is needed because the interchaintest framework's InstantiateContract method
 // doesn't support the self-admin pattern required by autonomous contracts like the treasury.
 //
 // Why we need this:
-// 1. The treasury contract must be its own admin so it can autonomously manage fee grants
-//    (only the granter of a fee grant can revoke it in Cosmos SDK)
-// 2. Setting a contract as its own admin requires knowing the contract address before deployment:
-//    - The admin address must be specified when instantiating the contract
-//    - We need to predict what the contract address will be
-// 3. This requires instantiate2 for deterministic addresses based on salt
+//  1. The treasury contract must be its own admin so it can autonomously manage fee grants
+//     (only the granter of a fee grant can revoke it in Cosmos SDK)
+//  2. Setting a contract as its own admin requires knowing the contract address before deployment:
+//     - The admin address must be specified when instantiating the contract
+//     - We need to predict what the contract address will be
+//  3. This requires instantiate2 for deterministic addresses based on salt
 //
 // Why we extract from events instead of returning the predicted address:
 // 1. The --admin flag overrides the admin in the instantiate message
@@ -1334,6 +1018,6 @@ func InstantiateContract2(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	// - When admin=true, we use --admin flag which overrides the message's admin
 	// - When admin=false, we use --no-admin which makes the contract immutable
 	// - Both cases can result in different addresses than what's calculated from the message alone
-	
+
 	return actualAddr, nil
 }

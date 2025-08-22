@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -21,9 +21,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -63,13 +63,13 @@ type Params struct {
 }
 
 func TestTreasuryContract(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -87,10 +87,8 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -250,7 +248,7 @@ func TestTreasuryContract(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["type"].(string)
-	require.Contains(t, allowanceType, "cosmos-sdk/BasicAllowance")
+	require.Contains(t, allowanceType, "/cosmos.feegrant.v1beta1.BasicAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}
@@ -561,13 +559,13 @@ func executeTreasuryMsg(t *testing.T, ctx context.Context, xion *cosmos.CosmosCh
 }
 
 func TestTreasuryMulti(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -585,10 +583,8 @@ func TestTreasuryMulti(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "treasury-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 	t.Logf("deployed code id: %s", codeIDStr)
 
@@ -760,7 +756,7 @@ func TestTreasuryMulti(t *testing.T) {
 	allowances := feeGrantDetails["allowances"].([]interface{})
 	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
 	allowanceType := allowance["type"].(string)
-	require.Contains(t, allowanceType, "xion/MultiAnyAllowance")
+	require.Contains(t, allowanceType, "xion.v1.MultiAnyAllowance")
 
 	revokeMsg := map[string]interface{}{}
 	grantee := map[string]interface{}{}

@@ -3,68 +3,25 @@ package integration_tests
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"path"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
-	"cosmossdk.io/x/upgrade"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/x/jwk"
-	"github.com/burnt-labs/xion/x/mint"
-	"github.com/burnt-labs/xion/x/xion"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/consensus"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/ibc-go/modules/capability"
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
-	aa "github.com/larry0x/abstract-account/x/abstractaccount"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
-
 	"cosmossdk.io/math"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v8/conformance"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v10/conformance"
+	"github.com/strangelove-ventures/interchaintest/v10/relayer"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	"github.com/burnt-labs/xion/integration_tests/helpers"
+	"github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testreporter"
 	"github.com/stretchr/testify/require"
-)
-
-const (
-	xionImageFrom   = "ghcr.io/burnt-labs/xion/heighliner"
-	xionVersionFrom = "17.1.0"
-	xionImageTo     = "xion"
-	xionVersionTo   = "local"
-	xionUpgradeName = "v19"
-
-	osmosisImage   = "ghcr.io/strangelove-ventures/heighliner/osmosis"
-	osmosisVersion = "v25.2.1"
-
-	ibcClientTrustingPeriod = "336h"
+	"go.uber.org/zap/zaptest"
 )
 
 // TestXionUpgradeIBC tests a Xion software upgrade, ensuring IBC conformance prior-to and after the upgrade.
@@ -75,87 +32,50 @@ func TestXionUpgradeIBC(t *testing.T) {
 
 	t.Parallel()
 
+	// Get the "from" image (current version in repo)
+	xionFromImage, err := helpers.GetGHCRPackageNameCurrentRepo()
+	require.NoError(t, err)
+
+	// Parse the from image to extract repository and version
+	xionFromImageParts := strings.SplitN(xionFromImage, ":", 2)
+	require.GreaterOrEqual(t, len(xionFromImageParts), 2, "xionFromImage should have repository:tag format")
+
+	xionVersionFrom := xionFromImageParts[1]
+
+	// Get the "to" image (local image) which is where we want to upgrade to
+	xionToImageParts, err := GetXionImageTagComponents()
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(xionToImageParts), 2, "xionToImage should have repository:tag format")
+
+	xionImageTo := xionToImageParts[0]
+	xionVersionTo := xionToImageParts[1]
+
+	// Use "recent" as upgrade name for local builds, otherwise use version-based name
+	xionUpgradeName := "recent"
+	if xionVersionTo != "local" {
+		// For non-local builds, use version as upgrade name (e.g., "v20")
+		xionUpgradeName = xionVersionTo
+	}
+
+	// Constants for the test
+	haltHeightDelta := int64(9) // how many blocks after current height to upgrade
+	blocksAfterUpgrade := int64(7)
+
+	// Create chain specs using helper functions
+	xionChainSpec := XionChainSpec(3, 1)
+	xionChainSpec.Version = xionVersionFrom
+
+	// Add additional genesis modifications for IBC test
+	xionChainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(append(defaultGenesisKVMods,
+		// Globalfee - specific to IBC tests
+		cosmos.NewGenesisKV("app_state.globalfee.params.minimum_gas_prices", []map[string]string{{"denom": "uxion", "amount": "0"}}),
+	))
+
+	osmosisChainSpec := OsmosisChainSpec(1, 0)
+
 	chains := interchaintest.CreateChainsWithChainSpecs(t, []*interchaintest.ChainSpec{
-		{
-			Name:    "xion",
-			Version: xionVersionFrom,
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: xionImageFrom,
-						Version:    xionVersionFrom,
-						UidGid:     "1025:1025",
-					},
-				},
-				GasPrices:      "0.0uxion",
-				GasAdjustment:  1.3,
-				Type:           "cosmos",
-				ChainID:        "xion-1",
-				Bin:            "xiond",
-				Bech32Prefix:   "xion",
-				Denom:          "uxion",
-				TrustingPeriod: ibcClientTrustingPeriod,
-				EncodingConfig: func() *moduletestutil.TestEncodingConfig {
-					cfg := moduletestutil.MakeTestEncodingConfig(
-						auth.AppModuleBasic{},
-						genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-						bank.AppModuleBasic{},
-						capability.AppModuleBasic{},
-						staking.AppModuleBasic{},
-						mint.AppModuleBasic{},
-						distr.AppModuleBasic{},
-						gov.NewAppModuleBasic(
-							[]govclient.ProposalHandler{
-								paramsclient.ProposalHandler,
-							},
-						),
-						params.AppModuleBasic{},
-						slashing.AppModuleBasic{},
-						upgrade.AppModuleBasic{},
-						consensus.AppModuleBasic{},
-						transfer.AppModuleBasic{},
-						ibccore.AppModuleBasic{},
-						ibctm.AppModuleBasic{},
-						ibcwasm.AppModuleBasic{},
-						ccvprovider.AppModuleBasic{},
-						ibcsolomachine.AppModuleBasic{},
-
-						// custom
-						wasm.AppModuleBasic{},
-						authz.AppModuleBasic{},
-						tokenfactory.AppModuleBasic{},
-						xion.AppModuleBasic{},
-						jwk.AppModuleBasic{},
-						aa.AppModuleBasic{},
-					)
-					// TODO: add encoding types here for the modules you want to use
-					ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
-					return &cfg
-				}(),
-
-				ModifyGenesis: ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
-			},
-		},
-		{
-			Name:    "osmosis",
-			Version: osmosisVersion,
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: osmosisImage,
-						Version:    osmosisVersion,
-						UidGid:     "1025:1025",
-					},
-				},
-				Type:           "cosmos",
-				Bin:            "osmosisd",
-				Bech32Prefix:   "osmo",
-				Denom:          "uosmo",
-				GasPrices:      "0.025uosmo",
-				GasAdjustment:  1.3,
-				TrustingPeriod: ibcClientTrustingPeriod,
-			},
-		},
+		xionChainSpec,
+		osmosisChainSpec,
 	})
 
 	client, network := interchaintest.DockerSetup(t)
@@ -170,7 +90,7 @@ func TestXionUpgradeIBC(t *testing.T) {
 	// Get a relayer instance
 	rf := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
-		GetTestLogger(t),
+		zaptest.NewLogger(t),
 		relayer.StartupFlags("-b", "100"),
 	)
 
@@ -207,10 +127,8 @@ func TestXionUpgradeIBC(t *testing.T) {
 	chainUser := users[0]
 
 	// deploy the account contract, and pin it
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := chain.StoreContract(ctx, chainUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	authority, err := chain.UpgradeQueryAuthority(ctx)

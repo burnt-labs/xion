@@ -185,6 +185,7 @@ func InitializeWasmApp(b testing.TB, db dbm.DB, numAccounts int) AppInfo {
 		Sender:       addr.String(),
 		WASMByteCode: cw20Code,
 	}
+	//nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	storeTx, err := simtestutil.GenSignedMockTx(r, txGen, []sdk.Msg{&storeMsg}, nil, 55123123, "", []uint64{0}, []uint64{0}, minter)
 	require.NoError(b, err)
@@ -252,6 +253,7 @@ func GenSequenceOfTxs(b testing.TB, info *AppInfo, msgGen func(*AppInfo) ([]sdk.
 	fees := sdk.Coins{sdk.NewInt64Coin(info.Denom, 0)}
 	txs := make([]sdk.Tx, numToGenerate)
 
+	//nolint:gosec // G404: Use of weak random number generator (math/rand instead of crypto/rand)
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < numToGenerate; i++ {
 		msgs, err := msgGen(info)

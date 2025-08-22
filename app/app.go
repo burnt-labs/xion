@@ -6,21 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	wasmvm "github.com/CosmWasm/wasmvm/v2"
-	"github.com/gorilla/mux"
-	aa "github.com/larry0x/abstract-account/x/abstractaccount"
-	aakeeper "github.com/larry0x/abstract-account/x/abstractaccount/keeper"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
-	"github.com/osmosis-labs/fee-abstraction/v8/x/feeabs"
-	feeabskeeper "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/keeper"
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v3"
+	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
+	aakeeper "github.com/burnt-labs/abstract-account/x/abstractaccount/keeper"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings"
@@ -33,39 +28,34 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
-	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
-	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
-	ibchooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
-	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/keeper"
-	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
-	"github.com/cosmos/ibc-go/modules/capability"
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
-	icacontroller "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icahost "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
-	ibcfeetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
+	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
+	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	icahost "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host"
+	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
+	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	ibccallbacks "github.com/cosmos/ibc-go/v10/modules/apps/callbacks"
+	ibccallbacksv2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v10/modules/apps/transfer/v2"
+	ibc "github.com/cosmos/ibc-go/v10/modules/core"
+	ibcclienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcapi "github.com/cosmos/ibc-go/v10/modules/core/api"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -73,6 +63,9 @@ import (
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/x/circuit"
+	circuitkeeper "cosmossdk.io/x/circuit/keeper"
+	circuittypes "cosmossdk.io/x/circuit/types"
 	"cosmossdk.io/x/evidence"
 	evidencekeeper "cosmossdk.io/x/evidence/keeper"
 	evidencetypes "cosmossdk.io/x/evidence/types"
@@ -155,13 +148,11 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/burnt-labs/xion/client/docs"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
-	xionMintKeeper "github.com/burnt-labs/xion/x/mint/keeper"
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
@@ -217,18 +208,16 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		nft.ModuleName:                 nil,
-		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		ibcfeetypes.ModuleName:         nil,
-		icatypes.ModuleName:            nil,
-		wasmtypes.ModuleName:           {authtypes.Burner},
-		tokenfactorytypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
-		globalfee.ModuleName:           nil,
-		aatypes.ModuleName:             nil,
-		xiontypes.ModuleName:           nil,
-		jwktypes.ModuleName:            nil,
-		packetforwardtypes.ModuleName:  nil,
-		ibchookstypes.ModuleName:       nil,
-		feeabstypes.ModuleName:         nil,
+		// non sdk modules
+		ibctransfertypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+		icatypes.ModuleName:           nil,
+		wasmtypes.ModuleName:          {authtypes.Burner},
+		tokenfactorytypes.ModuleName:  {authtypes.Minter, authtypes.Burner},
+		globalfee.ModuleName:          nil,
+		aatypes.ModuleName:            nil,
+		xiontypes.ModuleName:          nil,
+		jwktypes.ModuleName:           nil,
+		packetforwardtypes.ModuleName: nil,
 	}
 	tokenFactoryCapabilities = []string{
 		tokenfactorytypes.EnableBurnFrom,
@@ -251,14 +240,12 @@ type WasmApp struct {
 	interfaceRegistry types.InterfaceRegistry
 
 	// keys to access the substores
-	keys    map[string]*storetypes.KVStoreKey
-	tkeys   map[string]*storetypes.TransientStoreKey
-	memKeys map[string]*storetypes.MemoryStoreKey
+	keys  map[string]*storetypes.KVStoreKey
+	tkeys map[string]*storetypes.TransientStoreKey
 
 	// keepers
 	AccountKeeper         authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.BaseKeeper
-	CapabilityKeeper      *capabilitykeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
@@ -273,35 +260,21 @@ type WasmApp struct {
 	GroupKeeper           groupkeeper.Keeper
 	NFTKeeper             nftkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	CircuitKeeper         circuitkeeper.Keeper
 
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	IBCFeeKeeper          ibcfeekeeper.Keeper
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	WasmKeeper            wasmkeeper.Keeper
 	WasmClientKeeper      ibcwasmkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
-	IBCHooksKeeper        *ibchookskeeper.Keeper
 	ContractKeeper        *wasmkeeper.PermissionedKeeper
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
-	FeeAbsKeeper          feeabskeeper.Keeper
 
 	XionKeeper         xionkeeper.Keeper
 	JwkKeeper          jwkkeeper.Keeper
 	TokenFactoryKeeper tokenfactorykeeper.Keeper
-
-	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
-	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
-	ScopedIBCFeeKeeper        capabilitykeeper.ScopedKeeper
-	ScopedWasmKeeper          capabilitykeeper.ScopedKeeper
-	ScopedFeeabsKeeper        capabilitykeeper.ScopedKeeper
-
-	// IBC middleware wrappers
-	Ics20WasmHooks   *ibchooks.WasmHooks
-	HooksICS4Wrapper ibchooks.ICS4Middleware
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -355,23 +328,34 @@ func NewWasmApp(
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
+	// TODO missing a key ?
 	keys := storetypes.NewKVStoreKeys(
-		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
-		crisistypes.StoreKey, minttypes.StoreKey, distrtypes.StoreKey,
-		slashingtypes.StoreKey, govtypes.StoreKey, paramstypes.StoreKey,
-		consensusparamtypes.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
-		evidencetypes.StoreKey, capabilitytypes.StoreKey, authzkeeper.StoreKey,
-		nftkeeper.StoreKey, group.StoreKey,
+		authtypes.StoreKey,
+		banktypes.StoreKey,
+		stakingtypes.StoreKey,
+		crisistypes.StoreKey,
+		minttypes.StoreKey,
+		distrtypes.StoreKey,
+		slashingtypes.StoreKey,
+		govtypes.StoreKey,
+		paramstypes.StoreKey,
+		consensusparamtypes.StoreKey,
+		upgradetypes.StoreKey,
+		feegrant.StoreKey,
+		evidencetypes.StoreKey,
+		circuittypes.StoreKey,
+		authzkeeper.StoreKey,
+		nftkeeper.StoreKey,
+		group.StoreKey,
 		// non sdk store keys
-		ibcexported.StoreKey, ibctransfertypes.StoreKey, ibcfeetypes.StoreKey,
+		ibcexported.StoreKey, ibctransfertypes.StoreKey,
 		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
-		xiontypes.StoreKey, ibchookstypes.StoreKey, packetforwardtypes.StoreKey,
-		feeabstypes.StoreKey, jwktypes.StoreKey, tokenfactorytypes.StoreKey,
+		xiontypes.StoreKey, packetforwardtypes.StoreKey,
+		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, keys); err != nil {
@@ -386,7 +370,6 @@ func NewWasmApp(
 		interfaceRegistry: interfaceRegistry,
 		keys:              keys,
 		tkeys:             tkeys,
-		memKeys:           memKeys,
 	}
 
 	app.ParamsKeeper = initParamsKeeper(
@@ -404,21 +387,6 @@ func NewWasmApp(
 		runtime.EventService{},
 	)
 	bApp.SetParamStore(app.ConsensusParamsKeeper.ParamsStore)
-
-	// add capability keeper and ScopeToModule for ibc module
-	app.CapabilityKeeper = capabilitykeeper.NewKeeper(
-		appCodec,
-		keys[capabilitytypes.StoreKey],
-		memKeys[capabilitytypes.MemStoreKey],
-	)
-
-	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
-	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
-	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	scopedWasmKeeper := app.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
-	scopedFeeabsKeeper := app.CapabilityKeeper.ScopeToModule(feeabstypes.ModuleName)
-	app.CapabilityKeeper.Seal()
 
 	// add keepers
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
@@ -439,6 +407,22 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		logger,
 	)
+
+	// optional: enable sign mode textual by overwriting the default tx config (after setting the bank keeper)
+	// enabledSignModes := append(tx.DefaultSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
+	// txConfigOpts := tx.ConfigOptions{
+	//	 EnabledSignModes:           enabledSignModes,
+	//	 TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(app.BankKeeper),
+	// }
+	// txConfig, err := tx.NewTxConfigWithOptions(
+	// 	 appCodec,
+	// 	 txConfigOpts,
+	// )
+	// if err != nil {
+	//	 panic(err)
+	// }
+	// app.txConfig = txConfig
+
 	app.StakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[stakingtypes.StoreKey]),
@@ -462,16 +446,6 @@ func NewWasmApp(
 			minttypes.DefaultInflationCalculationFn,
 			app.BankKeeper, app.AccountKeeper, app.StakingKeeper)))
 
-	// NOTE: it's not wired to Module Manager, used to bootstrap changes for the v53 mint module from the SDK should be removed on v20 or v19.1 whichever comes first.
-	xionLegacyMintKeeper := xionMintKeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[minttypes.StoreKey]),
-		app.StakingKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		authtypes.FeeCollectorName,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
 	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[distrtypes.StoreKey]),
@@ -508,6 +482,14 @@ func NewWasmApp(
 	app.StakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
+
+	app.CircuitKeeper = circuitkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[circuittypes.StoreKey]),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.AccountKeeper.AddressCodec(),
+	)
+	app.SetCircuitBreaker(&app.CircuitKeeper)
 
 	app.AuthzKeeper = authzkeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[authzkeeper.StoreKey]),
@@ -548,13 +530,19 @@ func NewWasmApp(
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
-		keys[ibcexported.StoreKey],
+		runtime.NewKVStoreService(keys[ibcexported.StoreKey]),
 		app.GetSubspace(ibcexported.ModuleName),
-		app.StakingKeeper,
 		app.UpgradeKeeper,
-		scopedIBCKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	// Register the proposal types
+	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
+	// by granting the governance module the right to execute the message.
+	// See: https://docs.cosmos.network/main/modules/gov#proposal-messages
+	govRouter := govv1beta1.NewRouter()
+	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper))
 
 	govConfig := govtypes.DefaultConfig()
 	/*
@@ -617,31 +605,23 @@ func NewWasmApp(
 	)
 
 	// Configure the hooks keeper
-	hooksKeeper := ibchookskeeper.NewKeeper(
-		keys[ibchookstypes.StoreKey],
-	)
-	app.IBCHooksKeeper = &hooksKeeper
+	// hooksKeeper := ibchookskeeper.NewKeeper(
+	// 	keys[ibchookstypes.StoreKey],
+	// )
+	// app.IBCHooksKeeper = &hooksKeeper
 
-	xionPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
-	wasmHooks := ibchooks.NewWasmHooks(app.IBCHooksKeeper, nil, xionPrefix) // The contract keeper needs to be set later
-	app.Ics20WasmHooks = &wasmHooks
-	app.HooksICS4Wrapper = ibchooks.NewICS4Middleware(
-		app.IBCKeeper.ChannelKeeper,
-		app.Ics20WasmHooks,
-	)
-
-	// IBC Fee Module keeper
-	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-		appCodec, keys[ibcfeetypes.StoreKey],
-		app.HooksICS4Wrapper, // replaced with IBC middleware
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
-	)
+	// xionPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
+	// wasmHooks := ibchooks.NewWasmHooks(app.IBCHooksKeeper, nil, xionPrefix) // The contract keeper needs to be set later
+	// app.Ics20WasmHooks = &wasmHooks
+	// app.HooksICS4Wrapper = ibchooks.NewICS4Middleware(
+	// 	app.IBCKeeper.ChannelKeeper,
+	// 	app.Ics20WasmHooks,
+	// )
 
 	// Initialize packet forward middleware router
 	app.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
-		keys[packetforwardtypes.StoreKey],
+		runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]),
 		app.TransferKeeper, // Will be zero-value here. Reference is set later on with SetTransferKeeper.
 		app.IBCKeeper.ChannelKeeper,
 		app.BankKeeper,
@@ -652,67 +632,36 @@ func NewWasmApp(
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
-		keys[ibctransfertypes.StoreKey],
+		runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.MsgServiceRouter(),
 		app.AccountKeeper,
 		app.BankKeeper,
-		scopedTransferKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
 
-	app.FeeAbsKeeper = feeabskeeper.NewKeeper(
-		appCodec,
-		keys[feeabstypes.StoreKey],
-		app.GetSubspace(feeabstypes.ModuleName),
-		app.StakingKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.TransferKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		scopedFeeabsKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
-	feeabsModule := feeabs.NewAppModule(appCodec, app.FeeAbsKeeper)
-	feeabsIBCModule := feeabs.NewIBCModule(appCodec, app.FeeAbsKeeper)
-
-	// Register the proposal types
-	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
-	// by granting the governance module the right to execute the message.
-	// See: https://docs.cosmos.network/main/modules/gov#proposal-messages
-	govRouter := govv1beta1.NewRouter()
-	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
-		AddRoute(feeabstypes.ModuleName, feeabs.NewHostZoneProposal(app.FeeAbsKeeper))
-
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec,
-		keys[icahosttypes.StoreKey],
+		runtime.NewKVStoreService(keys[icahosttypes.StoreKey]),
 		app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
+		app.IBCKeeper.ChannelKeeper,
 		app.AccountKeeper,
-		scopedICAHostKeeper,
 		app.MsgServiceRouter(),
+		app.GRPCQueryRouter(), // set grpc router for ica host
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	app.ICAHostKeeper.WithQueryRouter(app.GRPCQueryRouter())
 
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec,
-		keys[icacontrollertypes.StoreKey],
+		runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]),
 		app.GetSubspace(icacontrollertypes.SubModuleName),
-		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper,
+		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -756,10 +705,9 @@ func NewWasmApp(
 		app.BankKeeper,
 		app.StakingKeeper,
 		distrkeeper.NewQuerier(app.DistrKeeper),
-		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper,
-		scopedWasmKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeperV2,
 		app.TransferKeeper,
 		app.MsgServiceRouter(),
 		app.GRPCQueryRouter(),
@@ -769,6 +717,15 @@ func NewWasmApp(
 		availableCapabilities,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		wasmOpts...,
+	)
+
+	// Create fee enabled wasm ibc Stack
+	// var wasmStackIBCHandler porttypes.IBCModule
+	wasmStackIBCHandler := wasm.NewIBCHandler(
+		app.WasmKeeper,              // IBCContractKeeper
+		app.IBCKeeper.ChannelKeeper, // ChannelKeeper
+		app.TransferKeeper,          // ICS20TransferPortSource
+		app.IBCKeeper.ChannelKeeper, // appVersionGetter (or provide an implementation if needed)
 	)
 
 	app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
@@ -789,7 +746,7 @@ func NewWasmApp(
 	)
 
 	app.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
-	app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
+	// app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
 
 	app.XionKeeper = xionkeeper.NewKeeper(
 		appCodec,
@@ -801,52 +758,69 @@ func NewWasmApp(
 		app.WasmKeeper,
 		app.AbstractAccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		xionLegacyMintKeeper)
+	)
 
 	// Set legacy router for backwards compatibility with gov v1beta1
 	app.GovKeeper.SetLegacyRouter(govRouter)
 
+	// Create Interchain Accounts Stack
+	// SendPacket, since it is originating from the application to core IBC:
+	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
+	// var icaControllerStack porttypes.IBCModule
+	// integration point for custom authentication modules
+	// see https://medium.com/the-interchain-foundation/ibc-go-v6-changes-to-interchain-accounts-and-how-it-impacts-your-chain-806c185300d7
+	icaControllerStack := icacontroller.NewIBCMiddleware(app.ICAControllerKeeper)
+
+	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
+	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
+	// var icaHostStack porttypes.IBCModule
+	icaHostStack := icahost.NewIBCModule(app.ICAHostKeeper)
+
 	// Create Transfer Stack
 	var transferStack porttypes.IBCModule
 	transferStack = transfer.NewIBCModule(app.TransferKeeper)
-	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-	transferStack = ibchooks.NewIBCMiddleware(transferStack, &app.HooksICS4Wrapper)
+	// transferStack = ibchooks.NewIBCMiddleware(transferStack, &app.HooksICS4Wrapper)
+	// callbacks wraps the transfer stack as its base app, and uses PacketForwardKeeper as the ICS4Wrapper
+	// i.e. packet-forward-middleware is higher on the stack and sits between callbacks and the ibc channel keeper
+	// Since this is the lowest level middleware of the transfer stack, it should be the first entrypoint for transfer keeper's
+	// WriteAcknowledgement.
+	cbStack := ibccallbacks.NewIBCMiddleware(transferStack, app.PacketForwardKeeper, wasmStackIBCHandler, wasm.DefaultMaxIBCCallbackGas)
 	transferStack = packetforward.NewIBCMiddleware(
-		transferStack,
+		cbStack,
 		app.PacketForwardKeeper,
 		0,
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 	)
 
-	// Create Interchain Accounts Stack
-	// SendPacket, since it is originating from the application to core IBC:
-	// icaAuthModuleKeeper.SendTx -> icaController.SendPacket -> fee.SendPacket -> channel.SendPacket
-	var icaControllerStack porttypes.IBCModule
-	// integration point for custom authentication modules
-	// see https://medium.com/the-interchain-foundation/ibc-go-v6-changes-to-interchain-accounts-and-how-it-impacts-your-chain-806c185300d7
-	var noAuthzModule porttypes.IBCModule
-	icaControllerStack = icacontroller.NewIBCMiddleware(noAuthzModule, app.ICAControllerKeeper)
-	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
-
-	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
-	// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
-	var icaHostStack porttypes.IBCModule
-	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
-	icaHostStack = ibcfee.NewIBCMiddleware(icaHostStack, app.IBCFeeKeeper)
-
-	// Create fee enabled wasm ibc Stack
-	var wasmStack porttypes.IBCModule
-	wasmStack = wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCFeeKeeper)
-	wasmStack = ibcfee.NewIBCMiddleware(wasmStack, app.IBCFeeKeeper)
-
 	// Create static IBC router, add app routes, then set and seal it
 	ibcRouter := porttypes.NewRouter().
 		AddRoute(ibctransfertypes.ModuleName, transferStack).
-		AddRoute(wasmtypes.ModuleName, wasmStack).
+		AddRoute(wasmtypes.ModuleName, wasmStackIBCHandler).
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(feeabstypes.ModuleName, feeabsIBCModule)
+		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 	app.IBCKeeper.SetRouter(ibcRouter)
+
+	// IBC v2 transfer stack
+	ibcv2TransferStack := ibccallbacksv2.NewIBCMiddleware(
+		transferv2.NewIBCModule(app.TransferKeeper),
+		app.IBCKeeper.ChannelKeeperV2,
+		wasmStackIBCHandler,
+		app.IBCKeeper.ChannelKeeperV2,
+		wasm.DefaultMaxIBCCallbackGas,
+	)
+
+	ibcRouterV2 := ibcapi.NewRouter().
+		AddRoute(ibctransfertypes.PortID, ibcv2TransferStack)
+	app.IBCKeeper.SetRouterV2(ibcRouterV2)
+
+	clientKeeper := app.IBCKeeper.ClientKeeper
+	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
+
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+
+	wasmLightClientModule := ibcwasm.NewLightClientModule(app.WasmClientKeeper, storeProvider)
+	clientKeeper.AddRoute(ibcwasmtypes.ModuleName, &wasmLightClientModule)
 
 	/****  Module Options ****/
 
@@ -866,7 +840,6 @@ func NewWasmApp(
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
-		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		gov.NewAppModule(appCodec, &app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
@@ -880,6 +853,8 @@ func NewWasmApp(
 		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
+		circuit.NewAppModule(appCodec, app.CircuitKeeper),
+		// non sdk modules
 		tokenfactory.NewAppModule(app.TokenFactoryKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(tokenfactorytypes.ModuleName)),
 		jwk.NewAppModule(appCodec, app.JwkKeeper, app.GetSubspace(jwktypes.ModuleName)),
 		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
@@ -887,14 +862,12 @@ func NewWasmApp(
 		aa.NewAppModule(app.AbstractAccountKeeper),
 		xion.NewAppModule(app.XionKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		ibctm.NewAppModule(),
+		ibctm.NewAppModule(tmLightClientModule),
 		ibcwasm.NewAppModule(app.WasmClientKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		ibchooks.NewAppModule(app.AccountKeeper),
+		// ibchooks.NewAppModule(app.AccountKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
-		feeabsModule,
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	)
 
@@ -926,7 +899,6 @@ func NewWasmApp(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	// NOTE: capability module's beginblocker must come before any modules using capabilities (e.g. IBC)
 	app.ModuleManager.SetOrderBeginBlockers(
-		capabilitytypes.ModuleName,
 		minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		evidencetypes.ModuleName, stakingtypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
@@ -939,20 +911,18 @@ func NewWasmApp(
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		feeabstypes.ModuleName,
 		icatypes.ModuleName,
-		ibcfeetypes.ModuleName,
 		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		xiontypes.ModuleName,
-		ibchookstypes.ModuleName,
+		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName,
-		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName,
 		distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName,
 		genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
@@ -965,13 +935,11 @@ func NewWasmApp(
 		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		feeabstypes.ModuleName,
 		icatypes.ModuleName,
-		ibcfeetypes.ModuleName,
 		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
-		ibchookstypes.ModuleName,
+		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	)
 
@@ -984,27 +952,26 @@ func NewWasmApp(
 	// NOTE: wasm module should be at the end as it can call other module functionality direct or via message dispatching during
 	// genesis phase. For example bank transfer, auth account check, staking, ...
 	genesisModuleOrder := []string{
-		capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName,
 		distrtypes.ModuleName, stakingtypes.ModuleName, slashingtypes.ModuleName,
 		govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
 		feegrant.ModuleName, nft.ModuleName, group.ModuleName,
 		paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		circuittypes.ModuleName,
+		// additional non simd modules
 		tokenfactorytypes.ModuleName,
 		globalfee.ModuleName, xiontypes.ModuleName,
 		jwktypes.ModuleName,
-		// additional non simd modules
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
-		feeabstypes.ModuleName,
 		icatypes.ModuleName,
-		ibcfeetypes.ModuleName,
 		ibcwasmtypes.ModuleName,
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
-		ibchookstypes.ModuleName,
+		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -1049,7 +1016,6 @@ func NewWasmApp(
 	// initialize stores
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
-	app.MountMemoryStores(memKeys)
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
@@ -1070,15 +1036,9 @@ func NewWasmApp(
 		}
 	}
 
-	app.ScopedIBCKeeper = scopedIBCKeeper
-	app.ScopedTransferKeeper = scopedTransferKeeper
-	app.ScopedWasmKeeper = scopedWasmKeeper
-	app.ScopedICAHostKeeper = scopedICAHostKeeper
-	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
-
 	// set the contract keeper for the Ics20WasmHooks
 	app.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(app.WasmKeeper)
-	app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
+	// app.Ics20WasmHooks.ContractKeeper = &app.WasmKeeper
 
 	// In v0.46, the SDK introduces _postHandlers_. PostHandlers are like
 	// antehandlers, but are run _after_ the `runMsgs` execution. They are also
@@ -1132,7 +1092,7 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, nodeConfig wasmtype
 			TXCounterStoreService: runtime.NewKVStoreService(txCounterStoreKey),
 			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
 			StakingKeeper:         app.StakingKeeper,
-			FeeAbsKeeper:          &app.FeeAbsKeeper,
+			CircuitKeeper:         &app.CircuitKeeper,
 		},
 	)
 	if err != nil {
@@ -1242,13 +1202,6 @@ func (app *WasmApp) GetTKey(storeKey string) *storetypes.TransientStoreKey {
 	return app.tkeys[storeKey]
 }
 
-// GetMemKey returns the MemStoreKey for the provided mem key.
-//
-// NOTE: This is solely used for testing purposes.
-func (app *WasmApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
-	return app.memKeys[storeKey]
-}
-
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
@@ -1282,25 +1235,6 @@ func (app *WasmApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICo
 	if err := RegisterSwaggerAPI(clientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
-}
-
-// RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router, swaggerEnabled bool) error {
-	if swaggerEnabled {
-		docsServer := http.FileServer(http.FS(docs.Docs))
-		rtr.Handle("/static", docsServer)
-		rtr.Handle("/static/", docsServer)
-		rtr.Handle("/static/swagger.json", docsServer)
-		rtr.Handle("/static/openapi.json", docsServer)
-
-		rtr.PathPrefix("/static").Handler(http.StripPrefix("/static/", docsServer))
-		rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", docsServer))
-
-		rtr.Handle("/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
-		rtr.Handle("/swagger", http.RedirectHandler("/static/", http.StatusMovedPermanently))
-		rtr.Handle("/swagger/", http.RedirectHandler("/static/", http.StatusMovedPermanently))
-	}
-	return nil
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
@@ -1343,7 +1277,6 @@ func BlockedAddresses() map[string]bool {
 
 	// allow the following addresses to receive funds
 	delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	delete(modAccAddrs, authtypes.NewModuleAddress(feeabstypes.ModuleName).String())
 
 	return modAccAddrs
 }
@@ -1367,11 +1300,10 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
-	paramsKeeper.Subspace(feeabstypes.ModuleName)
 	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
 
 	// IBC params migration - legacySubspace to selfManaged
-	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/11-v7-to-v8.md#params-migration
+	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/11-v7-to-v10.md#params-migration
 	keyTable := ibcclienttypes.ParamKeyTable()
 	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
 	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
