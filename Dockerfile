@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ARG GORELEASER_IMAGE="ghcr.io/goreleaser/goreleaser-cross"
-ARG GORELEASER_VERSION="v1.23.6"
+ARG GORELEASER_VERSION="v1.24.5"
 ARG ALPINE_VERSION="3.20"
 
 # --------------------------------------------------------

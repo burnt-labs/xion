@@ -13,20 +13,18 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	xionMint "github.com/burnt-labs/xion/x/mint/keeper"
 	"github.com/burnt-labs/xion/x/xion/types"
 )
 
 type Keeper struct {
-	cdc                  codec.BinaryCodec
-	storeKey             storetypes.StoreKey
-	paramSpace           paramtypes.Subspace
-	bankKeeper           types.BankKeeper
-	accountKeeper        types.AccountKeeper
-	ContractOpsKeeper    wasmtypes.ContractOpsKeeper
-	ContractViewKeeper   wasmtypes.ViewKeeper
-	AAKeeper             types.AbstractAccountKeeper
-	XionLegacyMintKeeper xionMint.Keeper // NOTE: added to botstrap the migration of mint module to v53, should be removed on v20 or v19.1 whichever comes first
+	cdc                codec.BinaryCodec
+	storeKey           storetypes.StoreKey
+	paramSpace         paramtypes.Subspace
+	bankKeeper         types.BankKeeper
+	accountKeeper      types.AccountKeeper
+	ContractOpsKeeper  wasmtypes.ContractOpsKeeper
+	ContractViewKeeper wasmtypes.ViewKeeper
+	AAKeeper           types.AbstractAccountKeeper
 
 	// the address capable of executing a MsgSetPlatformPercentage message.
 	// Typically, this should be the x/gov module account
@@ -42,19 +40,17 @@ func NewKeeper(cdc codec.BinaryCodec,
 	wasmViewKeeper wasmtypes.ViewKeeper,
 	aaKeeper types.AbstractAccountKeeper,
 	authority string,
-	xionMintKeeper xionMint.Keeper,
 ) Keeper {
 	return Keeper{
-		storeKey:             key,
-		cdc:                  cdc,
-		paramSpace:           paramSpace,
-		bankKeeper:           bankKeeper,
-		accountKeeper:        accountKeeper,
-		ContractOpsKeeper:    wasmOpsKeeper,
-		ContractViewKeeper:   wasmViewKeeper,
-		AAKeeper:             aaKeeper,
-		authority:            authority,
-		XionLegacyMintKeeper: xionMintKeeper,
+		storeKey:           key,
+		cdc:                cdc,
+		paramSpace:         paramSpace,
+		bankKeeper:         bankKeeper,
+		accountKeeper:      accountKeeper,
+		ContractOpsKeeper:  wasmOpsKeeper,
+		ContractViewKeeper: wasmViewKeeper,
+		AAKeeper:           aaKeeper,
+		authority:          authority,
 	}
 }
 

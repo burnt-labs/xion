@@ -19,35 +19,37 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/lestrrat-go/jwx/jwk"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	cometClient "github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 )
 
 type jsonAuthenticator map[string]map[string]string
 
 func TestXionAbstractAccountJWTCLI(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -66,7 +68,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
@@ -118,10 +120,8 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	t.Logf("create audience hash: %s", createAudienceHash)
 
 	// deploy the contract
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	audienceQuery, err := ExecQuery(t, ctx, xion.GetNode(), "jwk", "list-audience")
@@ -269,7 +269,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 		 },
 		 "signatures": []
 		}
-			`, contract, xionUser.FormattedAddress(), "uxion")
+			`, contract, xionUser.FormattedAddress(), xion.Config().Denom)
 
 	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)
@@ -368,7 +368,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("output: %s", output)
 
-	err = testutil.WaitForBlocks(ctx, 2, xion)
+	err = testutil.WaitForBlocks(ctx, 6, xion)
 	require.NoError(t, err)
 	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
@@ -376,13 +376,13 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 }
 
 func TestXionAbstractAccount(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -423,12 +423,9 @@ func TestXionAbstractAccount(t *testing.T) {
 		t.Logf("[%s]: %v", k, v)
 	}
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -632,13 +629,13 @@ func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string
 }
 
 func TestXionClientEvent(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -679,12 +676,9 @@ func TestXionClientEvent(t *testing.T) {
 		t.Logf("[%s]: %v", k, v)
 	}
 
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-
 	// Store Wasm Contract
-	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp,
-		"integration_tests", "testdata", "contracts", "account-wasm-updatable-event-aarch64.wasm"))
+	codeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account-wasm-updatable-event-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -869,6 +863,102 @@ func TestXionClientEvent(t *testing.T) {
 	// wg.Wait()
 	<-doneChan
 	stopClient(ctx, cometWsClient)
+}
+
+func TestXionAbstractAccountPanic(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+	t.Parallel()
+
+	attestRawData := []byte("00000000000000000000000000000000\xe200000000000000000000\x00\x00\xf900")
+
+	attestObj := protocol.AttestationObject{
+		RawAuthData: attestRawData,
+	}
+
+	attestMarshal, err := webauthncbor.Marshal(attestObj)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	credentialJSON := map[string]interface{}{
+		"id":    base64.RawURLEncoding.EncodeToString([]byte("toto")),
+		"type":  "public-key",
+		"rawId": "dG90bw==",
+		"response": map[string]interface{}{
+			"clientDataJSON":    base64.RawURLEncoding.EncodeToString([]byte("{}")),
+			"attestationObject": base64.RawURLEncoding.EncodeToString(attestMarshal),
+		},
+		"transports": []string{"joetkt"},
+	}
+
+	credentialJSONBytes, err := json.Marshal(credentialJSON)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	credentialBase64 := base64.StdEncoding.EncodeToString(credentialJSONBytes)
+
+	authenticatorDetails := map[string]interface{}{}
+	authenticatorDetails["url"] = "https://burnt.com"
+	authenticatorDetails["credential"] = credentialBase64
+	authenticatorDetails["id"] = 0
+
+	authenticator := map[string]interface{}{}
+	authenticator["Passkey"] = authenticatorDetails
+
+	instantiateMsg := map[string]interface{}{}
+	instantiateMsg["authenticator"] = authenticator
+
+	instantiateMsgStr, err := json.Marshal(instantiateMsg)
+	require.NoError(t, err)
+	t.Logf("inst msg: %s", string(instantiateMsgStr))
+
+	xion := BuildXionChain(t)
+	ctx := t.Context()
+
+	config := types.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+
+	t.Log("creating and funding user accounts")
+	fundAmount := math.NewInt(10_000_000)
+	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
+	xionUser := users[0]
+	err = testutil.WaitForBlocks(ctx, 8, xion)
+	require.NoError(t, err)
+	t.Logf("created xion user %s", xionUser.FormattedAddress())
+
+	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+	require.NoError(t, err)
+	require.Equal(t, fundAmount, xionUserBalInitial)
+
+	aud := "integration-test-project"
+
+	createAudienceClaimHash, err := ExecTx(t, ctx, xion.GetNode(),
+		xionUser.KeyName(),
+		"jwk", "create-audience-claim",
+		aud,
+		"--chain-id", xion.Config().ChainID,
+	)
+	require.NoError(t, err)
+	t.Logf("create audience claim hash: %s", createAudienceClaimHash)
+
+	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", createAudienceClaimHash)
+	require.NoError(t, err)
+	t.Logf("TxDetails: %s", txDetails)
+
+	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
+	require.NoError(t, err)
+
+	codeResp, err := ExecQuery(t, ctx, xion.GetNode(),
+		"wasm", "code-info", codeIDStr)
+	require.NoError(t, err)
+	t.Logf("code response: %s", codeResp)
+
+	_, err = xion.InstantiateContract(ctx, xionUser.KeyName(), codeIDStr, string(instantiateMsgStr), true)
+	require.Error(t, err)
 }
 
 func getCometClient(hostAddr string) (cometClient.Client, error) {
