@@ -45,15 +45,11 @@ builds:
     tags:
       - netgo
       - ledger
+      - static_wasm
+      - muslc
       - >-
         {{- if eq .Os "linux" -}}
           osusergo
-        {{- end }}
-      - >-
-        {{- if eq .Os "darwin" -}}
-          static_wasm
-        {{- else if eq .Os "linux" -}}
-          muslc
         {{- end }}
     flags:
       - -mod=readonly
@@ -73,8 +69,8 @@ builds:
         {{- if eq .Os "windows" }}WASM_LIB=​wasmvm.dll{{- end }}
       - >-
         {{- if eq .Os "darwin" }}
-          {{- if eq .Arch "amd64"}}CC=o64-clang{{- end }}
-          {{- if eq .Arch "arm64"}}CC=oa64-clang{{- end }}
+          {{- if eq .Arch "amd64" }}CC=o64-clang{{- end }}
+          {{- if eq .Arch "arm64" }}CC=oa64-clang{{- end }}
         {{- end }}
         {{- if eq .Os "linux" }}
           {{- if eq .Arch "amd64" }}CC=x86_64-linux-gnu-gcc{{- end }}
@@ -86,8 +82,8 @@ builds:
         {{- end }}
       - >-
         {{- if eq .Os "darwin" }}
-          {{- if eq .Arch "amd64"}}CXX=o64-clang++{{- end }}
-          {{- if eq .Arch "arm64"}}CXX=oa64-clang++{{- end }}
+          {{- if eq .Arch "amd64" }}CXX=o64-clang++{{- end }}
+          {{- if eq .Arch "arm64" }}CXX=oa64-clang++{{- end }}
         {{- end }}
         {{- if eq .Os "linux" }}
           {{- if eq .Arch "amd64" }}CXX=x86_64-linux-gnu-g++{{- end }}

@@ -59,7 +59,7 @@ func TestMigrateStore(t *testing.T) {
 	require.Equal(t, ok, false)
 
 	// set a minGasPrice different that default value
-	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoin("uatom", math.OneInt()))
+	minGasPrices := sdk.NewDecCoins(sdk.NewDecCoin("uxion", math.OneInt()))
 	newSubspace.Set(ctx, globalfeetypes.ParamStoreKeyMinGasPrices, minGasPrices)
 	require.False(t, minGasPrices.Equal(globalfeetypes.DefaultMinGasPrices))
 

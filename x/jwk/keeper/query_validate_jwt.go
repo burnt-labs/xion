@@ -34,18 +34,38 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, err
 	}
 
-	jwt.Settings(jwt.WithCompactOnly(true))
-	token, err := jwt.Parse([]byte(req.SigBytes),
-		jwt.WithKey(key.Algorithm(), key),
-		jwt.WithAudience(req.Aud),
-		jwt.WithSubject(req.Sub),
-		jwt.WithClock(jwt.ClockFunc(func() time.Time {
-			// adjust the time from the block-height due to lagging reported time
+	// basic sanity check
+	if len(req.SigBytes) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty jwt")
+	}
+
+	// parse + validate with panic safety (defensive: lib should not panic, but guard anyway)
+	var (
+		token jwt.Token
+	)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				err = status.Error(codes.Internal, "panic during jwt parse")
+			}
+		}()
+
+		clock := jwt.ClockFunc(func() time.Time {
 			timeOffset := sdkmath.NewUint(k.GetTimeOffset(ctx)).BigInt().Int64()
 			return ctx.BlockTime().Add(time.Duration(timeOffset))
-		})),
-		jwt.WithValidate(true),
-	)
+		})
+
+		token, err = jwt.Parse(
+			[]byte(req.SigBytes),
+			// avoid global jwt.Settings mutation (thread-safety); specify options per call
+			jwt.WithKey(key.Algorithm(), key),
+			jwt.WithAudience(req.Aud),
+			jwt.WithSubject(req.Sub),
+			jwt.WithClock(clock),
+			jwt.WithValidate(true),
+		)
+	}()
+
 	if err != nil {
 		return nil, err
 	}

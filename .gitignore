@@ -30,6 +30,8 @@ mytestnet
 
 # Testing
 coverage.txt
+coverage*out
+coverage*html
 profile.out
 xion-data
 
