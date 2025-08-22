@@ -11,12 +11,31 @@ import (
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/store/types"
 
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/genesis"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	moduletypes "github.com/cosmos/cosmos-sdk/types/module"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
+
+func skipModules(modules []string, toSkip ...string) []string {
+	skipMap := make(map[string]bool)
+	for _, module := range toSkip {
+		skipMap[module] = true
+	}
+
+	var result []string
+	for _, module := range modules {
+		if !skipMap[module] {
+			result = append(result, module)
+		}
+	}
+	return result
+}
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
@@ -32,7 +51,12 @@ func (app *WasmApp) ExportAppStateAndValidators(forZeroHeight bool, jailAllowedA
 		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
 	}
 
-	genState, err := app.ModuleManager.ExportGenesisForModules(ctx, app.appCodec, modulesToExport)
+	if len(modulesToExport) == 0 {
+		// skip authz, feegrant, wasm they are exported in the genextensions module
+		modulesToExport = skipModules(app.ModuleManager.OrderExportGenesis, "authz", "feegrant", "wasm")
+	}
+
+	genState, err := app.ExportGenesisForModules(ctx, modulesToExport)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
@@ -249,4 +273,56 @@ func (app *WasmApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs [
 	if err != nil {
 		panic(err)
 	}
+}
+
+// ExportGenesisForModules performs export genesis functionality for modules
+// Sequentially exports genesis data for each module in the order of the module manager
+func (app *WasmApp) ExportGenesisForModules(ctx sdk.Context, modulesToExport []string) (map[string]json.RawMessage, error) {
+	if len(modulesToExport) == 0 {
+		modulesToExport = app.ModuleManager.OrderExportGenesis
+	}
+
+	// verify modules exists in app, so that we don't panic in the middle of an export
+	if err := app.checkModulesExists(modulesToExport); err != nil {
+		return nil, err
+	}
+
+	genesisData := make(map[string]json.RawMessage)
+
+	for _, moduleName := range modulesToExport {
+		mod := app.ModuleManager.Modules[moduleName]
+		fmt.Println("exporting module", moduleName)
+		if module, ok := mod.(appmodule.HasGenesis); ok {
+			// core API genesis
+			ctx := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter()) // avoid race conditions
+			target := genesis.RawJSONTarget{}
+			err := module.ExportGenesis(ctx, target.Target())
+			if err != nil {
+				return nil, err
+			}
+
+			rawJSON, err := target.JSON()
+			if err != nil {
+				return nil, err
+			}
+			genesisData[moduleName] = rawJSON
+		} else if module, ok := mod.(moduletypes.HasGenesis); ok {
+			ctx := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter()) // avoid race conditions
+			genesisData[moduleName] = module.ExportGenesis(ctx, app.appCodec)
+		} else if module, ok := mod.(moduletypes.HasABCIGenesis); ok {
+			ctx := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+			genesisData[moduleName] = module.ExportGenesis(ctx, app.appCodec)
+		}
+	}
+	return genesisData, nil
+}
+
+// checkModulesExists verifies that all modules in the list exist in the app
+func (app *WasmApp) checkModulesExists(moduleName []string) error {
+	for _, name := range moduleName {
+		if _, ok := app.ModuleManager.Modules[name]; !ok {
+			return fmt.Errorf("module %s does not exist", name)
+		}
+	}
+	return nil
 }
