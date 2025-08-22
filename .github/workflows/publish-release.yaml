@@ -1,0 +1,17 @@
+name: Create Release
+# Run for new release tags only
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish-types:
+    name: Publish Typescript Types
+    uses: burnt-labs/xion/.github/workflows/publish-types.yaml@workflows/main
+    secrets: inherit
