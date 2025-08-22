@@ -27,7 +27,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
@@ -75,7 +75,7 @@ func TestXionAbstractAccountJWTCLI(t *testing.T) {
 	t.Logf("private key: %v", privateKey)
 
 	// log the test public key
-	publicKey, err := jwk.New(privateKey)
+	publicKey, err := jwk.FromRaw(privateKey)
 	require.NoError(t, err)
 	publicKey, err = publicKey.PublicKey()
 	require.NoError(t, err)
