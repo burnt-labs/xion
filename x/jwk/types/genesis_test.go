@@ -25,6 +25,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
 				AudienceList: []types.Audience{
 					{
 						Aud:   "0",
@@ -50,6 +51,18 @@ func TestGenesisState_Validate(t *testing.T) {
 					{
 						Aud:   "0",
 						Admin: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid admin address",
+			genState: &types.GenesisState{
+				AudienceList: []types.Audience{
+					{
+						Aud:   "test-audience",
+						Admin: "invalid-address",
 					},
 				},
 			},

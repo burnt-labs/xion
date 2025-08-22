@@ -1,0 +1,65 @@
+syntax = "proto3";
+package feeabstraction.feeabs.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "tendermint/abci/types.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// QueryArithmeticTwapToNowRequest
+message QueryArithmeticTwapToNowRequest {
+  uint64 pool_id = 1;
+  string base_asset = 2;
+  string quote_asset = 3;
+  google.protobuf.Timestamp start_time = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.moretags) = "yaml:\"start_time\""
+  ];
+}
+
+// QueryArithmeticTwapToNowResponse
+message QueryArithmeticTwapToNowResponse {
+  string arithmetic_twap = 1 [
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.moretags) = "yaml:\"arithmetic_twap\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// InterchainQueryRequest
+message InterchainQueryRequest {
+  bytes data = 1;
+  string path = 2;
+}
+
+// InterchainQueryPacketData is comprised of raw query.
+message InterchainQueryPacketData {
+  bytes data = 1;
+  // optional memo
+  string memo = 2;
+}
+
+// InterchainQueryPacketAck is comprised of an ABCI query response with
+// non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
+message InterchainQueryPacketAck { bytes data = 1; }
+
+// InterchainQueryRequestPacket
+message InterchainQueryRequestPacket {
+  repeated InterchainQueryRequest requests = 1 [ (gogoproto.nullable) = false ];
+}
+
+// CosmosQuery contains a list of tendermint ABCI query requests. It should be
+// used when sending queries to an SDK host chain.
+message CosmosQuery {
+  repeated tendermint.abci.RequestQuery requests = 1
+      [ (gogoproto.nullable) = false ];
+}
+
+// CosmosResponse contains a list of tendermint ABCI query responses. It should
+// be used when receiving responses from an SDK host chain.
+message CosmosResponse {
+  repeated tendermint.abci.ResponseQuery responses = 1
+      [ (gogoproto.nullable) = false ];
+}

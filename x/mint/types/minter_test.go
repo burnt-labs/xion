@@ -88,6 +88,112 @@ func TestBlockProvision(t *testing.T) {
 	}
 }
 
+func TestValidateMinter(t *testing.T) {
+	tests := []struct {
+		name        string
+		minter      Minter
+		expectedErr bool
+	}{
+		{
+			name:        "valid default minter",
+			minter:      DefaultInitialMinter(),
+			expectedErr: false,
+		},
+		{
+			name: "valid custom minter",
+			minter: NewMinter(
+				math.LegacyNewDecWithPrec(1, 1), // 0.1 inflation
+				math.LegacyNewDec(1000000),      // annual provisions
+			),
+			expectedErr: false,
+		},
+		{
+			name: "valid zero inflation",
+			minter: NewMinter(
+				math.LegacyZeroDec(),       // 0 inflation
+				math.LegacyNewDec(1000000), // annual provisions
+			),
+			expectedErr: false,
+		},
+		{
+			name: "invalid negative inflation",
+			minter: NewMinter(
+				math.LegacyNewDec(-1),      // negative inflation
+				math.LegacyNewDec(1000000), // annual provisions
+			),
+			expectedErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateMinter(tt.minter)
+			if tt.expectedErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "should be positive")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestNextAnnualProvisions(t *testing.T) {
+	tests := []struct {
+		name        string
+		minter      Minter
+		totalSupply math.Int
+		expected    math.LegacyDec
+	}{
+		{
+			name: "10% inflation with 1M total supply",
+			minter: NewMinter(
+				math.LegacyNewDecWithPrec(1, 1), // 0.1 (10%)
+				math.LegacyZeroDec(),            // annual provisions (not used in calculation)
+			),
+			totalSupply: math.NewInt(1000000),
+			expected:    math.LegacyNewDec(100000), // 10% of 1M
+		},
+		{
+			name: "5% inflation with 2M total supply",
+			minter: NewMinter(
+				math.LegacyNewDecWithPrec(5, 2), // 0.05 (5%)
+				math.LegacyZeroDec(),            // annual provisions (not used in calculation)
+			),
+			totalSupply: math.NewInt(2000000),
+			expected:    math.LegacyNewDec(100000), // 5% of 2M
+		},
+		{
+			name: "zero inflation",
+			minter: NewMinter(
+				math.LegacyZeroDec(), // 0%
+				math.LegacyZeroDec(), // annual provisions (not used in calculation)
+			),
+			totalSupply: math.NewInt(1000000),
+			expected:    math.LegacyZeroDec(), // 0% of 1M
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			params := DefaultParams() // params not used in NextAnnualProvisions
+			result := tt.minter.NextAnnualProvisions(params, tt.totalSupply)
+			require.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestDefaultInitialMinter(t *testing.T) {
+	minter := DefaultInitialMinter()
+
+	require.Equal(t, math.LegacyNewDecWithPrec(13, 2), minter.Inflation)
+	require.Equal(t, math.LegacyZeroDec(), minter.AnnualProvisions)
+
+	// Test that it's a valid minter
+	err := ValidateMinter(minter)
+	require.NoError(t, err)
+}
+
 // Benchmarking :)
 // previously using math.Int operations:
 // BenchmarkBlockProvision-4 5000000 220 ns/op
