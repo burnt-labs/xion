@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	feeabstypes "github.com/osmosis-labs/fee-abstraction/v8/x/feeabs/types"
 	"github.com/spf13/cobra"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -16,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	feeabstypes "github.com/burnt-labs/xion/x/feeabs/types"
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 	"github.com/burnt-labs/xion/x/xion/keeper"
 	"github.com/burnt-labs/xion/x/xion/types"
@@ -63,7 +63,10 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingCo
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for ics29 fee module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {
+	// no-op to satisfy interface
+	_ = "RegisterGRPCGatewayRoutes"
+}
 
 // GetTxCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
@@ -82,9 +85,13 @@ type AppModule struct {
 }
 
 func (am AppModule) IsOnePerModuleType() {
+	// no-op to satisfy interface
+	_ = "IsOnePerModuleType"
 }
 
 func (am AppModule) IsAppModule() {
+	// no-op to satisfy interface
+	_ = "IsAppModule"
 }
 
 // NewAppModule creates a new 29-fee module
@@ -98,12 +105,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
-	// TODO(froch, 20240415): Migration to be applied later
-	// m := keeper.NewMigrator(am.keeper.ContractOpsKeeper, am.keeper.ContractViewKeeper, am.keeper.AAKeeper)
-	// if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
-	//	panic(fmt.Sprintf("failed to migrate x/xion from version 1 to 2: %v", err))
-	// }
 }
 
 // InitGenesis performs genesis initialization for the ibc-29-fee module. It returns

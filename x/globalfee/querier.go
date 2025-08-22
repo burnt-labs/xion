@@ -2,6 +2,7 @@ package globalfee
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -25,7 +26,11 @@ func NewGrpcQuerier(paramSource ParamSource) GrpcQuerier {
 }
 
 // MinimumGasPrices return minimum gas prices
-func (g GrpcQuerier) Params(stdCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (g GrpcQuerier) Params(stdCtx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, fmt.Errorf("invalid request")
+	}
+
 	var minGasPrices sdk.DecCoins
 	var bypassMinFeeMsgTypes []string
 	var maxTotalBypassMinFeeMsgGasUsage uint64

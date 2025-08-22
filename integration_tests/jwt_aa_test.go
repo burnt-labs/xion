@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -21,23 +20,24 @@ import (
 
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang-jwt/jwt/v4"
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
 	"github.com/lestrrat-go/jwx/jwk"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
 func TestJWTAbstractAccount(t *testing.T) {
+	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 	t.Parallel()
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}))
-	xion, ctx := td.xionChain, td.ctx
+	spec := XionLocalChainSpec(t, 3, 1)
+	xion := BuildXionChainWithSpec(t, spec)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -56,7 +56,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	// load the test private key
-	privateKeyBz, err := os.ReadFile("./integration_tests/testdata/keys/jwtRS256.key")
+	privateKeyBz, err := os.ReadFile(IntegrationTestPath("testdata", "keys", "jwtRS256.key"))
 	require.NoError(t, err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBz)
 	require.NoError(t, err)
@@ -136,10 +136,8 @@ func TestJWTAbstractAccount(t *testing.T) {
 	t.Logf("audiences: \n%s", audienceQuery)
 
 	// deploy the contract
-	fp, err := os.Getwd()
-	require.NoError(t, err)
 	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
-		path.Join(fp, "integration_tests", "testdata", "contracts", "account_updatable-aarch64.wasm"))
+		IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
 	// retrieve the hash
@@ -281,7 +279,7 @@ func TestJWTAbstractAccount(t *testing.T) {
 	 },
 	 "signatures": []
 	}
-		`, contract, xionUser.FormattedAddress(), "uxion")
+		`, contract, xionUser.FormattedAddress(), xion.Config().Denom)
 
 	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(sendMsg))
 	require.NoError(t, err)

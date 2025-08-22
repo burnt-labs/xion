@@ -27,6 +27,9 @@ func GetGenesisStateFromAppState(cdc codec.Codec, appState map[string]json.RawMe
 
 	if appState[ModuleName] != nil {
 		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
+	} else {
+		// Return default genesis state when module state is not present
+		return DefaultGenesisState()
 	}
 
 	return &genesisState

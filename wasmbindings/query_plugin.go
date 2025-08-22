@@ -3,7 +3,7 @@ package wasmbinding
 import (
 	"fmt"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 

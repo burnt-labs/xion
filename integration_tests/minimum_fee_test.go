@@ -6,12 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,54 +22,23 @@ import (
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 
 	"github.com/cosmos/cosmos-sdk/types"
-	ibctest "github.com/strangelove-ventures/interchaintest/v8"
-
-	"cosmossdk.io/x/upgrade"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
-	"github.com/burnt-labs/xion/x/jwk"
-	"github.com/burnt-labs/xion/x/mint"
-	"github.com/burnt-labs/xion/x/xion"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/consensus"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/ibc-go/modules/capability"
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibccore "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcsolomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ccvprovider "github.com/cosmos/interchain-security/v5/x/ccv/provider"
-	aa "github.com/larry0x/abstract-account/x/abstractaccount"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
+	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 
 	"cosmossdk.io/math"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v10/relayer"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
 
 // TODO:
-// param change test (in the upcoming interchain v8 upgrade)
+// param change test (in the upcoming interchain v10 upgrade)
 
 func TestXionMinimumFeeDefault(t *testing.T) {
 	if testing.Short() {
@@ -76,7 +46,9 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.025uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
+	chainSpec := XionLocalChainSpec(t, 3, 1)
+	chainSpec.GasPrices = "0.025uxion"
+	xion := BuildXionChainWithSpec(t, chainSpec)
 
 	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount math.Int) {
 		// NOTE: Tx should be rejected inssufficient gas
@@ -101,7 +73,7 @@ func TestXionMinimumFeeDefault(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	testMinimumFee(t, &td, assertion)
+	testMinimumFee(t, xion, assertion)
 }
 
 func TestXionMinimumFeeZero(t *testing.T) {
@@ -110,33 +82,54 @@ func TestXionMinimumFeeZero(t *testing.T) {
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
+	xion := BuildXionChain(t)
 
 	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount math.Int) {
 		toSend := math.NewInt(100)
 
-		_, err := ExecTx(t, ctx, xion.GetNode(),
+		// Log initial balances
+		userBalBefore, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
+		require.NoError(t, err)
+		recipientBalBefore, err := xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
+		require.NoError(t, err)
+		t.Logf("Before transaction - User balance: %s, Recipient balance: %s", userBalBefore, recipientBalBefore)
+
+		txHash, err := ExecTx(t, ctx, xion.GetNode(),
 			xionUser.KeyName(),
 			"xion", "send", xionUser.KeyName(),
 			"--chain-id", xion.Config().ChainID,
 			recipientAddress, fmt.Sprintf("%d%s", toSend.Int64(), xion.Config().Denom),
 		)
 		require.NoError(t, err)
+		t.Logf("Transaction hash: %s", txHash)
+
+		// Get transaction details to verify it succeeded
+		txRes, err := xion.GetTransaction(txHash)
+		require.NoError(t, err)
+		t.Logf("Transaction code: %d, logs: %s", txRes.Code, txRes.RawLog)
+		require.Equal(t, uint32(0), txRes.Code, "Transaction should succeed")
+
+		// Wait for a few more blocks to ensure transaction is fully processed
+		currentHeight, err := xion.Height(ctx)
+		require.NoError(t, err)
+		testutil.WaitForBlocks(ctx, int(currentHeight)+2, xion)
 
 		balance, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 		require.NoError(t, err)
+		t.Logf("After transaction - User balance: %s, Expected: %s", balance, fundAmount.Sub(toSend))
 		require.Equal(t, fundAmount.Sub(toSend), balance)
 
 		balance, err = xion.GetBalance(ctx, recipientAddress, xion.Config().Denom)
 		require.NoError(t, err)
+		t.Logf("After transaction - Recipient balance: %s, Expected: %s", balance, toSend)
 		require.Equal(t, toSend, balance)
 	}
 
-	testMinimumFee(t, &td, assertion)
+	testMinimumFee(t, xion, assertion)
 }
 
-func testMinimumFee(t *testing.T, td *TestData, assert assertionFn) {
-	xion, ctx := td.xionChain, td.ctx
+func testMinimumFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionFn) {
+	ctx := t.Context()
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
@@ -155,8 +148,13 @@ func testMinimumFee(t *testing.T, td *TestData, assert assertionFn) {
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
+	// Convert gov module address to the correct bech32 prefix
+	govModuleAddr := authtypes.NewModuleAddress("gov")
+	authorityAddr, err := types.Bech32ifyAddressBytes("xion", govModuleAddr)
+	require.NoError(t, err)
+
 	setPlatformMinimumsMsg := xiontypes.MsgSetPlatformMinimum{
-		Authority: authtypes.NewModuleAddress("gov").String(),
+		Authority: authorityAddr,
 		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(10), Denom: "uxion"}},
 	}
 
@@ -206,6 +204,16 @@ func testMinimumFee(t *testing.T, td *TestData, assert assertionFn) {
 		return false
 	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
+	// Wait for several blocks to ensure the proposal changes take effect
+	currentHeight, err = xion.Height(ctx)
+	require.NoError(t, err)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+5, xion)
+
+	// Verify that the platform minimum has been set correctly
+	minimums, err := ExecQuery(t, ctx, xion.GetNode(), "xion", "platform-minimum")
+	require.NoError(t, err)
+	t.Logf("Platform minimums after proposal: %v", minimums)
+
 	// step 1: send a xion message with default (0%) platform fee
 	recipientKeyName := "recipient-key"
 	err = xion.CreateKey(ctx, recipientKeyName)
@@ -226,7 +234,9 @@ func TestMultiDenomMinGlobalFee(t *testing.T) {
 	}
 
 	t.Parallel()
-	td := BuildXionChain(t, "0.025uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}, {defaultMinGasPrices.String()}}))
+	spec := XionLocalChainSpec(t, 1, 0)
+	spec.GasPrices = "0.025uxion"
+	xion := BuildXionChainWithSpec(t, spec)
 	// Add new denomination
 
 	assertion := func(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, xionUser ibc.Wallet, recipientAddress string, fundAmount math.Int) {
@@ -257,7 +267,7 @@ func TestMultiDenomMinGlobalFee(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	testMultiDenomFee(t, &td, assertion)
+	testMultiDenomFee(t, xion, assertion)
 }
 
 func TestMultiDenomMinGlobalFeeIBC(t *testing.T) {
@@ -267,86 +277,8 @@ func TestMultiDenomMinGlobalFeeIBC(t *testing.T) {
 
 	t.Parallel()
 	chains := interchaintest.CreateChainsWithChainSpecs(t, []*interchaintest.ChainSpec{
-		{
-			Name:    "xion",
-			Version: xionVersionFrom,
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: xionImageFrom,
-						Version:    xionVersionFrom,
-						UidGid:     "1025:1025",
-					},
-				},
-				GasPrices:      "0.0uxion",
-				GasAdjustment:  1.3,
-				Type:           "cosmos",
-				ChainID:        "xion-1",
-				Bin:            "xiond",
-				Bech32Prefix:   "xion",
-				Denom:          "uxion",
-				TrustingPeriod: ibcClientTrustingPeriod,
-				EncodingConfig: func() *moduletestutil.TestEncodingConfig {
-					cfg := moduletestutil.MakeTestEncodingConfig(
-						auth.AppModuleBasic{},
-						genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-						bank.AppModuleBasic{},
-						capability.AppModuleBasic{},
-						staking.AppModuleBasic{},
-						mint.AppModuleBasic{},
-						distr.AppModuleBasic{},
-						gov.NewAppModuleBasic(
-							[]govclient.ProposalHandler{
-								paramsclient.ProposalHandler,
-							},
-						),
-						params.AppModuleBasic{},
-						slashing.AppModuleBasic{},
-						upgrade.AppModuleBasic{},
-						consensus.AppModuleBasic{},
-						transfer.AppModuleBasic{},
-						ibccore.AppModuleBasic{},
-						ibctm.AppModuleBasic{},
-						ibcwasm.AppModuleBasic{},
-						ccvprovider.AppModuleBasic{},
-						ibcsolomachine.AppModuleBasic{},
-
-						// custom
-						wasm.AppModuleBasic{},
-						authz.AppModuleBasic{},
-						tokenfactory.AppModuleBasic{},
-						xion.AppModuleBasic{},
-						jwk.AppModuleBasic{},
-						aa.AppModuleBasic{},
-					)
-					// TODO: add encoding types here for the modules you want to use
-					ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
-					return &cfg
-				}(),
-
-				ModifyGenesis: ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals}, [][]string{{votingPeriod, maxDepositPeriod}}),
-			},
-		},
-		{
-			Name:    "osmosis",
-			Version: osmosisVersion,
-			ChainConfig: ibc.ChainConfig{
-				Images: []ibc.DockerImage{
-					{
-						Repository: osmosisImage,
-						Version:    osmosisVersion,
-						UidGid:     "1025:1025",
-					},
-				},
-				Type:           "cosmos",
-				Bin:            "osmosisd",
-				Bech32Prefix:   "osmo",
-				Denom:          "uosmo",
-				GasPrices:      "0.025uosmo",
-				GasAdjustment:  1.3,
-				TrustingPeriod: ibcClientTrustingPeriod,
-			},
-		},
+		XionLocalChainSpec(t, 1, 0),
+		OsmosisChainSpec(1, 0),
 	})
 
 	client, network := interchaintest.DockerSetup(t)
@@ -520,6 +452,11 @@ func TestMultiDenomMinGlobalFeeIBC(t *testing.T) {
 		return false
 	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
+	// Wait for a few blocks to ensure the proposal changes take effect
+	currentHeight, err = chain.Height(ctx)
+	require.NoError(t, err)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+3, chain)
+
 	recipientKeyName := "recipient-key"
 	err = chain.CreateKey(ctx, recipientKeyName)
 	require.NoError(t, err)
@@ -558,8 +495,8 @@ func TestMultiDenomMinGlobalFeeIBC(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func testMultiDenomFee(t *testing.T, td *TestData, assert assertionFn) {
-	xion, ctx := td.xionChain, td.ctx
+func testMultiDenomFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionFn) {
+	ctx := t.Context()
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
@@ -572,15 +509,21 @@ func testMultiDenomFee(t *testing.T, td *TestData, assert assertionFn) {
 
 	xionUserBalInitial, err := xion.GetBalance(ctx, xionUser.FormattedAddress(), xion.Config().Denom)
 	require.NoError(t, err)
+	log.Printf("Initial balance of user %s: %s", xionUser.FormattedAddress(), xionUserBalInitial.String()+xion.Config().Denom)
 	require.Equal(t, fundAmount, xionUserBalInitial)
 
 	cdc := codec.NewProtoCodec(xion.Config().EncodingConfig.InterfaceRegistry)
 	config := types.GetConfig()
-	config.SetBech32PrefixForAccount("xion", "xionpub")
+	config.SetBech32PrefixForAccount(xion.Config().Bech32Prefix, xion.Config().Bech32Prefix+"pub")
+
+	// Convert gov module address to the correct bech32 prefix
+	govModuleAddr := authtypes.NewModuleAddress("gov")
+	authorityAddr, err := types.Bech32ifyAddressBytes(xion.Config().Bech32Prefix, govModuleAddr)
+	require.NoError(t, err)
 
 	setPlatformMinimumsMsg := xiontypes.MsgSetPlatformMinimum{
-		Authority: authtypes.NewModuleAddress("gov").String(),
-		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(10), Denom: "uxion"}},
+		Authority: authorityAddr,
+		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(10), Denom: xion.Config().Denom}},
 	}
 
 	msg, err := cdc.MarshalInterfaceJSON(&setPlatformMinimumsMsg)
@@ -628,6 +571,11 @@ func testMultiDenomFee(t *testing.T, td *TestData, assert assertionFn) {
 		}
 		return false
 	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
+
+	// Wait for a few blocks to ensure the proposal changes take effect
+	currentHeight, err = xion.Height(ctx)
+	require.NoError(t, err)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+3, xion)
 
 	// step 1: send a xion message with default (0%) platform fee
 	recipientKeyName := "recipient-key"
@@ -744,6 +692,11 @@ func testMultiDenomFee(t *testing.T, td *TestData, assert assertionFn) {
 		}
 		return false
 	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
+
+	// Wait for a few blocks to ensure the proposal changes take effect
+	currentHeight, err = xion.Height(ctx)
+	require.NoError(t, err)
+	testutil.WaitForBlocks(ctx, int(currentHeight)+3, xion)
 
 	assert(t, ctx, xion, xionUser, recipientKeyAddress, fundAmount)
 }
