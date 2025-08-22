@@ -22,7 +22,7 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/cosmos/cosmos-sdk/types"

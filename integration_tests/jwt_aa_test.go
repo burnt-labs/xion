@@ -22,7 +22,7 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"
