@@ -634,7 +634,8 @@ func (s *IntegrationTestSuite) TestBypassGasCapNotEnforced() {
 	// Create tx with gas that exceeds the bypass cap
 	s.txBuilder.SetGasLimit(50_000)          // exceeds cap of 1,000
 	s.txBuilder.SetFeeAmount(sdk.NewCoins()) // zero fees
-	s.txBuilder.SetMsgs()                    // empty messages = bypass
+	err := s.txBuilder.SetMsgs()             // empty messages = bypass
+	s.Require().NoError(err)
 
 	priv1, _, _ := testdata.KeyTestPubAddr()
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
@@ -670,7 +671,8 @@ func (s *IntegrationTestSuite) TestBypassFeeDenomValidation() {
 	// Create tx with disallowed fee denom
 	s.txBuilder.SetGasLimit(10_000)
 	s.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uatom", math.NewInt(1)))) // disallowed denom
-	s.txBuilder.SetMsgs()                                                        // empty messages = bypass
+	err := s.txBuilder.SetMsgs()                                                 // empty messages = bypass
+	s.Require().NoError(err)
 
 	priv1, _, _ := testdata.KeyTestPubAddr()
 	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}

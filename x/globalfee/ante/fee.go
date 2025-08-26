@@ -70,7 +70,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 				gasLimit,
 			)
 		}
-		
+
 		// Validate fee denominations for bypass messages if fees are provided
 		feeCoins := feeTx.GetFee()
 		if !feeCoins.IsZero() {
@@ -79,7 +79,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 			if err != nil {
 				return ctx, err
 			}
-			
+
 			// Only validate fee denominations if global fees are configured
 			// If global fees are empty/default, allow any fee denomination for bypass messages
 			if !globalFees.IsZero() {
@@ -103,7 +103,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 				}
 			}
 		}
-		
+
 		return next(ctx, tx, simulate)
 	}
 
