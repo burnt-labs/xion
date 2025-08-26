@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/hashicorp/go-metrics"
 
@@ -63,7 +64,29 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	}
 
 	if !percentage.IsZero() {
-		platformCoins := msg.Amount.MulInt(percentage).QuoInt(math.NewInt(10000))
+		// Safe calculation to prevent overflow: use multiplication with bounds checking
+		// For each coin, calculate: (amount * percentage) / 10000
+		// But prevent overflow by checking if amount * percentage would overflow
+		var platformCoins sdk.Coins
+		for _, coin := range msg.Amount {
+			// Check if multiplication would overflow by comparing with MaxUint64/percentage
+			maxSafeAmount := math.NewIntFromUint64(^uint64(0)).Quo(percentage)
+			if coin.Amount.GT(maxSafeAmount) {
+				// Use big integer arithmetic to prevent overflow
+				bigAmount := coin.Amount.BigInt()
+				bigPercentage := percentage.BigInt()
+				bigDivisor := math.NewInt(10000).BigInt()
+				
+				bigResult := new(big.Int).Mul(bigAmount, bigPercentage)
+				bigResult = bigResult.Quo(bigResult, bigDivisor)
+				
+				platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, math.NewIntFromBigInt(bigResult)))
+			} else {
+				// Safe to use normal calculation
+				feeAmount := coin.Amount.Mul(percentage).Quo(math.NewInt(10000))
+				platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, feeAmount))
+			}
+		}
 		throughCoins = throughCoins.Sub(platformCoins...)
 
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, authtypes.FeeCollectorName, platformCoins); err != nil {
@@ -123,7 +146,27 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 
 		// if there is a platform fee set, reduce it from each output
 		if !percentage.IsZero() {
-			platformCoins := out.Coins.MulInt(percentage).QuoInt(math.NewInt(10000))
+			// Safe calculation to prevent overflow: use multiplication with bounds checking
+			var platformCoins sdk.Coins
+			for _, coin := range out.Coins {
+				// Check if multiplication would overflow by comparing with MaxUint64/percentage
+				maxSafeAmount := math.NewIntFromUint64(^uint64(0)).Quo(percentage)
+				if coin.Amount.GT(maxSafeAmount) {
+					// Use big integer arithmetic to prevent overflow
+					bigAmount := coin.Amount.BigInt()
+					bigPercentage := percentage.BigInt()
+					bigDivisor := math.NewInt(10000).BigInt()
+					
+					bigResult := new(big.Int).Mul(bigAmount, bigPercentage)
+					bigResult = bigResult.Quo(bigResult, bigDivisor)
+					
+					platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, math.NewIntFromBigInt(bigResult)))
+				} else {
+					// Safe to use normal calculation
+					feeAmount := coin.Amount.Mul(percentage).Quo(math.NewInt(10000))
+					platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, feeAmount))
+				}
+			}
 			throughCoins, wentNegative := out.Coins.SafeSub(platformCoins...)
 			if wentNegative {
 				return nil, fmt.Errorf("unable to subtract %v from %v", platformCoins, throughCoins)
