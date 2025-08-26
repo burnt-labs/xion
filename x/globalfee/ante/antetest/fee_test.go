@@ -617,3 +617,77 @@ func (s *IntegrationTestSuite) TestFeeUtilityFunctions() {
 		s.Require().True(result)
 	})
 }
+
+// PoC tests for bypass vulnerability #53694
+func (s *IntegrationTestSuite) TestBypassGasCapNotEnforced() {
+	// Test that bypass messages now properly enforce gas cap
+	params := &globfeetypes.Params{
+		MinimumGasPrices:                sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))},
+		BypassMinFeeMsgTypes:            []string{},
+		MaxTotalBypassMinFeeMsgGasUsage: 1_000, // small cap
+	}
+
+	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, params, bondDenom)
+
+	s.txBuilder = s.clientCtx.TxConfig.NewTxBuilder()
+
+	// Create tx with gas that exceeds the bypass cap
+	s.txBuilder.SetGasLimit(50_000)          // exceeds cap of 1,000
+	s.txBuilder.SetFeeAmount(sdk.NewCoins()) // zero fees
+	s.txBuilder.SetMsgs()                    // empty messages = bypass
+
+	priv1, _, _ := testdata.KeyTestPubAddr()
+	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
+
+	tx, err := s.CreateTestTx(privs, accNums, accSeqs, s.ctx.ChainID())
+	s.Require().NoError(err)
+
+	ctx := s.ctx.WithIsCheckTx(true)
+
+	// This should now fail because gas cap is enforced for bypass messages
+	_, err = feeDecorator.AnteHandle(ctx, tx, false, NextFn)
+	if err != nil {
+		s.T().Logf("✅ Gas cap enforcement is working: %v", err)
+		s.Require().Contains(err.Error(), "bypass messages cannot use more than")
+	} else {
+		s.T().Logf("❌ Gas cap enforcement is NOT working - bypass vulnerability still exists")
+		s.Require().Fail("Expected error when gas exceeds bypass cap, but transaction was accepted")
+	}
+}
+
+func (s *IntegrationTestSuite) TestBypassFeeDenomValidation() {
+	// Test to demonstrate current behavior with fee denom validation for bypass messages
+	params := &globfeetypes.Params{
+		MinimumGasPrices:                sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))},
+		BypassMinFeeMsgTypes:            []string{},
+		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
+	}
+
+	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, params, bondDenom)
+
+	s.txBuilder = s.clientCtx.TxConfig.NewTxBuilder()
+
+	// Create tx with disallowed fee denom
+	s.txBuilder.SetGasLimit(10_000)
+	s.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uatom", math.NewInt(1)))) // disallowed denom
+	s.txBuilder.SetMsgs()                                                        // empty messages = bypass
+
+	priv1, _, _ := testdata.KeyTestPubAddr()
+	privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
+
+	tx, err := s.CreateTestTx(privs, accNums, accSeqs, s.ctx.ChainID())
+	s.Require().NoError(err)
+
+	ctx := s.ctx.WithIsCheckTx(true)
+
+	// This currently passes (demonstrating the remaining vulnerability)
+	// but should ideally fail for disallowed fee denoms
+	_, err = feeDecorator.AnteHandle(ctx, tx, false, NextFn)
+	if err != nil {
+		s.T().Logf("✅ Fee denom validation is working: %v", err)
+		s.Require().Contains(err.Error(), "fee denom")
+	} else {
+		s.T().Logf("❌ Fee denom validation is NOT working - bypass vulnerability still exists")
+		s.Require().Fail("Expected error for disallowed fee denom, but transaction was accepted")
+	}
+}

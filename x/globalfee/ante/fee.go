@@ -70,6 +70,40 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 				gasLimit,
 			)
 		}
+		
+		// Validate fee denominations for bypass messages if fees are provided
+		feeCoins := feeTx.GetFee()
+		if !feeCoins.IsZero() {
+			// Get allowed global fee denominations
+			globalFees, err := mfd.GetGlobalFee(ctx)
+			if err != nil {
+				return ctx, err
+			}
+			
+			// Only validate fee denominations if global fees are configured
+			// If global fees are empty/default, allow any fee denomination for bypass messages
+			if !globalFees.IsZero() {
+				// Check if all fee denominations are allowed
+				for _, feeCoin := range feeCoins {
+					found := false
+					for _, globalFee := range globalFees {
+						if feeCoin.Denom == globalFee.Denom {
+							found = true
+							break
+						}
+					}
+					if !found {
+						return ctx, errorsmod.Wrapf(
+							sdkerrors.ErrInvalidCoins,
+							"fee denom %s is not allowed for bypass messages; allowed denoms: %s",
+							feeCoin.Denom,
+							globalFees,
+						)
+					}
+				}
+			}
+		}
+		
 		return next(ctx, tx, simulate)
 	}
 
