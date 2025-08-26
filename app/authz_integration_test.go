@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"testing"
+	"time"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
@@ -56,14 +57,18 @@ func TestAuthzBypassVulnerabilityPrevention(t *testing.T) {
 // TestAuthzLimiterAllowsLegitimateMessages ensures we don't break normal authz functionality
 func TestAuthzLimiterAllowsLegitimateMessages(t *testing.T) {
 	// Create a legitimate authz message (MsgGrant is safe)
+	grantAuth, err := types.NewAnyWithValue(&authz.GenericAuthorization{
+		Msg: "/cosmos.bank.v1beta1.MsgSend",
+	})
+	require.NoError(t, err)
+
+	expiration := time.Now().Add(24 * time.Hour)
 	legitimateMsg := &authz.MsgGrant{
 		Granter: "xion1granter",
 		Grantee: "xion1grantee",
 		Grant: authz.Grant{
-			Authorization: &authz.GenericAuthorization{
-				Msg: "/cosmos.bank.v1beta1.MsgSend",
-			},
-			Expiration: time.Now().Add(24 * time.Hour),
+			Authorization: grantAuth,
+			Expiration:    &expiration,
 		},
 	}
 
