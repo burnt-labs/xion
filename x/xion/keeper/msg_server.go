@@ -76,10 +76,10 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 				bigAmount := coin.Amount.BigInt()
 				bigPercentage := percentage.BigInt()
 				bigDivisor := math.NewInt(10000).BigInt()
-				
+
 				bigResult := new(big.Int).Mul(bigAmount, bigPercentage)
 				bigResult = bigResult.Quo(bigResult, bigDivisor)
-				
+
 				platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, math.NewIntFromBigInt(bigResult)))
 			} else {
 				// Safe to use normal calculation
@@ -156,10 +156,10 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 					bigAmount := coin.Amount.BigInt()
 					bigPercentage := percentage.BigInt()
 					bigDivisor := math.NewInt(10000).BigInt()
-					
+
 					bigResult := new(big.Int).Mul(bigAmount, bigPercentage)
 					bigResult = bigResult.Quo(bigResult, bigDivisor)
-					
+
 					platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, math.NewIntFromBigInt(bigResult)))
 				} else {
 					// Safe to use normal calculation

@@ -637,4 +637,3 @@ func TestMsgServer_MultiSend_HighPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, response)
 }
-
