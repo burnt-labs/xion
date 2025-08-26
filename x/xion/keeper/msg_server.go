@@ -155,10 +155,12 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 // meetsConfiguredMinimums returns true if, for every denom in amt that has a configured
 // minimum in mins, the amount for that denom is greater than or equal to the minimum.
 // Denoms without a configured minimum are not constrained by this check.
+// If no minimums are configured at all, this returns false to maintain backwards compatibility
+// requiring platform minimums to be explicitly set.
 func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
-	// Quick return if no minimums configured
+	// Require that platform minimums be explicitly set (backwards compatibility)
 	if len(mins) == 0 {
-		return true
+		return false
 	}
 
 	// Build a map for O(1) minimum lookups
