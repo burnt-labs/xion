@@ -35,7 +35,7 @@ func (ald AuthzLimiterDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 			}
 		}
 	}
-	
+
 	return next(ctx, tx, simulate)
 }
 
@@ -46,7 +46,7 @@ func (ald AuthzLimiterDecorator) ValidateAuthzMessages(authzMsg *authz.MsgExec) 
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "failed to get messages from authz: %v", err)
 	}
-	
+
 	// Check each nested message against restricted types
 	for _, nestedMsg := range nestedMsgs {
 		msgType := sdk.MsgTypeURL(nestedMsg)
@@ -58,6 +58,6 @@ func (ald AuthzLimiterDecorator) ValidateAuthzMessages(authzMsg *authz.MsgExec) 
 			)
 		}
 	}
-	
+
 	return nil
 }

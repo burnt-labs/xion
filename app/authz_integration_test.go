@@ -60,7 +60,7 @@ func TestAuthzLimiterAllowsLegitimateMessages(t *testing.T) {
 	legitimateMsg := &authz.MsgGrant{
 		Granter: "xion1granter",
 		Grantee: "xion1grantee",
-		Grant: authz.Grant{
+		Grant:   authz.Grant{
 			// This would normally have proper authorization details
 		},
 	}

@@ -22,7 +22,7 @@ func TestAuthzLimiterDecorator_ValidateAuthzMessages(t *testing.T) {
 	// Test 1: Non-restricted message should pass
 	allowedMsg := &authz.MsgGrant{}
 	authzWithAllowed := createAuthzMsg(t, allowedMsg)
-	
+
 	err := decorator.ValidateAuthzMessages(authzWithAllowed)
 	require.NoError(t, err)
 
@@ -78,9 +78,9 @@ func TestAuthzLimiterDecorator_NewCreation(t *testing.T) {
 		"/cosmwasm.wasm.v1.MsgExecuteContract",
 		"/cosmwasm.wasm.v1.MsgInstantiateContract",
 	}
-	
+
 	decorator := NewAuthzLimiterDecorator(restrictedTypes)
-	
+
 	// Verify the decorator has the correct restricted messages
 	require.True(t, decorator.restrictedMessages["/cosmwasm.wasm.v1.MsgExecuteContract"])
 	require.True(t, decorator.restrictedMessages["/cosmwasm.wasm.v1.MsgInstantiateContract"])
