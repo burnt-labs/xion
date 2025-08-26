@@ -69,6 +69,15 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		wasmkeeper.NewLimitSimulationGasDecorator(options.NodeConfig.SimulationGasLimit), // after setup context to enforce limits early
 		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreService),
 		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
+		// SECURITY: Prevent dangerous nested messages in authz execution
+		NewAuthzLimiterDecorator([]string{
+			"/cosmwasm.wasm.v1.MsgExecuteContract",
+			"/cosmwasm.wasm.v1.MsgInstantiateContract",
+			"/cosmwasm.wasm.v1.MsgInstantiateContract2",
+			"/cosmwasm.wasm.v1.MsgMigrateContract",
+			"/cosmwasm.wasm.v1.MsgUpdateAdmin",
+			"/cosmwasm.wasm.v1.MsgClearAdmin",
+		}),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// this changes the minGasFees,
 		// and must occur before gas fee checks
