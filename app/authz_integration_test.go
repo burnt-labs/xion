@@ -59,8 +59,11 @@ func TestAuthzLimiterAllowsLegitimateMessages(t *testing.T) {
 	legitimateMsg := &authz.MsgGrant{
 		Granter: "xion1granter",
 		Grantee: "xion1grantee",
-		Grant:   authz.Grant{
-			// This would normally have proper authorization details
+		Grant: authz.Grant{
+			Authorization: &authz.GenericAuthorization{
+				Msg: "/cosmos.bank.v1beta1.MsgSend",
+			},
+			Expiration: time.Now().Add(24 * time.Hour),
 		},
 	}
 
