@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"google.golang.org/protobuf/proto"
 
 	ibcclienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -306,4 +307,312 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	res, err = feeDecorator.GetTxFeeRequired(ctx, tx)
 	s.Require().NoError(err)
 	s.Require().True(res.Equal(globalFee))
+}
+
+// TestNewFeeDecoratorPanic tests the panic condition in NewFeeDecorator
+func (s *IntegrationTestSuite) TestNewFeeDecoratorPanic() {
+	// Test panic when globalfeeSubspace doesn't have key table
+	s.Run("panic when no key table", func() {
+		// Create a subspace without setting up the key table
+		subspaceWithoutKeyTable := s.app.GetSubspace("non-existent-module")
+
+		// This should panic because HasKeyTable() returns false
+		s.Require().Panics(func() {
+			xionfeeante.NewFeeDecorator(subspaceWithoutKeyTable, bondDenom)
+		})
+	})
+}
+
+// TestAnteHandleEdgeCases tests edge cases to achieve 100% coverage
+func (s *IntegrationTestSuite) TestAnteHandleEdgeCases() {
+	// Test 1: Invalid FeeTx type (tx not implementing sdk.FeeTx interface)
+	s.Run("invalid FeeTx type", func() {
+		feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, &globfeetypes.Params{}, bondDenom)
+
+		// Create a mock transaction that doesn't implement sdk.FeeTx
+		mockTx := &MockTx{}
+
+		ctx := s.ctx.WithIsCheckTx(true)
+		_, err := feeDecorator.AnteHandle(ctx, mockTx, false, NextFn)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "Tx must implement the sdk.FeeTx interface")
+	})
+
+	// Test 2: Simulation mode (should bypass all checks)
+	s.Run("simulation mode", func() {
+		feeDecorator, antehandler := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, &globfeetypes.Params{}, bondDenom)
+
+		s.txBuilder = s.clientCtx.TxConfig.NewTxBuilder()
+		priv1, _, addr1 := testdata.KeyTestPubAddr()
+		privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
+
+		// Set up a transaction that would normally fail
+		err := s.txBuilder.SetMsgs(&xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr1.String()})
+		s.Require().NoError(err)
+		s.txBuilder.SetFeeAmount(sdk.NewCoins()) // Zero fees
+		s.txBuilder.SetGasLimit(10_000_000)      // High gas limit
+
+		tx, err := s.CreateTestTx(privs, accNums, accSeqs, s.ctx.ChainID())
+		s.Require().NoError(err)
+
+		ctx := s.ctx.WithIsCheckTx(true)
+		// simulate=true should bypass all checks
+		_, err = feeDecorator.AnteHandle(ctx, tx, true, antehandler)
+		s.Require().NoError(err) // Should pass in simulation mode
+	})
+
+	// Test 3: GetTxFeeRequired error path
+	s.Run("GetTxFeeRequired error", func() {
+		// Use noBondDenom to cause DefaultZeroGlobalFee to fail
+		feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, &globfeetypes.Params{}, noBondDenom)
+
+		s.txBuilder = s.clientCtx.TxConfig.NewTxBuilder()
+		priv1, _, addr1 := testdata.KeyTestPubAddr()
+		privs, accNums, accSeqs := []cryptotypes.PrivKey{priv1}, []uint64{0}, []uint64{0}
+
+		// Set up a non-bypass message (this will trigger GetTxFeeRequired)
+		err := s.txBuilder.SetMsgs(&ibcchanneltypes.MsgRecvPacket{
+			Packet: ibcchanneltypes.Packet{}, Signer: addr1.String()})
+		s.Require().NoError(err)
+		s.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100))))
+		s.txBuilder.SetGasLimit(200_000)
+
+		tx, err := s.CreateTestTx(privs, accNums, accSeqs, s.ctx.ChainID())
+		s.Require().NoError(err)
+
+		ctx := s.ctx.WithIsCheckTx(true)
+		_, err = feeDecorator.AnteHandle(ctx, tx, false, NextFn)
+		// Should fail when GetTxFeeRequired encounters the invalid bondDenom
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "empty staking bond denomination")
+	})
+}
+
+// MockTx is a mock transaction that doesn't implement sdk.FeeTx
+type MockTx struct{}
+
+func (tx MockTx) GetMsgs() []sdk.Msg {
+	return []sdk.Msg{}
+}
+
+func (tx MockTx) GetMsgsV2() ([]proto.Message, error) {
+	return []proto.Message{}, nil
+}
+
+func (tx MockTx) ValidateBasic() error {
+	return nil
+}
+
+// NextFn is a simple next function for testing
+func NextFn(ctx sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+	return ctx, nil
+}
+
+// TestFeeUtilityFunctions tests the utility functions in fee_utils.go for 100% coverage
+func (s *IntegrationTestSuite) TestFeeUtilityFunctions() {
+	// Test CombinedFeeRequirement
+	s.Run("CombinedFeeRequirement", func() {
+		// Test empty global fees (should return error)
+		globalFees := sdk.DecCoins{}
+		minGasPrices := sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(1))}
+		_, err := xionfeeante.CombinedFeeRequirement(globalFees, minGasPrices)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "global fee cannot be empty")
+
+		// Test empty min gas prices (should return global fees)
+		globalFees = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		minGasPrices = sdk.DecCoins{}
+		result, err := xionfeeante.CombinedFeeRequirement(globalFees, minGasPrices)
+		s.Require().NoError(err)
+		s.Require().Equal(globalFees, result)
+
+		// Test min gas price higher than global fee (should use min gas price)
+		globalFees = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(1))}
+		minGasPrices = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		result, err = xionfeeante.CombinedFeeRequirement(globalFees, minGasPrices)
+		s.Require().NoError(err)
+		s.Require().Equal(minGasPrices, result)
+
+		// Test global fee higher than min gas price (should use global fee)
+		globalFees = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		minGasPrices = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(1))}
+		result, err = xionfeeante.CombinedFeeRequirement(globalFees, minGasPrices)
+		s.Require().NoError(err)
+		s.Require().Equal(globalFees, result)
+
+		// Test different denoms (should use global fee since no overlap)
+		globalFees = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		minGasPrices = sdk.DecCoins{sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5))}
+		result, err = xionfeeante.CombinedFeeRequirement(globalFees, minGasPrices)
+		s.Require().NoError(err)
+		s.Require().Equal(globalFees, result)
+	})
+
+	// Test Find function
+	s.Run("Find", func() {
+		// Test empty coins
+		coins := sdk.DecCoins{}
+		found, coin := xionfeeante.Find(coins, "uxion")
+		s.Require().False(found)
+		s.Require().Equal(sdk.DecCoin{}, coin)
+
+		// Test single coin - found
+		coins = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		found, coin = xionfeeante.Find(coins, "uxion")
+		s.Require().True(found)
+		s.Require().Equal("uxion", coin.Denom)
+		s.Require().Equal(math.LegacyNewDec(10), coin.Amount)
+
+		// Test single coin - not found
+		found, coin = xionfeeante.Find(coins, "atom")
+		s.Require().False(found)
+		s.Require().Equal(sdk.DecCoin{}, coin)
+
+		// Test multiple coins - found at beginning
+		coins = sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10)),
+		}
+		found, coin = xionfeeante.Find(coins, "atom")
+		s.Require().True(found)
+		s.Require().Equal("atom", coin.Denom)
+
+		// Test multiple coins - found at end
+		found, coin = xionfeeante.Find(coins, "uxion")
+		s.Require().True(found)
+		s.Require().Equal("uxion", coin.Denom)
+
+		// Test multiple coins - found in middle
+		coins = sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5)),
+			sdk.NewDecCoinFromDec("osmo", math.LegacyNewDec(7)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10)),
+		}
+		found, coin = xionfeeante.Find(coins, "osmo")
+		s.Require().True(found)
+		s.Require().Equal("osmo", coin.Denom)
+
+		// Test multiple coins - not found (binary search left branch)
+		found, coin = xionfeeante.Find(coins, "abc") // Less than middle element "osmo"
+		s.Require().False(found)
+		s.Require().Equal(sdk.DecCoin{}, coin)
+
+		// Test multiple coins - not found (binary search right branch) 
+		found, coin = xionfeeante.Find(coins, "zzz") // Greater than middle element "osmo"
+		s.Require().False(found)
+		s.Require().Equal(sdk.DecCoin{}, coin)
+
+		// Test multiple coins - not found (generic case)
+		found, coin = xionfeeante.Find(coins, "notfound")
+		s.Require().False(found)
+		s.Require().Equal(sdk.DecCoin{}, coin)
+	})
+
+	// Test IsAllGT function
+	s.Run("IsAllGT", func() {
+		// Test empty a (should return false)
+		a := sdk.DecCoins{}
+		b := sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(1))}
+		result := xionfeeante.IsAllGT(a, b)
+		s.Require().False(result)
+
+		// Test empty b (should return true)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(1))}
+		b = sdk.DecCoins{}
+		result = xionfeeante.IsAllGT(a, b)
+		s.Require().True(result)
+
+		// Test b not subset of a (should return false)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		b = sdk.DecCoins{sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5))}
+		result = xionfeeante.IsAllGT(a, b)
+		s.Require().False(result)
+
+		// Test a > b (should return true)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		b = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(5))}
+		result = xionfeeante.IsAllGT(a, b)
+		s.Require().True(result)
+
+		// Test a <= b (should return false)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(5))}
+		b = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		result = xionfeeante.IsAllGT(a, b)
+		s.Require().False(result)
+
+		// Test a == b (should return false)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		b = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		result = xionfeeante.IsAllGT(a, b)
+		s.Require().False(result)
+
+		// Test multiple coins - all greater
+		a = sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(10)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(20)),
+		}
+		b = sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10)),
+		}
+		result = xionfeeante.IsAllGT(a, b)
+		s.Require().True(result)
+
+		// Test multiple coins - not all greater
+		a = sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(3)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(20)),
+		}
+		b = sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10)),
+		}
+		result = xionfeeante.IsAllGT(a, b)
+		s.Require().False(result)
+	})
+
+	// Test DenomsSubsetOf function
+	s.Run("DenomsSubsetOf", func() {
+		// Test more denoms in a than b (should return false)
+		a := sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10)),
+		}
+		b := sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		result := xionfeeante.DenomsSubsetOf(a, b)
+		s.Require().False(result)
+
+		// Test denom in a not in b (should return false)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(5))}
+		b = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		result = xionfeeante.DenomsSubsetOf(a, b)
+		s.Require().False(result)
+
+		// Test proper subset (should return true)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(5))}
+		b = sdk.DecCoins{
+			sdk.NewDecCoinFromDec("atom", math.LegacyNewDec(3)),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10)),
+		}
+		result = xionfeeante.DenomsSubsetOf(a, b)
+		s.Require().True(result)
+
+		// Test equal sets (should return true)
+		a = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(5))}
+		b = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		result = xionfeeante.DenomsSubsetOf(a, b)
+		s.Require().True(result)
+
+		// Test empty a (should return true)
+		a = sdk.DecCoins{}
+		b = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDec(10))}
+		result = xionfeeante.DenomsSubsetOf(a, b)
+		s.Require().True(result)
+
+		// Test both empty (should return true)
+		a = sdk.DecCoins{}
+		b = sdk.DecCoins{}
+		result = xionfeeante.DenomsSubsetOf(a, b)
+		s.Require().True(result)
+	})
 }

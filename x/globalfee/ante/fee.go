@@ -73,14 +73,6 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		return next(ctx, tx, simulate)
 	}
 
-	if mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
-		maxBypassGas := mfd.GetMaxTotalBypassMinFeeMsgGasUsage(ctx)
-		if feeTx.GetGas() <= maxBypassGas {
-			return next(ctx, tx, simulate)
-		}
-		// gas wanted exceeds bypass cap; fall through to normal fee enforcement
-	}
-
 	// Get the required fees, as per xion specification max(network_fees, local_validator_fees)
 	feeRequired, err := mfd.GetTxFeeRequired(ctx, feeTx)
 	if err != nil {
