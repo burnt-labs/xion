@@ -177,6 +177,26 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			expErr:      false,
 			networkFee:  false,
 		},
+		"bypass msg with excessive gas should fail": {
+			minGasPrice: minGasPrice,
+			globalFee:   globalfeeParamsLow,
+			gasPrice:    sdk.NewCoins(sdk.NewCoin("uxion", math.ZeroInt())),
+			gasLimit:    10_000_000, // 10x the max bypass gas limit (1M) - should fail
+			txMsg:       &xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr1.String()},
+			txCheck:     true,
+			expErr:      true, // This should now fail due to gas limit enforcement
+			networkFee:  false,
+		},
+		"bypass msg at gas limit boundary should pass": {
+			minGasPrice: minGasPrice,
+			globalFee:   globalfeeParamsLow,
+			gasPrice:    sdk.NewCoins(sdk.NewCoin("uxion", math.ZeroInt())),
+			gasLimit:    1_000_000, // Exactly at the max bypass gas limit - should pass
+			txMsg:       &xiontypes.MsgSend{ToAddress: addr1.String(), FromAddress: addr1.String()},
+			txCheck:     true,
+			expErr:      false, // This should pass as it's within the limit
+			networkFee:  false,
+		},
 	}
 
 	globalfeeParams := &globfeetypes.Params{

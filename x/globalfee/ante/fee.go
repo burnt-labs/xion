@@ -53,8 +53,23 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	}
 
 	// Do not check minimum-gas-prices and global fees during simulations
-	// short-circuit bypass messages when under the configured gas cap
 	if simulate {
+		return next(ctx, tx, simulate)
+	}
+
+	// Handle bypass messages with gas limit validation
+	if mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
+		// Enforce MaxTotalBypassMinFeeMsgGasUsage limit for bypass messages
+		gasLimit := feeTx.GetGas()
+		maxBypassGas := mfd.GetMaxTotalBypassMinFeeMsgGasUsage(ctx)
+		if gasLimit > maxBypassGas {
+			return ctx, errorsmod.Wrapf(
+				sdkerrors.ErrInsufficientFee,
+				"bypass messages cannot use more than %d gas, but got %d",
+				maxBypassGas,
+				gasLimit,
+			)
+		}
 		return next(ctx, tx, simulate)
 	}
 
