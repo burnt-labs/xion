@@ -85,8 +85,6 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 			valStr = c.String()
 		case []byte:
 			valStr = string(c)
-		case float64, float32, int, int32, int64, uint, uint32, uint64, bool:
-			valStr = fmt.Sprintf("%v", c)
 		default:
 			if b, mErr := json.Marshal(v); mErr == nil {
 				valStr = string(b)
