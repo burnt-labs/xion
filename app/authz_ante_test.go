@@ -3,9 +3,8 @@ package app
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
