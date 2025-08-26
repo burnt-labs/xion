@@ -18,8 +18,8 @@ import (
 func TestAuthzBypassVulnerabilityPrevention(t *testing.T) {
 	// Create a malicious MsgExecuteContract that would cause network shutdown
 	maliciousContract := &wasmtypes.MsgExecuteContract{
-		Sender:   "xion1attacker",
-		Contract: "xion1malicious_contract",
+		Sender:   sdk.AccAddress([]byte("attacker")).String(),
+		Contract: sdk.AccAddress([]byte("malicious_contract")).String(),
 		Msg:      []byte(`{"infinite_loop": {"iterations": 999999999}}`),
 		Funds:    nil,
 	}
