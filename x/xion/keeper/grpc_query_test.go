@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/stretchr/testify/require"
 
 	storetypes "cosmossdk.io/store/types"
@@ -13,8 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 
 	"github.com/burnt-labs/xion/x/xion/types"
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 )
 
 // Tests exercise error paths via malformed inputs only.

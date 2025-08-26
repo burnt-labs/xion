@@ -372,7 +372,8 @@ func (s *IntegrationTestSuite) TestAnteHandleEdgeCases() {
 
 		// Set up a non-bypass message (this will trigger GetTxFeeRequired)
 		err := s.txBuilder.SetMsgs(&ibcchanneltypes.MsgRecvPacket{
-			Packet: ibcchanneltypes.Packet{}, Signer: addr1.String()})
+			Packet: ibcchanneltypes.Packet{}, Signer: addr1.String(),
+		})
 		s.Require().NoError(err)
 		s.txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100))))
 		s.txBuilder.SetGasLimit(200_000)
@@ -497,7 +498,7 @@ func (s *IntegrationTestSuite) TestFeeUtilityFunctions() {
 		s.Require().False(found)
 		s.Require().Equal(sdk.DecCoin{}, coin)
 
-		// Test multiple coins - not found (binary search right branch) 
+		// Test multiple coins - not found (binary search right branch)
 		found, coin = xionfeeante.Find(coins, "zzz") // Greater than middle element "osmo"
 		s.Require().False(found)
 		s.Require().Equal(sdk.DecCoin{}, coin)
