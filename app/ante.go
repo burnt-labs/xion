@@ -75,7 +75,9 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, func(context sdk.Context) string {
 			bondDenom, err := options.StakingKeeper.BondDenom(context)
 			if err != nil {
-				panic(err)
+				// Log error and return fallback denom instead of panicking
+				context.Logger().Error("Failed to get bond denom, using fallback", "error", err)
+				return "uxion" // Use network's primary denom as fallback
 			}
 			return bondDenom
 		}),
