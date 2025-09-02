@@ -166,3 +166,31 @@ func CmdDeleteAudience() *cobra.Command {
 
 	return cmd
 }
+
+func CmdDeleteAudienceClaim() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete-audience-claim [aud]",
+		Short: "Delete an audience claim",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			audStr := args[0]
+
+			audHash := sha256.Sum256([]byte(audStr))
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeleteAudienceClaim(clientCtx.GetFromAddress(), audHash[:])
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
