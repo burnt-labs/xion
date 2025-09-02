@@ -57,8 +57,9 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 		return nil, err
 	}
 	throughCoins := msg.Amount
-	if !msg.Amount.IsAnyGT(minimums) {
-		// minimum has not been met. no coin in msg.Amount exceeds a minimum that has been set
+	// Enforce per-denom minimums: for any denom that has a configured minimum,
+	// the sent amount for that denom must be >= that minimum.
+	if !meetsConfiguredMinimums(msg.Amount, minimums) {
 		return nil, errorsmod.Wrapf(types.ErrMinimumNotMet, "received %v, needed at least %v", msg.Amount, minimums)
 	}
 
@@ -109,8 +110,9 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	var outputs []banktypes.Output
 	totalPlatformCoins := sdk.NewCoins()
 
-	if !msg.Inputs[0].Coins.IsAnyGT(minimums) {
-		// minimum has not been met. no coin in msg.Amount exceeds a minimum that has been set
+	// Enforce per-denom minimums on the input: for any denom that has a configured minimum,
+	// the input amount for that denom must be >= that minimum.
+	if !meetsConfiguredMinimums(msg.Inputs[0].Coins, minimums) {
 		return nil, errorsmod.Wrapf(types.ErrMinimumNotMet, "received %v, needed at least %v", msg.Inputs[0].Coins, minimums)
 	}
 
@@ -148,6 +150,32 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	}
 
 	return &types.MsgMultiSendResponse{}, nil
+}
+
+// meetsConfiguredMinimums returns true if, for every denom in amt that has a configured
+// minimum in mins, the amount for that denom is greater than or equal to the minimum.
+// Denoms without a configured minimum are not constrained by this check.
+// If no minimums are configured at all, this returns false to maintain backwards compatibility
+// requiring platform minimums to be explicitly set.
+func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
+	// Require that platform minimums be explicitly set (backwards compatibility)
+	if len(mins) == 0 {
+		return false
+	}
+
+	// Build a map for O(1) minimum lookups
+	minMap := make(map[string]math.Int, len(mins))
+	for _, m := range mins {
+		minMap[m.Denom] = m.Amount
+	}
+
+	for _, c := range amt {
+		min, ok := minMap[c.Denom]
+		if ok && !min.IsZero() && c.Amount.LT(min) {
+			return false
+		}
+	}
+	return true
 }
 
 func (k msgServer) SetPlatformPercentage(goCtx context.Context, msg *types.MsgSetPlatformPercentage) (*types.MsgSetPlatformPercentageResponse, error) {
