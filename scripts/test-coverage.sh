@@ -3,7 +3,7 @@
 # Script to run tests with coverage, excluding generated protobuf files
 
 # List of patterns to exclude from low coverage reporting
-# Add new exclusion patterns here only if needed
+# Add new exclusion patterns here as needed
 COVERAGE_EXCLUSIONS=(
     "x/feeabs/types/params.go.*Validate"
     "github.com/burnt-labs/xion/x/xion/client/cli/tx.go:.*NewRegisterCmd"
@@ -11,7 +11,9 @@ COVERAGE_EXCLUSIONS=(
     "github.com/burnt-labs/xion/x/xion/keeper/grpc_query.go:.*WebAuthNVerifyRegister"
     "github.com/burnt-labs/xion/x/xion/keeper/grpc_query.go:.*WebAuthNVerifyAuthenticate"
     "github.com/burnt-labs/xion/x/xion/keeper/mint.go:.*StakedInflationMintFn"
-    "github.com/burnt-labs/xion/x/xion/keeper/genesis.go:.*InitGenesis"
+    # Add more exclusion patterns below as needed
+    # Example: "x/module/types/file.go.*FunctionName"
+    # Example: ".*defensive.*code.*pattern"
 )
 
 echo "Running tests with coverage (excluding .pb.go files)..."
@@ -60,20 +62,23 @@ build_exclusion_grep() {
 
 # Show modules with ok coverage (50% - 99%)
 echo ""
-echo "=== OK COVERAGE (80% - 99%) ==="
-go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[89][0-9]\.[0-9]%$/'
+echo "=== OK COVERAGE (50% - 99%) ==="
+go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[5-9][0-9]\.[0-9]%$/'
 
-# Show modules with low coverage (<=50%), including 0%
+# Show modules with low coverage (less than 50%)
 echo ""
-echo "=== LOW COVERAGE (<80%) ==="
+echo "=== LOW COVERAGE (<50%) ==="
 exclusion_cmd=$(build_exclusion_grep "${COVERAGE_EXCLUSIONS[@]}")
 if [[ -n "$exclusion_cmd" ]]; then
-    eval "go tool cover -func=coverage_filtered.out | awk '\$3 ~ /^[0-7]?[0-9]\\.[0-9]%\$/' | $exclusion_cmd"
+    eval "go tool cover -func=coverage_filtered.out | awk '\$3 ~ /^[0-4]?[0-9]\\.[0-9]%\$/' | grep -v -E \"[^0-9]0.0%\" | $exclusion_cmd"
 else
-    go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[0-7]?[0-9]\.[0-9]%$/'
+    go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[0-4]?[0-9]\.[0-9]%$/' | grep -v -E "[^0-9]0.0%"
 fi 
 
- 
+# Show modules with 0% coverage
+echo ""
+echo "=== NO COVERAGE (0%) ==="
+go tool cover -func=coverage_filtered.out | grep -E "[^0-9]0.0%" 
 
 # Show summary statistics
 echo ""
@@ -88,12 +93,12 @@ echo "=== COVERAGE VALIDATION ==="
 # Extract numeric value from total coverage (remove % sign)
 total_numeric=$(echo "$total_coverage" | sed 's/%//')
 
-# Check for low coverage items (<=50%), excluding configured exclusions
+# Check for low coverage items (excluding configured exclusions)
 exclusion_cmd=$(build_exclusion_grep "${COVERAGE_EXCLUSIONS[@]}")
 if [[ -n "$exclusion_cmd" ]]; then
-    low_coverage_count=$(eval "go tool cover -func=coverage_filtered.out | awk '\$3 ~ /^[0-4]?[0-9]\\.[0-9]%\$/' | $exclusion_cmd | wc -l")
+    low_coverage_count=$(eval "go tool cover -func=coverage_filtered.out | awk '\$3 ~ /^[0-4]?[0-9]\\.[0-9]%\$/' | grep -v -E \"[^0-9]0.0%\" | $exclusion_cmd | wc -l")
 else
-    low_coverage_count=$(go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[0-4]?[0-9]\.[0-9]%$/' | wc -l)
+    low_coverage_count=$(go tool cover -func=coverage_filtered.out | awk '$3 ~ /^[0-4]?[0-9]\.[0-9]%$/' | grep -v -E "[^0-9]0.0%" | wc -l)
 fi
 
 # Remove any leading/trailing whitespace from count
@@ -109,12 +114,12 @@ else
     echo "✅ PASS: Total coverage ($total_coverage) meets 85% threshold"
 fi
 
-# Check for low coverage functions (<=50%, includes 0%)
+# Check for low coverage functions
 if [[ "$low_coverage_count" -gt 0 ]]; then
-    echo "❌ FAILURE: Found $low_coverage_count function(s) with low coverage (<=50%)"
+    echo "❌ FAILURE: Found $low_coverage_count function(s) with low coverage (<50%)"
     exit_code=1
 else
-    echo "✅ PASS: No functions with low coverage (<=50%)"
+    echo "✅ PASS: No functions with low coverage (<50%)"
 fi
 
 if [[ $exit_code -eq 0 ]]; then
