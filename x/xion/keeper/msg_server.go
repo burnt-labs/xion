@@ -3,11 +3,13 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"math"
+	"math/big"
 
 	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,7 +66,10 @@ func (k msgServer) Send(goCtx context.Context, msg *types.MsgSend) (*types.MsgSe
 	}
 
 	if !percentage.IsZero() {
-		platformCoins := msg.Amount.MulInt(percentage).QuoInt(math.NewInt(10000))
+		// Safe calculation to prevent overflow: use multiplication with bounds checking
+		// For each coin, calculate: (amount * percentage) / 10000
+		// But prevent overflow by checking if amount * percentage would overflow
+		platformCoins := getPlatformCoins(msg.Amount, percentage)
 		throughCoins = throughCoins.Sub(platformCoins...)
 
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, authtypes.FeeCollectorName, platformCoins); err != nil {
@@ -125,7 +130,8 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 
 		// if there is a platform fee set, reduce it from each output
 		if !percentage.IsZero() {
-			platformCoins := out.Coins.MulInt(percentage).QuoInt(math.NewInt(10000))
+			// Safe calculation to prevent overflow: use multiplication with bounds checking
+			platformCoins := getPlatformCoins(out.Coins, percentage)
 			throughCoins, wentNegative := out.Coins.SafeSub(platformCoins...)
 			if wentNegative {
 				return nil, fmt.Errorf("unable to subtract %v from %v", platformCoins, throughCoins)
@@ -198,4 +204,27 @@ func (k msgServer) SetPlatformMinimum(goCtx context.Context, msg *types.MsgSetPl
 	err := k.OverwritePlatformMinimum(ctx, msg.Minimums)
 
 	return &types.MsgSetPlatformMinimumResponse{}, err
+}
+
+func getPlatformCoins(coins sdk.Coins, percentage sdkmath.Int) sdk.Coins {
+	var platformCoins sdk.Coins
+	for _, coin := range coins {
+		maxSafeAmount := sdkmath.NewIntFromUint64(math.MaxUint64).Quo(percentage)
+		if coin.Amount.GT(maxSafeAmount) {
+			// Use big integer arithmetic to prevent overflow
+			bigAmount := coin.Amount.BigInt()
+			bigPercentage := percentage.BigInt()
+			bigDivisor := sdkmath.NewInt(10000).BigInt()
+
+			bigResult := new(big.Int).Mul(bigAmount, bigPercentage)
+			bigResult = bigResult.Quo(bigResult, bigDivisor)
+
+			platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, sdkmath.NewIntFromBigInt(bigResult)))
+		} else {
+			// Safe to use normal calculation
+			feeAmount := coin.Amount.Mul(percentage).Quo(sdkmath.NewInt(10000))
+			platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, feeAmount))
+		}
+	}
+	return platformCoins
 }
