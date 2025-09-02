@@ -95,23 +95,6 @@ gen_swagger() {
   npm exec -- swagger2openapi ../static/swagger.json --outfile ../static/openapi.json
 }
 
-gen_ts() {
-  local dirs=$(get_proto_dirs $proto_dir $proto_paths)
-  ts_dir=$client_dir/ts
-  types_dir=$ts_dir/types
-  mkdir -p $types_dir
-
-  cd $ts_dir
-  npm install
-  # Generate swagger for each path
-  for dir in $dirs; do
-    # generate swagger files (filter query files)
-    query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
-    [[ -n "$query_file" ]] || continue
-
-    buf generate --template $proto_dir/buf.gen.ts.yaml $query_file
-  done
-}
 
 # Parse CLI parameters
 if [[ $# -eq 0 ]]; then
@@ -125,10 +108,6 @@ else
       ;;
     --swagger)
       gen_swagger
-      shift
-      ;;
-    --ts|--js)
-      gen_ts
       shift
       ;;
     *)

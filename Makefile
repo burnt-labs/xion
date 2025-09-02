@@ -347,10 +347,6 @@ proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/proto-gen.sh
 
-proto-gen-ts:
-	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/proto-gen.sh --ts
-
 proto-gen-swagger:
 	@echo "Generating Protobuf Swagger"
 	@$(protoImage) sh scripts/proto-gen.sh --swagger
