@@ -789,7 +789,7 @@ func NewWasmApp(
 	transferStack = packetforward.NewIBCMiddleware(
 		cbStack,
 		app.PacketForwardKeeper,
-		0,
+		10,
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 	)
 
