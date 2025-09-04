@@ -1,5 +1,21 @@
 #!/usr/bin/env bash
 
+# Proto generation script for Xion
+# 
+# This script can be used in two ways:
+# 1. Run directly: ./proto-gen.sh [--gogo|--swagger]
+# 2. Source and use functions: 
+#    source proto-gen.sh
+#    gen_gogo        # Generate gogo protobuf files
+#    gen_swagger     # Generate swagger documentation
+#
+# Available functions when sourced:
+# - gen_gogo: Generate gogo protobuf files
+# - gen_swagger: Generate swagger documentation
+# - get_proto_dirs: Find all subdirectories with .proto files
+# - use_tmp_dir: Create and use a temporary directory
+# - main: Main CLI handler
+
 set -eo pipefail
 
 if [ -n "$DEBUG" ]; then
@@ -7,21 +23,18 @@ if [ -n "$DEBUG" ]; then
 fi
 
 # Get the directory of this script, used to source other scripts
-: ${scripts_dir:="$(realpath $(dirname $0))"}
-: ${base_dir:="$(dirname $scripts_dir)"}
-: ${proto_dir:="$base_dir/proto"}
-: ${client_dir:="$base_dir/client"}
-: ${docs_dir:="$client_dir/docs"}
+scripts_dir="$(cd "$(dirname "$0")" && pwd)"
+base_dir="$(dirname "$scripts_dir")"
+proto_dir="$base_dir/proto"
+client_dir="$base_dir/client"
+docs_dir="$client_dir/docs"
 
 # Define dependencies
-deps=$(cat <<EOF
-  github.com/cosmos/cosmos-sdk
-  github.com/cosmos/cosmos-proto
-  github.com/cosmos/ibc-go/v10
-  github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
-  github.com/CosmWasm/wasmd
-EOF
-)
+deps="github.com/cosmos/cosmos-sdk
+github.com/cosmos/cosmos-proto
+github.com/cosmos/ibc-go/v10
+github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
+github.com/CosmWasm/wasmd"
 
 # Install selected dependencies from go.mod
 go mod download $deps
@@ -43,8 +56,9 @@ use_tmp_dir() {
 
 get_proto_dirs() {
   # Find all subdirectories with .proto files
-  find $@ -path -prune -o -name '*.proto' -print0 \
-    | xargs -0 -n1 dirname | sort -u 
+  find "$@" -name '*.proto' -print0 2>/dev/null | \
+    xargs -0 -n1 dirname 2>/dev/null | \
+    sort -u 2>/dev/null || true
 }
 
 gen_gogo() {
@@ -52,30 +66,30 @@ gen_gogo() {
 
   for dir in $dirs; do
     for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
-      if grep "option go_package" $file &> /dev/null ; then
-      buf generate --output $proto_dir --template $proto_dir/buf.gen.gogo.yaml $file
+      if grep "option go_package" "$file" >/dev/null 2>&1; then
+        buf generate --output "$proto_dir" --template "$proto_dir/buf.gen.gogo.yaml" "$file"
       fi
     done
   done
 
   # move proto files to the right places
   if [ -e "$base_dir/github.com/burnt-labs/xion" ]; then
-  cp -rv $base_dir/github.com/burnt-labs/xion/* $base_dir/
-  rm -rf $base_dir/github.com
+    cp -rv "$base_dir/github.com/burnt-labs/xion/"* "$base_dir/"
+    rm -rf "$base_dir/github.com"
   fi
 }
 
 gen_swagger() {
-  local dirs=$(get_proto_dirs $proto_dir $proto_paths)
+  local dirs=$(get_proto_dirs "$proto_dir" $proto_paths)
 
-  use_tmp_dir $docs_dir
+  use_tmp_dir "$docs_dir"
   # Generate swagger for each path
   for dir in $dirs; do
     # generate swagger files (filter query files)
     query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
-    [[ -n "$query_file" ]] || continue
+    [ -n "$query_file" ] || continue
 
-    buf generate --template $proto_dir/buf.gen.swagger.yaml $query_file
+    buf generate --template "$proto_dir/buf.gen.swagger.yaml" "$query_file"
   done
   # find ./ -type f
 
@@ -83,9 +97,9 @@ gen_swagger() {
   # uses nodejs package `swagger-combine`.
   # all the individual swagger files need to be configured in `config.json` for merging
   
-  swagger-combine ${docs_dir}/config.yaml \
+  swagger-combine "${docs_dir}/config.yaml" \
     --format "json" \
-    --output ${docs_dir}/static/swagger.json \
+    --output "${docs_dir}/static/swagger.json" \
     --includeDefinitions true \
     --continueOnConflictingPaths true
 
@@ -95,28 +109,41 @@ gen_swagger() {
   npm exec -- swagger2openapi ../static/swagger.json --outfile ../static/openapi.json
 }
 
+# Main function to handle CLI parameters
+main() {
+  if [ $# -eq 0 ]; then
+    gen_gogo
+  else
+    while [ $# -gt 0 ]; do
+      case $1 in
+        --gogo)
+          gen_gogo
+          shift
+          ;;
+        --swagger)
+          gen_swagger
+          shift
+          ;;
+        --help|-h)
+          echo "Usage: $0 [--gogo|--swagger|--help]"
+          echo "  --gogo     Generate gogo protobuf files (default)"
+          echo "  --swagger  Generate swagger documentation"
+          echo "  --help     Show this help message"
+          return 0
+          ;;
+        *)
+          echo "Error: Unknown option '$1'" >&2
+          echo "Use --help for usage information" >&2
+          return 1
+          ;;
+      esac
+    done
+  fi
+}
 
-# Parse CLI parameters
-if [[ $# -eq 0 ]]; then
-  gen_gogo
-else
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-    --gogo)
-      gen_gogo
-      shift
-      ;;
-    --swagger)
-      gen_swagger
-      shift
-      ;;
-    *)
-      echo "Unknown option: $1"
-      exit 1
-      ;;
-    esac
-  done
+# Only execute main if script is run directly (not sourced)
+# This works in all POSIX shells including ash, bash, zsh, dash
+if [ "${0##*/}" = "proto-gen.sh" ]; then
+  main "$@"
 fi
 
-# clean up tmp dir
-#rm -rf $tmp_dir
