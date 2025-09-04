@@ -14,6 +14,7 @@
 # - gen_swagger: Generate swagger documentation
 # - get_proto_dirs: Find all subdirectories with .proto files
 # - use_tmp_dir: Create and use a temporary directory
+# - show_help: Display usage information
 # - main: Main CLI handler
 
 set -eo pipefail
@@ -37,9 +38,11 @@ github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
 github.com/CosmWasm/wasmd"
 
 # Install selected dependencies from go.mod
-go mod download $deps
+echo "installing dependencies"
+(cd ${base_dir} && go mod download $deps)
 
 # Get dependency paths
+echo "getting paths for $deps"
 proto_paths=$(go list -f '{{ .Dir }}' -m $deps | sed "s/$/\/proto/")
 
 use_tmp_dir() {
@@ -109,36 +112,41 @@ gen_swagger() {
   npm exec -- swagger2openapi ../static/swagger.json --outfile ../static/openapi.json
 }
 
+# Show help message
+show_help() {
+  echo "Usage: $0 [--gogo|--swagger|--help]"
+  echo "  --gogo     Generate gogo protobuf files (default)"
+  echo "  --swagger  Generate swagger documentation"
+  echo "  --help     Show this help message"
+}
+
 # Main function to handle CLI parameters
 main() {
   if [ $# -eq 0 ]; then
     gen_gogo
-  else
-    while [ $# -gt 0 ]; do
-      case $1 in
-        --gogo)
-          gen_gogo
-          shift
-          ;;
-        --swagger)
-          gen_swagger
-          shift
-          ;;
-        --help|-h)
-          echo "Usage: $0 [--gogo|--swagger|--help]"
-          echo "  --gogo     Generate gogo protobuf files (default)"
-          echo "  --swagger  Generate swagger documentation"
-          echo "  --help     Show this help message"
-          return 0
-          ;;
-        *)
-          echo "Error: Unknown option '$1'" >&2
-          echo "Use --help for usage information" >&2
-          return 1
-          ;;
-      esac
-    done
+    exit 0
   fi
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --gogo)
+        gen_gogo
+        shift
+        ;;
+      --swagger)
+        gen_swagger
+        shift
+        ;;
+      --help|-h)
+        show_help
+        return 0
+        ;;
+      *)
+        echo "Error: Unknown option '$1'" >&2
+        show_help
+        return 1
+        ;;
+    esac
+  done
 }
 
 # Only execute main if script is run directly (not sourced)
