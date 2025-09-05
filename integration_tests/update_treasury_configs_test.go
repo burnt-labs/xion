@@ -92,7 +92,7 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	// Query and validate Grant Config URLs
-	validateGrantConfigs(t, ctx, xion, treasuryAddr)
+	validateDefaultGrantConfigs(t, ctx, xion, treasuryAddr)
 
 	// Query and validate Fee Config
 	validateFeeConfig(t, ctx, xion, treasuryAddr)
@@ -115,13 +115,18 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	// Query and validate Grant Config URLs
-	validateGrantConfigs(t, ctx, xion, treasuryAddr)
+	validateDefaultGrantConfigs(t, ctx, xion, treasuryAddr)
 
 	// Query and validate Fee Config
 	validateFeeConfig(t, ctx, xion, treasuryAddr)
 }
 
-func validateGrantConfigs(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, treasuryAddr string) {
+func validateDefaultGrantConfigs(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, treasuryAddr string) {
+	check := []string{"/cosmos.bank.v1beta1.MsgSend", "/cosmos.staking.v1beta1.MsgDelegate", "/cosmos.gov.v1beta1.MsgVote"}
+	validateGrantConfigs(t, ctx, xion, treasuryAddr, 3, check...)
+}
+
+func validateGrantConfigs(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, treasuryAddr string, expected int, msgs ...string) {
 	t.Log("Querying grant config type URLs")
 	grantQueryMsg := map[string]interface{}{
 		"grant_config_type_urls": struct{}{},
@@ -140,15 +145,20 @@ func validateGrantConfigs(t *testing.T, ctx context.Context, xion *cosmos.Cosmos
 	require.NoError(t, err)
 
 	// Validate that all grants are in the contract state
-	require.Equal(t, 3, len(queriedGrantConfigUrls))
-	check := []string{"/cosmos.bank.v1beta1.MsgSend", "/cosmos.staking.v1beta1.MsgDelegate", "/cosmos.gov.v1beta1.MsgVote"}
-	exists := make(map[string]bool)
-	for _, str := range queriedGrantConfigUrls {
-		exists[str] = true
+	require.Equal(t, expected, len(queriedGrantConfigUrls), fmt.Sprintf("got: %d, expected: %d,\n these are the grants: %v", len(queriedGrantConfigUrls), 3, queriedGrantConfigUrls))
+	// check := []string{"/cosmos.bank.v1beta1.MsgSend", "/cosmos.staking.v1beta1.MsgDelegate", "/cosmos.gov.v1beta1.MsgVote"}
+	for _, msg := range msgs {
+		require.Contains(t, queriedGrantConfigUrls, msg)
 	}
-	for _, str := range check {
-		require.True(t, exists[str], "Expected %s to be in the grant config type URLs", str)
-	}
+	/*
+		exists := make(map[string]bool)
+		for _, str := range queriedGrantConfigUrls {
+			exists[str] = true
+		}
+		for _, str := range check {
+			require.True(t, exists[str], "Expected %s to be in the grant config type URLs", str)
+		}
+	*/
 }
 
 func validateFeeConfig(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, treasuryAddr string) {
@@ -312,7 +322,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	// Validate Grant Configs
-	validateGrantConfigs(t, ctx, xion, treasuryAddr1)
+	validateDefaultGrantConfigs(t, ctx, xion, treasuryAddr1)
 
 	// Validate Fee Config
 	validateFeeConfig(t, ctx, xion, treasuryAddr1)
@@ -355,7 +365,7 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	require.NoError(t, err)
 
 	// Validate Grant Configs
-	validateGrantConfigs(t, ctx, xion, treasuryAddr2)
+	validateDefaultGrantConfigs(t, ctx, xion, treasuryAddr2)
 
 	// Validate Fee Config
 	validateFeeConfig(t, ctx, xion, treasuryAddr2)
