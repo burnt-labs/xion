@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Proto generation script for Xion
 # 
@@ -92,7 +92,7 @@ gen_swagger() {
     query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
     [ -n "$query_file" ] || continue
 
-    buf generate --template "$proto_dir/buf.gen.swagger.yaml" "$query_file"
+    buf generate --template "$proto_dir/buf.gen.openapi.yaml" "$query_file"
   done
   # find ./ -type f
 
@@ -114,9 +114,10 @@ gen_swagger() {
 
 # Show help message
 show_help() {
-  echo "Usage: $0 [--gogo|--swagger|--help]"
+  echo "Usage: $0 [--gogo|--openapi|--swagger|--help]"
   echo "  --gogo     Generate gogo protobuf files (default)"
-  echo "  --swagger  Generate swagger documentation"
+  echo "  --openapi  Generate OpenAPI documentation"
+  echo "  --swagger  Generate OpenAPI documentation (alias for --openapi)"
   echo "  --help     Show this help message"
 }
 
@@ -132,7 +133,7 @@ main() {
         gen_gogo
         shift
         ;;
-      --swagger)
+      --openapi|--swagger)
         gen_swagger
         shift
         ;;

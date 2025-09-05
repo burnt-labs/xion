@@ -347,9 +347,11 @@ proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/proto-gen.sh
 
-proto-gen-swagger:
-	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh ./scripts/proto-gen.sh --swagger
+proto-gen-openapi:
+	@echo "Generating Protobuf OpenAPI"
+	@$(protoImage) sh ./scripts/proto-gen.sh --openapi
+
+proto-gen-swagger: proto-gen-openapi
 
 proto-format:
 	@echo "Formatting Protobuf files"
