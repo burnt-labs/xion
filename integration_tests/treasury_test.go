@@ -43,10 +43,17 @@ type FeeConfig struct {
 	Expiration  int32        `json:"expiration,omitempty"`
 }
 type TreasuryInstantiateMsg struct {
-	Admin        types.AccAddress `json:"admin,omitempty"`
-	TypeUrls     []string         `json:"type_urls"`
-	GrantConfigs []GrantConfig    `json:"grant_configs"`
-	FeeConfig    *FeeConfig       `json:"fee_config"`
+	Admin        *string       `json:"admin,omitempty"` // Option<Addr> in Rust
+	TypeUrls     []string      `json:"type_urls"`
+	GrantConfigs []GrantConfig `json:"grant_configs"`
+	FeeConfig    *FeeConfig    `json:"fee_config"` // Required field
+	Params       *Params       `json:"params"`     // Required field}
+}
+
+type Params struct {
+	RedirectURL string `json:"redirect_url"`
+	IconURL     string `json:"icon_url"`
+	Metadata    string `json:"metadata"`
 }
 
 type UserMapInstantiate struct{}
@@ -104,7 +111,7 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 
 	basicTestAllowance := feegrant.BasicAllowance{
-		SpendLimit: types.Coins{types.Coin{Denom: xion.Config().Denom, Amount: math.NewInt(100)}},
+		SpendLimit: types.Coins{types.Coin{Denom: xion.Config().Denom, Amount: math.NewInt(1000000)}},
 		Expiration: &inFive,
 	}
 
@@ -147,13 +154,20 @@ func TestTreasuryContract(t *testing.T) {
 	}
 
 	// NOTE: Start the Treasury
+	userAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddrStr,
 		TypeUrls:     []string{testAuth.MsgTypeURL(), testWasmExec.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{BankSendFeeGrantConfig, wasmExecFeeGrantConfig},
 		FeeConfig: &FeeConfig{
 			Description: "Fee allowance for user1",
 			Allowance:   &allowanceAny,
 			Expiration:  int32(18000),
+		},
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
 		},
 	}
 
@@ -302,6 +316,8 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, balance.Sub(math.OneInt()), receivedBalance)
+	fmt.Println("waiting...")
+	// time.Sleep(time.Minute * 10)
 
 	// Execute wasm contract from granter
 	userMapUpdateHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), []string{
@@ -467,8 +483,10 @@ func TestTreasuryMulti(t *testing.T) {
 		Optional:      false,
 	}
 
+	userAddress := xionUser.FormattedAddress()
 	// NOTE: Start the Treasury
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddress,
 		TypeUrls:     []string{testAuth.MsgTypeURL()},
 		GrantConfigs: []GrantConfig{grantConfig},
 		FeeConfig: &FeeConfig{

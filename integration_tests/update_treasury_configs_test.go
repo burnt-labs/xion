@@ -46,9 +46,11 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 		IntegrationTestPath("testdata", "contracts", "treasury-aarch64.wasm"))
 	require.NoError(t, err)
 
+	userAddr := xionUser.FormattedAddress()
 	// Instantiate contract
 	t.Log("Instantiating contract")
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &userAddr,
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
@@ -251,8 +253,10 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 	t.Log("Instantiating Treasury contract")
 	accAddr, err := types.AccAddressFromBech32(aaContractAddr)
 	require.NoError(t, err)
+
+	accAddrStr := accAddr.String()
 	instantiateMsg := TreasuryInstantiateMsg{
-		Admin:        accAddr,
+		Admin:        &accAddrStr,
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
