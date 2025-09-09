@@ -129,6 +129,8 @@ func TestTreasuryContract(t *testing.T) {
 
 	bankSendFeeGrant, err := feegrant.NewGrant(xionUserAddr, xionUserAddr, &testAllowance)
 	require.NoError(t, err)
+	t.Logf("allowance type URL: %s", bankSendFeeGrant.Allowance.TypeUrl)
+	t.Logf("allowance value: %s", bankSendFeeGrant.Allowance.TypeUrl)
 
 	allowanceAny := ExplicitAny{
 		TypeURL: bankSendFeeGrant.Allowance.TypeUrl,
@@ -154,7 +156,7 @@ func TestTreasuryContract(t *testing.T) {
 	}
 
 	// NOTE: Start the Treasury
-	userAddrStr := xionUser.FormattedAddress()
+	userAddrStr := xionUser.FormattedAddress() // We need to precompute address
 	instantiateMsg := TreasuryInstantiateMsg{
 		Admin:        &userAddrStr,
 		TypeUrls:     []string{testAuth.MsgTypeURL(), testWasmExec.MsgTypeURL()},
@@ -320,7 +322,7 @@ func TestTreasuryContract(t *testing.T) {
 	// time.Sleep(time.Minute * 10)
 
 	// Execute wasm contract from granter
-	userMapUpdateHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), []string{
+	userMapUpdateHash, err := ExecTx(t, ctx, xion.GetNode(), granteeUser.KeyName(), []string{
 		"wasm", "execute", userMapAddr, fmt.Sprintf(`{"update":{"value":"%s"}}`, `{\"key\":\"example\"}`),
 		"--chain-id", xion.Config().ChainID,
 		"--from", granteeUser.FormattedAddress(),
@@ -329,6 +331,8 @@ func TestTreasuryContract(t *testing.T) {
 		"--gas", "400000",
 		"-y",
 	}...)
+	fmt.Println("waiting...")
+	// time.Sleep(10 * time.Minute)
 	require.NoError(t, err)
 
 	err = testutil.WaitForBlocks(ctx, 2, xion)
