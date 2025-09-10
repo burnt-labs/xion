@@ -35,7 +35,9 @@ deps="github.com/cosmos/cosmos-sdk
 github.com/cosmos/cosmos-proto
 github.com/cosmos/ibc-go/v10
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
-github.com/CosmWasm/wasmd"
+github.com/CosmWasm/wasmd
+github.com/gogo/protobuf
+"
 
 # Install selected dependencies from go.mod
 echo "installing dependencies"
