@@ -8,6 +8,7 @@ deps:
   - buf.build/googleapis/googleapis
   - buf.build/tendermint/tendermint
   - buf.build/protocolbuffers/wellknowntypes
+  - buf.build/gogo/protobuf
 breaking:
   use:
     - FILE

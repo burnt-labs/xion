@@ -37,6 +37,7 @@ github.com/cosmos/ibc-go/v10
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
 github.com/CosmWasm/wasmd
 github.com/gogo/protobuf
+github.com/regen-network/protobuf
 "
 
 # Install selected dependencies from go.mod
