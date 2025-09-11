@@ -26,11 +26,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-/* NOTE:
-- Test for different types of feegrants: (AuthZAllowance, ContractsAllowance)
-- Revoke allowance
-*/
-
 type GrantConfig struct {
 	Description   string      `json:"description"`
 	Authorization ExplicitAny `json:"authorization"`
@@ -192,20 +187,6 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("granter: %s %s %s", granterUser.KeyName(), granterUser.FormattedAddress(), granterUser.Address())
 
-	// NOTE: Start the User Map
-	userMapAddr, err := xion.InstantiateContract(ctx, granterUser.KeyName(), userMapCodeID, "{}", true, "--gas", "300000")
-	require.NoError(t, err)
-	t.Logf("created user_map instance: %s", userMapAddr)
-	err = testutil.WaitForBlocks(ctx, 2, xion)
-	require.NoError(t, err)
-	userMapContractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "all", userMapAddr)
-	require.NoError(t, err)
-	t.Logf("Contract State: %s", userMapContractState)
-
-	// wait for user creation
-	err = testutil.WaitForBlocks(ctx, 2, xion)
-	require.NoError(t, err)
-
 	err = xion.SendFunds(ctx, granterUser.KeyName(), ibc.WalletAmount{
 		Address: treasuryAddr,
 		Denom:   "uxion",
@@ -221,7 +202,7 @@ func TestTreasuryContract(t *testing.T) {
 
 	executeMsg := map[string]any{}
 	feegrantMsg := map[string]any{}
-	feegrantMsg["authz_granter"] = granterUser.FormattedAddress()
+	feegrantMsg["authz_granter"] = granterUser.FormattedAddress() //"this should be the contract"
 	feegrantMsg["authz_grantee"] = granteeUser.FormattedAddress()
 	executeMsg["deploy_fee_grant"] = feegrantMsg
 	executeMsgBz, err := json.Marshal(executeMsg)
@@ -296,7 +277,7 @@ func TestTreasuryContract(t *testing.T) {
 	// Send funds from granter to user
 	balance, err := xion.GetBalance(ctx, granteeUser.FormattedAddress(), "uxion")
 	require.NoError(t, err)
-	bankSend, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), []string{
+	bankSend, err := ExecTx(t, ctx, xion.GetNode(), granteeUser.KeyName(), []string{
 		"bank", "send", granteeUser.FormattedAddress(), treasuryAddr, "1uxion",
 		"--chain-id", xion.Config().ChainID,
 		"--from", granteeUser.FormattedAddress(),
@@ -318,8 +299,20 @@ func TestTreasuryContract(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, balance.Sub(math.OneInt()), receivedBalance)
-	fmt.Println("waiting...")
-	// time.Sleep(time.Minute * 10)
+
+	// NOTE: Start the User Map
+	userMapAddr, err := xion.InstantiateContract(ctx, granterUser.KeyName(), userMapCodeID, "{}", true, "--gas", "300000")
+	require.NoError(t, err)
+	t.Logf("created user_map instance: %s", userMapAddr)
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	require.NoError(t, err)
+	userMapContractState, err := ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "all", userMapAddr)
+	require.NoError(t, err)
+	t.Logf("Contract State: %s", userMapContractState)
+
+	// wait for user creation
+	err = testutil.WaitForBlocks(ctx, 2, xion)
+	require.NoError(t, err)
 
 	// Execute wasm contract from granter
 	userMapUpdateHash, err := ExecTx(t, ctx, xion.GetNode(), granteeUser.KeyName(), []string{
@@ -535,8 +528,8 @@ func TestTreasuryMulti(t *testing.T) {
 	bankSendAuthzMsg, err := authz.NewMsgGrant(granterUser.Address(), granteeUser.Address(), testAuth, &inFive)
 	require.NoError(t, err)
 
-	executeMsg := map[string]interface{}{}
-	feegrantMsg := map[string]interface{}{}
+	executeMsg := map[string]any{}
+	feegrantMsg := map[string]any{}
 	feegrantMsg["authz_granter"] = granterUser.FormattedAddress()
 	feegrantMsg["authz_grantee"] = granteeUser.FormattedAddress()
 	executeMsg["deploy_fee_grant"] = feegrantMsg
@@ -604,13 +597,13 @@ func TestTreasuryMulti(t *testing.T) {
 	feeGrantDetails, err := ExecQuery(t, ctx, xion.GetNode(), "feegrant", "grants-by-grantee", granteeUser.FormattedAddress())
 	require.NoError(t, err)
 	t.Logf("FeeGrantDetails: %s", feeGrantDetails)
-	allowances := feeGrantDetails["allowances"].([]interface{})
-	allowance := (allowances[0].(map[string]interface{}))["allowance"].(map[string]interface{})
+	allowances := feeGrantDetails["allowances"].([]any)
+	allowance := (allowances[0].(map[string]any))["allowance"].(map[string]any)
 	allowanceType := allowance["type"].(string)
 	require.Contains(t, allowanceType, "xion.v1.MultiAnyAllowance")
 
-	revokeMsg := map[string]interface{}{}
-	grantee := map[string]interface{}{}
+	revokeMsg := map[string]any{}
+	grantee := map[string]any{}
 	grantee["grantee"] = granteeUser.FormattedAddress()
 	revokeMsg["revoke_allowance"] = grantee
 	revokeMsgBz, err := json.Marshal(revokeMsg)
@@ -674,7 +667,7 @@ func TestTreasuryMulti(t *testing.T) {
 
 	finalAllowancesStr, ok := feeGrantDetails["allowances"]
 	if ok {
-		finalAllowances := finalAllowancesStr.([]interface{})
+		finalAllowances := finalAllowancesStr.([]any)
 		require.Equal(t, 0, len(finalAllowances))
 	}
 }
