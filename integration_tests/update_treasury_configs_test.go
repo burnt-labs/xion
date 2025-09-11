@@ -56,6 +56,12 @@ func TestUpdateTreasuryConfigsWithLocalAndURL(t *testing.T) {
 		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
 		},
+
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
+		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
 	require.NoError(t, err)
@@ -261,6 +267,11 @@ func TestUpdateTreasuryConfigsWithAALocalAndURL(t *testing.T) {
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
