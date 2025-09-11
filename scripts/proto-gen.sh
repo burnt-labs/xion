@@ -37,7 +37,16 @@ github.com/cosmos/ibc-go/v10
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
 github.com/CosmWasm/wasmd
 github.com/gogo/protobuf
+github.com/burnt-labs/abstract-account
+github.com/strangelove-ventures/tokenfactory
+cosmossdk.io/x/circuit
+cosmossdk.io/x/evidence
+cosmossdk.io/x/feegrant
+cosmossdk.io/x/nft
+cosmossdk.io/x/upgrade
 "
+
+# Install selected dependencies from go.mod
 
 # Install selected dependencies from go.mod
 echo "installing dependencies"

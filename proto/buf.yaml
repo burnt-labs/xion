@@ -1,6 +1,7 @@
 # This module represents buf.build/cosmos/cosmos-sdk
-version: v1
-name: buf.build/cosmos/xion
+version: v2
+name: buf.build/burnt-labs/xion
+
 deps:
   - buf.build/cosmos/cosmos-sdk
   - buf.build/cosmos/cosmos-proto
@@ -8,7 +9,8 @@ deps:
   - buf.build/googleapis/googleapis
   - buf.build/tendermint/tendermint
   - buf.build/protocolbuffers/wellknowntypes
-  - buf.build/gogo/protobuf
+  - buf.build/burnt-labs/abstractaccount
+  - buf.build/burnt-labs/tokenfactory
 breaking:
   use:
     - FILE
