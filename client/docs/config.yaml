@@ -8,6 +8,8 @@ apis:
     operationIds:
       rename:
         Params: AuthParams
+        Account: AuthAccount
+        Accounts: AuthAccounts
     tags:
       rename:
         Query: Auth
@@ -172,13 +174,6 @@ apis:
     tags:
       rename:
         Query: IBC/Apps
-  - url: ./ibc/applications/middleware/packet-forward/v1/query.swagger.json
-    operationIds:
-      rename:
-        Params: PacketForwardParams
-    tags:
-      rename:
-        Query: IBC/Apps
   - url: ./ibc/core/channel/v1/query.swagger.json
     operationIds:
       rename:
@@ -240,13 +235,6 @@ apis:
     tags:
       rename:
         Query: AbstractAccount
-  - url: ./osmosis/tokenfactory/v1beta1/query.swagger.json
-    operationIds:
-      rename:
-        Params: TokenFactoryParams
-    tags:
-      rename:
-        Query: TokenFactory
 
 # not included
 # ./cosmos/app/v1alpha1/query.swagger.json

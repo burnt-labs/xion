@@ -34,16 +34,16 @@ docs_dir="$client_dir/docs"
 deps="github.com/cosmos/cosmos-sdk
 github.com/cosmos/cosmos-proto
 github.com/cosmos/ibc-go/v10
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
 github.com/CosmWasm/wasmd
 github.com/gogo/protobuf
 github.com/burnt-labs/abstract-account
-github.com/strangelove-ventures/tokenfactory
 cosmossdk.io/x/circuit
 cosmossdk.io/x/evidence
 cosmossdk.io/x/feegrant
 cosmossdk.io/x/nft
 cosmossdk.io/x/upgrade
+github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
+github.com/strangelove-ventures/tokenfactory
 "
 
 # Install selected dependencies from go.mod
@@ -102,6 +102,11 @@ gen_swagger() {
     # generate swagger files (filter query files)
     query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
     [ -n "$query_file" ] || continue
+    
+    # Skip problematic dependencies that have incompatible imports
+    if echo "$query_file" | grep -q "tokenfactory"; then
+      continue
+    fi
 
     buf generate --template "$proto_dir/buf.gen.openapi.yaml" "$query_file"
   done

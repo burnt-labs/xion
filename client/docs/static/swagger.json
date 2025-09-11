@@ -96,7 +96,7 @@
       "get": {
         "summary": "Accounts returns all the existing accounts.",
         "description": "When called from another module, this query might consume a high amount of\ngas if the pagination field is incorrectly set.",
-        "operationId": "Accounts",
+        "operationId": "AuthAccounts",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -216,7 +216,7 @@
     "/cosmos/auth/v1beta1/accounts/{address}": {
       "get": {
         "summary": "Account returns account details based on address.",
-        "operationId": "Account",
+        "operationId": "AuthAccount",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -23317,6 +23317,352 @@
           "XionMint"
         ]
       }
+    },
+    "/cosmos/circuit/v1/accounts": {
+      "get": {
+        "summary": "Account returns account permissions.",
+        "operationId": "Accounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accounts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "address": {
+                        "type": "string"
+                      },
+                      "permissions": {
+                        "type": "object",
+                        "properties": {
+                          "level": {
+                            "description": "level is the level of permissions granted to this account.",
+                            "type": "string",
+                            "enum": [
+                              "LEVEL_NONE_UNSPECIFIED",
+                              "LEVEL_SOME_MSGS",
+                              "LEVEL_ALL_MSGS",
+                              "LEVEL_SUPER_ADMIN"
+                            ],
+                            "default": "LEVEL_NONE_UNSPECIFIED"
+                          },
+                          "limitTypeUrls": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+                          }
+                        },
+                        "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+                      }
+                    },
+                    "title": "GenesisAccountPermissions is the account permissions for the circuit breaker in genesis"
+                  }
+                },
+                "pagination": {
+                  "description": "pagination defines the pagination in the response.",
+                  "type": "object",
+                  "properties": {
+                    "nextKey": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+                    },
+                    "total": {
+                      "type": "string",
+                      "format": "uint64",
+                      "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+                    }
+                  }
+                }
+              },
+              "description": "AccountsResponse is the response type for the Query/Accounts RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.key",
+            "description": "key is a value returned in PageResponse.next_key to begin\nquerying the next page most efficiently. Only one of offset or key\nshould be set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "pagination.offset",
+            "description": "offset is a numeric offset that can be used when key is unavailable.\nIt is less efficient than using key. Only one of offset or key should\nbe set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.limit",
+            "description": "limit is the total number of results to be returned in the result page.\nIf left empty it will default to a value to be set by each app.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.countTotal",
+            "description": "count_total is set to true  to indicate that the result set should include\na count of the total number of items available for pagination in UIs.\ncount_total is only respected when offset is used. It is ignored when key\nis set.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pagination.reverse",
+            "description": "reverse is set to true if results are to be returned in the descending order.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "Circuit"
+        ]
+      }
+    },
+    "/cosmos/circuit/v1/accounts/{address}": {
+      "get": {
+        "summary": "Account returns account permissions.",
+        "operationId": "Account",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "permission": {
+                  "type": "object",
+                  "properties": {
+                    "level": {
+                      "description": "level is the level of permissions granted to this account.",
+                      "type": "string",
+                      "enum": [
+                        "LEVEL_NONE_UNSPECIFIED",
+                        "LEVEL_SOME_MSGS",
+                        "LEVEL_ALL_MSGS",
+                        "LEVEL_SUPER_ADMIN"
+                      ],
+                      "default": "LEVEL_NONE_UNSPECIFIED"
+                    },
+                    "limitTypeUrls": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+                    }
+                  },
+                  "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+                }
+              },
+              "description": "AccountResponse is the response type for the Query/Account RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Circuit"
+        ]
+      }
+    },
+    "/cosmos/circuit/v1/disable_list": {
+      "get": {
+        "summary": "DisabledList returns a list of disabled message urls",
+        "operationId": "DisabledList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "disabledList": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "description": "DisabledListResponse is the response type for the Query/DisabledList RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Circuit"
+        ]
+      }
+    },
+    "/abstractaccount/v1/params": {
+      "get": {
+        "summary": "Params queries the module's parameters.",
+        "operationId": "AbstractAccountParams",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "params": {
+                  "type": "object",
+                  "properties": {
+                    "allowAllCodeIds": {
+                      "type": "boolean",
+                      "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+                    },
+                    "allowedCodeIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uint64"
+                      },
+                      "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+                    },
+                    "maxGasBefore": {
+                      "type": "string",
+                      "format": "uint64",
+                      "description": "MaxGasBefore is the maximum amount of gas that can be consumed by the\ncontract call in the before_tx decorator.\n\nMust be greater than zero."
+                    },
+                    "maxGasAfter": {
+                      "type": "string",
+                      "format": "uint64",
+                      "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+                    }
+                  },
+                  "description": "Params defines the parameters for the abstractaccount module."
+                }
+              },
+              "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "AbstractAccount"
+        ]
+      }
     }
   },
   "definitions": {
@@ -44478,6 +44824,236 @@
           "format": "byte"
         }
       }
+    },
+    "cosmos.circuit.v1.AccountResponse": {
+      "type": "object",
+      "properties": {
+        "permission": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "description": "level is the level of permissions granted to this account.",
+              "type": "string",
+              "enum": [
+                "LEVEL_NONE_UNSPECIFIED",
+                "LEVEL_SOME_MSGS",
+                "LEVEL_ALL_MSGS",
+                "LEVEL_SUPER_ADMIN"
+              ],
+              "default": "LEVEL_NONE_UNSPECIFIED"
+            },
+            "limitTypeUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+            }
+          },
+          "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+        }
+      },
+      "description": "AccountResponse is the response type for the Query/Account RPC method."
+    },
+    "cosmos.circuit.v1.AccountsResponse": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "permissions": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "description": "level is the level of permissions granted to this account.",
+                    "type": "string",
+                    "enum": [
+                      "LEVEL_NONE_UNSPECIFIED",
+                      "LEVEL_SOME_MSGS",
+                      "LEVEL_ALL_MSGS",
+                      "LEVEL_SUPER_ADMIN"
+                    ],
+                    "default": "LEVEL_NONE_UNSPECIFIED"
+                  },
+                  "limitTypeUrls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+                  }
+                },
+                "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+              }
+            },
+            "title": "GenesisAccountPermissions is the account permissions for the circuit breaker in genesis"
+          }
+        },
+        "pagination": {
+          "description": "pagination defines the pagination in the response.",
+          "type": "object",
+          "properties": {
+            "nextKey": {
+              "type": "string",
+              "format": "byte",
+              "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+            },
+            "total": {
+              "type": "string",
+              "format": "uint64",
+              "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+            }
+          }
+        }
+      },
+      "description": "AccountsResponse is the response type for the Query/Accounts RPC method."
+    },
+    "cosmos.circuit.v1.DisabledListResponse": {
+      "type": "object",
+      "properties": {
+        "disabledList": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "DisabledListResponse is the response type for the Query/DisabledList RPC method."
+    },
+    "cosmos.circuit.v1.GenesisAccountPermissions": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "description": "level is the level of permissions granted to this account.",
+              "type": "string",
+              "enum": [
+                "LEVEL_NONE_UNSPECIFIED",
+                "LEVEL_SOME_MSGS",
+                "LEVEL_ALL_MSGS",
+                "LEVEL_SUPER_ADMIN"
+              ],
+              "default": "LEVEL_NONE_UNSPECIFIED"
+            },
+            "limitTypeUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+            }
+          },
+          "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+        }
+      },
+      "title": "GenesisAccountPermissions is the account permissions for the circuit breaker in genesis"
+    },
+    "cosmos.circuit.v1.Permissions": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "description": "level is the level of permissions granted to this account.",
+          "type": "string",
+          "enum": [
+            "LEVEL_NONE_UNSPECIFIED",
+            "LEVEL_SOME_MSGS",
+            "LEVEL_ALL_MSGS",
+            "LEVEL_SUPER_ADMIN"
+          ],
+          "default": "LEVEL_NONE_UNSPECIFIED"
+        },
+        "limitTypeUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+        }
+      },
+      "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+    },
+    "cosmos.circuit.v1.Permissions.Level": {
+      "type": "string",
+      "enum": [
+        "LEVEL_NONE_UNSPECIFIED",
+        "LEVEL_SOME_MSGS",
+        "LEVEL_ALL_MSGS",
+        "LEVEL_SUPER_ADMIN"
+      ],
+      "default": "LEVEL_NONE_UNSPECIFIED",
+      "description": "Level is the permission level.\n\n - LEVEL_NONE_UNSPECIFIED: LEVEL_NONE_UNSPECIFIED indicates that the account will have no circuit\nbreaker permissions.\n - LEVEL_SOME_MSGS: LEVEL_SOME_MSGS indicates that the account will have permission to\ntrip or reset the circuit breaker for some Msg type URLs. If this level\nis chosen, a non-empty list of Msg type URLs must be provided in\nlimit_type_urls.\n - LEVEL_ALL_MSGS: LEVEL_ALL_MSGS indicates that the account can trip or reset the circuit\nbreaker for Msg's of all type URLs.\n - LEVEL_SUPER_ADMIN: LEVEL_SUPER_ADMIN indicates that the account can take all circuit breaker\nactions and can grant permissions to other accounts."
+    },
+    "abstractaccount.v1.Params": {
+      "type": "object",
+      "properties": {
+        "allowAllCodeIds": {
+          "type": "boolean",
+          "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+        },
+        "allowedCodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
+          },
+          "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+        },
+        "maxGasBefore": {
+          "type": "string",
+          "format": "uint64",
+          "description": "MaxGasBefore is the maximum amount of gas that can be consumed by the\ncontract call in the before_tx decorator.\n\nMust be greater than zero."
+        },
+        "maxGasAfter": {
+          "type": "string",
+          "format": "uint64",
+          "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+        }
+      },
+      "description": "Params defines the parameters for the abstractaccount module."
+    },
+    "abstractaccount.v1.QueryParamsResponse": {
+      "type": "object",
+      "properties": {
+        "params": {
+          "type": "object",
+          "properties": {
+            "allowAllCodeIds": {
+              "type": "boolean",
+              "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+            },
+            "allowedCodeIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uint64"
+              },
+              "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+            },
+            "maxGasBefore": {
+              "type": "string",
+              "format": "uint64",
+              "description": "MaxGasBefore is the maximum amount of gas that can be consumed by the\ncontract call in the before_tx decorator.\n\nMust be greater than zero."
+            },
+            "maxGasAfter": {
+              "type": "string",
+              "format": "uint64",
+              "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+            }
+          },
+          "description": "Params defines the parameters for the abstractaccount module."
+        }
+      },
+      "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
     }
   }
 }
