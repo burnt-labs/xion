@@ -47,8 +47,6 @@ github.com/strangelove-ventures/tokenfactory
 "
 
 # Install selected dependencies from go.mod
-
-# Install selected dependencies from go.mod
 echo "installing dependencies"
 (cd ${base_dir} && go mod download $deps)
 
@@ -77,15 +75,7 @@ get_proto_dirs() {
 
 gen_gogo() {
   local dirs=$(get_proto_dirs $proto_dir)
-
-  for dir in $dirs; do
-    for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
-      if grep "option go_package" "$file" >/dev/null 2>&1; then
-        buf generate --output "$proto_dir" --template "$proto_dir/buf.gen.gogo.yaml" "$file"
-      fi
-    done
-  done
-
+  buf generate --output "$proto_dir" --template "$proto_dir/buf.gen.gogo.yaml" "$proto_dir"
   # move proto files to the right places
   if [ -e "$base_dir/github.com/burnt-labs/xion" ]; then
     cp -rv "$base_dir/github.com/burnt-labs/xion/"* "$base_dir/"
@@ -108,7 +98,7 @@ gen_swagger() {
       continue
     fi
 
-    buf generate --template "$proto_dir/buf.gen.openapi.yaml" "$query_file"
+    buf generate --template "$proto_dir/buf.gen.docs.yaml" "$query_file"
   done
   # find ./ -type f
 

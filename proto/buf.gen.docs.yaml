@@ -1,5 +1,10 @@
+# buf.gen.docs.yaml - For documentation generation
+# This replaces the gen_swagger function from the shell script
+# Generates OpenAPI docs from query.proto and service.proto files
 version: v1
 plugins:
-  - name: gocosmos
-    out: ./docs
-    opt: ./docs/protodoc-markdown.tmpl,proto-docs.md
+  - name: openapiv2
+    out: .
+    opt: logtostderr=true,fqn_for_openapi_name=true,simple_operation_ids=true
+    # Include all query and service proto files
+    strategy: all
