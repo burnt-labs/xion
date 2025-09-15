@@ -170,7 +170,7 @@ func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
 	}
 
 	// Build a map for O(1) minimum lookups
-	minMap := make(map[string]math.Int, len(mins))
+	minMap := make(map[string]sdkmath.Int, len(mins))
 	for _, m := range mins {
 		minMap[m.Denom] = m.Amount
 	}
