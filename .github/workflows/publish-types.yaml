@@ -1,51 +1,24 @@
-name: Publish TypeScript Definitions 
+name: Trigger xion-types workflow
 
 on:
-  workflow_call:
-  workflow_dispatch:
+  workflow_call: # is called from the create-release workflow
+  workflow_dispatch: # manual trigger
+  release: # triggered by release event
+    types: [published, released] # NOTICE: "published" type is happening when the release is marked as "latest"
 
 jobs:
-  publish-types-release:
+  trigger-types:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Trigger xion-types workflow
+        uses: peter-evans/repository-dispatch@v2
         with:
-          node-version: 18
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Set permissions for TypeScript directory
-        run: sudo chmod -R 777 client/ts
-
-      - name: Generate TypeScript definitions
-        run: make proto-gen-ts
-
-      - name: Create package.json for types
-        working-directory: client/ts/types
-        run: |
-          cat > package.json << EOF
-          {
-            "name": "@burnt-labs/xion-types",
-            "version": "${{ github.ref_name }}",
-            "description": "TypeScript definitions for Xion",
-            "types": "index.d.ts",
-            "files": [
-              "**/*.d.ts",
-              "**/*.js"
-            ],
-            "publishConfig": {
-              "access": "public"
+          token: ${{ secrets.REPO_DISPATCH_TOKEN }}
+          repository: burnt-labs/xion-types
+          event-type: xion-types-release-trigger # NOTICE: must match the trigger in xion-types workflow
+          client-payload: |
+            {
+              "release_type": "${{ github.event.release.prerelease == false && github.event.release.draft == false && github.event.release.make_latest == 'true' && 'latest' || 'published' }}",
+              "tag_name": "${{ github.event.release.tag_name }}",
+              "release_name": "${{ github.event.release.name }}"
             }
-          }
-          EOF
-
-      - name: Publish to npm
-        working-directory: client/ts/types
-        run: |
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
