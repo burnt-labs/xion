@@ -22,6 +22,9 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
+// WebAuthNVerifyRegister does NOT grant any permissions or access to accounts.
+// It only validates that WebAuthn registration data is cryptographically valid.
+// Authorization happens at the Abstract Account contract level
 func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (response *types.QueryWebAuthNVerifyRegisterResponse, err error) {
 	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
 	defer func() {
@@ -59,6 +62,8 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 	return &types.QueryWebAuthNVerifyRegisterResponse{Credential: credentialBz}, nil
 }
 
+// WebAuthNVerifyAuthenticate does NOT provide authentication or authorization!
+// It only validates that a WebAuthn assertion is cryptographically valid for the given credential.
 func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (response *types.QueryWebAuthNVerifyAuthenticateResponse, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
