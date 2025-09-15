@@ -553,6 +553,207 @@ func TestAnteHandle(t *testing.T) {
 	require.False(t, nextCalled)
 }
 
+func TestAnteHandle_BypassGasCap(t *testing.T) {
+	// Create test context
+	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
+	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
+
+	subspace := paramstypes.NewSubspace(
+		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
+		codec.NewLegacyAmino(),
+		storeKey,
+		tkey,
+		types.ModuleName,
+	).WithKeyTable(types.ParamKeyTable())
+
+	// Set params with non-empty global fees, bypass types, and a small gas cap
+	params := types.Params{
+		MinimumGasPrices:                sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}, // 0.001 uxion
+		BypassMinFeeMsgTypes:            []string{"/test.Msg"},
+		MaxTotalBypassMinFeeMsgGasUsage: 100,
+	}
+	subspace.SetParamSet(ctx.Ctx, &params)
+
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
+	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+
+	// Next handler captures the context to inspect MinGasPrices
+	var capturedCtx sdk.Context
+	nextCalled := false
+	nextHandler := func(c sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		nextCalled = true
+		capturedCtx = c
+		return c, nil
+	}
+
+	payer := sdk.AccAddress([]byte("test-payer-address"))
+
+	// Case 1: gas <= cap => bypass (MinGasPrices should remain empty)
+	ctx.Ctx = ctx.Ctx.WithIsCheckTx(true).WithMinGasPrices(sdk.DecCoins{})
+	underCapTx := mockFeeTx{
+		gas:   100,
+		fees:  sdk.NewCoins(),
+		payer: payer.Bytes(),
+		msgs:  []sdk.Msg{&mockMsg{typeURL: "/test.Msg"}},
+	}
+	nextCalled = false
+	capturedCtx = sdk.Context{}
+	_, err := decorator.AnteHandle(ctx.Ctx, underCapTx, false, nextHandler)
+	require.NoError(t, err)
+	require.True(t, nextCalled)
+
+	// Case 2: gas > cap => enforce fees (MinGasPrices should be set to required)
+	overCapTx := mockFeeTx{
+		gas:   101,
+		fees:  sdk.NewCoins(),
+		payer: payer.Bytes(),
+		msgs:  []sdk.Msg{&mockMsg{typeURL: "/test.Msg"}},
+	}
+	nextCalled = false
+	capturedCtx = sdk.Context{}
+	newCtx, err := decorator.AnteHandle(ctx.Ctx, overCapTx, false, nextHandler)
+	require.NoError(t, err)
+	require.True(t, nextCalled)
+
+	// Expected required fees when local min gas price is empty: global fees only
+	expectedFees, err := decorator.GetTxFeeRequired(ctx.Ctx, overCapTx)
+	require.NoError(t, err)
+	require.True(t, expectedFees.Equal(newCtx.MinGasPrices()))
+	require.True(t, expectedFees.Equal(capturedCtx.MinGasPrices()))
+}
+
+// Ensures that with the default cap semantics, bypass only applies when gas <= cap,
+// and a high gas limit (representing large/expensive txs) requires fees even for bypass types.
+func TestAnteHandle_BypassGasCap_DefaultCapAndLargeGas(t *testing.T) {
+	// Create test context
+	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
+	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
+
+	subspace := paramstypes.NewSubspace(
+		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
+		codec.NewLegacyAmino(),
+		storeKey,
+		tkey,
+		types.ModuleName,
+	).WithKeyTable(types.ParamKeyTable())
+
+	// Start from defaults, then override bypass types to a local test type
+	params := types.DefaultParams()
+	params.BypassMinFeeMsgTypes = []string{"/test.Msg"}
+	// Keep the default cap (1,000,000)
+	subspace.SetParamSet(ctx.Ctx, &params)
+
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
+	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+
+	// Next handler captures MinGasPrices for assertions
+	var capturedCtx sdk.Context
+	nextCalled := false
+	nextHandler := func(c sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		nextCalled = true
+		capturedCtx = c
+		return c, nil
+	}
+
+	payer := sdk.AccAddress([]byte("test-payer-address"))
+
+	// Case 1: gas == cap => bypass (no MinGasPrices injected by fee decorator)
+	ctx.Ctx = ctx.Ctx.WithIsCheckTx(true).WithMinGasPrices(sdk.DecCoins{})
+	equalCapTx := mockFeeTx{
+		gas:   params.MaxTotalBypassMinFeeMsgGasUsage, // 1,000,000 by default
+		fees:  sdk.NewCoins(),
+		payer: payer.Bytes(),
+		msgs:  []sdk.Msg{&mockMsg{typeURL: "/test.Msg"}},
+	}
+	nextCalled = false
+	capturedCtx = sdk.Context{}
+	_, err := decorator.AnteHandle(ctx.Ctx, equalCapTx, false, nextHandler)
+	require.NoError(t, err)
+	require.True(t, nextCalled)
+	// For bypass path, the decorator does not set MinGasPrices on the ctx
+	require.True(t, capturedCtx.MinGasPrices().IsZero())
+
+	// Case 2: gas > cap => enforce fees (MinGasPrices should be set to required/global)
+	overCapTx := mockFeeTx{
+		gas:   params.MaxTotalBypassMinFeeMsgGasUsage + 1,
+		fees:  sdk.NewCoins(),
+		payer: payer.Bytes(),
+		msgs:  []sdk.Msg{&mockMsg{typeURL: "/test.Msg"}},
+	}
+	nextCalled = false
+	capturedCtx = sdk.Context{}
+	newCtx, err := decorator.AnteHandle(ctx.Ctx, overCapTx, false, nextHandler)
+	require.NoError(t, err)
+	require.True(t, nextCalled)
+
+	expectedFees, err := decorator.GetTxFeeRequired(ctx.Ctx, overCapTx)
+	require.NoError(t, err)
+	require.True(t, expectedFees.Equal(newCtx.MinGasPrices()))
+	require.True(t, expectedFees.Equal(capturedCtx.MinGasPrices()))
+}
+
+// When a bypass-type tx exceeds the gas cap, the required MinGasPrices must reflect
+// the combination of local min gas prices and global fees (max per denom).
+func TestAnteHandle_BypassOverCap_CombinesLocalAndGlobalFees(t *testing.T) {
+	// Create test context
+	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
+	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
+
+	subspace := paramstypes.NewSubspace(
+		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
+		codec.NewLegacyAmino(),
+		storeKey,
+		tkey,
+		types.ModuleName,
+	).WithKeyTable(types.ParamKeyTable())
+
+	// Configure both global fees and local min gas prices, keep a modest cap
+	params := types.Params{
+		MinimumGasPrices:                sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}, // 0.001
+		BypassMinFeeMsgTypes:            []string{"/test.Msg"},
+		MaxTotalBypassMinFeeMsgGasUsage: 10_000,
+	}
+	subspace.SetParamSet(ctx.Ctx, &params)
+
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
+	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+
+	// Local min gas price higher than global to exercise MaxCoins path
+	localMin := sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))} // 0.002
+	ctx.Ctx = ctx.Ctx.WithIsCheckTx(true).WithMinGasPrices(localMin)
+
+	var capturedCtx sdk.Context
+	nextCalled := false
+	nextHandler := func(c sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		nextCalled = true
+		capturedCtx = c
+		return c, nil
+	}
+
+	payer := sdk.AccAddress([]byte("test-payer-address"))
+	overCapTx := mockFeeTx{
+		gas:   params.MaxTotalBypassMinFeeMsgGasUsage + 1, // force fee enforcement
+		fees:  sdk.NewCoins(),
+		payer: payer.Bytes(),
+		msgs:  []sdk.Msg{&mockMsg{typeURL: "/test.Msg"}},
+	}
+
+	nextCalled = false
+	capturedCtx = sdk.Context{}
+	newCtx, err := decorator.AnteHandle(ctx.Ctx, overCapTx, false, nextHandler)
+	require.NoError(t, err)
+	require.True(t, nextCalled)
+
+	expectedFees, err := decorator.GetTxFeeRequired(ctx.Ctx, overCapTx)
+	require.NoError(t, err)
+	// Should be max(local, global) per denom and reflected in MinGasPrices
+	require.True(t, expectedFees.Equal(newCtx.MinGasPrices()))
+	require.True(t, expectedFees.Equal(capturedCtx.MinGasPrices()))
+}
+
 func TestGetTxFeeRequired(t *testing.T) {
 	// Create test context
 	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
