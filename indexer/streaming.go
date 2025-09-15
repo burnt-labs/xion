@@ -105,7 +105,7 @@ func (ss *StreamService) Close() error {
 	return ss.db.Close()
 }
 
-// ListenFinalzeBlock will receive the request and response of a block
+// ListenFinalizeBlock will receive the request and response of a block
 // currently not used because we are indexing mostly by change sets and not transaction events
 func (ss *StreamService) ListenFinalizeBlock(ctx context.Context, req abci.RequestFinalizeBlock, res abci.ResponseFinalizeBlock) error {
 	return nil
