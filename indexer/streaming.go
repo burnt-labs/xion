@@ -106,7 +106,7 @@ func (ss *StreamService) Close() error {
 }
 
 // ListenFinalzeBlock will receive the request and response of a block
-// curently not used because we are indexing mostly by change sets and not transaction events
+// currently not used because we are indexing mostly by change sets and not transaction events
 func (ss *StreamService) ListenFinalizeBlock(ctx context.Context, req abci.RequestFinalizeBlock, res abci.ResponseFinalizeBlock) error {
 	return nil
 
