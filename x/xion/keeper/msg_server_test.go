@@ -295,6 +295,34 @@ func TestMsgServer_Send_MinimumNotMet(t *testing.T) {
 	require.Contains(t, err.Error(), "minimum send amount not met")
 }
 
+func TestMsgServer_Send_EmptyMinimumsNotMet(t *testing.T) {
+	goCtx, server, _, mockBankKeeper := setupMsgServerTest(t)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr := sdk.AccAddress("from_address_12345678")
+	toAddr := sdk.AccAddress("to_address_123456789")
+	amount := sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100)))
+
+	msg := &types.MsgSend{
+		FromAddress: fromAddr.String(),
+		ToAddress:   toAddr.String(),
+		Amount:      amount,
+	}
+
+	// No platform minimums set (empty by default)
+	// This should fail because platform minimums must be explicitly configured
+
+	mockBankKeeper.On("IsSendEnabledCoins", ctx, mock.AnythingOfType("[]types.Coin")).Return(nil)
+	mockBankKeeper.On("BlockedAddr", toAddr).Return(false)
+
+	// Execute
+	_, err := server.Send(goCtx, msg)
+
+	// Assert - should fail when no minimums are configured
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "minimum send amount not met")
+}
+
 func TestMsgServer_Send_ZeroPercentage(t *testing.T) {
 	goCtx, server, keeper, mockBankKeeper := setupMsgServerTest(t)
 	ctx := sdk.UnwrapSDKContext(goCtx)
