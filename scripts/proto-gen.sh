@@ -14,7 +14,8 @@ fi
 : ${docs_dir:="$client_dir/docs"}
 
 # Define dependencies
-deps=$(cat <<EOF
+deps=$(
+  cat <<EOF
   github.com/cosmos/cosmos-sdk
   github.com/cosmos/cosmos-proto
   github.com/cosmos/ibc-go/v8
@@ -44,25 +45,25 @@ use_tmp_dir() {
 
 get_proto_dirs() {
   # Find all subdirectories with .proto files
-  find $@ -path -prune -o -name '*.proto' -print0 \
-    | xargs -0 -n1 dirname | sort -u 
+  find $@ -path -prune -o -name '*.proto' -print0 |
+    xargs -0 -n1 dirname | sort -u
 }
 
 gen_gogo() {
   local dirs=$(get_proto_dirs $proto_dir)
 
-  for dir in $xion_dirs; do
+  for dir in $dirs; do
     for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
-      if grep "option go_package" $file &> /dev/null ; then
-      buf generate --output $proto_dir --template $proto_dir/buf.gen.gogo.yaml $file
+      if grep "option go_package" $file &>/dev/null; then
+        buf generate --output $proto_dir --template $proto_dir/buf.gen.gogo.yaml $file
       fi
     done
   done
 
   # move proto files to the right places
   if [ -e "$base_dir/github.com/burnt-labs/xion" ]; then
-  cp -rv $base_dir/github.com/burnt-labs/xion/* $base_dir/
-  rm -rf $base_dir/github.com
+    cp -rv $base_dir/github.com/burnt-labs/xion/* $base_dir/
+    rm -rf $base_dir/github.com
   fi
 }
 
@@ -78,7 +79,6 @@ gen_swagger() {
 
     buf generate --template $proto_dir/buf.gen.swagger.yaml $query_file
   done
-  # find ./ -type f
 
   # combine swagger files
   # uses nodejs package `swagger-combine`.
@@ -128,7 +128,7 @@ else
       gen_swagger
       shift
       ;;
-    --ts|--js)
+    --ts | --js)
       gen_ts
       shift
       ;;

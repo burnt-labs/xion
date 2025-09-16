@@ -24,6 +24,10 @@ service Query {
   rpc DkimPubKeys(QueryDkimPubKeysRequest) returns (QueryDkimPubKeysResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
+
+  rpc ProofVerify(QueryVerifyRequest) returns (QueryVerifyResponse) {
+    option (google.api.http).get = "/dkim/v1/dkim_verify";
+  }
 }
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.
@@ -44,9 +48,7 @@ message QueryDkimPubKeyRequest {
 
 // QueryDkimPubKeyResponse is the response type for the Query/DkimPubKey RPC
 // method.
-message QueryDkimPubKeyResponse {
-  DkimPubKey dkim_pub_key = 1;
-}
+message QueryDkimPubKeyResponse { DkimPubKey dkim_pub_key = 1; }
 
 // QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
 // method. All fields are optional, and will filter down results.
@@ -63,3 +65,19 @@ message QueryDkimPubKeysResponse {
   repeated DkimPubKey dkim_pub_keys = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
+
+message SnarkJsProof {
+  repeated bytes pi_a = 1;
+  repeated bytes pi_b = 2;
+  repeated bytes pi_c = 3;
+}
+
+message QueryVerifyRequest {
+  string dkim_domain = 1;
+  bytes tx_bytes = 2;
+  bytes email_hash = 3;
+  bytes dkim_hash = 4;
+  bytes proof = 5;
+}
+
+message QueryVerifyResponse { bool verified = 1; }
