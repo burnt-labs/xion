@@ -305,7 +305,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	fmt.Println("waiting")
-	time.Sleep(5 * time.Minute)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)
