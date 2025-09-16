@@ -22,17 +22,13 @@ compatibility with the latest cosmos-sdk and CosmWasm releases.
 
 ## Installation
 
-To install the `xiond` binary:
+To build locally and install the `xiond` binary:
 
 ```sh
 make install
 ```
 
-For Windows client:
-
-```sh
-make build-windows-client
-```
+To install a prebuilt package via homebrew/apt/yum/apk see [INSTALLERS.md](INSTALLERS.md)
 
 ## Build
 

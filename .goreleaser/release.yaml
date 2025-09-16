@@ -1,5 +1,7 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
 
+# using this file requires goreleaser pro
+
 version: 2
 
 project_name: xiond
@@ -46,12 +48,16 @@ source:
   enabled: true
 
 archives:
-  # brew does not work without zip
-  - id: xiond
-    formats: [tgz, zip]
+  - id: tgz
+    formats: [tar.gz]
     meta: false
     wrap_in_directory: false
     strip_binary_directory: false
+
+# docs: https://goreleaser.com/customization/checksum/
+checksum:
+  name_template: "xiond-{{ .Version }}-checksums.txt"
+  algorithm: sha256
 
 nfpms:
   - if: '{{ eq .Os "linux" }}'
@@ -59,6 +65,25 @@ nfpms:
       - apk
       - deb
       - rpm
+    apk:
+      signature:
+        key_file: "{{ .Env.PEM_KEY_PATH }}"
+    deb:
+      signature:
+        key_file: "{{ .Env.GPG_KEY_PATH }}"
+    rpm:
+      signature:
+        key_file: "{{ .Env.GPG_KEY_PATH }}"
+
+# not used
+# signs:
+#   - artifacts: package
+#     cmd: gpg2
+#     #- args: ["-u", "<key id, fingerprint, email, ...>", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+# docs https://goreleaser.com/customization/fury/
+furies:
+  - account: burnt
 
 # Docs: https://goreleaser.com/customization/homebrew/
 brews:
@@ -66,25 +91,28 @@ brews:
       - xiond@{{ .Version }}
       - xiond@{{ .Major }}
     # Repository to push the generated files to.
-    skip_upload: true
+    skip_upload: false
+    ids:
+      - tgz
+    test: |
+      system "#{bin}/xiond version"
+    commit_author:
+      name: developer
+      email: 197779235+isburnt@users.noreply.github.com
+    directory: Formula
     repository:
       owner: burnt-labs
-      name: xion-homebrew
-      branch: main
+      name: homebrew-xion
+      branch: "{{.ProjectName}}-v{{.Version}}"
+      token: "{{ .Env.GORELEASER_ACCESS_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: burnt-labs
+          name: homebrew-xion
+          branch: main
 
-# Docs: https://goreleaser.com/customization/cloudsmith/
-cloudsmiths:
-  - organization: burnt-labs
-    repository: xiond
-    distributions:
-      deb: "any-distro/any-version"
-      alpine: "alpine/any-version"
-      # rpm: any-distro/any-version"
-
-# docs: https://goreleaser.com/customization/checksum/
-checksum:
-  name_template: "xiond-{{ .Version }}-checksums.txt"
-  algorithm: sha256
 
 # Docs: https://goreleaser.com/customization/changelog/
 # changelog:
@@ -117,3 +145,4 @@ release:
   make_latest: false
   # disable: "{{ .Env.SKIP_GITHUB_RELEASE }}"
   mode: keep-existing
+

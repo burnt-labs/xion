@@ -8,7 +8,7 @@ on:
 jobs:
   build-binaries:
     name: Build xiond-${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ matrix.arch == 'arm64' && format('burnt-labs-{0}', matrix.arch) || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.arch == 'arm64' && format('github-{0}', matrix.arch) || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
