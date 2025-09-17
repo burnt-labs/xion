@@ -4,11 +4,12 @@ on:
   workflow_call: # is called from the create-release workflow
   workflow_dispatch: # manual trigger
   release: # triggered by release event
-    types: [published, released]
+    types: [published, released, prereleased]
     # Notice:
     # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
     # - "published" type is happening when the release is marked as "latest"
     # - "released" type is happening when a release was published, or a pre-release was changed to a release.
+    # - "prereleased" type is happening when a release was created and identified as a pre-release. A pre-release is a release that is not ready for production and may be unstable.
 
 jobs:
   trigger-types:
@@ -20,9 +21,14 @@ jobs:
           token: ${{ secrets.REPO_DISPATCH_TOKEN }}
           repository: burnt-labs/xion-types
           event-type: xion-types-release-trigger # NOTICE: must match the trigger in xion-types workflow
+          # -client-payload logic description-
+          # Checks if it's a pre-release: github.event.release.prerelease == true - if the release is marked as a pre-release, it sets release_type to 'prerelease'
+          # If not a pre-release, checks for latest release: github.event.release.prerelease == false && github.event.release.draft == false && github.event.release.make_latest == 'true' - ensures it's not a pre-release, not a draft, and is marked as the latest release
+          # Sets latest tag: If all the above conditions are true, it sets release_type to 'latest'
+          # Fallback to published: If none of the above conditions are met, it sets release_type to 'published'
           client-payload: |
             {
-              "release_type": "${{ github.event.release.prerelease == false && github.event.release.draft == false && github.event.release.make_latest == 'true' && 'latest' || 'published' }}",
+              "release_type": "${{ github.event.release.prerelease == true && 'prerelease' || (github.event.release.prerelease == false && github.event.release.draft == false && github.event.release.make_latest == 'true' && 'latest' || 'published') }}",
               "tag_name": "${{ github.event.release.tag_name }}",
               "release_name": "${{ github.event.release.name }}"
             }
