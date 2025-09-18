@@ -29,7 +29,7 @@ func CmdListAudience() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllAudienceRequest{
+			params := &types.QueryAudienceAllRequest{
 				Pagination: pageReq,
 			}
 
@@ -63,7 +63,7 @@ func CmdShowAudience() *cobra.Command {
 
 			argAud := args[0]
 
-			params := &types.QueryGetAudienceRequest{
+			params := &types.QueryAudienceRequest{
 				Aud: argAud,
 			}
 
@@ -100,7 +100,7 @@ func CmdShowAudienceClaim() *cobra.Command {
 				return err
 			}
 
-			params := &types.QueryGetAudienceClaimRequest{
+			params := &types.QueryAudienceClaimRequest{
 				Hash: audHash,
 			}
 

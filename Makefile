@@ -336,24 +336,22 @@ format: format-tools
 ################################################################################
 ###                                 Protobuf                                 ###
 ################################################################################
-protoVer=0.14.0
+protoVer=0.17.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace -e GOTOOLCHAIN=auto $(protoImageName)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
-proto-all: proto-format proto-lint proto-gen proto-format
+proto-all: proto-gen proto-format proto-lint proto-gen-openapi proto-check-breaking
 
 proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/proto-gen.sh
 
-proto-gen-ts:
-	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/proto-gen.sh --ts
+proto-gen-openapi:
+	@echo "Generating Protobuf OpenAPI"
+	@$(protoImage) sh ./scripts/proto-gen.sh --openapi
 
-proto-gen-swagger:
-	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh scripts/proto-gen.sh --swagger
+proto-gen-swagger: proto-gen-openapi
 
 proto-format:
 	@echo "Formatting Protobuf files"

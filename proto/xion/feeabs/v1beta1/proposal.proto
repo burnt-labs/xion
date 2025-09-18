@@ -1,15 +1,21 @@
 syntax = "proto3";
-package feeabstraction.feeabs.v1beta1;
+package xion.feeabs.v1beta1;
 
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
 
-// HostChainFeeAbsStatus
+// HostChainFeeAbsStatus represents the status of a host chain fee abstraction
+// configuration
 enum HostChainFeeAbsStatus {
-  UPDATED = 0;
-  OUTDATED = 1;
-  FROZEN = 2;
+  // HOST_CHAIN_FEE_ABS_STATUS_UNSPECIFIED indicates an unspecified status
+  HOST_CHAIN_FEE_ABS_STATUS_UNSPECIFIED = 0;
+  // HOST_CHAIN_FEE_ABS_STATUS_UPDATED indicates the configuration is up to date
+  HOST_CHAIN_FEE_ABS_STATUS_UPDATED = 1;
+  // HOST_CHAIN_FEE_ABS_STATUS_OUTDATED indicates the configuration is outdated
+  HOST_CHAIN_FEE_ABS_STATUS_OUTDATED = 2;
+  // HOST_CHAIN_FEE_ABS_STATUS_FROZEN indicates the configuration is frozen
+  HOST_CHAIN_FEE_ABS_STATUS_FROZEN = 3;
 }
 
 // HostChainFeeAbsConfig
