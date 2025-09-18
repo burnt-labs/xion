@@ -3,10 +3,12 @@ package xion.jwk.v1;
 
 option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
+// Audience represents a JWT audience configuration
 message Audience {
   string aud = 1;
   string key = 2;
   string admin = 3;
 }
 
+// AudienceClaim represents a claim for an audience
 message AudienceClaim { string signer = 1; }

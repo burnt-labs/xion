@@ -761,8 +761,11 @@ type MsgClient interface {
 	// UpdateParams defines a governance operation for updating the x/feeabs
 	// module parameters. The authority is defined in the keeper.
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// AddHostZone adds a new host zone configuration
 	AddHostZone(ctx context.Context, in *MsgAddHostZone, opts ...grpc.CallOption) (*MsgAddHostZoneResponse, error)
+	// UpdateHostZone updates an existing host zone configuration
 	UpdateHostZone(ctx context.Context, in *MsgUpdateHostZone, opts ...grpc.CallOption) (*MsgUpdateHostZoneResponse, error)
+	// RemoveHostZone removes a host zone configuration
 	RemoveHostZone(ctx context.Context, in *MsgRemoveHostZone, opts ...grpc.CallOption) (*MsgRemoveHostZoneResponse, error)
 }
 
@@ -848,8 +851,11 @@ type MsgServer interface {
 	// UpdateParams defines a governance operation for updating the x/feeabs
 	// module parameters. The authority is defined in the keeper.
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// AddHostZone adds a new host zone configuration
 	AddHostZone(context.Context, *MsgAddHostZone) (*MsgAddHostZoneResponse, error)
+	// UpdateHostZone updates an existing host zone configuration
 	UpdateHostZone(context.Context, *MsgUpdateHostZone) (*MsgUpdateHostZoneResponse, error)
+	// RemoveHostZone removes a host zone configuration
 	RemoveHostZone(context.Context, *MsgRemoveHostZone) (*MsgRemoveHostZoneResponse, error)
 }
 

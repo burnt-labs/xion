@@ -21,7 +21,7 @@ func TestNewAddHostZoneProposal(t *testing.T) {
 		IbcDenom:                "ibc/123",
 		OsmosisPoolTokenDenomIn: "uosmo",
 		PoolId:                  1,
-		Status:                  HostChainFeeAbsStatus_UPDATED,
+		Status:                  HostChainFeeAbsStatus_HOST_CHAIN_FEE_ABS_STATUS_UPDATED,
 	}
 
 	proposal := NewAddHostZoneProposal(title, description, config)
@@ -59,7 +59,7 @@ func TestNewSetHostZoneProposal(t *testing.T) {
 		IbcDenom:                "ibc/789",
 		OsmosisPoolTokenDenomIn: "uosmo",
 		PoolId:                  2,
-		Status:                  HostChainFeeAbsStatus_FROZEN,
+		Status:                  HostChainFeeAbsStatus_HOST_CHAIN_FEE_ABS_STATUS_FROZEN,
 	}
 
 	proposal := NewSetHostZoneProposal(title, description, config)
@@ -79,7 +79,7 @@ func TestAddHostZoneProposal(t *testing.T) {
 		IbcDenom:                "ibc/123",
 		OsmosisPoolTokenDenomIn: "uosmo",
 		PoolId:                  1,
-		Status:                  HostChainFeeAbsStatus_UPDATED,
+		Status:                  HostChainFeeAbsStatus_HOST_CHAIN_FEE_ABS_STATUS_UPDATED,
 	}
 
 	proposal := &AddHostZoneProposal{

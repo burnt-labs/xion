@@ -30,6 +30,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// QueryWebAuthNVerifyRegisterRequest is the request type for WebAuthN
+// registration verification
 type QueryWebAuthNVerifyRegisterRequest struct {
 	Addr      string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
 	Challenge string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
@@ -98,6 +100,8 @@ func (m *QueryWebAuthNVerifyRegisterRequest) GetData() []byte {
 	return nil
 }
 
+// QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN
+// registration verification
 type QueryWebAuthNVerifyRegisterResponse struct {
 	Credential []byte `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
 }
@@ -142,6 +146,8 @@ func (m *QueryWebAuthNVerifyRegisterResponse) GetCredential() []byte {
 	return nil
 }
 
+// QueryWebAuthNVerifyAuthenticateRequest is the request type for WebAuthN
+// authentication verification
 type QueryWebAuthNVerifyAuthenticateRequest struct {
 	Addr       string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
 	Challenge  string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
@@ -220,6 +226,8 @@ func (m *QueryWebAuthNVerifyAuthenticateRequest) GetData() []byte {
 	return nil
 }
 
+// QueryWebAuthNVerifyAuthenticateResponse is the response type for WebAuthN
+// authentication verification
 type QueryWebAuthNVerifyAuthenticateResponse struct {
 }
 
@@ -258,6 +266,8 @@ func (m *QueryWebAuthNVerifyAuthenticateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryWebAuthNVerifyAuthenticateResponse proto.InternalMessageInfo
 
+// QueryPlatformPercentageRequest is the request type for querying platform
+// percentage
 type QueryPlatformPercentageRequest struct {
 }
 
@@ -294,6 +304,8 @@ func (m *QueryPlatformPercentageRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryPlatformPercentageRequest proto.InternalMessageInfo
 
+// QueryPlatformPercentageResponse is the response type for querying platform
+// percentage
 type QueryPlatformPercentageResponse struct {
 	PlatformPercentage uint64 `protobuf:"varint,1,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
 }
@@ -338,6 +350,8 @@ func (m *QueryPlatformPercentageResponse) GetPlatformPercentage() uint64 {
 	return 0
 }
 
+// QueryPlatformMinimumRequest is the request type for querying platform minimum
+// fees
 type QueryPlatformMinimumRequest struct {
 }
 
@@ -374,6 +388,8 @@ func (m *QueryPlatformMinimumRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryPlatformMinimumRequest proto.InternalMessageInfo
 
+// QueryPlatformMinimumResponse is the response type for querying platform
+// minimum fees
 type QueryPlatformMinimumResponse struct {
 	Minimums github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=minimums,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"minimums"`
 }
@@ -481,9 +497,13 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
+	// WebAuthNVerifyRegister verifies a WebAuthN registration
 	WebAuthNVerifyRegister(ctx context.Context, in *QueryWebAuthNVerifyRegisterRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyRegisterResponse, error)
+	// WebAuthNVerifyAuthenticate verifies a WebAuthN authentication
 	WebAuthNVerifyAuthenticate(ctx context.Context, in *QueryWebAuthNVerifyAuthenticateRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyAuthenticateResponse, error)
+	// PlatformPercentage queries the platform percentage fee
 	PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error)
+	// PlatformMinimum queries the platform minimum fees
 	PlatformMinimum(ctx context.Context, in *QueryPlatformMinimumRequest, opts ...grpc.CallOption) (*QueryPlatformMinimumResponse, error)
 }
 
@@ -533,9 +553,13 @@ func (c *queryClient) PlatformMinimum(ctx context.Context, in *QueryPlatformMini
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
+	// WebAuthNVerifyRegister verifies a WebAuthN registration
 	WebAuthNVerifyRegister(context.Context, *QueryWebAuthNVerifyRegisterRequest) (*QueryWebAuthNVerifyRegisterResponse, error)
+	// WebAuthNVerifyAuthenticate verifies a WebAuthN authentication
 	WebAuthNVerifyAuthenticate(context.Context, *QueryWebAuthNVerifyAuthenticateRequest) (*QueryWebAuthNVerifyAuthenticateResponse, error)
+	// PlatformPercentage queries the platform percentage fee
 	PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error)
+	// PlatformMinimum queries the platform minimum fees
 	PlatformMinimum(context.Context, *QueryPlatformMinimumRequest) (*QueryPlatformMinimumResponse, error)
 }
 

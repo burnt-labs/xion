@@ -22667,6 +22667,7 @@
     },
     "/xion/globalfee/v1/params": {
       "get": {
+        "summary": "Params queries the parameters of the module",
         "operationId": "GlobalFeeParams",
         "responses": {
           "200": {
@@ -22747,6 +22748,7 @@
     },
     "/xion/jwk/audience": {
       "get": {
+        "summary": "AudienceAll queries all audiences",
         "operationId": "AudienceAll",
         "responses": {
           "200": {
@@ -22768,7 +22770,8 @@
                       "admin": {
                         "type": "string"
                       }
-                    }
+                    },
+                    "title": "Audience represents a JWT audience configuration"
                   }
                 },
                 "pagination": {
@@ -22787,7 +22790,8 @@
                   },
                   "description": "PageResponse is to be embedded in gRPC response messages where the\ncorresponding request message has used PageRequest.\n\n message SomeResponse {\n         repeated Bar results = 1;\n         PageResponse page = 2;\n }"
                 }
-              }
+              },
+              "title": "QueryAudienceAllResponse is the response type for querying all audiences"
             }
           },
           "default": {
@@ -22885,9 +22889,11 @@
                     "admin": {
                       "type": "string"
                     }
-                  }
+                  },
+                  "title": "Audience represents a JWT audience configuration"
                 }
-              }
+              },
+              "title": "QueryAudienceResponse is the response type for querying an audience"
             }
           },
           "default": {
@@ -22933,6 +22939,7 @@
     },
     "/xion/jwk/audience_claim/{hash}": {
       "get": {
+        "summary": "AudienceClaim queries an audience claim by hash",
         "operationId": "AudienceClaim",
         "responses": {
           "200": {
@@ -22946,9 +22953,11 @@
                     "signer": {
                       "type": "string"
                     }
-                  }
+                  },
+                  "title": "AudienceClaim represents a claim for an audience"
                 }
-              }
+              },
+              "title": "QueryAudienceClaimResponse is the response type for querying an audience\nclaim"
             }
           },
           "default": {
@@ -23077,10 +23086,12 @@
                       "value": {
                         "type": "string"
                       }
-                    }
+                    },
+                    "title": "PrivateClaim represents a private claim in a JWT"
                   }
                 }
-              }
+              },
+              "title": "QueryValidateJWTResponse is the response type for validating a JWT"
             }
           },
           "default": {
@@ -44546,7 +44557,8 @@
         "admin": {
           "type": "string"
         }
-      }
+      },
+      "title": "Audience represents a JWT audience configuration"
     },
     "xion.jwk.v1.AudienceClaim": {
       "type": "object",
@@ -44554,7 +44566,8 @@
         "signer": {
           "type": "string"
         }
-      }
+      },
+      "title": "AudienceClaim represents a claim for an audience"
     },
     "xion.jwk.v1.Params": {
       "type": "object",
@@ -44581,9 +44594,10 @@
         "value": {
           "type": "string"
         }
-      }
+      },
+      "title": "PrivateClaim represents a private claim in a JWT"
     },
-    "xion.jwk.v1.QueryAllAudienceResponse": {
+    "xion.jwk.v1.QueryAudienceAllResponse": {
       "type": "object",
       "properties": {
         "audience": {
@@ -44600,7 +44614,8 @@
               "admin": {
                 "type": "string"
               }
-            }
+            },
+            "title": "Audience represents a JWT audience configuration"
           }
         },
         "pagination": {
@@ -44619,9 +44634,10 @@
           },
           "description": "PageResponse is to be embedded in gRPC response messages where the\ncorresponding request message has used PageRequest.\n\n message SomeResponse {\n         repeated Bar results = 1;\n         PageResponse page = 2;\n }"
         }
-      }
+      },
+      "title": "QueryAudienceAllResponse is the response type for querying all audiences"
     },
-    "xion.jwk.v1.QueryGetAudienceClaimResponse": {
+    "xion.jwk.v1.QueryAudienceClaimResponse": {
       "type": "object",
       "properties": {
         "claim": {
@@ -44630,11 +44646,13 @@
             "signer": {
               "type": "string"
             }
-          }
+          },
+          "title": "AudienceClaim represents a claim for an audience"
         }
-      }
+      },
+      "title": "QueryAudienceClaimResponse is the response type for querying an audience\nclaim"
     },
-    "xion.jwk.v1.QueryGetAudienceResponse": {
+    "xion.jwk.v1.QueryAudienceResponse": {
       "type": "object",
       "properties": {
         "audience": {
@@ -44649,9 +44667,11 @@
             "admin": {
               "type": "string"
             }
-          }
+          },
+          "title": "Audience represents a JWT audience configuration"
         }
-      }
+      },
+      "title": "QueryAudienceResponse is the response type for querying an audience"
     },
     "xion.jwk.v1.QueryParamsResponse": {
       "type": "object",
@@ -44689,10 +44709,12 @@
               "value": {
                 "type": "string"
               }
-            }
+            },
+            "title": "PrivateClaim represents a private claim in a JWT"
           }
         }
-      }
+      },
+      "title": "QueryValidateJWTResponse is the response type for validating a JWT"
     },
     "xion.mint.v1.Params": {
       "type": "object",
@@ -44802,7 +44824,8 @@
             "description": "Coin defines a token with a denomination and an amount.\n\nNOTE: The amount field is an Int which implements the custom method\nsignatures required by gogoproto."
           }
         }
-      }
+      },
+      "title": "QueryPlatformMinimumResponse is the response type for querying platform\nminimum fees"
     },
     "xion.v1.QueryPlatformPercentageResponse": {
       "type": "object",
@@ -44811,10 +44834,12 @@
           "type": "string",
           "format": "uint64"
         }
-      }
+      },
+      "title": "QueryPlatformPercentageResponse is the response type for querying platform\npercentage"
     },
     "xion.v1.QueryWebAuthNVerifyAuthenticateResponse": {
-      "type": "object"
+      "type": "object",
+      "title": "QueryWebAuthNVerifyAuthenticateResponse is the response type for WebAuthN\nauthentication verification"
     },
     "xion.v1.QueryWebAuthNVerifyRegisterResponse": {
       "type": "object",
@@ -44823,7 +44848,8 @@
           "type": "string",
           "format": "byte"
         }
-      }
+      },
+      "title": "QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN\nregistration verification"
     },
     "cosmos.circuit.v1.AccountResponse": {
       "type": "object",

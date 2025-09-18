@@ -6,17 +6,24 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
+// Query defines the gRPC querier service
 service Query {
+  // WebAuthNVerifyRegister verifies a WebAuthN registration
   rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest)
       returns (QueryWebAuthNVerifyRegisterResponse) {}
+  // WebAuthNVerifyAuthenticate verifies a WebAuthN authentication
   rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest)
       returns (QueryWebAuthNVerifyAuthenticateResponse) {}
+  // PlatformPercentage queries the platform percentage fee
   rpc PlatformPercentage(QueryPlatformPercentageRequest)
       returns (QueryPlatformPercentageResponse) {}
+  // PlatformMinimum queries the platform minimum fees
   rpc PlatformMinimum(QueryPlatformMinimumRequest)
       returns (QueryPlatformMinimumResponse) {}
 }
 
+// QueryWebAuthNVerifyRegisterRequest is the request type for WebAuthN
+// registration verification
 message QueryWebAuthNVerifyRegisterRequest {
   string addr = 1;
   string challenge = 2;
@@ -24,8 +31,12 @@ message QueryWebAuthNVerifyRegisterRequest {
   bytes data = 4;
 }
 
+// QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN
+// registration verification
 message QueryWebAuthNVerifyRegisterResponse { bytes credential = 1; }
 
+// QueryWebAuthNVerifyAuthenticateRequest is the request type for WebAuthN
+// authentication verification
 message QueryWebAuthNVerifyAuthenticateRequest {
   string addr = 1;
   string challenge = 2;
@@ -34,14 +45,24 @@ message QueryWebAuthNVerifyAuthenticateRequest {
   bytes data = 5;
 }
 
+// QueryWebAuthNVerifyAuthenticateResponse is the response type for WebAuthN
+// authentication verification
 message QueryWebAuthNVerifyAuthenticateResponse {}
 
+// QueryPlatformPercentageRequest is the request type for querying platform
+// percentage
 message QueryPlatformPercentageRequest {}
 
+// QueryPlatformPercentageResponse is the response type for querying platform
+// percentage
 message QueryPlatformPercentageResponse { uint64 platform_percentage = 1; }
 
+// QueryPlatformMinimumRequest is the request type for querying platform minimum
+// fees
 message QueryPlatformMinimumRequest {}
 
+// QueryPlatformMinimumResponse is the response type for querying platform
+// minimum fees
 message QueryPlatformMinimumResponse {
   repeated cosmos.base.v1beta1.Coin minimums = 3 [
     (gogoproto.nullable) = false,

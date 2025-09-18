@@ -30,8 +30,11 @@ service Msg {
   // module parameters. The authority is defined in the keeper.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse) {}
 
+  // AddHostZone adds a new host zone configuration
   rpc AddHostZone(MsgAddHostZone) returns (MsgAddHostZoneResponse) {}
+  // UpdateHostZone updates an existing host zone configuration
   rpc UpdateHostZone(MsgUpdateHostZone) returns (MsgUpdateHostZoneResponse) {}
+  // RemoveHostZone removes a host zone configuration
   rpc RemoveHostZone(MsgRemoveHostZone) returns (MsgRemoveHostZoneResponse) {}
 }
 

@@ -203,6 +203,7 @@ func (m *MsgMultiSendResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMultiSendResponse proto.InternalMessageInfo
 
+// MsgSetPlatformPercentage defines the message for setting platform percentage
 type MsgSetPlatformPercentage struct {
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// platform_percentage is the platform fee percentage to multiplied by 10000
@@ -256,6 +257,8 @@ func (m *MsgSetPlatformPercentage) GetPlatformPercentage() uint32 {
 	return 0
 }
 
+// MsgSetPlatformPercentageResponse defines the response for setting platform
+// percentage
 type MsgSetPlatformPercentageResponse struct {
 }
 
@@ -292,6 +295,7 @@ func (m *MsgSetPlatformPercentageResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSetPlatformPercentageResponse proto.InternalMessageInfo
 
+// MsgSetPlatformMinimum defines the message for setting platform minimum fees
 type MsgSetPlatformMinimum struct {
 	Authority string                                   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	Minimums  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=minimums,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"minimums"`
@@ -344,6 +348,8 @@ func (m *MsgSetPlatformMinimum) GetMinimums() github_com_cosmos_cosmos_sdk_types
 	return nil
 }
 
+// MsgSetPlatformMinimumResponse defines the response for setting platform
+// minimum fees
 type MsgSetPlatformMinimumResponse struct {
 }
 
