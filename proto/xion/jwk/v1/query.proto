@@ -55,11 +55,29 @@ message QueryAudienceClaimRequest { bytes hash = 1; }
 // claim
 message QueryAudienceClaimResponse { AudienceClaim claim = 1; }
 
+// QueryGetAudienceClaimRequest is the legacy request type for querying an
+// audience claim (deprecated)
+message QueryGetAudienceClaimRequest { bytes hash = 1; }
+
+// QueryGetAudienceClaimResponse is the legacy response type for querying an
+// audience claim (deprecated)
+message QueryGetAudienceClaimResponse { AudienceClaim claim = 1; }
+
 // QueryAudienceRequest is the request type for querying an audience
 message QueryAudienceRequest { string aud = 1; }
 
 // QueryAudienceResponse is the response type for querying an audience
 message QueryAudienceResponse {
+  Audience audience = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryGetAudienceRequest is the legacy request type for querying an audience
+// (deprecated)
+message QueryGetAudienceRequest { string aud = 1; }
+
+// QueryGetAudienceResponse is the legacy response type for querying an audience
+// (deprecated)
+message QueryGetAudienceResponse {
   Audience audience = 1 [ (gogoproto.nullable) = false ];
 }
 
@@ -70,6 +88,19 @@ message QueryAudienceAllRequest {
 
 // QueryAudienceAllResponse is the response type for querying all audiences
 message QueryAudienceAllResponse {
+  repeated Audience audience = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryAllAudienceRequest is the legacy request type for querying all audiences
+// (deprecated)
+message QueryAllAudienceRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryAllAudienceResponse is the legacy response type for querying all
+// audiences (deprecated)
+message QueryAllAudienceResponse {
   repeated Audience audience = 1 [ (gogoproto.nullable) = false ];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

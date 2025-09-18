@@ -134,7 +134,7 @@ func TestSetHostZoneProposal(t *testing.T) {
 		IbcDenom:                "ibc/789",
 		OsmosisPoolTokenDenomIn: "uosmo",
 		PoolId:                  2,
-		Status:                  HostChainFeeAbsStatus_FROZEN,
+		Status:                  HostChainFeeAbsStatus_HOST_CHAIN_FEE_ABS_STATUS_FROZEN,
 	}
 
 	proposal := &SetHostZoneProposal{

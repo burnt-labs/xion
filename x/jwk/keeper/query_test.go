@@ -62,27 +62,27 @@ func TestQueryAudience(t *testing.T) {
 	}
 
 	// Test AudienceAll query
-	resp, err := k.AudienceAll(ctx, &types.QueryAllAudienceRequest{})
+	resp, err := k.AudienceAll(ctx, &types.QueryAudienceAllRequest{})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 2)
 
 	// Test AudienceAll with pagination
 	pageReq := &query.PageRequest{Limit: 1}
-	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAudienceAllRequest{Pagination: pageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 1)
 
 	// Test Audience query for specific audience
-	audienceResp, err := k.Audience(ctx, &types.QueryGetAudienceRequest{Aud: "audience1"})
+	audienceResp, err := k.Audience(ctx, &types.QueryAudienceRequest{Aud: "audience1"})
 	require.NoError(t, err)
 	require.NotNil(t, audienceResp)
 	require.Equal(t, "audience1", audienceResp.Audience.Aud)
 	require.Equal(t, admin, audienceResp.Audience.Admin)
 
 	// Test Audience query for non-existent audience
-	_, err = k.Audience(ctx, &types.QueryGetAudienceRequest{Aud: "non-existent"})
+	_, err = k.Audience(ctx, &types.QueryAudienceRequest{Aud: "non-existent"})
 	require.Error(t, err)
 }
 
@@ -97,13 +97,13 @@ func TestQueryAudienceClaim(t *testing.T) {
 	k.SetAudienceClaim(ctx, hash, admin)
 
 	// Test AudienceClaim query
-	resp, err := k.AudienceClaim(ctx, &types.QueryGetAudienceClaimRequest{Hash: hash})
+	resp, err := k.AudienceClaim(ctx, &types.QueryAudienceClaimRequest{Hash: hash})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Equal(t, admin.String(), resp.Claim.Signer)
 
 	// Test AudienceClaim query for non-existent claim
-	_, err = k.AudienceClaim(ctx, &types.QueryGetAudienceClaimRequest{Hash: []byte("non-existent")})
+	_, err = k.AudienceClaim(ctx, &types.QueryAudienceClaimRequest{Hash: []byte("non-existent")})
 	require.Error(t, err)
 }
 
@@ -318,7 +318,7 @@ func TestQueryAudienceAllPagination(t *testing.T) {
 	require.Nil(t, resp)
 
 	// Test with limit that's too large (>100)
-	req := &types.QueryAllAudienceRequest{
+	req := &types.QueryAudienceAllRequest{
 		Pagination: &query.PageRequest{
 			Limit: 101, // Invalid limit (too large)
 		},
@@ -329,7 +329,7 @@ func TestQueryAudienceAllPagination(t *testing.T) {
 	require.Contains(t, err.Error(), "too large")
 
 	// Test with valid pagination
-	validReq := &types.QueryAllAudienceRequest{
+	validReq := &types.QueryAudienceAllRequest{
 		Pagination: &query.PageRequest{
 			Limit: 50, // Valid limit
 		},
@@ -349,7 +349,7 @@ func TestQueryAudienceNotFound(t *testing.T) {
 	require.Nil(t, resp)
 
 	// Test with non-existent audience
-	req := &types.QueryGetAudienceRequest{
+	req := &types.QueryAudienceRequest{
 		Aud: "non-existent",
 	}
 	resp, err = k.Audience(ctx, req)
@@ -367,7 +367,7 @@ func TestQueryAudienceClaimNotFound(t *testing.T) {
 	require.Nil(t, resp)
 
 	// Test with non-existent claim
-	req := &types.QueryGetAudienceClaimRequest{
+	req := &types.QueryAudienceClaimRequest{
 		Hash: []byte("non-existent-hash"),
 	}
 	resp, err = k.AudienceClaim(ctx, req)
@@ -386,7 +386,7 @@ func TestQueryAudienceAllNilAndError(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid request")
 
 	// Test with empty store (should return empty list)
-	validReq := &types.QueryAllAudienceRequest{}
+	validReq := &types.QueryAudienceAllRequest{}
 	resp, err = k.AudienceAll(ctx, validReq)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
@@ -402,7 +402,7 @@ func TestQueryAudienceAllNilAndError(t *testing.T) {
 	k.SetAudience(ctx, audience)
 
 	pageReq := &query.PageRequest{Offset: 100, Limit: 10}
-	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAudienceAllRequest{Pagination: pageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Empty(t, resp.Audience)
@@ -590,14 +590,14 @@ func TestQueryAudienceAllComprehensive(t *testing.T) {
 
 	// Test with pagination limit > 100 (should fail)
 	largePageReq := &query.PageRequest{Limit: 101}
-	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: largePageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAudienceAllRequest{Pagination: largePageReq})
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "too large")
 
 	// Test with valid large request (limit = 100, should work)
 	validLargePageReq := &query.PageRequest{Limit: 100}
-	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: validLargePageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAudienceAllRequest{Pagination: validLargePageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
@@ -614,14 +614,14 @@ func TestQueryAudienceAllComprehensive(t *testing.T) {
 
 	// Test pagination with limit and offset
 	pageReq := &query.PageRequest{Limit: 2, Offset: 1}
-	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: pageReq})
+	resp, err = k.AudienceAll(ctx, &types.QueryAudienceAllRequest{Pagination: pageReq})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 2)
 	require.NotNil(t, resp.Pagination)
 
 	// Test with no pagination (nil)
-	resp, err = k.AudienceAll(ctx, &types.QueryAllAudienceRequest{Pagination: nil})
+	resp, err = k.AudienceAll(ctx, &types.QueryAudienceAllRequest{Pagination: nil})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.Len(t, resp.Audience, 3) // Should return all audiences
@@ -975,7 +975,7 @@ func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 	audienceStore.Set(audienceKey, corruptedData)
 
 	// Try to query all audiences - this should trigger the unmarshaling error path
-	resp, err := k.AudienceAll(ctx.Ctx, &types.QueryAllAudienceRequest{})
+	resp, err := k.AudienceAll(ctx.Ctx, &types.QueryAudienceAllRequest{})
 	require.Error(t, err)
 	require.Nil(t, resp)
 	require.Contains(t, err.Error(), "Internal")
