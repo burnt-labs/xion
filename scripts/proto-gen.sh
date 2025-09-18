@@ -37,7 +37,6 @@ github.com/cosmos/ibc-go/v10
 github.com/CosmWasm/wasmd
 github.com/gogo/protobuf
 github.com/burnt-labs/abstract-account
-cosmossdk.io/x/circuit
 cosmossdk.io/x/evidence
 cosmossdk.io/x/feegrant
 cosmossdk.io/x/nft
@@ -48,7 +47,7 @@ github.com/strangelove-ventures/tokenfactory
 
 # Install selected dependencies from go.mod
 echo "installing dependencies"
-(cd ${base_dir} && go mod download $deps)
+(cd ${base_dir} && go mod download)
 
 # Get dependency paths
 echo "getting paths for $deps"
@@ -81,6 +80,16 @@ gen_gogo() {
     cp -rv "$base_dir/github.com/burnt-labs/xion/"* "$base_dir/"
     rm -rf "$base_dir/github.com"
   fi
+}
+
+gen_pulsar() {
+  go install cosmossdk.io/orm/cmd/protoc-gen-go-cosmos-orm@latest #2>/dev/null
+
+  local dirs=$(get_proto_dirs $proto_dir)
+  buf generate --output "${base_dir}/api" --template "$proto_dir/buf.gen.pulsar.yaml" "$proto_dir"
+  
+  # remove problematic generated files
+  rm $base_dir/api/xion/feeabs/v1beta1/osmosisibc.pulsar.go
 }
 
 gen_swagger() {
@@ -141,6 +150,10 @@ main() {
         ;;
       --openapi|--swagger)
         gen_swagger
+        shift
+        ;;
+      --pulsar)
+        gen_pulsar
         shift
         ;;
       --help|-h)

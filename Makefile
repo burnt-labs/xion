@@ -353,6 +353,10 @@ proto-gen-openapi:
 
 proto-gen-swagger: proto-gen-openapi
 
+proto-gen-pulsar:
+	@echo "Generating Protobuf Pulsar"
+	@$(protoImage) sh ./scripts/proto-gen.sh --pulsar
+
 proto-format:
 	@echo "Formatting Protobuf files"
 	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
