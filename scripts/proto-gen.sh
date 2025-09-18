@@ -30,21 +30,6 @@ proto_dir="$base_dir/proto"
 client_dir="$base_dir/client"
 docs_dir="$client_dir/docs"
 
-# Define dependencies
-deps="github.com/cosmos/cosmos-sdk
-github.com/cosmos/cosmos-proto
-github.com/cosmos/ibc-go/v10
-github.com/CosmWasm/wasmd
-github.com/gogo/protobuf
-github.com/burnt-labs/abstract-account
-cosmossdk.io/x/evidence
-cosmossdk.io/x/feegrant
-cosmossdk.io/x/nft
-cosmossdk.io/x/upgrade
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
-github.com/strangelove-ventures/tokenfactory
-"
-
 # Install selected dependencies from go.mod
 echo "installing dependencies"
 (cd ${base_dir} && go mod download)

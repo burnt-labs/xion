@@ -15,3 +15,4 @@ inputs:
       - "**/regen-network/protobuf/**"
       - "**/poa/genesis.proto"
       - "**/tokenfactory/v1beta1/**"
+
