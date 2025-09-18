@@ -451,7 +451,6 @@ func _Query_AnnualProvisions_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.mint.v1.Query",
 	HandlerType: (*QueryServer)(nil),

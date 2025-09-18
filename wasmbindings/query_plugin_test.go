@@ -10,7 +10,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 	"github.com/golang-jwt/jwt/v5"
 	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
-	jwk "github.com/lestrrat-go/jwx/v2/jwk"
+	jwk "github.com/lestrrat-go/jwx/jwk"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -48,7 +48,7 @@ func TestStargateTestSuite(t *testing.T) {
 func SetUpAudience(suite *StargateTestSuite) {
 	privKey, err := wasmbinding.SetupKeys()
 	suite.Require().NoError(err)
-	jwkPrivKey, err := jwk.FromRaw(privKey)
+	jwkPrivKey, err := jwk.New(privKey)
 	suite.Require().NoError(err)
 	pubKey, err := jwkPrivKey.PublicKey()
 	suite.NoError(err)
@@ -173,7 +173,7 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 	privKey, err := wasmbinding.SetupKeys()
 	suite.Require().NoError(err)
-	jwkPrivKey, err := jwk.FromRaw(privKey)
+	jwkPrivKey, err := jwk.New(privKey)
 	suite.Require().NoError(err)
 	publicKey, err := jwkPrivKey.PublicKey()
 	suite.NoError(err)

@@ -1,9 +1,9 @@
 syntax = "proto3";
-package xion.feeabs.v1beta1;
+package feeabstraction.feeabs.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "xion/feeabs/v1beta1/proposal.proto";
+import "feeabstraction/feeabs/v1beta1/proposal.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/feeabs/types";

@@ -15,14 +15,12 @@ const (
 	TypeMsgSend                  = "send"
 	TypeMsgMultiSend             = "multisend"
 	TypeMsgSetPlatformPercentage = "setplatformpercentage"
-	TypeMsgSetPlatformMinimum    = "setplatformminimum"
 )
 
 var (
 	_ sdk.Msg = &MsgSend{}
 	_ sdk.Msg = &MsgMultiSend{}
 	_ sdk.Msg = &MsgSetPlatformPercentage{}
-	_ sdk.Msg = &MsgSetPlatformMinimum{}
 )
 
 // NewMsgSend - construct a msg to send coins from one account to another.
@@ -147,44 +145,6 @@ func (msg MsgSetPlatformPercentage) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgSetPlatformPercentage) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
-	return []sdk.AccAddress{addr}
-}
-
-// NewMsgSetPlatformMinimum constructs a message to set platform minimums.
-func NewMsgSetPlatformMinimum(authority sdk.AccAddress, minimums sdk.Coins) *MsgSetPlatformMinimum {
-	return &MsgSetPlatformMinimum{Authority: authority.String(), Minimums: minimums}
-}
-
-// Route Implements Msg
-func (msg MsgSetPlatformMinimum) Route() string { return RouterKey }
-
-// Type Implements Msg
-func (msg MsgSetPlatformMinimum) Type() string { return TypeMsgSetPlatformMinimum }
-
-// ValidateBasic Implements Msg.
-func (msg MsgSetPlatformMinimum) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid authority address: %s", err)
-	}
-
-	if !msg.Minimums.IsValid() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Minimums.String())
-	}
-	// Minimums can be zero but never negative
-	if msg.Minimums.IsAnyNegative() {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Minimums.String())
-	}
-	return nil
-}
-
-// GetSignBytes Implements Msg.
-func (msg MsgSetPlatformMinimum) GetSignBytes() []byte {
-	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
-}
-
-// GetSigners Implements Msg.
-func (msg MsgSetPlatformMinimum) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
 	return []sdk.AccAddress{addr}
 }

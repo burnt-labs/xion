@@ -1,0 +1,18 @@
+syntax = "proto3";
+package xion.feeabs.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// Params holds parameters for the feeabs module.
+message Params {
+  // Native fee token denomination
+  string native_fee_denom = 1;
+  
+  // Osmosis pool timeout
+  int64 pool_timeout = 2;
+  
+  // IBC timeout
+  uint64 ibc_timeout = 3;
+}

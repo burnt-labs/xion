@@ -16,7 +16,7 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v4"
 	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -26,7 +26,7 @@ import (
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/jwk"
 	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v10/ibc"
@@ -137,7 +137,7 @@ func addAccounts(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, no
 		require.NoError(t, err)
 		t.Logf("private key: %v", privateKey)
 
-		publicKey, err := jwk.FromRaw(privateKey)
+		publicKey, err := jwk.New(privateKey)
 		require.NoError(t, err)
 		publicKeyJSON, err := json.Marshal(publicKey)
 		require.NoError(t, err)
@@ -260,7 +260,7 @@ func TestSingleAbstractAccountMigration(t *testing.T) {
 	t.Logf("private key: %v", privateKey)
 
 	// log the test public key
-	publicKey, err := jwk.FromRaw(privateKey)
+	publicKey, err := jwk.New(privateKey)
 	require.NoError(t, err)
 	publicKey, err = publicKey.PublicKey()
 	require.NoError(t, err)
