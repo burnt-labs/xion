@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/orm/types/ormerrors"
+	"cosmossdk.io/collections"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
@@ -34,7 +34,7 @@ func TestQueryDkimPubKey(t *testing.T) {
 				Domain:   domain,
 			},
 			err:     true,
-			errType: ormerrors.NotFound,
+			errType: collections.ErrKeyNotFound,
 		},
 		{
 			name: "success",

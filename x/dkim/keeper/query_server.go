@@ -1,11 +1,11 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 
 	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
-	"cosmossdk.io/orm/model/ormlist"
-
+	"cosmossdk.io/collections"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -36,7 +36,8 @@ func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.
 
 // DkimPubKey implements types.QueryServer.
 func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyRequest) (*types.QueryDkimPubKeyResponse, error) {
-	dkimPubKey, err := k.OrmDB.DkimPubKeyTable().Get(ctx, msg.Domain, msg.Selector)
+	key := collections.Join(msg.Domain, msg.Selector)
+	dkimPubKey, err := k.DkimPubKeys.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	switch {
 	case msg.Domain != "" && msg.Selector != "":
 		// direct request for a pubKey
-		dkimPubKey, err := k.OrmDB.DkimPubKeyTable().Get(ctx, msg.Domain, msg.Selector)
+		key := collections.Join(msg.Domain, msg.Selector)
+		dkimPubKey, err := k.DkimPubKeys.Get(ctx, key)
 		if err != nil {
 			return nil, err
 		}
@@ -68,20 +70,16 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			Pagination: nil,
 		}, nil
 	case msg.Domain != "" && msg.PoseidonHash != nil:
-		// secondary index for domain+hash exists, and should be used
+		// all pubKeys for a domain with specific hash
 		pageRequest := convertPageRequest(msg.Pagination)
-		results, err := k.OrmDB.DkimPubKeyTable().List(ctx,
-			dkimv1.DkimPubKeyDomainPoseidonHashIndexKey{}.WithDomainPoseidonHash(msg.Domain, msg.PoseidonHash),
-			ormlist.Paginate(pageRequest))
+		results, err := k.DkimPubKeys.List(ctx, pageRequest)
 		if err != nil {
 			return nil, err
 		}
-
-		pubKeys, err := consumeIteratorResults(results)
+		pubKeys, err := consumeIteratorResults(results, msg.Domain, msg.PoseidonHash)
 		if err != nil {
 			return nil, err
 		}
-
 		return &types.QueryDkimPubKeysResponse{
 			DkimPubKeys: pubKeys,
 			Pagination:  convertPageResponse(results.PageResponse()),
@@ -89,18 +87,14 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	case msg.Domain != "":
 		// all pubKeys for a domain
 		pageRequest := convertPageRequest(msg.Pagination)
-		results, err := k.OrmDB.DkimPubKeyTable().List(ctx,
-			dkimv1.DkimPubKeyPrimaryKey{}.WithDomain(msg.Domain),
-			ormlist.Paginate(pageRequest))
+		results, err := k.DkimPubKeys.List(ctx, pageRequest)
 		if err != nil {
 			return nil, err
 		}
-
-		pubKeys, err := consumeIteratorResults(results)
+		pubKeys, err := consumeIteratorResults(results, msg.Domain, nil)
 		if err != nil {
 			return nil, err
 		}
-
 		return &types.QueryDkimPubKeysResponse{
 			DkimPubKeys: pubKeys,
 			Pagination:  convertPageResponse(results.PageResponse()),
@@ -108,18 +102,14 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	default:
 		// all pubKeys
 		pageRequest := convertPageRequest(msg.Pagination)
-		results, err := k.OrmDB.DkimPubKeyTable().List(ctx,
-			dkimv1.DkimPubKeyPrimaryKey{},
-			ormlist.Paginate(pageRequest))
+		results, err := k.DkimPubKeys.List(ctx, pageRequest)
 		if err != nil {
 			return nil, err
 		}
-
-		pubKeys, err := consumeIteratorResults(results)
+		pubKeys, err := consumeIteratorResults(results, "", nil)
 		if err != nil {
 			return nil, err
 		}
-
 		return &types.QueryDkimPubKeysResponse{
 			DkimPubKeys: pubKeys,
 			Pagination:  convertPageResponse(results.PageResponse()),
@@ -137,7 +127,6 @@ func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {
 		pageRequest.Reverse = request.Reverse
 		return &pageRequest
 	}
-
 	return nil
 }
 
@@ -148,23 +137,38 @@ func convertPageResponse(response *queryv1beta1.PageResponse) *query.PageRespons
 		pageResponse.Total = response.Total
 		return &pageResponse
 	}
-
 	return nil
 }
 
-func consumeIteratorResults(iterator dkimv1.DkimPubKeyIterator) (output []*types.DkimPubKey, err error) {
+func consumeIteratorResults(iterator collections.Iterator[collections.Pair[string, string], dkimv1.DkimPubKey], domain string, poseidonHash []byte) (output []*types.DkimPubKey, err error) {
 	defer iterator.Close()
 
 	for iterator.Next() {
-		dkimPubKey, err := iterator.Value()
+		kv, err := iterator.Value()
 		if err != nil {
 			return nil, err
 		}
-		output = append(output, &types.DkimPubKey{
-			Domain:   dkimPubKey.Domain,
-			PubKey:   dkimPubKey.PubKey,
-			Selector: dkimPubKey.Selector,
-		})
+		dkimPubKey := kv.Value
+
+		// Filter by domain and/or poseidon hash if specified
+		match := true
+		if domain != "" && dkimPubKey.Domain != domain {
+			match = false
+		}
+		if poseidonHash != nil && !bytes.Equal(dkimPubKey.PoseidonHash, poseidonHash) {
+			match = false
+		}
+
+		if match {
+			output = append(output, &types.DkimPubKey{
+				Domain:       dkimPubKey.Domain,
+				PubKey:       dkimPubKey.PubKey,
+				Selector:     dkimPubKey.Selector,
+				PoseidonHash: dkimPubKey.PoseidonHash,
+				Version:      types.Version(dkimPubKey.Version),
+				KeyType:      types.KeyType(dkimPubKey.KeyType),
+			})
+		}
 	}
 
 	return output, nil

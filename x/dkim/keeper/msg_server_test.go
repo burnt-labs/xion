@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/orm/types/ormerrors"
+	"cosmossdk.io/collections"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 	sdkTypes "github.com/cosmos/cosmos-sdk/types"
@@ -229,8 +229,8 @@ func TestRemoveDkimPubKey(t *testing.T) {
 
 			if tc.err {
 				require.Error(err)
-				if tc.name == "success: remove non existing key" {
-					require.True(ormerrors.IsNotFound(err))
+				if tc.name == "fail: remove non existing key" {
+					require.ErrorIs(err, collections.ErrKeyNotFound)
 				}
 			} else {
 				require.NoError(err)
@@ -241,6 +241,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 				})
 				require.Nil(r)
 				require.Error(err)
+				require.ErrorIs(err, collections.ErrKeyNotFound)
 			}
 		})
 	}

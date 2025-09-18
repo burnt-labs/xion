@@ -6,8 +6,6 @@ import (
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
-	"cosmossdk.io/orm/model/ormdb"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -22,9 +20,9 @@ type Keeper struct {
 	logger log.Logger
 
 	// state management
-	Schema collections.Schema
-	Params collections.Item[types.Params]
-	OrmDB  apiv1.StateStore
+	Schema      collections.Schema
+	Params      collections.Item[types.Params]
+	DkimPubKeys collections.Map[collections.Pair[string, string], apiv1.DkimPubKey]
 
 	authority string
 }
@@ -44,23 +42,17 @@ func NewKeeper(
 		authority = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	}
 
-	db, err := ormdb.NewModuleDB(&types.ORMModuleSchema, ormdb.ModuleDBOptions{KVStoreService: storeService})
-	if err != nil {
-		panic(err)
-	}
-
-	store, err := apiv1.NewStateStore(db)
-	if err != nil {
-		panic(err)
-	}
-
 	k := Keeper{
 		cdc:    cdc,
 		logger: logger,
-
 		Params: collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
-		OrmDB:  store,
-
+		DkimPubKeys: collections.NewMap(
+			sb,
+			collections.NewPrefix(uint8(1)), // NOTE: add an actual prefix
+			"dkim_pubkeys",
+			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
+			codec.CollValue[apiv1.DkimPubKey](cdc),
+		),
 		authority: authority,
 	}
 
@@ -85,12 +77,14 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		return err
 	}
 	for _, dkimPubKey := range data.DkimPubkeys {
-		if err := k.OrmDB.DkimPubKeyTable().Save(ctx, &apiv1.DkimPubKey{
+		pk := &apiv1.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
-		}); err != nil {
+		}
+		key := collections.Join(pk.Domain, pk.Selector)
+		if err := k.DkimPubKeys.Set(ctx, key, pk); err != nil {
 			return err
 		}
 	}
@@ -104,17 +98,18 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
-	allDkimPubKeys, err := k.OrmDB.DkimPubKeyTable().List(ctx, apiv1.DkimPubKeyDomainSelectorIndexKey{})
+	var dkimPubKeys []types.DkimPubKey
+	iter, err := k.DkimPubKeys.Iterate(ctx, collections.RangeFull())
 	if err != nil {
 		panic(err)
 	}
-	var dkimPubKeys []types.DkimPubKey
-
-	for allDkimPubKeys.Next() {
-		dkimPubKey, err := allDkimPubKeys.Value()
-		if err != nil {
-			panic(err)
-		}
+	defer iter.Close()
+	kvs, err := iter.KeyValues()
+	if err != nil {
+		panic(err)
+	}
+	for _, kv := range kvs {
+		dkimPubKey := kv.Value
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
