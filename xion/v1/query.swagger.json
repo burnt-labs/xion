@@ -1,0 +1,94 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "xion/v1/query.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Query"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1QueryPlatformMinimumResponse": {
+      "type": "object",
+      "properties": {
+        "minimums": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1beta1Coin"
+          }
+        }
+      }
+    },
+    "v1QueryPlatformPercentageResponse": {
+      "type": "object",
+      "properties": {
+        "platformPercentage": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "v1QueryWebAuthNVerifyAuthenticateResponse": {
+      "type": "object"
+    },
+    "v1QueryWebAuthNVerifyRegisterResponse": {
+      "type": "object",
+      "properties": {
+        "credential": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "v1beta1Coin": {
+      "type": "object",
+      "properties": {
+        "denom": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string"
+        }
+      },
+      "description": "Coin defines a token with a denomination and an amount.\n\nNOTE: The amount field is an Int which implements the custom method\nsignatures required by gogoproto."
+    }
+  }
+}
