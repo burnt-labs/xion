@@ -44,6 +44,7 @@ message MsgFundFeeAbsModuleAccount {
 
   // sender is the that actor that signed the messages
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // The amount of coins to fund to the feeabs module account
   repeated cosmos.base.v1beta1.Coin amount = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"amount\"",
@@ -71,6 +72,7 @@ message MsgSwapCrossChain {
 
   // Sender is the that actor that signed the messages
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // The IBC denomination to swap
   string ibc_denom = 2;
 }
 
@@ -130,6 +132,7 @@ message MsgRemoveHostZone {
 
   // authority is the address of the governance account.
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // The IBC denomination of the host zone to remove
   string ibc_denom = 2;
 }
 

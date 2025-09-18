@@ -104,7 +104,8 @@ func (m *QueryArithmeticTwapToNowRequest) GetStartTime() time.Time {
 
 // QueryArithmeticTwapToNowResponse
 type QueryArithmeticTwapToNowResponse struct {
-	// arithmetic_twap defines the calculated arithmetic time-weighted average price
+	// arithmetic_twap defines the calculated arithmetic time-weighted average
+	// price
 	ArithmeticTwap cosmossdk_io_math.LegacyDec `protobuf:"bytes,1,opt,name=arithmetic_twap,json=arithmeticTwap,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"arithmetic_twap" yaml:"arithmetic_twap"`
 }
 

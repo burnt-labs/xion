@@ -36,9 +36,12 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgSend represents a message to send coins from one account to another.
 type MsgSend struct {
-	FromAddress string                                   `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
-	ToAddress   string                                   `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`
-	Amount      github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
+	// The address sending the coins
+	FromAddress string `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
+	// The address receiving the coins
+	ToAddress string `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`
+	// The amount of coins to send
+	Amount github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
 }
 
 func (m *MsgSend) Reset()         { *m = MsgSend{} }
@@ -115,7 +118,8 @@ var xxx_messageInfo_MsgSendResponse proto.InternalMessageInfo
 type MsgMultiSend struct {
 	// Inputs, despite being `repeated`, only allows one sender input. This is
 	// checked in MsgMultiSend's ValidateBasic.
-	Inputs  []types1.Input  `protobuf:"bytes,1,rep,name=inputs,proto3" json:"inputs"`
+	Inputs []types1.Input `protobuf:"bytes,1,rep,name=inputs,proto3" json:"inputs"`
+	// The outputs specifying recipient addresses and amounts
 	Outputs []types1.Output `protobuf:"bytes,2,rep,name=outputs,proto3" json:"outputs"`
 }
 
@@ -205,6 +209,7 @@ var xxx_messageInfo_MsgMultiSendResponse proto.InternalMessageInfo
 
 // MsgSetPlatformPercentage defines the message for setting platform percentage
 type MsgSetPlatformPercentage struct {
+	// The authority address that can set the platform percentage
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// platform_percentage is the platform fee percentage to multiplied by 10000
 	PlatformPercentage uint32 `protobuf:"varint,2,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
@@ -297,8 +302,10 @@ var xxx_messageInfo_MsgSetPlatformPercentageResponse proto.InternalMessageInfo
 
 // MsgSetPlatformMinimum defines the message for setting platform minimum fees
 type MsgSetPlatformMinimum struct {
-	Authority string                                   `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	Minimums  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=minimums,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"minimums"`
+	// The authority address that can set the platform minimums
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// The minimum fees required by the platform
+	Minimums github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=minimums,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"minimums"`
 }
 
 func (m *MsgSetPlatformMinimum) Reset()         { *m = MsgSetPlatformMinimum{} }

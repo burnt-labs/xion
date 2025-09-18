@@ -30,7 +30,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgCreateAudienceClaim defines the message for creating an audience claim
 type MsgCreateAudienceClaim struct {
-	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The admin address creating the claim
+	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The hash of the audience for this claim
 	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
 }
 
@@ -121,7 +123,9 @@ var xxx_messageInfo_MsgCreateAudienceClaimResponse proto.InternalMessageInfo
 
 // MsgDeleteAudienceClaim defines the message for deleting an audience claim
 type MsgDeleteAudienceClaim struct {
-	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The admin address deleting the claim
+	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The hash of the audience for this claim
 	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
 }
 
@@ -212,9 +216,12 @@ var xxx_messageInfo_MsgDeleteAudienceClaimResponse proto.InternalMessageInfo
 
 // MsgCreateAudience defines the message for creating an audience
 type MsgCreateAudience struct {
+	// The admin address creating the audience
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
-	Aud   string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
-	Key   string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`
+	// The audience identifier
+	Aud string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The public key for this audience
+	Key string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`
 }
 
 func (m *MsgCreateAudience) Reset()         { *m = MsgCreateAudience{} }
@@ -273,6 +280,7 @@ func (m *MsgCreateAudience) GetKey() string {
 
 // MsgCreateAudienceResponse defines the response for creating an audience
 type MsgCreateAudienceResponse struct {
+	// The created audience
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
 
@@ -318,11 +326,16 @@ func (m *MsgCreateAudienceResponse) GetAudience() *Audience {
 
 // MsgUpdateAudience defines the message for updating an audience
 type MsgUpdateAudience struct {
-	Admin    string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The current admin address
+	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The new admin address
 	NewAdmin string `protobuf:"bytes,2,opt,name=new_admin,json=newAdmin,proto3" json:"new_admin,omitempty"`
-	Aud      string `protobuf:"bytes,3,opt,name=aud,proto3" json:"aud,omitempty"`
-	Key      string `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty"`
-	NewAud   string `protobuf:"bytes,5,opt,name=new_aud,json=newAud,proto3" json:"new_aud,omitempty"`
+	// The current audience identifier
+	Aud string `protobuf:"bytes,3,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The current public key
+	Key string `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty"`
+	// The new audience identifier
+	NewAud string `protobuf:"bytes,5,opt,name=new_aud,json=newAud,proto3" json:"new_aud,omitempty"`
 }
 
 func (m *MsgUpdateAudience) Reset()         { *m = MsgUpdateAudience{} }
@@ -395,6 +408,7 @@ func (m *MsgUpdateAudience) GetNewAud() string {
 
 // MsgUpdateAudienceResponse defines the response for updating an audience
 type MsgUpdateAudienceResponse struct {
+	// The updated audience
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
 
@@ -440,8 +454,10 @@ func (m *MsgUpdateAudienceResponse) GetAudience() *Audience {
 
 // MsgDeleteAudience defines the message for deleting an audience
 type MsgDeleteAudience struct {
+	// The admin address deleting the audience
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
-	Aud   string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The audience identifier to delete
+	Aud string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
 }
 
 func (m *MsgDeleteAudience) Reset()         { *m = MsgDeleteAudience{} }

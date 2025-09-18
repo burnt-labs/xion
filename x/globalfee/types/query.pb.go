@@ -70,6 +70,7 @@ var xxx_messageInfo_QueryParamsRequest proto.InternalMessageInfo
 // QueryMinimumGasPricesResponse is the response type for the
 // Query/MinimumGasPrices RPC method.
 type QueryParamsResponse struct {
+	// The global fee parameters
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 }
 

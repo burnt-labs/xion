@@ -20,6 +20,7 @@ message AuthzAllowance {
       [ (cosmos_proto.accepts_interface) =
             "cosmos.feegrant.v1beta1.FeeAllowanceI" ];
 
+  // The address that can use this authorization-based allowance
   string authz_grantee = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }
 
@@ -35,6 +36,7 @@ message ContractsAllowance {
       [ (cosmos_proto.accepts_interface) =
             "cosmos.feegrant.v1beta1.FeeAllowanceI" ];
 
+  // List of contract addresses that this allowance applies to
   repeated string contract_addresses = 2
       [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 }

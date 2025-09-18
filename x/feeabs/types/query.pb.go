@@ -34,6 +34,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // QueryHostChainConfigRequest
 type QueryHostChainConfigRequest struct {
+	// The IBC denomination to query configuration for
 	IbcDenom string `protobuf:"bytes,1,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
@@ -79,6 +80,7 @@ func (m *QueryHostChainConfigRequest) GetIbcDenom() string {
 
 // QueryHostChainConfigResponse
 type QueryHostChainConfigResponse struct {
+	// The host chain fee abstraction configuration
 	HostChainConfig HostChainFeeAbsConfig `protobuf:"bytes,1,opt,name=host_chain_config,json=hostChainConfig,proto3" json:"host_chain_config" yaml:"host_chain_config"`
 }
 
@@ -125,6 +127,7 @@ func (m *QueryHostChainConfigResponse) GetHostChainConfig() HostChainFeeAbsConfi
 // QueryOsmosisArithmeticTwapRequest is the request type for the Query/Feeabs
 // RPC method.
 type QueryOsmosisArithmeticTwapRequest struct {
+	// The IBC denomination to query TWAP for
 	IbcDenom string `protobuf:"bytes,1,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
@@ -170,6 +173,7 @@ func (m *QueryOsmosisArithmeticTwapRequest) GetIbcDenom() string {
 
 // QueryOsmosisArithmeticTwapResponse
 type QueryOsmosisArithmeticTwapResponse struct {
+	// The arithmetic time-weighted average price
 	ArithmeticTwap cosmossdk_io_math.LegacyDec `protobuf:"bytes,1,opt,name=arithmetic_twap,json=arithmeticTwap,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"arithmetic_twap" yaml:"arithmetic_twap"`
 }
 
@@ -246,8 +250,10 @@ var xxx_messageInfo_QueryFeeabsModuleBalancesRequest proto.InternalMessageInfo
 
 // QueryFeeabsModuleBalancesResponse
 type QueryFeeabsModuleBalancesResponse struct {
+	// The coin balances held by the feeabs module
 	Balances github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=balances,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"balances" yaml:"balances"`
-	Address  string                                   `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	// The address of the feeabs module
+	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 }
 
 func (m *QueryFeeabsModuleBalancesResponse) Reset()         { *m = QueryFeeabsModuleBalancesResponse{} }
@@ -336,6 +342,7 @@ var xxx_messageInfo_QueryAllHostChainConfigRequest proto.InternalMessageInfo
 
 // QueryAllHostChainConfigResponse
 type QueryAllHostChainConfigResponse struct {
+	// All host chain fee abstraction configurations
 	AllHostChainConfig []HostChainFeeAbsConfig `protobuf:"bytes,1,rep,name=all_host_chain_config,json=allHostChainConfig,proto3" json:"all_host_chain_config" yaml:"all_host_chain_config"`
 }
 

@@ -41,8 +41,11 @@ message MsgSend {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
+  // The address sending the coins
   string from_address = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // The address receiving the coins
   string to_address = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // The amount of coins to send
   repeated cosmos.base.v1beta1.Coin amount = 3 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
@@ -64,6 +67,7 @@ message MsgMultiSend {
   // checked in MsgMultiSend's ValidateBasic.
   repeated cosmos.bank.v1beta1.Input inputs = 1
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
+  // The outputs specifying recipient addresses and amounts
   repeated cosmos.bank.v1beta1.Output outputs = 2
       [ (gogoproto.nullable) = false, (amino.dont_omitempty) = true ];
 }
@@ -76,6 +80,7 @@ message MsgSetPlatformPercentage {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "xion/MsgSetPlatformPercentage";
 
+  // The authority address that can set the platform percentage
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // platform_percentage is the platform fee percentage to multiplied by 10000
@@ -91,8 +96,10 @@ message MsgSetPlatformMinimum {
   option (cosmos.msg.v1.signer) = "authority";
   option (amino.name) = "xion/MsgSetPlatformMinimum";
 
+  // The authority address that can set the platform minimums
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
+  // The minimum fees required by the platform
   repeated cosmos.base.v1beta1.Coin minimums = 3 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,

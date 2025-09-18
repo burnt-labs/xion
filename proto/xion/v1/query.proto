@@ -25,23 +25,35 @@ service Query {
 // QueryWebAuthNVerifyRegisterRequest is the request type for WebAuthN
 // registration verification
 message QueryWebAuthNVerifyRegisterRequest {
+  // The account address
   string addr = 1;
+  // The challenge string for registration
   string challenge = 2;
+  // The relying party identifier
   string rp = 3;
+  // The registration data
   bytes data = 4;
 }
 
 // QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN
 // registration verification
-message QueryWebAuthNVerifyRegisterResponse { bytes credential = 1; }
+message QueryWebAuthNVerifyRegisterResponse {
+  // The generated credential
+  bytes credential = 1;
+}
 
 // QueryWebAuthNVerifyAuthenticateRequest is the request type for WebAuthN
 // authentication verification
 message QueryWebAuthNVerifyAuthenticateRequest {
+  // The account address
   string addr = 1;
+  // The challenge string for authentication
   string challenge = 2;
+  // The relying party identifier
   string rp = 3;
+  // The credential to verify
   bytes credential = 4;
+  // The authentication data
   bytes data = 5;
 }
 
@@ -55,7 +67,10 @@ message QueryPlatformPercentageRequest {}
 
 // QueryPlatformPercentageResponse is the response type for querying platform
 // percentage
-message QueryPlatformPercentageResponse { uint64 platform_percentage = 1; }
+message QueryPlatformPercentageResponse {
+  // The platform percentage fee
+  uint64 platform_percentage = 1;
+}
 
 // QueryPlatformMinimumRequest is the request type for querying platform minimum
 // fees
@@ -64,6 +79,7 @@ message QueryPlatformMinimumRequest {}
 // QueryPlatformMinimumResponse is the response type for querying platform
 // minimum fees
 message QueryPlatformMinimumResponse {
+  // The minimum fees required by the platform
   repeated cosmos.base.v1beta1.Coin minimums = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"

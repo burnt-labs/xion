@@ -29,8 +29,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // AuthzAllowance creates allowance only authz message for a specific grantee
 type AuthzAllowance struct {
 	// allowance can be any of basic and periodic fee allowance.
-	Allowance    *types.Any `protobuf:"bytes,1,opt,name=allowance,proto3" json:"allowance,omitempty"`
-	AuthzGrantee string     `protobuf:"bytes,2,opt,name=authz_grantee,json=authzGrantee,proto3" json:"authz_grantee,omitempty"`
+	Allowance *types.Any `protobuf:"bytes,1,opt,name=allowance,proto3" json:"allowance,omitempty"`
+	// The address that can use this authorization-based allowance
+	AuthzGrantee string `protobuf:"bytes,2,opt,name=authz_grantee,json=authzGrantee,proto3" json:"authz_grantee,omitempty"`
 }
 
 func (m *AuthzAllowance) Reset()         { *m = AuthzAllowance{} }
@@ -69,8 +70,9 @@ var xxx_messageInfo_AuthzAllowance proto.InternalMessageInfo
 // ContractsAllowance creates allowance only for specific contracts
 type ContractsAllowance struct {
 	// allowance can be any allowance interface type.
-	Allowance         *types.Any `protobuf:"bytes,1,opt,name=allowance,proto3" json:"allowance,omitempty"`
-	ContractAddresses []string   `protobuf:"bytes,2,rep,name=contract_addresses,json=contractAddresses,proto3" json:"contract_addresses,omitempty"`
+	Allowance *types.Any `protobuf:"bytes,1,opt,name=allowance,proto3" json:"allowance,omitempty"`
+	// List of contract addresses that this allowance applies to
+	ContractAddresses []string `protobuf:"bytes,2,rep,name=contract_addresses,json=contractAddresses,proto3" json:"contract_addresses,omitempty"`
 }
 
 func (m *ContractsAllowance) Reset()         { *m = ContractsAllowance{} }

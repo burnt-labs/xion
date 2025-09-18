@@ -36,7 +36,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // MsgFundFeeAbsModuleAccount
 type MsgFundFeeAbsModuleAccount struct {
 	// sender is the that actor that signed the messages
-	Sender string                                   `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The amount of coins to fund to the feeabs module account
 	Amount github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount" yaml:"amount"`
 }
 
@@ -210,7 +211,8 @@ var xxx_messageInfo_MsgSendQueryIbcDenomTWAPResponse proto.InternalMessageInfo
 // MsgSwapCrossChain
 type MsgSwapCrossChain struct {
 	// Sender is the that actor that signed the messages
-	Sender   string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The IBC denomination to swap
 	IbcDenom string `protobuf:"bytes,2,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
@@ -581,7 +583,8 @@ var xxx_messageInfo_MsgUpdateHostZoneResponse proto.InternalMessageInfo
 type MsgRemoveHostZone struct {
 	// authority is the address of the governance account.
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	IbcDenom  string `protobuf:"bytes,2,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
+	// The IBC denomination of the host zone to remove
+	IbcDenom string `protobuf:"bytes,2,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
 func (m *MsgRemoveHostZone) Reset()         { *m = MsgRemoveHostZone{} }

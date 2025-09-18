@@ -49,74 +49,108 @@ message QueryParamsResponse {
 }
 
 // QueryAudienceClaimRequest is the request type for querying an audience claim
-message QueryAudienceClaimRequest { bytes hash = 1; }
+message QueryAudienceClaimRequest {
+  // The hash of the audience claim to query
+  bytes hash = 1;
+}
 
 // QueryAudienceClaimResponse is the response type for querying an audience
 // claim
-message QueryAudienceClaimResponse { AudienceClaim claim = 1; }
+message QueryAudienceClaimResponse {
+  // The audience claim
+  AudienceClaim claim = 1;
+}
 
 // QueryGetAudienceClaimRequest is the legacy request type for querying an
 // audience claim (deprecated)
-message QueryGetAudienceClaimRequest { bytes hash = 1; }
+message QueryGetAudienceClaimRequest {
+  // The hash of the audience claim to query
+  bytes hash = 1;
+}
 
 // QueryGetAudienceClaimResponse is the legacy response type for querying an
 // audience claim (deprecated)
-message QueryGetAudienceClaimResponse { AudienceClaim claim = 1; }
+message QueryGetAudienceClaimResponse {
+  // The audience claim
+  AudienceClaim claim = 1;
+}
 
 // QueryAudienceRequest is the request type for querying an audience
-message QueryAudienceRequest { string aud = 1; }
+message QueryAudienceRequest {
+  // The audience identifier to query
+  string aud = 1;
+}
 
 // QueryAudienceResponse is the response type for querying an audience
 message QueryAudienceResponse {
+  // The audience information
   Audience audience = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryGetAudienceRequest is the legacy request type for querying an audience
 // (deprecated)
-message QueryGetAudienceRequest { string aud = 1; }
+message QueryGetAudienceRequest {
+  // The audience identifier to query
+  string aud = 1;
+}
 
 // QueryGetAudienceResponse is the legacy response type for querying an audience
 // (deprecated)
 message QueryGetAudienceResponse {
+  // The audience information
   Audience audience = 1 [ (gogoproto.nullable) = false ];
 }
 
 // QueryAudienceAllRequest is the request type for querying all audiences
 message QueryAudienceAllRequest {
+  // Pagination parameters
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 // QueryAudienceAllResponse is the response type for querying all audiences
 message QueryAudienceAllResponse {
+  // List of all audiences
   repeated Audience audience = 1 [ (gogoproto.nullable) = false ];
+  // Pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryAllAudienceRequest is the legacy request type for querying all audiences
 // (deprecated)
 message QueryAllAudienceRequest {
+  // Pagination parameters
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
 // QueryAllAudienceResponse is the legacy response type for querying all
 // audiences (deprecated)
 message QueryAllAudienceResponse {
+  // List of all audiences
   repeated Audience audience = 1 [ (gogoproto.nullable) = false ];
+  // Pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryValidateJWTRequest is the request type for validating a JWT
 message QueryValidateJWTRequest {
+  // The audience identifier
   string aud = 1;
+  // The subject
   string sub = 2;
+  // The signature bytes
   string sig_bytes = 3;
 }
 
 // PrivateClaim represents a private claim in a JWT
 message PrivateClaim {
+  // The claim key
   string key = 1;
+  // The claim value
   string value = 2;
 }
 
 // QueryValidateJWTResponse is the response type for validating a JWT
-message QueryValidateJWTResponse { repeated PrivateClaim private_claims = 1; }
+message QueryValidateJWTResponse {
+  // The private claims from the JWT
+  repeated PrivateClaim private_claims = 1;
+}

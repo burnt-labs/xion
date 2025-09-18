@@ -25,7 +25,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the jwk module's genesis state.
 type GenesisState struct {
-	Params       Params     `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// The module parameters
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// List of all audiences
 	AudienceList []Audience `protobuf:"bytes,2,rep,name=audience_list,json=audienceList,proto3" json:"audience_list"`
 }
 

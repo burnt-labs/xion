@@ -22,5 +22,6 @@ message QueryParamsRequest {}
 // QueryMinimumGasPricesResponse is the response type for the
 // Query/MinimumGasPrices RPC method.
 message QueryParamsResponse {
+  // The global fee parameters
   Params params = 1 [ (gogoproto.nullable) = false ];
 }

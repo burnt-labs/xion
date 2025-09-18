@@ -33,10 +33,14 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // QueryWebAuthNVerifyRegisterRequest is the request type for WebAuthN
 // registration verification
 type QueryWebAuthNVerifyRegisterRequest struct {
-	Addr      string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	// The account address
+	Addr string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	// The challenge string for registration
 	Challenge string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
-	Rp        string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
-	Data      []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	// The relying party identifier
+	Rp string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
+	// The registration data
+	Data []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (m *QueryWebAuthNVerifyRegisterRequest) Reset()         { *m = QueryWebAuthNVerifyRegisterRequest{} }
@@ -103,6 +107,7 @@ func (m *QueryWebAuthNVerifyRegisterRequest) GetData() []byte {
 // QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN
 // registration verification
 type QueryWebAuthNVerifyRegisterResponse struct {
+	// The generated credential
 	Credential []byte `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
 }
 
@@ -149,11 +154,16 @@ func (m *QueryWebAuthNVerifyRegisterResponse) GetCredential() []byte {
 // QueryWebAuthNVerifyAuthenticateRequest is the request type for WebAuthN
 // authentication verification
 type QueryWebAuthNVerifyAuthenticateRequest struct {
-	Addr       string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
-	Challenge  string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
-	Rp         string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
+	// The account address
+	Addr string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	// The challenge string for authentication
+	Challenge string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
+	// The relying party identifier
+	Rp string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
+	// The credential to verify
 	Credential []byte `protobuf:"bytes,4,opt,name=credential,proto3" json:"credential,omitempty"`
-	Data       []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	// The authentication data
+	Data []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (m *QueryWebAuthNVerifyAuthenticateRequest) Reset() {
@@ -307,6 +317,7 @@ var xxx_messageInfo_QueryPlatformPercentageRequest proto.InternalMessageInfo
 // QueryPlatformPercentageResponse is the response type for querying platform
 // percentage
 type QueryPlatformPercentageResponse struct {
+	// The platform percentage fee
 	PlatformPercentage uint64 `protobuf:"varint,1,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
 }
 
@@ -391,6 +402,7 @@ var xxx_messageInfo_QueryPlatformMinimumRequest proto.InternalMessageInfo
 // QueryPlatformMinimumResponse is the response type for querying platform
 // minimum fees
 type QueryPlatformMinimumResponse struct {
+	// The minimum fees required by the platform
 	Minimums github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=minimums,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"minimums"`
 }
 

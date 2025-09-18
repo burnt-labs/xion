@@ -115,6 +115,7 @@ func (m *QueryParamsResponse) GetParams() Params {
 
 // QueryAudienceClaimRequest is the request type for querying an audience claim
 type QueryAudienceClaimRequest struct {
+	// The hash of the audience claim to query
 	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 }
 
@@ -161,6 +162,7 @@ func (m *QueryAudienceClaimRequest) GetHash() []byte {
 // QueryAudienceClaimResponse is the response type for querying an audience
 // claim
 type QueryAudienceClaimResponse struct {
+	// The audience claim
 	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
 }
 
@@ -207,6 +209,7 @@ func (m *QueryAudienceClaimResponse) GetClaim() *AudienceClaim {
 // QueryGetAudienceClaimRequest is the legacy request type for querying an
 // audience claim (deprecated)
 type QueryGetAudienceClaimRequest struct {
+	// The hash of the audience claim to query
 	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 }
 
@@ -253,6 +256,7 @@ func (m *QueryGetAudienceClaimRequest) GetHash() []byte {
 // QueryGetAudienceClaimResponse is the legacy response type for querying an
 // audience claim (deprecated)
 type QueryGetAudienceClaimResponse struct {
+	// The audience claim
 	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
 }
 
@@ -298,6 +302,7 @@ func (m *QueryGetAudienceClaimResponse) GetClaim() *AudienceClaim {
 
 // QueryAudienceRequest is the request type for querying an audience
 type QueryAudienceRequest struct {
+	// The audience identifier to query
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 }
 
@@ -343,6 +348,7 @@ func (m *QueryAudienceRequest) GetAud() string {
 
 // QueryAudienceResponse is the response type for querying an audience
 type QueryAudienceResponse struct {
+	// The audience information
 	Audience Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience"`
 }
 
@@ -389,6 +395,7 @@ func (m *QueryAudienceResponse) GetAudience() Audience {
 // QueryGetAudienceRequest is the legacy request type for querying an audience
 // (deprecated)
 type QueryGetAudienceRequest struct {
+	// The audience identifier to query
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 }
 
@@ -435,6 +442,7 @@ func (m *QueryGetAudienceRequest) GetAud() string {
 // QueryGetAudienceResponse is the legacy response type for querying an audience
 // (deprecated)
 type QueryGetAudienceResponse struct {
+	// The audience information
 	Audience Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience"`
 }
 
@@ -480,6 +488,7 @@ func (m *QueryGetAudienceResponse) GetAudience() Audience {
 
 // QueryAudienceAllRequest is the request type for querying all audiences
 type QueryAudienceAllRequest struct {
+	// Pagination parameters
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -525,7 +534,9 @@ func (m *QueryAudienceAllRequest) GetPagination() *query.PageRequest {
 
 // QueryAudienceAllResponse is the response type for querying all audiences
 type QueryAudienceAllResponse struct {
-	Audience   []Audience          `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience"`
+	// List of all audiences
+	Audience []Audience `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience"`
+	// Pagination response
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -579,6 +590,7 @@ func (m *QueryAudienceAllResponse) GetPagination() *query.PageResponse {
 // QueryAllAudienceRequest is the legacy request type for querying all audiences
 // (deprecated)
 type QueryAllAudienceRequest struct {
+	// Pagination parameters
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -625,7 +637,9 @@ func (m *QueryAllAudienceRequest) GetPagination() *query.PageRequest {
 // QueryAllAudienceResponse is the legacy response type for querying all
 // audiences (deprecated)
 type QueryAllAudienceResponse struct {
-	Audience   []Audience          `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience"`
+	// List of all audiences
+	Audience []Audience `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience"`
+	// Pagination response
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -678,8 +692,11 @@ func (m *QueryAllAudienceResponse) GetPagination() *query.PageResponse {
 
 // QueryValidateJWTRequest is the request type for validating a JWT
 type QueryValidateJWTRequest struct {
-	Aud      string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
-	Sub      string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
+	// The audience identifier
+	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The subject
+	Sub string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
+	// The signature bytes
 	SigBytes string `protobuf:"bytes,3,opt,name=sig_bytes,json=sigBytes,proto3" json:"sig_bytes,omitempty"`
 }
 
@@ -739,7 +756,9 @@ func (m *QueryValidateJWTRequest) GetSigBytes() string {
 
 // PrivateClaim represents a private claim in a JWT
 type PrivateClaim struct {
-	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// The claim key
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// The claim value
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
@@ -792,6 +811,7 @@ func (m *PrivateClaim) GetValue() string {
 
 // QueryValidateJWTResponse is the response type for validating a JWT
 type QueryValidateJWTResponse struct {
+	// The private claims from the JWT
 	PrivateClaims []*PrivateClaim `protobuf:"bytes,1,rep,name=private_claims,json=privateClaims,proto3" json:"private_claims,omitempty"`
 }
 
