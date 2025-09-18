@@ -53,57 +53,8 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 	}
 
 	// Do not check minimum-gas-prices and global fees during simulations
-	if simulate {
-		return next(ctx, tx, simulate)
-	}
-
-	// Handle bypass messages with gas limit validation
-	if mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
-		// Enforce MaxTotalBypassMinFeeMsgGasUsage limit for bypass messages
-		gasLimit := feeTx.GetGas()
-		maxBypassGas := mfd.GetMaxTotalBypassMinFeeMsgGasUsage(ctx)
-		if gasLimit > maxBypassGas {
-			return ctx, errorsmod.Wrapf(
-				sdkerrors.ErrInsufficientFee,
-				"bypass messages cannot use more than %d gas, but got %d",
-				maxBypassGas,
-				gasLimit,
-			)
-		}
-
-		// Validate fee denominations for bypass messages if fees are provided
-		feeCoins := feeTx.GetFee()
-		if !feeCoins.IsZero() {
-			// Get allowed global fee denominations
-			globalFees, err := mfd.GetGlobalFee(ctx)
-			if err != nil {
-				return ctx, err
-			}
-
-			// Only validate fee denominations if global fees are configured
-			// If global fees are empty/default, allow any fee denomination for bypass messages
-			if !globalFees.IsZero() {
-				// Check if all fee denominations are allowed
-				for _, feeCoin := range feeCoins {
-					found := false
-					for _, globalFee := range globalFees {
-						if feeCoin.Denom == globalFee.Denom {
-							found = true
-							break
-						}
-					}
-					if !found {
-						return ctx, errorsmod.Wrapf(
-							sdkerrors.ErrInvalidCoins,
-							"fee denom %s is not allowed for bypass messages; allowed denoms: %s",
-							feeCoin.Denom,
-							globalFees,
-						)
-					}
-				}
-			}
-		}
-
+	// short-circuit bypass messages
+	if simulate || mfd.ContainsOnlyBypassMinFeeMsgs(ctx, feeTx.GetMsgs()) {
 		return next(ctx, tx, simulate)
 	}
 

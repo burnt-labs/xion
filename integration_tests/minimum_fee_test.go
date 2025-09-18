@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -17,7 +16,6 @@ import (
 
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
@@ -741,77 +739,4 @@ func formatJSON(tfDenom string) ([]byte, error) {
 		{Denom: "uxion", Amount: "0.025000000000000000"},
 	}
 	return json.Marshal(data)
-}
-
-// Test from security report #52897 to assert MsgSetPlatformMinimum sdk.Msg wiring
-func TestMsgSetPlatformMinimumCodecBug(t *testing.T) {
-	// Create the message under test
-	brokenMsg := &xiontypes.MsgSetPlatformMinimum{
-		Authority: authtypes.NewModuleAddress("gov").String(),
-		Minimums:  types.Coins{types.Coin{Amount: math.NewInt(100), Denom: "uxion"}},
-	}
-
-	// Create a working message for comparison
-	workingMsg := &xiontypes.MsgSetPlatformPercentage{
-		Authority:          authtypes.NewModuleAddress("gov").String(),
-		PlatformPercentage: 500, // 5%
-	}
-
-	t.Run("Layer1_Network_Code_Issue", func(t *testing.T) {
-		// Verify message compiles as sdk.Msg (interface satisfied by embedded methods)
-		var _ types.Msg = brokenMsg
-
-		// Verify protobuf marshaling works (proving it's in core network code)
-		interfaceRegistry := codectypes.NewInterfaceRegistry()
-		xiontypes.RegisterInterfaces(interfaceRegistry)
-		cdc := codec.NewProtoCodec(interfaceRegistry)
-
-		// Marshal succeeds if registered
-		msgBytes, err := cdc.MarshalInterfaceJSON(brokenMsg)
-		require.NoError(t, err)
-		require.NotEmpty(t, msgBytes)
-
-		// Unmarshal back
-		var unmarshaledMsg types.Msg
-		err = cdc.UnmarshalInterfaceJSON(msgBytes, &unmarshaledMsg)
-		require.NoError(t, err)
-		require.IsType(t, &xiontypes.MsgSetPlatformMinimum{}, unmarshaledMsg)
-	})
-
-	t.Run("Unintended_Behavior_Message_Appears_Functional_But_Fails", func(t *testing.T) {
-		// PART A: Appears functional
-		require.NotNil(t, brokenMsg)
-		require.NotEmpty(t, brokenMsg.Authority)
-		require.NotEmpty(t, brokenMsg.Minimums)
-
-		interfaceRegistry := codectypes.NewInterfaceRegistry()
-		xiontypes.RegisterInterfaces(interfaceRegistry)
-		cdc := codec.NewProtoCodec(interfaceRegistry)
-
-		_, err := cdc.MarshalInterfaceJSON(brokenMsg)
-		require.NoError(t, err)
-
-		// PART B: Methods presence checks via reflection (no panics since we don't call missing methods)
-		msgType := reflect.TypeOf(brokenMsg)
-		_, hasRoute := msgType.MethodByName("Route")
-		_, hasType := msgType.MethodByName("Type")
-		_, hasValidateBasic := msgType.MethodByName("ValidateBasic")
-		_, hasGetSigners := msgType.MethodByName("GetSigners")
-		_, hasGetSignBytes := msgType.MethodByName("GetSignBytes")
-
-		// The fix should ensure these exist; the original report claimed they were missing.
-		// Assert presence to validate the issue is fixed.
-		require.True(t, hasRoute, "Route() should be implemented on MsgSetPlatformMinimum")
-		require.True(t, hasType, "Type() should be implemented on MsgSetPlatformMinimum")
-		require.True(t, hasValidateBasic, "ValidateBasic() should be implemented on MsgSetPlatformMinimum")
-		require.True(t, hasGetSigners, "GetSigners() should be implemented on MsgSetPlatformMinimum")
-		require.True(t, hasGetSignBytes, "GetSignBytes() should be implemented on MsgSetPlatformMinimum")
-
-		// Also contrast with working message which surely has methods
-		require.Equal(t, xiontypes.RouterKey, workingMsg.Route())
-		require.Equal(t, xiontypes.TypeMsgSetPlatformPercentage, workingMsg.Type())
-		require.NoError(t, workingMsg.ValidateBasic())
-		require.NotEmpty(t, workingMsg.GetSigners())
-		require.NotEmpty(t, workingMsg.GetSignBytes())
-	})
 }

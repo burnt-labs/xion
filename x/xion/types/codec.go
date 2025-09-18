@@ -20,7 +20,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgSend{}, "xion/MsgSend")
 	legacy.RegisterAminoMsg(cdc, &MsgMultiSend{}, "xion/MsgMultiSend")
 	legacy.RegisterAminoMsg(cdc, &MsgSetPlatformPercentage{}, "xion/MsgSetPlatformPercentage")
-	legacy.RegisterAminoMsg(cdc, &MsgSetPlatformMinimum{}, "xion/MsgSetPlatformMinimum")
 	legacy.RegisterAminoMsg(cdc, &xionMintTypes.MsgUpdateParams{}, "xion/x/mint/MsgUpdateParams")
 
 	cdc.RegisterConcrete(&AuthzAllowance{}, "xion/AuthzAllowance", nil)
@@ -34,7 +33,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgSend{},
 		&MsgMultiSend{},
 		&MsgSetPlatformPercentage{},
-		&MsgSetPlatformMinimum{},
 		&xionMintTypes.MsgUpdateParams{},
 	)
 

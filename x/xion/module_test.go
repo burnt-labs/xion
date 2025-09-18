@@ -18,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/xion"
@@ -193,31 +192,6 @@ func TestAppModule_ExportGenesis(t *testing.T) {
 
 	// Verify exported state is valid
 	require.NoError(t, exportedState.Validate())
-}
-
-// Ensures LegacyAmino JSON includes "type" for both MsgSend and MsgSetPlatformMinimum.
-func TestAminoJSON_TypesPresent(t *testing.T) {
-	b := xion.AppModuleBasic{}
-	enc := moduletestutil.MakeTestEncodingConfig(b)
-
-	coins, err := sdk.ParseCoinsNormalized("1000uxion")
-	require.NoError(t, err)
-
-	msgSend := &types.MsgSend{FromAddress: "xion1from", ToAddress: "xion1to", Amount: coins}
-	msgMin := &types.MsgSetPlatformMinimum{Authority: "xion1auth", Minimums: coins}
-
-	sendJSON, err := enc.Amino.MarshalJSON(msgSend)
-	require.NoError(t, err)
-	minJSON, err := enc.Amino.MarshalJSON(msgMin)
-	require.NoError(t, err)
-
-	var sendMap, minMap map[string]interface{}
-	require.NoError(t, json.Unmarshal(sendJSON, &sendMap))
-	require.NoError(t, json.Unmarshal(minJSON, &minMap))
-
-	// Both messages must contain a top-level "type" field in Amino JSON
-	require.Equal(t, "xion/MsgSend", sendMap["type"])
-	require.Equal(t, "xion/MsgSetPlatformMinimum", minMap["type"])
 }
 
 func TestAppModule_ConsensusVersion(t *testing.T) {

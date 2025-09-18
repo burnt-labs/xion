@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"sort"
 	"time"
 
@@ -77,27 +75,9 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 
 	i := 0
 	for k, v := range privateClaimsMap {
-		var valStr string
-		switch c := v.(type) {
-		case string:
-			valStr = c
-		case fmt.Stringer:
-			valStr = c.String()
-		case []byte:
-			valStr = string(c)
-		case float64, float32, int, int32, int64, uint, uint32, uint64, bool:
-			valStr = fmt.Sprintf("%v", c)
-		default:
-			if b, mErr := json.Marshal(v); mErr == nil {
-				valStr = string(b)
-			} else {
-				// Fallback to fmt if JSON marshaling fails
-				valStr = fmt.Sprintf("%v", v)
-			}
-		}
 		privateClaims[i] = &types.PrivateClaim{
 			Key:   k,
-			Value: valStr,
+			Value: v.(string),
 		}
 		i++
 	}

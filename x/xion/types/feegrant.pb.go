@@ -109,8 +109,7 @@ func (m *ContractsAllowance) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ContractsAllowance proto.InternalMessageInfo
 
-// MultiAnyAllowance creates an allowance that pays if any of the internal
-// allowances are met
+// MultiAnyAllowance creates an allowance that pays if any of the internal allowances are met
 type MultiAnyAllowance struct {
 	// allowance can be any allowance interface type.
 	Allowances []*types.Any `protobuf:"bytes,1,rep,name=allowances,proto3" json:"allowances,omitempty"`
