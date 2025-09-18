@@ -25,7 +25,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
-	TimeOffset    uint64 `protobuf:"varint,1,opt,name=time_offset,json=timeOffset,proto3" json:"time_offset,omitempty" yaml:"time_offset"`
+	// Time offset in nanoseconds for JWT validation
+	TimeOffset uint64 `protobuf:"varint,1,opt,name=time_offset,json=timeOffset,proto3" json:"time_offset,omitempty" yaml:"time_offset"`
+	// Gas required to deploy a new project/audience
 	DeploymentGas uint64 `protobuf:"varint,2,opt,name=deployment_gas,json=deploymentGas,proto3" json:"deployment_gas,omitempty" yaml:"deployment_gas"`
 }
 

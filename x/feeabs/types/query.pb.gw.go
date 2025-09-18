@@ -88,7 +88,7 @@ func local_request_Query_OsmosisArithmeticTwap_0(ctx context.Context, marshaler 
 }
 
 func request_Query_FeeabsModuleBalances_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryFeeabsModuleBalacesRequest
+	var protoReq QueryFeeabsModuleBalancesRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.FeeabsModuleBalances(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -97,7 +97,7 @@ func request_Query_FeeabsModuleBalances_0(ctx context.Context, marshaler runtime
 }
 
 func local_request_Query_FeeabsModuleBalances_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryFeeabsModuleBalacesRequest
+	var protoReq QueryFeeabsModuleBalancesRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.FeeabsModuleBalances(ctx, &protoReq)
@@ -160,7 +160,7 @@ func local_request_Query_HostChainConfig_0(ctx context.Context, marshaler runtim
 }
 
 func request_Query_AllHostChainConfig_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AllQueryHostChainConfigRequest
+	var protoReq QueryAllHostChainConfigRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.AllHostChainConfig(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -169,7 +169,7 @@ func request_Query_AllHostChainConfig_0(ctx context.Context, marshaler runtime.M
 }
 
 func local_request_Query_AllHostChainConfig_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq AllQueryHostChainConfigRequest
+	var protoReq QueryAllHostChainConfigRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.AllHostChainConfig(ctx, &protoReq)

@@ -1,0 +1,5 @@
+version: v1
+plugins:
+  - name: openapiv2
+    out: .
+    opt: logtostderr=true,simple_operation_ids=true

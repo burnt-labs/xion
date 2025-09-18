@@ -341,7 +341,7 @@ protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace -e GOTOOLCHAIN=auto $(protoImageName)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
-proto-all: proto-format proto-lint proto-gen proto-format
+proto-all: proto-gen proto-format proto-lint proto-gen-openapi proto-check-breaking
 
 proto-gen:
 	@echo "Generating Protobuf files"

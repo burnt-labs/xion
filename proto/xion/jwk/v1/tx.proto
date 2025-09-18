@@ -9,60 +9,97 @@ option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 // Msg defines the Msg service.
 service Msg {
+  // CreateAudienceClaim creates a new audience claim
   rpc CreateAudienceClaim(MsgCreateAudienceClaim)
       returns (MsgCreateAudienceClaimResponse);
+  // DeleteAudienceClaim deletes an existing audience claim
   rpc DeleteAudienceClaim(MsgDeleteAudienceClaim)
       returns (MsgDeleteAudienceClaimResponse);
+  // CreateAudience creates a new audience
   rpc CreateAudience(MsgCreateAudience) returns (MsgCreateAudienceResponse);
+  // UpdateAudience updates an existing audience
   rpc UpdateAudience(MsgUpdateAudience) returns (MsgUpdateAudienceResponse);
+  // DeleteAudience deletes an existing audience
   rpc DeleteAudience(MsgDeleteAudience) returns (MsgDeleteAudienceResponse);
 }
 
+// MsgCreateAudienceClaim defines the message for creating an audience claim
 message MsgCreateAudienceClaim {
   option (cosmos.msg.v1.signer) = "admin";
 
+  // The admin address creating the claim
   string admin = 1;
+  // The hash of the audience for this claim
   bytes aud_hash = 2;
 }
 
+// MsgCreateAudienceClaimResponse defines the response for creating an audience
+// claim
 message MsgCreateAudienceClaimResponse {}
 
+// MsgDeleteAudienceClaim defines the message for deleting an audience claim
 message MsgDeleteAudienceClaim {
   option (cosmos.msg.v1.signer) = "admin";
 
+  // The admin address deleting the claim
   string admin = 1;
+  // The hash of the audience for this claim
   bytes aud_hash = 2;
 }
 
+// MsgDeleteAudienceClaimResponse defines the response for deleting an audience
+// claim
 message MsgDeleteAudienceClaimResponse {}
 
+// MsgCreateAudience defines the message for creating an audience
 message MsgCreateAudience {
   option (cosmos.msg.v1.signer) = "admin";
 
+  // The admin address creating the audience
   string admin = 1;
+  // The audience identifier
   string aud = 2;
+  // The public key for this audience
   string key = 3;
 }
 
-message MsgCreateAudienceResponse { Audience audience = 1; }
+// MsgCreateAudienceResponse defines the response for creating an audience
+message MsgCreateAudienceResponse {
+  // The created audience
+  Audience audience = 1;
+}
 
+// MsgUpdateAudience defines the message for updating an audience
 message MsgUpdateAudience {
   option (cosmos.msg.v1.signer) = "admin";
 
+  // The current admin address
   string admin = 1;
+  // The new admin address
   string new_admin = 2;
+  // The current audience identifier
   string aud = 3;
+  // The current public key
   string key = 4;
+  // The new audience identifier
   string new_aud = 5;
 }
 
-message MsgUpdateAudienceResponse { Audience audience = 1; }
+// MsgUpdateAudienceResponse defines the response for updating an audience
+message MsgUpdateAudienceResponse {
+  // The updated audience
+  Audience audience = 1;
+}
 
+// MsgDeleteAudience defines the message for deleting an audience
 message MsgDeleteAudience {
   option (cosmos.msg.v1.signer) = "admin";
 
+  // The admin address deleting the audience
   string admin = 1;
+  // The audience identifier to delete
   string aud = 2;
 }
 
+// MsgDeleteAudienceResponse defines the response for deleting an audience
 message MsgDeleteAudienceResponse {}
