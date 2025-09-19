@@ -35,7 +35,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type QueryAllowanceRequest struct {
 	// granter is the address of the user granting an allowance of their funds.
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
-	// grantee is the address of the user being granted an allowance of another user's funds.
+	// grantee is the address of the user being granted an allowance of another
+	// user's funds.
 	Grantee string `protobuf:"bytes,2,opt,name=grantee,proto3" json:"grantee,omitempty"`
 }
 
@@ -86,7 +87,8 @@ func (m *QueryAllowanceRequest) GetGrantee() string {
 	return ""
 }
 
-// QueryAllowanceResponse is the response type for the Query/Allowance RPC method.
+// QueryAllowanceResponse is the response type for the Query/Allowance RPC
+// method.
 type QueryAllowanceResponse struct {
 	// allowance is a allowance granted for grantee by granter.
 	Allowance *feegrant.Grant `protobuf:"bytes,1,opt,name=allowance,proto3" json:"allowance,omitempty"`
@@ -132,8 +134,10 @@ func (m *QueryAllowanceResponse) GetAllowance() *feegrant.Grant {
 	return nil
 }
 
-// QueryAllowancesRequest is the request type for the Query/Allowances RPC method.
+// QueryAllowancesRequest is the request type for the Query/Allowances RPC
+// method.
 type QueryAllowancesRequest struct {
+	// grantee is the address of the user being granted fee allowances
 	Grantee string `protobuf:"bytes,1,opt,name=grantee,proto3" json:"grantee,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -186,7 +190,8 @@ func (m *QueryAllowancesRequest) GetPagination() *query.PageRequest {
 	return nil
 }
 
-// QueryAllowancesResponse is the response type for the Query/Allowances RPC method.
+// QueryAllowancesResponse is the response type for the Query/Allowances RPC
+// method.
 type QueryAllowancesResponse struct {
 	// allowances are allowance's granted for grantee by granter.
 	Allowances []*feegrant.Grant `protobuf:"bytes,1,rep,name=allowances,proto3" json:"allowances,omitempty"`
@@ -241,8 +246,10 @@ func (m *QueryAllowancesResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryAllowancesByGranterRequest is the request type for the Query/AllowancesByGranter RPC method.
+// QueryAllowancesByGranterRequest is the request type for the
+// Query/AllowancesByGranter RPC method.
 type QueryAllowancesByGranterRequest struct {
+	// granter is the address of the user granting fee allowances
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -295,7 +302,8 @@ func (m *QueryAllowancesByGranterRequest) GetPagination() *query.PageRequest {
 	return nil
 }
 
-// QueryAllowancesByGranterResponse is the response type for the Query/AllowancesByGranter RPC method.
+// QueryAllowancesByGranterResponse is the response type for the
+// Query/AllowancesByGranter RPC method.
 type QueryAllowancesByGranterResponse struct {
 	// allowances that have been issued by the granter.
 	Allowances []*feegrant.Grant `protobuf:"bytes,1,rep,name=allowances,proto3" json:"allowances,omitempty"`

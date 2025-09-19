@@ -3381,9 +3381,12 @@ type QueryGrantsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// granter is the address of the user granting an authorization
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
+	// grantee is the address of the user receiving an authorization
 	Grantee string `protobuf:"bytes,2,opt,name=grantee,proto3" json:"grantee,omitempty"`
-	// Optional, msg_type_url, when set, will query only grants matching given msg type.
+	// Optional, msg_type_url, when set, will query only grants matching given msg
+	// type.
 	MsgTypeUrl string `protobuf:"bytes,3,opt,name=msg_type_url,json=msgTypeUrl,proto3" json:"msg_type_url,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -3437,7 +3440,8 @@ func (x *QueryGrantsRequest) GetPagination() *v1beta1.PageRequest {
 	return nil
 }
 
-// QueryGrantsResponse is the response type for the Query/Authorizations RPC method.
+// QueryGrantsResponse is the response type for the Query/Authorizations RPC
+// method.
 type QueryGrantsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3483,12 +3487,14 @@ func (x *QueryGrantsResponse) GetPagination() *v1beta1.PageResponse {
 	return nil
 }
 
-// QueryGranterGrantsRequest is the request type for the Query/GranterGrants RPC method.
+// QueryGranterGrantsRequest is the request type for the Query/GranterGrants RPC
+// method.
 type QueryGranterGrantsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// granter is the address of the user granting an authorization
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -3528,7 +3534,8 @@ func (x *QueryGranterGrantsRequest) GetPagination() *v1beta1.PageRequest {
 	return nil
 }
 
-// QueryGranterGrantsResponse is the response type for the Query/GranterGrants RPC method.
+// QueryGranterGrantsResponse is the response type for the Query/GranterGrants
+// RPC method.
 type QueryGranterGrantsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3574,12 +3581,14 @@ func (x *QueryGranterGrantsResponse) GetPagination() *v1beta1.PageResponse {
 	return nil
 }
 
-// QueryGranteeGrantsRequest is the request type for the Query/GranteeGrants RPC method.
+// QueryGranteeGrantsRequest is the request type for the Query/GranteeGrants RPC
+// method.
 type QueryGranteeGrantsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// grantee is the address of the user receiving an authorization
 	Grantee string `protobuf:"bytes,1,opt,name=grantee,proto3" json:"grantee,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -3619,7 +3628,8 @@ func (x *QueryGranteeGrantsRequest) GetPagination() *v1beta1.PageRequest {
 	return nil
 }
 
-// QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants RPC method.
+// QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants
+// RPC method.
 type QueryGranteeGrantsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

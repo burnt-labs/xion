@@ -33,9 +33,12 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // QueryGrantsRequest is the request type for the Query/Grants RPC method.
 type QueryGrantsRequest struct {
+	// granter is the address of the user granting an authorization
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
+	// grantee is the address of the user receiving an authorization
 	Grantee string `protobuf:"bytes,2,opt,name=grantee,proto3" json:"grantee,omitempty"`
-	// Optional, msg_type_url, when set, will query only grants matching given msg type.
+	// Optional, msg_type_url, when set, will query only grants matching given msg
+	// type.
 	MsgTypeUrl string `protobuf:"bytes,3,opt,name=msg_type_url,json=msgTypeUrl,proto3" json:"msg_type_url,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -102,7 +105,8 @@ func (m *QueryGrantsRequest) GetPagination() *query.PageRequest {
 	return nil
 }
 
-// QueryGrantsResponse is the response type for the Query/Authorizations RPC method.
+// QueryGrantsResponse is the response type for the Query/Authorizations RPC
+// method.
 type QueryGrantsResponse struct {
 	// authorizations is a list of grants granted for grantee by granter.
 	Grants []*authz.Grant `protobuf:"bytes,1,rep,name=grants,proto3" json:"grants,omitempty"`
@@ -157,8 +161,10 @@ func (m *QueryGrantsResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryGranterGrantsRequest is the request type for the Query/GranterGrants RPC method.
+// QueryGranterGrantsRequest is the request type for the Query/GranterGrants RPC
+// method.
 type QueryGranterGrantsRequest struct {
+	// granter is the address of the user granting an authorization
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -211,7 +217,8 @@ func (m *QueryGranterGrantsRequest) GetPagination() *query.PageRequest {
 	return nil
 }
 
-// QueryGranterGrantsResponse is the response type for the Query/GranterGrants RPC method.
+// QueryGranterGrantsResponse is the response type for the Query/GranterGrants
+// RPC method.
 type QueryGranterGrantsResponse struct {
 	// grants is a list of grants granted by the granter.
 	Grants []*authz.GrantAuthorization `protobuf:"bytes,1,rep,name=grants,proto3" json:"grants,omitempty"`
@@ -266,8 +273,10 @@ func (m *QueryGranterGrantsResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryGranteeGrantsRequest is the request type for the Query/GranteeGrants RPC method.
+// QueryGranteeGrantsRequest is the request type for the Query/GranteeGrants RPC
+// method.
 type QueryGranteeGrantsRequest struct {
+	// grantee is the address of the user receiving an authorization
 	Grantee string `protobuf:"bytes,1,opt,name=grantee,proto3" json:"grantee,omitempty"`
 	// pagination defines an pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -320,7 +329,8 @@ func (m *QueryGranteeGrantsRequest) GetPagination() *query.PageRequest {
 	return nil
 }
 
-// QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants RPC method.
+// QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants
+// RPC method.
 type QueryGranteeGrantsResponse struct {
 	// grants is a list of grants granted to the grantee.
 	Grants []*authz.GrantAuthorization `protobuf:"bytes,1,rep,name=grants,proto3" json:"grants,omitempty"`

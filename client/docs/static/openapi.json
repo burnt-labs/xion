@@ -26266,7 +26266,7 @@
                                             }
                                         }
                                     },
-                                    "description": "QueryGrantsResponse is the response type for the Query/Authorizations RPC method."
+                                    "description": "QueryGrantsResponse is the response type for the Query/Authorizations RPC\nmethod."
                                 }
                             }
                         }
@@ -26308,6 +26308,7 @@
                 "parameters": [
                     {
                         "name": "granter",
+                        "description": "granter is the address of the user granting an authorization",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -26316,6 +26317,7 @@
                     },
                     {
                         "name": "grantee",
+                        "description": "grantee is the address of the user receiving an authorization",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -26324,7 +26326,7 @@
                     },
                     {
                         "name": "msgTypeUrl",
-                        "description": "Optional, msg_type_url, when set, will query only grants matching given msg type.",
+                        "description": "Optional, msg_type_url, when set, will query only grants matching given msg\ntype.",
                         "in": "query",
                         "required": false,
                         "schema": {
@@ -26446,7 +26448,7 @@
                                             }
                                         }
                                     },
-                                    "description": "QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants RPC method."
+                                    "description": "QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants\nRPC method."
                                 }
                             }
                         }
@@ -26488,6 +26490,7 @@
                 "parameters": [
                     {
                         "name": "grantee",
+                        "description": "grantee is the address of the user receiving an authorization",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -26609,7 +26612,7 @@
                                             }
                                         }
                                     },
-                                    "description": "QueryGranterGrantsResponse is the response type for the Query/GranterGrants RPC method."
+                                    "description": "QueryGranterGrantsResponse is the response type for the Query/GranterGrants\nRPC method."
                                 }
                             }
                         }
@@ -26651,6 +26654,7 @@
                 "parameters": [
                     {
                         "name": "granter",
+                        "description": "granter is the address of the user granting an authorization",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -26750,7 +26754,7 @@
                                             "title": "Grant is stored in the KVStore to record a grant with full context"
                                         }
                                     },
-                                    "description": "QueryAllowanceResponse is the response type for the Query/Allowance RPC method."
+                                    "description": "QueryAllowanceResponse is the response type for the Query/Allowance RPC\nmethod."
                                 }
                             }
                         }
@@ -26801,7 +26805,7 @@
                     },
                     {
                         "name": "grantee",
-                        "description": "grantee is the address of the user being granted an allowance of another user's funds.",
+                        "description": "grantee is the address of the user being granted an allowance of another\nuser's funds.",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -26872,7 +26876,7 @@
                                             }
                                         }
                                     },
-                                    "description": "QueryAllowancesResponse is the response type for the Query/Allowances RPC method."
+                                    "description": "QueryAllowancesResponse is the response type for the Query/Allowances RPC\nmethod."
                                 }
                             }
                         }
@@ -26914,6 +26918,7 @@
                 "parameters": [
                     {
                         "name": "grantee",
+                        "description": "grantee is the address of the user being granted fee allowances",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -27032,7 +27037,7 @@
                                             }
                                         }
                                     },
-                                    "description": "QueryAllowancesByGranterResponse is the response type for the Query/AllowancesByGranter RPC method."
+                                    "description": "QueryAllowancesByGranterResponse is the response type for the\nQuery/AllowancesByGranter RPC method."
                                 }
                             }
                         }
@@ -27074,6 +27079,7 @@
                 "parameters": [
                     {
                         "name": "granter",
+                        "description": "granter is the address of the user granting fee allowances",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -48603,7 +48609,7 @@
                         }
                     }
                 },
-                "description": "QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants RPC method."
+                "description": "QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants\nRPC method."
             },
             "xion.indexer.authz.v1.QueryGranterGrantsResponse": {
                 "type": "object",
@@ -48656,7 +48662,7 @@
                         }
                     }
                 },
-                "description": "QueryGranterGrantsResponse is the response type for the Query/GranterGrants RPC method."
+                "description": "QueryGranterGrantsResponse is the response type for the Query/GranterGrants\nRPC method."
             },
             "xion.indexer.authz.v1.QueryGrantsResponse": {
                 "type": "object",
@@ -48704,7 +48710,7 @@
                         }
                     }
                 },
-                "description": "QueryGrantsResponse is the response type for the Query/Authorizations RPC method."
+                "description": "QueryGrantsResponse is the response type for the Query/Authorizations RPC\nmethod."
             },
             "xion.indexer.feegrant.v1.QueryAllowanceResponse": {
                 "type": "object",
@@ -48736,7 +48742,7 @@
                         "title": "Grant is stored in the KVStore to record a grant with full context"
                     }
                 },
-                "description": "QueryAllowanceResponse is the response type for the Query/Allowance RPC method."
+                "description": "QueryAllowanceResponse is the response type for the Query/Allowance RPC\nmethod."
             },
             "xion.indexer.feegrant.v1.QueryAllowancesByGranterResponse": {
                 "type": "object",
@@ -48787,7 +48793,7 @@
                         }
                     }
                 },
-                "description": "QueryAllowancesByGranterResponse is the response type for the Query/AllowancesByGranter RPC method."
+                "description": "QueryAllowancesByGranterResponse is the response type for the\nQuery/AllowancesByGranter RPC method."
             },
             "xion.indexer.feegrant.v1.QueryAllowancesResponse": {
                 "type": "object",
@@ -48838,7 +48844,7 @@
                         }
                     }
                 },
-                "description": "QueryAllowancesResponse is the response type for the Query/Allowances RPC method."
+                "description": "QueryAllowancesResponse is the response type for the Query/Allowances RPC\nmethod."
             }
         }
     }
