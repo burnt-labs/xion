@@ -30,9 +30,21 @@ proto_dir="$base_dir/proto"
 client_dir="$base_dir/client"
 docs_dir="$client_dir/docs"
 
+# Define dependencies
+deps="github.com/cosmos/cosmos-sdk
+github.com/cosmos/cosmos-proto
+github.com/cosmos/ibc-go/v10
+github.com/CosmWasm/wasmd
+github.com/gogo/protobuf
+github.com/cosmos/gogoproto
+github.com/burnt-labs/abstract-account
+github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
+github.com/strangelove-ventures/tokenfactory
+"
+
 # Install selected dependencies from go.mod
 echo "installing dependencies"
-(cd ${base_dir} && go mod download)
+(cd ${base_dir} && go mod download $deps)
 
 # Get dependency paths
 echo "getting paths for $deps"
@@ -77,6 +89,7 @@ gen_pulsar() {
   rm $base_dir/api/xion/feeabs/v1beta1/osmosisibc.pulsar.go
 }
 
+
 gen_swagger() {
   local dirs=$(get_proto_dirs "$proto_dir" $proto_paths)
 
@@ -92,7 +105,7 @@ gen_swagger() {
       continue
     fi
 
-    buf generate --template "$proto_dir/buf.gen.docs.yaml" "$query_file"
+    buf generate --template "$proto_dir/buf.gen.openapi.yaml" "$query_file"
   done
   # find ./ -type f
 
@@ -131,6 +144,10 @@ main() {
     case $1 in
       --gogo)
         gen_gogo
+        shift
+        ;;
+      --docs)
+        gen_docs
         shift
         ;;
       --openapi|--swagger)
