@@ -342,7 +342,7 @@ protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace -e GO
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
 proto-all: 
-	@$(protoImage) sh ./scripts/proto-gen.sh --gogo --docs --openapi --pulsar
+	@$(protoImage) sh ./scripts/proto-gen.sh --gogo --openapi --pulsar
 	proto-format 
 	proto-lint 
 	proto-gen-openapi 

@@ -669,9 +669,12 @@ type GenesisState struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Params *Params      `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	// params defines the parameters for the feeabs module
+	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	// epochs defines the list of epoch information
 	Epochs []*EpochInfo `protobuf:"bytes,2,rep,name=epochs,proto3" json:"epochs,omitempty"`
-	PortId string       `protobuf:"bytes,3,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	// port_id defines the IBC port identifier
+	PortId string `protobuf:"bytes,3,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
 }
 
 func (x *GenesisState) Reset() {

@@ -28,6 +28,8 @@ const (
 // MsgClient is the client API for Msg service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// Msg defines the xion Msg service
 type MsgClient interface {
 	// Send defines a method for sending coins from one account to another
 	// account.
@@ -94,6 +96,8 @@ func (c *msgClient) SetPlatformMinimum(ctx context.Context, in *MsgSetPlatformMi
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility.
+//
+// Msg defines the xion Msg service
 type MsgServer interface {
 	// Send defines a method for sending coins from one account to another
 	// account.

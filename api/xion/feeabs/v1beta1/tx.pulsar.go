@@ -5972,7 +5972,8 @@ type MsgFundFeeAbsModuleAccount struct {
 	unknownFields protoimpl.UnknownFields
 
 	// sender is the that actor that signed the messages
-	Sender string          `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The amount of coins to fund to the feeabs module account
 	Amount []*v1beta1.Coin `protobuf:"bytes,2,rep,name=amount,proto3" json:"amount,omitempty"`
 }
 
@@ -6108,7 +6109,8 @@ type MsgSwapCrossChain struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Sender is the that actor that signed the messages
-	Sender   string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The IBC denomination to swap
 	IbcDenom string `protobuf:"bytes,2,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
@@ -6403,7 +6405,8 @@ type MsgRemoveHostZone struct {
 
 	// authority is the address of the governance account.
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	IbcDenom  string `protobuf:"bytes,2,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
+	// The IBC denomination of the host zone to remove
+	IbcDenom string `protobuf:"bytes,2,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
 func (x *MsgRemoveHostZone) Reset() {
