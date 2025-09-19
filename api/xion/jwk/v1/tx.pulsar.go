@@ -4644,12 +4644,15 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// MsgCreateAudienceClaim defines the message for creating an audience claim
 type MsgCreateAudienceClaim struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The admin address creating the claim
+	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The hash of the audience for this claim
 	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
 }
 
@@ -4687,6 +4690,8 @@ func (x *MsgCreateAudienceClaim) GetAudHash() []byte {
 	return nil
 }
 
+// MsgCreateAudienceClaimResponse defines the response for creating an audience
+// claim
 type MsgCreateAudienceClaimResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -4713,12 +4718,15 @@ func (*MsgCreateAudienceClaimResponse) Descriptor() ([]byte, []int) {
 	return file_xion_jwk_v1_tx_proto_rawDescGZIP(), []int{1}
 }
 
+// MsgDeleteAudienceClaim defines the message for deleting an audience claim
 type MsgDeleteAudienceClaim struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Admin   string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The admin address deleting the claim
+	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The hash of the audience for this claim
 	AudHash []byte `protobuf:"bytes,2,opt,name=aud_hash,json=audHash,proto3" json:"aud_hash,omitempty"`
 }
 
@@ -4756,6 +4764,8 @@ func (x *MsgDeleteAudienceClaim) GetAudHash() []byte {
 	return nil
 }
 
+// MsgDeleteAudienceClaimResponse defines the response for deleting an audience
+// claim
 type MsgDeleteAudienceClaimResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -4782,14 +4792,18 @@ func (*MsgDeleteAudienceClaimResponse) Descriptor() ([]byte, []int) {
 	return file_xion_jwk_v1_tx_proto_rawDescGZIP(), []int{3}
 }
 
+// MsgCreateAudience defines the message for creating an audience
 type MsgCreateAudience struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The admin address creating the audience
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
-	Aud   string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
-	Key   string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`
+	// The audience identifier
+	Aud string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The public key for this audience
+	Key string `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`
 }
 
 func (x *MsgCreateAudience) Reset() {
@@ -4833,11 +4847,13 @@ func (x *MsgCreateAudience) GetKey() string {
 	return ""
 }
 
+// MsgCreateAudienceResponse defines the response for creating an audience
 type MsgCreateAudienceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The created audience
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
 
@@ -4868,16 +4884,22 @@ func (x *MsgCreateAudienceResponse) GetAudience() *Audience {
 	return nil
 }
 
+// MsgUpdateAudience defines the message for updating an audience
 type MsgUpdateAudience struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Admin    string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The current admin address
+	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
+	// The new admin address
 	NewAdmin string `protobuf:"bytes,2,opt,name=new_admin,json=newAdmin,proto3" json:"new_admin,omitempty"`
-	Aud      string `protobuf:"bytes,3,opt,name=aud,proto3" json:"aud,omitempty"`
-	Key      string `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty"`
-	NewAud   string `protobuf:"bytes,5,opt,name=new_aud,json=newAud,proto3" json:"new_aud,omitempty"`
+	// The current audience identifier
+	Aud string `protobuf:"bytes,3,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The current public key
+	Key string `protobuf:"bytes,4,opt,name=key,proto3" json:"key,omitempty"`
+	// The new audience identifier
+	NewAud string `protobuf:"bytes,5,opt,name=new_aud,json=newAud,proto3" json:"new_aud,omitempty"`
 }
 
 func (x *MsgUpdateAudience) Reset() {
@@ -4935,11 +4957,13 @@ func (x *MsgUpdateAudience) GetNewAud() string {
 	return ""
 }
 
+// MsgUpdateAudienceResponse defines the response for updating an audience
 type MsgUpdateAudienceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The updated audience
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
 
@@ -4970,13 +4994,16 @@ func (x *MsgUpdateAudienceResponse) GetAudience() *Audience {
 	return nil
 }
 
+// MsgDeleteAudience defines the message for deleting an audience
 type MsgDeleteAudience struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The admin address deleting the audience
 	Admin string `protobuf:"bytes,1,opt,name=admin,proto3" json:"admin,omitempty"`
-	Aud   string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The audience identifier to delete
+	Aud string `protobuf:"bytes,2,opt,name=aud,proto3" json:"aud,omitempty"`
 }
 
 func (x *MsgDeleteAudience) Reset() {
@@ -5013,6 +5040,7 @@ func (x *MsgDeleteAudience) GetAud() string {
 	return ""
 }
 
+// MsgDeleteAudienceResponse defines the response for deleting an audience
 type MsgDeleteAudienceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
