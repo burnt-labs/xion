@@ -3,6 +3,7 @@ module github.com/burnt-labs/xion
 go 1.24.5
 
 replace (
+	cosmossdk.io/collections => github.com/jhernandezb/cosmos-sdk/collections v0.0.0-20250808231741-fb92d24b92fe
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
@@ -232,7 +233,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
-	github.com/rs/zerolog v1.34.0 // indirect
+	github.com/rs/zerolog v1.34.0
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
