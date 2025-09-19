@@ -21,7 +21,7 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 	// wasmvm3 tokenfactory fork
-	github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.0-wasmvm3
+	github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.1-0.20250911214339-3cd81ea27e01
 
 	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -45,7 +45,7 @@ require (
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/CosmWasm/wasmd v0.61.2
 	github.com/CosmWasm/wasmvm/v3 v3.0.0
-	github.com/burnt-labs/abstract-account v0.0.0-20250725211404-8f79e998e3fa
+	github.com/burnt-labs/abstract-account v0.1.3
 	github.com/cometbft/cometbft v0.38.18
 	github.com/cosmos/cosmos-db v1.1.3
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
@@ -68,7 +68,7 @@ require (
 	github.com/spf13/cast v1.9.2
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
-	github.com/strangelove-ventures/tokenfactory v0.53.0-wasmvm3
+	github.com/strangelove-ventures/tokenfactory v0.53.1-0.20250911214339-3cd81ea27e01
 	github.com/stretchr/testify v1.11.0
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d
 	google.golang.org/genproto/googleapis/api v0.0.0-20250818200422-3122310a409c
