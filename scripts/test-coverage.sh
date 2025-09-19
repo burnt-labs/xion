@@ -18,14 +18,14 @@ COVERAGE_EXCLUSIONS=(
 
 echo "Running tests with coverage (excluding .pb.go files)..."
 
-# Run tests with coverage (only x/ modules for now). Fail fast if tests fail.
-go test ./x/... -coverprofile=coverage.out
+# Run tests with coverage (x/ modules and indexer). Fail fast if tests fail.
+go test ./x/... ./indexer/... -coverprofile=coverage.out
 test_exit_code=$?
 if [[ $test_exit_code -ne 0 ]]; then
     echo ""
     echo "=== TEST FAILURE DETECTED ==="
     echo "❌ FAILURE: One or more tests failed (exit code $test_exit_code). Aborting coverage analysis."
-    echo "(Adjust the package pattern in this script if you intend to include additional modules beyond ./x/.)"
+    echo "(Adjust the package pattern in this script if you intend to include additional modules beyond ./x/ and ./indexer/.)"
     exit 1
 fi
 
