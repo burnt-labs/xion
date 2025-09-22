@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"embed"
+	b64 "encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -489,6 +490,14 @@ func ModifyGenesisDKIMRecords(chainConfig ibc.ChainConfig, genbz []byte, params 
 	}
 	if err := dyno.Set(g, pubKeys, "app_state", "dkim", "dkim_pubkeys"); err != nil {
 		return nil, fmt.Errorf("failed to set dkim records in genesis json: %w", err)
+	}
+	// Set the params - vkey
+	vkey, err := b64.StdEncoding.DecodeString(params[1])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode string into bytes: %w", err)
+	}
+	if err := dyno.Set(g, vkey, "app_state", "dkim", "params", "vkey"); err != nil {
+		return nil, fmt.Errorf("failed to set dkim vkey in genesis json: %w", err)
 	}
 	out, err := json.Marshal(g)
 	if err != nil {

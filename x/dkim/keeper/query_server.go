@@ -3,11 +3,17 @@ package keeper
 import (
 	"bytes"
 	"context"
+	b64 "encoding/base64"
+	"fmt"
 
 	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	"cosmossdk.io/collections"
+	"cosmossdk.io/errors"
+
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/vocdoni/circom2gnark/parser"
 
 	dkimv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
@@ -42,9 +48,12 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 		return nil, err
 	}
 	return &types.QueryDkimPubKeyResponse{DkimPubKey: &types.DkimPubKey{
-		Domain:   dkimPubKey.Domain,
-		PubKey:   dkimPubKey.PubKey,
-		Selector: dkimPubKey.Selector,
+		Domain:       dkimPubKey.Domain,
+		PubKey:       dkimPubKey.PubKey,
+		Selector:     dkimPubKey.Selector,
+		PoseidonHash: dkimPubKey.PoseidonHash,
+		Version:      types.Version(dkimPubKey.Version),
+		KeyType:      types.KeyType(dkimPubKey.KeyType),
 	}}, nil
 }
 
@@ -115,6 +124,46 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			Pagination:  convertPageResponse(results.PageResponse()),
 		}, nil
 	}
+}
+
+func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (*types.QueryVerifyResponse, error) {
+	var verified bool
+	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
+	}
+	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
+	}
+	encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
+	txBz, err := CalculateTxBodyCommitment(encodedTxBytes)
+	// txBz, err := CalculateTxBodyCommitment(string(req.TxBytes))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
+	}
+	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
+	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := k.Keeper.Params.Get(c)
+	if err != nil {
+		return nil, err
+	}
+	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
+	if err != nil {
+		return nil, err
+	}
+
+	verified, err = k.Verify(c, snarkProof, snarkVk, &inputs)
+	if err != nil {
+		fmt.Printf("we have passed verifications with errors??: %s\n", err.Error())
+		return nil, err
+	}
+	fmt.Println("we have passed verifications with no errors")
+	return &types.QueryVerifyResponse{Verified: verified}, nil
 }
 
 func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {

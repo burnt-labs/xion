@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
@@ -61,8 +62,9 @@ func TestZKEmailAuthenticator(t *testing.T) {
 			PoseidonHash: base64.StdEncoding.EncodeToString(ToLittleEndian(gPubKeyHash.Bytes())),
 		},
 	})
+	vkey := "eyJ2a19hbHBoYV8xIjpbIjIwNDkxMTkyODA1MzkwNDg1Mjk5MTUzMDA5NzczNTk0NTM0OTQwMTg5MjYxODY2MjI4NDQ3OTE4MDY4NjU4NDcxOTcwNDgxNzYzMDQyIiwiOTM4MzQ4NTM2MzA1MzI5MDIwMDkxODM0NzE1NjE1NzgzNjU2NjU2Mjk2Nzk5NDAzOTcxMjI3MzQ0OTkwMjYyMTI2NjE3ODU0NTk1OCIsIjEiXSwidmtfYmV0YV8yIjpbWyI2Mzc1NjE0MzUxNjg4NzI1MjA2NDAzOTQ4MjYyODY4OTYyNzkzNjI1NzQ0MDQzNzk0MzA1NzE1MjIyMDExNTI4NDU5NjU2NzM4NzMxIiwiNDI1MjgyMjg3ODc1ODMwMDg1OTEyMzg5Nzk4MTQ1MDU5MTM1MzUzMzA3MzQxMzE5Nzc3MTc2ODY1MTQ0MjY2NTc1MjI1OTM5NzEzMiJdLFsiMTA1MDUyNDI2MjYzNzAyNjIyNzc1NTI5MDEwODIwOTQzNTY2OTc0MDk4MzU2ODAyMjA1OTA5NzE4NzMxNzExNDAzNzEzMzEyMDY4NTYiLCIyMTg0NzAzNTEwNTUyODc0NTQwMzI4ODIzMjY5MTE0NzU4NDcyODE5MTE2MjczMjI5OTg2NTMzODM3NzE1OTY5MjM1MDA1OTEzNjY3OSJdLFsiMSIsIjAiXV0sInZrX2dhbW1hXzIiOltbIjEwODU3MDQ2OTk5MDIzMDU3MTM1OTQ0NTcwNzYyMjMyODI5NDgxMzcwNzU2MzU5NTc4NTE4MDg2OTkwNTE5OTkzMjg1NjU1ODUyNzgxIiwiMTE1NTk3MzIwMzI5ODYzODcxMDc5OTEwMDQwMjEzOTIyODU3ODM5MjU4MTI4NjE4MjExOTI1MzA5MTc0MDMxNTE0NTIzOTE4MDU2MzQiXSxbIjg0OTU2NTM5MjMxMjM0MzE0MTc2MDQ5NzMyNDc0ODkyNzI0Mzg0MTgxOTA1ODcyNjM2MDAxNDg3NzAyODA2NDkzMDY5NTgxMDE5MzAiLCI0MDgyMzY3ODc1ODYzNDMzNjgxMzMyMjAzNDAzMTQ1NDM1NTY4MzE2ODUxMzI3NTkzNDAxMjA4MTA1NzQxMDc2MjE0MTIwMDkzNTMxIl0sWyIxIiwiMCJdXSwidmtfZGVsdGFfMiI6W1siNTY4MTAwNjE2NDMwODI1MTk1MzAwMjExMzkyNTU4NTQ5MDE1OTM4MjM2NTQ1OTkwMDYxNjY5NTA2OTczODA5OTYxNjIyMTAwNzQ0MCIsIjE3ODQzNzI1MzIwMjMyODUyMzQ3ODgxMTI5MTI2MDUwMTY0MTg3ODU4NTMwODI2Nzg0MzAxNjI4NDE4MzM2ODg5NzI0MDQ3NTQ1MjYiXSxbIjEzMjA3MzcyNzAwMzc0OTUxMjE3OTcyNzM0MzA1OTg3OTg0MjExMjk5NTQxOTUzMjcyMTk1ODA0NDAzMDE5Mjk0Mjg1MDE1NDMyMjMwIiwiMTEyMDgwOTg4MTU5MzE0OTgyNTg1NjYzMzU5NTMyNTU3Njg5MTU3ODEwMjQ1Njg0MzE0NzI5NzMwMDM3NDAzNTEyNDIxNDUyNzQ4ODIiXSxbIjEiLCIwIl1dLCJJQyI6W1siMTM1NTI3OTYxNTkzMjE1MDA0NDY1NDIwOTIzMzM5MjU3ODk2MjcyMjE3NjM5OTU5MTcwNTc3MDUwMjUwMjQ3MzY4NDU3MjE5NDIzNTMiLCI5NjgwOTg1Mjg1MDQwMjMwNzUxNjQ0NDk1ODkzMjE1MzgyNjc2MDgxNTM1ODc2MzYzNTUzNjYwMzc0MTE1NTg4ODYyMDYwNDg3MDM0IiwiMSJdLFsiMTUyNTQ3NzY3NzI2MTA1MzMzMjc0ODg4MTQyODE5MzEyODc2NjU4OTM5NDMxNzc5NzczMTAxNjgwNTY3MjIzNjgyODE3Mjg2MTg2NjIiLCIxNDM2NzY1NzcwMTI0OTU0NzkxODUxMzY3NTUzMzA5MTI4NjM4MzM1ODE4NTY2Mjg2OTg4NzMxNjQ2NjgxMzA2MjE0MjY3NDQ5OTI2MCIsIjEiXSxbIjE0ODY2ODU5MTc3NzU4NjM1MDMwMDc5MjI2MzQxODYyNjAxMTEyOTgzNDg3ODM4NTExNjkwNTY3ODk1NTc0MDMwNjcyMjEyNDQxNjc2IiwiMTEzMTQ1NDIyOTM1MzM5NzMzMjg0MTY0NDE2NjMxNzYwMzIzOTk4NDU1MTkzMDA0NDY4OTQ0MDc1MjAwODM0MTIwMzY4ODgzNDI5OCIsIjEiXSxbIjE0NDUyOTAyNDgyODI4NTU4MjcwMjk4Mzc0NzM3NzA1NjU4MzUxMjcwNzg4NDI4MDE5NTg1MjQxMDI2OTAxMzMxMzY4ODU4NTI3OTQ4IiwiMTkwOTc5OTc3NzQ2MDY1MjM1MjcxNTg1Mjk1NTI2NDU5NjEyNTcxNTAxODkzNTczNTc2MDEwMzUwNzgxMTE2NDM5NTMzODUxNzEzODQiLCIxIl1dfQ=="
 
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisDKIMRecords, ModifyGenesisAAParams}, [][]string{{votingPeriod, maxDepositPeriod}, {string(gPubKeyBz)}, {"20000000"}}))
+	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisShortProposals, ModifyGenesisDKIMRecords, ModifyGenesisAAParams}, [][]string{{votingPeriod, maxDepositPeriod}, {string(gPubKeyBz), vkey}, {"20000000"}}))
 	xion, ctx := td.xionChain, td.ctx
 
 	config := types.GetConfig()
@@ -83,27 +85,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	accountCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "xion-account.wasm"))
-	require.NoError(t, err)
-
-	// Store ZKEmail Verification Contract
-	zkemailCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "zkemail.wasm"))
-	require.NoError(t, err)
-
-	// Instantiate ZKEmail Verification Contract
-	// read the vkey from the vkey.json file
-	vkeyBz, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "keys", "vkey.json"))
-	if err != nil {
-		t.Fatalf("failed to read vkey.json file: %v", err)
-	}
-	var vkey SnarkJSVkey
-	err = json.Unmarshal(vkeyBz, &vkey)
-	require.NoError(t, err)
-	instantiateMsg := ZKVerificationInstantiateMsg{Vkey: vkey}
-
-	vkeyJsonBz, err := json.Marshal(instantiateMsg)
-	require.NoError(t, err)
-
-	verificationContractAddress, err := xion.InstantiateContract(ctx, xionUser.FormattedAddress(), zkemailCodeID, string(vkeyJsonBz), true, "--gas", "400000", "--gas-prices", "0.025uxion", "--gas-adjustment", "1.5")
 	require.NoError(t, err)
 
 	// Register Abstract Account Contract (Ensuring Fixed Address)
@@ -132,8 +113,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	// send a execute msg to add a zkemail authenticator to the account
 	authExecuteMsg := fmt.Sprintf(
-		`{"add_auth_method":{"add_authenticator":{"ZKEmail": {"id": 1, "verification_contract": "%s", "email_hash": "%s", "dkim_domain": "%s"}}}}`,
-		verificationContractAddress,
+		`{"add_auth_method":{"add_authenticator":{"ZKEmail": {"id": 1, "email_hash": "%s", "dkim_domain": "%s"}}}}`,
 		emailHash,
 		dkimDomain,
 	)
@@ -193,10 +173,10 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	var response map[string]any
 	data := queryResult["data"].(string)
-	//base64 decode the data
+	// base64 decode the data
 	decodedData, err := base64.StdEncoding.DecodeString(data)
 	require.NoError(t, err)
-	//unmarshal the decoded data
+	// unmarshal the decoded data
 	err = json.Unmarshal(decodedData, &response)
 	require.NoError(t, err)
 
@@ -298,7 +278,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
-	txBuilder.SetGasLimit(2_000_000) // 20 million because verification takes a lot of gas
+	txBuilder.SetGasLimit(1_900_000) // 20 million because verification takes a lot of gas
 
 	builtTx := txBuilder.GetTx()
 	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
@@ -324,6 +304,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 
+	fmt.Println("waiting")
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)

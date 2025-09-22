@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/vocdoni/circom2gnark/parser"
 
 	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
@@ -125,4 +126,12 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		Params:      params,
 		DkimPubkeys: dkimPubKeys,
 	}
+}
+
+func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *parser.CircomVerificationKey, inputs *[]string) (bool, error) {
+	gnarkProof, err := parser.ConvertCircomToGnark(proof, vkey, *inputs)
+	if err != nil {
+		return false, err
+	}
+	return parser.VerifyProof(gnarkProof)
 }

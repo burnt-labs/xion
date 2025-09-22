@@ -63,6 +63,8 @@ func SetupTest(t *testing.T) *TestFixture {
 	f.queryServer = keeper.NewQuerier(f.k)
 	f.appModule = module.NewAppModule(encCfg.Codec, f.k)
 
+	f.k.Params.Set(f.ctx, types.DefaultParams())
+
 	return f
 }
 
