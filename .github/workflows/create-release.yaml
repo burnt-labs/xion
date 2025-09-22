@@ -85,7 +85,7 @@ jobs:
       - build-darwin
       - docker-scout
       - interchain-tests
-    uses: burnt-labs/xion/.github/workflows/goreleaser.yaml@workflows/main
+    uses: burnt-labs/xion/.github/workflows/exec-goreleaser.yaml@workflows/main
     secrets: inherit
 
   # TODO: move to goreleaser
