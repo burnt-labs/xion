@@ -19,6 +19,10 @@ import (
 // "/ibc.core.channel.v1.MsgTimeoutOnClose"] as default and
 // add MaxTotalBypassMinFeeMsgGasUsage that is set 1_000_000 as default.
 func MigrateStore(ctx sdk.Context, globalfeeSubspace paramtypes.Subspace) error {
+	if !globalfeeSubspace.HasKeyTable() {
+		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
+	}
+
 	var oldGlobalMinGasPrices sdk.DecCoins
 	globalfeeSubspace.Get(ctx, types.ParamStoreKeyMinGasPrices, &oldGlobalMinGasPrices)
 	defaultParams := types.DefaultParams()
@@ -26,10 +30,6 @@ func MigrateStore(ctx sdk.Context, globalfeeSubspace paramtypes.Subspace) error 
 		MinimumGasPrices:                oldGlobalMinGasPrices,
 		BypassMinFeeMsgTypes:            defaultParams.BypassMinFeeMsgTypes,
 		MaxTotalBypassMinFeeMsgGasUsage: defaultParams.MaxTotalBypassMinFeeMsgGasUsage,
-	}
-
-	if !globalfeeSubspace.HasKeyTable() {
-		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	globalfeeSubspace.SetParamSet(ctx, &params)

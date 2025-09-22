@@ -14,6 +14,7 @@ import (
 
 const (
 	FlagNewAdmin = "new-admin"
+	FlagNewAud   = "new-aud"
 )
 
 func CmdCreateAudienceClaim() *cobra.Command {
@@ -88,7 +89,7 @@ func CmdCreateAudience() *cobra.Command {
 
 func CmdUpdateAudience() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-audience [aud] [key] --new-admin [new-admin]",
+		Use:   "update-audience [aud] [key] --new-admin [new-admin] --new-aud [new-aud]",
 		Short: "Update a audience",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -111,10 +112,16 @@ func CmdUpdateAudience() *cobra.Command {
 				newAdmin = clientCtx.GetFromAddress().String()
 			}
 
+			newAud, err := cmd.Flags().GetString(FlagNewAud)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgUpdateAudience(
 				clientCtx.GetFromAddress().String(),
 				newAdmin,
 				indexAud,
+				newAud,
 				argKey,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -126,6 +133,7 @@ func CmdUpdateAudience() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().String(FlagNewAdmin, "", "address to provide as the new admin")
+	cmd.Flags().String(FlagNewAud, "", "new audience value")
 
 	return cmd
 }
@@ -147,6 +155,34 @@ func CmdDeleteAudience() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				indexAud,
 			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdDeleteAudienceClaim() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete-audience-claim [aud]",
+		Short: "Delete an audience claim",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			audStr := args[0]
+
+			audHash := sha256.Sum256([]byte(audStr))
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeleteAudienceClaim(clientCtx.GetFromAddress(), audHash[:])
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

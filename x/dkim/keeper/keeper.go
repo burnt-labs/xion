@@ -49,7 +49,7 @@ func NewKeeper(
 		Params: collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		DkimPubKeys: collections.NewMap(
 			sb,
-			collections.NewPrefix(uint8(1)), // NOTE: add an actual prefix
+			types.DkimPrefix, // NOTE: add an actual prefix
 			"dkim_pubkeys",
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
 			codec.CollValue[apiv1.DkimPubKey](cdc),
@@ -85,7 +85,7 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 			PoseidonHash: dkimPubKey.PoseidonHash,
 		}
 		key := collections.Join(pk.Domain, pk.Selector)
-		if err := k.DkimPubKeys.Set(ctx, key, pk); err != nil {
+		if err := k.DkimPubKeys.Set(ctx, key, *pk); err != nil {
 			return err
 		}
 	}
@@ -100,7 +100,7 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	}
 
 	var dkimPubKeys []types.DkimPubKey
-	iter, err := k.DkimPubKeys.Iterate(ctx, collections.RangeFull())
+	iter, err := k.DkimPubKeys.Iterate(ctx, nil)
 	if err != nil {
 		panic(err)
 	}

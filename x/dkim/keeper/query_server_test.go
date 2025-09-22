@@ -37,7 +37,7 @@ func TestQueryDkimPubKey(t *testing.T) {
 				Domain:   domain,
 			},
 			err:     true,
-			errType: collections.ErrKeyNotFound,
+			errType: collections.ErrNotFound,
 		},
 		{
 			name: "success",
@@ -69,10 +69,10 @@ func TestQueryDkimPubKey(t *testing.T) {
 			res, err := f.queryServer.DkimPubKey(f.ctx, tc.request)
 			if tc.err {
 				require.Error(err)
-				require.Equal(err.Error(), tc.errType.Error())
+				require.ErrorIs(err, tc.errType)
 			} else if tc.result != nil {
 				require.NoError(err)
-				require.EqualValues(tc.result, res)
+				require.EqualValues(tc.result, res) // NOTE: we seem to be getting different msgs
 			}
 		})
 	}

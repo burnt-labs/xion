@@ -1,22 +1,41 @@
-version: v1
+version: v2
+
 managed:
   enabled: true
-  go_package_prefix:
-    default: github.com/burnt-labs/xion/api
-    except:
-      - buf.build/googleapis/googleapis
-      - buf.build/cosmos/gogo-proto
-      - buf.build/cosmos/cosmos-proto
-    override:
-      buf.build/cosmos/cosmos-sdk: cosmossdk.io/api # required to import the Cosmos SDK api module for the orm
+  override:
+    - file_option: go_package_prefix
+      value: github.com/burnt-labs/xion/api
+    - file_option: go_package_prefix
+      module: buf.build/cosmos/gogo-proto
+      value: github.com/cosmos/gogoproto
+    - file_option: go_package_prefix
+      module: buf.build/cosmos/cosmos-proto
+      value: github.com/cosmos/cosmos-proto
+    - file_option: go_package
+      module: buf.build/cosmos/cosmos-proto
+      path: cosmos_proto/cosmos.proto
+      value: github.com/cosmos/cosmos-proto
+    - file_option: go_package_prefix
+      module: buf.build/cosmos/cosmos-sdk
+      value: cosmossdk.io/api
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis
+      path: google/api/annotations.proto
+      value: google.golang.org/genproto/googleapis/api/annotations
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis  
+      path: google/api/http.proto
+      value: google.golang.org/genproto/googleapis/api/annotations
+    - file_option: go_package
+      module: buf.build/tendermint/tendermint
+      path: tendermint/abci/types.proto
+      value: github.com/cometbft/cometbft/abci/types
+
+
 plugins:
-  - name: go-pulsar
+  - local: protoc-gen-go-pulsar
     out: ../api
     opt: paths=source_relative
-  - name: go-grpc
-    out: ../api
-    opt: paths=source_relative
-    # go install cosmossdk.io/orm/cmd/protoc-gen-go-cosmos-orm@latest
-  - name: go-cosmos-orm
+  - local: protoc-gen-go-grpc
     out: ../api
     opt: paths=source_relative

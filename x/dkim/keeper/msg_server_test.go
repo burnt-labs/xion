@@ -204,13 +204,13 @@ func TestRemoveDkimPubKey(t *testing.T) {
 			err: true,
 		},
 		{
-			name: "fail: remove non existing key",
+			name: "pass: remove non existing key; is no-op",
 			request: &types.MsgRemoveDkimPubKey{
 				Authority: f.govModAddr,
 				Domain:    domain,
 				Selector:  "non-existing",
 			},
-			err: true,
+			err: false,
 		},
 		{
 			name: "success",
@@ -229,9 +229,6 @@ func TestRemoveDkimPubKey(t *testing.T) {
 
 			if tc.err {
 				require.Error(err)
-				if tc.name == "fail: remove non existing key" {
-					require.ErrorIs(err, collections.ErrKeyNotFound)
-				}
 			} else {
 				require.NoError(err)
 
@@ -241,7 +238,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 				})
 				require.Nil(r)
 				require.Error(err)
-				require.ErrorIs(err, collections.ErrKeyNotFound)
+				require.ErrorIs(err, collections.ErrNotFound)
 			}
 		})
 	}

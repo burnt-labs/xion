@@ -53,6 +53,7 @@ message MsgUpdateAudience {
   string new_admin = 2;
   string aud = 3;
   string key = 4;
+  string new_aud = 5;
 }
 
 message MsgUpdateAudienceResponse { Audience audience = 1; }

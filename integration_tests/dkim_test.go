@@ -17,10 +17,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -70,9 +70,12 @@ var pubKeysBz, _ = json.Marshal([]Dkim{{
 }})
 
 func TestDKIMModule(t *testing.T) {
-	td := BuildXionChain(t, "0.0uxion", ModifyInterChainGenesis(ModifyInterChainGenesisFn{ModifyGenesisDKIMRecords, ModifyGenesisShortProposals}, [][]string{{string(pubKeysBz)}, {votingPeriod, maxDepositPeriod}}))
+	ctx := t.Context()
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
 
-	xion, ctx := td.xionChain, td.ctx
+	xion := BuildXionChain(t)
 
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")

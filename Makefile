@@ -12,7 +12,7 @@ SIMAPP = ./app
 # docker and goreleaser
 DOCKER := $(shell which docker)
 GORELEASER_CROSS_IMAGE := $(if $(GORELEASER_KEY),ghcr.io/goreleaser/goreleaser-cross-pro,ghcr.io/goreleaser/goreleaser-cross)
-GORELEASER_CROSS_VERSION ?= v1.23.6
+GORELEASER_CROSS_VERSION ?= v1.24.5
 # need custom image
 GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
 GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
@@ -22,6 +22,7 @@ GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 XION_IMAGE ?= heighliner:$(GOARCH)
 HEIGHLINER_IMAGE ?= heighliner:$(GOARCH)
+
 
 # process build tags
 build_tags = netgo
@@ -202,23 +203,23 @@ test-unit:
 	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
 compile-integration-tests:
-	@cd integration_tests && go test -c 
+	@cd integration_tests && go test -c -mod=readonly -tags='ledger test_ledger_mock' $(BUILD_FLAGS) 
 
 test-integration:
-	@XION_IMAGE=$(HEIGHLINER_IMAGE) cd ./integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock'  ./...
+	@XION_IMAGE=$(HEIGHLINER_IMAGE) cd ./integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
 TEST_BIN ?= ./integration_tests/integration_tests.test
 run-integration-test: 
 	@XION_IMAGE=$(HEIGHLINER_IMAGE) $(TEST_BIN) -test.failfast -test.v -test.run $(TEST_NAME)
 
-test-integration-dungeon-transfer-block: compile-integration-tests
-	$(MAKE) run-integration-test TESTBIN= TEST_NAME=TestDungeonTransferBlock
+test-integration-abstract-account-migration: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestAbstractAccountMigration
 
-test-integration-mint-module-no-inflation-no-fees: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMintModuleNoInflationNoFees
+test-integration-jwt-abstract-account: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestJWTAbstractAccount
 
-test-integration-mint-module-inflation-no-fees: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationNoFees
+test-integration-min-fee: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
 
 test-integration-mint-module-inflation-high-fees: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationHighFees
@@ -226,26 +227,56 @@ test-integration-mint-module-inflation-high-fees: compile-integration-tests
 test-integration-mint-module-inflation-low-fees: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationLowFees
 
-test-integration-jwt-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestJWTAbstractAccount
+test-integration-mint-module-inflation-no-fees: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationNoFees
+
+test-integration-mint-module-no-inflation-no-fees: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestMintModuleNoInflationNoFees
 
 test-integration-register-jwt-abstract-account: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionAbstractAccountJWTCLI
 
-test-integration-xion-send-platform-fee: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=XionSendPlatformFee
+test-integration-simulate: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestSimulate
+
+test-integration-single-aa-mig: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestSingleAbstractAccountMigration
+
+test-integration-treasury-contract: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestTreasuryContract
+
+test-integration-treasury-multi: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestTreasuryMulti
+
+test-integration-upgrade-ibc: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeIBC
+
+test-integration-upgrade-network: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeNetwork
+
+test-integration-web-auth-n-abstract-account: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestWebAuthNAbstractAccount
 
 test-integration-xion-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=XionAbstractAccount
+	$(MAKE) run-integration-test TEST_NAME=TestXionAbstractAccount
 
-test-integration-xion-abstract-account-event: compile_integration_tests
-	$(MAKE) run-integration-test TEST_NAME=XionClientEvent
+test-integration-xion-abstract-account-event: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestXionClientEvent
 
 test-integration-xion-min-default: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
 
+test-integration-xion-min-multi-denom: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestMultiDenomMinGlobalFee
+
+test-integration-xion-min-multi-denom-ibc: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestMultiDenomMinGlobalFeeIBC
+
 test-integration-xion-min-zero: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeZero
+
+test-integration-xion-send-platform-fee: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestXionSendPlatformFee
 
 test-integration-xion-token-factory: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestXionTokenFactory
@@ -261,27 +292,6 @@ test-integration-xion-update-treasury-configs-aa: compile-integration-tests
 
 test-integration-xion-update-treasury-params: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestUpdateTreasuryContractParams
-
-test-integration-single-aa-mig: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestSingleAbstractAccountMigration
-
-test-treasury-multi: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestTreasuryMulti
-
-test-integration-min-fee: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
-
-test-integration-web-auth-n-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=WebAuthNAbstractAccount
-
-test-integration-upgrade-ibc: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeIBC
-
-test-integration-upgrade-network: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeNetwork
-
-test-integration-simulate: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestSimulate
 
 test-integration-dkim-module: compile-integration-tests
 	@XION_TEST_IMAGE=$(XION_TEST_IMAGE) ./integration_tests/integration_tests.test -test.failfast -test.v -test.run TestDKIMModule
@@ -324,18 +334,18 @@ lint: format-tools
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*_test.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -d
 
 format: format-tools
-	golangci-lint run --fix
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
+	golangci-lint run --fix 
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
 
 
 ################################################################################
 ###                                 Protobuf                                 ###
 ################################################################################
-protoVer=0.15.1
+protoVer=0.17.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace -e GOTOOLCHAIN=auto $(protoImageName)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
 proto-all: proto-format proto-lint proto-gen proto-format
@@ -344,13 +354,15 @@ proto-gen:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/proto-gen.sh
 
-proto-gen-ts:
-	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/proto-gen.sh --ts
+proto-gen-openapi:
+	@echo "Generating Protobuf OpenAPI"
+	@$(protoImage) sh ./scripts/proto-gen.sh --openapi
 
-proto-gen-swagger:
-	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh scripts/proto-gen.sh --swagger
+proto-gen-swagger: proto-gen-openapi
+
+proto-gen-pulsar:
+	@echo "Generating Protobuf Pulsar"
+	@$(protoImage) sh ./scripts/proto-gen.sh --pulsar
 
 proto-format:
 	@echo "Formatting Protobuf files"

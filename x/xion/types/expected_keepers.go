@@ -3,7 +3,7 @@ package types // noalias
 import (
 	"context"
 
-	aatypes "github.com/larry0x/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 
 	"cosmossdk.io/math"
 

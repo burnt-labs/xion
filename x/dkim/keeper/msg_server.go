@@ -45,7 +45,7 @@ func SaveDkimPubKey(ctx context.Context, dkimKey types.DkimPubKey, k *Keeper) (b
 		KeyType:      dkimv1.KeyType(dkimKey.KeyType),
 	}
 	key := collections.Join(pk.Domain, pk.Selector)
-	if err := k.DkimPubKeys.Set(ctx, key, pk); err != nil {
+	if err := k.DkimPubKeys.Set(ctx, key, *pk); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -78,7 +78,7 @@ func (ms msgServer) RemoveDkimPubKey(ctx context.Context, msg *types.MsgRemoveDk
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
 	key := collections.Join(msg.Domain, msg.Selector)
-	if err := ms.k.DkimPubKeys.Delete(ctx, key); err != nil {
+	if err := ms.k.DkimPubKeys.Remove(ctx, key); err != nil {
 		return nil, err
 	}
 	return &types.MsgRemoveDkimPubKeyResponse{}, nil
@@ -118,7 +118,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	pubKey, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
 	pubKey = strings.ReplaceAll(pubKey, "\n", "")
 
-	iter, err := ms.k.DkimPubKeys.Iterate(ctx, collections.RangeFull())
+	iter, err := ms.k.DkimPubKeys.Iterate(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	for _, kv := range kvs {
 		dkimPubKey := kv.Value
 		if dkimPubKey.Domain == msg.Domain && dkimPubKey.PubKey == pubKey {
-			if err := ms.k.DkimPubKeys.Delete(ctx, kv.Key); err != nil {
+			if err := ms.k.DkimPubKeys.Remove(ctx, kv.Key); err != nil {
 				return nil, err
 			}
 		}

@@ -116,7 +116,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, mess
 		panic(err)
 	}
 
-	if isSaved, err := keeper.SaveDkimPubKeys(ctx, genesisState.DkimPubkeys, am.keeper.DkimPubKeys); !isSaved {
+	if isSaved, err := keeper.SaveDkimPubKeys(ctx, genesisState.DkimPubkeys, &am.keeper); !isSaved {
 		panic(err)
 	}
 

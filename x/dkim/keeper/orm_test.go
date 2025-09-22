@@ -35,11 +35,11 @@ func TestORM(t *testing.T) {
 	require.True(t, isSaved)
 
 	key := collections.Join(domain, selector)
-	has, err := f.k.DkimPubKeys.Has(ctx, key)
+	has, err := f.k.DkimPubKeys.Has(f.ctx, key)
 	require.NoError(t, err)
 	require.True(t, has)
 
-	res, err := f.k.DkimPubKeys.Get(ctx, key)
+	res, err := f.k.DkimPubKeys.Get(f.ctx, key)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.EqualValues(t, pubKey, res.PubKey)
@@ -77,7 +77,7 @@ func TestORMMultipleInsert(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, isSaved)
 
-	iter, err := f.k.DkimPubKeys.Iterate(f.ctx, collections.RangeFull())
+	iter, err := f.k.DkimPubKeys.Iterate(f.ctx, nil)
 	require.NoError(t, err)
 	defer iter.Close()
 	kvs, err := iter.KeyValues()

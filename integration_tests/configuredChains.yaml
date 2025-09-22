@@ -2,20 +2,6 @@
 ## Set the environment variable: IBCTEST_CONFIGURED_CHAINS to a path
 ## to use custom versions of this file
 
-axelar:
-  name: axelar
-  type: cosmos
-  bin: axelard
-  bech32-prefix: axelar
-  denom: uaxl
-  gas-prices: 0.01uaxl
-  gas-adjustment: 1.3
-  trusting-period: 168h
-  images:
-    - repository: ghcr.io/strangelove-ventures/heighliner/axelar
-      uid-gid: 1025:1025
-  no-host-mount: false
-
 osmosis:
   name: osmosis
   type: cosmos
@@ -27,6 +13,7 @@ osmosis:
   trusting-period: 336h
   images:
     - repository: ghcr.io/strangelove-ventures/heighliner/osmosis
+      version: v28.0.0
       uid-gid: 1025:1025
   no-host-mount: false
 
@@ -40,6 +27,7 @@ xion:
   gas-adjustment: 1.3
   trusting-period: 336h
   images:
-    - repository: ghcr.io/burnt-labs/xion/xion
+    - repository: ghcr.io/burnt-labs/xion/heighliner
+      version: v20.0.0
       uid-gid: 1025:1025
   no-host-mount: false

@@ -118,3 +118,178 @@ func TestCombinedFeeRequirement(t *testing.T) {
 		})
 	}
 }
+
+func TestMaxCoins(t *testing.T) {
+	// Test with empty coins
+	coins1 := sdk.DecCoins{}
+	coins2 := sdk.DecCoins{}
+	result := MaxCoins(coins1, coins2)
+	require.Equal(t, sdk.DecCoins{}, result)
+
+	// Test with one empty, one non-empty
+	coins1 = sdk.DecCoins{}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	result = MaxCoins(coins1, coins2)
+	require.Equal(t, coins2, result)
+
+	// Test with both non-empty, different denoms
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(1, 3))}
+	result = MaxCoins(coins1, coins2)
+	expected := sdk.DecCoins{
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(1, 3)),
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3)),
+	}
+	require.Equal(t, expected, result)
+
+	// Test with same denom, different amounts
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	result = MaxCoins(coins1, coins2)
+	expected = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
+	require.Equal(t, expected, result)
+
+	// Test with multiple denoms - debug to understand AmountOf issue
+	coin1Uxion := sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))
+	coin1Stake := sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(3, 3))
+	coin2Uxion := sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))
+	coin2Stake := sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(4, 3))
+
+	t.Logf("coin1Uxion: %s", coin1Uxion)
+	t.Logf("coin1Stake: %s", coin1Stake)
+	t.Logf("coin2Uxion: %s", coin2Uxion)
+	t.Logf("coin2Stake: %s", coin2Stake)
+
+	coins1 = sdk.DecCoins{coin1Uxion, coin1Stake}
+	coins2 = sdk.DecCoins{coin2Uxion, coin2Stake}
+
+	t.Logf("coins1 before sort: %s", coins1)
+	t.Logf("coins2 before sort: %s", coins2)
+
+	// Debug: check individual amounts
+	t.Logf("coins1 uxion amount: %s", coins1.AmountOf("uxion"))
+	t.Logf("coins1 stake amount: %s", coins1.AmountOf("stake"))
+	t.Logf("coins2 uxion amount: %s", coins2.AmountOf("uxion"))
+	t.Logf("coins2 stake amount: %s", coins2.AmountOf("stake"))
+
+	result = MaxCoins(coins1, coins2)
+	t.Logf("result: %s", result)
+
+	// Expected: max(uxion: 0.002, 0.001) = 0.002, max(stake: 0.003, 0.004) = 0.004
+	expected = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(4, 3)),
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3)),
+	}
+
+	require.Equal(t, expected, result)
+}
+
+func TestIsAllGT(t *testing.T) {
+	// Test with empty coins
+	coins1 := sdk.DecCoins{}
+	coins2 := sdk.DecCoins{}
+	result := IsAllGT(coins1, coins2)
+	require.False(t, result)
+
+	// Test with one empty, one non-empty
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	coins2 = sdk.DecCoins{}
+	result = IsAllGT(coins1, coins2)
+	require.True(t, result)
+
+	// Test with same coins
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	result = IsAllGT(coins1, coins2)
+	require.False(t, result)
+
+	// Test with greater coins
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	result = IsAllGT(coins1, coins2)
+	require.True(t, result)
+
+	// Test with less coins
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
+	result = IsAllGT(coins1, coins2)
+	require.False(t, result)
+
+	// Test with different denoms - coins1 has extra denom
+	coins1 = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3)),
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(1, 3)),
+	}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	result = IsAllGT(coins1, coins2)
+	require.False(t, result) // Different denoms means not all GT
+
+	// Test with mixed results
+	coins1 = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3)),
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(1, 3)),
+	}
+	coins2 = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3)),
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(2, 3)),
+	}
+	result = IsAllGT(coins1, coins2)
+	require.False(t, result)
+}
+
+func TestDenomsSubsetOf(t *testing.T) {
+	// Test with empty coins
+	coins1 := sdk.DecCoins{}
+	coins2 := sdk.DecCoins{}
+	result := DenomsSubsetOf(coins1, coins2)
+	require.True(t, result)
+
+	// Test with empty subset
+	coins1 = sdk.DecCoins{}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	result = DenomsSubsetOf(coins1, coins2)
+	require.True(t, result)
+
+	// Test with empty superset
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	coins2 = sdk.DecCoins{}
+	result = DenomsSubsetOf(coins1, coins2)
+	require.False(t, result)
+
+	// Test with same denoms
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
+	result = DenomsSubsetOf(coins1, coins2)
+	require.True(t, result)
+
+	// Test with subset
+	coins1 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))}
+	coins2 = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3)),
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(1, 3)),
+	}.Sort()
+	result = DenomsSubsetOf(coins1, coins2)
+	require.True(t, result)
+
+	// Test with non-subset
+	coins1 = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3)),
+		sdk.NewDecCoinFromDec("other", math.LegacyNewDecWithPrec(1, 3)),
+	}.Sort()
+	coins2 = sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
+	result = DenomsSubsetOf(coins1, coins2)
+	require.False(t, result)
+
+	// Test with multiple denoms subset
+	coins1 = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3)),
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(1, 3)),
+	}.Sort()
+	coins2 = sdk.DecCoins{
+		sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3)),
+		sdk.NewDecCoinFromDec("stake", math.LegacyNewDecWithPrec(2, 3)),
+		sdk.NewDecCoinFromDec("other", math.LegacyNewDecWithPrec(1, 3)),
+	}.Sort()
+	result = DenomsSubsetOf(coins1, coins2)
+	require.True(t, result)
+}
