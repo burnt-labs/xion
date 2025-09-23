@@ -2,6 +2,14 @@
 
 # Script to run tests with coverage, excluding generated protobuf files
 
+# List of directory patterns to exclude from testing (modify as needed)
+# Examples: "./devnet/..." "./integration_tests/..." "./build/..."
+TEST_EXCLUSIONS=(
+    # Add directory exclusions here as needed
+    # Example: "./devnet/..."
+    # Example: "./integration_tests/..."
+)
+
 # List of patterns to exclude from low coverage reporting
 # Add new exclusion patterns here as needed
 COVERAGE_EXCLUSIONS=(
@@ -16,16 +24,54 @@ COVERAGE_EXCLUSIONS=(
     # Example: ".*defensive.*code.*pattern"
 )
 
-echo "Running tests with coverage (excluding .pb.go files)..."
+echo "Running tests with coverage on all directories..."
 
-# Run tests with coverage (only x/ modules for now). Fail fast if tests fail.
-go test ./x/... -coverprofile=coverage.out
+# If no exclusions are specified, run all tests
+if [[ ${#TEST_EXCLUSIONS[@]} -eq 0 || "${TEST_EXCLUSIONS[0]}" =~ ^[[:space:]]*# ]]; then
+    echo "No exclusions specified. Testing all packages..."
+    go test ./... -coverprofile=coverage.out
+else
+    echo "Building list of packages to test (excluding specified directories)..."
+    for exclusion in "${TEST_EXCLUSIONS[@]}"; do
+        if [[ -n "$exclusion" && "$exclusion" != \#* ]]; then  # Skip empty lines and comments
+            echo "Excluding from tests: $exclusion"
+        fi
+    done
+    
+    all_packages=$(go list ./...)
+    test_packages=""
+    
+    for package in $all_packages; do
+        should_exclude=false
+        for exclusion in "${TEST_EXCLUSIONS[@]}"; do
+            if [[ -n "$exclusion" && "$exclusion" != \#* ]]; then
+                # Convert exclusion pattern to package pattern
+                exclusion_pattern=$(echo "$exclusion" | sed 's|\./||' | sed 's|/\.\.\.$||')
+                if [[ "$package" =~ github\.com/burnt-labs/xion/$exclusion_pattern ]]; then
+                    should_exclude=true
+                    break
+                fi
+            fi
+        done
+        
+        if [[ "$should_exclude" == false ]]; then
+            if [[ -z "$test_packages" ]]; then
+                test_packages="$package"
+            else
+                test_packages="$test_packages $package"
+            fi
+        fi
+    done
+    
+    echo "Testing packages: $test_packages"
+    go test $test_packages -coverprofile=coverage.out
+fi
 test_exit_code=$?
 if [[ $test_exit_code -ne 0 ]]; then
     echo ""
     echo "=== TEST FAILURE DETECTED ==="
     echo "❌ FAILURE: One or more tests failed (exit code $test_exit_code). Aborting coverage analysis."
-    echo "(Adjust the package pattern in this script if you intend to include additional modules beyond ./x/.)"
+    echo "(Tests were run on all packages except those in the exclusion list)"
     exit 1
 fi
 

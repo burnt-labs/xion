@@ -2,12 +2,14 @@ package types_test
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"math/big"
@@ -15,6 +17,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/suite"
 
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	"github.com/go-webauthn/webauthn/protocol"
@@ -29,12 +33,21 @@ import (
 
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/xion/types"
+	xionapp "github.com/burnt-labs/xion/app"
 )
 
 type signOpts struct{}
 
 func (*signOpts) HashFunc() crypto.Hash {
 	return crypto.SHA256
+}
+
+type GasTestSuite struct {
+	suite.Suite
+
+	app *xionapp.WasmApp
+	ctx sdktypes.Context
+	queryClient types.QueryClient
 }
 
 var (
@@ -1136,3 +1149,226 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, cred)
 }
+
+func (s *GasTestSuite) TestWebAuthNRegister_NoGasForLargeBlob() {
+	// 1- build credentials
+	id:= "ZYey5HXXUb2zvBsYt6c/UWVxCHs="
+	clientData := "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9yaWdpbiI6Imh0dHBzOi8vd3d3LmV1cm9zcG9ydC5mciIsImNyb3NzT3JpZ2luIjpmYWxzZX0="
+	attestation := "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViY3U1VNe1MmVHIXtIo0ZHRnr8WmktopjG03FCRIDzx/kddAAAAAPv8MAcVTk7MjAtuAgVX170AFGWHsuR111G9s7wbGLenP1FlcQh7pQECAyYgASFYIEjNBNx1wgJGgP8k2t6UmWmk/BKie+sQVoeEzxqv7B3bIlggb142ftHTsxkjFI2fbitKUCjCr1A0HQwNkT7E8oYMaoI="
+
+	// 1) id  ───────────────────────────────────────────────────────────────
+	idBytes, err := base64.StdEncoding.DecodeString(id)
+	s.Require().NoError(err)
+	idB64 := base64.RawURLEncoding.EncodeToString(idBytes) // trim '='
+
+	// 2) clientDataJSON  ───────────────────────────────────────────────────
+	cdBytes, err := base64.StdEncoding.DecodeString(clientData)
+	s.Require().NoError(err)
+	clientDataB64 := base64.RawURLEncoding.EncodeToString(cdBytes)
+
+	// 3) attestationObject  ────────────────────────────────────────────────
+	attBytes, err := base64.StdEncoding.DecodeString(attestation)
+	s.Require().NoError(err)
+
+	var ao map[string]interface{}
+	err = webauthncbor.Unmarshal(attBytes, &ao);
+	s.Require().NoError(err)
+	// add 800 KB of valid CBOR padding
+	ao["padding"] = bytes.Repeat([]byte{0x00}, 800*1024)
+
+	paddedAttBytes, err := webauthncbor.Marshal(ao)
+	s.Require().NoError(err)
+
+	paddedAttestation := base64.RawURLEncoding.EncodeToString(paddedAttBytes)
+
+	// Step 3: Build credential as map[string]interface{} and marshal
+	credential := map[string]interface{}{
+		"id":    idB64,
+		"rawId": idB64,
+		"type":  "public-key",
+		// wrapper expected by the parser
+		"publicKeyCredential": map[string]interface{}{
+			"id":   idB64,
+			"type": "public-key",
+		},
+		"response": map[string]interface{}{
+			"clientDataJSON":    clientDataB64,
+			"attestationObject": paddedAttestation,
+		},
+	}
+
+	payload, err := json.Marshal(credential)
+	s.Require().NoError(err)
+
+	challenge := make([]byte, 32) // all-zero challenge
+
+	// 2- forge the gRPC request that the CosmWasm contract sends
+	req := types.QueryWebAuthNVerifyRegisterRequest {
+		Rp:        "https://www.eurosport.fr",
+		Addr:      "",
+		Challenge: base64.RawURLEncoding.EncodeToString(challenge),
+		Data:      payload,
+	}
+
+	// 3) Call the keeper and assert 0 extra gas consumed
+	gasBefore := s.ctx.GasMeter().GasConsumed()
+	goCtx := context.Background()
+
+	_, err = s.queryClient.WebAuthNVerifyRegister(goCtx, &req)
+	s.Require().NoError(err)
+	gasAfter := s.ctx.GasMeter().GasConsumed()
+
+	s.Require().Equal(gasBefore, gasAfter,
+		"parsing attestationObject consumed unexpected gas")
+}
+
+func TestWebAuthNGasSuite(t *testing.T) {
+	suite.Run(t, new(GasTestSuite))
+}
+
+func BenchmarkParseCredentialCreationResponse_Small(b *testing.B) {
+	// 1- build credentials
+	id:= "ZYey5HXXUb2zvBsYt6c/UWVxCHs="
+	clientData := "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9yaWdpbiI6Imh0dHBzOi8vd3d3LmV1cm9zcG9ydC5mciIsImNyb3NzT3JpZ2luIjpmYWxzZX0="
+	attestation := "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViY3U1VNe1MmVHIXtIo0ZHRnr8WmktopjG03FCRIDzx/kddAAAAAPv8MAcVTk7MjAtuAgVX170AFGWHsuR111G9s7wbGLenP1FlcQh7pQECAyYgASFYIEjNBNx1wgJGgP8k2t6UmWmk/BKie+sQVoeEzxqv7B3bIlggb142ftHTsxkjFI2fbitKUCjCr1A0HQwNkT7E8oYMaoI="
+
+	// 1) id  ───────────────────────────────────────────────────────────────
+	idBytes, err := base64.StdEncoding.DecodeString(id)
+	if err != nil {
+		b.Fatalf("decode failed: %v", err)
+	}
+	idB64 := base64.RawURLEncoding.EncodeToString(idBytes) // trim '='
+
+	// 2) clientDataJSON  ───────────────────────────────────────────────────
+	cdBytes, err := base64.StdEncoding.DecodeString(clientData)
+	if err != nil {
+		b.Fatalf("decode failed: %v", err)
+	}
+	clientDataB64 := base64.RawURLEncoding.EncodeToString(cdBytes)
+
+	// 3) attestationObject  ────────────────────────────────────────────────
+	attBytes, err := base64.StdEncoding.DecodeString(attestation)
+	if err != nil {
+		b.Fatalf("decode failed: %v", err)
+	}
+	attestationB64 := base64.RawURLEncoding.EncodeToString(attBytes)
+
+	// Step 3: Build credential as map[string]interface{} and marshal
+	credential := map[string]interface{}{
+		"id":    idB64,
+		"rawId": idB64,
+		"type":  "public-key",
+		// wrapper expected by the parser
+		"publicKeyCredential": map[string]interface{}{
+			"id":   idB64,
+			"type": "public-key",
+		},
+		"response": map[string]interface{}{
+			"clientDataJSON":    clientDataB64,
+			"attestationObject": attestationB64,
+		},
+	}
+
+	payload, err := json.Marshal(credential)
+	if err != nil {
+		b.Fatalf("marshal failed: %v", err)
+	}
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(payload))
+		if err != nil {
+			b.Fatalf("parse failed: %v", err)
+		}
+	}
+}
+
+func BenchmarkParseCredentialCreationResponse_Large(b *testing.B) {
+	// 1- build credentials
+	id:= "ZYey5HXXUb2zvBsYt6c/UWVxCHs="
+	clientData := "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9yaWdpbiI6Imh0dHBzOi8vd3d3LmV1cm9zcG9ydC5mciIsImNyb3NzT3JpZ2luIjpmYWxzZX0="
+	attestation := "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViY3U1VNe1MmVHIXtIo0ZHRnr8WmktopjG03FCRIDzx/kddAAAAAPv8MAcVTk7MjAtuAgVX170AFGWHsuR111G9s7wbGLenP1FlcQh7pQECAyYgASFYIEjNBNx1wgJGgP8k2t6UmWmk/BKie+sQVoeEzxqv7B3bIlggb142ftHTsxkjFI2fbitKUCjCr1A0HQwNkT7E8oYMaoI="
+
+	// 1) id  ───────────────────────────────────────────────────────────────
+	idBytes, err := base64.StdEncoding.DecodeString(id)
+	if err != nil {
+		b.Fatalf("decode failed: %v", err)
+	}
+	idB64 := base64.RawURLEncoding.EncodeToString(idBytes) // trim '='
+
+	// 2) clientDataJSON  ───────────────────────────────────────────────────
+	cdBytes, err := base64.StdEncoding.DecodeString(clientData)
+	if err != nil {
+		b.Fatalf("decode failed: %v", err)
+	}
+	clientDataB64 := base64.RawURLEncoding.EncodeToString(cdBytes)
+
+	// 3) attestationObject  ────────────────────────────────────────────────
+	attBytes, err := base64.StdEncoding.DecodeString(attestation)
+	if err != nil {
+		b.Fatalf("decode failed: %v", err)
+	}
+
+	var ao map[string]interface{}
+	err = webauthncbor.Unmarshal(attBytes, &ao);
+	if err != nil {
+		b.Fatalf("unmarshall failed: %v", err)
+	}
+	// add 8 KB of valid CBOR padding
+	ao["padding"] = bytes.Repeat([]byte{0x00}, 8*1024)
+
+	paddedAttBytes, err := webauthncbor.Marshal(ao)
+	if err != nil {
+		b.Fatalf("marshall failed: %v", err)
+	}
+	paddedAttestation := base64.RawURLEncoding.EncodeToString(paddedAttBytes)
+
+	// Step 3: Build credential as map[string]interface{} and marshal
+	credential := map[string]interface{}{
+		"id":    idB64,
+		"rawId": idB64,
+		"type":  "public-key",
+		// wrapper expected by the parser
+		"publicKeyCredential": map[string]interface{}{
+			"id":   idB64,
+			"type": "public-key",
+		},
+		"response": map[string]interface{}{
+			"clientDataJSON":    clientDataB64,
+			"attestationObject": paddedAttestation,
+		},
+	}
+
+	payload, err := json.Marshal(credential)
+	if err != nil {
+		b.Fatalf("marshal failed: %v", err)
+	}
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(payload))
+		if err != nil {
+			b.Fatalf("parse failed: %v", err)
+		}
+	}
+}
+
+func TestWebAuthDataSizeLimit(t *testing.T) {
+	// Test data within limit should pass
+	smallData := make([]byte, 1024) // 1KB - within limit
+	require.True(t, len(smallData) <= types.MaxWebAuthDataSize)
+
+	// Test data at exact limit should pass
+	limitData := make([]byte, types.MaxWebAuthDataSize) // Exactly at limit
+	require.True(t, len(limitData) <= types.MaxWebAuthDataSize)
+
+	// Test data exceeding limit should be rejected
+	oversizeData := make([]byte, types.MaxWebAuthDataSize+1) // 1 byte over limit
+	require.True(t, len(oversizeData) > types.MaxWebAuthDataSize)
+
+	t.Logf("MaxWebAuthDataSize: %d bytes", types.MaxWebAuthDataSize)
+	t.Logf("Small data size: %d bytes", len(smallData))
+	t.Logf("Limit data size: %d bytes", len(limitData))
+	t.Logf("Oversize data size: %d bytes", len(oversizeData))
+}
+

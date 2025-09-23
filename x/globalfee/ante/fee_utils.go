@@ -23,6 +23,11 @@ func CombinedFeeRequirement(globalFees, minGasPrices sdk.DecCoins) (sdk.DecCoins
 		return globalFees, nil
 	}
 
+	// Sort input coins to ensure Find function works correctly with binary search
+	// This fixes the vulnerability where unsorted coins cause incorrect fee calculations
+	globalFees = globalFees.Sort()
+	minGasPrices = minGasPrices.Sort()
+
 	// if min_gas_price denom is in globalfee, and the amount is higher than globalfee, add min_gas_price to allFees
 	var allFees sdk.DecCoins
 	for _, fee := range globalFees {

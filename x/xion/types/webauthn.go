@@ -14,7 +14,12 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 )
 
-const attestationFormatNone = "none"
+const (
+	attestationFormatNone = "none"
+	// MaxWebAuthDataSize defines the maximum allowed size for WebAuthN data payloads
+	// to prevent DoS attacks via oversized attestation objects
+	MaxWebAuthDataSize = 64 * 1024 // 64KB
+)
 
 type SmartContractUser struct {
 	Address    string
