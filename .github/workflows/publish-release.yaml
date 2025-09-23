@@ -1,5 +1,4 @@
-name: Create Release
-# Run for new release tags only
+name: Publish Release
 
 on:
   workflow_dispatch:
