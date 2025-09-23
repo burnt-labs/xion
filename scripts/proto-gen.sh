@@ -31,41 +31,11 @@ client_dir="$base_dir/client"
 docs_dir="$client_dir/docs"
 
 # Define dependencies
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-deps=$(
-  cat <<EOF
-  github.com/cosmos/cosmos-sdk
-  github.com/cosmos/cosmos-proto
-  github.com/cosmos/ibc-go/v8
-  github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8
-  github.com/osmosis-labs/fee-abstraction/v8
-  github.com/CosmWasm/wasmd
-EOF
-)
-=======
-=======
->>>>>>> release/v22
 deps="github.com/cosmos/cosmos-sdk
 github.com/cosmos/cosmos-proto
 github.com/cosmos/ibc-go/v10
 github.com/CosmWasm/wasmd
 github.com/gogo/protobuf
-<<<<<<< HEAD
-github.com/burnt-labs/abstract-account
-cosmossdk.io/x/evidence
-cosmossdk.io/x/feegrant
-cosmossdk.io/x/nft
-cosmossdk.io/x/upgrade
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
-github.com/strangelove-ventures/tokenfactory
-"
->>>>>>> Stashed changes
-
-# Install selected dependencies from go.mod
-echo "installing dependencies"
-(cd ${base_dir} && go mod download)
-=======
 github.com/cosmos/gogoproto
 github.com/burnt-labs/abstract-account
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
@@ -75,7 +45,6 @@ github.com/strangelove-ventures/tokenfactory
 # Install selected dependencies from go.mod
 echo "installing dependencies"
 (cd ${base_dir} && go mod download $deps)
->>>>>>> release/v22
 
 # Get dependency paths
 echo "getting paths for $deps"
@@ -95,53 +64,18 @@ use_tmp_dir() {
 
 get_proto_dirs() {
   # Find all subdirectories with .proto files
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-  find $@ -path -prune -o -name '*.proto' -print0 |
-    xargs -0 -n1 dirname | sort -u
-=======
   find "$@" -name '*.proto' -print0 2>/dev/null | \
     xargs -0 -n1 dirname 2>/dev/null | \
     sort -u 2>/dev/null || true
->>>>>>> Stashed changes
-=======
-  find "$@" -name '*.proto' -print0 2>/dev/null | \
-    xargs -0 -n1 dirname 2>/dev/null | \
-    sort -u 2>/dev/null || true
->>>>>>> release/v22
 }
 
 gen_gogo() {
   local dirs=$(get_proto_dirs $proto_dir)
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-
-  for dir in $dirs; do
-    for file in $(find "${dir}" -maxdepth 1 -name '*.proto'); do
-      if grep "option go_package" $file &>/dev/null; then
-        buf generate --output $proto_dir --template $proto_dir/buf.gen.gogo.yaml $file
-      fi
-    done
-  done
-
-  # move proto files to the right places
-  if [ -e "$base_dir/github.com/burnt-labs/xion" ]; then
-    cp -rv $base_dir/github.com/burnt-labs/xion/* $base_dir/
-    rm -rf $base_dir/github.com
-=======
   buf generate --output "$proto_dir" --template "$proto_dir/buf.gen.gogo.yaml" "$proto_dir"
   # move proto files to the right places
   if [ -e "$base_dir/github.com/burnt-labs/xion" ]; then
     cp -rv "$base_dir/github.com/burnt-labs/xion/"* "$base_dir/"
     rm -rf "$base_dir/github.com"
->>>>>>> Stashed changes
-=======
-  buf generate --output "$proto_dir" --template "$proto_dir/buf.gen.gogo.yaml" "$proto_dir"
-  # move proto files to the right places
-  if [ -e "$base_dir/github.com/burnt-labs/xion" ]; then
-    cp -rv "$base_dir/github.com/burnt-labs/xion/"* "$base_dir/"
-    rm -rf "$base_dir/github.com"
->>>>>>> release/v22
   fi
 }
 
@@ -155,10 +89,7 @@ gen_pulsar() {
   rm $base_dir/api/xion/feeabs/v1beta1/osmosisibc.pulsar.go
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> release/v22
 gen_swagger() {
   local dirs=$(get_proto_dirs "$proto_dir" $proto_paths)
 
@@ -174,12 +105,9 @@ gen_swagger() {
       continue
     fi
 
-<<<<<<< HEAD
-    buf generate --template "$proto_dir/buf.gen.docs.yaml" "$query_file"
-=======
     buf generate --template "$proto_dir/buf.gen.openapi.yaml" "$query_file"
->>>>>>> release/v22
   done
+  # find ./ -type f
 
   # combine swagger files
   # uses nodejs package `swagger-combine`.
@@ -218,13 +146,10 @@ main() {
         gen_gogo
         shift
         ;;
-<<<<<<< HEAD
-=======
       --docs)
         gen_docs
         shift
         ;;
->>>>>>> release/v22
       --openapi|--swagger)
         gen_swagger
         shift

@@ -28,7 +28,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // GenesisState defines the module genesis state
 type GenesisState struct {
 	// Params defines all the parameters of the module.
-	Params      Params       `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// dkim_pubkeys defines the DKIM public keys stored in genesis state.
 	DkimPubkeys []DkimPubKey `protobuf:"bytes,2,rep,name=dkim_pubkeys,json=dkimPubkeys,proto3" json:"dkim_pubkeys"`
 }
 
@@ -81,6 +82,7 @@ func (m *GenesisState) GetDkimPubkeys() []DkimPubKey {
 
 // Params defines the set of module parameters.
 type Params struct {
+	// vkey defines the verification key used by the module.
 	Vkey []byte `protobuf:"bytes,1,opt,name=vkey,proto3" json:"vkey,omitempty"`
 }
 

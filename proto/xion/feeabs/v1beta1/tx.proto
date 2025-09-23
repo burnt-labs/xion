@@ -30,16 +30,11 @@ service Msg {
   // module parameters. The authority is defined in the keeper.
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse) {}
 
-<<<<<<< HEAD
-  rpc AddHostZone(MsgAddHostZone) returns (MsgAddHostZoneResponse) {}
-  rpc UpdateHostZone(MsgUpdateHostZone) returns (MsgUpdateHostZoneResponse) {}
-=======
   // AddHostZone adds a new host zone configuration
   rpc AddHostZone(MsgAddHostZone) returns (MsgAddHostZoneResponse) {}
   // UpdateHostZone updates an existing host zone configuration
   rpc UpdateHostZone(MsgUpdateHostZone) returns (MsgUpdateHostZoneResponse) {}
   // RemoveHostZone removes a host zone configuration
->>>>>>> release/v22
   rpc RemoveHostZone(MsgRemoveHostZone) returns (MsgRemoveHostZoneResponse) {}
 }
 
@@ -49,10 +44,7 @@ message MsgFundFeeAbsModuleAccount {
 
   // sender is the that actor that signed the messages
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-<<<<<<< HEAD
-=======
   // The amount of coins to fund to the feeabs module account
->>>>>>> release/v22
   repeated cosmos.base.v1beta1.Coin amount = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"amount\"",
@@ -80,10 +72,7 @@ message MsgSwapCrossChain {
 
   // Sender is the that actor that signed the messages
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-<<<<<<< HEAD
-=======
   // The IBC denomination to swap
->>>>>>> release/v22
   string ibc_denom = 2;
 }
 
@@ -143,10 +132,7 @@ message MsgRemoveHostZone {
 
   // authority is the address of the governance account.
   string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-<<<<<<< HEAD
-=======
   // The IBC denomination of the host zone to remove
->>>>>>> release/v22
   string ibc_denom = 2;
 }
 

@@ -10,13 +10,8 @@ option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 // GenesisState defines the jwk module's genesis state.
 message GenesisState {
-<<<<<<< HEAD
-  Params params = 1 [ (gogoproto.nullable) = false ];
-  repeated Audience audienceList = 2 [ (gogoproto.nullable) = false ];
-=======
   // The module parameters
   Params params = 1 [ (gogoproto.nullable) = false ];
   // List of all audiences
   repeated Audience audience_list = 2 [ (gogoproto.nullable) = false ];
->>>>>>> release/v22
 }

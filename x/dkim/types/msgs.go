@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -119,7 +120,7 @@ func (msg *MsgRemoveDkimPubKey) ValidateBasic() error {
 
 // NewMsgRevokeDkimPubKey creates new instance of NewMsgRevokeDkimPubKey
 // Private key is a pem encoded private key
-func NewMsgReVokeDkimPubKey(
+func NewMsgRevokeDkimPubKey(
 	sender sdk.Address,
 	domain string,
 	privKey []byte,

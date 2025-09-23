@@ -4,11 +4,12 @@ import (
 	b64 "encoding/base64"
 	"testing"
 
-	verify "github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/stretchr/testify/require"
 	"github.com/vocdoni/circom2gnark/parser"
 	"gotest.tools/assert"
+
+	verify "github.com/burnt-labs/xion/x/dkim/keeper"
 )
 
 const TX_BODY_MAX_BYTES = 512
@@ -47,7 +48,7 @@ func TestVerify(t *testing.T) {
 	snarkProof, err := parser.UnmarshalCircomProofJSON(proofData)
 	require.NoError(t, err)
 
-	gnarkProof, err := parser.ConvertCircomToGnark(snarkProof, snarkVk, inputs)
+	gnarkProof, err := parser.ConvertCircomToGnark(snarkVk, snarkProof, inputs)
 	require.NoError(t, err)
 
 	verified, err := parser.VerifyProof(gnarkProof)

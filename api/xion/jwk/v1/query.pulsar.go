@@ -807,8 +807,6 @@ func (x *fastReflection_QueryParamsResponse) ProtoMethods() *protoiface.Methods 
 }
 
 var (
-<<<<<<< HEAD
-=======
 	md_QueryAudienceClaimRequest      protoreflect.MessageDescriptor
 	fd_QueryAudienceClaimRequest_hash protoreflect.FieldDescriptor
 )
@@ -1666,7 +1664,6 @@ func (x *fastReflection_QueryAudienceClaimResponse) ProtoMethods() *protoiface.M
 }
 
 var (
->>>>>>> release/v22
 	md_QueryGetAudienceClaimRequest      protoreflect.MessageDescriptor
 	fd_QueryGetAudienceClaimRequest_hash protoreflect.FieldDescriptor
 )
@@ -1686,11 +1683,7 @@ func (x *QueryGetAudienceClaimRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceClaimRequest) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[2]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2112,11 +2105,7 @@ func (x *QueryGetAudienceClaimResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceClaimResponse) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[3]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2532,8 +2521,6 @@ func (x *fastReflection_QueryGetAudienceClaimResponse) ProtoMethods() *protoifac
 }
 
 var (
-<<<<<<< HEAD
-=======
 	md_QueryAudienceRequest     protoreflect.MessageDescriptor
 	fd_QueryAudienceRequest_aud protoreflect.FieldDescriptor
 )
@@ -3389,7 +3376,6 @@ func (x *fastReflection_QueryAudienceResponse) ProtoMethods() *protoiface.Method
 }
 
 var (
->>>>>>> release/v22
 	md_QueryGetAudienceRequest     protoreflect.MessageDescriptor
 	fd_QueryGetAudienceRequest_aud protoreflect.FieldDescriptor
 )
@@ -3409,11 +3395,7 @@ func (x *QueryGetAudienceRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceRequest) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3833,11 +3815,7 @@ func (x *QueryGetAudienceResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceResponse) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4253,8 +4231,6 @@ func (x *fastReflection_QueryGetAudienceResponse) ProtoMethods() *protoiface.Met
 }
 
 var (
-<<<<<<< HEAD
-=======
 	md_QueryAudienceAllRequest            protoreflect.MessageDescriptor
 	fd_QueryAudienceAllRequest_pagination protoreflect.FieldDescriptor
 )
@@ -5263,7 +5239,6 @@ func (x *fastReflection_QueryAudienceAllResponse) ProtoMethods() *protoiface.Met
 }
 
 var (
->>>>>>> release/v22
 	md_QueryAllAudienceRequest            protoreflect.MessageDescriptor
 	fd_QueryAllAudienceRequest_pagination protoreflect.FieldDescriptor
 )
@@ -5283,11 +5258,7 @@ func (x *QueryAllAudienceRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryAllAudienceRequest) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[6]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[12]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5775,11 +5746,7 @@ func (x *QueryAllAudienceResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryAllAudienceResponse) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[7]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[13]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6280,17 +6247,10 @@ func (x *fastReflection_QueryAllAudienceResponse) ProtoMethods() *protoiface.Met
 }
 
 var (
-<<<<<<< HEAD
-	md_QueryValidateJWTRequest          protoreflect.MessageDescriptor
-	fd_QueryValidateJWTRequest_aud      protoreflect.FieldDescriptor
-	fd_QueryValidateJWTRequest_sub      protoreflect.FieldDescriptor
-	fd_QueryValidateJWTRequest_sigBytes protoreflect.FieldDescriptor
-=======
 	md_QueryValidateJWTRequest           protoreflect.MessageDescriptor
 	fd_QueryValidateJWTRequest_aud       protoreflect.FieldDescriptor
 	fd_QueryValidateJWTRequest_sub       protoreflect.FieldDescriptor
 	fd_QueryValidateJWTRequest_sig_bytes protoreflect.FieldDescriptor
->>>>>>> release/v22
 )
 
 func init() {
@@ -6298,11 +6258,7 @@ func init() {
 	md_QueryValidateJWTRequest = File_xion_jwk_v1_query_proto.Messages().ByName("QueryValidateJWTRequest")
 	fd_QueryValidateJWTRequest_aud = md_QueryValidateJWTRequest.Fields().ByName("aud")
 	fd_QueryValidateJWTRequest_sub = md_QueryValidateJWTRequest.Fields().ByName("sub")
-<<<<<<< HEAD
-	fd_QueryValidateJWTRequest_sigBytes = md_QueryValidateJWTRequest.Fields().ByName("sigBytes")
-=======
 	fd_QueryValidateJWTRequest_sig_bytes = md_QueryValidateJWTRequest.Fields().ByName("sig_bytes")
->>>>>>> release/v22
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryValidateJWTRequest)(nil)
@@ -6314,11 +6270,7 @@ func (x *QueryValidateJWTRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryValidateJWTRequest) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[14]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6388,11 +6340,7 @@ func (x *fastReflection_QueryValidateJWTRequest) Range(f func(protoreflect.Field
 	}
 	if x.SigBytes != "" {
 		value := protoreflect.ValueOfString(x.SigBytes)
-<<<<<<< HEAD
-		if !f(fd_QueryValidateJWTRequest_sigBytes, value) {
-=======
 		if !f(fd_QueryValidateJWTRequest_sig_bytes, value) {
->>>>>>> release/v22
 			return
 		}
 	}
@@ -6415,11 +6363,7 @@ func (x *fastReflection_QueryValidateJWTRequest) Has(fd protoreflect.FieldDescri
 		return x.Aud != ""
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		return x.Sub != ""
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
-=======
 	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
->>>>>>> release/v22
 		return x.SigBytes != ""
 	default:
 		if fd.IsExtension() {
@@ -6441,11 +6385,7 @@ func (x *fastReflection_QueryValidateJWTRequest) Clear(fd protoreflect.FieldDesc
 		x.Aud = ""
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		x.Sub = ""
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
-=======
 	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
->>>>>>> release/v22
 		x.SigBytes = ""
 	default:
 		if fd.IsExtension() {
@@ -6469,11 +6409,7 @@ func (x *fastReflection_QueryValidateJWTRequest) Get(descriptor protoreflect.Fie
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		value := x.Sub
 		return protoreflect.ValueOfString(value)
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
-=======
 	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
->>>>>>> release/v22
 		value := x.SigBytes
 		return protoreflect.ValueOfString(value)
 	default:
@@ -6500,11 +6436,7 @@ func (x *fastReflection_QueryValidateJWTRequest) Set(fd protoreflect.FieldDescri
 		x.Aud = value.Interface().(string)
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		x.Sub = value.Interface().(string)
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
-=======
 	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
->>>>>>> release/v22
 		x.SigBytes = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
@@ -6530,13 +6462,8 @@ func (x *fastReflection_QueryValidateJWTRequest) Mutable(fd protoreflect.FieldDe
 		panic(fmt.Errorf("field aud of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		panic(fmt.Errorf("field sub of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
-		panic(fmt.Errorf("field sigBytes of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
-=======
 	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
 		panic(fmt.Errorf("field sig_bytes of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
->>>>>>> release/v22
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryValidateJWTRequest"))
@@ -6554,11 +6481,7 @@ func (x *fastReflection_QueryValidateJWTRequest) NewField(fd protoreflect.FieldD
 		return protoreflect.ValueOfString("")
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		return protoreflect.ValueOfString("")
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
-=======
 	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
->>>>>>> release/v22
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
@@ -6893,11 +6816,7 @@ func (x *PrivateClaim) ProtoReflect() protoreflect.Message {
 }
 
 func (x *PrivateClaim) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[15]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7411,23 +7330,14 @@ func (x *_QueryValidateJWTResponse_1_list) IsValid() bool {
 }
 
 var (
-<<<<<<< HEAD
-	md_QueryValidateJWTResponse               protoreflect.MessageDescriptor
-	fd_QueryValidateJWTResponse_privateClaims protoreflect.FieldDescriptor
-=======
 	md_QueryValidateJWTResponse                protoreflect.MessageDescriptor
 	fd_QueryValidateJWTResponse_private_claims protoreflect.FieldDescriptor
->>>>>>> release/v22
 )
 
 func init() {
 	file_xion_jwk_v1_query_proto_init()
 	md_QueryValidateJWTResponse = File_xion_jwk_v1_query_proto.Messages().ByName("QueryValidateJWTResponse")
-<<<<<<< HEAD
-	fd_QueryValidateJWTResponse_privateClaims = md_QueryValidateJWTResponse.Fields().ByName("privateClaims")
-=======
 	fd_QueryValidateJWTResponse_private_claims = md_QueryValidateJWTResponse.Fields().ByName("private_claims")
->>>>>>> release/v22
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryValidateJWTResponse)(nil)
@@ -7439,11 +7349,7 @@ func (x *QueryValidateJWTResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryValidateJWTResponse) slowProtoReflect() protoreflect.Message {
-<<<<<<< HEAD
-	mi := &file_xion_jwk_v1_query_proto_msgTypes[10]
-=======
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[16]
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7501,11 +7407,7 @@ func (x *fastReflection_QueryValidateJWTResponse) Interface() protoreflect.Proto
 func (x *fastReflection_QueryValidateJWTResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if len(x.PrivateClaims) != 0 {
 		value := protoreflect.ValueOfList(&_QueryValidateJWTResponse_1_list{list: &x.PrivateClaims})
-<<<<<<< HEAD
-		if !f(fd_QueryValidateJWTResponse_privateClaims, value) {
-=======
 		if !f(fd_QueryValidateJWTResponse_private_claims, value) {
->>>>>>> release/v22
 			return
 		}
 	}
@@ -7524,11 +7426,7 @@ func (x *fastReflection_QueryValidateJWTResponse) Range(f func(protoreflect.Fiel
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_QueryValidateJWTResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
-=======
 	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
->>>>>>> release/v22
 		return len(x.PrivateClaims) != 0
 	default:
 		if fd.IsExtension() {
@@ -7546,11 +7444,7 @@ func (x *fastReflection_QueryValidateJWTResponse) Has(fd protoreflect.FieldDescr
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryValidateJWTResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
-=======
 	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
->>>>>>> release/v22
 		x.PrivateClaims = nil
 	default:
 		if fd.IsExtension() {
@@ -7568,11 +7462,7 @@ func (x *fastReflection_QueryValidateJWTResponse) Clear(fd protoreflect.FieldDes
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_QueryValidateJWTResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
-=======
 	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
->>>>>>> release/v22
 		if len(x.PrivateClaims) == 0 {
 			return protoreflect.ValueOfList(&_QueryValidateJWTResponse_1_list{})
 		}
@@ -7598,11 +7488,7 @@ func (x *fastReflection_QueryValidateJWTResponse) Get(descriptor protoreflect.Fi
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryValidateJWTResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
-=======
 	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
->>>>>>> release/v22
 		lv := value.List()
 		clv := lv.(*_QueryValidateJWTResponse_1_list)
 		x.PrivateClaims = *clv.list
@@ -7626,11 +7512,7 @@ func (x *fastReflection_QueryValidateJWTResponse) Set(fd protoreflect.FieldDescr
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryValidateJWTResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
-=======
 	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
->>>>>>> release/v22
 		if x.PrivateClaims == nil {
 			x.PrivateClaims = []*PrivateClaim{}
 		}
@@ -7649,11 +7531,7 @@ func (x *fastReflection_QueryValidateJWTResponse) Mutable(fd protoreflect.FieldD
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_QueryValidateJWTResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-<<<<<<< HEAD
-	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
-=======
 	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
->>>>>>> release/v22
 		list := []*PrivateClaim{}
 		return protoreflect.ValueOfList(&_QueryValidateJWTResponse_1_list{list: &list})
 	default:
@@ -7971,8 +7849,6 @@ func (x *QueryParamsResponse) GetParams() *Params {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // QueryAudienceClaimRequest is the request type for querying an audience claim
 type QueryAudienceClaimRequest struct {
 	state         protoimpl.MessageState
@@ -8050,27 +7926,19 @@ func (x *QueryAudienceClaimResponse) GetClaim() *AudienceClaim {
 
 // QueryGetAudienceClaimRequest is the legacy request type for querying an
 // audience claim (deprecated)
->>>>>>> release/v22
 type QueryGetAudienceClaimRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The hash of the audience claim to query
->>>>>>> release/v22
 	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 }
 
 func (x *QueryGetAudienceClaimRequest) Reset() {
 	*x = QueryGetAudienceClaimRequest{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[2]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8084,11 +7952,7 @@ func (*QueryGetAudienceClaimRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceClaimRequest.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceClaimRequest) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{2}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{4}
->>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceClaimRequest) GetHash() []byte {
@@ -8098,31 +7962,21 @@ func (x *QueryGetAudienceClaimRequest) GetHash() []byte {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // QueryGetAudienceClaimResponse is the legacy response type for querying an
 // audience claim (deprecated)
->>>>>>> release/v22
 type QueryGetAudienceClaimResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The audience claim
->>>>>>> release/v22
 	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
 }
 
 func (x *QueryGetAudienceClaimResponse) Reset() {
 	*x = QueryGetAudienceClaimResponse{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[3]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8136,11 +7990,7 @@ func (*QueryGetAudienceClaimResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceClaimResponse.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceClaimResponse) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{3}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{5}
->>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceClaimResponse) GetClaim() *AudienceClaim {
@@ -8150,8 +8000,6 @@ func (x *QueryGetAudienceClaimResponse) GetClaim() *AudienceClaim {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // QueryAudienceRequest is the request type for querying an audience
 type QueryAudienceRequest struct {
 	state         protoimpl.MessageState
@@ -8228,27 +8076,19 @@ func (x *QueryAudienceResponse) GetAudience() *Audience {
 
 // QueryGetAudienceRequest is the legacy request type for querying an audience
 // (deprecated)
->>>>>>> release/v22
 type QueryGetAudienceRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The audience identifier to query
->>>>>>> release/v22
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 }
 
 func (x *QueryGetAudienceRequest) Reset() {
 	*x = QueryGetAudienceRequest{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8262,11 +8102,7 @@ func (*QueryGetAudienceRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceRequest.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceRequest) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{4}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{8}
->>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceRequest) GetAud() string {
@@ -8276,31 +8112,21 @@ func (x *QueryGetAudienceRequest) GetAud() string {
 	return ""
 }
 
-<<<<<<< HEAD
-=======
 // QueryGetAudienceResponse is the legacy response type for querying an audience
 // (deprecated)
->>>>>>> release/v22
 type QueryGetAudienceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The audience information
->>>>>>> release/v22
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
 
 func (x *QueryGetAudienceResponse) Reset() {
 	*x = QueryGetAudienceResponse{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8314,11 +8140,7 @@ func (*QueryGetAudienceResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceResponse.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceResponse) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{5}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{9}
->>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceResponse) GetAudience() *Audience {
@@ -8328,8 +8150,6 @@ func (x *QueryGetAudienceResponse) GetAudience() *Audience {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // QueryAudienceAllRequest is the request type for querying all audiences
 type QueryAudienceAllRequest struct {
 	state         protoimpl.MessageState
@@ -8415,27 +8235,19 @@ func (x *QueryAudienceAllResponse) GetPagination() *v1beta1.PageResponse {
 
 // QueryAllAudienceRequest is the legacy request type for querying all audiences
 // (deprecated)
->>>>>>> release/v22
 type QueryAllAudienceRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// Pagination parameters
->>>>>>> release/v22
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryAllAudienceRequest) Reset() {
 	*x = QueryAllAudienceRequest{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[6]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[12]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8449,11 +8261,7 @@ func (*QueryAllAudienceRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryAllAudienceRequest.ProtoReflect.Descriptor instead.
 func (*QueryAllAudienceRequest) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{6}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{12}
->>>>>>> release/v22
 }
 
 func (x *QueryAllAudienceRequest) GetPagination() *v1beta1.PageRequest {
@@ -8463,34 +8271,23 @@ func (x *QueryAllAudienceRequest) GetPagination() *v1beta1.PageRequest {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // QueryAllAudienceResponse is the legacy response type for querying all
 // audiences (deprecated)
->>>>>>> release/v22
 type QueryAllAudienceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	Audience   []*Audience           `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience,omitempty"`
-=======
 	// List of all audiences
 	Audience []*Audience `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience,omitempty"`
 	// Pagination response
->>>>>>> release/v22
 	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryAllAudienceResponse) Reset() {
 	*x = QueryAllAudienceResponse{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[7]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[13]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8504,11 +8301,7 @@ func (*QueryAllAudienceResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryAllAudienceResponse.ProtoReflect.Descriptor instead.
 func (*QueryAllAudienceResponse) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{7}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{13}
->>>>>>> release/v22
 }
 
 func (x *QueryAllAudienceResponse) GetAudience() []*Audience {
@@ -8525,37 +8318,24 @@ func (x *QueryAllAudienceResponse) GetPagination() *v1beta1.PageResponse {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // QueryValidateJWTRequest is the request type for validating a JWT
->>>>>>> release/v22
 type QueryValidateJWTRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	Aud      string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
-	Sub      string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
-	SigBytes string `protobuf:"bytes,3,opt,name=sigBytes,proto3" json:"sigBytes,omitempty"`
-=======
 	// The audience identifier
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 	// The subject
 	Sub string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
 	// The signature bytes
 	SigBytes string `protobuf:"bytes,3,opt,name=sig_bytes,json=sigBytes,proto3" json:"sig_bytes,omitempty"`
->>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTRequest) Reset() {
 	*x = QueryValidateJWTRequest{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[14]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8569,11 +8349,7 @@ func (*QueryValidateJWTRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryValidateJWTRequest.ProtoReflect.Descriptor instead.
 func (*QueryValidateJWTRequest) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{8}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{14}
->>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTRequest) GetAud() string {
@@ -8597,33 +8373,22 @@ func (x *QueryValidateJWTRequest) GetSigBytes() string {
 	return ""
 }
 
-<<<<<<< HEAD
-=======
 // PrivateClaim represents a private claim in a JWT
->>>>>>> release/v22
 type PrivateClaim struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-=======
 	// The claim key
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// The claim value
->>>>>>> release/v22
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 func (x *PrivateClaim) Reset() {
 	*x = PrivateClaim{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[15]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8637,11 +8402,7 @@ func (*PrivateClaim) ProtoMessage() {}
 
 // Deprecated: Use PrivateClaim.ProtoReflect.Descriptor instead.
 func (*PrivateClaim) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{9}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{15}
->>>>>>> release/v22
 }
 
 func (x *PrivateClaim) GetKey() string {
@@ -8658,31 +8419,20 @@ func (x *PrivateClaim) GetValue() string {
 	return ""
 }
 
-<<<<<<< HEAD
-=======
 // QueryValidateJWTResponse is the response type for validating a JWT
->>>>>>> release/v22
 type QueryValidateJWTResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	PrivateClaims []*PrivateClaim `protobuf:"bytes,1,rep,name=privateClaims,proto3" json:"privateClaims,omitempty"`
-=======
 	// The private claims from the JWT
 	PrivateClaims []*PrivateClaim `protobuf:"bytes,1,rep,name=private_claims,json=privateClaims,proto3" json:"private_claims,omitempty"`
->>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTResponse) Reset() {
 	*x = QueryValidateJWTResponse{}
 	if protoimpl.UnsafeEnabled {
-<<<<<<< HEAD
-		mi := &file_xion_jwk_v1_query_proto_msgTypes[10]
-=======
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[16]
->>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8696,11 +8446,7 @@ func (*QueryValidateJWTResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryValidateJWTResponse.ProtoReflect.Descriptor instead.
 func (*QueryValidateJWTResponse) Descriptor() ([]byte, []int) {
-<<<<<<< HEAD
-	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{10}
-=======
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{16}
->>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTResponse) GetPrivateClaims() []*PrivateClaim {
@@ -8730,46 +8476,6 @@ var file_xion_jwk_v1_query_proto_rawDesc = []byte{
 	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x31, 0x0a, 0x06, 0x70, 0x61, 0x72,
 	0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x78, 0x69, 0x6f, 0x6e,
 	0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x04,
-<<<<<<< HEAD
-	0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x32, 0x0a, 0x1c,
-	0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
-	0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04,
-	0x68, 0x61, 0x73, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x68, 0x61, 0x73, 0x68,
-	0x22, 0x51, 0x0a, 0x1d, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69,
-	0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x30, 0x0a, 0x05, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x1a, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x41,
-	0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x05, 0x63, 0x6c,
-	0x61, 0x69, 0x6d, 0x22, 0x2b, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41,
-	0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10,
-	0x0a, 0x03, 0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x61, 0x75, 0x64,
-	0x22, 0x53, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69,
-	0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x08,
-	0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15,
-	0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x75, 0x64,
-	0x69, 0x65, 0x6e, 0x63, 0x65, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x08, 0x61, 0x75, 0x64,
-	0x69, 0x65, 0x6e, 0x63, 0x65, 0x22, 0x61, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c,
-	0x6c, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x46, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61,
-	0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
-	0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x0a, 0x70, 0x61,
-	0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x9c, 0x01, 0x0a, 0x18, 0x51, 0x75, 0x65,
-	0x72, 0x79, 0x41, 0x6c, 0x6c, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63,
-	0x65, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a,
-	0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x42, 0x04,
-	0xc8, 0xde, 0x1f, 0x00, 0x52, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x47,
-	0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x27, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65,
-	0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50,
-	0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67,
-	0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x59, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x03, 0x61, 0x75, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x73, 0x75, 0x62, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x03, 0x73, 0x75, 0x62, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x69, 0x67, 0x42, 0x79, 0x74,
-=======
 	0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x2f, 0x0a, 0x19,
 	0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61,
 	0x69, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x61, 0x73,
@@ -8840,71 +8546,10 @@ var file_xion_jwk_v1_query_proto_rawDesc = []byte{
 	0x74, 0x12, 0x10, 0x0a, 0x03, 0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
 	0x61, 0x75, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x73, 0x75, 0x62, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x03, 0x73, 0x75, 0x62, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x69, 0x67, 0x5f, 0x62, 0x79, 0x74,
->>>>>>> release/v22
 	0x65, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x69, 0x67, 0x42, 0x79, 0x74,
 	0x65, 0x73, 0x22, 0x36, 0x0a, 0x0c, 0x50, 0x72, 0x69, 0x76, 0x61, 0x74, 0x65, 0x43, 0x6c, 0x61,
 	0x69, 0x6d, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20,
-<<<<<<< HEAD
-	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x5b, 0x0a, 0x18, 0x51, 0x75,
-	0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3f, 0x0a, 0x0d, 0x70, 0x72, 0x69, 0x76, 0x61, 0x74,
-	0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e,
-	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x69, 0x76,
-	0x61, 0x74, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x0d, 0x70, 0x72, 0x69, 0x76, 0x61, 0x74,
-	0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x32, 0x87, 0x05, 0x0a, 0x05, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x12, 0x65, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x1f, 0x2e, 0x78, 0x69,
-	0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50,
-	0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x78,
-	0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x18,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x12, 0x12, 0x10, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77,
-	0x6b, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x8f, 0x01, 0x0a, 0x0d, 0x41, 0x75, 0x64,
-	0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x12, 0x29, 0x2e, 0x78, 0x69, 0x6f,
-	0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65,
-	0x74, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b,
-	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69,
-	0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x27, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x21, 0x12, 0x1f, 0x2f, 0x78, 0x69, 0x6f, 0x6e,
-	0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x5f, 0x63, 0x6c,
-	0x61, 0x69, 0x6d, 0x2f, 0x7b, 0x68, 0x61, 0x73, 0x68, 0x7d, 0x12, 0x79, 0x0a, 0x08, 0x41, 0x75,
-	0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x24, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77,
-	0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64,
-	0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x78,
-	0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x20, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1a, 0x12, 0x18, 0x2f, 0x78, 0x69,
-	0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x2f,
-	0x7b, 0x61, 0x75, 0x64, 0x7d, 0x12, 0x76, 0x0a, 0x0b, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63,
-	0x65, 0x41, 0x6c, 0x6c, 0x12, 0x24, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e,
-	0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c, 0x6c, 0x41, 0x75, 0x64, 0x69, 0x65,
-	0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x78, 0x69, 0x6f,
-	0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c,
-	0x6c, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x1a, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x14, 0x12, 0x12, 0x2f, 0x78, 0x69, 0x6f, 0x6e,
-	0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x91, 0x01,
-	0x0a, 0x0b, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x12, 0x24, 0x2e,
-	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a,
-	0x57, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x35, 0x82, 0xd3, 0xe4, 0x93,
-	0x02, 0x2f, 0x12, 0x2d, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x76, 0x61,
-	0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x2f, 0x7b, 0x61, 0x75, 0x64, 0x7d,
-	0x2f, 0x7b, 0x73, 0x75, 0x62, 0x7d, 0x2f, 0x7b, 0x73, 0x69, 0x67, 0x42, 0x79, 0x74, 0x65, 0x73,
-	0x7d, 0x42, 0x9d, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a,
-	0x77, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74,
-	0x6f, 0x50, 0x01, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x76, 0x31, 0x3b,
-	0x6a, 0x77, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x4a, 0x58, 0xaa, 0x02, 0x0b, 0x58, 0x69,
-	0x6f, 0x6e, 0x2e, 0x4a, 0x77, 0x6b, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0b, 0x58, 0x69, 0x6f, 0x6e,
-	0x5c, 0x4a, 0x77, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x4a,
-	0x77, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
-	0x61, 0xea, 0x02, 0x0d, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x4a, 0x77, 0x6b, 0x3a, 0x3a, 0x56,
-	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
-=======
 	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x5c, 0x0a, 0x18, 0x51, 0x75,
 	0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a, 0x0e, 0x70, 0x72, 0x69, 0x76, 0x61, 0x74,
@@ -8962,7 +8607,6 @@ var file_xion_jwk_v1_query_proto_rawDesc = []byte{
 	0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x4a, 0x77, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
 	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a,
 	0x4a, 0x77, 0x6b, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
->>>>>>> release/v22
 }
 
 var (
@@ -8977,50 +8621,6 @@ func file_xion_jwk_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_jwk_v1_query_proto_rawDescData
 }
 
-<<<<<<< HEAD
-var file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
-var file_xion_jwk_v1_query_proto_goTypes = []interface{}{
-	(*QueryParamsRequest)(nil),            // 0: xion.jwk.v1.QueryParamsRequest
-	(*QueryParamsResponse)(nil),           // 1: xion.jwk.v1.QueryParamsResponse
-	(*QueryGetAudienceClaimRequest)(nil),  // 2: xion.jwk.v1.QueryGetAudienceClaimRequest
-	(*QueryGetAudienceClaimResponse)(nil), // 3: xion.jwk.v1.QueryGetAudienceClaimResponse
-	(*QueryGetAudienceRequest)(nil),       // 4: xion.jwk.v1.QueryGetAudienceRequest
-	(*QueryGetAudienceResponse)(nil),      // 5: xion.jwk.v1.QueryGetAudienceResponse
-	(*QueryAllAudienceRequest)(nil),       // 6: xion.jwk.v1.QueryAllAudienceRequest
-	(*QueryAllAudienceResponse)(nil),      // 7: xion.jwk.v1.QueryAllAudienceResponse
-	(*QueryValidateJWTRequest)(nil),       // 8: xion.jwk.v1.QueryValidateJWTRequest
-	(*PrivateClaim)(nil),                  // 9: xion.jwk.v1.PrivateClaim
-	(*QueryValidateJWTResponse)(nil),      // 10: xion.jwk.v1.QueryValidateJWTResponse
-	(*Params)(nil),                        // 11: xion.jwk.v1.Params
-	(*AudienceClaim)(nil),                 // 12: xion.jwk.v1.AudienceClaim
-	(*Audience)(nil),                      // 13: xion.jwk.v1.Audience
-	(*v1beta1.PageRequest)(nil),           // 14: cosmos.base.query.v1beta1.PageRequest
-	(*v1beta1.PageResponse)(nil),          // 15: cosmos.base.query.v1beta1.PageResponse
-}
-var file_xion_jwk_v1_query_proto_depIdxs = []int32{
-	11, // 0: xion.jwk.v1.QueryParamsResponse.params:type_name -> xion.jwk.v1.Params
-	12, // 1: xion.jwk.v1.QueryGetAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim
-	13, // 2: xion.jwk.v1.QueryGetAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
-	14, // 3: xion.jwk.v1.QueryAllAudienceRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
-	13, // 4: xion.jwk.v1.QueryAllAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
-	15, // 5: xion.jwk.v1.QueryAllAudienceResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
-	9,  // 6: xion.jwk.v1.QueryValidateJWTResponse.privateClaims:type_name -> xion.jwk.v1.PrivateClaim
-	0,  // 7: xion.jwk.v1.Query.Params:input_type -> xion.jwk.v1.QueryParamsRequest
-	2,  // 8: xion.jwk.v1.Query.AudienceClaim:input_type -> xion.jwk.v1.QueryGetAudienceClaimRequest
-	4,  // 9: xion.jwk.v1.Query.Audience:input_type -> xion.jwk.v1.QueryGetAudienceRequest
-	6,  // 10: xion.jwk.v1.Query.AudienceAll:input_type -> xion.jwk.v1.QueryAllAudienceRequest
-	8,  // 11: xion.jwk.v1.Query.ValidateJWT:input_type -> xion.jwk.v1.QueryValidateJWTRequest
-	1,  // 12: xion.jwk.v1.Query.Params:output_type -> xion.jwk.v1.QueryParamsResponse
-	3,  // 13: xion.jwk.v1.Query.AudienceClaim:output_type -> xion.jwk.v1.QueryGetAudienceClaimResponse
-	5,  // 14: xion.jwk.v1.Query.Audience:output_type -> xion.jwk.v1.QueryGetAudienceResponse
-	7,  // 15: xion.jwk.v1.Query.AudienceAll:output_type -> xion.jwk.v1.QueryAllAudienceResponse
-	10, // 16: xion.jwk.v1.Query.ValidateJWT:output_type -> xion.jwk.v1.QueryValidateJWTResponse
-	12, // [12:17] is the sub-list for method output_type
-	7,  // [7:12] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
-=======
 var file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_xion_jwk_v1_query_proto_goTypes = []interface{}{
 	(*QueryParamsRequest)(nil),            // 0: xion.jwk.v1.QueryParamsRequest
@@ -9074,7 +8674,6 @@ var file_xion_jwk_v1_query_proto_depIdxs = []int32{
 	12, // [12:12] is the sub-list for extension type_name
 	12, // [12:12] is the sub-list for extension extendee
 	0,  // [0:12] is the sub-list for field type_name
->>>>>>> release/v22
 }
 
 func init() { file_xion_jwk_v1_query_proto_init() }
@@ -9110,11 +8709,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryGetAudienceClaimRequest); i {
-=======
 			switch v := v.(*QueryAudienceClaimRequest); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9126,11 +8721,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryGetAudienceClaimResponse); i {
-=======
 			switch v := v.(*QueryAudienceClaimResponse); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9142,11 +8733,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryGetAudienceRequest); i {
-=======
 			switch v := v.(*QueryGetAudienceClaimRequest); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9158,11 +8745,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryGetAudienceResponse); i {
-=======
 			switch v := v.(*QueryGetAudienceClaimResponse); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9174,11 +8757,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryAllAudienceRequest); i {
-=======
 			switch v := v.(*QueryAudienceRequest); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9190,11 +8769,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryAllAudienceResponse); i {
-=======
 			switch v := v.(*QueryAudienceResponse); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9206,11 +8781,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryValidateJWTRequest); i {
-=======
 			switch v := v.(*QueryGetAudienceRequest); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9222,11 +8793,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*PrivateClaim); i {
-=======
 			switch v := v.(*QueryGetAudienceResponse); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -9238,8 +8805,6 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-=======
 			switch v := v.(*QueryAudienceAllRequest); i {
 			case 0:
 				return &v.state
@@ -9312,7 +8877,6 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
->>>>>>> release/v22
 			switch v := v.(*QueryValidateJWTResponse); i {
 			case 0:
 				return &v.state
@@ -9331,11 +8895,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_xion_jwk_v1_query_proto_rawDesc,
 			NumEnums:      0,
-<<<<<<< HEAD
-			NumMessages:   11,
-=======
 			NumMessages:   17,
->>>>>>> release/v22
 			NumExtensions: 0,
 			NumServices:   1,
 		},

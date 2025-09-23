@@ -9,11 +9,6 @@ option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
 
 // QueryArithmeticTwapToNowRequest
 message QueryArithmeticTwapToNowRequest {
-<<<<<<< HEAD
-  uint64 pool_id = 1;
-  string base_asset = 2;
-  string quote_asset = 3;
-=======
   // pool_id defines the pool identifier
   uint64 pool_id = 1;
   // base_asset defines the base asset for the TWAP calculation
@@ -21,7 +16,6 @@ message QueryArithmeticTwapToNowRequest {
   // quote_asset defines the quote asset for the TWAP calculation
   string quote_asset = 3;
   // start_time defines the start time for the TWAP calculation
->>>>>>> release/v22
   google.protobuf.Timestamp start_time = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
@@ -31,11 +25,8 @@ message QueryArithmeticTwapToNowRequest {
 
 // QueryArithmeticTwapToNowResponse
 message QueryArithmeticTwapToNowResponse {
-<<<<<<< HEAD
-=======
   // arithmetic_twap defines the calculated arithmetic time-weighted average
   // price
->>>>>>> release/v22
   string arithmetic_twap = 1 [
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.moretags) = "yaml:\"arithmetic_twap\"",
@@ -45,22 +36,15 @@ message QueryArithmeticTwapToNowResponse {
 
 // InterchainQueryRequest
 message InterchainQueryRequest {
-<<<<<<< HEAD
-  bytes data = 1;
-=======
   // data defines the raw query data
   bytes data = 1;
   // path defines the query path
->>>>>>> release/v22
   string path = 2;
 }
 
 // InterchainQueryPacketData is comprised of raw query.
 message InterchainQueryPacketData {
-<<<<<<< HEAD
-=======
   // data defines the raw query data
->>>>>>> release/v22
   bytes data = 1;
   // optional memo
   string memo = 2;
@@ -68,12 +52,6 @@ message InterchainQueryPacketData {
 
 // InterchainQueryPacketAck is comprised of an ABCI query response with
 // non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
-<<<<<<< HEAD
-message InterchainQueryPacketAck { bytes data = 1; }
-
-// InterchainQueryRequestPacket
-message InterchainQueryRequestPacket {
-=======
 message InterchainQueryPacketAck {
   // data defines the query response data
   bytes data = 1;
@@ -82,17 +60,13 @@ message InterchainQueryPacketAck {
 // InterchainQueryRequestPacket
 message InterchainQueryRequestPacket {
   // requests defines the list of interchain query requests
->>>>>>> release/v22
   repeated InterchainQueryRequest requests = 1 [ (gogoproto.nullable) = false ];
 }
 
 // CosmosQuery contains a list of tendermint ABCI query requests. It should be
 // used when sending queries to an SDK host chain.
 message CosmosQuery {
-<<<<<<< HEAD
-=======
   // requests defines the list of ABCI query requests
->>>>>>> release/v22
   repeated tendermint.abci.RequestQuery requests = 1
       [ (gogoproto.nullable) = false ];
 }
@@ -100,10 +74,7 @@ message CosmosQuery {
 // CosmosResponse contains a list of tendermint ABCI query responses. It should
 // be used when receiving responses from an SDK host chain.
 message CosmosResponse {
-<<<<<<< HEAD
-=======
   // responses defines the list of ABCI query responses
->>>>>>> release/v22
   repeated tendermint.abci.ResponseQuery responses = 1
       [ (gogoproto.nullable) = false ];
 }

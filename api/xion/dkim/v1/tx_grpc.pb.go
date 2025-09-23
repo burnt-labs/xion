@@ -37,7 +37,8 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error)
-	// RemoveDkimPubKey defines a message to remove a DKIM public key via governance
+	// RemoveDkimPubKey defines a message to remove a DKIM public key via
+	// governance
 	RemoveDkimPubKey(ctx context.Context, in *MsgRemoveDkimPubKey, opts ...grpc.CallOption) (*MsgRemoveDkimPubKeyResponse, error)
 	// RevokeDkimPubKey defines a message to remove a DKIM public key without
 	// governance, by submitting the compromised privkey
@@ -104,7 +105,8 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error)
-	// RemoveDkimPubKey defines a message to remove a DKIM public key via governance
+	// RemoveDkimPubKey defines a message to remove a DKIM public key via
+	// governance
 	RemoveDkimPubKey(context.Context, *MsgRemoveDkimPubKey) (*MsgRemoveDkimPubKeyResponse, error)
 	// RevokeDkimPubKey defines a message to remove a DKIM public key without
 	// governance, by submitting the compromised privkey

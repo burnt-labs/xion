@@ -993,25 +993,17 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-<<<<<<< HEAD
-=======
 // Audience represents a JWT audience configuration
->>>>>>> release/v22
 type Audience struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	Aud   string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
-	Key   string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-=======
 	// The audience identifier
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 	// The public key associated with this audience
 	Key string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
 	// The admin address for this audience
->>>>>>> release/v22
 	Admin string `protobuf:"bytes,3,opt,name=admin,proto3" json:"admin,omitempty"`
 }
 
@@ -1056,19 +1048,13 @@ func (x *Audience) GetAdmin() string {
 	return ""
 }
 
-<<<<<<< HEAD
-=======
 // AudienceClaim represents a claim for an audience
->>>>>>> release/v22
 type AudienceClaim struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The signer of the audience claim
->>>>>>> release/v22
 	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 

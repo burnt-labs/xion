@@ -853,10 +853,7 @@ type QueryParamsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The global fee parameters
->>>>>>> release/v22
 	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
 }
 

@@ -3,13 +3,15 @@ package keeper
 import (
 	"context"
 
+	"github.com/vocdoni/circom2gnark/parser"
+
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/vocdoni/circom2gnark/parser"
 
 	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
@@ -129,7 +131,7 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 }
 
 func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *parser.CircomVerificationKey, inputs *[]string) (bool, error) {
-	gnarkProof, err := parser.ConvertCircomToGnark(proof, vkey, *inputs)
+	gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
 	if err != nil {
 		return false, err
 	}

@@ -12,8 +12,9 @@ import (
 
 	"cosmossdk.io/collections"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/burnt-labs/xion/x/dkim/types"
-	sdkTypes "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestParams(t *testing.T) {
@@ -162,8 +163,8 @@ func TestAddDkimPubKey(t *testing.T) {
 				require.NoError(err)
 
 				require.EqualValues(tc.request.DkimPubkeys[0].PubKey, r.DkimPubKey.PubKey)
-				require.EqualValues(types.Version_DKIM1, r.DkimPubKey.Version)
-				require.EqualValues(types.KeyType_RSA, r.DkimPubKey.KeyType)
+				require.EqualValues(types.Version_VERSION_DKIM1_UNSPECIFIED, r.DkimPubKey.Version)
+				require.EqualValues(types.KeyType_KEY_TYPE_RSA_UNSPECIFIED, r.DkimPubKey.KeyType)
 			}
 		})
 	}
@@ -305,7 +306,7 @@ func TestRevokeDkimPubKey(t *testing.T) {
 	domain_2 := "y.com"
 
 	// Add in a DKIM public key
-	addDkimKeysMsg := types.NewMsgAddDkimPubKeys(sdkTypes.MustAccAddressFromBech32(f.govModAddr), []types.DkimPubKey{
+	addDkimKeysMsg := types.NewMsgAddDkimPubKeys(sdk.MustAccAddressFromBech32(f.govModAddr), []types.DkimPubKey{
 		{
 			Domain:       domain_1,
 			PubKey:       pubKey_1,

@@ -3741,18 +3741,12 @@ type MsgSend struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	FromAddress string          `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
-	ToAddress   string          `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`
-	Amount      []*v1beta1.Coin `protobuf:"bytes,3,rep,name=amount,proto3" json:"amount,omitempty"`
-=======
 	// The address sending the coins
 	FromAddress string `protobuf:"bytes,1,opt,name=from_address,json=fromAddress,proto3" json:"from_address,omitempty"`
 	// The address receiving the coins
 	ToAddress string `protobuf:"bytes,2,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`
 	// The amount of coins to send
 	Amount []*v1beta1.Coin `protobuf:"bytes,3,rep,name=amount,proto3" json:"amount,omitempty"`
->>>>>>> release/v22
 }
 
 func (x *MsgSend) Reset() {
@@ -3831,12 +3825,8 @@ type MsgMultiSend struct {
 
 	// Inputs, despite being `repeated`, only allows one sender input. This is
 	// checked in MsgMultiSend's ValidateBasic.
-<<<<<<< HEAD
-	Inputs  []*v1beta11.Input  `protobuf:"bytes,1,rep,name=inputs,proto3" json:"inputs,omitempty"`
-=======
 	Inputs []*v1beta11.Input `protobuf:"bytes,1,rep,name=inputs,proto3" json:"inputs,omitempty"`
 	// The outputs specifying recipient addresses and amounts
->>>>>>> release/v22
 	Outputs []*v1beta11.Output `protobuf:"bytes,2,rep,name=outputs,proto3" json:"outputs,omitempty"`
 }
 
@@ -3901,19 +3891,13 @@ func (*MsgMultiSendResponse) Descriptor() ([]byte, []int) {
 	return file_xion_v1_tx_proto_rawDescGZIP(), []int{3}
 }
 
-<<<<<<< HEAD
-=======
 // MsgSetPlatformPercentage defines the message for setting platform percentage
->>>>>>> release/v22
 type MsgSetPlatformPercentage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The authority address that can set the platform percentage
->>>>>>> release/v22
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// platform_percentage is the platform fee percentage to multiplied by 10000
 	PlatformPercentage uint32 `protobuf:"varint,2,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
@@ -3953,11 +3937,8 @@ func (x *MsgSetPlatformPercentage) GetPlatformPercentage() uint32 {
 	return 0
 }
 
-<<<<<<< HEAD
-=======
 // MsgSetPlatformPercentageResponse defines the response for setting platform
 // percentage
->>>>>>> release/v22
 type MsgSetPlatformPercentageResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3984,24 +3965,16 @@ func (*MsgSetPlatformPercentageResponse) Descriptor() ([]byte, []int) {
 	return file_xion_v1_tx_proto_rawDescGZIP(), []int{5}
 }
 
-<<<<<<< HEAD
-=======
 // MsgSetPlatformMinimum defines the message for setting platform minimum fees
->>>>>>> release/v22
 type MsgSetPlatformMinimum struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	Authority string          `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	Minimums  []*v1beta1.Coin `protobuf:"bytes,3,rep,name=minimums,proto3" json:"minimums,omitempty"`
-=======
 	// The authority address that can set the platform minimums
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
 	// The minimum fees required by the platform
 	Minimums []*v1beta1.Coin `protobuf:"bytes,3,rep,name=minimums,proto3" json:"minimums,omitempty"`
->>>>>>> release/v22
 }
 
 func (x *MsgSetPlatformMinimum) Reset() {
@@ -4038,11 +4011,8 @@ func (x *MsgSetPlatformMinimum) GetMinimums() []*v1beta1.Coin {
 	return nil
 }
 
-<<<<<<< HEAD
-=======
 // MsgSetPlatformMinimumResponse defines the response for setting platform
 // minimum fees
->>>>>>> release/v22
 type MsgSetPlatformMinimumResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

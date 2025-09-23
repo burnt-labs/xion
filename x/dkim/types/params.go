@@ -1,9 +1,8 @@
 package types
 
 import (
-	"encoding/json"
-
 	b64 "encoding/base64"
+	"encoding/json"
 )
 
 // DefaultParams returns default module parameters.

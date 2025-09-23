@@ -5,14 +5,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
+	"github.com/vocdoni/circom2gnark/parser"
+
 	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
 
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/vocdoni/circom2gnark/parser"
 
 	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
@@ -123,30 +125,41 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 		}
 	}
 
-	if int(offset) >= len(allPubKeys) {
+	allPubKeysLen := uint64(len(allPubKeys))
+
+	// Safe conversion: check if offset is within bounds
+	if offset >= allPubKeysLen {
 		return &types.QueryDkimPubKeysResponse{
 			DkimPubKeys: []*types.DkimPubKey{},
 			Pagination: &query.PageResponse{
 				NextKey: nil,
-				Total:   uint64(len(allPubKeys)),
+				Total:   allPubKeysLen,
 			},
 		}, nil
 	}
 
-	end := int(offset) + int(limit)
-	if end > len(allPubKeys) {
-		end = len(allPubKeys)
+	// Safe addition: check for overflow and bounds
+	endOffset := math.NewUint(offset).Add(math.NewUint(limit))
+	var end uint64
+	if endOffset.GT(math.NewUint(allPubKeysLen)) {
+		end = allPubKeysLen
+	} else {
+		end = endOffset.Uint64()
 	}
-	paginatedPubKeys := allPubKeys[int(offset):end]
+
+	// Safe conversion to int for slicing - we know these are within bounds of len(allPubKeys)
+	offsetInt := int(offset)
+	endInt := int(end)
+	paginatedPubKeys := allPubKeys[offsetInt:endInt]
 
 	nextKey := []byte(nil)
-	if end < len(allPubKeys) && msg.Pagination != nil && msg.Pagination.Key != nil {
+	if end < allPubKeysLen && msg.Pagination != nil && msg.Pagination.Key != nil {
 		// For key-based, but simplified to nil for now
 	}
 
 	pageRes := &query.PageResponse{
 		NextKey: nextKey,
-		Total:   uint64(len(allPubKeys)),
+		Total:   allPubKeysLen,
 	}
 
 	return &types.QueryDkimPubKeysResponse{
@@ -155,7 +168,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	}, nil
 }
 
-func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (*types.QueryVerifyResponse, error) {
+func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (*types.ProofVerifyResponse, error) {
 	var verified bool
 	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
 	if err != nil {
@@ -186,13 +199,13 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, err
 	}
 
-	verified, err = k.Keeper.Verify(c, snarkProof, snarkVk, &inputs)
+	verified, err = k.Verify(c, snarkProof, snarkVk, &inputs)
 	if err != nil {
 		fmt.Printf("we have passed verifications with errors??: %s\n", err.Error())
 		return nil, err
 	}
 	fmt.Println("we have passed verifications with no errors")
-	return &types.QueryVerifyResponse{Verified: verified}, nil
+	return &types.ProofVerifyResponse{Verified: verified}, nil
 }
 
 func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {

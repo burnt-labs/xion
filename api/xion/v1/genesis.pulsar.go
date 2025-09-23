@@ -569,24 +569,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-<<<<<<< HEAD
-=======
 // GenesisState defines the xion module's genesis state
->>>>>>> release/v22
 type GenesisState struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	PlatformPercentage uint32          `protobuf:"varint,1,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
-	PlatformMinimums   []*v1beta1.Coin `protobuf:"bytes,2,rep,name=platform_minimums,json=platformMinimums,proto3" json:"platform_minimums,omitempty"`
-=======
 	// The percentage fee taken by the platform
 	PlatformPercentage uint32 `protobuf:"varint,1,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
 	// Minimum amounts required for platform operations
 	PlatformMinimums []*v1beta1.Coin `protobuf:"bytes,2,rep,name=platform_minimums,json=platformMinimums,proto3" json:"platform_minimums,omitempty"`
->>>>>>> release/v22
 }
 
 func (x *GenesisState) Reset() {

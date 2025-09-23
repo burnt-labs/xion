@@ -85,7 +85,7 @@ func init() {
 	setWhitelistedQuery("/xion.jwk.v1.Query/ValidateJWT", &jwktypes.QueryValidateJWTResponse{})
 	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKeys", &dkimtypes.QueryDkimPubKeysResponse{})
 	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKey", &dkimtypes.QueryDkimPubKeyResponse{})
-	setWhitelistedQuery("/xion.dkim.v1.Query/ProofVerify", &dkimtypes.QueryVerifyResponse{})
+	setWhitelistedQuery("/xion.dkim.v1.Query/ProofVerify", &dkimtypes.ProofVerifyResponse{})
 }
 
 // GetWhitelistedQuery returns the whitelisted query at the provided path.

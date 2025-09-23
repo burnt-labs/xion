@@ -25,7 +25,8 @@ service Query {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
 
-  rpc ProofVerify(QueryVerifyRequest) returns (QueryVerifyResponse) {
+  // ProofVerify verifies a DKIM proof for email authentication.
+  rpc ProofVerify(QueryVerifyRequest) returns (ProofVerifyResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_verify";
   }
 }
@@ -42,42 +43,67 @@ message QueryParamsResponse {
 // QueryDkimPubKeyRequest is the request type for the Query/DkimPubKey RPC
 // method.
 message QueryDkimPubKeyRequest {
+  // selector defines the DKIM selector to query.
   string selector = 1;
+  // domain defines the domain to query.
   string domain = 2;
 }
 
 // QueryDkimPubKeyResponse is the response type for the Query/DkimPubKey RPC
 // method.
-message QueryDkimPubKeyResponse { DkimPubKey dkim_pub_key = 1; }
+message QueryDkimPubKeyResponse {
+  // dkim_pub_key defines the DKIM public key.
+  DkimPubKey dkim_pub_key = 1;
+}
 
 // QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
 // method. All fields are optional, and will filter down results.
 message QueryDkimPubKeysRequest {
+  // selector defines the DKIM selector to filter by.
   string selector = 1;
+  // domain defines the domain to filter by.
   string domain = 2;
+  // poseidon_hash defines the Poseidon hash to filter by.
   bytes poseidon_hash = 3;
+  // pagination defines the pagination parameters.
   cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 // QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC
 // method.
 message QueryDkimPubKeysResponse {
+  // dkim_pub_keys defines the list of DKIM public keys.
   repeated DkimPubKey dkim_pub_keys = 1;
+  // pagination defines the pagination response.
   cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
+// SnarkJsProof represents a ZK-SNARK proof in SnarkJS format.
 message SnarkJsProof {
+  // pi_a defines the first component of the proof.
   repeated bytes pi_a = 1;
+  // pi_b defines the second component of the proof.
   repeated bytes pi_b = 2;
+  // pi_c defines the third component of the proof.
   repeated bytes pi_c = 3;
 }
 
+// QueryVerifyRequest defines the request structure for proof verification.
 message QueryVerifyRequest {
+  // dkim_domain defines the domain for DKIM verification.
   string dkim_domain = 1;
+  // tx_bytes defines the transaction bytes to verify.
   bytes tx_bytes = 2;
+  // email_hash defines the hash of the email.
   bytes email_hash = 3;
+  // dkim_hash defines the DKIM hash.
   bytes dkim_hash = 4;
+  // proof defines the ZK proof for verification.
   bytes proof = 5;
 }
 
-message QueryVerifyResponse { bool verified = 1; }
+// ProofVerifyResponse defines the response structure for proof verification.
+message ProofVerifyResponse {
+  // verified indicates whether the proof verification was successful.
+  bool verified = 1;
+}

@@ -3694,7 +3694,8 @@ type MsgAddDkimPubKeys struct {
 	unknownFields protoimpl.UnknownFields
 
 	// authority is the address of the governance account.
-	Authority   string        `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// dkim_pubkeys defines the DKIM public keys to add.
 	DkimPubkeys []*DkimPubKey `protobuf:"bytes,2,rep,name=dkim_pubkeys,json=dkimPubkeys,proto3" json:"dkim_pubkeys,omitempty"`
 }
 
@@ -3768,8 +3769,10 @@ type MsgRemoveDkimPubKey struct {
 
 	// authority is the address of the governance account.
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	Selector  string `protobuf:"bytes,2,opt,name=selector,proto3" json:"selector,omitempty"`
-	Domain    string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
+	// selector defines the DKIM selector to remove.
+	Selector string `protobuf:"bytes,2,opt,name=selector,proto3" json:"selector,omitempty"`
+	// domain defines the domain for the DKIM key to remove.
+	Domain string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 }
 
 func (x *MsgRemoveDkimPubKey) Reset() {
@@ -3847,8 +3850,11 @@ type MsgRevokeDkimPubKey struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Signer  string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
-	Domain  string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	// signer defines the address of the signer revoking the key.
+	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	// domain defines the domain for the DKIM key to revoke.
+	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	// priv_key defines the private key used to prove ownership for revocation.
 	PrivKey []byte `protobuf:"bytes,3,opt,name=priv_key,json=privKey,proto3" json:"priv_key,omitempty"`
 }
 

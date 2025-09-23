@@ -34,19 +34,11 @@ type QueryClient interface {
 	// OsmosisArithmeticTwap return spot price of pair Osmo/nativeToken
 	OsmosisArithmeticTwap(ctx context.Context, in *QueryOsmosisArithmeticTwapRequest, opts ...grpc.CallOption) (*QueryOsmosisArithmeticTwapResponse, error)
 	// FeeabsModuleBalances return total balances of feeabs module
-<<<<<<< HEAD
-	FeeabsModuleBalances(ctx context.Context, in *QueryFeeabsModuleBalacesRequest, opts ...grpc.CallOption) (*QueryFeeabsModuleBalacesResponse, error)
-	// HostChainConfig
-	HostChainConfig(ctx context.Context, in *QueryHostChainConfigRequest, opts ...grpc.CallOption) (*QueryHostChainConfigResponse, error)
-	// AllHostChainConfig
-	AllHostChainConfig(ctx context.Context, in *AllQueryHostChainConfigRequest, opts ...grpc.CallOption) (*AllQueryHostChainConfigResponse, error)
-=======
 	FeeabsModuleBalances(ctx context.Context, in *QueryFeeabsModuleBalancesRequest, opts ...grpc.CallOption) (*QueryFeeabsModuleBalancesResponse, error)
 	// HostChainConfig
 	HostChainConfig(ctx context.Context, in *QueryHostChainConfigRequest, opts ...grpc.CallOption) (*QueryHostChainConfigResponse, error)
 	// AllHostChainConfig
 	AllHostChainConfig(ctx context.Context, in *QueryAllHostChainConfigRequest, opts ...grpc.CallOption) (*QueryAllHostChainConfigResponse, error)
->>>>>>> release/v22
 }
 
 type queryClient struct {
@@ -67,15 +59,9 @@ func (c *queryClient) OsmosisArithmeticTwap(ctx context.Context, in *QueryOsmosi
 	return out, nil
 }
 
-<<<<<<< HEAD
-func (c *queryClient) FeeabsModuleBalances(ctx context.Context, in *QueryFeeabsModuleBalacesRequest, opts ...grpc.CallOption) (*QueryFeeabsModuleBalacesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QueryFeeabsModuleBalacesResponse)
-=======
 func (c *queryClient) FeeabsModuleBalances(ctx context.Context, in *QueryFeeabsModuleBalancesRequest, opts ...grpc.CallOption) (*QueryFeeabsModuleBalancesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryFeeabsModuleBalancesResponse)
->>>>>>> release/v22
 	err := c.cc.Invoke(ctx, Query_FeeabsModuleBalances_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -93,15 +79,9 @@ func (c *queryClient) HostChainConfig(ctx context.Context, in *QueryHostChainCon
 	return out, nil
 }
 
-<<<<<<< HEAD
-func (c *queryClient) AllHostChainConfig(ctx context.Context, in *AllQueryHostChainConfigRequest, opts ...grpc.CallOption) (*AllQueryHostChainConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AllQueryHostChainConfigResponse)
-=======
 func (c *queryClient) AllHostChainConfig(ctx context.Context, in *QueryAllHostChainConfigRequest, opts ...grpc.CallOption) (*QueryAllHostChainConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryAllHostChainConfigResponse)
->>>>>>> release/v22
 	err := c.cc.Invoke(ctx, Query_AllHostChainConfig_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -118,19 +98,11 @@ type QueryServer interface {
 	// OsmosisArithmeticTwap return spot price of pair Osmo/nativeToken
 	OsmosisArithmeticTwap(context.Context, *QueryOsmosisArithmeticTwapRequest) (*QueryOsmosisArithmeticTwapResponse, error)
 	// FeeabsModuleBalances return total balances of feeabs module
-<<<<<<< HEAD
-	FeeabsModuleBalances(context.Context, *QueryFeeabsModuleBalacesRequest) (*QueryFeeabsModuleBalacesResponse, error)
-	// HostChainConfig
-	HostChainConfig(context.Context, *QueryHostChainConfigRequest) (*QueryHostChainConfigResponse, error)
-	// AllHostChainConfig
-	AllHostChainConfig(context.Context, *AllQueryHostChainConfigRequest) (*AllQueryHostChainConfigResponse, error)
-=======
 	FeeabsModuleBalances(context.Context, *QueryFeeabsModuleBalancesRequest) (*QueryFeeabsModuleBalancesResponse, error)
 	// HostChainConfig
 	HostChainConfig(context.Context, *QueryHostChainConfigRequest) (*QueryHostChainConfigResponse, error)
 	// AllHostChainConfig
 	AllHostChainConfig(context.Context, *QueryAllHostChainConfigRequest) (*QueryAllHostChainConfigResponse, error)
->>>>>>> release/v22
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -144,21 +116,13 @@ type UnimplementedQueryServer struct{}
 func (UnimplementedQueryServer) OsmosisArithmeticTwap(context.Context, *QueryOsmosisArithmeticTwapRequest) (*QueryOsmosisArithmeticTwapResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OsmosisArithmeticTwap not implemented")
 }
-<<<<<<< HEAD
-func (UnimplementedQueryServer) FeeabsModuleBalances(context.Context, *QueryFeeabsModuleBalacesRequest) (*QueryFeeabsModuleBalacesResponse, error) {
-=======
 func (UnimplementedQueryServer) FeeabsModuleBalances(context.Context, *QueryFeeabsModuleBalancesRequest) (*QueryFeeabsModuleBalancesResponse, error) {
->>>>>>> release/v22
 	return nil, status.Errorf(codes.Unimplemented, "method FeeabsModuleBalances not implemented")
 }
 func (UnimplementedQueryServer) HostChainConfig(context.Context, *QueryHostChainConfigRequest) (*QueryHostChainConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HostChainConfig not implemented")
 }
-<<<<<<< HEAD
-func (UnimplementedQueryServer) AllHostChainConfig(context.Context, *AllQueryHostChainConfigRequest) (*AllQueryHostChainConfigResponse, error) {
-=======
 func (UnimplementedQueryServer) AllHostChainConfig(context.Context, *QueryAllHostChainConfigRequest) (*QueryAllHostChainConfigResponse, error) {
->>>>>>> release/v22
 	return nil, status.Errorf(codes.Unimplemented, "method AllHostChainConfig not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
@@ -201,11 +165,7 @@ func _Query_OsmosisArithmeticTwap_Handler(srv interface{}, ctx context.Context, 
 }
 
 func _Query_FeeabsModuleBalances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-<<<<<<< HEAD
-	in := new(QueryFeeabsModuleBalacesRequest)
-=======
 	in := new(QueryFeeabsModuleBalancesRequest)
->>>>>>> release/v22
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -217,11 +177,7 @@ func _Query_FeeabsModuleBalances_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: Query_FeeabsModuleBalances_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-<<<<<<< HEAD
-		return srv.(QueryServer).FeeabsModuleBalances(ctx, req.(*QueryFeeabsModuleBalacesRequest))
-=======
 		return srv.(QueryServer).FeeabsModuleBalances(ctx, req.(*QueryFeeabsModuleBalancesRequest))
->>>>>>> release/v22
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -245,11 +201,7 @@ func _Query_HostChainConfig_Handler(srv interface{}, ctx context.Context, dec fu
 }
 
 func _Query_AllHostChainConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-<<<<<<< HEAD
-	in := new(AllQueryHostChainConfigRequest)
-=======
 	in := new(QueryAllHostChainConfigRequest)
->>>>>>> release/v22
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -261,11 +213,7 @@ func _Query_AllHostChainConfig_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: Query_AllHostChainConfig_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-<<<<<<< HEAD
-		return srv.(QueryServer).AllHostChainConfig(ctx, req.(*AllQueryHostChainConfigRequest))
-=======
 		return srv.(QueryServer).AllHostChainConfig(ctx, req.(*QueryAllHostChainConfigRequest))
->>>>>>> release/v22
 	}
 	return interceptor(ctx, in, info, handler)
 }

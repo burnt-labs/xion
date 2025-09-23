@@ -67,12 +67,8 @@ message EpochInfo {
 
 // ExponentialBackoff defines backoff epoch
 message ExponentialBackoff {
-<<<<<<< HEAD
-  int64 jump = 1;
-=======
   // jump defines the exponential backoff multiplier
   int64 jump = 1;
   // future_epoch defines the target epoch for the backoff
->>>>>>> release/v22
   int64 future_epoch = 2;
 }

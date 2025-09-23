@@ -8,14 +8,6 @@ option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
 // Query defines the gRPC querier service
 service Query {
-<<<<<<< HEAD
-  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest)
-      returns (QueryWebAuthNVerifyRegisterResponse) {}
-  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest)
-      returns (QueryWebAuthNVerifyAuthenticateResponse) {}
-  rpc PlatformPercentage(QueryPlatformPercentageRequest)
-      returns (QueryPlatformPercentageResponse) {}
-=======
   // WebAuthNVerifyRegister verifies a WebAuthN registration
   rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest)
       returns (QueryWebAuthNVerifyRegisterResponse) {}
@@ -26,7 +18,6 @@ service Query {
   rpc PlatformPercentage(QueryPlatformPercentageRequest)
       returns (QueryPlatformPercentageResponse) {}
   // PlatformMinimum queries the platform minimum fees
->>>>>>> release/v22
   rpc PlatformMinimum(QueryPlatformMinimumRequest)
       returns (QueryPlatformMinimumResponse) {}
 }
@@ -44,16 +35,12 @@ message QueryWebAuthNVerifyRegisterRequest {
   bytes data = 4;
 }
 
-<<<<<<< HEAD
-message QueryWebAuthNVerifyRegisterResponse { bytes credential = 1; }
-=======
 // QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN
 // registration verification
 message QueryWebAuthNVerifyRegisterResponse {
   // The generated credential
   bytes credential = 1;
 }
->>>>>>> release/v22
 
 // QueryWebAuthNVerifyAuthenticateRequest is the request type for WebAuthN
 // authentication verification
@@ -78,16 +65,12 @@ message QueryWebAuthNVerifyAuthenticateResponse {}
 // percentage
 message QueryPlatformPercentageRequest {}
 
-<<<<<<< HEAD
-message QueryPlatformPercentageResponse { uint64 platform_percentage = 1; }
-=======
 // QueryPlatformPercentageResponse is the response type for querying platform
 // percentage
 message QueryPlatformPercentageResponse {
   // The platform percentage fee
   uint64 platform_percentage = 1;
 }
->>>>>>> release/v22
 
 // QueryPlatformMinimumRequest is the request type for querying platform minimum
 // fees

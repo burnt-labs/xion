@@ -1410,13 +1410,9 @@ type ExponentialBackoff struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	Jump        int64 `protobuf:"varint,1,opt,name=jump,proto3" json:"jump,omitempty"`
-=======
 	// jump defines the exponential backoff multiplier
 	Jump int64 `protobuf:"varint,1,opt,name=jump,proto3" json:"jump,omitempty"`
 	// future_epoch defines the target epoch for the backoff
->>>>>>> release/v22
 	FutureEpoch int64 `protobuf:"varint,2,opt,name=future_epoch,json=futureEpoch,proto3" json:"future_epoch,omitempty"`
 }
 

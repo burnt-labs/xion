@@ -9,14 +9,6 @@ option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 // Msg defines the Msg service.
 service Msg {
-<<<<<<< HEAD
-  rpc CreateAudienceClaim(MsgCreateAudienceClaim)
-      returns (MsgCreateAudienceClaimResponse);
-  rpc DeleteAudienceClaim(MsgDeleteAudienceClaim)
-      returns (MsgDeleteAudienceClaimResponse);
-  rpc CreateAudience(MsgCreateAudience) returns (MsgCreateAudienceResponse);
-  rpc UpdateAudience(MsgUpdateAudience) returns (MsgUpdateAudienceResponse);
-=======
   // CreateAudienceClaim creates a new audience claim
   rpc CreateAudienceClaim(MsgCreateAudienceClaim)
       returns (MsgCreateAudienceClaimResponse);
@@ -28,7 +20,6 @@ service Msg {
   // UpdateAudience updates an existing audience
   rpc UpdateAudience(MsgUpdateAudience) returns (MsgUpdateAudienceResponse);
   // DeleteAudience deletes an existing audience
->>>>>>> release/v22
   rpc DeleteAudience(MsgDeleteAudience) returns (MsgDeleteAudienceResponse);
 }
 
@@ -60,22 +51,12 @@ message MsgDeleteAudienceClaim {
 // claim
 message MsgDeleteAudienceClaimResponse {}
 
-<<<<<<< HEAD
-=======
 // MsgCreateAudience defines the message for creating an audience
->>>>>>> release/v22
 message MsgCreateAudience {
   option (cosmos.msg.v1.signer) = "admin";
 
   // The admin address creating the audience
   string admin = 1;
-<<<<<<< HEAD
-  string aud = 2;
-  string key = 3;
-}
-
-message MsgCreateAudienceResponse { Audience audience = 1; }
-=======
   // The audience identifier
   string aud = 2;
   // The public key for this audience
@@ -87,7 +68,6 @@ message MsgCreateAudienceResponse {
   // The created audience
   Audience audience = 1;
 }
->>>>>>> release/v22
 
 // MsgUpdateAudience defines the message for updating an audience
 message MsgUpdateAudience {
@@ -95,15 +75,6 @@ message MsgUpdateAudience {
 
   // The current admin address
   string admin = 1;
-<<<<<<< HEAD
-  string new_admin = 2;
-  string aud = 3;
-  string key = 4;
-  string new_aud = 5;
-}
-
-message MsgUpdateAudienceResponse { Audience audience = 1; }
-=======
   // The new admin address
   string new_admin = 2;
   // The current audience identifier
@@ -119,7 +90,6 @@ message MsgUpdateAudienceResponse {
   // The updated audience
   Audience audience = 1;
 }
->>>>>>> release/v22
 
 // MsgDeleteAudience defines the message for deleting an audience
 message MsgDeleteAudience {
@@ -127,10 +97,7 @@ message MsgDeleteAudience {
 
   // The admin address deleting the audience
   string admin = 1;
-<<<<<<< HEAD
-=======
   // The audience identifier to delete
->>>>>>> release/v22
   string aud = 2;
 }
 

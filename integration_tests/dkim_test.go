@@ -52,21 +52,21 @@ const (
 	customSelector = "kk6c473czcop4fqv6yhfgiqupmfz3cm2"
 )
 
-var pubKeysBz, _ = json.Marshal([]Dkim{{
+var pubKeysBz, _ = json.Marshal([]dkimTypes.DkimPubKey{{
 	PubKey:       pubKey_1,
 	Domain:       domain_1,
 	Selector:     selector_1,
-	PoseidonHash: base64.StdEncoding.EncodeToString([]byte(poseidon_hash_1)),
+	PoseidonHash: []byte(poseidon_hash_1),
 }, {
 	PubKey:       pubKey_2,
 	Domain:       domain_2,
 	Selector:     selector_2,
-	PoseidonHash: base64.StdEncoding.EncodeToString([]byte(poseidon_hash_2)),
+	PoseidonHash: []byte(poseidon_hash_2),
 }, {
 	PubKey:       pubKey_3,
 	Domain:       domain_1,
 	Selector:     selector_3,
-	PoseidonHash: base64.StdEncoding.EncodeToString([]byte(poseidon_hash_3)),
+	PoseidonHash: []byte(poseidon_hash_3),
 }})
 
 func TestDKIMModule(t *testing.T) {
@@ -81,7 +81,7 @@ func TestDKIMModule(t *testing.T) {
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgAddDkimPubKeys{})
 	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgRemoveDkimPubKey{})
-	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgRevokeDkimPubKey{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.DkimPubKey{})
 
 	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
@@ -199,7 +199,7 @@ func TestDKIMModule(t *testing.T) {
 	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey)
 
 	// let's revoke the key
-	revokeDkimMsg := dkimTypes.NewMsgReVokeDkimPubKey(sdk.MustAccAddressFromBech32(chainUser.FormattedAddress()), domain_1, privKeyPEM)
+	revokeDkimMsg := dkimTypes.NewMsgRevokeDkimPubKey(sdk.MustAccAddressFromBech32(chainUser.FormattedAddress()), domain_1, privKeyPEM)
 	require.NoError(t, revokeDkimMsg.ValidateBasic())
 
 	// execute the revoke tx using the CLI command

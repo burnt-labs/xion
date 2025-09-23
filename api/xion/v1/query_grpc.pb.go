@@ -28,12 +28,6 @@ const (
 // QueryClient is the client API for Query service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-<<<<<<< HEAD
-type QueryClient interface {
-	WebAuthNVerifyRegister(ctx context.Context, in *QueryWebAuthNVerifyRegisterRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyRegisterResponse, error)
-	WebAuthNVerifyAuthenticate(ctx context.Context, in *QueryWebAuthNVerifyAuthenticateRequest, opts ...grpc.CallOption) (*QueryWebAuthNVerifyAuthenticateResponse, error)
-	PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error)
-=======
 //
 // Query defines the gRPC querier service
 type QueryClient interface {
@@ -44,7 +38,6 @@ type QueryClient interface {
 	// PlatformPercentage queries the platform percentage fee
 	PlatformPercentage(ctx context.Context, in *QueryPlatformPercentageRequest, opts ...grpc.CallOption) (*QueryPlatformPercentageResponse, error)
 	// PlatformMinimum queries the platform minimum fees
->>>>>>> release/v22
 	PlatformMinimum(ctx context.Context, in *QueryPlatformMinimumRequest, opts ...grpc.CallOption) (*QueryPlatformMinimumResponse, error)
 }
 
@@ -99,12 +92,6 @@ func (c *queryClient) PlatformMinimum(ctx context.Context, in *QueryPlatformMini
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
-<<<<<<< HEAD
-type QueryServer interface {
-	WebAuthNVerifyRegister(context.Context, *QueryWebAuthNVerifyRegisterRequest) (*QueryWebAuthNVerifyRegisterResponse, error)
-	WebAuthNVerifyAuthenticate(context.Context, *QueryWebAuthNVerifyAuthenticateRequest) (*QueryWebAuthNVerifyAuthenticateResponse, error)
-	PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error)
-=======
 //
 // Query defines the gRPC querier service
 type QueryServer interface {
@@ -115,7 +102,6 @@ type QueryServer interface {
 	// PlatformPercentage queries the platform percentage fee
 	PlatformPercentage(context.Context, *QueryPlatformPercentageRequest) (*QueryPlatformPercentageResponse, error)
 	// PlatformMinimum queries the platform minimum fees
->>>>>>> release/v22
 	PlatformMinimum(context.Context, *QueryPlatformMinimumRequest) (*QueryPlatformMinimumResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }

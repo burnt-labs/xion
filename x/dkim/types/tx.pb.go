@@ -132,7 +132,8 @@ var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 // MsgAddDkimPubKey is the Msg/AddDkimPubKey request type.
 type MsgAddDkimPubKeys struct {
 	// authority is the address of the governance account.
-	Authority   string       `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// dkim_pubkeys defines the DKIM public keys to add.
 	DkimPubkeys []DkimPubKey `protobuf:"bytes,2,rep,name=dkim_pubkeys,json=dkimPubkeys,proto3" json:"dkim_pubkeys"`
 }
 
@@ -225,8 +226,10 @@ var xxx_messageInfo_MsgAddDkimPubKeysResponse proto.InternalMessageInfo
 type MsgRemoveDkimPubKey struct {
 	// authority is the address of the governance account.
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	Selector  string `protobuf:"bytes,2,opt,name=selector,proto3" json:"selector,omitempty"`
-	Domain    string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
+	// selector defines the DKIM selector to remove.
+	Selector string `protobuf:"bytes,2,opt,name=selector,proto3" json:"selector,omitempty"`
+	// domain defines the domain for the DKIM key to remove.
+	Domain string `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
 }
 
 func (m *MsgRemoveDkimPubKey) Reset()         { *m = MsgRemoveDkimPubKey{} }
@@ -323,8 +326,11 @@ var xxx_messageInfo_MsgRemoveDkimPubKeyResponse proto.InternalMessageInfo
 
 // MsgRevokeDkimPubKey is the Msg/RevokeDkimPubKey request type.
 type MsgRevokeDkimPubKey struct {
-	Signer  string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
-	Domain  string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	// signer defines the address of the signer revoking the key.
+	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	// domain defines the domain for the DKIM key to revoke.
+	Domain string `protobuf:"bytes,2,opt,name=domain,proto3" json:"domain,omitempty"`
+	// priv_key defines the private key used to prove ownership for revocation.
 	PrivKey []byte `protobuf:"bytes,3,opt,name=priv_key,json=privKey,proto3" json:"priv_key,omitempty"`
 }
 
@@ -490,7 +496,8 @@ type MsgClient interface {
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error)
-	// RemoveDkimPubKey defines a message to remove a DKIM public key via governance
+	// RemoveDkimPubKey defines a message to remove a DKIM public key via
+	// governance
 	RemoveDkimPubKey(ctx context.Context, in *MsgRemoveDkimPubKey, opts ...grpc.CallOption) (*MsgRemoveDkimPubKeyResponse, error)
 	// RevokeDkimPubKey defines a message to remove a DKIM public key without
 	// governance, by submitting the compromised privkey
@@ -549,7 +556,8 @@ type MsgServer interface {
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error)
-	// RemoveDkimPubKey defines a message to remove a DKIM public key via governance
+	// RemoveDkimPubKey defines a message to remove a DKIM public key via
+	// governance
 	RemoveDkimPubKey(context.Context, *MsgRemoveDkimPubKey) (*MsgRemoveDkimPubKeyResponse, error)
 	// RevokeDkimPubKey defines a message to remove a DKIM public key without
 	// governance, by submitting the compromised privkey

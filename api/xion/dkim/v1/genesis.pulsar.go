@@ -588,12 +588,14 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 }
 
 var (
-	md_Params protoreflect.MessageDescriptor
+	md_Params      protoreflect.MessageDescriptor
+	fd_Params_vkey protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_xion_dkim_v1_genesis_proto_init()
 	md_Params = File_xion_dkim_v1_genesis_proto.Messages().ByName("Params")
+	fd_Params_vkey = md_Params.Fields().ByName("vkey")
 }
 
 var _ protoreflect.Message = (*fastReflection_Params)(nil)
@@ -661,6 +663,12 @@ func (x *fastReflection_Params) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Vkey) != 0 {
+		value := protoreflect.ValueOfBytes(x.Vkey)
+		if !f(fd_Params_vkey, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -676,6 +684,8 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
+	case "xion.dkim.v1.Params.vkey":
+		return len(x.Vkey) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -692,6 +702,8 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
+	case "xion.dkim.v1.Params.vkey":
+		x.Vkey = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -708,6 +720,9 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
+	case "xion.dkim.v1.Params.vkey":
+		value := x.Vkey
+		return protoreflect.ValueOfBytes(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -728,6 +743,8 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
+	case "xion.dkim.v1.Params.vkey":
+		x.Vkey = value.Bytes()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -748,6 +765,8 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+	case "xion.dkim.v1.Params.vkey":
+		panic(fmt.Errorf("field vkey of message xion.dkim.v1.Params is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -761,6 +780,8 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+	case "xion.dkim.v1.Params.vkey":
+		return protoreflect.ValueOfBytes(nil)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -830,6 +851,10 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
+		l = len(x.Vkey)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -858,6 +883,13 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Vkey) > 0 {
+			i -= len(x.Vkey)
+			copy(dAtA[i:], x.Vkey)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Vkey)))
+			i--
+			dAtA[i] = 0xa
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -908,6 +940,40 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Vkey = append(x.Vkey[:0], dAtA[iNdEx:postIndex]...)
+				if x.Vkey == nil {
+					x.Vkey = []byte{}
+				}
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -963,7 +1029,8 @@ type GenesisState struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Params defines all the parameters of the module.
-	Params      *Params       `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	// dkim_pubkeys defines the DKIM public keys stored in genesis state.
 	DkimPubkeys []*DkimPubKey `protobuf:"bytes,2,rep,name=dkim_pubkeys,json=dkimPubkeys,proto3" json:"dkim_pubkeys,omitempty"`
 }
 
@@ -1006,6 +1073,9 @@ type Params struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+
+	// vkey defines the verification key used by the module.
+	Vkey []byte `protobuf:"bytes,1,opt,name=vkey,proto3" json:"vkey,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -1028,6 +1098,13 @@ func (*Params) Descriptor() ([]byte, []int) {
 	return file_xion_dkim_v1_genesis_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *Params) GetVkey() []byte {
+	if x != nil {
+		return x.Vkey
+	}
+	return nil
+}
+
 var File_xion_dkim_v1_genesis_proto protoreflect.FileDescriptor
 
 var file_xion_dkim_v1_genesis_proto_rawDesc = []byte{
@@ -1046,20 +1123,21 @@ var file_xion_dkim_v1_genesis_proto_rawDesc = []byte{
 	0x79, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e,
 	0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x6b, 0x69, 0x6d, 0x50, 0x75, 0x62, 0x4b,
 	0x65, 0x79, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x0b, 0x64, 0x6b, 0x69, 0x6d, 0x50, 0x75,
-	0x62, 0x6b, 0x65, 0x79, 0x73, 0x22, 0x22, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x3a,
-	0x18, 0x98, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x0b, 0x64, 0x6b,
-	0x69, 0x6d, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0xa6, 0x01, 0x0a, 0x10, 0x63, 0x6f,
-	0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x42, 0x0c,
-	0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x32,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74,
-	0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78,
-	0x69, 0x6f, 0x6e, 0x2f, 0x64, 0x6b, 0x69, 0x6d, 0x2f, 0x76, 0x31, 0x3b, 0x64, 0x6b, 0x69, 0x6d,
-	0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x44, 0x58, 0xaa, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x2e,
-	0x44, 0x6b, 0x69, 0x6d, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44,
-	0x6b, 0x69, 0x6d, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x18, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x44, 0x6b,
-	0x69, 0x6d, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
-	0x61, 0xea, 0x02, 0x0e, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x44, 0x6b, 0x69, 0x6d, 0x3a, 0x3a,
-	0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x62, 0x6b, 0x65, 0x79, 0x73, 0x22, 0x36, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12,
+	0x12, 0x0a, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x76,
+	0x6b, 0x65, 0x79, 0x3a, 0x18, 0x98, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0,
+	0x2a, 0x0b, 0x64, 0x6b, 0x69, 0x6d, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0xa6, 0x01,
+	0x0a, 0x10, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e,
+	0x76, 0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f,
+	0x50, 0x01, 0x5a, 0x32, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62,
+	0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61,
+	0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x64, 0x6b, 0x69, 0x6d, 0x2f, 0x76, 0x31, 0x3b,
+	0x64, 0x6b, 0x69, 0x6d, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x44, 0x58, 0xaa, 0x02, 0x0c, 0x58,
+	0x69, 0x6f, 0x6e, 0x2e, 0x44, 0x6b, 0x69, 0x6d, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0c, 0x58, 0x69,
+	0x6f, 0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x18, 0x58, 0x69, 0x6f,
+	0x6e, 0x5c, 0x44, 0x6b, 0x69, 0x6d, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
+	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0e, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x44, 0x6b,
+	0x69, 0x6d, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (

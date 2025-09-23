@@ -1711,29 +1711,11 @@ func (x *fastReflection_QueryOsmosisArithmeticTwapResponse) ProtoMethods() *prot
 }
 
 var (
-<<<<<<< HEAD
-	md_QueryFeeabsModuleBalacesRequest protoreflect.MessageDescriptor
-=======
 	md_QueryFeeabsModuleBalancesRequest protoreflect.MessageDescriptor
->>>>>>> release/v22
 )
 
 func init() {
 	file_xion_feeabs_v1beta1_query_proto_init()
-<<<<<<< HEAD
-	md_QueryFeeabsModuleBalacesRequest = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("QueryFeeabsModuleBalacesRequest")
-}
-
-var _ protoreflect.Message = (*fastReflection_QueryFeeabsModuleBalacesRequest)(nil)
-
-type fastReflection_QueryFeeabsModuleBalacesRequest QueryFeeabsModuleBalacesRequest
-
-func (x *QueryFeeabsModuleBalacesRequest) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryFeeabsModuleBalacesRequest)(x)
-}
-
-func (x *QueryFeeabsModuleBalacesRequest) slowProtoReflect() protoreflect.Message {
-=======
 	md_QueryFeeabsModuleBalancesRequest = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("QueryFeeabsModuleBalancesRequest")
 }
 
@@ -1746,7 +1728,6 @@ func (x *QueryFeeabsModuleBalancesRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryFeeabsModuleBalancesRequest) slowProtoReflect() protoreflect.Message {
->>>>>>> release/v22
 	mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1758,21 +1739,6 @@ func (x *QueryFeeabsModuleBalancesRequest) slowProtoReflect() protoreflect.Messa
 	return mi.MessageOf(x)
 }
 
-<<<<<<< HEAD
-var _fastReflection_QueryFeeabsModuleBalacesRequest_messageType fastReflection_QueryFeeabsModuleBalacesRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalacesRequest_messageType{}
-
-type fastReflection_QueryFeeabsModuleBalacesRequest_messageType struct{}
-
-func (x fastReflection_QueryFeeabsModuleBalacesRequest_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryFeeabsModuleBalacesRequest)(nil)
-}
-func (x fastReflection_QueryFeeabsModuleBalacesRequest_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryFeeabsModuleBalacesRequest)
-}
-func (x fastReflection_QueryFeeabsModuleBalacesRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryFeeabsModuleBalacesRequest
-=======
 var _fastReflection_QueryFeeabsModuleBalancesRequest_messageType fastReflection_QueryFeeabsModuleBalancesRequest_messageType
 var _ protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalancesRequest_messageType{}
 
@@ -1786,32 +1752,17 @@ func (x fastReflection_QueryFeeabsModuleBalancesRequest_messageType) New() proto
 }
 func (x fastReflection_QueryFeeabsModuleBalancesRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryFeeabsModuleBalancesRequest
->>>>>>> release/v22
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryFeeabsModuleBalacesRequest
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryFeeabsModuleBalancesRequest
->>>>>>> release/v22
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Type() protoreflect.MessageType {
-	return _fastReflection_QueryFeeabsModuleBalacesRequest_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) New() protoreflect.Message {
-	return new(fastReflection_QueryFeeabsModuleBalacesRequest)
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Type() protoreflect.MessageType {
 	return _fastReflection_QueryFeeabsModuleBalancesRequest_messageType
 }
@@ -1819,18 +1770,12 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Type() protoreflect.Me
 // New returns a newly allocated and mutable empty message.
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) New() protoreflect.Message {
 	return new(fastReflection_QueryFeeabsModuleBalancesRequest)
->>>>>>> release/v22
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Interface() protoreflect.ProtoMessage {
-	return (*QueryFeeabsModuleBalacesRequest)(x)
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Interface() protoreflect.ProtoMessage {
 	return (*QueryFeeabsModuleBalancesRequest)(x)
->>>>>>> release/v22
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -1838,11 +1783,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Interface() protorefle
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
->>>>>>> release/v22
 }
 
 // Has reports whether a field is populated.
@@ -1856,15 +1797,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Range(f func(protorefl
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	default:
@@ -1872,7 +1804,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Has(fd protoreflect.Fi
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -1882,15 +1813,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Has(fd protoreflect.Fi
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	default:
@@ -1898,7 +1820,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Clear(fd protoreflect.
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -1908,15 +1829,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Clear(fd protoreflect.
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest does not contain field %s", descriptor.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
 	default:
@@ -1924,7 +1836,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Get(descriptor protore
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest does not contain field %s", descriptor.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -1938,15 +1849,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Get(descriptor protore
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	default:
@@ -1954,7 +1856,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Set(fd protoreflect.Fi
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -1968,15 +1869,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Set(fd protoreflect.Fi
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	default:
@@ -1984,22 +1876,12 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) Mutable(fd protoreflec
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	default:
@@ -2007,24 +1889,16 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) NewField(fd protorefle
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest", d.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
 		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest", d.FullName()))
->>>>>>> release/v22
 	}
 	panic("unreachable")
 }
@@ -2032,11 +1906,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) WhichOneof(d protorefl
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) GetUnknown() protoreflect.RawFields {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) GetUnknown() protoreflect.RawFields {
->>>>>>> release/v22
 	return x.unknownFields
 }
 
@@ -2047,11 +1917,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) GetUnknown() protorefl
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) SetUnknown(fields protoreflect.RawFields) {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) SetUnknown(fields protoreflect.RawFields) {
->>>>>>> release/v22
 	x.unknownFields = fields
 }
 
@@ -2063,11 +1929,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) SetUnknown(fields prot
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) IsValid() bool {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) IsValid() bool {
->>>>>>> release/v22
 	return x != nil
 }
 
@@ -2077,15 +1939,9 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesRequest) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryFeeabsModuleBalacesRequest)
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesRequest) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
 		x := input.Message.Interface().(*QueryFeeabsModuleBalancesRequest)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2107,11 +1963,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) ProtoMethods() *protoi
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*QueryFeeabsModuleBalacesRequest)
-=======
 		x := input.Message.Interface().(*QueryFeeabsModuleBalancesRequest)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2141,11 +1993,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) ProtoMethods() *protoi
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*QueryFeeabsModuleBalacesRequest)
-=======
 		x := input.Message.Interface().(*QueryFeeabsModuleBalancesRequest)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2177,17 +2025,10 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) ProtoMethods() *protoi
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-<<<<<<< HEAD
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalacesRequest: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalacesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-=======
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalancesRequest: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalancesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
->>>>>>> release/v22
 			}
 			switch fieldNum {
 			default:
@@ -2225,15 +2066,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesRequest) ProtoMethods() *protoi
 	}
 }
 
-<<<<<<< HEAD
-var _ protoreflect.List = (*_QueryFeeabsModuleBalacesResponse_1_list)(nil)
-
-type _QueryFeeabsModuleBalacesResponse_1_list struct {
-	list *[]*v1beta1.Coin
-}
-
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) Len() int {
-=======
 var _ protoreflect.List = (*_QueryFeeabsModuleBalancesResponse_1_list)(nil)
 
 type _QueryFeeabsModuleBalancesResponse_1_list struct {
@@ -2241,109 +2073,58 @@ type _QueryFeeabsModuleBalancesResponse_1_list struct {
 }
 
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) Len() int {
->>>>>>> release/v22
 	if x.list == nil {
 		return 0
 	}
 	return len(*x.list)
 }
 
-<<<<<<< HEAD
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) Set(i int, value protoreflect.Value) {
-=======
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) Get(i int) protoreflect.Value {
 	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
 }
 
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) Set(i int, value protoreflect.Value) {
->>>>>>> release/v22
 	valueUnwrapped := value.Message()
 	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	(*x.list)[i] = concreteValue
 }
 
-<<<<<<< HEAD
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) Append(value protoreflect.Value) {
-=======
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) Append(value protoreflect.Value) {
->>>>>>> release/v22
 	valueUnwrapped := value.Message()
 	concreteValue := valueUnwrapped.Interface().(*v1beta1.Coin)
 	*x.list = append(*x.list, concreteValue)
 }
 
-<<<<<<< HEAD
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) AppendMutable() protoreflect.Value {
-=======
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) AppendMutable() protoreflect.Value {
->>>>>>> release/v22
 	v := new(v1beta1.Coin)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
-<<<<<<< HEAD
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) Truncate(n int) {
-=======
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) Truncate(n int) {
->>>>>>> release/v22
 	for i := n; i < len(*x.list); i++ {
 		(*x.list)[i] = nil
 	}
 	*x.list = (*x.list)[:n]
 }
 
-<<<<<<< HEAD
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) NewElement() protoreflect.Value {
-=======
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) NewElement() protoreflect.Value {
->>>>>>> release/v22
 	v := new(v1beta1.Coin)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
-<<<<<<< HEAD
-func (x *_QueryFeeabsModuleBalacesResponse_1_list) IsValid() bool {
-=======
 func (x *_QueryFeeabsModuleBalancesResponse_1_list) IsValid() bool {
->>>>>>> release/v22
 	return x.list != nil
 }
 
 var (
-<<<<<<< HEAD
-	md_QueryFeeabsModuleBalacesResponse          protoreflect.MessageDescriptor
-	fd_QueryFeeabsModuleBalacesResponse_balances protoreflect.FieldDescriptor
-	fd_QueryFeeabsModuleBalacesResponse_address  protoreflect.FieldDescriptor
-=======
 	md_QueryFeeabsModuleBalancesResponse          protoreflect.MessageDescriptor
 	fd_QueryFeeabsModuleBalancesResponse_balances protoreflect.FieldDescriptor
 	fd_QueryFeeabsModuleBalancesResponse_address  protoreflect.FieldDescriptor
->>>>>>> release/v22
 )
 
 func init() {
 	file_xion_feeabs_v1beta1_query_proto_init()
-<<<<<<< HEAD
-	md_QueryFeeabsModuleBalacesResponse = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("QueryFeeabsModuleBalacesResponse")
-	fd_QueryFeeabsModuleBalacesResponse_balances = md_QueryFeeabsModuleBalacesResponse.Fields().ByName("balances")
-	fd_QueryFeeabsModuleBalacesResponse_address = md_QueryFeeabsModuleBalacesResponse.Fields().ByName("address")
-}
-
-var _ protoreflect.Message = (*fastReflection_QueryFeeabsModuleBalacesResponse)(nil)
-
-type fastReflection_QueryFeeabsModuleBalacesResponse QueryFeeabsModuleBalacesResponse
-
-func (x *QueryFeeabsModuleBalacesResponse) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryFeeabsModuleBalacesResponse)(x)
-}
-
-func (x *QueryFeeabsModuleBalacesResponse) slowProtoReflect() protoreflect.Message {
-=======
 	md_QueryFeeabsModuleBalancesResponse = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("QueryFeeabsModuleBalancesResponse")
 	fd_QueryFeeabsModuleBalancesResponse_balances = md_QueryFeeabsModuleBalancesResponse.Fields().ByName("balances")
 	fd_QueryFeeabsModuleBalancesResponse_address = md_QueryFeeabsModuleBalancesResponse.Fields().ByName("address")
@@ -2358,7 +2139,6 @@ func (x *QueryFeeabsModuleBalancesResponse) ProtoReflect() protoreflect.Message 
 }
 
 func (x *QueryFeeabsModuleBalancesResponse) slowProtoReflect() protoreflect.Message {
->>>>>>> release/v22
 	mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2370,21 +2150,6 @@ func (x *QueryFeeabsModuleBalancesResponse) slowProtoReflect() protoreflect.Mess
 	return mi.MessageOf(x)
 }
 
-<<<<<<< HEAD
-var _fastReflection_QueryFeeabsModuleBalacesResponse_messageType fastReflection_QueryFeeabsModuleBalacesResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalacesResponse_messageType{}
-
-type fastReflection_QueryFeeabsModuleBalacesResponse_messageType struct{}
-
-func (x fastReflection_QueryFeeabsModuleBalacesResponse_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryFeeabsModuleBalacesResponse)(nil)
-}
-func (x fastReflection_QueryFeeabsModuleBalacesResponse_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryFeeabsModuleBalacesResponse)
-}
-func (x fastReflection_QueryFeeabsModuleBalacesResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryFeeabsModuleBalacesResponse
-=======
 var _fastReflection_QueryFeeabsModuleBalancesResponse_messageType fastReflection_QueryFeeabsModuleBalancesResponse_messageType
 var _ protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalancesResponse_messageType{}
 
@@ -2398,32 +2163,17 @@ func (x fastReflection_QueryFeeabsModuleBalancesResponse_messageType) New() prot
 }
 func (x fastReflection_QueryFeeabsModuleBalancesResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryFeeabsModuleBalancesResponse
->>>>>>> release/v22
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryFeeabsModuleBalacesResponse
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryFeeabsModuleBalancesResponse
->>>>>>> release/v22
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Type() protoreflect.MessageType {
-	return _fastReflection_QueryFeeabsModuleBalacesResponse_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) New() protoreflect.Message {
-	return new(fastReflection_QueryFeeabsModuleBalacesResponse)
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Type() protoreflect.MessageType {
 	return _fastReflection_QueryFeeabsModuleBalancesResponse_messageType
 }
@@ -2431,18 +2181,12 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Type() protoreflect.M
 // New returns a newly allocated and mutable empty message.
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) New() protoreflect.Message {
 	return new(fastReflection_QueryFeeabsModuleBalancesResponse)
->>>>>>> release/v22
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Interface() protoreflect.ProtoMessage {
-	return (*QueryFeeabsModuleBalacesResponse)(x)
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Interface() protoreflect.ProtoMessage {
 	return (*QueryFeeabsModuleBalancesResponse)(x)
->>>>>>> release/v22
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -2450,27 +2194,16 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Interface() protorefl
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if len(x.Balances) != 0 {
-		value := protoreflect.ValueOfList(&_QueryFeeabsModuleBalacesResponse_1_list{list: &x.Balances})
-		if !f(fd_QueryFeeabsModuleBalacesResponse_balances, value) {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if len(x.Balances) != 0 {
 		value := protoreflect.ValueOfList(&_QueryFeeabsModuleBalancesResponse_1_list{list: &x.Balances})
 		if !f(fd_QueryFeeabsModuleBalancesResponse_balances, value) {
->>>>>>> release/v22
 			return
 		}
 	}
 	if x.Address != "" {
 		value := protoreflect.ValueOfString(x.Address)
-<<<<<<< HEAD
-		if !f(fd_QueryFeeabsModuleBalacesResponse_address, value) {
-=======
 		if !f(fd_QueryFeeabsModuleBalancesResponse_address, value) {
->>>>>>> release/v22
 			return
 		}
 	}
@@ -2487,19 +2220,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Range(f func(protoref
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.balances":
-		return len(x.Balances) != 0
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.address":
-		return x.Address != ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances":
@@ -2511,7 +2231,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Has(fd protoreflect.F
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -2521,19 +2240,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Has(fd protoreflect.F
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.balances":
-		x.Balances = nil
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.address":
-		x.Address = ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances":
@@ -2545,7 +2251,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Clear(fd protoreflect
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -2555,17 +2260,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Clear(fd protoreflect
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.balances":
-		if len(x.Balances) == 0 {
-			return protoreflect.ValueOfList(&_QueryFeeabsModuleBalacesResponse_1_list{})
-		}
-		listValue := &_QueryFeeabsModuleBalacesResponse_1_list{list: &x.Balances}
-		return protoreflect.ValueOfList(listValue)
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.address":
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
 	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances":
@@ -2575,20 +2269,13 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Get(descriptor protor
 		listValue := &_QueryFeeabsModuleBalancesResponse_1_list{list: &x.Balances}
 		return protoreflect.ValueOfList(listValue)
 	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.address":
->>>>>>> release/v22
 		value := x.Address
 		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
-<<<<<<< HEAD
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse does not contain field %s", descriptor.FullName()))
-=======
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse does not contain field %s", descriptor.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -2602,21 +2289,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Get(descriptor protor
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.balances":
-		lv := value.List()
-		clv := lv.(*_QueryFeeabsModuleBalacesResponse_1_list)
-		x.Balances = *clv.list
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.address":
-		x.Address = value.Interface().(string)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances":
@@ -2630,7 +2302,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Set(fd protoreflect.F
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -2644,23 +2315,6 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Set(fd protoreflect.F
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.balances":
-		if x.Balances == nil {
-			x.Balances = []*v1beta1.Coin{}
-		}
-		value := &_QueryFeeabsModuleBalacesResponse_1_list{list: &x.Balances}
-		return protoreflect.ValueOfList(value)
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.address":
-		panic(fmt.Errorf("field address of message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse is not mutable"))
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances":
@@ -2676,27 +2330,12 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) Mutable(fd protorefle
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.balances":
-		list := []*v1beta1.Coin{}
-		return protoreflect.ValueOfList(&_QueryFeeabsModuleBalacesResponse_1_list{list: &list})
-	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.address":
-		return protoreflect.ValueOfString("")
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances":
@@ -2709,24 +2348,16 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) NewField(fd protorefl
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse", d.FullName()))
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
 		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse", d.FullName()))
->>>>>>> release/v22
 	}
 	panic("unreachable")
 }
@@ -2734,11 +2365,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) WhichOneof(d protoref
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) GetUnknown() protoreflect.RawFields {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) GetUnknown() protoreflect.RawFields {
->>>>>>> release/v22
 	return x.unknownFields
 }
 
@@ -2749,11 +2376,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) GetUnknown() protoref
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) SetUnknown(fields protoreflect.RawFields) {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) SetUnknown(fields protoreflect.RawFields) {
->>>>>>> release/v22
 	x.unknownFields = fields
 }
 
@@ -2765,11 +2388,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) SetUnknown(fields pro
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) IsValid() bool {
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) IsValid() bool {
->>>>>>> release/v22
 	return x != nil
 }
 
@@ -2779,15 +2398,9 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-<<<<<<< HEAD
-func (x *fastReflection_QueryFeeabsModuleBalacesResponse) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryFeeabsModuleBalacesResponse)
-=======
 func (x *fastReflection_QueryFeeabsModuleBalancesResponse) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
 		x := input.Message.Interface().(*QueryFeeabsModuleBalancesResponse)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2819,11 +2432,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) ProtoMethods() *proto
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*QueryFeeabsModuleBalacesResponse)
-=======
 		x := input.Message.Interface().(*QueryFeeabsModuleBalancesResponse)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2876,11 +2485,7 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) ProtoMethods() *proto
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*QueryFeeabsModuleBalacesResponse)
-=======
 		x := input.Message.Interface().(*QueryFeeabsModuleBalancesResponse)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -2912,17 +2517,10 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) ProtoMethods() *proto
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-<<<<<<< HEAD
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalacesResponse: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalacesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-=======
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalancesResponse: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryFeeabsModuleBalancesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
->>>>>>> release/v22
 			}
 			switch fieldNum {
 			case 1:
@@ -3027,29 +2625,11 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) ProtoMethods() *proto
 }
 
 var (
-<<<<<<< HEAD
-	md_AllQueryHostChainConfigRequest protoreflect.MessageDescriptor
-=======
 	md_QueryAllHostChainConfigRequest protoreflect.MessageDescriptor
->>>>>>> release/v22
 )
 
 func init() {
 	file_xion_feeabs_v1beta1_query_proto_init()
-<<<<<<< HEAD
-	md_AllQueryHostChainConfigRequest = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("AllQueryHostChainConfigRequest")
-}
-
-var _ protoreflect.Message = (*fastReflection_AllQueryHostChainConfigRequest)(nil)
-
-type fastReflection_AllQueryHostChainConfigRequest AllQueryHostChainConfigRequest
-
-func (x *AllQueryHostChainConfigRequest) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_AllQueryHostChainConfigRequest)(x)
-}
-
-func (x *AllQueryHostChainConfigRequest) slowProtoReflect() protoreflect.Message {
-=======
 	md_QueryAllHostChainConfigRequest = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("QueryAllHostChainConfigRequest")
 }
 
@@ -3062,7 +2642,6 @@ func (x *QueryAllHostChainConfigRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryAllHostChainConfigRequest) slowProtoReflect() protoreflect.Message {
->>>>>>> release/v22
 	mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3074,21 +2653,6 @@ func (x *QueryAllHostChainConfigRequest) slowProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-<<<<<<< HEAD
-var _fastReflection_AllQueryHostChainConfigRequest_messageType fastReflection_AllQueryHostChainConfigRequest_messageType
-var _ protoreflect.MessageType = fastReflection_AllQueryHostChainConfigRequest_messageType{}
-
-type fastReflection_AllQueryHostChainConfigRequest_messageType struct{}
-
-func (x fastReflection_AllQueryHostChainConfigRequest_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_AllQueryHostChainConfigRequest)(nil)
-}
-func (x fastReflection_AllQueryHostChainConfigRequest_messageType) New() protoreflect.Message {
-	return new(fastReflection_AllQueryHostChainConfigRequest)
-}
-func (x fastReflection_AllQueryHostChainConfigRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_AllQueryHostChainConfigRequest
-=======
 var _fastReflection_QueryAllHostChainConfigRequest_messageType fastReflection_QueryAllHostChainConfigRequest_messageType
 var _ protoreflect.MessageType = fastReflection_QueryAllHostChainConfigRequest_messageType{}
 
@@ -3102,32 +2666,17 @@ func (x fastReflection_QueryAllHostChainConfigRequest_messageType) New() protore
 }
 func (x fastReflection_QueryAllHostChainConfigRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllHostChainConfigRequest
->>>>>>> release/v22
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Descriptor() protoreflect.MessageDescriptor {
-	return md_AllQueryHostChainConfigRequest
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllHostChainConfigRequest
->>>>>>> release/v22
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Type() protoreflect.MessageType {
-	return _fastReflection_AllQueryHostChainConfigRequest_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_AllQueryHostChainConfigRequest) New() protoreflect.Message {
-	return new(fastReflection_AllQueryHostChainConfigRequest)
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Type() protoreflect.MessageType {
 	return _fastReflection_QueryAllHostChainConfigRequest_messageType
 }
@@ -3135,18 +2684,12 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Type() protoreflect.Mess
 // New returns a newly allocated and mutable empty message.
 func (x *fastReflection_QueryAllHostChainConfigRequest) New() protoreflect.Message {
 	return new(fastReflection_QueryAllHostChainConfigRequest)
->>>>>>> release/v22
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Interface() protoreflect.ProtoMessage {
-	return (*AllQueryHostChainConfigRequest)(x)
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Interface() protoreflect.ProtoMessage {
 	return (*QueryAllHostChainConfigRequest)(x)
->>>>>>> release/v22
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -3154,11 +2697,7 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Interface() protoreflect
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
->>>>>>> release/v22
 }
 
 // Has reports whether a field is populated.
@@ -3172,15 +2711,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Range(f func(protoreflec
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	default:
@@ -3188,7 +2718,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Has(fd protoreflect.Fiel
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3198,15 +2727,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Has(fd protoreflect.Fiel
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	default:
@@ -3214,7 +2734,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Clear(fd protoreflect.Fi
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3224,15 +2743,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Clear(fd protoreflect.Fi
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigRequest does not contain field %s", descriptor.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
 	default:
@@ -3240,7 +2750,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Get(descriptor protorefl
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigRequest does not contain field %s", descriptor.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3254,15 +2763,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Get(descriptor protorefl
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	default:
@@ -3270,7 +2770,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Set(fd protoreflect.Fiel
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3284,15 +2783,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Set(fd protoreflect.Fiel
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	default:
@@ -3300,22 +2790,12 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) Mutable(fd protoreflect.
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigRequest"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigRequest does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	default:
@@ -3323,24 +2803,16 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) NewField(fd protoreflect
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigRequest does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.AllQueryHostChainConfigRequest", d.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
 		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.QueryAllHostChainConfigRequest", d.FullName()))
->>>>>>> release/v22
 	}
 	panic("unreachable")
 }
@@ -3348,11 +2820,7 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) WhichOneof(d protoreflec
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) GetUnknown() protoreflect.RawFields {
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) GetUnknown() protoreflect.RawFields {
->>>>>>> release/v22
 	return x.unknownFields
 }
 
@@ -3363,11 +2831,7 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) GetUnknown() protoreflec
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) SetUnknown(fields protoreflect.RawFields) {
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) SetUnknown(fields protoreflect.RawFields) {
->>>>>>> release/v22
 	x.unknownFields = fields
 }
 
@@ -3379,11 +2843,7 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) SetUnknown(fields protor
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) IsValid() bool {
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) IsValid() bool {
->>>>>>> release/v22
 	return x != nil
 }
 
@@ -3393,15 +2853,9 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigRequest) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*AllQueryHostChainConfigRequest)
-=======
 func (x *fastReflection_QueryAllHostChainConfigRequest) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
 		x := input.Message.Interface().(*QueryAllHostChainConfigRequest)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -3423,11 +2877,7 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) ProtoMethods() *protoifa
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*AllQueryHostChainConfigRequest)
-=======
 		x := input.Message.Interface().(*QueryAllHostChainConfigRequest)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -3457,11 +2907,7 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) ProtoMethods() *protoifa
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*AllQueryHostChainConfigRequest)
-=======
 		x := input.Message.Interface().(*QueryAllHostChainConfigRequest)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -3493,17 +2939,10 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) ProtoMethods() *protoifa
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-<<<<<<< HEAD
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: AllQueryHostChainConfigRequest: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: AllQueryHostChainConfigRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-=======
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAllHostChainConfigRequest: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAllHostChainConfigRequest: illegal tag %d (wire type %d)", fieldNum, wire)
->>>>>>> release/v22
 			}
 			switch fieldNum {
 			default:
@@ -3541,15 +2980,6 @@ func (x *fastReflection_QueryAllHostChainConfigRequest) ProtoMethods() *protoifa
 	}
 }
 
-<<<<<<< HEAD
-var _ protoreflect.List = (*_AllQueryHostChainConfigResponse_1_list)(nil)
-
-type _AllQueryHostChainConfigResponse_1_list struct {
-	list *[]*HostChainFeeAbsConfig
-}
-
-func (x *_AllQueryHostChainConfigResponse_1_list) Len() int {
-=======
 var _ protoreflect.List = (*_QueryAllHostChainConfigResponse_1_list)(nil)
 
 type _QueryAllHostChainConfigResponse_1_list struct {
@@ -3557,106 +2987,57 @@ type _QueryAllHostChainConfigResponse_1_list struct {
 }
 
 func (x *_QueryAllHostChainConfigResponse_1_list) Len() int {
->>>>>>> release/v22
 	if x.list == nil {
 		return 0
 	}
 	return len(*x.list)
 }
 
-<<<<<<< HEAD
-func (x *_AllQueryHostChainConfigResponse_1_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_AllQueryHostChainConfigResponse_1_list) Set(i int, value protoreflect.Value) {
-=======
 func (x *_QueryAllHostChainConfigResponse_1_list) Get(i int) protoreflect.Value {
 	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
 }
 
 func (x *_QueryAllHostChainConfigResponse_1_list) Set(i int, value protoreflect.Value) {
->>>>>>> release/v22
 	valueUnwrapped := value.Message()
 	concreteValue := valueUnwrapped.Interface().(*HostChainFeeAbsConfig)
 	(*x.list)[i] = concreteValue
 }
 
-<<<<<<< HEAD
-func (x *_AllQueryHostChainConfigResponse_1_list) Append(value protoreflect.Value) {
-=======
 func (x *_QueryAllHostChainConfigResponse_1_list) Append(value protoreflect.Value) {
->>>>>>> release/v22
 	valueUnwrapped := value.Message()
 	concreteValue := valueUnwrapped.Interface().(*HostChainFeeAbsConfig)
 	*x.list = append(*x.list, concreteValue)
 }
 
-<<<<<<< HEAD
-func (x *_AllQueryHostChainConfigResponse_1_list) AppendMutable() protoreflect.Value {
-=======
 func (x *_QueryAllHostChainConfigResponse_1_list) AppendMutable() protoreflect.Value {
->>>>>>> release/v22
 	v := new(HostChainFeeAbsConfig)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
-<<<<<<< HEAD
-func (x *_AllQueryHostChainConfigResponse_1_list) Truncate(n int) {
-=======
 func (x *_QueryAllHostChainConfigResponse_1_list) Truncate(n int) {
->>>>>>> release/v22
 	for i := n; i < len(*x.list); i++ {
 		(*x.list)[i] = nil
 	}
 	*x.list = (*x.list)[:n]
 }
 
-<<<<<<< HEAD
-func (x *_AllQueryHostChainConfigResponse_1_list) NewElement() protoreflect.Value {
-=======
 func (x *_QueryAllHostChainConfigResponse_1_list) NewElement() protoreflect.Value {
->>>>>>> release/v22
 	v := new(HostChainFeeAbsConfig)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
-<<<<<<< HEAD
-func (x *_AllQueryHostChainConfigResponse_1_list) IsValid() bool {
-=======
 func (x *_QueryAllHostChainConfigResponse_1_list) IsValid() bool {
->>>>>>> release/v22
 	return x.list != nil
 }
 
 var (
-<<<<<<< HEAD
-	md_AllQueryHostChainConfigResponse                       protoreflect.MessageDescriptor
-	fd_AllQueryHostChainConfigResponse_all_host_chain_config protoreflect.FieldDescriptor
-=======
 	md_QueryAllHostChainConfigResponse                       protoreflect.MessageDescriptor
 	fd_QueryAllHostChainConfigResponse_all_host_chain_config protoreflect.FieldDescriptor
->>>>>>> release/v22
 )
 
 func init() {
 	file_xion_feeabs_v1beta1_query_proto_init()
-<<<<<<< HEAD
-	md_AllQueryHostChainConfigResponse = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("AllQueryHostChainConfigResponse")
-	fd_AllQueryHostChainConfigResponse_all_host_chain_config = md_AllQueryHostChainConfigResponse.Fields().ByName("all_host_chain_config")
-}
-
-var _ protoreflect.Message = (*fastReflection_AllQueryHostChainConfigResponse)(nil)
-
-type fastReflection_AllQueryHostChainConfigResponse AllQueryHostChainConfigResponse
-
-func (x *AllQueryHostChainConfigResponse) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_AllQueryHostChainConfigResponse)(x)
-}
-
-func (x *AllQueryHostChainConfigResponse) slowProtoReflect() protoreflect.Message {
-=======
 	md_QueryAllHostChainConfigResponse = File_xion_feeabs_v1beta1_query_proto.Messages().ByName("QueryAllHostChainConfigResponse")
 	fd_QueryAllHostChainConfigResponse_all_host_chain_config = md_QueryAllHostChainConfigResponse.Fields().ByName("all_host_chain_config")
 }
@@ -3670,7 +3051,6 @@ func (x *QueryAllHostChainConfigResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryAllHostChainConfigResponse) slowProtoReflect() protoreflect.Message {
->>>>>>> release/v22
 	mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3682,21 +3062,6 @@ func (x *QueryAllHostChainConfigResponse) slowProtoReflect() protoreflect.Messag
 	return mi.MessageOf(x)
 }
 
-<<<<<<< HEAD
-var _fastReflection_AllQueryHostChainConfigResponse_messageType fastReflection_AllQueryHostChainConfigResponse_messageType
-var _ protoreflect.MessageType = fastReflection_AllQueryHostChainConfigResponse_messageType{}
-
-type fastReflection_AllQueryHostChainConfigResponse_messageType struct{}
-
-func (x fastReflection_AllQueryHostChainConfigResponse_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_AllQueryHostChainConfigResponse)(nil)
-}
-func (x fastReflection_AllQueryHostChainConfigResponse_messageType) New() protoreflect.Message {
-	return new(fastReflection_AllQueryHostChainConfigResponse)
-}
-func (x fastReflection_AllQueryHostChainConfigResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_AllQueryHostChainConfigResponse
-=======
 var _fastReflection_QueryAllHostChainConfigResponse_messageType fastReflection_QueryAllHostChainConfigResponse_messageType
 var _ protoreflect.MessageType = fastReflection_QueryAllHostChainConfigResponse_messageType{}
 
@@ -3710,32 +3075,17 @@ func (x fastReflection_QueryAllHostChainConfigResponse_messageType) New() protor
 }
 func (x fastReflection_QueryAllHostChainConfigResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllHostChainConfigResponse
->>>>>>> release/v22
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Descriptor() protoreflect.MessageDescriptor {
-	return md_AllQueryHostChainConfigResponse
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllHostChainConfigResponse
->>>>>>> release/v22
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Type() protoreflect.MessageType {
-	return _fastReflection_AllQueryHostChainConfigResponse_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_AllQueryHostChainConfigResponse) New() protoreflect.Message {
-	return new(fastReflection_AllQueryHostChainConfigResponse)
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Type() protoreflect.MessageType {
 	return _fastReflection_QueryAllHostChainConfigResponse_messageType
 }
@@ -3743,18 +3093,12 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Type() protoreflect.Mes
 // New returns a newly allocated and mutable empty message.
 func (x *fastReflection_QueryAllHostChainConfigResponse) New() protoreflect.Message {
 	return new(fastReflection_QueryAllHostChainConfigResponse)
->>>>>>> release/v22
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Interface() protoreflect.ProtoMessage {
-	return (*AllQueryHostChainConfigResponse)(x)
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Interface() protoreflect.ProtoMessage {
 	return (*QueryAllHostChainConfigResponse)(x)
->>>>>>> release/v22
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -3762,17 +3106,10 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Interface() protoreflec
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if len(x.AllHostChainConfig) != 0 {
-		value := protoreflect.ValueOfList(&_AllQueryHostChainConfigResponse_1_list{list: &x.AllHostChainConfig})
-		if !f(fd_AllQueryHostChainConfigResponse_all_host_chain_config, value) {
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if len(x.AllHostChainConfig) != 0 {
 		value := protoreflect.ValueOfList(&_QueryAllHostChainConfigResponse_1_list{list: &x.AllHostChainConfig})
 		if !f(fd_QueryAllHostChainConfigResponse_all_host_chain_config, value) {
->>>>>>> release/v22
 			return
 		}
 	}
@@ -3789,17 +3126,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Range(f func(protorefle
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.AllQueryHostChainConfigResponse.all_host_chain_config":
-		return len(x.AllHostChainConfig) != 0
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryAllHostChainConfigResponse.all_host_chain_config":
@@ -3809,7 +3135,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Has(fd protoreflect.Fie
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3819,17 +3144,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Has(fd protoreflect.Fie
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.AllQueryHostChainConfigResponse.all_host_chain_config":
-		x.AllHostChainConfig = nil
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryAllHostChainConfigResponse.all_host_chain_config":
@@ -3839,7 +3153,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Clear(fd protoreflect.F
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3849,21 +3162,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Clear(fd protoreflect.F
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "xion.feeabs.v1beta1.AllQueryHostChainConfigResponse.all_host_chain_config":
-		if len(x.AllHostChainConfig) == 0 {
-			return protoreflect.ValueOfList(&_AllQueryHostChainConfigResponse_1_list{})
-		}
-		listValue := &_AllQueryHostChainConfigResponse_1_list{list: &x.AllHostChainConfig}
-		return protoreflect.ValueOfList(listValue)
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigResponse does not contain field %s", descriptor.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
 	case "xion.feeabs.v1beta1.QueryAllHostChainConfigResponse.all_host_chain_config":
@@ -3877,7 +3175,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Get(descriptor protoref
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigResponse does not contain field %s", descriptor.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3891,19 +3188,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Get(descriptor protoref
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.AllQueryHostChainConfigResponse.all_host_chain_config":
-		lv := value.List()
-		clv := lv.(*_AllQueryHostChainConfigResponse_1_list)
-		x.AllHostChainConfig = *clv.list
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryAllHostChainConfigResponse.all_host_chain_config":
@@ -3915,7 +3199,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Set(fd protoreflect.Fie
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
@@ -3929,21 +3212,6 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Set(fd protoreflect.Fie
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.AllQueryHostChainConfigResponse.all_host_chain_config":
-		if x.AllHostChainConfig == nil {
-			x.AllHostChainConfig = []*HostChainFeeAbsConfig{}
-		}
-		value := &_AllQueryHostChainConfigResponse_1_list{list: &x.AllHostChainConfig}
-		return protoreflect.ValueOfList(value)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryAllHostChainConfigResponse.all_host_chain_config":
@@ -3957,25 +3225,12 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) Mutable(fd protoreflect
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "xion.feeabs.v1beta1.AllQueryHostChainConfigResponse.all_host_chain_config":
-		list := []*HostChainFeeAbsConfig{}
-		return protoreflect.ValueOfList(&_AllQueryHostChainConfigResponse_1_list{list: &list})
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse"))
-		}
-		panic(fmt.Errorf("message xion.feeabs.v1beta1.AllQueryHostChainConfigResponse does not contain field %s", fd.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "xion.feeabs.v1beta1.QueryAllHostChainConfigResponse.all_host_chain_config":
@@ -3986,24 +3241,16 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) NewField(fd protoreflec
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse"))
 		}
 		panic(fmt.Errorf("message xion.feeabs.v1beta1.QueryAllHostChainConfigResponse does not contain field %s", fd.FullName()))
->>>>>>> release/v22
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.AllQueryHostChainConfigResponse", d.FullName()))
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
 		panic(fmt.Errorf("%s is not a oneof field in xion.feeabs.v1beta1.QueryAllHostChainConfigResponse", d.FullName()))
->>>>>>> release/v22
 	}
 	panic("unreachable")
 }
@@ -4011,11 +3258,7 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) WhichOneof(d protorefle
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) GetUnknown() protoreflect.RawFields {
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) GetUnknown() protoreflect.RawFields {
->>>>>>> release/v22
 	return x.unknownFields
 }
 
@@ -4026,11 +3269,7 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) GetUnknown() protorefle
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) SetUnknown(fields protoreflect.RawFields) {
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) SetUnknown(fields protoreflect.RawFields) {
->>>>>>> release/v22
 	x.unknownFields = fields
 }
 
@@ -4042,11 +3281,7 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) SetUnknown(fields proto
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) IsValid() bool {
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) IsValid() bool {
->>>>>>> release/v22
 	return x != nil
 }
 
@@ -4056,15 +3291,9 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-<<<<<<< HEAD
-func (x *fastReflection_AllQueryHostChainConfigResponse) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*AllQueryHostChainConfigResponse)
-=======
 func (x *fastReflection_QueryAllHostChainConfigResponse) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
 		x := input.Message.Interface().(*QueryAllHostChainConfigResponse)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4092,11 +3321,7 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) ProtoMethods() *protoif
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*AllQueryHostChainConfigResponse)
-=======
 		x := input.Message.Interface().(*QueryAllHostChainConfigResponse)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4142,11 +3367,7 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) ProtoMethods() *protoif
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-<<<<<<< HEAD
-		x := input.Message.Interface().(*AllQueryHostChainConfigResponse)
-=======
 		x := input.Message.Interface().(*QueryAllHostChainConfigResponse)
->>>>>>> release/v22
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4178,17 +3399,10 @@ func (x *fastReflection_QueryAllHostChainConfigResponse) ProtoMethods() *protoif
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-<<<<<<< HEAD
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: AllQueryHostChainConfigResponse: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: AllQueryHostChainConfigResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-=======
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAllHostChainConfigResponse: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
 				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAllHostChainConfigResponse: illegal tag %d (wire type %d)", fieldNum, wire)
->>>>>>> release/v22
 			}
 			switch fieldNum {
 			case 1:
@@ -4279,10 +3493,7 @@ type QueryHostChainConfigRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The IBC denomination to query configuration for
->>>>>>> release/v22
 	IbcDenom string `protobuf:"bytes,1,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
@@ -4319,10 +3530,7 @@ type QueryHostChainConfigResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The host chain fee abstraction configuration
->>>>>>> release/v22
 	HostChainConfig *HostChainFeeAbsConfig `protobuf:"bytes,1,opt,name=host_chain_config,json=hostChainConfig,proto3" json:"host_chain_config,omitempty"`
 }
 
@@ -4360,10 +3568,7 @@ type QueryOsmosisArithmeticTwapRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The IBC denomination to query TWAP for
->>>>>>> release/v22
 	IbcDenom string `protobuf:"bytes,1,opt,name=ibc_denom,json=ibcDenom,proto3" json:"ibc_denom,omitempty"`
 }
 
@@ -4400,10 +3605,7 @@ type QueryOsmosisArithmeticTwapResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-=======
 	// The arithmetic time-weighted average price
->>>>>>> release/v22
 	ArithmeticTwap string `protobuf:"bytes,1,opt,name=arithmetic_twap,json=arithmeticTwap,proto3" json:"arithmetic_twap,omitempty"`
 }
 
@@ -4434,27 +3636,16 @@ func (x *QueryOsmosisArithmeticTwapResponse) GetArithmeticTwap() string {
 	return ""
 }
 
-<<<<<<< HEAD
-// QueryFeeabsModuleBalacesRequest is the request type for the Query/Feeabs RPC
-// method.
-type QueryFeeabsModuleBalacesRequest struct {
-=======
 // QueryFeeabsModuleBalancesRequest is the request type for the Query/Feeabs RPC
 // method.
 type QueryFeeabsModuleBalancesRequest struct {
->>>>>>> release/v22
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-<<<<<<< HEAD
-func (x *QueryFeeabsModuleBalacesRequest) Reset() {
-	*x = QueryFeeabsModuleBalacesRequest{}
-=======
 func (x *QueryFeeabsModuleBalancesRequest) Reset() {
 	*x = QueryFeeabsModuleBalancesRequest{}
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled {
 		mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4462,21 +3653,6 @@ func (x *QueryFeeabsModuleBalancesRequest) Reset() {
 	}
 }
 
-<<<<<<< HEAD
-func (x *QueryFeeabsModuleBalacesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*QueryFeeabsModuleBalacesRequest) ProtoMessage() {}
-
-// Deprecated: Use QueryFeeabsModuleBalacesRequest.ProtoReflect.Descriptor instead.
-func (*QueryFeeabsModuleBalacesRequest) Descriptor() ([]byte, []int) {
-	return file_xion_feeabs_v1beta1_query_proto_rawDescGZIP(), []int{4}
-}
-
-// QueryFeeabsModuleBalacesResponse
-type QueryFeeabsModuleBalacesResponse struct {
-=======
 func (x *QueryFeeabsModuleBalancesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
@@ -4490,19 +3666,10 @@ func (*QueryFeeabsModuleBalancesRequest) Descriptor() ([]byte, []int) {
 
 // QueryFeeabsModuleBalancesResponse
 type QueryFeeabsModuleBalancesResponse struct {
->>>>>>> release/v22
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	Balances []*v1beta1.Coin `protobuf:"bytes,1,rep,name=balances,proto3" json:"balances,omitempty"`
-	Address  string          `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-}
-
-func (x *QueryFeeabsModuleBalacesResponse) Reset() {
-	*x = QueryFeeabsModuleBalacesResponse{}
-=======
 	// The coin balances held by the feeabs module
 	Balances []*v1beta1.Coin `protobuf:"bytes,1,rep,name=balances,proto3" json:"balances,omitempty"`
 	// The address of the feeabs module
@@ -4511,7 +3678,6 @@ func (x *QueryFeeabsModuleBalacesResponse) Reset() {
 
 func (x *QueryFeeabsModuleBalancesResponse) Reset() {
 	*x = QueryFeeabsModuleBalancesResponse{}
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled {
 		mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4519,20 +3685,6 @@ func (x *QueryFeeabsModuleBalancesResponse) Reset() {
 	}
 }
 
-<<<<<<< HEAD
-func (x *QueryFeeabsModuleBalacesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*QueryFeeabsModuleBalacesResponse) ProtoMessage() {}
-
-// Deprecated: Use QueryFeeabsModuleBalacesResponse.ProtoReflect.Descriptor instead.
-func (*QueryFeeabsModuleBalacesResponse) Descriptor() ([]byte, []int) {
-	return file_xion_feeabs_v1beta1_query_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *QueryFeeabsModuleBalacesResponse) GetBalances() []*v1beta1.Coin {
-=======
 func (x *QueryFeeabsModuleBalancesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
@@ -4545,43 +3697,28 @@ func (*QueryFeeabsModuleBalancesResponse) Descriptor() ([]byte, []int) {
 }
 
 func (x *QueryFeeabsModuleBalancesResponse) GetBalances() []*v1beta1.Coin {
->>>>>>> release/v22
 	if x != nil {
 		return x.Balances
 	}
 	return nil
 }
 
-<<<<<<< HEAD
-func (x *QueryFeeabsModuleBalacesResponse) GetAddress() string {
-=======
 func (x *QueryFeeabsModuleBalancesResponse) GetAddress() string {
->>>>>>> release/v22
 	if x != nil {
 		return x.Address
 	}
 	return ""
 }
 
-<<<<<<< HEAD
-// AllQueryHostChainConfigRequest
-type AllQueryHostChainConfigRequest struct {
-=======
 // QueryAllHostChainConfigRequest
 type QueryAllHostChainConfigRequest struct {
->>>>>>> release/v22
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 }
 
-<<<<<<< HEAD
-func (x *AllQueryHostChainConfigRequest) Reset() {
-	*x = AllQueryHostChainConfigRequest{}
-=======
 func (x *QueryAllHostChainConfigRequest) Reset() {
 	*x = QueryAllHostChainConfigRequest{}
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled {
 		mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4589,21 +3726,6 @@ func (x *QueryAllHostChainConfigRequest) Reset() {
 	}
 }
 
-<<<<<<< HEAD
-func (x *AllQueryHostChainConfigRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AllQueryHostChainConfigRequest) ProtoMessage() {}
-
-// Deprecated: Use AllQueryHostChainConfigRequest.ProtoReflect.Descriptor instead.
-func (*AllQueryHostChainConfigRequest) Descriptor() ([]byte, []int) {
-	return file_xion_feeabs_v1beta1_query_proto_rawDescGZIP(), []int{6}
-}
-
-// AllQueryHostChainConfigResponse
-type AllQueryHostChainConfigResponse struct {
-=======
 func (x *QueryAllHostChainConfigRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
@@ -4617,25 +3739,16 @@ func (*QueryAllHostChainConfigRequest) Descriptor() ([]byte, []int) {
 
 // QueryAllHostChainConfigResponse
 type QueryAllHostChainConfigResponse struct {
->>>>>>> release/v22
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-<<<<<<< HEAD
-	AllHostChainConfig []*HostChainFeeAbsConfig `protobuf:"bytes,1,rep,name=all_host_chain_config,json=allHostChainConfig,proto3" json:"all_host_chain_config,omitempty"`
-}
-
-func (x *AllQueryHostChainConfigResponse) Reset() {
-	*x = AllQueryHostChainConfigResponse{}
-=======
 	// All host chain fee abstraction configurations
 	AllHostChainConfig []*HostChainFeeAbsConfig `protobuf:"bytes,1,rep,name=all_host_chain_config,json=allHostChainConfig,proto3" json:"all_host_chain_config,omitempty"`
 }
 
 func (x *QueryAllHostChainConfigResponse) Reset() {
 	*x = QueryAllHostChainConfigResponse{}
->>>>>>> release/v22
 	if protoimpl.UnsafeEnabled {
 		mi := &file_xion_feeabs_v1beta1_query_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4643,20 +3756,6 @@ func (x *QueryAllHostChainConfigResponse) Reset() {
 	}
 }
 
-<<<<<<< HEAD
-func (x *AllQueryHostChainConfigResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AllQueryHostChainConfigResponse) ProtoMessage() {}
-
-// Deprecated: Use AllQueryHostChainConfigResponse.ProtoReflect.Descriptor instead.
-func (*AllQueryHostChainConfigResponse) Descriptor() ([]byte, []int) {
-	return file_xion_feeabs_v1beta1_query_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *AllQueryHostChainConfigResponse) GetAllHostChainConfig() []*HostChainFeeAbsConfig {
-=======
 func (x *QueryAllHostChainConfigResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
@@ -4669,7 +3768,6 @@ func (*QueryAllHostChainConfigResponse) Descriptor() ([]byte, []int) {
 }
 
 func (x *QueryAllHostChainConfigResponse) GetAllHostChainConfig() []*HostChainFeeAbsConfig {
->>>>>>> release/v22
 	if x != nil {
 		return x.AllHostChainConfig
 	}
@@ -4716,98 +3814,6 @@ var file_xion_feeabs_v1beta1_query_proto_rawDesc = []byte{
 	0x74, 0x68, 0x2e, 0x4c, 0x65, 0x67, 0x61, 0x63, 0x79, 0x44, 0x65, 0x63, 0xf2, 0xde, 0x1f, 0x16,
 	0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x61, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x65, 0x74, 0x69, 0x63,
 	0x5f, 0x74, 0x77, 0x61, 0x70, 0x22, 0x52, 0x0e, 0x61, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x65, 0x74,
-<<<<<<< HEAD
-	0x69, 0x63, 0x54, 0x77, 0x61, 0x70, 0x22, 0x21, 0x0a, 0x1f, 0x51, 0x75, 0x65, 0x72, 0x79, 0x46,
-	0x65, 0x65, 0x61, 0x62, 0x73, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x63,
-	0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xb8, 0x01, 0x0a, 0x20, 0x51, 0x75,
-	0x65, 0x72, 0x79, 0x46, 0x65, 0x65, 0x61, 0x62, 0x73, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x42,
-	0x61, 0x6c, 0x61, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x7a,
-	0x0a, 0x08, 0x62, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x43, 0xc8, 0xde, 0x1f,
-	0x00, 0xf2, 0xde, 0x1f, 0x0f, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x62, 0x61, 0x6c, 0x61, 0x6e,
-	0x63, 0x65, 0x73, 0x22, 0xaa, 0xdf, 0x1f, 0x28, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
-	0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
-	0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x73,
-	0x52, 0x08, 0x62, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x64,
-	0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x64, 0x64,
-	0x72, 0x65, 0x73, 0x73, 0x22, 0x20, 0x0a, 0x1e, 0x41, 0x6c, 0x6c, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x48, 0x6f, 0x73, 0x74, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xa7, 0x01, 0x0a, 0x1f, 0x41, 0x6c, 0x6c, 0x51, 0x75,
-	0x65, 0x72, 0x79, 0x48, 0x6f, 0x73, 0x74, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x83, 0x01, 0x0a, 0x15, 0x61,
-	0x6c, 0x6c, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x5f, 0x63, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2a, 0x2e, 0x78, 0x69, 0x6f,
-	0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
-	0x2e, 0x48, 0x6f, 0x73, 0x74, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x46, 0x65, 0x65, 0x41, 0x62, 0x73,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x24, 0xc8, 0xde, 0x1f, 0x00, 0xf2, 0xde, 0x1f, 0x1c,
-	0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x61, 0x6c, 0x6c, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f, 0x63,
-	0x68, 0x61, 0x69, 0x6e, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x52, 0x12, 0x61, 0x6c,
-	0x6c, 0x48, 0x6f, 0x73, 0x74, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x32, 0x8b, 0x06, 0x0a, 0x05, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0xd0, 0x01, 0x0a, 0x15, 0x4f,
-	0x73, 0x6d, 0x6f, 0x73, 0x69, 0x73, 0x41, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x65, 0x74, 0x69, 0x63,
-	0x54, 0x77, 0x61, 0x70, 0x12, 0x36, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61,
-	0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x4f, 0x73, 0x6d, 0x6f, 0x73, 0x69, 0x73, 0x41, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x65, 0x74, 0x69,
-	0x63, 0x54, 0x77, 0x61, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e, 0x78,
-	0x69, 0x6f, 0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4f, 0x73, 0x6d, 0x6f, 0x73, 0x69, 0x73, 0x41,
-	0x72, 0x69, 0x74, 0x68, 0x6d, 0x65, 0x74, 0x69, 0x63, 0x54, 0x77, 0x61, 0x70, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x46, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x40, 0x12, 0x3e, 0x2f,
-	0x66, 0x65, 0x65, 0x2d, 0x61, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x2f,
-	0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2f, 0x76, 0x31, 0x2f, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x69,
-	0x73, 0x2d, 0x61, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x65, 0x74, 0x69, 0x63, 0x2d, 0x74, 0x77, 0x61,
-	0x70, 0x2f, 0x7b, 0x69, 0x62, 0x63, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x6d, 0x7d, 0x12, 0xb7, 0x01,
-	0x0a, 0x14, 0x46, 0x65, 0x65, 0x61, 0x62, 0x73, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x42, 0x61,
-	0x6c, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x12, 0x34, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x66, 0x65,
-	0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x51, 0x75, 0x65,
-	0x72, 0x79, 0x46, 0x65, 0x65, 0x61, 0x62, 0x73, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x42, 0x61,
-	0x6c, 0x61, 0x63, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x78,
-	0x69, 0x6f, 0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x46, 0x65, 0x65, 0x61, 0x62, 0x73, 0x4d, 0x6f,
-	0x64, 0x75, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x32, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2c, 0x12, 0x2a, 0x2f, 0x66, 0x65,
-	0x65, 0x2d, 0x61, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x66, 0x65,
-	0x65, 0x61, 0x62, 0x73, 0x2f, 0x76, 0x31, 0x2f, 0x6d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x2d, 0x62,
-	0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x12, 0xb8, 0x01, 0x0a, 0x0f, 0x48, 0x6f, 0x73, 0x74,
-	0x43, 0x68, 0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x30, 0x2e, 0x78, 0x69,
-	0x6f, 0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x48, 0x6f, 0x73, 0x74, 0x43, 0x68, 0x61, 0x69, 0x6e,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e,
-	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x48, 0x6f, 0x73, 0x74, 0x43, 0x68, 0x61,
-	0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x40, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x3a, 0x12, 0x38, 0x2f, 0x66, 0x65, 0x65, 0x2d, 0x61,
-	0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x66, 0x65, 0x65, 0x61, 0x62,
-	0x73, 0x2f, 0x76, 0x31, 0x2f, 0x68, 0x6f, 0x73, 0x74, 0x2d, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2d,
-	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2f, 0x7b, 0x69, 0x62, 0x63, 0x5f, 0x64, 0x65, 0x6e, 0x6f,
-	0x6d, 0x7d, 0x12, 0xb9, 0x01, 0x0a, 0x12, 0x41, 0x6c, 0x6c, 0x48, 0x6f, 0x73, 0x74, 0x43, 0x68,
-	0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x33, 0x2e, 0x78, 0x69, 0x6f, 0x6e,
-	0x2e, 0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
-	0x41, 0x6c, 0x6c, 0x51, 0x75, 0x65, 0x72, 0x79, 0x48, 0x6f, 0x73, 0x74, 0x43, 0x68, 0x61, 0x69,
-	0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x34,
-	0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x76, 0x31, 0x62,
-	0x65, 0x74, 0x61, 0x31, 0x2e, 0x41, 0x6c, 0x6c, 0x51, 0x75, 0x65, 0x72, 0x79, 0x48, 0x6f, 0x73,
-	0x74, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x38, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x32, 0x12, 0x30, 0x2f, 0x66,
-	0x65, 0x65, 0x2d, 0x61, 0x62, 0x73, 0x74, 0x72, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x2f, 0x66,
-	0x65, 0x65, 0x61, 0x62, 0x73, 0x2f, 0x76, 0x31, 0x2f, 0x61, 0x6c, 0x6c, 0x2d, 0x68, 0x6f, 0x73,
-	0x74, 0x2d, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2d, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0xd5,
-	0x01, 0x0a, 0x17, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x66, 0x65, 0x65, 0x61,
-	0x62, 0x73, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x40, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f,
-	0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x66, 0x65,
-	0x65, 0x61, 0x62, 0x73, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x3b, 0x66, 0x65, 0x65,
-	0x61, 0x62, 0x73, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x46, 0x58,
-	0xaa, 0x02, 0x13, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x46, 0x65, 0x65, 0x61, 0x62, 0x73, 0x2e, 0x56,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xca, 0x02, 0x13, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x46, 0x65,
-	0x65, 0x61, 0x62, 0x73, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xe2, 0x02, 0x1f, 0x58,
-	0x69, 0x6f, 0x6e, 0x5c, 0x46, 0x65, 0x65, 0x61, 0x62, 0x73, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02,
-	0x15, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x46, 0x65, 0x65, 0x61, 0x62, 0x73, 0x3a, 0x3a, 0x56,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
-=======
 	0x69, 0x63, 0x54, 0x77, 0x61, 0x70, 0x22, 0x22, 0x0a, 0x20, 0x51, 0x75, 0x65, 0x72, 0x79, 0x46,
 	0x65, 0x65, 0x61, 0x62, 0x73, 0x4d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x6e,
 	0x63, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xb9, 0x01, 0x0a, 0x21, 0x51,
@@ -4899,7 +3905,6 @@ var file_xion_feeabs_v1beta1_query_proto_rawDesc = []byte{
 	0x74, 0x61, 0xea, 0x02, 0x15, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x46, 0x65, 0x65, 0x61, 0x62,
 	0x73, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x33,
->>>>>>> release/v22
 }
 
 var (
@@ -4920,34 +3925,15 @@ var file_xion_feeabs_v1beta1_query_proto_goTypes = []interface{}{
 	(*QueryHostChainConfigResponse)(nil),       // 1: xion.feeabs.v1beta1.QueryHostChainConfigResponse
 	(*QueryOsmosisArithmeticTwapRequest)(nil),  // 2: xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapRequest
 	(*QueryOsmosisArithmeticTwapResponse)(nil), // 3: xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapResponse
-<<<<<<< HEAD
-	(*QueryFeeabsModuleBalacesRequest)(nil),    // 4: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest
-	(*QueryFeeabsModuleBalacesResponse)(nil),   // 5: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse
-	(*AllQueryHostChainConfigRequest)(nil),     // 6: xion.feeabs.v1beta1.AllQueryHostChainConfigRequest
-	(*AllQueryHostChainConfigResponse)(nil),    // 7: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse
-=======
 	(*QueryFeeabsModuleBalancesRequest)(nil),   // 4: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest
 	(*QueryFeeabsModuleBalancesResponse)(nil),  // 5: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse
 	(*QueryAllHostChainConfigRequest)(nil),     // 6: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest
 	(*QueryAllHostChainConfigResponse)(nil),    // 7: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse
->>>>>>> release/v22
 	(*HostChainFeeAbsConfig)(nil),              // 8: xion.feeabs.v1beta1.HostChainFeeAbsConfig
 	(*v1beta1.Coin)(nil),                       // 9: cosmos.base.v1beta1.Coin
 }
 var file_xion_feeabs_v1beta1_query_proto_depIdxs = []int32{
 	8, // 0: xion.feeabs.v1beta1.QueryHostChainConfigResponse.host_chain_config:type_name -> xion.feeabs.v1beta1.HostChainFeeAbsConfig
-<<<<<<< HEAD
-	9, // 1: xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse.balances:type_name -> cosmos.base.v1beta1.Coin
-	8, // 2: xion.feeabs.v1beta1.AllQueryHostChainConfigResponse.all_host_chain_config:type_name -> xion.feeabs.v1beta1.HostChainFeeAbsConfig
-	2, // 3: xion.feeabs.v1beta1.Query.OsmosisArithmeticTwap:input_type -> xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapRequest
-	4, // 4: xion.feeabs.v1beta1.Query.FeeabsModuleBalances:input_type -> xion.feeabs.v1beta1.QueryFeeabsModuleBalacesRequest
-	0, // 5: xion.feeabs.v1beta1.Query.HostChainConfig:input_type -> xion.feeabs.v1beta1.QueryHostChainConfigRequest
-	6, // 6: xion.feeabs.v1beta1.Query.AllHostChainConfig:input_type -> xion.feeabs.v1beta1.AllQueryHostChainConfigRequest
-	3, // 7: xion.feeabs.v1beta1.Query.OsmosisArithmeticTwap:output_type -> xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapResponse
-	5, // 8: xion.feeabs.v1beta1.Query.FeeabsModuleBalances:output_type -> xion.feeabs.v1beta1.QueryFeeabsModuleBalacesResponse
-	1, // 9: xion.feeabs.v1beta1.Query.HostChainConfig:output_type -> xion.feeabs.v1beta1.QueryHostChainConfigResponse
-	7, // 10: xion.feeabs.v1beta1.Query.AllHostChainConfig:output_type -> xion.feeabs.v1beta1.AllQueryHostChainConfigResponse
-=======
 	9, // 1: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances:type_name -> cosmos.base.v1beta1.Coin
 	8, // 2: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse.all_host_chain_config:type_name -> xion.feeabs.v1beta1.HostChainFeeAbsConfig
 	2, // 3: xion.feeabs.v1beta1.Query.OsmosisArithmeticTwap:input_type -> xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapRequest
@@ -4958,7 +3944,6 @@ var file_xion_feeabs_v1beta1_query_proto_depIdxs = []int32{
 	5, // 8: xion.feeabs.v1beta1.Query.FeeabsModuleBalances:output_type -> xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse
 	1, // 9: xion.feeabs.v1beta1.Query.HostChainConfig:output_type -> xion.feeabs.v1beta1.QueryHostChainConfigResponse
 	7, // 10: xion.feeabs.v1beta1.Query.AllHostChainConfig:output_type -> xion.feeabs.v1beta1.QueryAllHostChainConfigResponse
->>>>>>> release/v22
 	7, // [7:11] is the sub-list for method output_type
 	3, // [3:7] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
@@ -5022,11 +4007,7 @@ func file_xion_feeabs_v1beta1_query_proto_init() {
 			}
 		}
 		file_xion_feeabs_v1beta1_query_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryFeeabsModuleBalacesRequest); i {
-=======
 			switch v := v.(*QueryFeeabsModuleBalancesRequest); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5038,11 +4019,7 @@ func file_xion_feeabs_v1beta1_query_proto_init() {
 			}
 		}
 		file_xion_feeabs_v1beta1_query_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*QueryFeeabsModuleBalacesResponse); i {
-=======
 			switch v := v.(*QueryFeeabsModuleBalancesResponse); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5054,11 +4031,7 @@ func file_xion_feeabs_v1beta1_query_proto_init() {
 			}
 		}
 		file_xion_feeabs_v1beta1_query_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*AllQueryHostChainConfigRequest); i {
-=======
 			switch v := v.(*QueryAllHostChainConfigRequest); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5070,11 +4043,7 @@ func file_xion_feeabs_v1beta1_query_proto_init() {
 			}
 		}
 		file_xion_feeabs_v1beta1_query_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-<<<<<<< HEAD
-			switch v := v.(*AllQueryHostChainConfigResponse); i {
-=======
 			switch v := v.(*QueryAllHostChainConfigResponse); i {
->>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:

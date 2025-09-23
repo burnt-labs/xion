@@ -152,8 +152,8 @@ func GenerateDkimPublicKey() *cobra.Command {
 				PubKey:       pubKey,
 				Selector:     args[1],
 				PoseidonHash: []byte(hash.String()),
-				Version:      types.Version_DKIM1,
-				KeyType:      types.KeyType_RSA,
+				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 			}
 
 			return clientCtx.PrintProto(&dkimPubKey)
