@@ -2,18 +2,42 @@
 version: v1
 deps:
   - remote: buf.build
+    owner: burnt-labs
+    repository: abstractaccount
+    commit: 9db2c5638029409d90d27cafad584745
+    digest: shake256:9cb480d93cbd8c4665f2964e95415f2792935d557680180cfc8536eb8f8f944618411b1f06d633610afa36b47985afaaf9a805e4102d33a6c1a9370384505a48
+  - remote: buf.build
+    owner: burnt-labs
+    repository: tokenfactory
+    commit: 5e4d38acf183470b9e6490c6f0bc8847
+    digest: shake256:19708e05dc669c995751b17cfb291aa6d3c58f4d1b5cec511eca8f4d52c4fc40d092ec9dc5565da33344c1094fd866e58aead5932534753264fc6b2a34f3227e
+  - remote: buf.build
     owner: cosmos
     repository: cosmos-proto
-    commit: 1935555c206d4afb9e94615dfd0fad31
+    commit: 04467658e59e44bbb22fe568206e1f70
+    digest: shake256:73a640bd60e0c523b0f8237ff34eab67c45a38b64bbbde1d80224819d272dbf316ac183526bd245f994af6608b025f5130483d0133c5edd385531326b5990466
   - remote: buf.build
     owner: cosmos
     repository: cosmos-sdk
-    commit: 954f7b05f38440fc8250134b15adec47
+    commit: 650cd9ad7f7a468e8e19975269958658
+    digest: shake256:c2c1e67ed8efa7f5c6af7a2fc02a6c257dc78fe86911cbf4d3dd379710bf475565ffe2ae4f65221888373d515caa31be68b720897cccec6e0c6a1a91ff0b5227
   - remote: buf.build
     owner: cosmos
     repository: gogo-proto
-    commit: 34d970b699f84aa382f3c29773a60836
+    commit: 88ef6483f90f478fb938c37dde52ece3
+    digest: shake256:89c45df2aa11e0cff97b0d695436713db3d993d76792e9f8dc1ae90e6ab9a9bec55503d48ceedd6b86069ab07d3041b32001b2bfe0227fa725dd515ff381e5ba
   - remote: buf.build
     owner: googleapis
     repository: googleapis
-    commit: 75b4300737fb4efca0831636be94e517
+    commit: 61b203b9a9164be9a834f58c37be6f62
+    digest: shake256:e619113001d6e284ee8a92b1561e5d4ea89a47b28bf0410815cb2fa23914df8be9f1a6a98dcf069f5bc2d829a2cfb1ac614863be45cd4f8a5ad8606c5f200224
+  - remote: buf.build
+    owner: protocolbuffers
+    repository: wellknowntypes
+    commit: a4aee59cf3714106961b09d99b349cd1
+    digest: shake256:7e2aa4fb37e2be8dc8a4bcbebaec00635abbcc7333df40ba6412a666335f66c5c0705ce4cc5c207e728412ac3d81850545f90e8535da66712a17ab42923be6bd
+  - remote: buf.build
+    owner: tendermint
+    repository: tendermint
+    commit: 33ed361a90514289beabf3189e1d7665
+    digest: shake256:038267e06294714fd883610626554b04a127b576b4e253befb4206cb72d5d3c1eeccacd4b9ec8e3fb891f7c14e1cb0f770c077d2989638995b0a61c85afedb1d

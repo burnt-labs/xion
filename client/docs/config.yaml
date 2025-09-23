@@ -8,6 +8,8 @@ apis:
     operationIds:
       rename:
         Params: AuthParams
+        Account: AuthAccount
+        Accounts: AuthAccounts
     tags:
       rename:
         Query: Auth
@@ -219,10 +221,23 @@ apis:
     tags:
       rename:
         Query: Xion
+  - url: ./cosmos/circuit/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: CircuitParams
+    tags:
+      rename:
+        Query: Circuit
+  - url: ./abstractaccount/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: AbstractAccountParams
+    tags:
+      rename:
+        Query: AbstractAccount
 
 # not included
 # ./cosmos/app/v1alpha1/query.swagger.json
-# ./cosmos/circuit/v1/query.swagger.json
 # ./cosmos/orm/query/v1alpha1/query.swagger.json
 # ./cosmos/query/v1/query.swagger.json
 # ./cosmos/autocli/v1/query.swagger.json

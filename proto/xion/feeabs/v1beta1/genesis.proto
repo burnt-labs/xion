@@ -1,0 +1,21 @@
+syntax = "proto3";
+package xion.feeabs.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "xion/feeabs/v1beta1/params.proto";
+import "xion/feeabs/v1beta1/epoch.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// GenesisState defines the feeabs module's genesis state.
+message GenesisState {
+  // params defines the parameters for the feeabs module
+  Params params = 1 [
+    (gogoproto.moretags) = "yaml:\"params\"",
+    (gogoproto.nullable) = false
+  ];
+  // epochs defines the list of epoch information
+  repeated EpochInfo epochs = 2 [ (gogoproto.nullable) = false ];
+  // port_id defines the IBC port identifier
+  string port_id = 3;
+}
