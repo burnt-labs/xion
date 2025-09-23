@@ -69,3 +69,78 @@ func TestValidateCredentialRequestBranches(t *testing.T) {
 		t.Fatalf("expected success, got %v", err)
 	}
 }
+
+func TestWebAuthNVerifyRegister_SizeLimit(t *testing.T) {
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+	ctx := testCtx.Ctx
+	k := Keeper{storeKey: key}
+
+	// Test data within limit should pass validation step (may fail later for other reasons)
+	smallData := make([]byte, 1024) // 1KB - within limit
+	req1 := &types.QueryWebAuthNVerifyRegisterRequest{
+		Rp:        "https://example.com",
+		Addr:      "test_addr",
+		Challenge: "test_challenge",
+		Data:      smallData,
+	}
+	_, err := k.WebAuthNVerifyRegister(ctx, req1)
+	// Should not fail due to size limit (may fail for other validation reasons)
+	if err != nil {
+		require.NotContains(t, err.Error(), "data size")
+		require.NotContains(t, err.Error(), "exceeds maximum")
+	}
+
+	// Test data at exact limit should pass validation step
+	limitData := make([]byte, types.MaxWebAuthDataSize)
+	req2 := &types.QueryWebAuthNVerifyRegisterRequest{
+		Rp:        "https://example.com",
+		Addr:      "test_addr",
+		Challenge: "test_challenge",
+		Data:      limitData,
+	}
+	_, err = k.WebAuthNVerifyRegister(ctx, req2)
+	// Should not fail due to size limit
+	if err != nil {
+		require.NotContains(t, err.Error(), "data size")
+		require.NotContains(t, err.Error(), "exceeds maximum")
+	}
+
+	// Test data exceeding limit should be rejected immediately
+	oversizeData := make([]byte, types.MaxWebAuthDataSize+1)
+	req3 := &types.QueryWebAuthNVerifyRegisterRequest{
+		Rp:        "https://example.com",
+		Addr:      "test_addr",
+		Challenge: "test_challenge",
+		Data:      oversizeData,
+	}
+	_, err = k.WebAuthNVerifyRegister(ctx, req3)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "data size")
+	require.Contains(t, err.Error(), "exceeds maximum")
+
+	t.Logf("Successfully rejected oversized data (%d bytes): %v", len(oversizeData), err)
+}
+
+func TestWebAuthNVerifyAuthenticate_SizeLimit(t *testing.T) {
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+	ctx := testCtx.Ctx
+	k := Keeper{storeKey: key}
+
+	// Test data exceeding limit should be rejected immediately
+	oversizeData := make([]byte, types.MaxWebAuthDataSize+1)
+	req := &types.QueryWebAuthNVerifyAuthenticateRequest{
+		Rp:         "https://example.com",
+		Addr:       "test_addr",
+		Challenge:  "test_challenge",
+		Credential: []byte("{}"),
+		Data:       oversizeData,
+	}
+	_, err := k.WebAuthNVerifyAuthenticate(ctx, req)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "data size")
+	require.Contains(t, err.Error(), "exceeds maximum")
+
+	t.Logf("Successfully rejected oversized auth data (%d bytes): %v", len(oversizeData), err)
+}

@@ -13,4 +13,5 @@ var (
 	ErrInconsistentExpiry = errorsmod.Register(DefaultCodespace, 4, "multi allowances must all expire together")
 	ErrMinimumNotMet      = errorsmod.Register(DefaultCodespace, 5, "minimum send amount not met")
 	ErrNoValidWebAuth     = errorsmod.Register(DefaultCodespace, 6, "Web auth is not valid")
+	ErrWebAuthDataTooLarge = errorsmod.Register(DefaultCodespace, 7, "WebAuth data exceeds maximum allowed size")
 )
