@@ -9,10 +9,20 @@ option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
 
 // GenesisState defines the feeabs module's genesis state.
 message GenesisState {
+<<<<<<< HEAD
+=======
+  // params defines the parameters for the feeabs module
+>>>>>>> release/v22
   Params params = 1 [
     (gogoproto.moretags) = "yaml:\"params\"",
     (gogoproto.nullable) = false
   ];
+<<<<<<< HEAD
   repeated EpochInfo epochs = 2 [ (gogoproto.nullable) = false ];
+=======
+  // epochs defines the list of epoch information
+  repeated EpochInfo epochs = 2 [ (gogoproto.nullable) = false ];
+  // port_id defines the IBC port identifier
+>>>>>>> release/v22
   string port_id = 3;
 }

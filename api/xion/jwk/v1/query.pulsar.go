@@ -807,6 +807,866 @@ func (x *fastReflection_QueryParamsResponse) ProtoMethods() *protoiface.Methods 
 }
 
 var (
+<<<<<<< HEAD
+=======
+	md_QueryAudienceClaimRequest      protoreflect.MessageDescriptor
+	fd_QueryAudienceClaimRequest_hash protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryAudienceClaimRequest = File_xion_jwk_v1_query_proto.Messages().ByName("QueryAudienceClaimRequest")
+	fd_QueryAudienceClaimRequest_hash = md_QueryAudienceClaimRequest.Fields().ByName("hash")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryAudienceClaimRequest)(nil)
+
+type fastReflection_QueryAudienceClaimRequest QueryAudienceClaimRequest
+
+func (x *QueryAudienceClaimRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryAudienceClaimRequest)(x)
+}
+
+func (x *QueryAudienceClaimRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryAudienceClaimRequest_messageType fastReflection_QueryAudienceClaimRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAudienceClaimRequest_messageType{}
+
+type fastReflection_QueryAudienceClaimRequest_messageType struct{}
+
+func (x fastReflection_QueryAudienceClaimRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryAudienceClaimRequest)(nil)
+}
+func (x fastReflection_QueryAudienceClaimRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceClaimRequest)
+}
+func (x fastReflection_QueryAudienceClaimRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceClaimRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryAudienceClaimRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceClaimRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryAudienceClaimRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryAudienceClaimRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryAudienceClaimRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceClaimRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryAudienceClaimRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryAudienceClaimRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryAudienceClaimRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Hash) != 0 {
+		value := protoreflect.ValueOfBytes(x.Hash)
+		if !f(fd_QueryAudienceClaimRequest_hash, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryAudienceClaimRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimRequest.hash":
+		return len(x.Hash) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimRequest.hash":
+		x.Hash = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryAudienceClaimRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimRequest.hash":
+		value := x.Hash
+		return protoreflect.ValueOfBytes(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimRequest.hash":
+		x.Hash = value.Bytes()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimRequest.hash":
+		panic(fmt.Errorf("field hash of message xion.jwk.v1.QueryAudienceClaimRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryAudienceClaimRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimRequest.hash":
+		return protoreflect.ValueOfBytes(nil)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryAudienceClaimRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryAudienceClaimRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryAudienceClaimRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryAudienceClaimRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryAudienceClaimRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryAudienceClaimRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Hash)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceClaimRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Hash) > 0 {
+			i -= len(x.Hash)
+			copy(dAtA[i:], x.Hash)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Hash)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceClaimRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceClaimRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceClaimRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Hash", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Hash = append(x.Hash[:0], dAtA[iNdEx:postIndex]...)
+				if x.Hash == nil {
+					x.Hash = []byte{}
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryAudienceClaimResponse       protoreflect.MessageDescriptor
+	fd_QueryAudienceClaimResponse_claim protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryAudienceClaimResponse = File_xion_jwk_v1_query_proto.Messages().ByName("QueryAudienceClaimResponse")
+	fd_QueryAudienceClaimResponse_claim = md_QueryAudienceClaimResponse.Fields().ByName("claim")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryAudienceClaimResponse)(nil)
+
+type fastReflection_QueryAudienceClaimResponse QueryAudienceClaimResponse
+
+func (x *QueryAudienceClaimResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryAudienceClaimResponse)(x)
+}
+
+func (x *QueryAudienceClaimResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryAudienceClaimResponse_messageType fastReflection_QueryAudienceClaimResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAudienceClaimResponse_messageType{}
+
+type fastReflection_QueryAudienceClaimResponse_messageType struct{}
+
+func (x fastReflection_QueryAudienceClaimResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryAudienceClaimResponse)(nil)
+}
+func (x fastReflection_QueryAudienceClaimResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceClaimResponse)
+}
+func (x fastReflection_QueryAudienceClaimResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceClaimResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryAudienceClaimResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceClaimResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryAudienceClaimResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryAudienceClaimResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryAudienceClaimResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceClaimResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryAudienceClaimResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryAudienceClaimResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryAudienceClaimResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Claim != nil {
+		value := protoreflect.ValueOfMessage(x.Claim.ProtoReflect())
+		if !f(fd_QueryAudienceClaimResponse_claim, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryAudienceClaimResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimResponse.claim":
+		return x.Claim != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimResponse.claim":
+		x.Claim = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryAudienceClaimResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimResponse.claim":
+		value := x.Claim
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimResponse.claim":
+		x.Claim = value.Message().Interface().(*AudienceClaim)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimResponse.claim":
+		if x.Claim == nil {
+			x.Claim = new(AudienceClaim)
+		}
+		return protoreflect.ValueOfMessage(x.Claim.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryAudienceClaimResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceClaimResponse.claim":
+		m := new(AudienceClaim)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceClaimResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceClaimResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryAudienceClaimResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryAudienceClaimResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryAudienceClaimResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceClaimResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryAudienceClaimResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryAudienceClaimResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryAudienceClaimResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Claim != nil {
+			l = options.Size(x.Claim)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceClaimResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Claim != nil {
+			encoded, err := options.Marshal(x.Claim)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceClaimResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceClaimResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceClaimResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Claim", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Claim == nil {
+					x.Claim = &AudienceClaim{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Claim); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+>>>>>>> release/v22
 	md_QueryGetAudienceClaimRequest      protoreflect.MessageDescriptor
 	fd_QueryGetAudienceClaimRequest_hash protoreflect.FieldDescriptor
 )
@@ -826,7 +1686,11 @@ func (x *QueryGetAudienceClaimRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceClaimRequest) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[2]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1248,7 +2112,11 @@ func (x *QueryGetAudienceClaimResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceClaimResponse) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[3]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1664,6 +2532,864 @@ func (x *fastReflection_QueryGetAudienceClaimResponse) ProtoMethods() *protoifac
 }
 
 var (
+<<<<<<< HEAD
+=======
+	md_QueryAudienceRequest     protoreflect.MessageDescriptor
+	fd_QueryAudienceRequest_aud protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryAudienceRequest = File_xion_jwk_v1_query_proto.Messages().ByName("QueryAudienceRequest")
+	fd_QueryAudienceRequest_aud = md_QueryAudienceRequest.Fields().ByName("aud")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryAudienceRequest)(nil)
+
+type fastReflection_QueryAudienceRequest QueryAudienceRequest
+
+func (x *QueryAudienceRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryAudienceRequest)(x)
+}
+
+func (x *QueryAudienceRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryAudienceRequest_messageType fastReflection_QueryAudienceRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAudienceRequest_messageType{}
+
+type fastReflection_QueryAudienceRequest_messageType struct{}
+
+func (x fastReflection_QueryAudienceRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryAudienceRequest)(nil)
+}
+func (x fastReflection_QueryAudienceRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceRequest)
+}
+func (x fastReflection_QueryAudienceRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryAudienceRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryAudienceRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryAudienceRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryAudienceRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryAudienceRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryAudienceRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryAudienceRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Aud != "" {
+		value := protoreflect.ValueOfString(x.Aud)
+		if !f(fd_QueryAudienceRequest_aud, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryAudienceRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceRequest.aud":
+		return x.Aud != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceRequest.aud":
+		x.Aud = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryAudienceRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryAudienceRequest.aud":
+		value := x.Aud
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceRequest.aud":
+		x.Aud = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceRequest.aud":
+		panic(fmt.Errorf("field aud of message xion.jwk.v1.QueryAudienceRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryAudienceRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceRequest.aud":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryAudienceRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryAudienceRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryAudienceRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryAudienceRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryAudienceRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryAudienceRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Aud)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Aud) > 0 {
+			i -= len(x.Aud)
+			copy(dAtA[i:], x.Aud)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Aud)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Aud", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Aud = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryAudienceResponse          protoreflect.MessageDescriptor
+	fd_QueryAudienceResponse_audience protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryAudienceResponse = File_xion_jwk_v1_query_proto.Messages().ByName("QueryAudienceResponse")
+	fd_QueryAudienceResponse_audience = md_QueryAudienceResponse.Fields().ByName("audience")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryAudienceResponse)(nil)
+
+type fastReflection_QueryAudienceResponse QueryAudienceResponse
+
+func (x *QueryAudienceResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryAudienceResponse)(x)
+}
+
+func (x *QueryAudienceResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryAudienceResponse_messageType fastReflection_QueryAudienceResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAudienceResponse_messageType{}
+
+type fastReflection_QueryAudienceResponse_messageType struct{}
+
+func (x fastReflection_QueryAudienceResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryAudienceResponse)(nil)
+}
+func (x fastReflection_QueryAudienceResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceResponse)
+}
+func (x fastReflection_QueryAudienceResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryAudienceResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryAudienceResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryAudienceResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryAudienceResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryAudienceResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryAudienceResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryAudienceResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Audience != nil {
+		value := protoreflect.ValueOfMessage(x.Audience.ProtoReflect())
+		if !f(fd_QueryAudienceResponse_audience, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryAudienceResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceResponse.audience":
+		return x.Audience != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceResponse.audience":
+		x.Audience = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryAudienceResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryAudienceResponse.audience":
+		value := x.Audience
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceResponse.audience":
+		x.Audience = value.Message().Interface().(*Audience)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceResponse.audience":
+		if x.Audience == nil {
+			x.Audience = new(Audience)
+		}
+		return protoreflect.ValueOfMessage(x.Audience.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryAudienceResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceResponse.audience":
+		m := new(Audience)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryAudienceResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryAudienceResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryAudienceResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryAudienceResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryAudienceResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryAudienceResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Audience != nil {
+			l = options.Size(x.Audience)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Audience != nil {
+			encoded, err := options.Marshal(x.Audience)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Audience", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Audience == nil {
+					x.Audience = &Audience{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Audience); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+>>>>>>> release/v22
 	md_QueryGetAudienceRequest     protoreflect.MessageDescriptor
 	fd_QueryGetAudienceRequest_aud protoreflect.FieldDescriptor
 )
@@ -1683,7 +3409,11 @@ func (x *QueryGetAudienceRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceRequest) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2103,7 +3833,11 @@ func (x *QueryGetAudienceResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryGetAudienceResponse) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2519,6 +4253,1017 @@ func (x *fastReflection_QueryGetAudienceResponse) ProtoMethods() *protoiface.Met
 }
 
 var (
+<<<<<<< HEAD
+=======
+	md_QueryAudienceAllRequest            protoreflect.MessageDescriptor
+	fd_QueryAudienceAllRequest_pagination protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryAudienceAllRequest = File_xion_jwk_v1_query_proto.Messages().ByName("QueryAudienceAllRequest")
+	fd_QueryAudienceAllRequest_pagination = md_QueryAudienceAllRequest.Fields().ByName("pagination")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryAudienceAllRequest)(nil)
+
+type fastReflection_QueryAudienceAllRequest QueryAudienceAllRequest
+
+func (x *QueryAudienceAllRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryAudienceAllRequest)(x)
+}
+
+func (x *QueryAudienceAllRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryAudienceAllRequest_messageType fastReflection_QueryAudienceAllRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAudienceAllRequest_messageType{}
+
+type fastReflection_QueryAudienceAllRequest_messageType struct{}
+
+func (x fastReflection_QueryAudienceAllRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryAudienceAllRequest)(nil)
+}
+func (x fastReflection_QueryAudienceAllRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceAllRequest)
+}
+func (x fastReflection_QueryAudienceAllRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceAllRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryAudienceAllRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceAllRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryAudienceAllRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryAudienceAllRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryAudienceAllRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceAllRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryAudienceAllRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryAudienceAllRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryAudienceAllRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Pagination != nil {
+		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+		if !f(fd_QueryAudienceAllRequest_pagination, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryAudienceAllRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllRequest.pagination":
+		return x.Pagination != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllRequest.pagination":
+		x.Pagination = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryAudienceAllRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllRequest.pagination":
+		value := x.Pagination
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllRequest.pagination":
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllRequest.pagination":
+		if x.Pagination == nil {
+			x.Pagination = new(v1beta1.PageRequest)
+		}
+		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryAudienceAllRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllRequest.pagination":
+		m := new(v1beta1.PageRequest)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryAudienceAllRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryAudienceAllRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryAudienceAllRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryAudienceAllRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryAudienceAllRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryAudienceAllRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Pagination != nil {
+			l = options.Size(x.Pagination)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceAllRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Pagination != nil {
+			encoded, err := options.Marshal(x.Pagination)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceAllRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceAllRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceAllRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Pagination == nil {
+					x.Pagination = &v1beta1.PageRequest{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var _ protoreflect.List = (*_QueryAudienceAllResponse_1_list)(nil)
+
+type _QueryAudienceAllResponse_1_list struct {
+	list *[]*Audience
+}
+
+func (x *_QueryAudienceAllResponse_1_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_QueryAudienceAllResponse_1_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_QueryAudienceAllResponse_1_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*Audience)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_QueryAudienceAllResponse_1_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*Audience)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_QueryAudienceAllResponse_1_list) AppendMutable() protoreflect.Value {
+	v := new(Audience)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryAudienceAllResponse_1_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_QueryAudienceAllResponse_1_list) NewElement() protoreflect.Value {
+	v := new(Audience)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryAudienceAllResponse_1_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_QueryAudienceAllResponse            protoreflect.MessageDescriptor
+	fd_QueryAudienceAllResponse_audience   protoreflect.FieldDescriptor
+	fd_QueryAudienceAllResponse_pagination protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryAudienceAllResponse = File_xion_jwk_v1_query_proto.Messages().ByName("QueryAudienceAllResponse")
+	fd_QueryAudienceAllResponse_audience = md_QueryAudienceAllResponse.Fields().ByName("audience")
+	fd_QueryAudienceAllResponse_pagination = md_QueryAudienceAllResponse.Fields().ByName("pagination")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryAudienceAllResponse)(nil)
+
+type fastReflection_QueryAudienceAllResponse QueryAudienceAllResponse
+
+func (x *QueryAudienceAllResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryAudienceAllResponse)(x)
+}
+
+func (x *QueryAudienceAllResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryAudienceAllResponse_messageType fastReflection_QueryAudienceAllResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAudienceAllResponse_messageType{}
+
+type fastReflection_QueryAudienceAllResponse_messageType struct{}
+
+func (x fastReflection_QueryAudienceAllResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryAudienceAllResponse)(nil)
+}
+func (x fastReflection_QueryAudienceAllResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceAllResponse)
+}
+func (x fastReflection_QueryAudienceAllResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceAllResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryAudienceAllResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryAudienceAllResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryAudienceAllResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryAudienceAllResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryAudienceAllResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryAudienceAllResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryAudienceAllResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryAudienceAllResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryAudienceAllResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Audience) != 0 {
+		value := protoreflect.ValueOfList(&_QueryAudienceAllResponse_1_list{list: &x.Audience})
+		if !f(fd_QueryAudienceAllResponse_audience, value) {
+			return
+		}
+	}
+	if x.Pagination != nil {
+		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+		if !f(fd_QueryAudienceAllResponse_pagination, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryAudienceAllResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllResponse.audience":
+		return len(x.Audience) != 0
+	case "xion.jwk.v1.QueryAudienceAllResponse.pagination":
+		return x.Pagination != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllResponse.audience":
+		x.Audience = nil
+	case "xion.jwk.v1.QueryAudienceAllResponse.pagination":
+		x.Pagination = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryAudienceAllResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllResponse.audience":
+		if len(x.Audience) == 0 {
+			return protoreflect.ValueOfList(&_QueryAudienceAllResponse_1_list{})
+		}
+		listValue := &_QueryAudienceAllResponse_1_list{list: &x.Audience}
+		return protoreflect.ValueOfList(listValue)
+	case "xion.jwk.v1.QueryAudienceAllResponse.pagination":
+		value := x.Pagination
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllResponse.audience":
+		lv := value.List()
+		clv := lv.(*_QueryAudienceAllResponse_1_list)
+		x.Audience = *clv.list
+	case "xion.jwk.v1.QueryAudienceAllResponse.pagination":
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllResponse.audience":
+		if x.Audience == nil {
+			x.Audience = []*Audience{}
+		}
+		value := &_QueryAudienceAllResponse_1_list{list: &x.Audience}
+		return protoreflect.ValueOfList(value)
+	case "xion.jwk.v1.QueryAudienceAllResponse.pagination":
+		if x.Pagination == nil {
+			x.Pagination = new(v1beta1.PageResponse)
+		}
+		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryAudienceAllResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryAudienceAllResponse.audience":
+		list := []*Audience{}
+		return protoreflect.ValueOfList(&_QueryAudienceAllResponse_1_list{list: &list})
+	case "xion.jwk.v1.QueryAudienceAllResponse.pagination":
+		m := new(v1beta1.PageResponse)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryAudienceAllResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryAudienceAllResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryAudienceAllResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryAudienceAllResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryAudienceAllResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryAudienceAllResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryAudienceAllResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryAudienceAllResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryAudienceAllResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if len(x.Audience) > 0 {
+			for _, e := range x.Audience {
+				l = options.Size(e)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.Pagination != nil {
+			l = options.Size(x.Pagination)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceAllResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Pagination != nil {
+			encoded, err := options.Marshal(x.Pagination)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Audience) > 0 {
+			for iNdEx := len(x.Audience) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Audience[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+				i--
+				dAtA[i] = 0xa
+			}
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryAudienceAllResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceAllResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryAudienceAllResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Audience", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Audience = append(x.Audience, &Audience{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Audience[len(x.Audience)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Pagination == nil {
+					x.Pagination = &v1beta1.PageResponse{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+>>>>>>> release/v22
 	md_QueryAllAudienceRequest            protoreflect.MessageDescriptor
 	fd_QueryAllAudienceRequest_pagination protoreflect.FieldDescriptor
 )
@@ -2538,7 +5283,11 @@ func (x *QueryAllAudienceRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryAllAudienceRequest) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[6]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[12]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3026,7 +5775,11 @@ func (x *QueryAllAudienceResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryAllAudienceResponse) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[7]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[13]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3527,10 +6280,17 @@ func (x *fastReflection_QueryAllAudienceResponse) ProtoMethods() *protoiface.Met
 }
 
 var (
+<<<<<<< HEAD
 	md_QueryValidateJWTRequest          protoreflect.MessageDescriptor
 	fd_QueryValidateJWTRequest_aud      protoreflect.FieldDescriptor
 	fd_QueryValidateJWTRequest_sub      protoreflect.FieldDescriptor
 	fd_QueryValidateJWTRequest_sigBytes protoreflect.FieldDescriptor
+=======
+	md_QueryValidateJWTRequest           protoreflect.MessageDescriptor
+	fd_QueryValidateJWTRequest_aud       protoreflect.FieldDescriptor
+	fd_QueryValidateJWTRequest_sub       protoreflect.FieldDescriptor
+	fd_QueryValidateJWTRequest_sig_bytes protoreflect.FieldDescriptor
+>>>>>>> release/v22
 )
 
 func init() {
@@ -3538,7 +6298,11 @@ func init() {
 	md_QueryValidateJWTRequest = File_xion_jwk_v1_query_proto.Messages().ByName("QueryValidateJWTRequest")
 	fd_QueryValidateJWTRequest_aud = md_QueryValidateJWTRequest.Fields().ByName("aud")
 	fd_QueryValidateJWTRequest_sub = md_QueryValidateJWTRequest.Fields().ByName("sub")
+<<<<<<< HEAD
 	fd_QueryValidateJWTRequest_sigBytes = md_QueryValidateJWTRequest.Fields().ByName("sigBytes")
+=======
+	fd_QueryValidateJWTRequest_sig_bytes = md_QueryValidateJWTRequest.Fields().ByName("sig_bytes")
+>>>>>>> release/v22
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryValidateJWTRequest)(nil)
@@ -3550,7 +6314,11 @@ func (x *QueryValidateJWTRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryValidateJWTRequest) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[14]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3620,7 +6388,11 @@ func (x *fastReflection_QueryValidateJWTRequest) Range(f func(protoreflect.Field
 	}
 	if x.SigBytes != "" {
 		value := protoreflect.ValueOfString(x.SigBytes)
+<<<<<<< HEAD
 		if !f(fd_QueryValidateJWTRequest_sigBytes, value) {
+=======
+		if !f(fd_QueryValidateJWTRequest_sig_bytes, value) {
+>>>>>>> release/v22
 			return
 		}
 	}
@@ -3643,7 +6415,11 @@ func (x *fastReflection_QueryValidateJWTRequest) Has(fd protoreflect.FieldDescri
 		return x.Aud != ""
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		return x.Sub != ""
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
+=======
+	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
+>>>>>>> release/v22
 		return x.SigBytes != ""
 	default:
 		if fd.IsExtension() {
@@ -3665,7 +6441,11 @@ func (x *fastReflection_QueryValidateJWTRequest) Clear(fd protoreflect.FieldDesc
 		x.Aud = ""
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		x.Sub = ""
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
+=======
+	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
+>>>>>>> release/v22
 		x.SigBytes = ""
 	default:
 		if fd.IsExtension() {
@@ -3689,7 +6469,11 @@ func (x *fastReflection_QueryValidateJWTRequest) Get(descriptor protoreflect.Fie
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		value := x.Sub
 		return protoreflect.ValueOfString(value)
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
+=======
+	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
+>>>>>>> release/v22
 		value := x.SigBytes
 		return protoreflect.ValueOfString(value)
 	default:
@@ -3716,7 +6500,11 @@ func (x *fastReflection_QueryValidateJWTRequest) Set(fd protoreflect.FieldDescri
 		x.Aud = value.Interface().(string)
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		x.Sub = value.Interface().(string)
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
+=======
+	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
+>>>>>>> release/v22
 		x.SigBytes = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
@@ -3742,8 +6530,13 @@ func (x *fastReflection_QueryValidateJWTRequest) Mutable(fd protoreflect.FieldDe
 		panic(fmt.Errorf("field aud of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		panic(fmt.Errorf("field sub of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
 		panic(fmt.Errorf("field sigBytes of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
+=======
+	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
+		panic(fmt.Errorf("field sig_bytes of message xion.jwk.v1.QueryValidateJWTRequest is not mutable"))
+>>>>>>> release/v22
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryValidateJWTRequest"))
@@ -3761,7 +6554,11 @@ func (x *fastReflection_QueryValidateJWTRequest) NewField(fd protoreflect.FieldD
 		return protoreflect.ValueOfString("")
 	case "xion.jwk.v1.QueryValidateJWTRequest.sub":
 		return protoreflect.ValueOfString("")
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTRequest.sigBytes":
+=======
+	case "xion.jwk.v1.QueryValidateJWTRequest.sig_bytes":
+>>>>>>> release/v22
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
@@ -4096,7 +6893,11 @@ func (x *PrivateClaim) ProtoReflect() protoreflect.Message {
 }
 
 func (x *PrivateClaim) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[15]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4610,14 +7411,23 @@ func (x *_QueryValidateJWTResponse_1_list) IsValid() bool {
 }
 
 var (
+<<<<<<< HEAD
 	md_QueryValidateJWTResponse               protoreflect.MessageDescriptor
 	fd_QueryValidateJWTResponse_privateClaims protoreflect.FieldDescriptor
+=======
+	md_QueryValidateJWTResponse                protoreflect.MessageDescriptor
+	fd_QueryValidateJWTResponse_private_claims protoreflect.FieldDescriptor
+>>>>>>> release/v22
 )
 
 func init() {
 	file_xion_jwk_v1_query_proto_init()
 	md_QueryValidateJWTResponse = File_xion_jwk_v1_query_proto.Messages().ByName("QueryValidateJWTResponse")
+<<<<<<< HEAD
 	fd_QueryValidateJWTResponse_privateClaims = md_QueryValidateJWTResponse.Fields().ByName("privateClaims")
+=======
+	fd_QueryValidateJWTResponse_private_claims = md_QueryValidateJWTResponse.Fields().ByName("private_claims")
+>>>>>>> release/v22
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryValidateJWTResponse)(nil)
@@ -4629,7 +7439,11 @@ func (x *QueryValidateJWTResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryValidateJWTResponse) slowProtoReflect() protoreflect.Message {
+<<<<<<< HEAD
 	mi := &file_xion_jwk_v1_query_proto_msgTypes[10]
+=======
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[16]
+>>>>>>> release/v22
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4687,7 +7501,11 @@ func (x *fastReflection_QueryValidateJWTResponse) Interface() protoreflect.Proto
 func (x *fastReflection_QueryValidateJWTResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if len(x.PrivateClaims) != 0 {
 		value := protoreflect.ValueOfList(&_QueryValidateJWTResponse_1_list{list: &x.PrivateClaims})
+<<<<<<< HEAD
 		if !f(fd_QueryValidateJWTResponse_privateClaims, value) {
+=======
+		if !f(fd_QueryValidateJWTResponse_private_claims, value) {
+>>>>>>> release/v22
 			return
 		}
 	}
@@ -4706,7 +7524,11 @@ func (x *fastReflection_QueryValidateJWTResponse) Range(f func(protoreflect.Fiel
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_QueryValidateJWTResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
+=======
+	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
+>>>>>>> release/v22
 		return len(x.PrivateClaims) != 0
 	default:
 		if fd.IsExtension() {
@@ -4724,7 +7546,11 @@ func (x *fastReflection_QueryValidateJWTResponse) Has(fd protoreflect.FieldDescr
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryValidateJWTResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
+=======
+	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
+>>>>>>> release/v22
 		x.PrivateClaims = nil
 	default:
 		if fd.IsExtension() {
@@ -4742,7 +7568,11 @@ func (x *fastReflection_QueryValidateJWTResponse) Clear(fd protoreflect.FieldDes
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_QueryValidateJWTResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
+=======
+	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
+>>>>>>> release/v22
 		if len(x.PrivateClaims) == 0 {
 			return protoreflect.ValueOfList(&_QueryValidateJWTResponse_1_list{})
 		}
@@ -4768,7 +7598,11 @@ func (x *fastReflection_QueryValidateJWTResponse) Get(descriptor protoreflect.Fi
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryValidateJWTResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
+=======
+	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
+>>>>>>> release/v22
 		lv := value.List()
 		clv := lv.(*_QueryValidateJWTResponse_1_list)
 		x.PrivateClaims = *clv.list
@@ -4792,7 +7626,11 @@ func (x *fastReflection_QueryValidateJWTResponse) Set(fd protoreflect.FieldDescr
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryValidateJWTResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
+=======
+	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
+>>>>>>> release/v22
 		if x.PrivateClaims == nil {
 			x.PrivateClaims = []*PrivateClaim{}
 		}
@@ -4811,7 +7649,11 @@ func (x *fastReflection_QueryValidateJWTResponse) Mutable(fd protoreflect.FieldD
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_QueryValidateJWTResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
+<<<<<<< HEAD
 	case "xion.jwk.v1.QueryValidateJWTResponse.privateClaims":
+=======
+	case "xion.jwk.v1.QueryValidateJWTResponse.private_claims":
+>>>>>>> release/v22
 		list := []*PrivateClaim{}
 		return protoreflect.ValueOfList(&_QueryValidateJWTResponse_1_list{list: &list})
 	default:
@@ -5129,18 +7971,106 @@ func (x *QueryParamsResponse) GetParams() *Params {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryAudienceClaimRequest is the request type for querying an audience claim
+type QueryAudienceClaimRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The hash of the audience claim to query
+	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
+}
+
+func (x *QueryAudienceClaimRequest) Reset() {
+	*x = QueryAudienceClaimRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryAudienceClaimRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryAudienceClaimRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryAudienceClaimRequest.ProtoReflect.Descriptor instead.
+func (*QueryAudienceClaimRequest) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *QueryAudienceClaimRequest) GetHash() []byte {
+	if x != nil {
+		return x.Hash
+	}
+	return nil
+}
+
+// QueryAudienceClaimResponse is the response type for querying an audience
+// claim
+type QueryAudienceClaimResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The audience claim
+	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
+}
+
+func (x *QueryAudienceClaimResponse) Reset() {
+	*x = QueryAudienceClaimResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryAudienceClaimResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryAudienceClaimResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryAudienceClaimResponse.ProtoReflect.Descriptor instead.
+func (*QueryAudienceClaimResponse) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *QueryAudienceClaimResponse) GetClaim() *AudienceClaim {
+	if x != nil {
+		return x.Claim
+	}
+	return nil
+}
+
+// QueryGetAudienceClaimRequest is the legacy request type for querying an
+// audience claim (deprecated)
+>>>>>>> release/v22
 type QueryGetAudienceClaimRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// The hash of the audience claim to query
+>>>>>>> release/v22
 	Hash []byte `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 }
 
 func (x *QueryGetAudienceClaimRequest) Reset() {
 	*x = QueryGetAudienceClaimRequest{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[2]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5154,7 +8084,11 @@ func (*QueryGetAudienceClaimRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceClaimRequest.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceClaimRequest) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{2}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{4}
+>>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceClaimRequest) GetHash() []byte {
@@ -5164,18 +8098,31 @@ func (x *QueryGetAudienceClaimRequest) GetHash() []byte {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryGetAudienceClaimResponse is the legacy response type for querying an
+// audience claim (deprecated)
+>>>>>>> release/v22
 type QueryGetAudienceClaimResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// The audience claim
+>>>>>>> release/v22
 	Claim *AudienceClaim `protobuf:"bytes,1,opt,name=claim,proto3" json:"claim,omitempty"`
 }
 
 func (x *QueryGetAudienceClaimResponse) Reset() {
 	*x = QueryGetAudienceClaimResponse{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[3]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5189,7 +8136,11 @@ func (*QueryGetAudienceClaimResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceClaimResponse.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceClaimResponse) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{3}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{5}
+>>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceClaimResponse) GetClaim() *AudienceClaim {
@@ -5199,18 +8150,105 @@ func (x *QueryGetAudienceClaimResponse) GetClaim() *AudienceClaim {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryAudienceRequest is the request type for querying an audience
+type QueryAudienceRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The audience identifier to query
+	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
+}
+
+func (x *QueryAudienceRequest) Reset() {
+	*x = QueryAudienceRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryAudienceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryAudienceRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryAudienceRequest.ProtoReflect.Descriptor instead.
+func (*QueryAudienceRequest) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *QueryAudienceRequest) GetAud() string {
+	if x != nil {
+		return x.Aud
+	}
+	return ""
+}
+
+// QueryAudienceResponse is the response type for querying an audience
+type QueryAudienceResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The audience information
+	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
+}
+
+func (x *QueryAudienceResponse) Reset() {
+	*x = QueryAudienceResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryAudienceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryAudienceResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryAudienceResponse.ProtoReflect.Descriptor instead.
+func (*QueryAudienceResponse) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *QueryAudienceResponse) GetAudience() *Audience {
+	if x != nil {
+		return x.Audience
+	}
+	return nil
+}
+
+// QueryGetAudienceRequest is the legacy request type for querying an audience
+// (deprecated)
+>>>>>>> release/v22
 type QueryGetAudienceRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// The audience identifier to query
+>>>>>>> release/v22
 	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 }
 
 func (x *QueryGetAudienceRequest) Reset() {
 	*x = QueryGetAudienceRequest{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[4]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5224,7 +8262,11 @@ func (*QueryGetAudienceRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceRequest.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceRequest) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{4}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{8}
+>>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceRequest) GetAud() string {
@@ -5234,18 +8276,31 @@ func (x *QueryGetAudienceRequest) GetAud() string {
 	return ""
 }
 
+<<<<<<< HEAD
+=======
+// QueryGetAudienceResponse is the legacy response type for querying an audience
+// (deprecated)
+>>>>>>> release/v22
 type QueryGetAudienceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// The audience information
+>>>>>>> release/v22
 	Audience *Audience `protobuf:"bytes,1,opt,name=audience,proto3" json:"audience,omitempty"`
 }
 
 func (x *QueryGetAudienceResponse) Reset() {
 	*x = QueryGetAudienceResponse{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[5]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5259,7 +8314,11 @@ func (*QueryGetAudienceResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryGetAudienceResponse.ProtoReflect.Descriptor instead.
 func (*QueryGetAudienceResponse) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{5}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{9}
+>>>>>>> release/v22
 }
 
 func (x *QueryGetAudienceResponse) GetAudience() *Audience {
@@ -5269,18 +8328,114 @@ func (x *QueryGetAudienceResponse) GetAudience() *Audience {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryAudienceAllRequest is the request type for querying all audiences
+type QueryAudienceAllRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Pagination parameters
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (x *QueryAudienceAllRequest) Reset() {
+	*x = QueryAudienceAllRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryAudienceAllRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryAudienceAllRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryAudienceAllRequest.ProtoReflect.Descriptor instead.
+func (*QueryAudienceAllRequest) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *QueryAudienceAllRequest) GetPagination() *v1beta1.PageRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+// QueryAudienceAllResponse is the response type for querying all audiences
+type QueryAudienceAllResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// List of all audiences
+	Audience []*Audience `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience,omitempty"`
+	// Pagination response
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (x *QueryAudienceAllResponse) Reset() {
+	*x = QueryAudienceAllResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryAudienceAllResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryAudienceAllResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryAudienceAllResponse.ProtoReflect.Descriptor instead.
+func (*QueryAudienceAllResponse) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *QueryAudienceAllResponse) GetAudience() []*Audience {
+	if x != nil {
+		return x.Audience
+	}
+	return nil
+}
+
+func (x *QueryAudienceAllResponse) GetPagination() *v1beta1.PageResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+// QueryAllAudienceRequest is the legacy request type for querying all audiences
+// (deprecated)
+>>>>>>> release/v22
 type QueryAllAudienceRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// Pagination parameters
+>>>>>>> release/v22
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryAllAudienceRequest) Reset() {
 	*x = QueryAllAudienceRequest{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[6]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[12]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5294,7 +8449,11 @@ func (*QueryAllAudienceRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryAllAudienceRequest.ProtoReflect.Descriptor instead.
 func (*QueryAllAudienceRequest) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{6}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{12}
+>>>>>>> release/v22
 }
 
 func (x *QueryAllAudienceRequest) GetPagination() *v1beta1.PageRequest {
@@ -5304,19 +8463,34 @@ func (x *QueryAllAudienceRequest) GetPagination() *v1beta1.PageRequest {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryAllAudienceResponse is the legacy response type for querying all
+// audiences (deprecated)
+>>>>>>> release/v22
 type QueryAllAudienceResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
 	Audience   []*Audience           `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience,omitempty"`
+=======
+	// List of all audiences
+	Audience []*Audience `protobuf:"bytes,1,rep,name=audience,proto3" json:"audience,omitempty"`
+	// Pagination response
+>>>>>>> release/v22
 	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryAllAudienceResponse) Reset() {
 	*x = QueryAllAudienceResponse{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[7]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[13]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5330,7 +8504,11 @@ func (*QueryAllAudienceResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryAllAudienceResponse.ProtoReflect.Descriptor instead.
 func (*QueryAllAudienceResponse) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{7}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{13}
+>>>>>>> release/v22
 }
 
 func (x *QueryAllAudienceResponse) GetAudience() []*Audience {
@@ -5347,20 +8525,37 @@ func (x *QueryAllAudienceResponse) GetPagination() *v1beta1.PageResponse {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryValidateJWTRequest is the request type for validating a JWT
+>>>>>>> release/v22
 type QueryValidateJWTRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
 	Aud      string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
 	Sub      string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
 	SigBytes string `protobuf:"bytes,3,opt,name=sigBytes,proto3" json:"sigBytes,omitempty"`
+=======
+	// The audience identifier
+	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The subject
+	Sub string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
+	// The signature bytes
+	SigBytes string `protobuf:"bytes,3,opt,name=sig_bytes,json=sigBytes,proto3" json:"sig_bytes,omitempty"`
+>>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTRequest) Reset() {
 	*x = QueryValidateJWTRequest{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[8]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[14]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5374,7 +8569,11 @@ func (*QueryValidateJWTRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryValidateJWTRequest.ProtoReflect.Descriptor instead.
 func (*QueryValidateJWTRequest) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{8}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{14}
+>>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTRequest) GetAud() string {
@@ -5398,19 +8597,33 @@ func (x *QueryValidateJWTRequest) GetSigBytes() string {
 	return ""
 }
 
+<<<<<<< HEAD
+=======
+// PrivateClaim represents a private claim in a JWT
+>>>>>>> release/v22
 type PrivateClaim struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
 	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+=======
+	// The claim key
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// The claim value
+>>>>>>> release/v22
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 func (x *PrivateClaim) Reset() {
 	*x = PrivateClaim{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[9]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[15]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5424,7 +8637,11 @@ func (*PrivateClaim) ProtoMessage() {}
 
 // Deprecated: Use PrivateClaim.ProtoReflect.Descriptor instead.
 func (*PrivateClaim) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{9}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{15}
+>>>>>>> release/v22
 }
 
 func (x *PrivateClaim) GetKey() string {
@@ -5441,18 +8658,31 @@ func (x *PrivateClaim) GetValue() string {
 	return ""
 }
 
+<<<<<<< HEAD
+=======
+// QueryValidateJWTResponse is the response type for validating a JWT
+>>>>>>> release/v22
 type QueryValidateJWTResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
 	PrivateClaims []*PrivateClaim `protobuf:"bytes,1,rep,name=privateClaims,proto3" json:"privateClaims,omitempty"`
+=======
+	// The private claims from the JWT
+	PrivateClaims []*PrivateClaim `protobuf:"bytes,1,rep,name=private_claims,json=privateClaims,proto3" json:"private_claims,omitempty"`
+>>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTResponse) Reset() {
 	*x = QueryValidateJWTResponse{}
 	if protoimpl.UnsafeEnabled {
+<<<<<<< HEAD
 		mi := &file_xion_jwk_v1_query_proto_msgTypes[10]
+=======
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[16]
+>>>>>>> release/v22
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5466,7 +8696,11 @@ func (*QueryValidateJWTResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryValidateJWTResponse.ProtoReflect.Descriptor instead.
 func (*QueryValidateJWTResponse) Descriptor() ([]byte, []int) {
+<<<<<<< HEAD
 	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{10}
+=======
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{16}
+>>>>>>> release/v22
 }
 
 func (x *QueryValidateJWTResponse) GetPrivateClaims() []*PrivateClaim {
@@ -5496,6 +8730,7 @@ var file_xion_jwk_v1_query_proto_rawDesc = []byte{
 	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x31, 0x0a, 0x06, 0x70, 0x61, 0x72,
 	0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x78, 0x69, 0x6f, 0x6e,
 	0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x04,
+<<<<<<< HEAD
 	0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x32, 0x0a, 0x1c,
 	0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
 	0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04,
@@ -5534,10 +8769,83 @@ var file_xion_jwk_v1_query_proto_rawDesc = []byte{
 	0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x03, 0x61, 0x75, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x73, 0x75, 0x62, 0x18, 0x02, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x03, 0x73, 0x75, 0x62, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x69, 0x67, 0x42, 0x79, 0x74,
+=======
+	0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x2f, 0x0a, 0x19,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61,
+	0x69, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x61, 0x73,
+	0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x68, 0x61, 0x73, 0x68, 0x22, 0x4e, 0x0a,
+	0x1a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c,
+	0x61, 0x69, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a, 0x05, 0x63,
+	0x6c, 0x61, 0x69, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x78, 0x69, 0x6f,
+	0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63,
+	0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x05, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x22, 0x32, 0x0a,
+	0x1c, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63,
+	0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a,
+	0x04, 0x68, 0x61, 0x73, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x68, 0x61, 0x73,
+	0x68, 0x22, 0x51, 0x0a, 0x1d, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64,
+	0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x30, 0x0a, 0x05, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x1a, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e,
+	0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x05, 0x63,
+	0x6c, 0x61, 0x69, 0x6d, 0x22, 0x28, 0x0a, 0x14, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64,
+	0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03,
+	0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x61, 0x75, 0x64, 0x22, 0x50,
+	0x0a, 0x15, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65,
+	0x6e, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x78, 0x69, 0x6f, 0x6e,
+	0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
+	0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
+	0x22, 0x2b, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69,
+	0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x61,
+	0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x61, 0x75, 0x64, 0x22, 0x53, 0x0a,
+	0x18, 0x51, 0x75, 0x65, 0x72, 0x79, 0x47, 0x65, 0x74, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63,
+	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x08, 0x61, 0x75, 0x64,
+	0x69, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x78, 0x69,
+	0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e,
+	0x63, 0x65, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e,
+	0x63, 0x65, 0x22, 0x61, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65,
+	0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a,
+	0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x26, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e,
+	0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61,
+	0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x9c, 0x01, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41,
+	0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x37, 0x0a, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x01,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e,
+	0x76, 0x31, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x42, 0x04, 0xc8, 0xde, 0x1f,
+	0x00, 0x52, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0a, 0x70,
+	0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x27, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75,
+	0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x22, 0x61, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x6c, 0x6c,
+	0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x46, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73,
+	0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
+	0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x0a, 0x70, 0x61, 0x67,
+	0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x9c, 0x01, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x72,
+	0x79, 0x41, 0x6c, 0x6c, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77,
+	0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x42, 0x04, 0xc8,
+	0xde, 0x1f, 0x00, 0x52, 0x08, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x47, 0x0a,
+	0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x27, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e,
+	0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61,
+	0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69,
+	0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x5a, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56,
+	0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x10, 0x0a, 0x03, 0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x61, 0x75, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x73, 0x75, 0x62, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x73, 0x75, 0x62, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x69, 0x67, 0x5f, 0x62, 0x79, 0x74,
+>>>>>>> release/v22
 	0x65, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x69, 0x67, 0x42, 0x79, 0x74,
 	0x65, 0x73, 0x22, 0x36, 0x0a, 0x0c, 0x50, 0x72, 0x69, 0x76, 0x61, 0x74, 0x65, 0x43, 0x6c, 0x61,
 	0x69, 0x6d, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20,
+<<<<<<< HEAD
 	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x5b, 0x0a, 0x18, 0x51, 0x75,
 	0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3f, 0x0a, 0x0d, 0x70, 0x72, 0x69, 0x76, 0x61, 0x74,
@@ -5596,6 +8904,65 @@ var file_xion_jwk_v1_query_proto_rawDesc = []byte{
 	0x77, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
 	0x61, 0xea, 0x02, 0x0d, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x4a, 0x77, 0x6b, 0x3a, 0x3a, 0x56,
 	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+=======
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x5c, 0x0a, 0x18, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a, 0x0e, 0x70, 0x72, 0x69, 0x76, 0x61, 0x74,
+	0x65, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19,
+	0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x69,
+	0x76, 0x61, 0x74, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x0d, 0x70, 0x72, 0x69, 0x76, 0x61,
+	0x74, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x32, 0xfc, 0x04, 0x0a, 0x05, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x12, 0x65, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x1f, 0x2e, 0x78,
+	0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
+	0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x18, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x12, 0x12, 0x10, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
+	0x77, 0x6b, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x89, 0x01, 0x0a, 0x0d, 0x41, 0x75,
+	0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x12, 0x26, 0x2e, 0x78, 0x69,
+	0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41,
+	0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x27, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76,
+	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43,
+	0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x27, 0x82, 0xd3,
+	0xe4, 0x93, 0x02, 0x21, 0x12, 0x1f, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f,
+	0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x2f, 0x7b,
+	0x68, 0x61, 0x73, 0x68, 0x7d, 0x12, 0x73, 0x0a, 0x08, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63,
+	0x65, 0x12, 0x21, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e,
+	0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x20, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1a,
+	0x12, 0x18, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69,
+	0x65, 0x6e, 0x63, 0x65, 0x2f, 0x7b, 0x61, 0x75, 0x64, 0x7d, 0x12, 0x76, 0x0a, 0x0b, 0x41, 0x75,
+	0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x24, 0x2e, 0x78, 0x69, 0x6f, 0x6e,
+	0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64,
+	0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x25, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1a, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x14, 0x12, 0x12,
+	0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e,
+	0x63, 0x65, 0x12, 0x92, 0x01, 0x0a, 0x0b, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a,
+	0x57, 0x54, 0x12, 0x24, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31,
+	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57,
+	0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e,
+	0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69,
+	0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x36, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x30, 0x12, 0x2e, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
+	0x77, 0x6b, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x2f,
+	0x7b, 0x61, 0x75, 0x64, 0x7d, 0x2f, 0x7b, 0x73, 0x75, 0x62, 0x7d, 0x2f, 0x7b, 0x73, 0x69, 0x67,
+	0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x7d, 0x42, 0x9d, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73,
+	0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
+	0x77, 0x6b, 0x2f, 0x76, 0x31, 0x3b, 0x6a, 0x77, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x4a,
+	0x58, 0xaa, 0x02, 0x0b, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x4a, 0x77, 0x6b, 0x2e, 0x56, 0x31, 0xca,
+	0x02, 0x0b, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x4a, 0x77, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17,
+	0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x4a, 0x77, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
+	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a,
+	0x4a, 0x77, 0x6b, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+>>>>>>> release/v22
 }
 
 var (
@@ -5610,6 +8977,7 @@ func file_xion_jwk_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_jwk_v1_query_proto_rawDescData
 }
 
+<<<<<<< HEAD
 var file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_xion_jwk_v1_query_proto_goTypes = []interface{}{
 	(*QueryParamsRequest)(nil),            // 0: xion.jwk.v1.QueryParamsRequest
@@ -5652,6 +9020,61 @@ var file_xion_jwk_v1_query_proto_depIdxs = []int32{
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
+=======
+var file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_xion_jwk_v1_query_proto_goTypes = []interface{}{
+	(*QueryParamsRequest)(nil),            // 0: xion.jwk.v1.QueryParamsRequest
+	(*QueryParamsResponse)(nil),           // 1: xion.jwk.v1.QueryParamsResponse
+	(*QueryAudienceClaimRequest)(nil),     // 2: xion.jwk.v1.QueryAudienceClaimRequest
+	(*QueryAudienceClaimResponse)(nil),    // 3: xion.jwk.v1.QueryAudienceClaimResponse
+	(*QueryGetAudienceClaimRequest)(nil),  // 4: xion.jwk.v1.QueryGetAudienceClaimRequest
+	(*QueryGetAudienceClaimResponse)(nil), // 5: xion.jwk.v1.QueryGetAudienceClaimResponse
+	(*QueryAudienceRequest)(nil),          // 6: xion.jwk.v1.QueryAudienceRequest
+	(*QueryAudienceResponse)(nil),         // 7: xion.jwk.v1.QueryAudienceResponse
+	(*QueryGetAudienceRequest)(nil),       // 8: xion.jwk.v1.QueryGetAudienceRequest
+	(*QueryGetAudienceResponse)(nil),      // 9: xion.jwk.v1.QueryGetAudienceResponse
+	(*QueryAudienceAllRequest)(nil),       // 10: xion.jwk.v1.QueryAudienceAllRequest
+	(*QueryAudienceAllResponse)(nil),      // 11: xion.jwk.v1.QueryAudienceAllResponse
+	(*QueryAllAudienceRequest)(nil),       // 12: xion.jwk.v1.QueryAllAudienceRequest
+	(*QueryAllAudienceResponse)(nil),      // 13: xion.jwk.v1.QueryAllAudienceResponse
+	(*QueryValidateJWTRequest)(nil),       // 14: xion.jwk.v1.QueryValidateJWTRequest
+	(*PrivateClaim)(nil),                  // 15: xion.jwk.v1.PrivateClaim
+	(*QueryValidateJWTResponse)(nil),      // 16: xion.jwk.v1.QueryValidateJWTResponse
+	(*Params)(nil),                        // 17: xion.jwk.v1.Params
+	(*AudienceClaim)(nil),                 // 18: xion.jwk.v1.AudienceClaim
+	(*Audience)(nil),                      // 19: xion.jwk.v1.Audience
+	(*v1beta1.PageRequest)(nil),           // 20: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageResponse)(nil),          // 21: cosmos.base.query.v1beta1.PageResponse
+}
+var file_xion_jwk_v1_query_proto_depIdxs = []int32{
+	17, // 0: xion.jwk.v1.QueryParamsResponse.params:type_name -> xion.jwk.v1.Params
+	18, // 1: xion.jwk.v1.QueryAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim
+	18, // 2: xion.jwk.v1.QueryGetAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim
+	19, // 3: xion.jwk.v1.QueryAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
+	19, // 4: xion.jwk.v1.QueryGetAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
+	20, // 5: xion.jwk.v1.QueryAudienceAllRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	19, // 6: xion.jwk.v1.QueryAudienceAllResponse.audience:type_name -> xion.jwk.v1.Audience
+	21, // 7: xion.jwk.v1.QueryAudienceAllResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	20, // 8: xion.jwk.v1.QueryAllAudienceRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	19, // 9: xion.jwk.v1.QueryAllAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
+	21, // 10: xion.jwk.v1.QueryAllAudienceResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	15, // 11: xion.jwk.v1.QueryValidateJWTResponse.private_claims:type_name -> xion.jwk.v1.PrivateClaim
+	0,  // 12: xion.jwk.v1.Query.Params:input_type -> xion.jwk.v1.QueryParamsRequest
+	2,  // 13: xion.jwk.v1.Query.AudienceClaim:input_type -> xion.jwk.v1.QueryAudienceClaimRequest
+	6,  // 14: xion.jwk.v1.Query.Audience:input_type -> xion.jwk.v1.QueryAudienceRequest
+	10, // 15: xion.jwk.v1.Query.AudienceAll:input_type -> xion.jwk.v1.QueryAudienceAllRequest
+	14, // 16: xion.jwk.v1.Query.ValidateJWT:input_type -> xion.jwk.v1.QueryValidateJWTRequest
+	1,  // 17: xion.jwk.v1.Query.Params:output_type -> xion.jwk.v1.QueryParamsResponse
+	3,  // 18: xion.jwk.v1.Query.AudienceClaim:output_type -> xion.jwk.v1.QueryAudienceClaimResponse
+	7,  // 19: xion.jwk.v1.Query.Audience:output_type -> xion.jwk.v1.QueryAudienceResponse
+	11, // 20: xion.jwk.v1.Query.AudienceAll:output_type -> xion.jwk.v1.QueryAudienceAllResponse
+	16, // 21: xion.jwk.v1.Query.ValidateJWT:output_type -> xion.jwk.v1.QueryValidateJWTResponse
+	17, // [17:22] is the sub-list for method output_type
+	12, // [12:17] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
+>>>>>>> release/v22
 }
 
 func init() { file_xion_jwk_v1_query_proto_init() }
@@ -5687,7 +9110,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*QueryGetAudienceClaimRequest); i {
+=======
+			switch v := v.(*QueryAudienceClaimRequest); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5699,7 +9126,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*QueryGetAudienceClaimResponse); i {
+=======
+			switch v := v.(*QueryAudienceClaimResponse); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5711,7 +9142,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*QueryGetAudienceRequest); i {
+=======
+			switch v := v.(*QueryGetAudienceClaimRequest); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5723,7 +9158,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*QueryGetAudienceResponse); i {
+=======
+			switch v := v.(*QueryGetAudienceClaimResponse); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5735,7 +9174,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*QueryAllAudienceRequest); i {
+=======
+			switch v := v.(*QueryAudienceRequest); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5747,7 +9190,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*QueryAllAudienceResponse); i {
+=======
+			switch v := v.(*QueryAudienceResponse); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5759,7 +9206,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*QueryValidateJWTRequest); i {
+=======
+			switch v := v.(*QueryGetAudienceRequest); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5771,7 +9222,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
 			switch v := v.(*PrivateClaim); i {
+=======
+			switch v := v.(*QueryGetAudienceResponse); i {
+>>>>>>> release/v22
 			case 0:
 				return &v.state
 			case 1:
@@ -5783,6 +9238,81 @@ func file_xion_jwk_v1_query_proto_init() {
 			}
 		}
 		file_xion_jwk_v1_query_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+<<<<<<< HEAD
+=======
+			switch v := v.(*QueryAudienceAllRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryAudienceAllResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryAllAudienceRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryAllAudienceResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryValidateJWTRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PrivateClaim); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+>>>>>>> release/v22
 			switch v := v.(*QueryValidateJWTResponse); i {
 			case 0:
 				return &v.state
@@ -5801,7 +9331,11 @@ func file_xion_jwk_v1_query_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_xion_jwk_v1_query_proto_rawDesc,
 			NumEnums:      0,
+<<<<<<< HEAD
 			NumMessages:   11,
+=======
+			NumMessages:   17,
+>>>>>>> release/v22
 			NumExtensions: 0,
 			NumServices:   1,
 		},

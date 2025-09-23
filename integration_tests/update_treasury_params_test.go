@@ -39,11 +39,18 @@ func TestUpdateTreasuryContractParams(t *testing.T) {
 
 	// Instantiate contract
 	t.Log("Instantiating contract")
+	accAddrStr := xionUser.FormattedAddress()
 	instantiateMsg := TreasuryInstantiateMsg{
+		Admin:        &accAddrStr,
 		TypeUrls:     []string{},
 		GrantConfigs: []GrantConfig{},
 		FeeConfig: &FeeConfig{
 			Description: "test fee grant",
+		},
+		Params: &Params{
+			RedirectURL: "https://example.com",
+			IconURL:     "https://example.com/icon.png",
+			Metadata:    "{}",
 		},
 	}
 	instantiateMsgStr, err := json.Marshal(instantiateMsg)
@@ -57,7 +64,6 @@ func TestUpdateTreasuryContractParams(t *testing.T) {
 	t.Log("Updating contract parameters")
 	cmd := []string{
 		"xion", "update-params", contractAddr,
-		"https://example.com/display",
 		"https://example.com/redirect",
 		"https://example.com/icon.png",
 		"--chain-id", xion.Config().ChainID,
@@ -82,7 +88,7 @@ func TestUpdateTreasuryContractParams(t *testing.T) {
 // **Validation Function**
 func validateUpdatedParams(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, contractAddr string) {
 	t.Log("Querying updated contract parameters")
-	queryMsg := map[string]interface{}{
+	queryMsg := map[string]any{
 		"params": struct{}{},
 	}
 	queryMsgStr, err := json.Marshal(queryMsg)
@@ -103,7 +109,6 @@ func validateUpdatedParams(t *testing.T, ctx context.Context, xion *cosmos.Cosmo
 	require.NoError(t, err)
 
 	// Validate the updated contract state
-	require.Equal(t, "https://example.com/display", queriedParams.DisplayURL)
 	require.Equal(t, "https://example.com/redirect", queriedParams.RedirectURL)
 	require.Equal(t, "https://example.com/icon.png", queriedParams.IconURL)
 }

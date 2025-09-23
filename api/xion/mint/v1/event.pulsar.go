@@ -774,6 +774,7 @@ type MintIncentiveTokens struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
 	BondedRatio      string `protobuf:"bytes,1,opt,name=bonded_ratio,json=bondedRatio,proto3" json:"bonded_ratio,omitempty"`
 	Inflation        string `protobuf:"bytes,2,opt,name=inflation,proto3" json:"inflation,omitempty"`
 	AnnualProvisions string `protobuf:"bytes,3,opt,name=annual_provisions,json=annualProvisions,proto3" json:"annual_provisions,omitempty"`
@@ -781,6 +782,22 @@ type MintIncentiveTokens struct {
 	CollectedAmount  uint64 `protobuf:"varint,5,opt,name=collected_amount,json=collectedAmount,proto3" json:"collected_amount,omitempty"`
 	MintedAmount     uint64 `protobuf:"varint,6,opt,name=minted_amount,json=mintedAmount,proto3" json:"minted_amount,omitempty"`
 	BurnedAmount     uint64 `protobuf:"varint,7,opt,name=burned_amount,json=burnedAmount,proto3" json:"burned_amount,omitempty"`
+=======
+	// The ratio of bonded tokens to total supply
+	BondedRatio string `protobuf:"bytes,1,opt,name=bonded_ratio,json=bondedRatio,proto3" json:"bonded_ratio,omitempty"`
+	// The current inflation rate
+	Inflation string `protobuf:"bytes,2,opt,name=inflation,proto3" json:"inflation,omitempty"`
+	// The total annual provisions for minting
+	AnnualProvisions string `protobuf:"bytes,3,opt,name=annual_provisions,json=annualProvisions,proto3" json:"annual_provisions,omitempty"`
+	// The amount of tokens needed for incentives
+	NeededAmount uint64 `protobuf:"varint,4,opt,name=needed_amount,json=neededAmount,proto3" json:"needed_amount,omitempty"`
+	// The amount of tokens collected for incentives
+	CollectedAmount uint64 `protobuf:"varint,5,opt,name=collected_amount,json=collectedAmount,proto3" json:"collected_amount,omitempty"`
+	// The amount of tokens minted
+	MintedAmount uint64 `protobuf:"varint,6,opt,name=minted_amount,json=mintedAmount,proto3" json:"minted_amount,omitempty"`
+	// The amount of tokens burned
+	BurnedAmount uint64 `protobuf:"varint,7,opt,name=burned_amount,json=burnedAmount,proto3" json:"burned_amount,omitempty"`
+>>>>>>> release/v22
 }
 
 func (x *MintIncentiveTokens) Reset() {

@@ -14,7 +14,7 @@ import (
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
-func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRequest) (*types.QueryAllAudienceResponse, error) {
+func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAudienceAllRequest) (*types.QueryAudienceAllResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -42,10 +42,10 @@ func (k Keeper) AudienceAll(goCtx context.Context, req *types.QueryAllAudienceRe
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllAudienceResponse{Audience: audiences, Pagination: pageRes}, nil
+	return &types.QueryAudienceAllResponse{Audience: audiences, Pagination: pageRes}, nil
 }
 
-func (k Keeper) Audience(goCtx context.Context, req *types.QueryGetAudienceRequest) (*types.QueryGetAudienceResponse, error) {
+func (k Keeper) Audience(goCtx context.Context, req *types.QueryAudienceRequest) (*types.QueryAudienceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -59,10 +59,10 @@ func (k Keeper) Audience(goCtx context.Context, req *types.QueryGetAudienceReque
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetAudienceResponse{Audience: val}, nil
+	return &types.QueryAudienceResponse{Audience: val}, nil
 }
 
-func (k Keeper) AudienceClaim(goCtx context.Context, req *types.QueryGetAudienceClaimRequest) (*types.QueryGetAudienceClaimResponse, error) {
+func (k Keeper) AudienceClaim(goCtx context.Context, req *types.QueryAudienceClaimRequest) (*types.QueryAudienceClaimResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -76,5 +76,5 @@ func (k Keeper) AudienceClaim(goCtx context.Context, req *types.QueryGetAudience
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetAudienceClaimResponse{Claim: &val}, nil
+	return &types.QueryAudienceClaimResponse{Claim: &val}, nil
 }

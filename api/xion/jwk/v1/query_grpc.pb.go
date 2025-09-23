@@ -34,10 +34,19 @@ const (
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+<<<<<<< HEAD
 	AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryGetAudienceClaimResponse, error)
 	// Queries a list of Audience items.
 	Audience(ctx context.Context, in *QueryGetAudienceRequest, opts ...grpc.CallOption) (*QueryGetAudienceResponse, error)
 	AudienceAll(ctx context.Context, in *QueryAllAudienceRequest, opts ...grpc.CallOption) (*QueryAllAudienceResponse, error)
+=======
+	// AudienceClaim queries an audience claim by hash
+	AudienceClaim(ctx context.Context, in *QueryAudienceClaimRequest, opts ...grpc.CallOption) (*QueryAudienceClaimResponse, error)
+	// Queries a list of Audience items.
+	Audience(ctx context.Context, in *QueryAudienceRequest, opts ...grpc.CallOption) (*QueryAudienceResponse, error)
+	// AudienceAll queries all audiences
+	AudienceAll(ctx context.Context, in *QueryAudienceAllRequest, opts ...grpc.CallOption) (*QueryAudienceAllResponse, error)
+>>>>>>> release/v22
 	// Queries a list of ValidateJWT items.
 	ValidateJWT(ctx context.Context, in *QueryValidateJWTRequest, opts ...grpc.CallOption) (*QueryValidateJWTResponse, error)
 }
@@ -60,9 +69,15 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+<<<<<<< HEAD
 func (c *queryClient) AudienceClaim(ctx context.Context, in *QueryGetAudienceClaimRequest, opts ...grpc.CallOption) (*QueryGetAudienceClaimResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryGetAudienceClaimResponse)
+=======
+func (c *queryClient) AudienceClaim(ctx context.Context, in *QueryAudienceClaimRequest, opts ...grpc.CallOption) (*QueryAudienceClaimResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryAudienceClaimResponse)
+>>>>>>> release/v22
 	err := c.cc.Invoke(ctx, Query_AudienceClaim_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -70,9 +85,15 @@ func (c *queryClient) AudienceClaim(ctx context.Context, in *QueryGetAudienceCla
 	return out, nil
 }
 
+<<<<<<< HEAD
 func (c *queryClient) Audience(ctx context.Context, in *QueryGetAudienceRequest, opts ...grpc.CallOption) (*QueryGetAudienceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryGetAudienceResponse)
+=======
+func (c *queryClient) Audience(ctx context.Context, in *QueryAudienceRequest, opts ...grpc.CallOption) (*QueryAudienceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryAudienceResponse)
+>>>>>>> release/v22
 	err := c.cc.Invoke(ctx, Query_Audience_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -80,9 +101,15 @@ func (c *queryClient) Audience(ctx context.Context, in *QueryGetAudienceRequest,
 	return out, nil
 }
 
+<<<<<<< HEAD
 func (c *queryClient) AudienceAll(ctx context.Context, in *QueryAllAudienceRequest, opts ...grpc.CallOption) (*QueryAllAudienceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryAllAudienceResponse)
+=======
+func (c *queryClient) AudienceAll(ctx context.Context, in *QueryAudienceAllRequest, opts ...grpc.CallOption) (*QueryAudienceAllResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryAudienceAllResponse)
+>>>>>>> release/v22
 	err := c.cc.Invoke(ctx, Query_AudienceAll_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -108,10 +135,19 @@ func (c *queryClient) ValidateJWT(ctx context.Context, in *QueryValidateJWTReque
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+<<<<<<< HEAD
 	AudienceClaim(context.Context, *QueryGetAudienceClaimRequest) (*QueryGetAudienceClaimResponse, error)
 	// Queries a list of Audience items.
 	Audience(context.Context, *QueryGetAudienceRequest) (*QueryGetAudienceResponse, error)
 	AudienceAll(context.Context, *QueryAllAudienceRequest) (*QueryAllAudienceResponse, error)
+=======
+	// AudienceClaim queries an audience claim by hash
+	AudienceClaim(context.Context, *QueryAudienceClaimRequest) (*QueryAudienceClaimResponse, error)
+	// Queries a list of Audience items.
+	Audience(context.Context, *QueryAudienceRequest) (*QueryAudienceResponse, error)
+	// AudienceAll queries all audiences
+	AudienceAll(context.Context, *QueryAudienceAllRequest) (*QueryAudienceAllResponse, error)
+>>>>>>> release/v22
 	// Queries a list of ValidateJWT items.
 	ValidateJWT(context.Context, *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error)
 	mustEmbedUnimplementedQueryServer()
@@ -127,6 +163,7 @@ type UnimplementedQueryServer struct{}
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
+<<<<<<< HEAD
 func (UnimplementedQueryServer) AudienceClaim(context.Context, *QueryGetAudienceClaimRequest) (*QueryGetAudienceClaimResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AudienceClaim not implemented")
 }
@@ -134,6 +171,15 @@ func (UnimplementedQueryServer) Audience(context.Context, *QueryGetAudienceReque
 	return nil, status.Errorf(codes.Unimplemented, "method Audience not implemented")
 }
 func (UnimplementedQueryServer) AudienceAll(context.Context, *QueryAllAudienceRequest) (*QueryAllAudienceResponse, error) {
+=======
+func (UnimplementedQueryServer) AudienceClaim(context.Context, *QueryAudienceClaimRequest) (*QueryAudienceClaimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AudienceClaim not implemented")
+}
+func (UnimplementedQueryServer) Audience(context.Context, *QueryAudienceRequest) (*QueryAudienceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Audience not implemented")
+}
+func (UnimplementedQueryServer) AudienceAll(context.Context, *QueryAudienceAllRequest) (*QueryAudienceAllResponse, error) {
+>>>>>>> release/v22
 	return nil, status.Errorf(codes.Unimplemented, "method AudienceAll not implemented")
 }
 func (UnimplementedQueryServer) ValidateJWT(context.Context, *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error) {
@@ -179,7 +225,11 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 }
 
 func _Query_AudienceClaim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+<<<<<<< HEAD
 	in := new(QueryGetAudienceClaimRequest)
+=======
+	in := new(QueryAudienceClaimRequest)
+>>>>>>> release/v22
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -191,13 +241,21 @@ func _Query_AudienceClaim_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: Query_AudienceClaim_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+<<<<<<< HEAD
 		return srv.(QueryServer).AudienceClaim(ctx, req.(*QueryGetAudienceClaimRequest))
+=======
+		return srv.(QueryServer).AudienceClaim(ctx, req.(*QueryAudienceClaimRequest))
+>>>>>>> release/v22
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Query_Audience_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+<<<<<<< HEAD
 	in := new(QueryGetAudienceRequest)
+=======
+	in := new(QueryAudienceRequest)
+>>>>>>> release/v22
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -209,13 +267,21 @@ func _Query_Audience_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: Query_Audience_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+<<<<<<< HEAD
 		return srv.(QueryServer).Audience(ctx, req.(*QueryGetAudienceRequest))
+=======
+		return srv.(QueryServer).Audience(ctx, req.(*QueryAudienceRequest))
+>>>>>>> release/v22
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Query_AudienceAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+<<<<<<< HEAD
 	in := new(QueryAllAudienceRequest)
+=======
+	in := new(QueryAudienceAllRequest)
+>>>>>>> release/v22
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -227,7 +293,11 @@ func _Query_AudienceAll_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: Query_AudienceAll_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+<<<<<<< HEAD
 		return srv.(QueryServer).AudienceAll(ctx, req.(*QueryAllAudienceRequest))
+=======
+		return srv.(QueryServer).AudienceAll(ctx, req.(*QueryAudienceAllRequest))
+>>>>>>> release/v22
 	}
 	return interceptor(ctx, in, info, handler)
 }

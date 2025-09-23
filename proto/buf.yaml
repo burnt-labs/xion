@@ -1,5 +1,9 @@
 # This module represents buf.build/cosmos/cosmos-sdk
+<<<<<<< HEAD
 version: v2
+=======
+version: v1
+>>>>>>> release/v22
 name: buf.build/burnt-labs/xion
 
 deps:
@@ -16,12 +20,12 @@ breaking:
     - FILE
 lint:
   use:
-    - DEFAULT
+    - STANDARD
     - COMMENTS
     - FILE_LOWER_SNAKE_CASE
   except:
-    - UNARY_RPC
-    - COMMENT_FIELD
+    #- UNARY_RPC
+    # - COMMENT_FIELD
     - SERVICE_SUFFIX
-    - PACKAGE_VERSION_SUFFIX
+    # - PACKAGE_VERSION_SUFFIX
     - RPC_REQUEST_STANDARD_NAME

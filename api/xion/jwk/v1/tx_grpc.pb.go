@@ -32,10 +32,22 @@ const (
 //
 // Msg defines the Msg service.
 type MsgClient interface {
+<<<<<<< HEAD
 	CreateAudienceClaim(ctx context.Context, in *MsgCreateAudienceClaim, opts ...grpc.CallOption) (*MsgCreateAudienceClaimResponse, error)
 	DeleteAudienceClaim(ctx context.Context, in *MsgDeleteAudienceClaim, opts ...grpc.CallOption) (*MsgDeleteAudienceClaimResponse, error)
 	CreateAudience(ctx context.Context, in *MsgCreateAudience, opts ...grpc.CallOption) (*MsgCreateAudienceResponse, error)
 	UpdateAudience(ctx context.Context, in *MsgUpdateAudience, opts ...grpc.CallOption) (*MsgUpdateAudienceResponse, error)
+=======
+	// CreateAudienceClaim creates a new audience claim
+	CreateAudienceClaim(ctx context.Context, in *MsgCreateAudienceClaim, opts ...grpc.CallOption) (*MsgCreateAudienceClaimResponse, error)
+	// DeleteAudienceClaim deletes an existing audience claim
+	DeleteAudienceClaim(ctx context.Context, in *MsgDeleteAudienceClaim, opts ...grpc.CallOption) (*MsgDeleteAudienceClaimResponse, error)
+	// CreateAudience creates a new audience
+	CreateAudience(ctx context.Context, in *MsgCreateAudience, opts ...grpc.CallOption) (*MsgCreateAudienceResponse, error)
+	// UpdateAudience updates an existing audience
+	UpdateAudience(ctx context.Context, in *MsgUpdateAudience, opts ...grpc.CallOption) (*MsgUpdateAudienceResponse, error)
+	// DeleteAudience deletes an existing audience
+>>>>>>> release/v22
 	DeleteAudience(ctx context.Context, in *MsgDeleteAudience, opts ...grpc.CallOption) (*MsgDeleteAudienceResponse, error)
 }
 
@@ -103,10 +115,22 @@ func (c *msgClient) DeleteAudience(ctx context.Context, in *MsgDeleteAudience, o
 //
 // Msg defines the Msg service.
 type MsgServer interface {
+<<<<<<< HEAD
 	CreateAudienceClaim(context.Context, *MsgCreateAudienceClaim) (*MsgCreateAudienceClaimResponse, error)
 	DeleteAudienceClaim(context.Context, *MsgDeleteAudienceClaim) (*MsgDeleteAudienceClaimResponse, error)
 	CreateAudience(context.Context, *MsgCreateAudience) (*MsgCreateAudienceResponse, error)
 	UpdateAudience(context.Context, *MsgUpdateAudience) (*MsgUpdateAudienceResponse, error)
+=======
+	// CreateAudienceClaim creates a new audience claim
+	CreateAudienceClaim(context.Context, *MsgCreateAudienceClaim) (*MsgCreateAudienceClaimResponse, error)
+	// DeleteAudienceClaim deletes an existing audience claim
+	DeleteAudienceClaim(context.Context, *MsgDeleteAudienceClaim) (*MsgDeleteAudienceClaimResponse, error)
+	// CreateAudience creates a new audience
+	CreateAudience(context.Context, *MsgCreateAudience) (*MsgCreateAudienceResponse, error)
+	// UpdateAudience updates an existing audience
+	UpdateAudience(context.Context, *MsgUpdateAudience) (*MsgUpdateAudienceResponse, error)
+	// DeleteAudience deletes an existing audience
+>>>>>>> release/v22
 	DeleteAudience(context.Context, *MsgDeleteAudience) (*MsgDeleteAudienceResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }

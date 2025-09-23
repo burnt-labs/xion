@@ -7,9 +7,17 @@ option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 // Params defines the parameters for the module.
 message Params {
+<<<<<<< HEAD
   uint64 time_offset = 1
       [ (gogoproto.moretags) = "yaml:\"time_offset\"" ]; // in nanoseconds
   uint64 deployment_gas = 2
       [ (gogoproto.moretags) =
             "yaml:\"deployment_gas\"" ]; // gas to deploy a new project/audience
+=======
+  // Time offset in nanoseconds for JWT validation
+  uint64 time_offset = 1 [ (gogoproto.moretags) = "yaml:\"time_offset\"" ];
+  // Gas required to deploy a new project/audience
+  uint64 deployment_gas = 2
+      [ (gogoproto.moretags) = "yaml:\"deployment_gas\"" ];
+>>>>>>> release/v22
 }

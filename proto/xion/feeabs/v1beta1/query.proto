@@ -17,8 +17,13 @@ service Query {
         "/fee-abstraction/feeabs/v1/osmosis-arithmetic-twap/{ibc_denom}";
   }
   // FeeabsModuleBalances return total balances of feeabs module
+<<<<<<< HEAD
   rpc FeeabsModuleBalances(QueryFeeabsModuleBalacesRequest)
       returns (QueryFeeabsModuleBalacesResponse) {
+=======
+  rpc FeeabsModuleBalances(QueryFeeabsModuleBalancesRequest)
+      returns (QueryFeeabsModuleBalancesResponse) {
+>>>>>>> release/v22
     option (google.api.http).get = "/fee-abstraction/feeabs/v1/module-balances";
   }
 
@@ -30,18 +35,34 @@ service Query {
   }
 
   // AllHostChainConfig
+<<<<<<< HEAD
   rpc AllHostChainConfig(AllQueryHostChainConfigRequest)
       returns (AllQueryHostChainConfigResponse) {
+=======
+  rpc AllHostChainConfig(QueryAllHostChainConfigRequest)
+      returns (QueryAllHostChainConfigResponse) {
+>>>>>>> release/v22
     option (google.api.http).get =
         "/fee-abstraction/feeabs/v1/all-host-chain-config";
   }
 }
 
 // QueryHostChainConfigRequest
+<<<<<<< HEAD
 message QueryHostChainConfigRequest { string ibc_denom = 1; }
 
 // QueryHostChainConfigResponse
 message QueryHostChainConfigResponse {
+=======
+message QueryHostChainConfigRequest {
+  // The IBC denomination to query configuration for
+  string ibc_denom = 1;
+}
+
+// QueryHostChainConfigResponse
+message QueryHostChainConfigResponse {
+  // The host chain fee abstraction configuration
+>>>>>>> release/v22
   HostChainFeeAbsConfig host_chain_config = 1 [
     (gogoproto.moretags) = "yaml:\"host_chain_config\"",
     (gogoproto.nullable) = false
@@ -50,10 +71,21 @@ message QueryHostChainConfigResponse {
 
 // QueryOsmosisArithmeticTwapRequest is the request type for the Query/Feeabs
 // RPC method.
+<<<<<<< HEAD
 message QueryOsmosisArithmeticTwapRequest { string ibc_denom = 1; }
 
 // QueryOsmosisArithmeticTwapResponse
 message QueryOsmosisArithmeticTwapResponse {
+=======
+message QueryOsmosisArithmeticTwapRequest {
+  // The IBC denomination to query TWAP for
+  string ibc_denom = 1;
+}
+
+// QueryOsmosisArithmeticTwapResponse
+message QueryOsmosisArithmeticTwapResponse {
+  // The arithmetic time-weighted average price
+>>>>>>> release/v22
   string arithmetic_twap = 1 [
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.moretags) = "yaml:\"arithmetic_twap\"",
@@ -61,17 +93,28 @@ message QueryOsmosisArithmeticTwapResponse {
   ];
 }
 
+<<<<<<< HEAD
 // QueryFeeabsModuleBalacesRequest is the request type for the Query/Feeabs RPC
 // method.
 message QueryFeeabsModuleBalacesRequest {}
 
 // QueryFeeabsModuleBalacesResponse
 message QueryFeeabsModuleBalacesResponse {
+=======
+// QueryFeeabsModuleBalancesRequest is the request type for the Query/Feeabs RPC
+// method.
+message QueryFeeabsModuleBalancesRequest {}
+
+// QueryFeeabsModuleBalancesResponse
+message QueryFeeabsModuleBalancesResponse {
+  // The coin balances held by the feeabs module
+>>>>>>> release/v22
   repeated cosmos.base.v1beta1.Coin balances = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"balances\"",
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
+<<<<<<< HEAD
   string address = 2;
 }
 
@@ -80,6 +123,18 @@ message AllQueryHostChainConfigRequest {}
 
 // AllQueryHostChainConfigResponse
 message AllQueryHostChainConfigResponse {
+=======
+  // The address of the feeabs module
+  string address = 2;
+}
+
+// QueryAllHostChainConfigRequest
+message QueryAllHostChainConfigRequest {}
+
+// QueryAllHostChainConfigResponse
+message QueryAllHostChainConfigResponse {
+  // All host chain fee abstraction configurations
+>>>>>>> release/v22
   repeated HostChainFeeAbsConfig all_host_chain_config = 1 [
     (gogoproto.moretags) = "yaml:\"all_host_chain_config\"",
     (gogoproto.nullable) = false

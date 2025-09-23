@@ -25049,6 +25049,7 @@
         },
         "/xion/globalfee/v1/params": {
             "get": {
+                "summary": "Params queries the parameters of the module",
                 "operationId": "GlobalFeeParams",
                 "responses": {
                     "200": {
@@ -25059,6 +25060,7 @@
                                     "type": "object",
                                     "properties": {
                                         "params": {
+                                            "title": "The global fee parameters",
                                             "type": "object",
                                             "properties": {
                                                 "minimumGasPrices": {
@@ -25137,6 +25139,7 @@
         },
         "/xion/jwk/audience": {
             "get": {
+                "summary": "AudienceAll queries all audiences",
                 "operationId": "AudienceAll",
                 "responses": {
                     "200": {
@@ -25152,18 +25155,24 @@
                                                 "type": "object",
                                                 "properties": {
                                                     "aud": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "The audience identifier"
                                                     },
                                                     "key": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "The public key associated with this audience"
                                                     },
                                                     "admin": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "The admin address for this audience"
                                                     }
-                                                }
-                                            }
+                                                },
+                                                "title": "Audience represents a JWT audience configuration"
+                                            },
+                                            "title": "List of all audiences"
                                         },
                                         "pagination": {
+                                            "title": "Pagination response",
                                             "type": "object",
                                             "properties": {
                                                 "nextKey": {
@@ -25179,7 +25188,8 @@
                                             },
                                             "description": "PageResponse is to be embedded in gRPC response messages where the\ncorresponding request message has used PageRequest.\n\n message SomeResponse {\n         repeated Bar results = 1;\n         PageResponse page = 2;\n }"
                                         }
-                                    }
+                                    },
+                                    "title": "QueryAudienceAllResponse is the response type for querying all audiences"
                                 }
                             }
                         }
@@ -25284,20 +25294,25 @@
                                     "type": "object",
                                     "properties": {
                                         "audience": {
+                                            "title": "The audience information",
                                             "type": "object",
                                             "properties": {
                                                 "aud": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "The audience identifier"
                                                 },
                                                 "key": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "The public key associated with this audience"
                                                 },
                                                 "admin": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "The admin address for this audience"
                                                 }
                                             }
                                         }
-                                    }
+                                    },
+                                    "title": "QueryAudienceResponse is the response type for querying an audience"
                                 }
                             }
                         }
@@ -25337,6 +25352,7 @@
                 "parameters": [
                     {
                         "name": "aud",
+                        "description": "The audience identifier to query",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -25351,6 +25367,7 @@
         },
         "/xion/jwk/audience_claim/{hash}": {
             "get": {
+                "summary": "AudienceClaim queries an audience claim by hash",
                 "operationId": "AudienceClaim",
                 "responses": {
                     "200": {
@@ -25361,14 +25378,17 @@
                                     "type": "object",
                                     "properties": {
                                         "claim": {
+                                            "title": "The audience claim",
                                             "type": "object",
                                             "properties": {
                                                 "signer": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "title": "The signer of the audience claim"
                                                 }
                                             }
                                         }
-                                    }
+                                    },
+                                    "title": "QueryAudienceClaimResponse is the response type for querying an audience\nclaim"
                                 }
                             }
                         }
@@ -25408,6 +25428,7 @@
                 "parameters": [
                     {
                         "name": "hash",
+                        "description": "The hash of the audience claim to query",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -25440,12 +25461,12 @@
                                                 "timeOffset": {
                                                     "type": "string",
                                                     "format": "uint64",
-                                                    "title": "in nanoseconds"
+                                                    "title": "Time offset in nanoseconds for JWT validation"
                                                 },
                                                 "deploymentGas": {
                                                     "type": "string",
                                                     "format": "uint64",
-                                                    "title": "gas to deploy a new project/audience"
+                                                    "title": "Gas required to deploy a new project/audience"
                                                 }
                                             }
                                         }
@@ -25510,15 +25531,20 @@
                                                 "type": "object",
                                                 "properties": {
                                                     "key": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "The claim key"
                                                     },
                                                     "value": {
-                                                        "type": "string"
+                                                        "type": "string",
+                                                        "title": "The claim value"
                                                     }
-                                                }
-                                            }
+                                                },
+                                                "title": "PrivateClaim represents a private claim in a JWT"
+                                            },
+                                            "title": "The private claims from the JWT"
                                         }
-                                    }
+                                    },
+                                    "title": "QueryValidateJWTResponse is the response type for validating a JWT"
                                 }
                             }
                         }
@@ -25558,6 +25584,7 @@
                 "parameters": [
                     {
                         "name": "aud",
+                        "description": "The audience identifier",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -25566,6 +25593,7 @@
                     },
                     {
                         "name": "sub",
+                        "description": "The subject",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -25574,6 +25602,7 @@
                     },
                     {
                         "name": "sigBytes",
+                        "description": "The signature bytes",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -47006,6 +47035,7 @@
                 "type": "object",
                 "properties": {
                     "params": {
+                        "title": "The global fee parameters",
                         "type": "object",
                         "properties": {
                             "minimumGasPrices": {
@@ -47046,23 +47076,29 @@
                 "type": "object",
                 "properties": {
                     "aud": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The audience identifier"
                     },
                     "key": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The public key associated with this audience"
                     },
                     "admin": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The admin address for this audience"
                     }
-                }
+                },
+                "title": "Audience represents a JWT audience configuration"
             },
             "xion.jwk.v1.AudienceClaim": {
                 "type": "object",
                 "properties": {
                     "signer": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The signer of the audience claim"
                     }
-                }
+                },
+                "title": "AudienceClaim represents a claim for an audience"
             },
             "xion.jwk.v1.Params": {
                 "type": "object",
@@ -47070,12 +47106,12 @@
                     "timeOffset": {
                         "type": "string",
                         "format": "uint64",
-                        "title": "in nanoseconds"
+                        "title": "Time offset in nanoseconds for JWT validation"
                     },
                     "deploymentGas": {
                         "type": "string",
                         "format": "uint64",
-                        "title": "gas to deploy a new project/audience"
+                        "title": "Gas required to deploy a new project/audience"
                     }
                 },
                 "description": "Params defines the parameters for the module."
@@ -47084,14 +47120,17 @@
                 "type": "object",
                 "properties": {
                     "key": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The claim key"
                     },
                     "value": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The claim value"
                     }
-                }
+                },
+                "title": "PrivateClaim represents a private claim in a JWT"
             },
-            "xion.jwk.v1.QueryAllAudienceResponse": {
+            "xion.jwk.v1.QueryAudienceAllResponse": {
                 "type": "object",
                 "properties": {
                     "audience": {
@@ -47100,18 +47139,24 @@
                             "type": "object",
                             "properties": {
                                 "aud": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "title": "The audience identifier"
                                 },
                                 "key": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "title": "The public key associated with this audience"
                                 },
                                 "admin": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "title": "The admin address for this audience"
                                 }
-                            }
-                        }
+                            },
+                            "title": "Audience represents a JWT audience configuration"
+                        },
+                        "title": "List of all audiences"
                     },
                     "pagination": {
+                        "title": "Pagination response",
                         "type": "object",
                         "properties": {
                             "nextKey": {
@@ -47127,39 +47172,48 @@
                         },
                         "description": "PageResponse is to be embedded in gRPC response messages where the\ncorresponding request message has used PageRequest.\n\n message SomeResponse {\n         repeated Bar results = 1;\n         PageResponse page = 2;\n }"
                     }
-                }
+                },
+                "title": "QueryAudienceAllResponse is the response type for querying all audiences"
             },
-            "xion.jwk.v1.QueryGetAudienceClaimResponse": {
+            "xion.jwk.v1.QueryAudienceClaimResponse": {
                 "type": "object",
                 "properties": {
                     "claim": {
+                        "title": "The audience claim",
                         "type": "object",
                         "properties": {
                             "signer": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "The signer of the audience claim"
                             }
                         }
                     }
-                }
+                },
+                "title": "QueryAudienceClaimResponse is the response type for querying an audience\nclaim"
             },
-            "xion.jwk.v1.QueryGetAudienceResponse": {
+            "xion.jwk.v1.QueryAudienceResponse": {
                 "type": "object",
                 "properties": {
                     "audience": {
+                        "title": "The audience information",
                         "type": "object",
                         "properties": {
                             "aud": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "The audience identifier"
                             },
                             "key": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "The public key associated with this audience"
                             },
                             "admin": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "The admin address for this audience"
                             }
                         }
                     }
-                }
+                },
+                "title": "QueryAudienceResponse is the response type for querying an audience"
             },
             "xion.jwk.v1.QueryParamsResponse": {
                 "type": "object",
@@ -47171,12 +47225,12 @@
                             "timeOffset": {
                                 "type": "string",
                                 "format": "uint64",
-                                "title": "in nanoseconds"
+                                "title": "Time offset in nanoseconds for JWT validation"
                             },
                             "deploymentGas": {
                                 "type": "string",
                                 "format": "uint64",
-                                "title": "gas to deploy a new project/audience"
+                                "title": "Gas required to deploy a new project/audience"
                             }
                         }
                     }
@@ -47192,15 +47246,20 @@
                             "type": "object",
                             "properties": {
                                 "key": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "title": "The claim key"
                                 },
                                 "value": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "title": "The claim value"
                                 }
-                            }
-                        }
+                            },
+                            "title": "PrivateClaim represents a private claim in a JWT"
+                        },
+                        "title": "The private claims from the JWT"
                     }
-                }
+                },
+                "title": "QueryValidateJWTResponse is the response type for validating a JWT"
             },
             "xion.mint.v1.Params": {
                 "type": "object",
@@ -47308,30 +47367,37 @@
                                 }
                             },
                             "description": "Coin defines a token with a denomination and an amount.\n\nNOTE: The amount field is an Int which implements the custom method\nsignatures required by gogoproto."
-                        }
+                        },
+                        "title": "The minimum fees required by the platform"
                     }
-                }
+                },
+                "title": "QueryPlatformMinimumResponse is the response type for querying platform\nminimum fees"
             },
             "xion.v1.QueryPlatformPercentageResponse": {
                 "type": "object",
                 "properties": {
                     "platformPercentage": {
                         "type": "string",
-                        "format": "uint64"
+                        "format": "uint64",
+                        "title": "The platform percentage fee"
                     }
-                }
+                },
+                "title": "QueryPlatformPercentageResponse is the response type for querying platform\npercentage"
             },
             "xion.v1.QueryWebAuthNVerifyAuthenticateResponse": {
-                "type": "object"
+                "type": "object",
+                "title": "QueryWebAuthNVerifyAuthenticateResponse is the response type for WebAuthN\nauthentication verification"
             },
             "xion.v1.QueryWebAuthNVerifyRegisterResponse": {
                 "type": "object",
                 "properties": {
                     "credential": {
                         "type": "string",
-                        "format": "byte"
+                        "format": "byte",
+                        "title": "The generated credential"
                     }
-                }
+                },
+                "title": "QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN\nregistration verification"
             },
             "cosmos.circuit.v1.AccountResponse": {
                 "type": "object",

@@ -31,10 +31,14 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // QueryArithmeticTwapToNowRequest
 type QueryArithmeticTwapToNowRequest struct {
-	PoolId     uint64    `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
-	BaseAsset  string    `protobuf:"bytes,2,opt,name=base_asset,json=baseAsset,proto3" json:"base_asset,omitempty"`
-	QuoteAsset string    `protobuf:"bytes,3,opt,name=quote_asset,json=quoteAsset,proto3" json:"quote_asset,omitempty"`
-	StartTime  time.Time `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time" yaml:"start_time"`
+	// pool_id defines the pool identifier
+	PoolId uint64 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
+	// base_asset defines the base asset for the TWAP calculation
+	BaseAsset string `protobuf:"bytes,2,opt,name=base_asset,json=baseAsset,proto3" json:"base_asset,omitempty"`
+	// quote_asset defines the quote asset for the TWAP calculation
+	QuoteAsset string `protobuf:"bytes,3,opt,name=quote_asset,json=quoteAsset,proto3" json:"quote_asset,omitempty"`
+	// start_time defines the start time for the TWAP calculation
+	StartTime time.Time `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time" yaml:"start_time"`
 }
 
 func (m *QueryArithmeticTwapToNowRequest) Reset()         { *m = QueryArithmeticTwapToNowRequest{} }
@@ -100,6 +104,8 @@ func (m *QueryArithmeticTwapToNowRequest) GetStartTime() time.Time {
 
 // QueryArithmeticTwapToNowResponse
 type QueryArithmeticTwapToNowResponse struct {
+	// arithmetic_twap defines the calculated arithmetic time-weighted average
+	// price
 	ArithmeticTwap cosmossdk_io_math.LegacyDec `protobuf:"bytes,1,opt,name=arithmetic_twap,json=arithmeticTwap,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"arithmetic_twap" yaml:"arithmetic_twap"`
 }
 
@@ -138,7 +144,9 @@ var xxx_messageInfo_QueryArithmeticTwapToNowResponse proto.InternalMessageInfo
 
 // InterchainQueryRequest
 type InterchainQueryRequest struct {
+	// data defines the raw query data
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	// path defines the query path
 	Path string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 }
 
@@ -191,6 +199,7 @@ func (m *InterchainQueryRequest) GetPath() string {
 
 // InterchainQueryPacketData is comprised of raw query.
 type InterchainQueryPacketData struct {
+	// data defines the raw query data
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	// optional memo
 	Memo string `protobuf:"bytes,2,opt,name=memo,proto3" json:"memo,omitempty"`
@@ -246,6 +255,7 @@ func (m *InterchainQueryPacketData) GetMemo() string {
 // InterchainQueryPacketAck is comprised of an ABCI query response with
 // non-deterministic fields left empty (e.g. Codespace, Log, Info and ...).
 type InterchainQueryPacketAck struct {
+	// data defines the query response data
 	Data []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 }
 
@@ -291,6 +301,7 @@ func (m *InterchainQueryPacketAck) GetData() []byte {
 
 // InterchainQueryRequestPacket
 type InterchainQueryRequestPacket struct {
+	// requests defines the list of interchain query requests
 	Requests []InterchainQueryRequest `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests"`
 }
 
@@ -337,6 +348,7 @@ func (m *InterchainQueryRequestPacket) GetRequests() []InterchainQueryRequest {
 // CosmosQuery contains a list of tendermint ABCI query requests. It should be
 // used when sending queries to an SDK host chain.
 type CosmosQuery struct {
+	// requests defines the list of ABCI query requests
 	Requests []types.RequestQuery `protobuf:"bytes,1,rep,name=requests,proto3" json:"requests"`
 }
 
@@ -383,6 +395,7 @@ func (m *CosmosQuery) GetRequests() []types.RequestQuery {
 // CosmosResponse contains a list of tendermint ABCI query responses. It should
 // be used when receiving responses from an SDK host chain.
 type CosmosResponse struct {
+	// responses defines the list of ABCI query responses
 	Responses []types.ResponseQuery `protobuf:"bytes,1,rep,name=responses,proto3" json:"responses"`
 }
 

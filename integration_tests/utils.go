@@ -63,13 +63,6 @@ func IntegrationTestPath(pathElements ...string) string {
 	return path.Join(append([]string{"integration_tests"}, pathElements...)...)
 }
 
-type Dkim struct {
-	PubKey       string `json:"pubKey"`
-	Domain       string `json:"domain"`
-	Selector     string `json:"selector"`
-	PoseidonHash string `json:"poseidon_hash"`
-}
-
 func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
 	msg := fmt.Sprintf(`
 {
@@ -898,42 +891,4 @@ func GetTokenFactoryAdmin(t *testing.T, ctx context.Context, chain *cosmos.Cosmo
 	t.Log(results)
 
 	return results.AuthorityMetadata.Admin
-}
-
-// OverrideConfiguredChainsYaml overrides the interchaintests configuredChains.yaml file with an embedded tmpfile
-func OverrideConfiguredChainsYaml(t *testing.T) *os.File {
-	// Extract the embedded file to a temporary file
-	tempFile, err := os.CreateTemp("", "configuredChains-*.yaml")
-	if err != nil {
-		t.Errorf("error creating temporary file: %v", err)
-	}
-
-	content, err := configuredChainsFile.ReadFile("configuredChains.yaml")
-	if err != nil {
-		t.Errorf("error reading embedded file: %v", err)
-	}
-
-	if _, err := tempFile.Write(content); err != nil {
-		t.Errorf("error writing to temporary file: %v", err)
-	}
-	if err := tempFile.Close(); err != nil {
-		t.Errorf("error closing temporary file: %v", err)
-	}
-
-	// Set the environment variable to the path of the temporary file
-	err = os.Setenv("IBCTEST_CONFIGURED_CHAINS", tempFile.Name())
-	t.Logf("set env var IBCTEST_CONFIGURED_CHAINS to %s", tempFile.Name())
-	if err != nil {
-		t.Errorf("error setting env var: %v", err)
-	}
-
-	return tempFile
-}
-
-func ToLittleEndian(b []byte) []byte {
-	le := make([]byte, len(b))
-	for i, v := range b {
-		le[len(b)-1-i] = v
-	}
-	return le
 }

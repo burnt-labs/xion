@@ -3709,15 +3709,31 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+<<<<<<< HEAD
+=======
+// QueryWebAuthNVerifyRegisterRequest is the request type for WebAuthN
+// registration verification
+>>>>>>> release/v22
 type QueryWebAuthNVerifyRegisterRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
 	Addr      string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
 	Challenge string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
 	Rp        string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
 	Data      []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+=======
+	// The account address
+	Addr string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	// The challenge string for registration
+	Challenge string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
+	// The relying party identifier
+	Rp string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
+	// The registration data
+	Data []byte `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+>>>>>>> release/v22
 }
 
 func (x *QueryWebAuthNVerifyRegisterRequest) Reset() {
@@ -3768,11 +3784,20 @@ func (x *QueryWebAuthNVerifyRegisterRequest) GetData() []byte {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN
+// registration verification
+>>>>>>> release/v22
 type QueryWebAuthNVerifyRegisterResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// The generated credential
+>>>>>>> release/v22
 	Credential []byte `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
 }
 
@@ -3803,16 +3828,34 @@ func (x *QueryWebAuthNVerifyRegisterResponse) GetCredential() []byte {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryWebAuthNVerifyAuthenticateRequest is the request type for WebAuthN
+// authentication verification
+>>>>>>> release/v22
 type QueryWebAuthNVerifyAuthenticateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
 	Addr       string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
 	Challenge  string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
 	Rp         string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
 	Credential []byte `protobuf:"bytes,4,opt,name=credential,proto3" json:"credential,omitempty"`
 	Data       []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+=======
+	// The account address
+	Addr string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+	// The challenge string for authentication
+	Challenge string `protobuf:"bytes,2,opt,name=challenge,proto3" json:"challenge,omitempty"`
+	// The relying party identifier
+	Rp string `protobuf:"bytes,3,opt,name=rp,proto3" json:"rp,omitempty"`
+	// The credential to verify
+	Credential []byte `protobuf:"bytes,4,opt,name=credential,proto3" json:"credential,omitempty"`
+	// The authentication data
+	Data []byte `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+>>>>>>> release/v22
 }
 
 func (x *QueryWebAuthNVerifyAuthenticateRequest) Reset() {
@@ -3870,6 +3913,11 @@ func (x *QueryWebAuthNVerifyAuthenticateRequest) GetData() []byte {
 	return nil
 }
 
+<<<<<<< HEAD
+=======
+// QueryWebAuthNVerifyAuthenticateResponse is the response type for WebAuthN
+// authentication verification
+>>>>>>> release/v22
 type QueryWebAuthNVerifyAuthenticateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3896,6 +3944,11 @@ func (*QueryWebAuthNVerifyAuthenticateResponse) Descriptor() ([]byte, []int) {
 	return file_xion_v1_query_proto_rawDescGZIP(), []int{3}
 }
 
+<<<<<<< HEAD
+=======
+// QueryPlatformPercentageRequest is the request type for querying platform
+// percentage
+>>>>>>> release/v22
 type QueryPlatformPercentageRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3922,11 +3975,20 @@ func (*QueryPlatformPercentageRequest) Descriptor() ([]byte, []int) {
 	return file_xion_v1_query_proto_rawDescGZIP(), []int{4}
 }
 
+<<<<<<< HEAD
+=======
+// QueryPlatformPercentageResponse is the response type for querying platform
+// percentage
+>>>>>>> release/v22
 type QueryPlatformPercentageResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// The platform percentage fee
+>>>>>>> release/v22
 	PlatformPercentage uint64 `protobuf:"varint,1,opt,name=platform_percentage,json=platformPercentage,proto3" json:"platform_percentage,omitempty"`
 }
 
@@ -3957,6 +4019,11 @@ func (x *QueryPlatformPercentageResponse) GetPlatformPercentage() uint64 {
 	return 0
 }
 
+<<<<<<< HEAD
+=======
+// QueryPlatformMinimumRequest is the request type for querying platform minimum
+// fees
+>>>>>>> release/v22
 type QueryPlatformMinimumRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3983,11 +4050,20 @@ func (*QueryPlatformMinimumRequest) Descriptor() ([]byte, []int) {
 	return file_xion_v1_query_proto_rawDescGZIP(), []int{6}
 }
 
+<<<<<<< HEAD
+=======
+// QueryPlatformMinimumResponse is the response type for querying platform
+// minimum fees
+>>>>>>> release/v22
 type QueryPlatformMinimumResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+<<<<<<< HEAD
+=======
+	// The minimum fees required by the platform
+>>>>>>> release/v22
 	Minimums []*v1beta1.Coin `protobuf:"bytes,3,rep,name=minimums,proto3" json:"minimums,omitempty"`
 }
 
