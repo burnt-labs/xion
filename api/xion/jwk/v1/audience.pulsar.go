@@ -3,13 +3,14 @@ package jwkv1
 
 import (
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var (
@@ -47,17 +48,21 @@ func (x *Audience) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_Audience_messageType fastReflection_Audience_messageType
-var _ protoreflect.MessageType = fastReflection_Audience_messageType{}
+var (
+	_fastReflection_Audience_messageType fastReflection_Audience_messageType
+	_                                    protoreflect.MessageType = fastReflection_Audience_messageType{}
+)
 
 type fastReflection_Audience_messageType struct{}
 
 func (x fastReflection_Audience_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_Audience)(nil)
 }
+
 func (x fastReflection_Audience_messageType) New() protoreflect.Message {
 	return new(fastReflection_Audience)
 }
+
 func (x fastReflection_Audience_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_Audience
 }
@@ -591,17 +596,21 @@ func (x *AudienceClaim) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_AudienceClaim_messageType fastReflection_AudienceClaim_messageType
-var _ protoreflect.MessageType = fastReflection_AudienceClaim_messageType{}
+var (
+	_fastReflection_AudienceClaim_messageType fastReflection_AudienceClaim_messageType
+	_                                         protoreflect.MessageType = fastReflection_AudienceClaim_messageType{}
+)
 
 type fastReflection_AudienceClaim_messageType struct{}
 
 func (x fastReflection_AudienceClaim_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_AudienceClaim)(nil)
 }
+
 func (x fastReflection_AudienceClaim_messageType) New() protoreflect.Message {
 	return new(fastReflection_AudienceClaim)
 }
+
 func (x fastReflection_AudienceClaim_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_AudienceClaim
 }
@@ -1123,11 +1132,14 @@ func file_xion_jwk_v1_audience_proto_rawDescGZIP() []byte {
 	return file_xion_jwk_v1_audience_proto_rawDescData
 }
 
-var file_xion_jwk_v1_audience_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_xion_jwk_v1_audience_proto_goTypes = []interface{}{
-	(*Audience)(nil),      // 0: xion.jwk.v1.Audience
-	(*AudienceClaim)(nil), // 1: xion.jwk.v1.AudienceClaim
-}
+var (
+	file_xion_jwk_v1_audience_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+	file_xion_jwk_v1_audience_proto_goTypes  = []interface{}{
+		(*Audience)(nil),      // 0: xion.jwk.v1.Audience
+		(*AudienceClaim)(nil), // 1: xion.jwk.v1.AudienceClaim
+	}
+)
+
 var file_xion_jwk_v1_audience_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type

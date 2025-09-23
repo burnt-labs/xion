@@ -355,7 +355,13 @@ proto-all:
 		find ./ -name '*.proto' -exec clang-format -i {} \; && \
 		echo '✅ Protobuf formatting complete' && \
 		echo '' && \
-		echo '🔍 ========================================' && \
+		echo '� ========================================' && \
+		echo '🔧 FORMATTING GENERATED GO FILES' && \
+		echo '🔧 ========================================' && \
+		find . -name '*.pulsar.go' -type f | xargs gofumpt -w && \
+		echo '✅ Go file formatting complete' && \
+		echo '' && \
+		echo '�🔍 ========================================' && \
 		echo '🔍 LINTING PROTOBUF FILES' && \
 		echo '🔍 ========================================' && \
 		buf lint --error-format=json && \
@@ -372,6 +378,8 @@ proto-gen:
 	@echo "📦 GENERATING PROTOBUF FILES"
 	@echo "📦 ========================================"
 	@$(protoImage) sh ./scripts/proto-gen.sh
+	@echo "🔧 Formatting generated files..."
+	@find . -name '*.pulsar.go' -type f | xargs gofumpt -w
 	@echo "✅ Protobuf generation complete"
 
 proto-gen-openapi:
@@ -388,6 +396,8 @@ proto-gen-pulsar:
 	@echo "⚡ GENERATING PROTOBUF PULSAR"
 	@echo "⚡ ========================================"
 	@$(protoImage) sh ./scripts/proto-gen.sh --pulsar
+	@echo "🔧 Formatting generated pulsar files..."
+	@find . -name '*.pulsar.go' -type f | xargs gofumpt -w
 	@echo "✅ Protobuf Pulsar generation complete"
 
 proto-format:
