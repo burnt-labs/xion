@@ -1,0 +1,44 @@
+version: v2
+
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/burnt-labs/xion/api
+    - file_option: go_package_prefix
+      module: buf.build/cosmos/gogo-proto
+      value: github.com/cosmos/gogoproto
+    - file_option: go_package_prefix
+      module: buf.build/cosmos/cosmos-proto
+      value: github.com/cosmos/cosmos-proto
+    - file_option: go_package
+      module: buf.build/cosmos/cosmos-proto
+      path: cosmos_proto/cosmos.proto
+      value: github.com/cosmos/cosmos-proto
+    - file_option: go_package_prefix
+      module: buf.build/cosmos/cosmos-sdk
+      value: cosmossdk.io/api
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis
+      path: google/api/annotations.proto
+      value: google.golang.org/genproto/googleapis/api/annotations
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis  
+      path: google/api/http.proto
+      value: google.golang.org/genproto/googleapis/api/annotations
+    - file_option: go_package
+      module: buf.build/tendermint/tendermint
+      path: tendermint/abci/types.proto
+      value: github.com/cometbft/cometbft/abci/types
+
+
+plugins:
+  - local: protoc-gen-go-pulsar
+    out: ../api
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: ../api
+    opt: paths=source_relative
+  - local: protoc-gen-go-cosmos-orm
+    out: ../api
+    opt: paths=source_relative

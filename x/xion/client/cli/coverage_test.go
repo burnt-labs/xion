@@ -656,7 +656,7 @@ func TestNewUpdateConfigsCmdComprehensive(t *testing.T) {
 		// ExactArgs(2)
 		require.Error(t, cmd.Args(cmd, []string{}))
 		require.Error(t, cmd.Args(cmd, []string{"config"}))
-		require.NoError(t, cmd.Args(cmd, []string{"config", "address"}))
+		require.NoError(t, cmd.Args(cmd, []string{"config", testValidBech32Addr}))
 		require.Error(t, cmd.Args(cmd, []string{"a", "b", "c"}))
 	})
 
@@ -716,8 +716,8 @@ func TestNewUpdateParamsCmdComprehensive(t *testing.T) {
 		// ExactArgs(4)
 		require.Error(t, cmd.Args(cmd, []string{}))
 		require.Error(t, cmd.Args(cmd, []string{"param"}))
-		require.Error(t, cmd.Args(cmd, []string{"a", "b", "c"}))
-		require.NoError(t, cmd.Args(cmd, []string{"a", "b", "c", "d"}))
+		require.NoError(t, cmd.Args(cmd, []string{"a", "b", "c"}))
+		require.Error(t, cmd.Args(cmd, []string{"a", "b", "c", "d"}))
 		require.Error(t, cmd.Args(cmd, []string{"a", "b", "c", "d", "e"}))
 	})
 
@@ -985,20 +985,9 @@ func TestUpdateConfigsCmdPaths(t *testing.T) {
 }
 
 func TestUpdateParamsCmdPaths(t *testing.T) {
-	t.Run("invalid display URL", func(t *testing.T) {
-		cmd := NewUpdateParamsCmd()
-		cmd.SetArgs([]string{"contract_addr", "invalid-url", "https://example.com/redirect", "https://example.com/icon.png"})
-		cmd.SetOut(io.Discard)
-		cmd.SetErr(io.Discard)
-
-		err := cmd.Execute()
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid display URL")
-	})
-
 	t.Run("invalid redirect URL", func(t *testing.T) {
 		cmd := NewUpdateParamsCmd()
-		cmd.SetArgs([]string{"contract_addr", "https://example.com/display", "invalid-url", "https://example.com/icon.png"})
+		cmd.SetArgs([]string{"contract_addr", "invalid-url", "https://example.com/icon.png"})
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
 
@@ -1009,7 +998,7 @@ func TestUpdateParamsCmdPaths(t *testing.T) {
 
 	t.Run("invalid icon URL", func(t *testing.T) {
 		cmd := NewUpdateParamsCmd()
-		cmd.SetArgs([]string{"contract_addr", "https://example.com/display", "https://example.com/redirect", "invalid-url"})
+		cmd.SetArgs([]string{"contract_addr", "https://example.com/redirect", "invalid-url"})
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
 
@@ -1020,7 +1009,7 @@ func TestUpdateParamsCmdPaths(t *testing.T) {
 
 	t.Run("valid URLs but missing client context", func(t *testing.T) {
 		cmd := NewUpdateParamsCmd()
-		cmd.SetArgs([]string{"contract_addr", "https://example.com/display", "https://example.com/redirect", "https://example.com/icon.png"})
+		cmd.SetArgs([]string{"contract_addr", "https://example.com/redirect", "https://example.com/icon.png"})
 		cmd.SetOut(io.Discard)
 		cmd.SetErr(io.Discard)
 
@@ -1034,25 +1023,21 @@ func TestUpdateParamsCmdPaths(t *testing.T) {
 		// Test with various valid URL formats
 		testCases := []struct {
 			name        string
-			displayURL  string
 			redirectURL string
 			iconURL     string
 		}{
 			{
 				name:        "http URLs",
-				displayURL:  "http://example.com/display",
 				redirectURL: "http://example.com/redirect",
 				iconURL:     "http://example.com/icon.png",
 			},
 			{
 				name:        "URLs with ports",
-				displayURL:  "https://example.com:8080/display",
 				redirectURL: "https://example.com:9090/redirect",
 				iconURL:     "https://example.com:3000/icon.png",
 			},
 			{
 				name:        "URLs with paths and query params",
-				displayURL:  "https://example.com/path/to/display?param=value",
 				redirectURL: "https://example.com/path/to/redirect?param=value&other=test",
 				iconURL:     "https://example.com/path/to/icon.png?size=64",
 			},
@@ -1061,7 +1046,7 @@ func TestUpdateParamsCmdPaths(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				cmd := NewUpdateParamsCmd()
-				cmd.SetArgs([]string{"contract_addr", tc.displayURL, tc.redirectURL, tc.iconURL})
+				cmd.SetArgs([]string{"contract_addr", tc.redirectURL, tc.iconURL})
 				cmd.SetOut(io.Discard)
 				cmd.SetErr(io.Discard)
 
@@ -1076,42 +1061,24 @@ func TestUpdateParamsCmdPaths(t *testing.T) {
 	t.Run("malformed URLs edge cases", func(t *testing.T) {
 		testCases := []struct {
 			name        string
-			displayURL  string
 			redirectURL string
 			iconURL     string
 			expectedErr string
 		}{
 			{
-				name:        "empty display URL",
-				displayURL:  "",
-				redirectURL: "https://example.com/redirect",
-				iconURL:     "https://example.com/icon.png",
-				expectedErr: "invalid display URL",
-			},
-			{
 				name:        "empty redirect URL",
-				displayURL:  "https://example.com/display",
 				redirectURL: "",
 				iconURL:     "https://example.com/icon.png",
 				expectedErr: "invalid redirect URL",
 			},
 			{
 				name:        "empty icon URL",
-				displayURL:  "https://example.com/display",
 				redirectURL: "https://example.com/redirect",
 				iconURL:     "",
 				expectedErr: "invalid icon URL",
 			},
 			{
-				name:        "space in display URL",
-				displayURL:  "https://example.com/display url",
-				redirectURL: "https://example.com/redirect",
-				iconURL:     "https://example.com/icon.png",
-				expectedErr: "", // URL parsing may actually succeed with space
-			},
-			{
 				name:        "invalid scheme in redirect URL",
-				displayURL:  "https://example.com/display",
 				redirectURL: "ftp://example.com/redirect",
 				iconURL:     "https://example.com/icon.png",
 				expectedErr: "", // url.ParseRequestURI allows ftp:// scheme
@@ -1121,7 +1088,7 @@ func TestUpdateParamsCmdPaths(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				cmd := NewUpdateParamsCmd()
-				cmd.SetArgs([]string{"contract_addr", tc.displayURL, tc.redirectURL, tc.iconURL})
+				cmd.SetArgs([]string{"contract_addr", tc.redirectURL, tc.iconURL})
 				cmd.SetOut(io.Discard)
 				cmd.SetErr(io.Discard)
 

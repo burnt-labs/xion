@@ -336,33 +336,78 @@ format: format-tools
 ################################################################################
 ###                                 Protobuf                                 ###
 ################################################################################
-protoVer=0.14.0
+protoVer=0.17.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace -e GOTOOLCHAIN=auto $(protoImageName)
 HTTPS_GIT := https://github.com/burnt-labs/xion.git
 
-proto-all: proto-format proto-lint proto-gen proto-format
+proto-all: 
+	@$(protoImage) sh -c " \
+		echo '🚀 ========================================' && \
+		echo '🚀 STARTING PROTOBUF BUILD PIPELINE' && \
+		echo '🚀 ========================================' && \
+		echo '' && \
+		sh ./scripts/proto-gen.sh --gogo --pulsar --openapi && \
+		echo '' && \
+		echo '🔧 ========================================' && \
+		echo '🔧 FORMATTING PROTOBUF FILES' && \
+		echo '🔧 ========================================' && \
+		find ./ -name '*.proto' -exec clang-format -i {} \; && \
+		echo '✅ Protobuf formatting complete' && \
+		echo '' && \
+		echo '🔍 ========================================' && \
+		echo '🔍 LINTING PROTOBUF FILES' && \
+		echo '🔍 ========================================' && \
+		buf lint --error-format=json && \
+		echo '✅ Protobuf linting complete' && \
+		echo '' && \
+		echo '🔍 ========================================' && \
+		echo '🔍 CHECKING FOR BREAKING CHANGES' && \
+		echo '🔍 ========================================' && \
+		buf breaking --against $(HTTPS_GIT)#branch=main \
+	"
 
 proto-gen:
-	@echo "Generating Protobuf files"
+	@echo "📦 ========================================"
+	@echo "📦 GENERATING PROTOBUF FILES"
+	@echo "📦 ========================================"
 	@$(protoImage) sh ./scripts/proto-gen.sh
+	@echo "✅ Protobuf generation complete"
 
-proto-gen-ts:
-	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/proto-gen.sh --ts
+proto-gen-openapi:
+	@echo "🌐 ========================================"
+	@echo "🌐 GENERATING PROTOBUF OPENAPI"
+	@echo "🌐 ========================================"
+	@$(protoImage) sh ./scripts/proto-gen.sh --openapi
+	@echo "✅ Protobuf OpenAPI generation complete"
 
-proto-gen-swagger:
-	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh scripts/proto-gen.sh --swagger
+proto-gen-swagger: proto-gen-openapi
+
+proto-gen-pulsar:
+	@echo "⚡ ========================================"
+	@echo "⚡ GENERATING PROTOBUF PULSAR"
+	@echo "⚡ ========================================"
+	@$(protoImage) sh ./scripts/proto-gen.sh --pulsar
+	@echo "✅ Protobuf Pulsar generation complete"
 
 proto-format:
-	@echo "Formatting Protobuf files"
+	@echo "🔧 ========================================"
+	@echo "🔧 FORMATTING PROTOBUF FILES"
+	@echo "🔧 ========================================"
 	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+	@echo "✅ Protobuf formatting complete"
 
 proto-lint:
+	@echo "🔍 ========================================"
+	@echo "🔍 LINTING PROTOBUF FILES"
+	@echo "🔍 ========================================"
 	@$(protoImage) buf lint --error-format=json
+	@echo "✅ Protobuf linting complete"
 
 proto-check-breaking:
+	@echo "🔍 ========================================"
+	@echo "🔍 CHECKING FOR BREAKING CHANGES"
+	@echo "🔍 ========================================"
 	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
 .PHONY: all install install-debug \

@@ -1,0 +1,64 @@
+syntax = "proto3";
+package xion.feeabs.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+
+// HostChainFeeAbsStatus represents the status of a host chain fee abstraction
+// configuration
+enum HostChainFeeAbsStatus {
+  // HOST_CHAIN_FEE_ABS_STATUS_UNSPECIFIED indicates an unspecified status
+  HOST_CHAIN_FEE_ABS_STATUS_UNSPECIFIED = 0;
+  // HOST_CHAIN_FEE_ABS_STATUS_UPDATED indicates the configuration is up to date
+  HOST_CHAIN_FEE_ABS_STATUS_UPDATED = 1;
+  // HOST_CHAIN_FEE_ABS_STATUS_OUTDATED indicates the configuration is outdated
+  HOST_CHAIN_FEE_ABS_STATUS_OUTDATED = 2;
+  // HOST_CHAIN_FEE_ABS_STATUS_FROZEN indicates the configuration is frozen
+  HOST_CHAIN_FEE_ABS_STATUS_FROZEN = 3;
+}
+
+// HostChainFeeAbsConfig
+message HostChainFeeAbsConfig {
+  // ibc token is allowed to be used as fee token
+  string ibc_denom = 1 [ (gogoproto.moretags) = "yaml:\"allowed_token\"" ];
+  // token_in in cross_chain swap contract.
+  string osmosis_pool_token_denom_in = 2;
+  // pool id
+  uint64 pool_id = 3;
+  // Host chain fee abstraction connection status
+  HostChainFeeAbsStatus status = 4;
+}
+
+// AddHostZoneProposal
+message AddHostZoneProposal {
+  option (gogoproto.goproto_getters) = false;
+  // the title of the proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the host chain config
+  HostChainFeeAbsConfig host_chain_config = 3;
+}
+
+// DeleteHostZoneProposal
+message DeleteHostZoneProposal {
+  option (gogoproto.goproto_getters) = false;
+  // the title of the proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the  ibc denom of this token
+  string ibc_denom = 3;
+}
+
+// SetHostZoneProposal
+message SetHostZoneProposal {
+  option (gogoproto.goproto_getters) = false;
+  // the title of the proposal
+  string title = 1;
+  // the description of the proposal
+  string description = 2;
+  // the host chain config
+  HostChainFeeAbsConfig host_chain_config = 3;
+}
