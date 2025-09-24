@@ -600,6 +600,15 @@ func (s *CLITestSuite) TestNewSignCmd() {
 	s.Require().NoError(encoder.Encode(txJSON))
 	s.Require().NoError(txFile.Close())
 
+	// Create invalid JSON transaction file
+	invalidTxFile, err := os.CreateTemp("", "invalid_tx_*.json")
+	s.Require().NoError(err)
+	defer os.Remove(invalidTxFile.Name())
+
+	_, err = invalidTxFile.WriteString("{invalid json}")
+	s.Require().NoError(err)
+	s.Require().NoError(invalidTxFile.Close())
+
 	testCases := []struct {
 		name        string
 		ctxGen      func() client.Context
@@ -634,9 +643,54 @@ func (s *CLITestSuite) TestNewSignCmd() {
 			expectErr: true,
 		},
 		{
+			name:      "invalid transaction JSON file",
+			ctxGen:    func() client.Context { return s.baseCtx },
+			args:      []string{accounts[0].Name, accounts[1].Address.String(), invalidTxFile.Name()},
+			expectErr: true,
+		},
+		{
 			name:        "valid basic structure (network panic path)",
 			ctxGen:      func() client.Context { return s.baseCtx },
 			args:        []string{accounts[0].Name, accounts[1].Address.String(), txFile.Name(), "--authenticator-id=1"},
+			expectErr:   true,
+			expectPanic: true,
+		},
+		{
+			name:        "flag setting error - invalid from flag",
+			ctxGen:      func() client.Context { return s.baseCtx },
+			args:        []string{"", accounts[1].Address.String(), txFile.Name()}, // empty from flag should cause issues
+			expectErr:   true,
+			expectPanic: true,
+		},
+		{
+			name:      "authenticator-id flag out of range",
+			ctxGen:    func() client.Context { return s.baseCtx },
+			args:      []string{accounts[0].Name, accounts[1].Address.String(), txFile.Name(), "--authenticator-id=300"}, // uint8 max is 255
+			expectErr: true,
+		},
+		{
+			name:        "empty keyname argument",
+			ctxGen:      func() client.Context { return s.baseCtx },
+			args:        []string{"", accounts[1].Address.String(), txFile.Name()}, // empty keyname
+			expectErr:   true,
+			expectPanic: true,
+		},
+		{
+			name:      "empty file path argument",
+			ctxGen:    func() client.Context { return s.baseCtx },
+			args:      []string{accounts[0].Name, accounts[1].Address.String(), ""}, // empty file path
+			expectErr: true,
+		},
+		{
+			name:      "invalid authenticator-id flag format",
+			ctxGen:    func() client.Context { return s.baseCtx },
+			args:      []string{accounts[0].Name, accounts[1].Address.String(), txFile.Name(), "--authenticator-id=invalid"},
+			expectErr: true,
+		},
+		{
+			name:        "another valid test case that hits network error",
+			ctxGen:      func() client.Context { return s.baseCtx },
+			args:        []string{accounts[0].Name, accounts[1].Address.String(), txFile.Name(), "--authenticator-id=5"},
 			expectErr:   true,
 			expectPanic: true,
 		},
@@ -769,3 +823,80 @@ func (s *CLITestSuite) TestNewAddAuthenticatorCmd_RunESignModes() {
 		})
 	}
 }
+
+func (s *CLITestSuite) TestNewSignCmd_DeepCoverage() {
+	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 2)
+
+	// Create a more complete transaction JSON that will parse successfully
+	txJSON := map[string]any{
+		"body": map[string]any{
+			"messages": []any{
+				map[string]any{
+					"@type":        "/cosmos.bank.v1beta1.MsgSend",
+					"from_address": accounts[0].Address.String(),
+					"to_address":   accounts[1].Address.String(),
+					"amount": []any{
+						map[string]any{
+							"denom":  "stake",
+							"amount": "100",
+						},
+					},
+				},
+			},
+			"memo":                        "test transaction",
+			"timeout_height":              "0",
+			"extension_options":           []any{},
+			"non_critical_extension_options": []any{},
+		},
+		"auth_info": map[string]any{
+			"signer_infos": []any{},
+			"fee": map[string]any{
+				"amount":   []any{},
+				"gas_limit": "200000",
+				"payer":     "",
+				"granter":   "",
+			},
+		},
+		"signatures": []any{},
+	}
+
+	txFile, err := os.CreateTemp("", "complete_tx_*.json")
+	s.Require().NoError(err)
+	defer os.Remove(txFile.Name())
+
+	encoder := json.NewEncoder(txFile)
+	s.Require().NoError(encoder.Encode(txJSON))
+	s.Require().NoError(txFile.Close())
+
+	// Test with dry-run to go deeper into function
+	s.Run("dry_run_deeper_execution", func() {
+		cmd := cli.NewSignCmd()
+		cmd.SetOut(io.Discard)
+
+		// Set up flags to try to get deeper into execution
+		s.Require().NoError(cmd.Flags().Set(flags.FlagFrom, accounts[0].Name))
+		s.Require().NoError(cmd.Flags().Set(flags.FlagChainID, "test-chain"))
+		s.Require().NoError(cmd.Flags().Set(flags.FlagDryRun, "true"))
+		s.Require().NoError(cmd.Flags().Set("authenticator-id", "1"))
+
+		// Create execution context
+		execCtx := svrcmd.CreateExecuteContext(context.Background())
+		cmd.SetContext(execCtx)
+
+		// Set up enhanced client context with from details
+		ctx := s.baseCtx.WithFromAddress(accounts[0].Address).WithFromName(accounts[0].Name)
+		s.Require().NoError(client.SetCmdClientContextHandler(ctx, cmd))
+
+		// Call RunE directly with complete arguments to try deeper execution
+		runE := cmd.RunE
+		s.Require().NotNil(runE)
+
+		// This should exercise more code paths but may still error at query level
+		err := runE(cmd, []string{accounts[0].Name, accounts[1].Address.String(), txFile.Name()})
+
+		// We expect this to error at the network/query level since we don't have a real chain,
+		// but it should exercise more of the function's internal logic first
+		s.Require().Error(err)
+	})
+}
+

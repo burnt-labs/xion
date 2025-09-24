@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,4 +84,62 @@ func TestStargateWhitelistThreadSafety(t *testing.T) {
 	for i := 0; i < len(paths); i++ {
 		<-done
 	}
+}
+
+// TestGetWhitelistedQueryErrorPaths tests the error paths in GetWhitelistedQuery
+func TestGetWhitelistedQueryErrorPaths(t *testing.T) {
+	t.Run("non_whitelisted_path_returns_error", func(t *testing.T) {
+		// Test path that should not be in whitelist
+		invalidPath := "/invalid.module.v1.Query/NonExistentMethod"
+
+		_, err := GetWhitelistedQuery(invalidPath)
+		require.Error(t, err)
+
+		// Verify it's the right type of error
+		unsupportedErr, ok := err.(wasmvmtypes.UnsupportedRequest)
+		require.True(t, ok, "Expected UnsupportedRequest error type")
+		require.Contains(t, unsupportedErr.Kind, "path is not allowed from the contract")
+		require.Contains(t, unsupportedErr.Kind, invalidPath)
+	})
+
+	t.Run("empty_path_returns_error", func(t *testing.T) {
+		// Test empty path
+		_, err := GetWhitelistedQuery("")
+		require.Error(t, err)
+
+		// Should be UnsupportedRequest error
+		_, ok := err.(wasmvmtypes.UnsupportedRequest)
+		require.True(t, ok, "Expected UnsupportedRequest error type")
+	})
+
+	t.Run("malformed_path_returns_error", func(t *testing.T) {
+		// Test malformed path
+		malformedPath := "not-a-valid-path-format"
+		_, err := GetWhitelistedQuery(malformedPath)
+		require.Error(t, err)
+
+		// Should be UnsupportedRequest error
+		unsupportedErr, ok := err.(wasmvmtypes.UnsupportedRequest)
+		require.True(t, ok, "Expected UnsupportedRequest error type")
+		require.Contains(t, unsupportedErr.Kind, malformedPath)
+	})
+
+	t.Run("invalid_proto_type_in_whitelist_returns_error", func(t *testing.T) {
+		// Temporarily add an invalid entry to the whitelist
+		// We need to add a non-proto.Message type to trigger the type assertion failure
+		testPath := "/test.invalid.v1.Query/BadType"
+
+		// Store a non-proto.Message type to trigger the type assertion failure on line 94-97
+		stargateWhitelist.Store(testPath, "invalid_non_proto_message")
+
+		// Clean up after test
+		defer stargateWhitelist.Delete(testPath)
+
+		_, err := GetWhitelistedQuery(testPath)
+		require.Error(t, err)
+
+		// Should be wasmvmtypes.Unknown error (from line 96)
+		_, ok := err.(wasmvmtypes.Unknown)
+		require.True(t, ok, "Expected wasmvmtypes.Unknown error type")
+	})
 }
