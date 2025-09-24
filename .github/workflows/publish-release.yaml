@@ -11,7 +11,7 @@ on:
     # - "released" type is happening when a release was published, or a pre-release was changed to a release.
     # - "prereleased" type is happening when a release was created and identified as a pre-release. A pre-release is a release that is not ready for production and may be unstable.
 
-concurrency:
+concurrency: # With concurrency control: Only the latest workflow run executes, previous runs get cancelled
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
