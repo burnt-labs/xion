@@ -20,11 +20,11 @@ func TestCombinedFeeRequirementFix(t *testing.T) {
 	coin3High := sdk.NewDecCoin("uatom", math.NewInt(7)) // Global fee (lower)
 
 	tests := []struct {
-		name                 string
-		globalFees          sdk.DecCoins
-		minGasPrices        sdk.DecCoins
-		expectedCombined    sdk.DecCoins
-		description         string
+		name             string
+		globalFees       sdk.DecCoins
+		minGasPrices     sdk.DecCoins
+		expectedCombined sdk.DecCoins
+		description      string
 	}{
 		{
 			name:             "unsorted input coins - vulnerability case (now fixed)",
@@ -82,9 +82,9 @@ func TestCombinedFeeRequirementFix(t *testing.T) {
 				uxionAmount := result.AmountOf("uxion")
 				uatomAmount := result.AmountOf("uatom")
 
-				require.True(t, uxionAmount.Equal(math.LegacyNewDec(4)), 
+				require.True(t, uxionAmount.Equal(math.LegacyNewDec(4)),
 					"uxion amount should be 4 (max of 3 and 4), got %s", uxionAmount.String())
-				require.True(t, uatomAmount.Equal(math.LegacyNewDec(8)), 
+				require.True(t, uatomAmount.Equal(math.LegacyNewDec(8)),
 					"uatom amount should be 8 (max of 7 and 8), got %s", uatomAmount.String())
 
 				t.Logf("✅ Vulnerability fix verified: correctly uses max amounts (4 uxion, 8 uatom)")

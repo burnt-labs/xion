@@ -596,9 +596,9 @@ type MockFailingAllowance struct {
 	shouldFail bool
 }
 
-func (m *MockFailingAllowance) Reset()                                               {}
-func (m *MockFailingAllowance) String() string                                       { return "MockFailingAllowance" }
-func (m *MockFailingAllowance) ProtoMessage()                                        {}
+func (m *MockFailingAllowance) Reset()                                                 {}
+func (m *MockFailingAllowance) String() string                                         { return "MockFailingAllowance" }
+func (m *MockFailingAllowance) ProtoMessage()                                          {}
 func (m *MockFailingAllowance) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error { return nil }
 func (m *MockFailingAllowance) GetAllowance() (feegrant.FeeAllowanceI, error) {
 	if m.shouldFail {
@@ -613,6 +613,7 @@ func (m *MockFailingAllowance) Accept(ctx context.Context, fee sdk.Coins, msgs [
 	}
 	return false, nil
 }
+
 func (m *MockFailingAllowance) ValidateBasic() error {
 	if m.shouldFail {
 		return fmt.Errorf("mock allowance failure")

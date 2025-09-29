@@ -3,16 +3,17 @@ package app
 import (
 	"testing"
 
-	"cosmossdk.io/math"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
 	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
 	"github.com/burnt-labs/xion/x/globalfee"
 )
 
@@ -158,7 +159,7 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 		require.NotNil(t, handler)
 
 		// Create a context with proper setup to trigger the bond denom function
-		ctx := app.BaseApp.NewContext(false)
+		ctx := app.NewContext(false)
 		// Set minimal gas prices to trigger the global fee decorator
 		ctx = ctx.WithMinGasPrices([]sdk.DecCoin{{Denom: "stake", Amount: math.LegacyNewDec(1)}})
 		ctx = ctx.WithIsCheckTx(true) // This should trigger fee validation
@@ -227,7 +228,7 @@ func TestNewPostHandler_ValidationErrors(t *testing.T) {
 		require.NotNil(t, handler)
 
 		// Create a minimal context and transaction to test the post handler
-		ctx := app.BaseApp.NewContext(false)
+		ctx := app.NewContext(false)
 
 		// Create a simple transaction
 		txBuilder := app.TxConfig().NewTxBuilder()

@@ -9,14 +9,14 @@ format-tools:
 # Lint Go code
 lint: format-tools
 	golangci-lint run --tests=false
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*_test.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -d
+	find . -name '*.go' -type f -not -path "./api/*" -not -path "*.git*" -not -path "*_test.go" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -d
 
 # Format Go code
 format: format-tools
 	golangci-lint run --fix
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
+	find . -name '*.go' -type f -not -path "./api/*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs gofumpt -w
+	find . -name '*.go' -type f -not -path "./api/*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./api/*" -not -path "*.git*" -not -path "*.pb.go" -not -path "*.pb.gw.go" | xargs goimports -w -local github.com/burnt-labs/xiond
 
 # Help targets for lint module
 help-lint-brief:

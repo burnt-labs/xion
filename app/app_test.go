@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/stretchr/testify/require"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/stretchr/testify/require"
 
 	"github.com/cometbft/cometbft/abci/types"
 
@@ -15,6 +15,7 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -23,7 +24,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 )
 
 var emptyWasmOpts []wasmkeeper.Option
@@ -227,7 +227,7 @@ func TestAPIRegistrationFunctions(t *testing.T) {
 		WithChainID("test-chain")
 
 	apiSvr := &api.Server{
-		ClientCtx:          clientCtx,
+		ClientCtx:         clientCtx,
 		GRPCGatewayRouter: runtime.NewServeMux(),
 		Router:            mux.NewRouter(),
 	}
@@ -274,7 +274,7 @@ func TestInternalHandlerSetup(t *testing.T) {
 	gapp := Setup(t)
 
 	// Test BeginBlocker - needs context
-	ctx := gapp.BaseApp.NewContext(false)
+	ctx := gapp.NewContext(false)
 
 	// Test BeginBlocker execution
 	require.NotPanics(t, func() {
@@ -298,12 +298,12 @@ func TestInternalHandlerSetup(t *testing.T) {
 
 func TestAppFunctionsPanicRecovery(t *testing.T) {
 	gapp := Setup(t)
-	ctx := gapp.BaseApp.NewContext(false)
+	ctx := gapp.NewContext(false)
 
 	// Test setAnteHandler method through internal verification
 	// We can't directly call setAnteHandler as it's internal, but we can verify
 	// that the ante handler was set during app initialization
-	anteHandler := gapp.BaseApp.AnteHandler()
+	anteHandler := gapp.AnteHandler()
 	require.NotNil(t, anteHandler, "AnteHandler should be set during app initialization")
 
 	// Test that BeginBlocker handles panics gracefully
@@ -331,7 +331,7 @@ func TestUpgradeFunctions(t *testing.T) {
 	})
 
 	// Test NextUpgradeHandler function with proper setup
-	ctx := gapp.BaseApp.NewContext(false)
+	ctx := gapp.NewContext(false)
 
 	// Create a version map that matches current state to avoid migration conflicts
 	currentVM := gapp.ModuleManager.GetVersionMap()
@@ -424,7 +424,7 @@ func TestSignAndDeliverWithoutCommit(t *testing.T) {
 
 func TestInitAccountWithCoins(t *testing.T) {
 	gapp := Setup(t)
-	ctx := gapp.BaseApp.NewContext(false)
+	ctx := gapp.NewContext(false)
 
 	// Create test account
 	testAddr := sdk.AccAddress([]byte("test_address_123456"))

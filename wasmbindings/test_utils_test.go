@@ -29,7 +29,7 @@ func TestSetupPublicKeys(t *testing.T) {
 
 	// Write the key to a temporary file
 	keyData := pem.EncodeToMemory(privateKeyPEM)
-	err = os.WriteFile(keyFile, keyData, 0600)
+	err = os.WriteFile(keyFile, keyData, 0o600)
 	require.NoError(t, err)
 
 	// Test SetupPublicKeys with valid key file
@@ -56,7 +56,7 @@ func TestSetupPublicKeys_InvalidKeyFile(t *testing.T) {
 	invalidKeyFile := filepath.Join(tempDir, "invalid_key.pem")
 
 	// Write invalid key data
-	err := os.WriteFile(invalidKeyFile, []byte("invalid key content"), 0600)
+	err := os.WriteFile(invalidKeyFile, []byte("invalid key content"), 0o600)
 	require.NoError(t, err)
 
 	// Test SetupPublicKeys with invalid key file
@@ -70,7 +70,7 @@ func TestSetupPublicKeys_EmptyFile(t *testing.T) {
 	emptyKeyFile := filepath.Join(tempDir, "empty_key.pem")
 
 	// Write empty file
-	err := os.WriteFile(emptyKeyFile, []byte(""), 0600)
+	err := os.WriteFile(emptyKeyFile, []byte(""), 0o600)
 	require.NoError(t, err)
 
 	// Test SetupPublicKeys with empty key file
@@ -90,7 +90,7 @@ func TestSetupPublicKeys_JWKRawError(t *testing.T) {
 	}
 
 	keyData := pem.EncodeToMemory(invalidPEM)
-	err := os.WriteFile(invalidKeyFile, keyData, 0600)
+	err := os.WriteFile(invalidKeyFile, keyData, 0o600)
 	require.NoError(t, err)
 
 	// Test SetupPublicKeys - should fail on jwKey.Raw()
@@ -125,13 +125,13 @@ func TestSetupKeys(t *testing.T) {
 		// Create temp directory with invalid key
 		tempDir := t.TempDir()
 		keysDir := filepath.Join(tempDir, "keys")
-		err := os.MkdirAll(keysDir, 0755)
+		err := os.MkdirAll(keysDir, 0o755)
 		require.NoError(t, err)
 
 		keyFile := filepath.Join(keysDir, "jwtRS256.key")
 
 		// Write invalid key content
-		err = os.WriteFile(keyFile, []byte("invalid key content"), 0600)
+		err = os.WriteFile(keyFile, []byte("invalid key content"), 0o600)
 		require.NoError(t, err)
 
 		// Save original directory
@@ -156,7 +156,7 @@ func TestSetupKeys_JWKRawError(t *testing.T) {
 	// Create temp directory with PEM that can be parsed but Raw() will fail
 	tempDir := t.TempDir()
 	keysDir := filepath.Join(tempDir, "keys")
-	err := os.MkdirAll(keysDir, 0755)
+	err := os.MkdirAll(keysDir, 0o755)
 	require.NoError(t, err)
 
 	keyFile := filepath.Join(keysDir, "jwtRS256.key")
@@ -169,7 +169,7 @@ func TestSetupKeys_JWKRawError(t *testing.T) {
 	}
 
 	keyData := pem.EncodeToMemory(invalidPEM)
-	err = os.WriteFile(keyFile, keyData, 0600)
+	err = os.WriteFile(keyFile, keyData, 0o600)
 	require.NoError(t, err)
 
 	// Save original directory
@@ -192,7 +192,7 @@ func TestSetupKeysWithValidFile(t *testing.T) {
 	// Create a temporary RSA key for testing
 	tempDir := t.TempDir()
 	keysDir := filepath.Join(tempDir, "keys")
-	err := os.MkdirAll(keysDir, 0755)
+	err := os.MkdirAll(keysDir, 0o755)
 	require.NoError(t, err)
 
 	keyFile := filepath.Join(keysDir, "jwtRS256.key")
@@ -209,7 +209,7 @@ func TestSetupKeysWithValidFile(t *testing.T) {
 
 	// Write the key to the test file
 	keyData := pem.EncodeToMemory(privateKeyPEM)
-	err = os.WriteFile(keyFile, keyData, 0600)
+	err = os.WriteFile(keyFile, keyData, 0o600)
 	require.NoError(t, err)
 
 	// Change to temp directory to test SetupKeys

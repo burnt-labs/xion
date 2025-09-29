@@ -704,11 +704,11 @@ func TestStakedInflationMintFn_CodePathCoverage(t *testing.T) {
 
 			// Test with different inflation rates
 			inflationRates := []math.LegacyDec{
-				math.LegacyZeroDec(),                      // 0%
-				math.LegacyNewDecWithPrec(5, 2),           // 5%
-				math.LegacyNewDecWithPrec(10, 2),          // 10%
-				math.LegacyNewDecWithPrec(25, 2),          // 25%
-				math.LegacyNewDec(1),                      // 100%
+				math.LegacyZeroDec(),             // 0%
+				math.LegacyNewDecWithPrec(5, 2),  // 5%
+				math.LegacyNewDecWithPrec(10, 2), // 10%
+				math.LegacyNewDecWithPrec(25, 2), // 25%
+				math.LegacyNewDec(1),             // 100%
 			}
 
 			for i, rate := range inflationRates {

@@ -843,15 +843,15 @@ func (s *CLITestSuite) TestNewSignCmd_DeepCoverage() {
 					},
 				},
 			},
-			"memo":                        "test transaction",
-			"timeout_height":              "0",
-			"extension_options":           []any{},
+			"memo":                           "test transaction",
+			"timeout_height":                 "0",
+			"extension_options":              []any{},
 			"non_critical_extension_options": []any{},
 		},
 		"auth_info": map[string]any{
 			"signer_infos": []any{},
 			"fee": map[string]any{
-				"amount":   []any{},
+				"amount":    []any{},
 				"gas_limit": "200000",
 				"payer":     "",
 				"granter":   "",
@@ -899,4 +899,3 @@ func (s *CLITestSuite) TestNewSignCmd_DeepCoverage() {
 		s.Require().Error(err)
 	})
 }
-

@@ -539,11 +539,11 @@ func (suite *StargateTestSuite) TestConvertProtoToJSONMarshal() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			
+
 			protoMsg, data := tc.setupData()
-			
+
 			result, err := wasmbinding.ConvertProtoToJSONMarshal(protoMsg, data, suite.app.AppCodec())
-			
+
 			if tc.expectErr {
 				suite.Require().Error(err)
 				if tc.expectErrType {

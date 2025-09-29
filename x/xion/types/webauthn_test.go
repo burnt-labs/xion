@@ -16,22 +16,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 
+	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/xion/types"
-	xionapp "github.com/burnt-labs/xion/app"
 )
 
 type signOpts struct{}
@@ -43,8 +42,8 @@ func (*signOpts) HashFunc() crypto.Hash {
 type GasTestSuite struct {
 	suite.Suite
 
-	app *xionapp.WasmApp
-	ctx sdktypes.Context
+	app         *xionapp.WasmApp
+	ctx         sdktypes.Context
 	queryClient types.QueryClient
 }
 
