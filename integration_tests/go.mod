@@ -1,4 +1,4 @@
-module integration_tests
+module github.com/burnt-labs/xion/integration_tests
 
 go 1.24.5
 
@@ -7,7 +7,6 @@ exclude github.com/CosmWasm/wasmvm/v2 v2.2.4
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	github.com/burnt-labs/xion => ../
-	github.com/burnt-labs/xion/integration_tests => ./
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 
 	// ibc-go fork with wasmvm3 support
@@ -30,7 +29,6 @@ require (
 	github.com/CosmWasm/wasmd v0.61.4
 	github.com/burnt-labs/abstract-account v0.1.3
 	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
-	github.com/burnt-labs/xion/integration_tests v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.38.18
 	github.com/cosmos/cosmos-sdk v0.53.4
 	github.com/cosmos/gogoproto v1.7.0

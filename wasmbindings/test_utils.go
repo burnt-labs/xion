@@ -45,5 +45,5 @@ func SetupPublicKeys(rsaFile ...string) (*rsa.PrivateKey, jwk.Key, error) {
 		return nil, nil, err
 	}
 
-	return &privateKey, nil, nil
+	return &privateKey, jwKey, nil
 }
