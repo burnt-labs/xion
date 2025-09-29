@@ -22,11 +22,13 @@ import (
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 
+	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/xion/types"
 )
@@ -35,6 +37,14 @@ type signOpts struct{}
 
 func (*signOpts) HashFunc() crypto.Hash {
 	return crypto.SHA256
+}
+
+type GasTestSuite struct {
+	suite.Suite
+
+	app         *xionapp.WasmApp
+	ctx         sdktypes.Context
+	queryClient types.QueryClient
 }
 
 var (
