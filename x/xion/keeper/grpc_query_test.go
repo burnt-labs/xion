@@ -319,6 +319,7 @@ func TestWebAuthNVerifyRegister_ValidationPathCoverage(t *testing.T) {
 	k := Keeper{storeKey: key}
 
 	// Test validateCredentialCreation error path
+	//nolint:gosec // G101: Test fixture data, not actual credentials
 	invalidCredentialData := `{
 		"id": "test-id",
 		"rawId": "dGVzdC1pZA",
@@ -421,6 +422,7 @@ func TestWebAuthNVerifyAuthenticate_SuccessPathAttempt(t *testing.T) {
 		"type": "public-key"
 	}`
 
+	//nolint:gosec // G101: Test fixture data, not actual credentials
 	credential := `{
 		"id": "test-id",
 		"publicKey": "pSJYIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIhWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
