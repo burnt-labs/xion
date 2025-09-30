@@ -197,7 +197,7 @@ func (aq *authzQuerier) Grants(ctx context.Context, req *indexerauthz.QueryGrant
 }
 
 func (aq *authzQuerier) GranterGrants(ctx context.Context, req *indexerauthz.QueryGranterGrantsRequest) (*indexerauthz.QueryGranterGrantsResponse, error) {
-	slog.Info("authz_querier", "granter", req.Granter)
+	slog.Debug("authz_querier", "granter", req.Granter)
 
 	granter, err := aq.addrCodec.StringToBytes(req.Granter)
 	if err != nil {
