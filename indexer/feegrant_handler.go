@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/collections/indexes"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/feegrant"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -41,6 +42,7 @@ func newFeeGrantIndexes(sb *collections.SchemaBuilder) feegrantIndexes {
 		),
 	}
 }
+
 func NewFeeGrantHandler(kvStoreService core.KVStoreService, cdc codec.Codec) (*FeeGrantHandler, error) {
 	sb := collections.NewSchemaBuilder(kvStoreService)
 

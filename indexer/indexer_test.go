@@ -5,15 +5,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	db "github.com/cosmos/cosmos-db"
+
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/feegrant"
-	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
-	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
-	abci "github.com/cometbft/cometbft/abci/types"
-	db "github.com/cosmos/cosmos-db"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
@@ -23,10 +26,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/require"
+
+	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
+	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
 )
 
-func setupTest(t *testing.T) (db.DB, codec.Codec, address.Codec) {
+func setupTest(_t *testing.T) (db.DB, codec.Codec, address.Codec) {
 	// Create in-memory db
 	memDB := db.NewMemDB()
 

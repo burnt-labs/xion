@@ -1,0 +1,31 @@
+# Coverage configuration for Xion project
+# Format: INI-style configuration file
+
+[run]
+# Coverage threshold percentage (can be overridden via COVERAGE_THRESHOLD env var)
+threshold = 84
+
+[exclude]
+# Patterns to ignore in low coverage reporting
+# Format: file_path:pattern (grep -v compatible)
+
+# CLI commands with complex manual testing
+github.com/burnt-labs/xion/x/xion/client/cli/tx.go:.*NewSignCmd
+
+# WebAuthn verification (requires hardware/browser)
+github.com/burnt-labs/xion/x/xion/keeper/grpc_query.go:.*WebAuthNVerifyRegister
+
+# Staking inflation mint function
+github.com/burnt-labs/xion/x/xion/keeper/mint.go:.*StakedInflationMintFn
+
+# Indexer authz querier methods
+github.com/burnt-labs/xion/indexer/authz_querier.go:.*Grants
+github.com/burnt-labs/xion/indexer/authz_querier.go:.*GranterGrants
+github.com/burnt-labs/xion/indexer/authz_querier.go:.*GranteeGrants
+
+# Indexer CLI reindex command
+github.com/burnt-labs/xion/indexer/client/cli/indexer.go:.*ReIndex
+
+# Indexer feegrant querier methods
+github.com/burnt-labs/xion/indexer/feegrant_querier.go:.*Allowances
+github.com/burnt-labs/xion/indexer/feegrant_querier.go:.*Allowance

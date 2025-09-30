@@ -8,18 +8,21 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 
+	dbm "github.com/cosmos/cosmos-db"
+
 	"cosmossdk.io/log"
 	"cosmossdk.io/x/feegrant"
-	xionapp "github.com/burnt-labs/xion/app"
-	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
-	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
-	dbm "github.com/cosmos/cosmos-db"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+
+	xionapp "github.com/burnt-labs/xion/app"
+	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
+	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
 )
 
 const FlagAppDBBackend = "app-db-backend"
@@ -52,7 +55,6 @@ func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 		Short: "re-index",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
@@ -99,7 +101,7 @@ func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 			feeGrantHandler := wasmApp.IndexerService().FeeGrantHandler()
 			totalFeeGrant := 0
 			addressCodec := wasmApp.AccountKeeper.AddressCodec()
-			wasmApp.FeeGrantKeeper.IterateAllFeeAllowances(wasmApp.NewContext(true), func(grant feegrant.Grant) bool {
+			if err := wasmApp.FeeGrantKeeper.IterateAllFeeAllowances(wasmApp.NewContext(true), func(grant feegrant.Grant) bool {
 				granter, err := addressCodec.StringToBytes(grant.Granter)
 				if err != nil {
 					logger.Error("error parsing granter", "error", err)
@@ -118,7 +120,10 @@ func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 				}
 				totalFeeGrant++
 				return false
-			})
+			}); err != nil {
+				logger.Error("error iterating fee allowances", "error", err)
+				return err
+			}
 			slog.Info("totals", "authz grants", totalAuthz, "fee grants", totalFeeGrant)
 			// close to flush the db
 			err = wasmApp.Close()

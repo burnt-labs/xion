@@ -4,23 +4,24 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
+	dbm "github.com/cosmos/cosmos-db"
+
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	"cosmossdk.io/x/feegrant"
+
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	dbm "github.com/cosmos/cosmos-db"
-	"github.com/stretchr/testify/require"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
 	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 )
 
 // setupIntegrationTest creates a full WasmApp instance for integration testing
@@ -127,10 +128,13 @@ func TestIndexerQueriers_Integration(t *testing.T) {
 	// Create test addresses
 	granter := sdk.AccAddress([]byte("granter_addr_test__"))
 	grantee := sdk.AccAddress([]byte("grantee_addr_test__"))
+	nonExistent := sdk.AccAddress([]byte("nonexistent_address"))
 
 	granterStr, err := addrCodec.BytesToString(granter)
 	require.NoError(t, err)
 	granteeStr, err := addrCodec.BytesToString(grantee)
+	require.NoError(t, err)
+	nonExistentStr, err := addrCodec.BytesToString(nonExistent)
 	require.NoError(t, err)
 
 	t.Run("AuthzQuerier_AllowanceQuery", func(t *testing.T) {
@@ -147,16 +151,15 @@ func TestIndexerQueriers_Integration(t *testing.T) {
 		err = authzHandler.SetGrant(ctx, granter, grantee, banktypes.SendAuthorization{}.MsgTypeURL(), grant)
 		require.NoError(t, err)
 
-		// Query non-existent grant returns nil without error
-		resp, err := authzQuerier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
+		// Query non-existent grant returns empty results without error
+		_, err = authzQuerier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
 			Granter: granterStr,
-			Grantee: "xion1nonexistent",
+			Grantee: nonExistentStr,
 		})
+		require.NoError(t, err) // Valid address format but doesn't exist in store
 		// Note: This may fail due to pagination limitations in test environment
 		// In production, this works through the GRPC interface with proper context
 		t.Skip("Pagination queries require full SDK context - tested in unit tests with mocked data")
-		_ = resp
-		_ = err
 	})
 
 	t.Run("FeeGrantQuerier_AllowanceQuery", func(t *testing.T) {
@@ -189,13 +192,13 @@ func TestIndexerQueriers_Integration(t *testing.T) {
 	})
 
 	t.Run("FeeGrantQuerier_AllowanceNotFound", func(t *testing.T) {
-		// Query non-existent allowance
+		// Query non-existent allowance - should return nil allowance without error
 		resp, err := feeGrantQuerier.Allowance(ctx, &indexerfeegrant.QueryAllowanceRequest{
 			Granter: granterStr,
-			Grantee: "xion1nonexistent",
+			Grantee: nonExistentStr,
 		})
-		require.Error(t, err) // Invalid address
-		_ = resp
+		require.NoError(t, err)        // Valid address format but doesn't exist in store
+		require.Nil(t, resp.Allowance) // Allowance should be nil for non-existent grant
 	})
 }
 
@@ -250,5 +253,4 @@ func TestIndexerHandleUpdate_Integration(t *testing.T) {
 		// because it requires properly formatted StoreKVPair from streaming
 		t.Skip("HandleUpdate requires StoreKVPair from chain streaming - tested in unit tests")
 	})
-
 }

@@ -4,16 +4,19 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/gogo/status"
+	"google.golang.org/grpc/codes"
+
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"
-	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/gogo/status"
-	"google.golang.org/grpc/codes"
+
+	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
 )
 
 type authzQuerier struct {
@@ -156,18 +159,16 @@ func (aq *authzQuerier) Grants(ctx context.Context, req *indexerauthz.QueryGrant
 
 	// Determine prefix for pagination
 	var prefixOpt func(o *query.CollectionsPaginateOptions[collections.Triple[sdk.AccAddress, sdk.AccAddress, string]])
-	if req.Granter != "" && req.Grantee != "" {
+	switch {
+	case req.Granter != "" && req.Grantee != "":
 		// Both granter and grantee specified
 		prefixOpt = WithCollectionPaginationTriplePairPrefix[sdk.AccAddress, sdk.AccAddress, string](granterAddr, granteeAddr)
-	} else if req.Granter != "" {
+	case req.Granter != "":
 		// Only granter specified
 		prefixOpt = WithCollectionPaginationTriplePrefix[sdk.AccAddress, sdk.AccAddress, string](granterAddr)
-	} else if req.Grantee != "" {
-		// Only grantee specified - use index instead
-		// This should use the Grantee index for better performance
-		prefixOpt = nil // Cannot filter by grantee only with triple prefix on main collection
-	} else {
-		// No prefix, query all
+	default:
+		// Only grantee specified or no filters - cannot use prefix optimization
+		// For grantee-only queries, the Grantee index should be used instead
 		prefixOpt = nil
 	}
 

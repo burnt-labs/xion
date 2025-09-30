@@ -5,21 +5,26 @@ import (
 	"context"
 	"path/filepath"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	db "github.com/cosmos/cosmos-db"
+
 	"cosmossdk.io/collections/corecompat"
 	"cosmossdk.io/core/address"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/feegrant"
-	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
-	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
-	abci "github.com/cometbft/cometbft/abci/types"
-	db "github.com/cosmos/cosmos-db"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+
+	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
+	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
 )
 
 var (
@@ -80,24 +85,30 @@ func NewWithDB(store db.DB, cdc codec.Codec, addrCodec address.Codec, log log.Lo
 		cdc:             cdc,
 	}
 }
+
 func (ss *StreamService) AuthzHandler() *AuthzHandler {
 	return ss.authzHandler
 }
+
 func (ss *StreamService) FeeGrantHandler() *FeeGrantHandler {
 	return ss.feeGrantHandler
 }
+
 func (ss *StreamService) AuthzQuerier() indexerauthz.QueryServer {
 	return ss.authzQuerier
 }
+
 func (ss *StreamService) FeeGrantQuerier() indexerfeegrant.QueryServer {
 	return ss.feegrantQuerier
 }
+
 func (ss *StreamService) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	ss.log.Info("registering authz querier grpc gateway routes")
 	_ = indexerauthz.RegisterQueryHandlerClient(context.Background(), mux, indexerauthz.NewQueryClient(clientCtx))
 	ss.log.Info("registering feegrant querier grpc gateway routes")
 	_ = indexerfeegrant.RegisterQueryHandlerClient(context.Background(), mux, indexerfeegrant.NewQueryClient(clientCtx))
 }
+
 func (ss *StreamService) RegisterServices(cfg module.Configurator) error {
 	ss.log.Info("registering authz querier services")
 	indexerauthz.RegisterQueryServer(cfg.QueryServer(), ss.authzQuerier)
@@ -115,7 +126,6 @@ func (ss *StreamService) Close() error {
 // currently not used because we are indexing mostly by change sets and not transaction events
 func (ss *StreamService) ListenFinalizeBlock(ctx context.Context, req abci.RequestFinalizeBlock, res abci.ResponseFinalizeBlock) error {
 	return nil
-
 }
 
 // ListenCommit will receive the request and response of a block
@@ -140,7 +150,6 @@ func (ss *StreamService) ListenCommit(ctx context.Context, res abci.ResponseComm
 				}
 			}
 		}
-
 	}
 	return nil
 }

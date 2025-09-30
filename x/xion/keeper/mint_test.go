@@ -713,7 +713,7 @@ func TestStakedInflationMintFn_CodePathCoverage(t *testing.T) {
 
 			for i, rate := range inflationRates {
 				t.Run(fmt.Sprintf("inflation_rate_%d_percent", int(rate.MulInt64(100).TruncateInt64())), func(t *testing.T) {
-					inflationFn := func(ctx context.Context, minter minttypes.Minter, params minttypes.Params, bondedRatio math.LegacyDec) math.LegacyDec {
+					inflationFn := func(_ctx context.Context, _minter minttypes.Minter, _params minttypes.Params, _bondedRatio math.LegacyDec) math.LegacyDec {
 						return rate
 					}
 

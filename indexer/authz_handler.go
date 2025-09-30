@@ -2,13 +2,13 @@ package indexer
 
 import (
 	"context"
-	"reflect"
 	"unsafe"
 
 	"cosmossdk.io/collections"
 	core "cosmossdk.io/collections/corecompat"
 	"cosmossdk.io/collections/indexes"
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
@@ -53,6 +53,7 @@ func newAuthzIndexes(sb *collections.SchemaBuilder) authzIndexes {
 		Grantee: indexByGrantee,
 	}
 }
+
 func NewAuthzHandler(kvStoreService core.KVStoreService, cdc codec.Codec) (*AuthzHandler, error) {
 	sb := collections.NewSchemaBuilder(kvStoreService)
 
@@ -137,13 +138,7 @@ func parseGrantStoreKey(key []byte) (granterAddr, granteeAddr sdk.AccAddress, ms
 // UnsafeStrToBytes uses unsafe to convert string into byte array. Returned bytes
 // must not be altered after this function is called as it will cause a segmentation fault.
 func UnsafeStrToBytes(s string) []byte {
-	var buf []byte
-	sHdr := (*reflect.StringHeader)(unsafe.Pointer(&s))
-	bufHdr := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
-	bufHdr.Data = sHdr.Data
-	bufHdr.Cap = sHdr.Len
-	bufHdr.Len = sHdr.Len
-	return buf
+	return unsafe.Slice(unsafe.StringData(s), len(s))
 }
 
 // UnsafeBytesToStr is meant to make a zero allocation conversion

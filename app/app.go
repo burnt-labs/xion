@@ -149,6 +149,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
@@ -994,7 +995,9 @@ func NewWasmApp(
 
 	// Configure Indexer
 	app.indexerService = indexer.New(homePath, app.appCodec, authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), app.Logger())
-	app.indexerService.RegisterServices(app.configurator)
+	if err = app.indexerService.RegisterServices(app.configurator); err != nil {
+		panic(err)
+	}
 
 	// Add listeners to commitmultistore
 	// otherwise the ABCILister attached to the streammanager

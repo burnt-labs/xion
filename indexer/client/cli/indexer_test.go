@@ -8,16 +8,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"cosmossdk.io/log"
 	"github.com/stretchr/testify/require"
 
 	dbm "github.com/cosmos/cosmos-db"
+
+	"cosmossdk.io/log"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/std"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/std"
 )
 
 // Mock app creator for testing - matches AppCreator type
@@ -143,7 +145,7 @@ func TestOpenDB(t *testing.T) {
 
 	// Verify data directory path is constructed correctly
 	expectedDataDir := filepath.Join(tmpDir, "data")
-	require.NoError(t, os.MkdirAll(expectedDataDir, 0755))
+	require.NoError(t, os.MkdirAll(expectedDataDir, 0o755))
 }
 
 // TestQueryGrantsByGranteeRunE tests the RunE function with a mock client context

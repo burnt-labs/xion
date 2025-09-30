@@ -8,10 +8,12 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"
 	feegrant "cosmossdk.io/x/feegrant"
-	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
 )
 
 type feegrantQuerier struct {

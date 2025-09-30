@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/collections"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

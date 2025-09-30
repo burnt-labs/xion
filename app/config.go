@@ -2,8 +2,10 @@ package app
 
 import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/indexer"
+
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+
+	"github.com/burnt-labs/xion/indexer"
 )
 
 // CustomConfig defines a custom app.toml configuration file
@@ -18,6 +20,7 @@ type CustomConfig struct {
 func CustomconfigTemplate(config wasmtypes.NodeConfig) string {
 	return serverconfig.DefaultConfigTemplate + wasmtypes.ConfigTemplate(config)
 }
+
 func DefaultConfig() (string, any) {
 	// Default SDK config params
 	serverConfig := serverconfig.DefaultConfig()

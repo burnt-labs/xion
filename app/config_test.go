@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/burnt-labs/xion/indexer"
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/indexer"
 )
 
 func TestCustomconfigTemplate(t *testing.T) {
@@ -40,7 +41,7 @@ func TestDefaultConfig(t *testing.T) {
 	require.True(t, ok, "Config should be of type CustomConfig")
 
 	// Verify MinGasPrices is set correctly
-	require.Equal(t, "0uxion", customConfig.Config.MinGasPrices)
+	require.Equal(t, "0uxion", customConfig.MinGasPrices)
 
 	// Verify Wasm config is set
 	require.NotNil(t, customConfig.Wasm)
