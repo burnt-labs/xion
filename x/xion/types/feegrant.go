@@ -328,11 +328,11 @@ func (a *MultiAnyAllowance) Accept(ctx context.Context, fee sdk.Coins, msgs []sd
 	// accept and charge first allowance that doesn't error
 	accepted := false
 	for i := range a.Allowances {
-		sdk.UnwrapSDKContext(ctx).GasMeter().ConsumeGas(gasCostPerIteration, "check allowance")
 		allowance, err := a.GetAllowance(i)
 		if err != nil {
 			return false, err
 		}
+		sdk.UnwrapSDKContext(ctx).GasMeter().ConsumeGas(gasCostPerIteration, "check allowance")
 
 		remove, err := allowance.Accept(ctx, fee, msgs)
 		if err != nil {

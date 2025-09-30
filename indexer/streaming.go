@@ -86,6 +86,12 @@ func (ss *StreamService) AuthzHandler() *AuthzHandler {
 func (ss *StreamService) FeeGrantHandler() *FeeGrantHandler {
 	return ss.feeGrantHandler
 }
+func (ss *StreamService) AuthzQuerier() indexerauthz.QueryServer {
+	return ss.authzQuerier
+}
+func (ss *StreamService) FeeGrantQuerier() indexerfeegrant.QueryServer {
+	return ss.feegrantQuerier
+}
 func (ss *StreamService) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	ss.log.Info("registering authz querier grpc gateway routes")
 	_ = indexerauthz.RegisterQueryHandlerClient(context.Background(), mux, indexerauthz.NewQueryClient(clientCtx))

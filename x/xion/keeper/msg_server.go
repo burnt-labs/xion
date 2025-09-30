@@ -208,6 +208,15 @@ func (k msgServer) SetPlatformMinimum(goCtx context.Context, msg *types.MsgSetPl
 
 func getPlatformCoins(coins sdk.Coins, percentage sdkmath.Int) sdk.Coins {
 	var platformCoins sdk.Coins
+
+	// Handle zero percentage case
+	if percentage.IsZero() {
+		for _, coin := range coins {
+			platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, sdkmath.ZeroInt()))
+		}
+		return platformCoins
+	}
+
 	for _, coin := range coins {
 		maxSafeAmount := sdkmath.NewIntFromUint64(math.MaxUint64).Quo(percentage)
 		if coin.Amount.GT(maxSafeAmount) {

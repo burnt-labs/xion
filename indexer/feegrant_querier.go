@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	"cosmossdk.io/collections"
@@ -25,8 +26,87 @@ func NewFeegrantQuerier(handler *FeeGrantHandler, cdc codec.Codec, addrCodec add
 	return &feegrantQuerier{handler, cdc, addrCodec}
 }
 
+// ParseAllowanceRequestParams validates and parses the Allowance request parameters
+// This is pure business logic that can be fully unit tested
+func ParseAllowanceRequestParams(req *indexerfeegrant.QueryAllowanceRequest, addrCodec address.Codec) (
+	granterAddr sdk.AccAddress,
+	granteeAddr sdk.AccAddress,
+	err error,
+) {
+	// Parse granter
+	granterBytes, err := addrCodec.StringToBytes(req.Granter)
+	if err != nil {
+		return nil, nil, err
+	}
+	granterAddr = sdk.AccAddress(granterBytes)
+
+	// Parse grantee
+	granteeBytes, err := addrCodec.StringToBytes(req.Grantee)
+	if err != nil {
+		return nil, nil, err
+	}
+	granteeAddr = sdk.AccAddress(granteeBytes)
+
+	return granterAddr, granteeAddr, nil
+}
+
+// ParseAllowancesRequestParams validates and parses the Allowances request parameters
+// This is pure business logic that can be fully unit tested
+func ParseAllowancesRequestParams(req *indexerfeegrant.QueryAllowancesRequest, addrCodec address.Codec) (
+	granteeAddr sdk.AccAddress,
+	err error,
+) {
+	// Parse grantee
+	granteeBytes, err := addrCodec.StringToBytes(req.Grantee)
+	if err != nil {
+		return nil, err
+	}
+	granteeAddr = sdk.AccAddress(granteeBytes)
+
+	return granteeAddr, nil
+}
+
+// ParseAllowancesByGranterRequestParams validates and parses the AllowancesByGranter request parameters
+// This is pure business logic that can be fully unit tested
+func ParseAllowancesByGranterRequestParams(req *indexerfeegrant.QueryAllowancesByGranterRequest, addrCodec address.Codec) (
+	granterAddr sdk.AccAddress,
+	err error,
+) {
+	// Parse granter
+	granterBytes, err := addrCodec.StringToBytes(req.Granter)
+	if err != nil {
+		return nil, err
+	}
+	granterAddr = sdk.AccAddress(granterBytes)
+
+	return granterAddr, nil
+}
+
 func (fq *feegrantQuerier) Allowance(ctx context.Context, req *indexerfeegrant.QueryAllowanceRequest) (*indexerfeegrant.QueryAllowanceResponse, error) {
-	return nil, nil
+	granter, err := fq.addrCodec.StringToBytes(req.Granter)
+	if err != nil {
+		return nil, err
+	}
+	grantee, err := fq.addrCodec.StringToBytes(req.Grantee)
+	if err != nil {
+		return nil, err
+	}
+	granterAddr := sdk.AccAddress(granter)
+	granteeAddr := sdk.AccAddress(grantee)
+
+	grant, err := fq.feegrantHandler.FeeAllowances.Get(ctx, collections.Join(granterAddr, granteeAddr))
+	if err != nil {
+		// If not found, return nil grant but no error
+		if errors.Is(err, collections.ErrNotFound) {
+			return &indexerfeegrant.QueryAllowanceResponse{
+				Allowance: nil,
+			}, nil
+		}
+		return nil, err
+	}
+	return &indexerfeegrant.QueryAllowanceResponse{
+		Allowance: &grant,
+	}, nil
 }
 
 func (fq *feegrantQuerier) Allowances(ctx context.Context, req *indexerfeegrant.QueryAllowancesRequest) (*indexerfeegrant.QueryAllowancesResponse, error) {

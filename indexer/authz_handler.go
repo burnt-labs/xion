@@ -11,7 +11,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/kv"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 )
 
@@ -111,20 +110,28 @@ func (ah *AuthzHandler) HandleUpdate(ctx context.Context, pair *storetypes.Store
 	return ah.SetGrant(ctx, granterAddr, granteeAddr, msgType, grant)
 }
 
-// copied from x/authz/keeper
 // parseGrantStoreKey - split granter, grantee address and msg type from the authorization key
+// This decodes the collections.TripleKeyCodec format used by the IndexedMap
 func parseGrantStoreKey(key []byte) (granterAddr, granteeAddr sdk.AccAddress, msgType string) {
 	// key is of format:
-	// 0x01<granterAddressLen (1 Byte)><granterAddress_Bytes><granteeAddressLen (1 Byte)><granteeAddress_Bytes><msgType_Bytes>
+	// 0x01<triple_key_encoded>
+	// where triple is encoded by collections.TripleKeyCodec(sdk.AccAddressKey, sdk.AccAddressKey, collections.StringKey)
 
-	granterAddrLen, granterAddrLenEndIndex := sdk.ParseLengthPrefixedBytes(key, 1, 1) // ignore key[0] since it is a prefix key
-	granterAddr, granterAddrEndIndex := sdk.ParseLengthPrefixedBytes(key, granterAddrLenEndIndex+1, int(granterAddrLen[0]))
+	// Skip the prefix byte
+	if len(key) < 1 {
+		return nil, nil, ""
+	}
+	keyWithoutPrefix := key[1:]
 
-	granteeAddrLen, granteeAddrLenEndIndex := sdk.ParseLengthPrefixedBytes(key, granterAddrEndIndex+1, 1)
-	granteeAddr, granteeAddrEndIndex := sdk.ParseLengthPrefixedBytes(key, granteeAddrLenEndIndex+1, int(granteeAddrLen[0]))
+	// Decode using the triple key codec
+	codec := collections.TripleKeyCodec(sdk.AccAddressKey, sdk.AccAddressKey, collections.StringKey)
+	_, triple, err := codec.Decode(keyWithoutPrefix)
+	if err != nil {
+		// Return empty values if decode fails
+		return nil, nil, ""
+	}
 
-	kv.AssertKeyAtLeastLength(key, granteeAddrEndIndex+1)
-	return granterAddr, granteeAddr, UnsafeBytesToStr(key[(granteeAddrEndIndex + 1):])
+	return triple.K1(), triple.K2(), triple.K3()
 }
 
 // UnsafeStrToBytes uses unsafe to convert string into byte array. Returned bytes
