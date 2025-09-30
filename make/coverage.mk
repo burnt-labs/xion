@@ -1,16 +1,14 @@
 # Coverage testing configuration and targets
 
 # Coverage configuration
-COVERAGE_THRESHOLD ?= 85
+COVERAGERC ?= .coveragerc
 COVERAGE_OUT ?= coverage.out
 COVERAGE_FILTERED ?= coverage_filtered.out
 COVERAGE_HTML ?= coverage.html
 PACKAGES_SIMTEST = $(shell go list ./... | grep '/simulation')
 
-# Coverage exclusions - patterns to ignore in low coverage reporting
-COVERAGE_EXCLUSIONS := github.com/burnt-labs/xion/x/xion/client/cli/tx.go:.*NewSignCmd \
-                       github.com/burnt-labs/xion/x/xion/keeper/grpc_query.go:.*WebAuthNVerifyRegister \
-                       github.com/burnt-labs/xion/x/xion/keeper/mint.go:.*StakedInflationMintFn 
+# Extract threshold from .coveragerc if not set via environment
+COVERAGE_THRESHOLD ?= $(shell grep -A 10 '^\[run\]' $(COVERAGERC) 2>/dev/null | grep '^threshold' | sed 's/.*=[[:space:]]*//' || echo 84)
 
 # Test exclusions - packages to skip during testing
 TEST_EXCLUSIONS := github.com/burnt-labs/xion/api \
@@ -51,32 +49,15 @@ test-cover-summary: test-cover-filter
 	@echo "=== COVERAGE SUMMARY ==="
 	@go tool cover -func=$(COVERAGE_FILTERED) | tail -1
 
-# Validate coverage meets thresholds
-test-cover-validate: test-cover-filter
-	@echo ""
-	@echo "=== COVERAGE VALIDATION ==="
-	@TOTAL_COV=$$(go tool cover -func=$(COVERAGE_FILTERED) | tail -1 | awk '{print $$3}' | sed 's/%//'); \
-	echo "Total coverage: $$TOTAL_COV%"; \
-	if command -v bc >/dev/null 2>&1; then \
-		if [ $$(echo "$$TOTAL_COV < $(COVERAGE_THRESHOLD)" | bc -l) -eq 1 ]; then \
-			echo "❌ FAIL: Coverage $$TOTAL_COV% below $(COVERAGE_THRESHOLD)% threshold"; \
-			exit 1; \
-		else \
-			echo "✅ PASS: Coverage $$TOTAL_COV% meets $(COVERAGE_THRESHOLD)% threshold"; \
-		fi; \
-	else \
-		echo "⚠️  bc not available, skipping threshold validation"; \
-	fi
-
-# Advanced coverage analysis using script
+# Comprehensive coverage analysis with validation (replaces separate validate step)
 test-cover-analyze: test-cover-filter
 	@echo ""
 	@echo "=== DETAILED COVERAGE ANALYSIS ==="
 	@chmod +x scripts/coverage-analyze.sh
-	@scripts/coverage-analyze.sh $(COVERAGE_FILTERED) "$(COVERAGE_EXCLUSIONS)"
+	@scripts/coverage-analyze.sh $(COVERAGE_FILTERED) $(COVERAGERC) $(COVERAGE_THRESHOLD)
 
-# Full coverage workflow for CI
-test-cover-ci: test-cover-validate test-cover-analyze
+# Full coverage workflow for CI (analyze includes validation)
+test-cover-ci: test-cover-analyze
 	@echo ""
 	@echo "🎉 Coverage analysis complete!"
 
@@ -101,15 +82,14 @@ help-coverage:
 	@echo "Coverage targets:"
 	@echo "  test-cover                 Run coverage analysis (development)"
 	@echo "  test-cover-ci              Run coverage analysis (CI)"
-	@echo "  test-cover-validate        Validate coverage thresholds"
 	@echo "  test-cover-html            Generate HTML coverage report"
 	@echo "  test-cover-summary         Show coverage summary"
-	@echo "  test-cover-analyze         Detailed coverage analysis"
+	@echo "  test-cover-analyze         Detailed analysis with validation"
 	@echo "  test-cover-run             Run tests with coverage"
 	@echo "  test-cover-filter          Filter coverage report"
 	@echo "  test-cover-clean           Clean coverage files"
 	@echo ""
 
 .PHONY: test-cover-run test-cover-filter test-cover-html test-cover-summary \
-        test-cover-validate test-cover-analyze test-cover-ci test-cover-dev test-cover-clean test-cover \
+        test-cover-analyze test-cover-ci test-cover-dev test-cover-clean test-cover \
         help-coverage help-coverage-brief

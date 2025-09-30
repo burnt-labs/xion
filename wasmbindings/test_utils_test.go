@@ -48,6 +48,7 @@ func TestSetupPublicKeys(t *testing.T) {
 	_, _, err = SetupPublicKeys("")
 	// Don't require error since the default path might actually exist in some environments
 	// The test still exercises the code path
+	_ = err // Explicitly ignore - both success and failure are valid here
 }
 
 func TestSetupPublicKeys_InvalidKeyFile(t *testing.T) {
