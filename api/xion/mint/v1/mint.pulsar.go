@@ -2,19 +2,17 @@
 package mintv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	_ "cosmossdk.io/api/amino"
-
+	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (
@@ -50,21 +48,17 @@ func (x *Minter) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_Minter_messageType fastReflection_Minter_messageType
-	_                                  protoreflect.MessageType = fastReflection_Minter_messageType{}
-)
+var _fastReflection_Minter_messageType fastReflection_Minter_messageType
+var _ protoreflect.MessageType = fastReflection_Minter_messageType{}
 
 type fastReflection_Minter_messageType struct{}
 
 func (x fastReflection_Minter_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_Minter)(nil)
 }
-
 func (x fastReflection_Minter_messageType) New() protoreflect.Message {
 	return new(fastReflection_Minter)
 }
-
 func (x fastReflection_Minter_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_Minter
 }
@@ -546,21 +540,17 @@ func (x *Params) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_Params_messageType fastReflection_Params_messageType
-	_                                  protoreflect.MessageType = fastReflection_Params_messageType{}
-)
+var _fastReflection_Params_messageType fastReflection_Params_messageType
+var _ protoreflect.MessageType = fastReflection_Params_messageType{}
 
 type fastReflection_Params_messageType struct{}
 
 func (x fastReflection_Params_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_Params)(nil)
 }
-
 func (x fastReflection_Params_messageType) New() protoreflect.Message {
 	return new(fastReflection_Params)
 }
-
 func (x fastReflection_Params_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_Params
 }
@@ -1450,14 +1440,11 @@ func file_xion_mint_v1_mint_proto_rawDescGZIP() []byte {
 	return file_xion_mint_v1_mint_proto_rawDescData
 }
 
-var (
-	file_xion_mint_v1_mint_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-	file_xion_mint_v1_mint_proto_goTypes  = []interface{}{
-		(*Minter)(nil), // 0: xion.mint.v1.Minter
-		(*Params)(nil), // 1: xion.mint.v1.Params
-	}
-)
-
+var file_xion_mint_v1_mint_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_xion_mint_v1_mint_proto_goTypes = []interface{}{
+	(*Minter)(nil), // 0: xion.mint.v1.Minter
+	(*Params)(nil), // 1: xion.mint.v1.Params
+}
 var file_xion_mint_v1_mint_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
