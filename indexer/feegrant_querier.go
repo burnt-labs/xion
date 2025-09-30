@@ -137,7 +137,7 @@ func (fq *feegrantQuerier) Allowances(ctx context.Context, req *indexerfeegrant.
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("feegrant_querier", "allowances", len(allowances))
+	slog.Debug("feegrant_querier", "allowances", len(allowances))
 	return &indexerfeegrant.QueryAllowancesResponse{
 		Allowances: allowances,
 		Pagination: pageRes,
