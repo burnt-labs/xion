@@ -2,8 +2,13 @@
 package xionv1
 
 import (
-	_ "cosmossdk.io/api/amino"
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
+	_ "cosmossdk.io/api/amino"
+
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -11,9 +16,6 @@ import (
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	anypb "google.golang.org/protobuf/types/known/anypb"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var (
@@ -49,17 +51,21 @@ func (x *AuthzAllowance) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_AuthzAllowance_messageType fastReflection_AuthzAllowance_messageType
-var _ protoreflect.MessageType = fastReflection_AuthzAllowance_messageType{}
+var (
+	_fastReflection_AuthzAllowance_messageType fastReflection_AuthzAllowance_messageType
+	_                                          protoreflect.MessageType = fastReflection_AuthzAllowance_messageType{}
+)
 
 type fastReflection_AuthzAllowance_messageType struct{}
 
 func (x fastReflection_AuthzAllowance_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_AuthzAllowance)(nil)
 }
+
 func (x fastReflection_AuthzAllowance_messageType) New() protoreflect.Message {
 	return new(fastReflection_AuthzAllowance)
 }
+
 func (x fastReflection_AuthzAllowance_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_AuthzAllowance
 }
@@ -594,17 +600,21 @@ func (x *ContractsAllowance) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_ContractsAllowance_messageType fastReflection_ContractsAllowance_messageType
-var _ protoreflect.MessageType = fastReflection_ContractsAllowance_messageType{}
+var (
+	_fastReflection_ContractsAllowance_messageType fastReflection_ContractsAllowance_messageType
+	_                                              protoreflect.MessageType = fastReflection_ContractsAllowance_messageType{}
+)
 
 type fastReflection_ContractsAllowance_messageType struct{}
 
 func (x fastReflection_ContractsAllowance_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_ContractsAllowance)(nil)
 }
+
 func (x fastReflection_ContractsAllowance_messageType) New() protoreflect.Message {
 	return new(fastReflection_ContractsAllowance)
 }
+
 func (x fastReflection_ContractsAllowance_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_ContractsAllowance
 }
@@ -1156,17 +1166,21 @@ func (x *MultiAnyAllowance) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MultiAnyAllowance_messageType fastReflection_MultiAnyAllowance_messageType
-var _ protoreflect.MessageType = fastReflection_MultiAnyAllowance_messageType{}
+var (
+	_fastReflection_MultiAnyAllowance_messageType fastReflection_MultiAnyAllowance_messageType
+	_                                             protoreflect.MessageType = fastReflection_MultiAnyAllowance_messageType{}
+)
 
 type fastReflection_MultiAnyAllowance_messageType struct{}
 
 func (x fastReflection_MultiAnyAllowance_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MultiAnyAllowance)(nil)
 }
+
 func (x fastReflection_MultiAnyAllowance_messageType) New() protoreflect.Message {
 	return new(fastReflection_MultiAnyAllowance)
 }
+
 func (x fastReflection_MultiAnyAllowance_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MultiAnyAllowance
 }
@@ -1790,13 +1804,16 @@ func file_xion_v1_feegrant_proto_rawDescGZIP() []byte {
 	return file_xion_v1_feegrant_proto_rawDescData
 }
 
-var file_xion_v1_feegrant_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_xion_v1_feegrant_proto_goTypes = []interface{}{
-	(*AuthzAllowance)(nil),     // 0: xion.v1.AuthzAllowance
-	(*ContractsAllowance)(nil), // 1: xion.v1.ContractsAllowance
-	(*MultiAnyAllowance)(nil),  // 2: xion.v1.MultiAnyAllowance
-	(*anypb.Any)(nil),          // 3: google.protobuf.Any
-}
+var (
+	file_xion_v1_feegrant_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+	file_xion_v1_feegrant_proto_goTypes  = []interface{}{
+		(*AuthzAllowance)(nil),     // 0: xion.v1.AuthzAllowance
+		(*ContractsAllowance)(nil), // 1: xion.v1.ContractsAllowance
+		(*MultiAnyAllowance)(nil),  // 2: xion.v1.MultiAnyAllowance
+		(*anypb.Any)(nil),          // 3: google.protobuf.Any
+	}
+)
+
 var file_xion_v1_feegrant_proto_depIdxs = []int32{
 	3, // 0: xion.v1.AuthzAllowance.allowance:type_name -> google.protobuf.Any
 	3, // 1: xion.v1.ContractsAllowance.allowance:type_name -> google.protobuf.Any
