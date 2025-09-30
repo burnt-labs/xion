@@ -3,15 +3,16 @@ package mintv1
 
 import (
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var (
@@ -57,17 +58,21 @@ func (x *MintIncentiveTokens) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MintIncentiveTokens_messageType fastReflection_MintIncentiveTokens_messageType
-var _ protoreflect.MessageType = fastReflection_MintIncentiveTokens_messageType{}
+var (
+	_fastReflection_MintIncentiveTokens_messageType fastReflection_MintIncentiveTokens_messageType
+	_                                               protoreflect.MessageType = fastReflection_MintIncentiveTokens_messageType{}
+)
 
 type fastReflection_MintIncentiveTokens_messageType struct{}
 
 func (x fastReflection_MintIncentiveTokens_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MintIncentiveTokens)(nil)
 }
+
 func (x fastReflection_MintIncentiveTokens_messageType) New() protoreflect.Message {
 	return new(fastReflection_MintIncentiveTokens)
 }
+
 func (x fastReflection_MintIncentiveTokens_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MintIncentiveTokens
 }
@@ -925,10 +930,13 @@ func file_xion_mint_v1_event_proto_rawDescGZIP() []byte {
 	return file_xion_mint_v1_event_proto_rawDescData
 }
 
-var file_xion_mint_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_xion_mint_v1_event_proto_goTypes = []interface{}{
-	(*MintIncentiveTokens)(nil), // 0: xion.mint.v1.MintIncentiveTokens
-}
+var (
+	file_xion_mint_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_xion_mint_v1_event_proto_goTypes  = []interface{}{
+		(*MintIncentiveTokens)(nil), // 0: xion.mint.v1.MintIncentiveTokens
+	}
+)
+
 var file_xion_mint_v1_event_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
