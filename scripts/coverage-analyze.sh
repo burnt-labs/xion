@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# Simplified coverage analysis script
-# Usage: coverage-analyze.sh <coverage_file> <exclusion_patterns>
+# Coverage analysis script with detailed reporting and validation
+# Usage: coverage-analyze.sh <coverage_file> <coveragerc_file> [threshold]
 
 COVERAGE_FILE="${1:-coverage_filtered.out}"
-EXCLUSION_PATTERNS="$2"
+COVERAGERC_FILE="${2:-.coveragerc}"
+COVERAGE_THRESHOLD="${3}"
 
 if [ ! -f "$COVERAGE_FILE" ]; then
     echo "❌ Coverage file not found: $COVERAGE_FILE"
@@ -12,6 +13,64 @@ if [ ! -f "$COVERAGE_FILE" ]; then
 fi
 
 echo "📊 Analyzing coverage from: $COVERAGE_FILE"
+
+# Parse .coveragerc file and extract threshold and exclusions
+parse_coveragerc() {
+    local file="$1"
+    local section=""
+
+    if [ ! -f "$file" ]; then
+        return
+    fi
+
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Trim whitespace
+        line=$(echo "$line" | xargs)
+
+        # Skip comments and empty lines
+        if [[ "$line" =~ ^# || -z "$line" ]]; then
+            continue
+        fi
+
+        # Check for section headers
+        if [[ "$line" =~ ^\[(.+)\]$ ]]; then
+            section="${BASH_REMATCH[1]}"
+            continue
+        fi
+
+        # Parse key-value pairs in [run] section
+        if [[ "$section" == "run" && "$line" =~ ^threshold[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+            COVERAGERC_THRESHOLD="${BASH_REMATCH[1]}"
+        fi
+
+        # Collect exclusion patterns from [exclude] section
+        if [[ "$section" == "exclude" && ! "$line" =~ ^# ]]; then
+            if [ -n "$COVERAGERC_EXCLUSIONS" ]; then
+                COVERAGERC_EXCLUSIONS="$COVERAGERC_EXCLUSIONS $line"
+            else
+                COVERAGERC_EXCLUSIONS="$line"
+            fi
+        fi
+    done < "$file"
+
+    echo "📋 Loaded configuration from: $file"
+}
+
+# Global variables for parsed config
+COVERAGERC_THRESHOLD=""
+COVERAGERC_EXCLUSIONS=""
+
+# Parse the .coveragerc file
+parse_coveragerc "$COVERAGERC_FILE"
+
+# Use threshold from command line, or .coveragerc, or default to 85
+if [ -z "$COVERAGE_THRESHOLD" ]; then
+    if [ -n "$COVERAGERC_THRESHOLD" ]; then
+        COVERAGE_THRESHOLD="$COVERAGERC_THRESHOLD"
+    else
+        COVERAGE_THRESHOLD="85"
+    fi
+fi
 
 # Function to build grep exclusion command
 build_exclusion_grep() {
@@ -31,6 +90,9 @@ build_exclusion_grep() {
 
     echo "$grep_cmd"
 }
+
+# Use exclusions from parsed config
+EXCLUSION_PATTERNS="$COVERAGERC_EXCLUSIONS"
 
 # Show excellent coverage (90-100%)
 echo ""
@@ -117,16 +179,16 @@ echo "❌ Low/No (<50%): $low_coverage_count"
 total_coverage_num=$(echo "$total_coverage" | sed 's/%//')
 
 # Check both low coverage count and total coverage threshold
-if [ "$low_coverage_count" -gt 0 ] || (command -v bc >/dev/null 2>&1 && [ $(echo "$total_coverage_num < 85" | bc -l) -eq 1 ]); then
+if [ "$low_coverage_count" -gt 0 ] || (command -v bc >/dev/null 2>&1 && [ $(echo "$total_coverage_num < $COVERAGE_THRESHOLD" | bc -l) -eq 1 ]); then
     echo ""
     if [ "$low_coverage_count" -gt 0 ]; then
         echo "💡 Add tests for functions with low coverage"
     fi
-    if command -v bc >/dev/null 2>&1 && [ $(echo "$total_coverage_num < 85" | bc -l) -eq 1 ]; then
-        echo "⚠️  Total coverage $total_coverage is below 85% threshold"
+    if command -v bc >/dev/null 2>&1 && [ $(echo "$total_coverage_num < $COVERAGE_THRESHOLD" | bc -l) -eq 1 ]; then
+        echo "⚠️  Total coverage $total_coverage is below ${COVERAGE_THRESHOLD}% threshold"
     fi
     exit 1
 else
     echo ""
-    echo "✅ All coverage requirements met (>85% total, no low coverage functions)"
+    echo "✅ All coverage requirements met (>${COVERAGE_THRESHOLD}% total, no low coverage functions)"
 fi

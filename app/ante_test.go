@@ -172,7 +172,7 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 		txBuilder.SetGasLimit(100000)
 
 		// Execute the ante handler - this should eventually trigger the bond denom function
-		_, err = handler(ctx, txBuilder.GetTx(), false)
+		_, _ = handler(ctx, txBuilder.GetTx(), false)
 		// We expect this to fail but we want to exercise the code path for coverage
 		// The anonymous function should be called during fee processing
 	})
@@ -234,7 +234,7 @@ func TestNewPostHandler_ValidationErrors(t *testing.T) {
 		txBuilder := app.TxConfig().NewTxBuilder()
 
 		// Execute the post handler - this should work without errors for our test case
-		_, err = handler(ctx, txBuilder.GetTx(), false, true) // success=true
+		_, _ = handler(ctx, txBuilder.GetTx(), false, true) // success=true
 		// We don't necessarily expect this to succeed, but we want to exercise the code path
 	})
 }
