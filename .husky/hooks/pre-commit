@@ -1,2 +1,2 @@
 #!/bin/sh
-make test-cover
+make format && mkae lint && make test-cover
