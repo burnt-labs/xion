@@ -276,6 +276,18 @@ func TestValidateInflationRateChange(t *testing.T) {
 			expectedErr: true,
 			errContains: "invalid parameter type",
 		},
+		{
+			name:        "nil value",
+			value:       math.LegacyDec{},
+			expectedErr: true,
+			errContains: "inflation rate change cannot be nil",
+		},
+		{
+			name:        "too large value",
+			value:       math.LegacyNewDec(2), // 200%
+			expectedErr: true,
+			errContains: "inflation rate change too large",
+		},
 	}
 
 	for _, tt := range tests {
@@ -322,6 +334,18 @@ func TestValidateInflationMax(t *testing.T) {
 			value:       "invalid",
 			expectedErr: true,
 			errContains: "invalid parameter type",
+		},
+		{
+			name:        "nil value",
+			value:       math.LegacyDec{},
+			expectedErr: true,
+			errContains: "max inflation cannot be nil",
+		},
+		{
+			name:        "too large value",
+			value:       math.LegacyNewDec(2), // 200%
+			expectedErr: true,
+			errContains: "max inflation too large",
 		},
 	}
 
@@ -370,6 +394,18 @@ func TestValidateInflationMin(t *testing.T) {
 			expectedErr: true,
 			errContains: "invalid parameter type",
 		},
+		{
+			name:        "nil value",
+			value:       math.LegacyDec{},
+			expectedErr: true,
+			errContains: "min inflation cannot be nil",
+		},
+		{
+			name:        "too large value",
+			value:       math.LegacyNewDec(2), // 200%
+			expectedErr: true,
+			errContains: "min inflation too large",
+		},
 	}
 
 	for _, tt := range tests {
@@ -417,6 +453,12 @@ func TestValidateGoalBonded(t *testing.T) {
 			value:       "invalid",
 			expectedErr: true,
 			errContains: "invalid parameter type",
+		},
+		{
+			name:        "nil value",
+			value:       math.LegacyDec{},
+			expectedErr: true,
+			errContains: "goal bonded cannot be nil",
 		},
 	}
 
