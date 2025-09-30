@@ -263,7 +263,7 @@ func WithCollectionPaginationTriplePairPrefix[K1, K2, K3 any](k1 K1, k2 K2) func
 }
 
 func (aq *authzQuerier) GranteeGrants(ctx context.Context, req *indexerauthz.QueryGranteeGrantsRequest) (*indexerauthz.QueryGranteeGrantsResponse, error) {
-	slog.Info("authz_querier", "grantee", req.Grantee)
+	slog.Debug("authz_querier", "grantee", req.Grantee)
 	grantee, err := aq.addrCodec.StringToBytes(req.Grantee)
 	if err != nil {
 		return nil, err
