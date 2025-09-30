@@ -3388,7 +3388,7 @@ type QueryGrantsRequest struct {
 	// Optional, msg_type_url, when set, will query only grants matching given msg
 	// type.
 	MsgTypeUrl string `protobuf:"bytes,3,opt,name=msg_type_url,json=msgTypeUrl,proto3" json:"msg_type_url,omitempty"`
-	// pagination defines an pagination for the request.
+	// pagination defines pagination for the request.
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3449,7 +3449,7 @@ type QueryGrantsResponse struct {
 
 	// authorizations is a list of grants granted for grantee by granter.
 	Grants []*v1beta11.Grant `protobuf:"bytes,1,rep,name=grants,proto3" json:"grants,omitempty"`
-	// pagination defines an pagination for the response.
+	// pagination defines pagination for the response.
 	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3496,7 +3496,7 @@ type QueryGranterGrantsRequest struct {
 
 	// granter is the address of the user granting an authorization
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
-	// pagination defines an pagination for the request.
+	// pagination defines pagination for the request.
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3543,7 +3543,7 @@ type QueryGranterGrantsResponse struct {
 
 	// grants is a list of grants granted by the granter.
 	Grants []*v1beta11.GrantAuthorization `protobuf:"bytes,1,rep,name=grants,proto3" json:"grants,omitempty"`
-	// pagination defines an pagination for the response.
+	// pagination defines pagination for the response.
 	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3590,7 +3590,7 @@ type QueryGranteeGrantsRequest struct {
 
 	// grantee is the address of the user receiving an authorization
 	Grantee string `protobuf:"bytes,1,opt,name=grantee,proto3" json:"grantee,omitempty"`
-	// pagination defines an pagination for the request.
+	// pagination defines pagination for the request.
 	Pagination *v1beta1.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3637,7 +3637,7 @@ type QueryGranteeGrantsResponse struct {
 
 	// grants is a list of grants granted to the grantee.
 	Grants []*v1beta11.GrantAuthorization `protobuf:"bytes,1,rep,name=grants,proto3" json:"grants,omitempty"`
-	// pagination defines an pagination for the response.
+	// pagination defines pagination for the response.
 	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 

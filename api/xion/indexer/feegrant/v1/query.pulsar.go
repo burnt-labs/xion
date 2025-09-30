@@ -3186,7 +3186,7 @@ type QueryAllowancesRequest struct {
 
 	// grantee is the address of the user being granted fee allowances
 	Grantee string `protobuf:"bytes,1,opt,name=grantee,proto3" json:"grantee,omitempty"`
-	// pagination defines an pagination for the request.
+	// pagination defines pagination for the request.
 	Pagination *v1beta11.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3231,9 +3231,9 @@ type QueryAllowancesResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// allowances are allowance's granted for grantee by granter.
+	// allowances are allowances granted for grantee by granter.
 	Allowances []*v1beta1.Grant `protobuf:"bytes,1,rep,name=allowances,proto3" json:"allowances,omitempty"`
-	// pagination defines an pagination for the response.
+	// pagination defines pagination for the response.
 	Pagination *v1beta11.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3280,7 +3280,7 @@ type QueryAllowancesByGranterRequest struct {
 
 	// granter is the address of the user granting fee allowances
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
-	// pagination defines an pagination for the request.
+	// pagination defines pagination for the request.
 	Pagination *v1beta11.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -3327,7 +3327,7 @@ type QueryAllowancesByGranterResponse struct {
 
 	// allowances that have been issued by the granter.
 	Allowances []*v1beta1.Grant `protobuf:"bytes,1,rep,name=allowances,proto3" json:"allowances,omitempty"`
-	// pagination defines an pagination for the response.
+	// pagination defines pagination for the response.
 	Pagination *v1beta11.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 

@@ -139,7 +139,7 @@ func (m *QueryAllowanceResponse) GetAllowance() *feegrant.Grant {
 type QueryAllowancesRequest struct {
 	// grantee is the address of the user being granted fee allowances
 	Grantee string `protobuf:"bytes,1,opt,name=grantee,proto3" json:"grantee,omitempty"`
-	// pagination defines an pagination for the request.
+	// pagination defines pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -193,9 +193,9 @@ func (m *QueryAllowancesRequest) GetPagination() *query.PageRequest {
 // QueryAllowancesResponse is the response type for the Query/Allowances RPC
 // method.
 type QueryAllowancesResponse struct {
-	// allowances are allowance's granted for grantee by granter.
+	// allowances are allowances granted for grantee by granter.
 	Allowances []*feegrant.Grant `protobuf:"bytes,1,rep,name=allowances,proto3" json:"allowances,omitempty"`
-	// pagination defines an pagination for the response.
+	// pagination defines pagination for the response.
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -251,7 +251,7 @@ func (m *QueryAllowancesResponse) GetPagination() *query.PageResponse {
 type QueryAllowancesByGranterRequest struct {
 	// granter is the address of the user granting fee allowances
 	Granter string `protobuf:"bytes,1,opt,name=granter,proto3" json:"granter,omitempty"`
-	// pagination defines an pagination for the request.
+	// pagination defines pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -307,7 +307,7 @@ func (m *QueryAllowancesByGranterRequest) GetPagination() *query.PageRequest {
 type QueryAllowancesByGranterResponse struct {
 	// allowances that have been issued by the granter.
 	Allowances []*feegrant.Grant `protobuf:"bytes,1,rep,name=allowances,proto3" json:"allowances,omitempty"`
-	// pagination defines an pagination for the response.
+	// pagination defines pagination for the response.
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 

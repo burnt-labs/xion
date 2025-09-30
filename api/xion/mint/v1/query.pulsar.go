@@ -2,22 +2,22 @@
 package mintv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	_ "cosmossdk.io/api/amino"
-
+	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
-var md_QueryParamsRequest protoreflect.MessageDescriptor
+var (
+	md_QueryParamsRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_mint_v1_query_proto_init()
@@ -44,21 +44,17 @@ func (x *QueryParamsRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
-	_                                              protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
-)
+var _fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
 
 type fastReflection_QueryParamsRequest_messageType struct{}
 
 func (x fastReflection_QueryParamsRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsRequest)(nil)
 }
-
 func (x fastReflection_QueryParamsRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsRequest)
 }
-
 func (x fastReflection_QueryParamsRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsRequest
 }
@@ -406,21 +402,17 @@ func (x *QueryParamsResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
-	_                                               protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
-)
+var _fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
 
 type fastReflection_QueryParamsResponse_messageType struct{}
 
 func (x fastReflection_QueryParamsResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsResponse)(nil)
 }
-
 func (x fastReflection_QueryParamsResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsResponse)
 }
-
 func (x fastReflection_QueryParamsResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsResponse
 }
@@ -814,7 +806,9 @@ func (x *fastReflection_QueryParamsResponse) ProtoMethods() *protoiface.Methods 
 	}
 }
 
-var md_QueryInflationRequest protoreflect.MessageDescriptor
+var (
+	md_QueryInflationRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_mint_v1_query_proto_init()
@@ -841,21 +835,17 @@ func (x *QueryInflationRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryInflationRequest_messageType fastReflection_QueryInflationRequest_messageType
-	_                                                 protoreflect.MessageType = fastReflection_QueryInflationRequest_messageType{}
-)
+var _fastReflection_QueryInflationRequest_messageType fastReflection_QueryInflationRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryInflationRequest_messageType{}
 
 type fastReflection_QueryInflationRequest_messageType struct{}
 
 func (x fastReflection_QueryInflationRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryInflationRequest)(nil)
 }
-
 func (x fastReflection_QueryInflationRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryInflationRequest)
 }
-
 func (x fastReflection_QueryInflationRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryInflationRequest
 }
@@ -1203,21 +1193,17 @@ func (x *QueryInflationResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryInflationResponse_messageType fastReflection_QueryInflationResponse_messageType
-	_                                                  protoreflect.MessageType = fastReflection_QueryInflationResponse_messageType{}
-)
+var _fastReflection_QueryInflationResponse_messageType fastReflection_QueryInflationResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryInflationResponse_messageType{}
 
 type fastReflection_QueryInflationResponse_messageType struct{}
 
 func (x fastReflection_QueryInflationResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryInflationResponse)(nil)
 }
-
 func (x fastReflection_QueryInflationResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryInflationResponse)
 }
-
 func (x fastReflection_QueryInflationResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryInflationResponse
 }
@@ -1598,7 +1584,9 @@ func (x *fastReflection_QueryInflationResponse) ProtoMethods() *protoiface.Metho
 	}
 }
 
-var md_QueryAnnualProvisionsRequest protoreflect.MessageDescriptor
+var (
+	md_QueryAnnualProvisionsRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_mint_v1_query_proto_init()
@@ -1625,21 +1613,17 @@ func (x *QueryAnnualProvisionsRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryAnnualProvisionsRequest_messageType fastReflection_QueryAnnualProvisionsRequest_messageType
-	_                                                        protoreflect.MessageType = fastReflection_QueryAnnualProvisionsRequest_messageType{}
-)
+var _fastReflection_QueryAnnualProvisionsRequest_messageType fastReflection_QueryAnnualProvisionsRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAnnualProvisionsRequest_messageType{}
 
 type fastReflection_QueryAnnualProvisionsRequest_messageType struct{}
 
 func (x fastReflection_QueryAnnualProvisionsRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAnnualProvisionsRequest)(nil)
 }
-
 func (x fastReflection_QueryAnnualProvisionsRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAnnualProvisionsRequest)
 }
-
 func (x fastReflection_QueryAnnualProvisionsRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAnnualProvisionsRequest
 }
@@ -1987,21 +1971,17 @@ func (x *QueryAnnualProvisionsResponse) slowProtoReflect() protoreflect.Message 
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryAnnualProvisionsResponse_messageType fastReflection_QueryAnnualProvisionsResponse_messageType
-	_                                                         protoreflect.MessageType = fastReflection_QueryAnnualProvisionsResponse_messageType{}
-)
+var _fastReflection_QueryAnnualProvisionsResponse_messageType fastReflection_QueryAnnualProvisionsResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAnnualProvisionsResponse_messageType{}
 
 type fastReflection_QueryAnnualProvisionsResponse_messageType struct{}
 
 func (x fastReflection_QueryAnnualProvisionsResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAnnualProvisionsResponse)(nil)
 }
-
 func (x fastReflection_QueryAnnualProvisionsResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAnnualProvisionsResponse)
 }
-
 func (x fastReflection_QueryAnnualProvisionsResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAnnualProvisionsResponse
 }
@@ -2675,19 +2655,16 @@ func file_xion_mint_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_mint_v1_query_proto_rawDescData
 }
 
-var (
-	file_xion_mint_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-	file_xion_mint_v1_query_proto_goTypes  = []interface{}{
-		(*QueryParamsRequest)(nil),            // 0: xion.mint.v1.QueryParamsRequest
-		(*QueryParamsResponse)(nil),           // 1: xion.mint.v1.QueryParamsResponse
-		(*QueryInflationRequest)(nil),         // 2: xion.mint.v1.QueryInflationRequest
-		(*QueryInflationResponse)(nil),        // 3: xion.mint.v1.QueryInflationResponse
-		(*QueryAnnualProvisionsRequest)(nil),  // 4: xion.mint.v1.QueryAnnualProvisionsRequest
-		(*QueryAnnualProvisionsResponse)(nil), // 5: xion.mint.v1.QueryAnnualProvisionsResponse
-		(*Params)(nil),                        // 6: xion.mint.v1.Params
-	}
-)
-
+var file_xion_mint_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_xion_mint_v1_query_proto_goTypes = []interface{}{
+	(*QueryParamsRequest)(nil),            // 0: xion.mint.v1.QueryParamsRequest
+	(*QueryParamsResponse)(nil),           // 1: xion.mint.v1.QueryParamsResponse
+	(*QueryInflationRequest)(nil),         // 2: xion.mint.v1.QueryInflationRequest
+	(*QueryInflationResponse)(nil),        // 3: xion.mint.v1.QueryInflationResponse
+	(*QueryAnnualProvisionsRequest)(nil),  // 4: xion.mint.v1.QueryAnnualProvisionsRequest
+	(*QueryAnnualProvisionsResponse)(nil), // 5: xion.mint.v1.QueryAnnualProvisionsResponse
+	(*Params)(nil),                        // 6: xion.mint.v1.Params
+}
 var file_xion_mint_v1_query_proto_depIdxs = []int32{
 	6, // 0: xion.mint.v1.QueryParamsResponse.params:type_name -> xion.mint.v1.Params
 	0, // 1: xion.mint.v1.Query.Params:input_type -> xion.mint.v1.QueryParamsRequest

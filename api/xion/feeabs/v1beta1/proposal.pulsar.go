@@ -3,15 +3,14 @@ package feeabsv1beta1
 
 import (
 	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (
@@ -51,21 +50,17 @@ func (x *HostChainFeeAbsConfig) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_HostChainFeeAbsConfig_messageType fastReflection_HostChainFeeAbsConfig_messageType
-	_                                                 protoreflect.MessageType = fastReflection_HostChainFeeAbsConfig_messageType{}
-)
+var _fastReflection_HostChainFeeAbsConfig_messageType fastReflection_HostChainFeeAbsConfig_messageType
+var _ protoreflect.MessageType = fastReflection_HostChainFeeAbsConfig_messageType{}
 
 type fastReflection_HostChainFeeAbsConfig_messageType struct{}
 
 func (x fastReflection_HostChainFeeAbsConfig_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_HostChainFeeAbsConfig)(nil)
 }
-
 func (x fastReflection_HostChainFeeAbsConfig_messageType) New() protoreflect.Message {
 	return new(fastReflection_HostChainFeeAbsConfig)
 }
-
 func (x fastReflection_HostChainFeeAbsConfig_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_HostChainFeeAbsConfig
 }
@@ -633,21 +628,17 @@ func (x *AddHostZoneProposal) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_AddHostZoneProposal_messageType fastReflection_AddHostZoneProposal_messageType
-	_                                               protoreflect.MessageType = fastReflection_AddHostZoneProposal_messageType{}
-)
+var _fastReflection_AddHostZoneProposal_messageType fastReflection_AddHostZoneProposal_messageType
+var _ protoreflect.MessageType = fastReflection_AddHostZoneProposal_messageType{}
 
 type fastReflection_AddHostZoneProposal_messageType struct{}
 
 func (x fastReflection_AddHostZoneProposal_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_AddHostZoneProposal)(nil)
 }
-
 func (x fastReflection_AddHostZoneProposal_messageType) New() protoreflect.Message {
 	return new(fastReflection_AddHostZoneProposal)
 }
-
 func (x fastReflection_AddHostZoneProposal_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_AddHostZoneProposal
 }
@@ -1200,21 +1191,17 @@ func (x *DeleteHostZoneProposal) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_DeleteHostZoneProposal_messageType fastReflection_DeleteHostZoneProposal_messageType
-	_                                                  protoreflect.MessageType = fastReflection_DeleteHostZoneProposal_messageType{}
-)
+var _fastReflection_DeleteHostZoneProposal_messageType fastReflection_DeleteHostZoneProposal_messageType
+var _ protoreflect.MessageType = fastReflection_DeleteHostZoneProposal_messageType{}
 
 type fastReflection_DeleteHostZoneProposal_messageType struct{}
 
 func (x fastReflection_DeleteHostZoneProposal_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_DeleteHostZoneProposal)(nil)
 }
-
 func (x fastReflection_DeleteHostZoneProposal_messageType) New() protoreflect.Message {
 	return new(fastReflection_DeleteHostZoneProposal)
 }
-
 func (x fastReflection_DeleteHostZoneProposal_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_DeleteHostZoneProposal
 }
@@ -1752,21 +1739,17 @@ func (x *SetHostZoneProposal) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_SetHostZoneProposal_messageType fastReflection_SetHostZoneProposal_messageType
-	_                                               protoreflect.MessageType = fastReflection_SetHostZoneProposal_messageType{}
-)
+var _fastReflection_SetHostZoneProposal_messageType fastReflection_SetHostZoneProposal_messageType
+var _ protoreflect.MessageType = fastReflection_SetHostZoneProposal_messageType{}
 
 type fastReflection_SetHostZoneProposal_messageType struct{}
 
 func (x fastReflection_SetHostZoneProposal_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_SetHostZoneProposal)(nil)
 }
-
 func (x fastReflection_SetHostZoneProposal_messageType) New() protoreflect.Message {
 	return new(fastReflection_SetHostZoneProposal)
 }
-
 func (x fastReflection_SetHostZoneProposal_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_SetHostZoneProposal
 }
@@ -2676,18 +2659,15 @@ func file_xion_feeabs_v1beta1_proposal_proto_rawDescGZIP() []byte {
 	return file_xion_feeabs_v1beta1_proposal_proto_rawDescData
 }
 
-var (
-	file_xion_feeabs_v1beta1_proposal_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-	file_xion_feeabs_v1beta1_proposal_proto_msgTypes  = make([]protoimpl.MessageInfo, 4)
-	file_xion_feeabs_v1beta1_proposal_proto_goTypes   = []interface{}{
-		(HostChainFeeAbsStatus)(0),     // 0: xion.feeabs.v1beta1.HostChainFeeAbsStatus
-		(*HostChainFeeAbsConfig)(nil),  // 1: xion.feeabs.v1beta1.HostChainFeeAbsConfig
-		(*AddHostZoneProposal)(nil),    // 2: xion.feeabs.v1beta1.AddHostZoneProposal
-		(*DeleteHostZoneProposal)(nil), // 3: xion.feeabs.v1beta1.DeleteHostZoneProposal
-		(*SetHostZoneProposal)(nil),    // 4: xion.feeabs.v1beta1.SetHostZoneProposal
-	}
-)
-
+var file_xion_feeabs_v1beta1_proposal_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_xion_feeabs_v1beta1_proposal_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_xion_feeabs_v1beta1_proposal_proto_goTypes = []interface{}{
+	(HostChainFeeAbsStatus)(0),     // 0: xion.feeabs.v1beta1.HostChainFeeAbsStatus
+	(*HostChainFeeAbsConfig)(nil),  // 1: xion.feeabs.v1beta1.HostChainFeeAbsConfig
+	(*AddHostZoneProposal)(nil),    // 2: xion.feeabs.v1beta1.AddHostZoneProposal
+	(*DeleteHostZoneProposal)(nil), // 3: xion.feeabs.v1beta1.DeleteHostZoneProposal
+	(*SetHostZoneProposal)(nil),    // 4: xion.feeabs.v1beta1.SetHostZoneProposal
+}
 var file_xion_feeabs_v1beta1_proposal_proto_depIdxs = []int32{
 	0, // 0: xion.feeabs.v1beta1.HostChainFeeAbsConfig.status:type_name -> xion.feeabs.v1beta1.HostChainFeeAbsStatus
 	1, // 1: xion.feeabs.v1beta1.AddHostZoneProposal.host_chain_config:type_name -> xion.feeabs.v1beta1.HostChainFeeAbsConfig

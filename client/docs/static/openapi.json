@@ -26250,7 +26250,7 @@
                                             "description": "authorizations is a list of grants granted for grantee by granter."
                                         },
                                         "pagination": {
-                                            "description": "pagination defines an pagination for the response.",
+                                            "description": "pagination defines pagination for the response.",
                                             "type": "object",
                                             "properties": {
                                                 "nextKey": {
@@ -26432,7 +26432,7 @@
                                             "description": "grants is a list of grants granted to the grantee."
                                         },
                                         "pagination": {
-                                            "description": "pagination defines an pagination for the response.",
+                                            "description": "pagination defines pagination for the response.",
                                             "type": "object",
                                             "properties": {
                                                 "nextKey": {
@@ -26596,7 +26596,7 @@
                                             "description": "grants is a list of grants granted by the granter."
                                         },
                                         "pagination": {
-                                            "description": "pagination defines an pagination for the response.",
+                                            "description": "pagination defines pagination for the response.",
                                             "type": "object",
                                             "properties": {
                                                 "nextKey": {
@@ -26857,10 +26857,10 @@
                                                 },
                                                 "title": "Grant is stored in the KVStore to record a grant with full context"
                                             },
-                                            "description": "allowances are allowance's granted for grantee by granter."
+                                            "description": "allowances are allowances granted for grantee by granter."
                                         },
                                         "pagination": {
-                                            "description": "pagination defines an pagination for the response.",
+                                            "description": "pagination defines pagination for the response.",
                                             "type": "object",
                                             "properties": {
                                                 "nextKey": {
@@ -27021,7 +27021,7 @@
                                             "description": "allowances that have been issued by the granter."
                                         },
                                         "pagination": {
-                                            "description": "pagination defines an pagination for the response.",
+                                            "description": "pagination defines pagination for the response.",
                                             "type": "object",
                                             "properties": {
                                                 "nextKey": {
@@ -48593,7 +48593,7 @@
                         "description": "grants is a list of grants granted to the grantee."
                     },
                     "pagination": {
-                        "description": "pagination defines an pagination for the response.",
+                        "description": "pagination defines pagination for the response.",
                         "type": "object",
                         "properties": {
                             "nextKey": {
@@ -48646,7 +48646,7 @@
                         "description": "grants is a list of grants granted by the granter."
                     },
                     "pagination": {
-                        "description": "pagination defines an pagination for the response.",
+                        "description": "pagination defines pagination for the response.",
                         "type": "object",
                         "properties": {
                             "nextKey": {
@@ -48694,7 +48694,7 @@
                         "description": "authorizations is a list of grants granted for grantee by granter."
                     },
                     "pagination": {
-                        "description": "pagination defines an pagination for the response.",
+                        "description": "pagination defines pagination for the response.",
                         "type": "object",
                         "properties": {
                             "nextKey": {
@@ -48777,7 +48777,7 @@
                         "description": "allowances that have been issued by the granter."
                     },
                     "pagination": {
-                        "description": "pagination defines an pagination for the response.",
+                        "description": "pagination defines pagination for the response.",
                         "type": "object",
                         "properties": {
                             "nextKey": {
@@ -48825,10 +48825,10 @@
                             },
                             "title": "Grant is stored in the KVStore to record a grant with full context"
                         },
-                        "description": "allowances are allowance's granted for grantee by granter."
+                        "description": "allowances are allowances granted for grantee by granter."
                     },
                     "pagination": {
-                        "description": "pagination defines an pagination for the response.",
+                        "description": "pagination defines pagination for the response.",
                         "type": "object",
                         "properties": {
                             "nextKey": {
