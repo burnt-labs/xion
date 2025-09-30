@@ -3,13 +3,14 @@ package feeabsv1beta1
 
 import (
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var (
@@ -53,17 +54,21 @@ func (x *Params) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_Params_messageType fastReflection_Params_messageType
-var _ protoreflect.MessageType = fastReflection_Params_messageType{}
+var (
+	_fastReflection_Params_messageType fastReflection_Params_messageType
+	_                                  protoreflect.MessageType = fastReflection_Params_messageType{}
+)
 
 type fastReflection_Params_messageType struct{}
 
 func (x fastReflection_Params_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_Params)(nil)
 }
+
 func (x fastReflection_Params_messageType) New() protoreflect.Message {
 	return new(fastReflection_Params)
 }
+
 func (x fastReflection_Params_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_Params
 }
@@ -902,10 +907,13 @@ func file_xion_feeabs_v1beta1_params_proto_rawDescGZIP() []byte {
 	return file_xion_feeabs_v1beta1_params_proto_rawDescData
 }
 
-var file_xion_feeabs_v1beta1_params_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_xion_feeabs_v1beta1_params_proto_goTypes = []interface{}{
-	(*Params)(nil), // 0: xion.feeabs.v1beta1.Params
-}
+var (
+	file_xion_feeabs_v1beta1_params_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_xion_feeabs_v1beta1_params_proto_goTypes  = []interface{}{
+		(*Params)(nil), // 0: xion.feeabs.v1beta1.Params
+	}
+)
+
 var file_xion_feeabs_v1beta1_params_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
