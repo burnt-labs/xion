@@ -2,15 +2,17 @@
 package jwkv1
 
 import (
-	_ "cosmossdk.io/api/cosmos/msg/v1"
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
+	_ "cosmossdk.io/api/cosmos/msg/v1"
+
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var (
@@ -46,17 +48,21 @@ func (x *MsgCreateAudienceClaim) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgCreateAudienceClaim_messageType fastReflection_MsgCreateAudienceClaim_messageType
-var _ protoreflect.MessageType = fastReflection_MsgCreateAudienceClaim_messageType{}
+var (
+	_fastReflection_MsgCreateAudienceClaim_messageType fastReflection_MsgCreateAudienceClaim_messageType
+	_                                                  protoreflect.MessageType = fastReflection_MsgCreateAudienceClaim_messageType{}
+)
 
 type fastReflection_MsgCreateAudienceClaim_messageType struct{}
 
 func (x fastReflection_MsgCreateAudienceClaim_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgCreateAudienceClaim)(nil)
 }
+
 func (x fastReflection_MsgCreateAudienceClaim_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgCreateAudienceClaim)
 }
+
 func (x fastReflection_MsgCreateAudienceClaim_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgCreateAudienceClaim
 }
@@ -499,9 +505,7 @@ func (x *fastReflection_MsgCreateAudienceClaim) ProtoMethods() *protoiface.Metho
 	}
 }
 
-var (
-	md_MsgCreateAudienceClaimResponse protoreflect.MessageDescriptor
-)
+var md_MsgCreateAudienceClaimResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_jwk_v1_tx_proto_init()
@@ -528,17 +532,21 @@ func (x *MsgCreateAudienceClaimResponse) slowProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgCreateAudienceClaimResponse_messageType fastReflection_MsgCreateAudienceClaimResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgCreateAudienceClaimResponse_messageType{}
+var (
+	_fastReflection_MsgCreateAudienceClaimResponse_messageType fastReflection_MsgCreateAudienceClaimResponse_messageType
+	_                                                          protoreflect.MessageType = fastReflection_MsgCreateAudienceClaimResponse_messageType{}
+)
 
 type fastReflection_MsgCreateAudienceClaimResponse_messageType struct{}
 
 func (x fastReflection_MsgCreateAudienceClaimResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgCreateAudienceClaimResponse)(nil)
 }
+
 func (x fastReflection_MsgCreateAudienceClaimResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgCreateAudienceClaimResponse)
 }
+
 func (x fastReflection_MsgCreateAudienceClaimResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgCreateAudienceClaimResponse
 }
@@ -888,17 +896,21 @@ func (x *MsgDeleteAudienceClaim) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgDeleteAudienceClaim_messageType fastReflection_MsgDeleteAudienceClaim_messageType
-var _ protoreflect.MessageType = fastReflection_MsgDeleteAudienceClaim_messageType{}
+var (
+	_fastReflection_MsgDeleteAudienceClaim_messageType fastReflection_MsgDeleteAudienceClaim_messageType
+	_                                                  protoreflect.MessageType = fastReflection_MsgDeleteAudienceClaim_messageType{}
+)
 
 type fastReflection_MsgDeleteAudienceClaim_messageType struct{}
 
 func (x fastReflection_MsgDeleteAudienceClaim_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgDeleteAudienceClaim)(nil)
 }
+
 func (x fastReflection_MsgDeleteAudienceClaim_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgDeleteAudienceClaim)
 }
+
 func (x fastReflection_MsgDeleteAudienceClaim_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgDeleteAudienceClaim
 }
@@ -1341,9 +1353,7 @@ func (x *fastReflection_MsgDeleteAudienceClaim) ProtoMethods() *protoiface.Metho
 	}
 }
 
-var (
-	md_MsgDeleteAudienceClaimResponse protoreflect.MessageDescriptor
-)
+var md_MsgDeleteAudienceClaimResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_jwk_v1_tx_proto_init()
@@ -1370,17 +1380,21 @@ func (x *MsgDeleteAudienceClaimResponse) slowProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgDeleteAudienceClaimResponse_messageType fastReflection_MsgDeleteAudienceClaimResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgDeleteAudienceClaimResponse_messageType{}
+var (
+	_fastReflection_MsgDeleteAudienceClaimResponse_messageType fastReflection_MsgDeleteAudienceClaimResponse_messageType
+	_                                                          protoreflect.MessageType = fastReflection_MsgDeleteAudienceClaimResponse_messageType{}
+)
 
 type fastReflection_MsgDeleteAudienceClaimResponse_messageType struct{}
 
 func (x fastReflection_MsgDeleteAudienceClaimResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgDeleteAudienceClaimResponse)(nil)
 }
+
 func (x fastReflection_MsgDeleteAudienceClaimResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgDeleteAudienceClaimResponse)
 }
+
 func (x fastReflection_MsgDeleteAudienceClaimResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgDeleteAudienceClaimResponse
 }
@@ -1732,17 +1746,21 @@ func (x *MsgCreateAudience) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgCreateAudience_messageType fastReflection_MsgCreateAudience_messageType
-var _ protoreflect.MessageType = fastReflection_MsgCreateAudience_messageType{}
+var (
+	_fastReflection_MsgCreateAudience_messageType fastReflection_MsgCreateAudience_messageType
+	_                                             protoreflect.MessageType = fastReflection_MsgCreateAudience_messageType{}
+)
 
 type fastReflection_MsgCreateAudience_messageType struct{}
 
 func (x fastReflection_MsgCreateAudience_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgCreateAudience)(nil)
 }
+
 func (x fastReflection_MsgCreateAudience_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgCreateAudience)
 }
+
 func (x fastReflection_MsgCreateAudience_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgCreateAudience
 }
@@ -2276,17 +2294,21 @@ func (x *MsgCreateAudienceResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgCreateAudienceResponse_messageType fastReflection_MsgCreateAudienceResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgCreateAudienceResponse_messageType{}
+var (
+	_fastReflection_MsgCreateAudienceResponse_messageType fastReflection_MsgCreateAudienceResponse_messageType
+	_                                                     protoreflect.MessageType = fastReflection_MsgCreateAudienceResponse_messageType{}
+)
 
 type fastReflection_MsgCreateAudienceResponse_messageType struct{}
 
 func (x fastReflection_MsgCreateAudienceResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgCreateAudienceResponse)(nil)
 }
+
 func (x fastReflection_MsgCreateAudienceResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgCreateAudienceResponse)
 }
+
 func (x fastReflection_MsgCreateAudienceResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgCreateAudienceResponse
 }
@@ -2719,17 +2741,21 @@ func (x *MsgUpdateAudience) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateAudience_messageType fastReflection_MsgUpdateAudience_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateAudience_messageType{}
+var (
+	_fastReflection_MsgUpdateAudience_messageType fastReflection_MsgUpdateAudience_messageType
+	_                                             protoreflect.MessageType = fastReflection_MsgUpdateAudience_messageType{}
+)
 
 type fastReflection_MsgUpdateAudience_messageType struct{}
 
 func (x fastReflection_MsgUpdateAudience_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateAudience)(nil)
 }
+
 func (x fastReflection_MsgUpdateAudience_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateAudience)
 }
+
 func (x fastReflection_MsgUpdateAudience_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateAudience
 }
@@ -3387,17 +3413,21 @@ func (x *MsgUpdateAudienceResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateAudienceResponse_messageType fastReflection_MsgUpdateAudienceResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateAudienceResponse_messageType{}
+var (
+	_fastReflection_MsgUpdateAudienceResponse_messageType fastReflection_MsgUpdateAudienceResponse_messageType
+	_                                                     protoreflect.MessageType = fastReflection_MsgUpdateAudienceResponse_messageType{}
+)
 
 type fastReflection_MsgUpdateAudienceResponse_messageType struct{}
 
 func (x fastReflection_MsgUpdateAudienceResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateAudienceResponse)(nil)
 }
+
 func (x fastReflection_MsgUpdateAudienceResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateAudienceResponse)
 }
+
 func (x fastReflection_MsgUpdateAudienceResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateAudienceResponse
 }
@@ -3824,17 +3854,21 @@ func (x *MsgDeleteAudience) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgDeleteAudience_messageType fastReflection_MsgDeleteAudience_messageType
-var _ protoreflect.MessageType = fastReflection_MsgDeleteAudience_messageType{}
+var (
+	_fastReflection_MsgDeleteAudience_messageType fastReflection_MsgDeleteAudience_messageType
+	_                                             protoreflect.MessageType = fastReflection_MsgDeleteAudience_messageType{}
+)
 
 type fastReflection_MsgDeleteAudience_messageType struct{}
 
 func (x fastReflection_MsgDeleteAudience_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgDeleteAudience)(nil)
 }
+
 func (x fastReflection_MsgDeleteAudience_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgDeleteAudience)
 }
+
 func (x fastReflection_MsgDeleteAudience_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgDeleteAudience
 }
@@ -4275,9 +4309,7 @@ func (x *fastReflection_MsgDeleteAudience) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgDeleteAudienceResponse protoreflect.MessageDescriptor
-)
+var md_MsgDeleteAudienceResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_jwk_v1_tx_proto_init()
@@ -4304,17 +4336,21 @@ func (x *MsgDeleteAudienceResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgDeleteAudienceResponse_messageType fastReflection_MsgDeleteAudienceResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgDeleteAudienceResponse_messageType{}
+var (
+	_fastReflection_MsgDeleteAudienceResponse_messageType fastReflection_MsgDeleteAudienceResponse_messageType
+	_                                                     protoreflect.MessageType = fastReflection_MsgDeleteAudienceResponse_messageType{}
+)
 
 type fastReflection_MsgDeleteAudienceResponse_messageType struct{}
 
 func (x fastReflection_MsgDeleteAudienceResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgDeleteAudienceResponse)(nil)
 }
+
 func (x fastReflection_MsgDeleteAudienceResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgDeleteAudienceResponse)
 }
+
 func (x fastReflection_MsgDeleteAudienceResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgDeleteAudienceResponse
 }
@@ -5177,20 +5213,23 @@ func file_xion_jwk_v1_tx_proto_rawDescGZIP() []byte {
 	return file_xion_jwk_v1_tx_proto_rawDescData
 }
 
-var file_xion_jwk_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_xion_jwk_v1_tx_proto_goTypes = []interface{}{
-	(*MsgCreateAudienceClaim)(nil),         // 0: xion.jwk.v1.MsgCreateAudienceClaim
-	(*MsgCreateAudienceClaimResponse)(nil), // 1: xion.jwk.v1.MsgCreateAudienceClaimResponse
-	(*MsgDeleteAudienceClaim)(nil),         // 2: xion.jwk.v1.MsgDeleteAudienceClaim
-	(*MsgDeleteAudienceClaimResponse)(nil), // 3: xion.jwk.v1.MsgDeleteAudienceClaimResponse
-	(*MsgCreateAudience)(nil),              // 4: xion.jwk.v1.MsgCreateAudience
-	(*MsgCreateAudienceResponse)(nil),      // 5: xion.jwk.v1.MsgCreateAudienceResponse
-	(*MsgUpdateAudience)(nil),              // 6: xion.jwk.v1.MsgUpdateAudience
-	(*MsgUpdateAudienceResponse)(nil),      // 7: xion.jwk.v1.MsgUpdateAudienceResponse
-	(*MsgDeleteAudience)(nil),              // 8: xion.jwk.v1.MsgDeleteAudience
-	(*MsgDeleteAudienceResponse)(nil),      // 9: xion.jwk.v1.MsgDeleteAudienceResponse
-	(*Audience)(nil),                       // 10: xion.jwk.v1.Audience
-}
+var (
+	file_xion_jwk_v1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+	file_xion_jwk_v1_tx_proto_goTypes  = []interface{}{
+		(*MsgCreateAudienceClaim)(nil),         // 0: xion.jwk.v1.MsgCreateAudienceClaim
+		(*MsgCreateAudienceClaimResponse)(nil), // 1: xion.jwk.v1.MsgCreateAudienceClaimResponse
+		(*MsgDeleteAudienceClaim)(nil),         // 2: xion.jwk.v1.MsgDeleteAudienceClaim
+		(*MsgDeleteAudienceClaimResponse)(nil), // 3: xion.jwk.v1.MsgDeleteAudienceClaimResponse
+		(*MsgCreateAudience)(nil),              // 4: xion.jwk.v1.MsgCreateAudience
+		(*MsgCreateAudienceResponse)(nil),      // 5: xion.jwk.v1.MsgCreateAudienceResponse
+		(*MsgUpdateAudience)(nil),              // 6: xion.jwk.v1.MsgUpdateAudience
+		(*MsgUpdateAudienceResponse)(nil),      // 7: xion.jwk.v1.MsgUpdateAudienceResponse
+		(*MsgDeleteAudience)(nil),              // 8: xion.jwk.v1.MsgDeleteAudience
+		(*MsgDeleteAudienceResponse)(nil),      // 9: xion.jwk.v1.MsgDeleteAudienceResponse
+		(*Audience)(nil),                       // 10: xion.jwk.v1.Audience
+	}
+)
+
 var file_xion_jwk_v1_tx_proto_depIdxs = []int32{
 	10, // 0: xion.jwk.v1.MsgCreateAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
 	10, // 1: xion.jwk.v1.MsgUpdateAudienceResponse.audience:type_name -> xion.jwk.v1.Audience

@@ -3,20 +3,19 @@ package globalfeev1
 
 import (
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
-var (
-	md_QueryParamsRequest protoreflect.MessageDescriptor
-)
+var md_QueryParamsRequest protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_globalfee_v1_query_proto_init()
@@ -43,17 +42,21 @@ func (x *QueryParamsRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
+var (
+	_fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
+	_                                              protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
+)
 
 type fastReflection_QueryParamsRequest_messageType struct{}
 
 func (x fastReflection_QueryParamsRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsRequest)(nil)
 }
+
 func (x fastReflection_QueryParamsRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsRequest)
 }
+
 func (x fastReflection_QueryParamsRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsRequest
 }
@@ -401,17 +404,21 @@ func (x *QueryParamsResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
+var (
+	_fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
+	_                                               protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
+)
 
 type fastReflection_QueryParamsResponse_messageType struct{}
 
 func (x fastReflection_QueryParamsResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsResponse)(nil)
 }
+
 func (x fastReflection_QueryParamsResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsResponse)
 }
+
 func (x fastReflection_QueryParamsResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsResponse
 }
@@ -938,12 +945,15 @@ func file_xion_globalfee_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_globalfee_v1_query_proto_rawDescData
 }
 
-var file_xion_globalfee_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_xion_globalfee_v1_query_proto_goTypes = []interface{}{
-	(*QueryParamsRequest)(nil),  // 0: xion.globalfee.v1.QueryParamsRequest
-	(*QueryParamsResponse)(nil), // 1: xion.globalfee.v1.QueryParamsResponse
-	(*Params)(nil),              // 2: xion.globalfee.v1.Params
-}
+var (
+	file_xion_globalfee_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+	file_xion_globalfee_v1_query_proto_goTypes  = []interface{}{
+		(*QueryParamsRequest)(nil),  // 0: xion.globalfee.v1.QueryParamsRequest
+		(*QueryParamsResponse)(nil), // 1: xion.globalfee.v1.QueryParamsResponse
+		(*Params)(nil),              // 2: xion.globalfee.v1.Params
+	}
+)
+
 var file_xion_globalfee_v1_query_proto_depIdxs = []int32{
 	2, // 0: xion.globalfee.v1.QueryParamsResponse.params:type_name -> xion.globalfee.v1.Params
 	0, // 1: xion.globalfee.v1.Query.Params:input_type -> xion.globalfee.v1.QueryParamsRequest
