@@ -64,3 +64,18 @@ func TestCalculateTxBodyCommitment(t *testing.T) {
 
 	assert.Equal(t, "4191548640446622019618205632337897277567688684420692770387104411975872458580", received.String())
 }
+
+func TestInputs(t *testing.T) {
+	tx := "CqIBCp8BChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEn8KP3hpb24xNG43OWVocGZ3aGRoNHN6dWRhZ2Q0bm14N2NsajU3bHk1dTBsenhzNm1nZjVxeTU1a3k5c21zenM0OBIreGlvbjFxYWYyeGZseDVqM2FndGx2cWs1dmhqcGV1aGw2ZzQ1aHhzaHdxahoPCgV1eGlvbhIGMTAwMDAwEmUKTQpDCh0vYWJzdHJhY3RhY2NvdW50LnYxLk5pbFB1YktleRIiCiCs/FzcKXXbesBcb1Daz2b2Pyp75Kcf8Roa2hNAEpSxCxIECgIIARgBEhQKDgoFdXhpb24SBTYwMDAwEICJehoGeGlvbi0xIAw="
+	email, err := b64.StdEncoding.DecodeString("sAcYdn1nulpzJIM0RMaX6Vn5GPPGXuHxM//AfW7b7yU=")
+	require.NoError(t, err)
+	dkim, err := b64.StdEncoding.DecodeString("iEeNSGFNAiTctrIgoVuE40DFz/ATm+ip5RBx3HfHqQ4=")
+	require.NoError(t, err)
+
+	inputs, err := verify.Inputs(tx, string(email), string(dkim))
+	require.NoError(t, err)
+	require.Len(t, inputs, 3)
+	require.NotEmpty(t, inputs[0]) // tx hash
+	require.NotEmpty(t, inputs[1]) // email hash
+	require.NotEmpty(t, inputs[2]) // dkim hash
+}

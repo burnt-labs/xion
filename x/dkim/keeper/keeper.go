@@ -80,14 +80,15 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		return err
 	}
 	for _, dkimPubKey := range data.DkimPubkeys {
-		pk := &apiv1.DkimPubKey{
+		pk := apiv1.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
 		}
 		key := collections.Join(pk.Domain, pk.Selector)
-		if err := k.DkimPubKeys.Set(ctx, key, *pk); err != nil {
+		//nolint:govet // copylocks: unavoidable when storing protobuf messages in collections.Map
+		if err := k.DkimPubKeys.Set(ctx, key, pk); err != nil {
 			return err
 		}
 	}
@@ -111,15 +112,15 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	if err != nil {
 		panic(err)
 	}
+	//nolint:govet // copylocks: unavoidable when iterating over collections.Map with protobuf values
 	for _, kv := range kvs {
-		dkimPubKey := kv.Value
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
-			Domain:       dkimPubKey.Domain,
-			PubKey:       dkimPubKey.PubKey,
-			PoseidonHash: dkimPubKey.PoseidonHash,
-			Selector:     dkimPubKey.Selector,
-			Version:      types.Version(dkimPubKey.Version),
-			KeyType:      types.KeyType(dkimPubKey.KeyType),
+			Domain:       kv.Value.Domain,
+			PubKey:       kv.Value.PubKey,
+			PoseidonHash: kv.Value.PoseidonHash,
+			Selector:     kv.Value.Selector,
+			Version:      types.Version(kv.Value.Version),
+			KeyType:      types.KeyType(kv.Value.KeyType),
 		})
 	}
 	// this line is used by starport scaffolding # genesis/module/export

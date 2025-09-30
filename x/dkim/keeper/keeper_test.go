@@ -63,7 +63,7 @@ func SetupTest(t *testing.T) *TestFixture {
 	f.queryServer = keeper.NewQuerier(f.k)
 	f.appModule = module.NewAppModule(encCfg.Codec, f.k)
 
-	f.k.Params.Set(f.ctx, types.DefaultParams())
+	require.NoError(f.k.Params.Set(f.ctx, types.DefaultParams()))
 
 	return f
 }
@@ -82,4 +82,10 @@ func registerBaseSDKModules(
 	_ *require.Assertions,
 ) {
 	registerModuleInterfaces(encCfg)
+}
+
+func TestKeeperLogger(t *testing.T) {
+	f := SetupTest(t)
+	logger := f.k.Logger()
+	require.NotNil(t, logger)
 }

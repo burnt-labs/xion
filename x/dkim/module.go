@@ -31,10 +31,9 @@ const (
 )
 
 var (
-	_ module.AppModuleBasic   = AppModuleBasic{}
-	_ module.AppModuleGenesis = AppModule{}
-	_ module.AppModule        = AppModule{}
-
+	_ module.AppModuleBasic    = AppModuleBasic{}
+	_ module.AppModuleGenesis  = AppModule{}
+	_ module.AppModule         = AppModule{}
 	_ autocli.HasAutoCLIConfig = AppModule{}
 )
 
@@ -80,6 +79,7 @@ func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEn
 }
 
 func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
+	_ = a
 }
 
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
@@ -128,7 +128,12 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) js
 	return marshaler.MustMarshalJSON(genState)
 }
 
+// RegisterInvariants registers the module's invariants.
+// Deprecated: InvariantRegistry is deprecated and will be removed with x/crisis module.
+//
+//nolint:staticcheck // SA1019: Deprecated but required for module.AppModule interface
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+	_ = am
 }
 
 func (am AppModule) QuerierRoute() string {

@@ -210,7 +210,6 @@ func TestDKIMModule(t *testing.T) {
 	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
-
 }
 
 func createAndSubmitProposal(t *testing.T, xion *cosmos.CosmosChain, ctx context.Context, proposer ibc.Wallet, proposalMsgs []cosmos.ProtoMessage, title, summary, metadata string, proposalId int) error {
