@@ -204,7 +204,7 @@ func (aq *authzQuerier) GranterGrants(ctx context.Context, req *indexerauthz.Que
 		return nil, err
 	}
 	granterAddr := sdk.AccAddress(granter)
-	slog.Info("authz_querier", "step", "1")
+	slog.Debug("authz_querier", "step", "1")
 
 	grants, pageRes, err := query.CollectionPaginate(
 		ctx,
