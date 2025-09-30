@@ -38,7 +38,6 @@ require (
 	github.com/go-webauthn/webauthn v0.14.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/icza/dyno v0.0.0-20230330125955-09f820a8d9c0
-	github.com/larry0x/abstract-account v0.0.0-20240222010055-5442afcef635
 	github.com/lestrrat-go/jwx/v2 v2.1.6
 	github.com/strangelove-ventures/interchaintest/v10 v10.0.0
 	github.com/strangelove-ventures/tokenfactory v0.53.1-0.20250911214339-3cd81ea27e01
