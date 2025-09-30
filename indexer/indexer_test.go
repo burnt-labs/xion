@@ -177,7 +177,7 @@ func TestAuthzQuerier(t *testing.T) {
 }
 
 func TestAuthzQuerierWithPagination(t *testing.T) {
-	t.Skip("Pagination queries require collections context infrastructure - covered in integration tests")
+	// Now that we have index-based pagination, we can test it with in-memory collections
 
 	memDB, cdc, addrCodec := setupTest(t)
 	ctx := context.Background()
@@ -472,7 +472,7 @@ func TestFeeGrantQuerier(t *testing.T) {
 }
 
 func TestFeeGrantQuerierWithPagination(t *testing.T) {
-	t.Skip("Pagination queries require collections context infrastructure - covered in integration tests")
+	// ReversePair implements IterateRaw, so CollectionPaginate should work directly
 
 	memDB, cdc, addrCodec := setupTest(t)
 	ctx := context.Background()

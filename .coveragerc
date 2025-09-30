@@ -18,14 +18,5 @@ github.com/burnt-labs/xion/x/xion/keeper/grpc_query.go:.*WebAuthNVerifyRegister
 # Staking inflation mint function
 github.com/burnt-labs/xion/x/xion/keeper/mint.go:.*StakedInflationMintFn
 
-# Indexer authz querier methods
-github.com/burnt-labs/xion/indexer/authz_querier.go:.*Grants
-github.com/burnt-labs/xion/indexer/authz_querier.go:.*GranterGrants
-github.com/burnt-labs/xion/indexer/authz_querier.go:.*GranteeGrants
-
-# Indexer CLI reindex command
+# Indexer CLI reindex command (requires full chain context)
 github.com/burnt-labs/xion/indexer/client/cli/indexer.go:.*ReIndex
-
-# Indexer feegrant querier methods
-github.com/burnt-labs/xion/indexer/feegrant_querier.go:.*Allowances
-github.com/burnt-labs/xion/indexer/feegrant_querier.go:.*Allowance

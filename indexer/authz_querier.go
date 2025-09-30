@@ -173,6 +173,11 @@ func (aq *authzQuerier) Grants(ctx context.Context, req *indexerauthz.QueryGrant
 	}
 
 	// Paginate over Authorizations
+	var opts []func(o *query.CollectionsPaginateOptions[collections.Triple[sdk.AccAddress, sdk.AccAddress, string]])
+	if prefixOpt != nil {
+		opts = append(opts, prefixOpt)
+	}
+
 	grants, pageRes, err := query.CollectionPaginate(
 		ctx,
 		aq.authzHandler.Authorizations,
@@ -180,7 +185,7 @@ func (aq *authzQuerier) Grants(ctx context.Context, req *indexerauthz.QueryGrant
 		func(primaryKey collections.Triple[sdk.AccAddress, sdk.AccAddress, string], grant authz.Grant) (*authz.Grant, error) {
 			return &grant, nil
 		},
-		prefixOpt,
+		opts...,
 	)
 	if err != nil {
 		return nil, err
@@ -265,52 +270,132 @@ func (aq *authzQuerier) GranteeGrants(ctx context.Context, req *indexerauthz.Que
 	}
 	granteeAddr := sdk.AccAddress(grantee)
 
-	grants, pageRes, err := query.CollectionPaginate(
-		ctx,
-		aq.authzHandler.Authorizations.Indexes.Grantee,
-		req.Pagination,
-		// key is the index key (refKey, primaryKey)
-		// primary key is a composite key of (granter, grantee, msgType)
-		// value is empty because index only stores keys in a KeySet
-		// final key in the callback is (refKey, [granter, grantee, msgType])
-		func(key collections.Pair[sdk.AccAddress, collections.Triple[sdk.AccAddress, sdk.AccAddress, string]], value collections.NoValue) (*authz.GrantAuthorization, error) {
-			slog.Info("authz_querier", "key", key.K2(), "grantee", granteeAddr.String(), "granter", key.K1().String())
+	// Use the grantee index to efficiently query grants for this grantee
+	// The index stores: Pair[grantee, Triple[granter, grantee, msgType]]
+	// We iterate over the index with a grantee prefix, then fetch from main collection
+	ranger := collections.NewPrefixedPairRange[sdk.AccAddress, collections.Triple[sdk.AccAddress, sdk.AccAddress, string]](granteeAddr)
 
-			primaryKey := key.K2()
-			// need to use .K2() because the index is reversed
-			grant, err := aq.authzHandler.Authorizations.Get(ctx, primaryKey)
-			if err != nil {
-				return nil, err
-			}
-
-			auth1, err := grant.GetAuthorization()
-			if err != nil {
-				return nil, err
-			}
-
-			anyValue, err := codectypes.NewAnyWithValue(auth1)
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "%v", err)
-			}
-			granter, err := aq.addrCodec.BytesToString(primaryKey.K1())
-			if err != nil {
-				return nil, err
-			}
-
-			return &authz.GrantAuthorization{
-				Granter:       granter,
-				Grantee:       req.Grantee,
-				Authorization: anyValue,
-				Expiration:    grant.Expiration,
-			}, nil
-		},
-		// stablish the prefix of the index
-		// {grantee}:{granter}
-		query.WithCollectionPaginationPairPrefix[sdk.AccAddress, collections.Triple[sdk.AccAddress, sdk.AccAddress, string]](granteeAddr),
-	)
+	iter, err := aq.authzHandler.Authorizations.Indexes.Grantee.Iterate(ctx, ranger)
 	if err != nil {
 		return nil, err
 	}
+	defer iter.Close()
+
+	// Manual pagination handling
+	var (
+		grants     []*authz.GrantAuthorization
+		count      uint64
+		nextKey    []byte
+		limit      uint64 = query.DefaultLimit
+		offset     uint64
+		countTotal bool
+		total      uint64
+	)
+
+	if req.Pagination != nil {
+		if req.Pagination.Limit > 0 {
+			limit = req.Pagination.Limit
+		}
+		offset = req.Pagination.Offset
+		countTotal = req.Pagination.CountTotal
+
+		// If pagination key is provided, skip to that position
+		if len(req.Pagination.Key) > 0 {
+			// Fast-forward the iterator to the key position
+			// We need to skip items until we reach the pagination key
+			keyCodec := aq.authzHandler.Authorizations.Indexes.Grantee.KeyCodec()
+			for ; iter.Valid(); iter.Next() {
+				fullKey, err := iter.FullKey()
+				if err != nil {
+					return nil, err
+				}
+				// Encode the full key to compare with pagination key
+				buf := make([]byte, 128) // Pre-allocate with length, not just capacity
+				n, err := keyCodec.EncodeNonTerminal(buf, fullKey)
+				if err != nil {
+					return nil, err
+				}
+				keyBytes := buf[:n]
+				if string(keyBytes) >= string(req.Pagination.Key) {
+					break
+				}
+			}
+		} else if offset > 0 {
+			// Skip offset items
+			for i := uint64(0); i < offset && iter.Valid(); i++ {
+				iter.Next()
+			}
+		}
+	}
+
+	// Collect results up to limit
+	for ; iter.Valid() && count < limit; iter.Next() {
+		primaryKey, err := iter.PrimaryKey()
+		if err != nil {
+			return nil, err
+		}
+
+		// Fetch the grant from the main collection using the primary key
+		grant, err := aq.authzHandler.Authorizations.Get(ctx, primaryKey)
+		if err != nil {
+			return nil, err
+		}
+
+		auth, err := grant.GetAuthorization()
+		if err != nil {
+			return nil, err
+		}
+
+		anyValue, err := codectypes.NewAnyWithValue(auth)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "%v", err)
+		}
+
+		granter, err := aq.addrCodec.BytesToString(primaryKey.K1())
+		if err != nil {
+			return nil, err
+		}
+
+		grants = append(grants, &authz.GrantAuthorization{
+			Granter:       granter,
+			Grantee:       req.Grantee,
+			Authorization: anyValue,
+			Expiration:    grant.Expiration,
+		})
+
+		count++
+		total++
+	}
+
+	// If there are more results, set the next key
+	if iter.Valid() {
+		fullKey, err := iter.FullKey()
+		if err != nil {
+			return nil, err
+		}
+		keyCodec := aq.authzHandler.Authorizations.Indexes.Grantee.KeyCodec()
+		buf := make([]byte, 128) // Pre-allocate with length, not just capacity
+		n, err := keyCodec.EncodeNonTerminal(buf, fullKey)
+		if err != nil {
+			return nil, err
+		}
+		nextKey = buf[:n]
+	}
+
+	// Count remaining if countTotal is requested
+	if countTotal {
+		for ; iter.Valid(); iter.Next() {
+			total++
+		}
+	}
+
+	pageRes := &query.PageResponse{
+		NextKey: nextKey,
+	}
+	if countTotal {
+		pageRes.Total = total
+	}
+
 	slog.Info("authz_querier", "grants", len(grants))
 	return &indexerauthz.QueryGranteeGrantsResponse{
 		Grants:     grants,
