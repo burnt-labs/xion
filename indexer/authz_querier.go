@@ -396,7 +396,7 @@ func (aq *authzQuerier) GranteeGrants(ctx context.Context, req *indexerauthz.Que
 		pageRes.Total = total
 	}
 
-	slog.Info("authz_querier", "grants", len(grants))
+	slog.Debug("authz_querier", "grants", len(grants))
 	return &indexerauthz.QueryGranteeGrantsResponse{
 		Grants:     grants,
 		Pagination: pageRes,
