@@ -18,13 +18,12 @@ SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 
 # Docker and goreleaser configuration
 GORELEASER_CROSS_IMAGE := $(if $(GORELEASER_KEY),ghcr.io/goreleaser/goreleaser-cross-pro,ghcr.io/goreleaser/goreleaser-cross)
-GORELEASER_CROSS_VERSION ?= v1.24.5
+GORELEASER_CROSS_VERSION ?= v1.25.3
 GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
 GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
 GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
-XION_IMAGE ?= xiond:$(GOARCH)
-HEIGHLINER_IMAGE ?= heighliner:$(GOARCH)
+XION_IMAGE ?= xiond:local
 
 # Build tags processing
 build_tags = netgo
@@ -129,7 +128,6 @@ build-docker-arm64 build-docker-amd64:
 build-heighliner build-heighliner-amd64 build-heighliner-arm64:
 	$(MAKE) build-docker \
 		GOARCH=$(if $(findstring arm64,$@),arm64,$(if $(findstring amd64,$@),amd64,$(GOARCH))) \
-		XION_IMAGE=heighliner:$(GOARCH) \
 		TARGET=heighliner
 
 release-snapshot:

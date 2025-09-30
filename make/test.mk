@@ -2,7 +2,7 @@
 
 SIMAPP = ./app
 BINDIR ?= $(GOPATH)/bin
-TEST_BIN ?= ./integration_tests/integration_tests.test
+export XION_IMAGE ?= xiond:local
 
 test: test-unit
 test-all: check test-race test-cover
@@ -11,100 +11,328 @@ benchmark:
 	@go test -mod=readonly -bench=. ./...
 
 test-unit:
-	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" ./...
 
 test-race:
-	@version=$(version) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
+	@version=$(version) go test -mod=readonly -race -tags='ledger test_ledger_mock' -ldflags="-w" ./...
 
-compile-integration-tests:
-	@cd integration_tests && go test -c -mod=readonly -tags='ledger test_ledger_mock'
+test-e2e-all:
+	@cd ./e2e_tests && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" ./abstract-account/... ./app/... ./dkim/... ./indexer/... ./jwk/... ./xion/...
 
-test-integration:
-	@XION_IMAGE=$(HEIGHLINER_IMAGE) cd ./integration_tests && go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+test-aa-all:
+	@cd ./e2e_tests/abstract-account && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
-run-integration-test:
-	@XION_IMAGE=$(HEIGHLINER_IMAGE) $(TEST_BIN) -test.failfast -test.v -test.run $(TEST_NAME)
+test-app-all:
+	@cd ./e2e_tests/app && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
-test-integration-abstract-account-migration: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestAbstractAccountMigration
+test-dkim-all:
+	@cd ./e2e_tests/dkim && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
-test-integration-jwt-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestJWTAbstractAccount
+test-jwk-all:
+	@cd ./e2e_tests/jwk && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
-test-integration-min-fee: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
+test-xion-all:
+	@cd ./e2e_tests/xion && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
-test-integration-mint-module-inflation-high-fees: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationHighFees
+test-indexer-all:
+	@cd ./e2e_tests/indexer && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
-test-integration-mint-module-inflation-low-fees: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationLowFees
+test-run:
+	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
+	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
 
-test-integration-mint-module-inflation-no-fees: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMintModuleInflationNoFees
+# Abstract Account Module Tests
+test-aa-basic:
+	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAABasic
 
-test-integration-mint-module-no-inflation-no-fees: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMintModuleNoInflationNoFees
+test-aa-client-event:
+	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAClientEvent
 
-test-integration-register-jwt-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionAbstractAccountJWTCLI
+test-aa-jwt-cli:
+	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAJWTCLI
 
-test-integration-simulate: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestSimulate
+test-aa-multi-auth:
+	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAMultiAuth
 
-test-integration-single-aa-mig: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestSingleAbstractAccountMigration
+test-aa-panic:
+	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAPanic
 
-test-integration-treasury-contract: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestTreasuryContract
+test-aa-single-migration:
+	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAASingleMigration
 
-test-integration-treasury-multi: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestTreasuryMulti
+test-aa-webauthn:
+	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAWebAuthn
 
-test-integration-upgrade-ibc: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeIBC
+# App Module Tests
+test-app-governance:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppGovernance
 
-test-integration-upgrade-network: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionUpgradeNetwork
+test-app-ibc-timeout:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppIBCTimeout
 
-test-integration-web-auth-n-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestWebAuthNAbstractAccount
+test-app-ibc-transfer:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppIBCTransfer
 
-test-integration-xion-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionAbstractAccount
+test-app-mint-inflation-high-fees:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppMintInflationHighFees
 
-test-integration-xion-abstract-account-event: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionClientEvent
+test-app-mint-inflation-low-fees:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppMintInflationLowFees
 
-test-integration-xion-min-default: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeDefault
+test-app-mint-inflation-no-fees:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppMintInflationNoFees
 
-test-integration-xion-min-multi-denom: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMultiDenomMinGlobalFee
+test-app-mint-no-inflation-no-fees:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppMintNoInflationNoFees
 
-test-integration-xion-min-multi-denom-ibc: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestMultiDenomMinGlobalFeeIBC
+test-app-send-platform-fee:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppSendPlatformFee
 
-test-integration-xion-min-zero: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionMinimumFeeZero
+test-app-simulate:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppSimulate
 
-test-integration-xion-send-platform-fee: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionSendPlatformFee
+test-app-token-factory:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTokenFactory
 
-test-integration-xion-token-factory: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestXionTokenFactory
+test-app-treasury-contract:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryContract
 
-test-integration-xion-treasury-grants: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestTreasuryContract
+test-app-treasury-grants:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryContract
 
-test-integration-xion-update-treasury-configs: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestUpdateTreasuryConfigsWithLocalAndURL configUrl="$(configUrl)"
+test-app-treasury-multi:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryMulti
 
-test-integration-xion-update-treasury-configs-aa: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestUpdateTreasuryConfigsWithAALocalAndURL configUrl="$(configUrl)"
+test-app-update-treasury-configs:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpdateTreasuryConfigs configUrl="$(configUrl)"
 
-test-integration-xion-update-treasury-params: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestUpdateTreasuryContractParams
+test-app-update-treasury-configs-aa:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpdateTreasuryConfigsAA configUrl="$(configUrl)"
+
+test-app-update-treasury-params:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpdateTreasuryParams
+
+test-app-upgrade-ibc:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeIBC
+
+test-app-upgrade-network:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetwork
+
+# DKIM Module Tests
+test-dkim-governance:
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMGovernance
+
+test-dkim-key-revocation:
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMKeyRevocation
+
+test-dkim-module:
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMModule
+
+test-dkim-zk-email:
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail
+
+test-dkim-zk-proof:
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKProof
+
+# Indexer Module Tests
+test-indexer-authz-create:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzCreate
+
+test-indexer-authz-multiple:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzMultiple
+
+test-indexer-authz-revoke:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzRevoke
+
+test-indexer-feegrant-create:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantCreate
+
+test-indexer-feegrant-multiple:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantMultiple
+
+test-indexer-feegrant-periodic:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantPeriodic
+
+test-indexer-feegrant-revoke:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantRevoke
+
+# JWK Module Tests
+test-jwk-algorithm-confusion:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKAlgorithmConfusion
+
+test-jwk-audience-mismatch:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKAudienceMismatch
+
+test-jwk-expired-token:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKExpiredToken
+
+test-jwk-invalid-signature:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKInvalidSignature
+
+test-jwk-jwt-aa:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKJWTAA
+
+test-jwk-key-rotation:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKKeyRotation
+
+test-jwk-malformed-tokens:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKMalformedTokens
+
+test-jwk-missing-claims:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKMissingClaims
+
+test-jwk-multiple-audiences:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKMultipleAudiences
+
+test-jwk-transaction-hash:
+	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKTransactionHash
+
+# Xion Module Tests
+test-xion-min-fee-bypass:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeBypass
+
+test-xion-min-fee-default:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeDefault
+
+test-xion-min-fee-multi-denom:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenom
+
+test-xion-min-fee-multi-denom-ibc:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenomIBC
+
+test-xion-min-fee-zero:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeZero
+
+test-xion-platform-fee:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformFee
+
+test-xion-platform-fee-bypass:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformFeeBypass
+
+test-xion-platform-min-codec-bug:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformMinCodecBug
+
+test-xion-platform-min-direct:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformMinDirect
+
+# New comprehensive MinFee tests (functional tests only)
+test-xion-min-fee-multi-denom-advanced:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenomAdvanced
+
+test-xion-min-fee-extreme-values:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeExtremeValues
+
+test-xion-min-fee-concurrent-transactions:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeConcurrentTransactions
+
+test-xion-min-fee-sequence-handling:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeSequenceHandling
+
+test-xion-platform-minimum-with-fees:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformMinimumWithFees
+
+test-xion-platform-minimum-codec:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformMinimumCodecValidation
+
+test-xion-platform-minimum-bypass:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformMinimumBypassInteraction
+
+test-xion-min-fee-error-messages:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeErrorMessages
+
+test-xion-min-fee-insufficient-balance:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeInsufficientBalance
+
+test-xion-min-fee-edge-cases:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeEdgeCaseScenarios
+
+test-xion-min-fee-mempool:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMemPoolBehavior
+
+# Critical Security Tests (Priority 1)
+test-xion-min-fee-gas-cap-boundaries:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeGasCapBoundaries
+
+test-xion-min-fee-gas-cap-with-fees:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeGasCapWithFees
+
+test-xion-min-fee-gas-cap-multiple-messages:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeGasCapMultipleMessages
+
+test-xion-min-fee-with-feegrant:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeWithFeeGrant
+
+test-xion-min-fee-feegrant-allowance-types:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeFeeGrantAllowanceTypes
+
+test-xion-min-fee-feegrant-expiration:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeFeeGrantExpiration
+
+test-xion-min-fee-multiple-feegrants:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultipleFeeGrants
+
+test-xion-min-fee-multi-message-mixed-types:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiMessageMixedTypes
+
+test-xion-min-fee-multi-message-same-type:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiMessageSameType
+
+test-xion-min-fee-multi-message-gas-accounting:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiMessageGasAccounting
+
+test-xion-min-fee-multi-message-with-feegrant:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiMessageWithFeeGrant
+
+test-xion-min-fee-multi-message-error-paths:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiMessageErrorPaths
+
+test-xion-min-fee-multi-message-sequential:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiMessageSequential
+
+test-xion-min-fee-bypass-message-types:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeBypassMessageTypes
+
+# Grouped test targets for new MinFee coverage
+test-xion-min-fee-coverage-all: \
+	test-xion-min-fee-multi-denom-advanced \
+	test-xion-min-fee-extreme-values \
+	test-xion-min-fee-concurrent-transactions \
+	test-xion-min-fee-sequence-handling \
+	test-xion-platform-minimum-with-fees \
+	test-xion-platform-minimum-codec \
+	test-xion-platform-minimum-bypass \
+	test-xion-min-fee-error-messages \
+	test-xion-min-fee-insufficient-balance \
+	test-xion-min-fee-edge-cases \
+	test-xion-min-fee-mempool
+
+# Grouped test targets for critical security tests
+# All tests now functional with real transaction execution
+test-xion-min-fee-critical-all: \
+	test-xion-min-fee-gas-cap-boundaries \
+	test-xion-min-fee-gas-cap-with-fees \
+	test-xion-min-fee-gas-cap-multiple-messages \
+	test-xion-min-fee-with-feegrant \
+	test-xion-min-fee-feegrant-allowance-types \
+	test-xion-min-fee-feegrant-expiration \
+	test-xion-min-fee-multiple-feegrants \
+	test-xion-min-fee-multi-message-mixed-types \
+	test-xion-min-fee-multi-message-same-type \
+	test-xion-min-fee-multi-message-gas-accounting \
+	test-xion-min-fee-multi-message-with-feegrant \
+	test-xion-min-fee-multi-message-error-paths \
+	test-xion-min-fee-multi-message-sequential \
+	test-xion-min-fee-bypass-message-types
+
+# Run all MinFee tests (old + new + critical)
+test-xion-min-fee-all: \
+	test-xion-min-fee-bypass \
+	test-xion-min-fee-default \
+	test-xion-min-fee-multi-denom \
+	test-xion-min-fee-multi-denom-ibc \
+	test-xion-min-fee-zero \
+	test-xion-min-fee-coverage-all \
+	test-xion-min-fee-critical-all
 
 # Simulation tests
 test-sim-import-export: runsim
@@ -120,20 +348,32 @@ test-sim-deterministic: runsim
 	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 1 1 TestAppStateDeterminism
 
 .PHONY: test test-all test-version test-unit test-race benchmark \
-        compile-integration-tests test-integration run-integration-test \
-        test-integration-abstract-account-migration test-integration-jwt-abstract-account \
-        test-integration-min-fee test-integration-mint-module-inflation-high-fees \
-        test-integration-mint-module-inflation-low-fees test-integration-mint-module-inflation-no-fees \
-        test-integration-mint-module-no-inflation-no-fees test-integration-register-jwt-abstract-account \
-        test-integration-simulate test-integration-single-aa-mig test-integration-treasury-contract \
-        test-integration-treasury-multi test-integration-upgrade-ibc test-integration-upgrade-network \
-        test-integration-web-auth-n-abstract-account test-integration-xion-abstract-account \
-        test-integration-xion-abstract-account-event test-integration-xion-min-default \
-        test-integration-xion-min-multi-denom test-integration-xion-min-multi-denom-ibc \
-        test-integration-xion-min-zero test-integration-xion-send-platform-fee \
-        test-integration-xion-token-factory test-integration-xion-treasury-grants \
-        test-integration-xion-update-treasury-configs test-integration-xion-update-treasury-configs-aa \
-        test-integration-xion-update-treasury-params \
+        test-e2e test-run test-e2e-all \
+        test-aa-all test-app-all test-dkim-all test-jwk-all test-xion-all test-indexer-all \
+        test-e2e-abstract-account test-e2e-app test-e2e-dkim test-e2e-jwk test-e2e-xion test-e2e-indexer \
+        test-e2e-aa-basic test-e2e-aa-client-event test-e2e-aa-jwt-cli \
+        test-e2e-aa-multi-auth test-e2e-aa-panic \
+        test-e2e-aa-single-migration test-e2e-aa-webauthn \
+        test-e2e-app-governance test-e2e-app-ibc-timeout test-e2e-app-ibc-transfer \
+        test-e2e-app-mint-inflation-high-fees test-e2e-app-mint-inflation-low-fees \
+        test-e2e-app-mint-inflation-no-fees test-e2e-app-mint-no-inflation-no-fees \
+        test-e2e-app-send-platform-fee test-e2e-app-simulate test-e2e-app-token-factory \
+        test-e2e-app-treasury-contract test-e2e-app-treasury-grants test-e2e-app-treasury-multi \
+        test-e2e-app-update-treasury-configs test-e2e-app-update-treasury-configs-aa \
+        test-e2e-app-update-treasury-params test-e2e-app-upgrade-ibc test-e2e-app-upgrade-network \
+        test-e2e-dkim-governance test-e2e-dkim-key-revocation test-e2e-dkim-module \
+        test-e2e-dkim-zk-email test-e2e-dkim-zk-proof \
+        test-e2e-indexer-authz-create test-e2e-indexer-authz-multiple test-e2e-indexer-authz-revoke \
+        test-e2e-indexer-feegrant-create test-e2e-indexer-feegrant-multiple \
+        test-e2e-indexer-feegrant-periodic test-e2e-indexer-feegrant-revoke \
+        test-e2e-jwk-algorithm-confusion test-e2e-jwk-audience-mismatch test-e2e-jwk-expired-token \
+        test-e2e-jwk-invalid-signature test-e2e-jwk-jwt-aa test-e2e-jwk-key-rotation \
+        test-e2e-jwk-malformed-tokens test-e2e-jwk-missing-claims test-e2e-jwk-multiple-audiences \
+        test-e2e-jwk-transaction-hash \
+        test-e2e-xion-min-fee-bypass test-e2e-xion-min-fee-default test-e2e-xion-min-fee-multi-denom \
+        test-e2e-xion-min-fee-multi-denom-ibc test-e2e-xion-min-fee-zero test-e2e-xion-platform-fee \
+        test-e2e-xion-platform-fee-bypass test-e2e-xion-platform-min-codec-bug \
+        test-e2e-xion-platform-min-direct \
         test-sim-import-export test-sim-multi-seed-short test-sim-deterministic
 
 # Help targets for test module
@@ -145,29 +385,98 @@ help-test:
 	@echo "  test                       Run unit tests"
 	@echo "  test-unit                  Run unit tests"
 	@echo "  test-race                  Run tests with race detection"
-	@echo "  test-integration           Run integration tests"
-	@echo "  compile-integration-tests  Compile integration test binary"
-	@echo "  run-integration-test       Run specific integration test"
+	@echo "  test-e2e                   Run all e2e tests (deprecated - use test-e2e-all)"
+	@echo "  test-e2e-all               Run all e2e tests"
+	@echo "  test-run                   Run specific e2e test"
+	@echo ""
+	@echo "E2E Tests by Module:"
+	@echo "  test-e2e-abstract-account  Run all Abstract Account module tests (deprecated - use test-aa-all)"
+	@echo "  test-e2e-app               Run all App module tests (deprecated - use test-app-all)"
+	@echo "  test-e2e-dkim              Run all DKIM module tests (deprecated - use test-dkim-all)"
+	@echo "  test-e2e-indexer           Run all Indexer module tests (deprecated - use test-indexer-all)"
+	@echo "  test-e2e-jwk               Run all JWK module tests (deprecated - use test-jwk-all)"
+	@echo "  test-e2e-xion              Run all Xion module tests (deprecated - use test-xion-all)"
+	@echo ""
+	@echo "E2E Module Test Suites (Recommended):"
+	@echo "  test-aa-all                Run all Abstract Account module tests"
+	@echo "  test-app-all               Run all App module tests"
+	@echo "  test-dkim-all              Run all DKIM module tests"
+	@echo "  test-indexer-all           Run all Indexer module tests"
+	@echo "  test-jwk-all               Run all JWK module tests"
+	@echo "  test-xion-all              Run all Xion module tests"
+	@echo ""
+	@echo "  Abstract Account Module Individual Tests:"
+	@echo "    test-e2e-aa-basic                       Test Xion abstract account"
+	@echo "    test-e2e-aa-client-event                Test client events"
+	@echo "    test-e2e-aa-jwt-cli                     Test JWT abstract account CLI"
+	@echo "    test-e2e-aa-multi-auth                  Test multiple authenticators"
+	@echo "    test-e2e-aa-panic                       Test panic handling"
+	@echo "    test-e2e-aa-single-migration            Test single account migration"
+	@echo "    test-e2e-aa-webauthn                    Test WebAuthn abstract account"
+	@echo ""
+	@echo "  App Module Individual Tests:"
+	@echo "    test-e2e-app-governance                 Test governance proposal"
+	@echo "    test-e2e-app-ibc-timeout                Test IBC timeout handling"
+	@echo "    test-e2e-app-ibc-transfer               Test IBC token transfer"
+	@echo "    test-e2e-app-mint-inflation-high-fees   Test mint module with inflation and high fees"
+	@echo "    test-e2e-app-mint-inflation-low-fees    Test mint module with inflation and low fees"
+	@echo "    test-e2e-app-mint-inflation-no-fees     Test mint module with inflation and no fees"
+	@echo "    test-e2e-app-mint-no-inflation-no-fees  Test mint module with no inflation and no fees"
+	@echo "    test-e2e-app-send-platform-fee          Test platform fee sending"
+	@echo "    test-e2e-app-simulate                   Test simulation"
+	@echo "    test-e2e-app-token-factory              Test token factory"
+	@echo "    test-e2e-app-treasury-contract          Test treasury contract"
+	@echo "    test-e2e-app-treasury-grants            Test treasury grants"
+	@echo "    test-e2e-app-treasury-multi             Test treasury multi-signature"
+	@echo "    test-e2e-app-update-treasury-configs    Test treasury config updates"
+	@echo "    test-e2e-app-update-treasury-configs-aa Test treasury config updates with AA"
+	@echo "    test-e2e-app-update-treasury-params     Test treasury parameter updates"
+	@echo "    test-e2e-app-upgrade-ibc                Test IBC upgrade"
+	@echo "    test-e2e-app-upgrade-network            Test network upgrade"
+	@echo ""
+	@echo "  DKIM Module Individual Tests:"
+	@echo "    test-e2e-dkim-governance                Test governance-only key registration"
+	@echo "    test-e2e-dkim-key-revocation            Test key revocation"
+	@echo "    test-e2e-dkim-module                    Test DKIM module functionality"
+	@echo "    test-e2e-dkim-zk-email                  Test ZK email authenticator"
+	@echo "    test-e2e-dkim-zk-proof                  Test ZK proof validation"
+	@echo ""
+	@echo "  Indexer Module Individual Tests:"
+	@echo "    test-e2e-indexer-authz-create           Test authz grant indexing"
+	@echo "    test-e2e-indexer-authz-multiple         Test multiple authz grants"
+	@echo "    test-e2e-indexer-authz-revoke           Test authz grant revocation"
+	@echo "    test-e2e-indexer-feegrant-create        Test feegrant allowance indexing"
+	@echo "    test-e2e-indexer-feegrant-multiple      Test multiple feegrant allowances"
+	@echo "    test-e2e-indexer-feegrant-periodic      Test periodic allowance types"
+	@echo "    test-e2e-indexer-feegrant-revoke        Test feegrant allowance revocation"
+	@echo ""
+	@echo "  JWK Module Individual Tests:"
+	@echo "    test-e2e-jwk-algorithm-confusion        Test algorithm confusion prevention"
+	@echo "    test-e2e-jwk-audience-mismatch          Test audience mismatch validation"
+	@echo "    test-e2e-jwk-expired-token              Test expired token handling"
+	@echo "    test-e2e-jwk-invalid-signature          Test invalid JWT signature rejection"
+	@echo "    test-e2e-jwk-jwt-aa                     Test JWT abstract account"
+	@echo "    test-e2e-jwk-key-rotation               Test key rotation functionality"
+	@echo "    test-e2e-jwk-malformed-tokens           Test malformed token handling"
+	@echo "    test-e2e-jwk-missing-claims             Test required claims validation"
+	@echo "    test-e2e-jwk-multiple-audiences         Test multiple audiences validation"
+	@echo "    test-e2e-jwk-transaction-hash           Test replay attack prevention"
+	@echo ""
+	@echo "  Xion Module Individual Tests:"
+	@echo "    test-e2e-xion-min-fee-bypass            Test minimum fee bypass prevention"
+	@echo "    test-e2e-xion-min-fee-default           Test minimum fee default"
+	@echo "    test-e2e-xion-min-fee-multi-denom       Test multi-denom min global fee"
+	@echo "    test-e2e-xion-min-fee-multi-denom-ibc   Test multi-denom min global fee IBC"
+	@echo "    test-e2e-xion-min-fee-zero              Test minimum fee zero"
+	@echo "    test-e2e-xion-platform-fee              Test platform fee collection"
+	@echo "    test-e2e-xion-platform-fee-bypass       Test platform fee bypass prevention"
+	@echo "    test-e2e-xion-platform-min-codec-bug    Test platform minimum codec bug fix"
+	@echo "    test-e2e-xion-platform-min-direct       Test platform minimum direct transaction"
+	@echo ""
+	@echo "Simulation tests:"
 	@echo "  test-sim                   Run simulation tests"
 	@echo "  test-sim-import-export     Run simulation import/export tests"
 	@echo "  test-sim-multi-seed-short  Run multi-seed simulation tests"
 	@echo "  test-sim-deterministic     Run deterministic simulation tests"
 	@echo ""
 
-.PHONY: test test-unit test-race test-integration compile-integration-tests run-integration-test \
-        test-sim test-sim-nondeterminism test-sim-custom-genesis-fast test-sim-import-export \
-        test-sim-after-import test-sim-custom-genesis-multi-seed test-sim-multi-seed-long \
-        test-sim-multi-seed-short test-integration-min-fee test-integration-mint-module-inflation-high-fees \
-        test-integration-mint-module-inflation-low-fees test-integration-mint-module-inflation-no-fees \
-        test-integration-mint-module-no-inflation-no-fees test-integration-register-jwt-abstract-account \
-        test-integration-simulate test-integration-single-aa-mig test-integration-treasury-contract \
-        test-integration-treasury-multi test-integration-upgrade-ibc test-integration-upgrade-network \
-        test-integration-web-auth-n-abstract-account test-integration-xion-abstract-account \
-        test-integration-xion-abstract-account-event test-integration-xion-min-default \
-        test-integration-xion-min-multi-denom test-integration-xion-min-multi-denom-ibc \
-        test-integration-xion-min-zero test-integration-xion-send-platform-fee \
-        test-integration-xion-token-factory test-integration-xion-treasury-grants \
-        test-integration-xion-update-treasury-configs test-integration-xion-update-treasury-configs-aa \
-        test-integration-xion-update-treasury-params \
-        test-sim-import-export test-sim-multi-seed-short test-sim-deterministic \
-        help-test help-test-brief
