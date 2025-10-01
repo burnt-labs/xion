@@ -58,6 +58,28 @@ func MsgUpdateParams() *cobra.Command {
 
 // Returns a CLI command handler for registering a
 // contract for the module.
+// ParseAndValidateRevokeDkimMsg parses the private key and creates a revoke message.
+// This function is extracted for testability.
+func ParseAndValidateRevokeDkimMsg(signer, domain, privKeyStr string) (*types.MsgRevokeDkimPubKey, error) {
+	pemKey := types.FormatToPemKey(privKeyStr, true)
+	block, _ := pem.Decode([]byte(pemKey))
+	if block == nil {
+		return nil, types.ErrParsingPrivKey
+	}
+
+	msg := &types.MsgRevokeDkimPubKey{
+		Signer:  signer,
+		Domain:  domain,
+		PrivKey: pem.EncodeToMemory(block),
+	}
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	return msg, nil
+}
+
 func MsgRevokeDkimPubKey() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "revoke-dkim <domain> <priv_key>",
@@ -71,21 +93,11 @@ func MsgRevokeDkimPubKey() *cobra.Command {
 				return err
 			}
 
-			domain := args[0]
-			pemKey := types.FormatToPemKey(args[1], true)
-			block, _ := pem.Decode([]byte(pemKey))
-			if block == nil {
-				return types.ErrParsingPrivKey
-			}
-
-			msg := &types.MsgRevokeDkimPubKey{
-				Signer: cliCtx.GetFromAddress().String(),
-				Domain: domain,
-				PrivKey: pem.EncodeToMemory(
-					block,
-				),
-			}
-			err = msg.ValidateBasic()
+			msg, err := ParseAndValidateRevokeDkimMsg(
+				cliCtx.GetFromAddress().String(),
+				args[0],
+				args[1],
+			)
 			if err != nil {
 				return err
 			}

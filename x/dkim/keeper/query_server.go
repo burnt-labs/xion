@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	stdmath "math"
 
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/vocdoni/circom2gnark/parser"
 
-	queryv1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -16,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
@@ -147,15 +146,16 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 		end = endOffset.Uint64()
 	}
 
-	// Safe conversion to int for slicing - we know these are within bounds of len(allPubKeys)
+	// Safe conversion to int for slicing - validate against math.MaxInt to prevent overflow
+	if offset > uint64(stdmath.MaxInt) || end > uint64(stdmath.MaxInt) {
+		return nil, fmt.Errorf("pagination offset or end exceeds maximum int value")
+	}
 	offsetInt := int(offset)
 	endInt := int(end)
 	paginatedPubKeys := allPubKeys[offsetInt:endInt]
 
+	// TODO: Implement key-based pagination for nextKey when needed
 	nextKey := []byte(nil)
-	if end < allPubKeysLen && msg.Pagination != nil && msg.Pagination.Key != nil {
-		// For key-based, but simplified to nil for now
-	}
 
 	pageRes := &query.PageResponse{
 		NextKey: nextKey,
@@ -208,58 +208,58 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	return &types.ProofVerifyResponse{Verified: verified}, nil
 }
 
-func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {
-	if request != nil {
-		pageRequest := queryv1beta1.PageRequest{}
-		pageRequest.CountTotal = request.CountTotal
-		pageRequest.Key = request.Key
-		pageRequest.Offset = request.Offset
-		pageRequest.Limit = request.Limit
-		pageRequest.Reverse = request.Reverse
-		return &pageRequest
-	}
-	return nil
-}
+// func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {
+// 	if request != nil {
+// 		pageRequest := queryv1beta1.PageRequest{}
+// 		pageRequest.CountTotal = request.CountTotal
+// 		pageRequest.Key = request.Key
+// 		pageRequest.Offset = request.Offset
+// 		pageRequest.Limit = request.Limit
+// 		pageRequest.Reverse = request.Reverse
+// 		return &pageRequest
+// 	}
+// 	return nil
+// }
 
-func convertPageResponse(response *queryv1beta1.PageResponse) *query.PageResponse {
-	if response != nil {
-		pageResponse := query.PageResponse{}
-		pageResponse.NextKey = response.NextKey
-		pageResponse.Total = response.Total
-		return &pageResponse
-	}
-	return nil
-}
+// func convertPageResponse(response *queryv1beta1.PageResponse) *query.PageResponse {
+// 	if response != nil {
+// 		pageResponse := query.PageResponse{}
+// 		pageResponse.NextKey = response.NextKey
+// 		pageResponse.Total = response.Total
+// 		return &pageResponse
+// 	}
+// 	return nil
+// }
 
-func consumeIteratorResults(iterator collections.Iterator[collections.Pair[string, string], apiv1.DkimPubKey], domain string, poseidonHash []byte) ([]*types.DkimPubKey, error) {
-	defer iterator.Close()
+// func consumeIteratorResults(iterator collections.Iterator[collections.Pair[string, string], apiv1.DkimPubKey], domain string, poseidonHash []byte) ([]*types.DkimPubKey, error) {
+// 	defer iterator.Close()
 
-	var output []*types.DkimPubKey
-	for ; iterator.Valid(); iterator.Next() {
-		dkimPubKey, err := iterator.Value()
-		if err != nil {
-			return nil, err
-		}
+// 	var output []*types.DkimPubKey
+// 	for ; iterator.Valid(); iterator.Next() {
+// 		dkimPubKey, err := iterator.Value()
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		match := true
-		if domain != "" && dkimPubKey.Domain != domain {
-			match = false
-		}
-		if len(poseidonHash) > 0 && !bytes.Equal(dkimPubKey.PoseidonHash, poseidonHash) {
-			match = false
-		}
+// 		match := true
+// 		if domain != "" && dkimPubKey.Domain != domain {
+// 			match = false
+// 		}
+// 		if len(poseidonHash) > 0 && !bytes.Equal(dkimPubKey.PoseidonHash, poseidonHash) {
+// 			match = false
+// 		}
 
-		if match {
-			output = append(output, &types.DkimPubKey{
-				Domain:       dkimPubKey.Domain,
-				PubKey:       dkimPubKey.PubKey,
-				Selector:     dkimPubKey.Selector,
-				PoseidonHash: dkimPubKey.PoseidonHash,
-				Version:      types.Version(dkimPubKey.Version),
-				KeyType:      types.KeyType(dkimPubKey.KeyType),
-			})
-		}
-	}
+// 		if match {
+// 			output = append(output, &types.DkimPubKey{
+// 				Domain:       dkimPubKey.Domain,
+// 				PubKey:       dkimPubKey.PubKey,
+// 				Selector:     dkimPubKey.Selector,
+// 				PoseidonHash: dkimPubKey.PoseidonHash,
+// 				Version:      types.Version(dkimPubKey.Version),
+// 				KeyType:      types.KeyType(dkimPubKey.KeyType),
+// 			})
+// 		}
+// 	}
 
-	return output, nil
-}
+// 	return output, nil
+// }

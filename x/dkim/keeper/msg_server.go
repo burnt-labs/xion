@@ -36,7 +36,7 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 }
 
 func SaveDkimPubKey(ctx context.Context, dkimKey types.DkimPubKey, k *Keeper) (bool, error) {
-	pk := &dkimv1.DkimPubKey{
+	pk := dkimv1.DkimPubKey{
 		Domain:       dkimKey.Domain,
 		PubKey:       dkimKey.PubKey,
 		Selector:     dkimKey.Selector,
@@ -45,7 +45,8 @@ func SaveDkimPubKey(ctx context.Context, dkimKey types.DkimPubKey, k *Keeper) (b
 		KeyType:      dkimv1.KeyType(dkimKey.KeyType),
 	}
 	key := collections.Join(pk.Domain, pk.Selector)
-	if err := k.DkimPubKeys.Set(ctx, key, *pk); err != nil {
+	//nolint:govet // copylocks: unavoidable when storing protobuf messages in collections.Map
+	if err := k.DkimPubKeys.Set(ctx, key, pk); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -127,10 +128,9 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	if err != nil {
 		return nil, err
 	}
-	for _, kv := range kvs {
-		dkimPubKey := kv.Value
-		if dkimPubKey.Domain == msg.Domain && dkimPubKey.PubKey == pubKey {
-			if err := ms.k.DkimPubKeys.Remove(ctx, kv.Key); err != nil {
+	for i := range kvs {
+		if kvs[i].Value.Domain == msg.Domain && kvs[i].Value.PubKey == pubKey {
+			if err := ms.k.DkimPubKeys.Remove(ctx, kvs[i].Key); err != nil {
 				return nil, err
 			}
 		}

@@ -23,6 +23,12 @@ func GetQueryCmd() *cobra.Command {
 	return queryCmd
 }
 
+// QueryParams is a helper function that queries module parameters.
+// This function is extracted for testability.
+func QueryParams(queryClient types.QueryClient, cmd *cobra.Command) (*types.QueryParamsResponse, error) {
+	return queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+}
+
 func GetCmdParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",
@@ -35,7 +41,7 @@ func GetCmdParams() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			res, err := QueryParams(queryClient, cmd)
 			if err != nil {
 				return err
 			}
@@ -45,6 +51,15 @@ func GetCmdParams() *cobra.Command {
 	}
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
+}
+
+// QueryDkimPubKey is a helper function that queries a single DKIM public key.
+// This function is extracted for testability.
+func QueryDkimPubKey(queryClient types.QueryClient, cmd *cobra.Command, domain, selector string) (*types.QueryDkimPubKeyResponse, error) {
+	return queryClient.DkimPubKey(cmd.Context(), &types.QueryDkimPubKeyRequest{
+		Domain:   domain,
+		Selector: selector,
+	})
 }
 
 func GetDkimPublicKey() *cobra.Command {
@@ -60,10 +75,7 @@ func GetDkimPublicKey() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.DkimPubKey(cmd.Context(), &types.QueryDkimPubKeyRequest{
-				Domain:   args[0],
-				Selector: args[1],
-			})
+			res, err := QueryDkimPubKey(queryClient, cmd, args[0], args[1])
 			if err != nil {
 				return err
 			}
@@ -75,13 +87,41 @@ func GetDkimPublicKey() *cobra.Command {
 	return cmd
 }
 
+// ParseDkimPubKeysFlags extracts and validates the flags for querying DKIM public keys.
+// This function is extracted for testability.
+func ParseDkimPubKeysFlags(cmd *cobra.Command) (domain, selector, poseidonHash string, err error) {
+	domain, err = cmd.Flags().GetString("domain")
+	if err != nil {
+		return "", "", "", err
+	}
+	selector, err = cmd.Flags().GetString("selector")
+	if err != nil {
+		return "", "", "", err
+	}
+	poseidonHash, err = cmd.Flags().GetString("hash")
+	if err != nil {
+		return "", "", "", err
+	}
+	return domain, selector, poseidonHash, nil
+}
+
+// QueryDkimPubKeys is a helper function that queries multiple DKIM public keys.
+// This function is extracted for testability.
+func QueryDkimPubKeys(queryClient types.QueryClient, cmd *cobra.Command, domain, selector, poseidonHash string) (*types.QueryDkimPubKeysResponse, error) {
+	return queryClient.DkimPubKeys(cmd.Context(), &types.QueryDkimPubKeysRequest{
+		Domain:       domain,
+		Selector:     selector,
+		PoseidonHash: []byte(poseidonHash),
+	})
+}
+
 func GetDkimPublicKeys() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "dkim-pubkeys [flag] [domain] [selector | poseidon_hash]",
 		Short: "Get a DKIM public key matching filter parameters",
-		Long: `Get a DKIM public key matching filter parameters. 
-				If domain and selector are provided, it will return the DKIM public key for that domain and selector. 
-				If domain and poseidon hash are provided, it will return the DKIM public key for that domain and poseidon hash. 
+		Long: `Get a DKIM public key matching filter parameters.
+				If domain and selector are provided, it will return the DKIM public key for that domain and selector.
+				If domain and poseidon hash are provided, it will return the DKIM public key for that domain and poseidon hash.
 				If no filter parameters are provided, it will return all DKIM public keys.`,
 		Example: "dkim-pubkeys --domain x.com --selector dkim-202308 \n dkim-pubkeys --domain x.com --poseidon-hash 1234567890",
 		Aliases: []string{"qdkims"},
@@ -91,25 +131,14 @@ func GetDkimPublicKeys() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			domain, err := cmd.Flags().GetString("domain")
-			if err != nil {
-				return err
-			}
-			selector, err := cmd.Flags().GetString("selector")
-			if err != nil {
-				return err
-			}
-			poseidonHash, err := cmd.Flags().GetString("hash")
+
+			domain, selector, poseidonHash, err := ParseDkimPubKeysFlags(cmd)
 			if err != nil {
 				return err
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.DkimPubKeys(cmd.Context(), &types.QueryDkimPubKeysRequest{
-				Domain:       domain,
-				Selector:     selector,
-				PoseidonHash: []byte(poseidonHash),
-			})
+			res, err := QueryDkimPubKeys(queryClient, cmd, domain, selector, poseidonHash)
 			if err != nil {
 				return err
 			}
@@ -123,6 +152,27 @@ func GetDkimPublicKeys() *cobra.Command {
 	cmd.Flags().String("hash", "", "Filter by poseidon hash. If poseidon hash is provided, domain is required")
 
 	return cmd
+}
+
+// GenerateDkimPubKeyMsg creates a DkimPubKey message from DNS lookup.
+// This function is extracted for testability.
+func GenerateDkimPubKeyMsg(domain, selector string) (*types.DkimPubKey, error) {
+	pubKey, err := GetDKIMPublicKey(selector, domain)
+	if err != nil {
+		return nil, err
+	}
+	hash, err := types.ComputePoseidonHash(pubKey)
+	if err != nil {
+		return nil, err
+	}
+	return &types.DkimPubKey{
+		Domain:       domain,
+		PubKey:       pubKey,
+		Selector:     selector,
+		PoseidonHash: []byte(hash.String()),
+		Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+	}, nil
 }
 
 func GenerateDkimPublicKey() *cobra.Command {
@@ -139,24 +189,12 @@ func GenerateDkimPublicKey() *cobra.Command {
 				return err
 			}
 
-			pubKey, err := GetDKIMPublicKey(args[1], args[0])
+			dkimPubKey, err := GenerateDkimPubKeyMsg(args[0], args[1])
 			if err != nil {
 				return err
-			}
-			hash, err := types.ComputePoseidonHash(pubKey)
-			if err != nil {
-				return err
-			}
-			dkimPubKey := types.DkimPubKey{
-				Domain:       args[0],
-				PubKey:       pubKey,
-				Selector:     args[1],
-				PoseidonHash: []byte(hash.String()),
-				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 			}
 
-			return clientCtx.PrintProto(&dkimPubKey)
+			return clientCtx.PrintProto(dkimPubKey)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

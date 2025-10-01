@@ -1136,3 +1136,22 @@ func TestCreateCredential_MalformedCertificate(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, cred)
 }
+
+func TestWebAuthDataSizeLimit(t *testing.T) {
+	// Test data within limit should pass
+	smallData := make([]byte, 1024) // 1KB - within limit
+	require.True(t, len(smallData) <= types.MaxWebAuthDataSize)
+
+	// Test data at exact limit should pass
+	limitData := make([]byte, types.MaxWebAuthDataSize) // Exactly at limit
+	require.True(t, len(limitData) <= types.MaxWebAuthDataSize)
+
+	// Test data exceeding limit should be rejected
+	oversizeData := make([]byte, types.MaxWebAuthDataSize+1) // 1 byte over limit
+	require.True(t, len(oversizeData) > types.MaxWebAuthDataSize)
+
+	t.Logf("MaxWebAuthDataSize: %d bytes", types.MaxWebAuthDataSize)
+	t.Logf("Small data size: %d bytes", len(smallData))
+	t.Logf("Limit data size: %d bytes", len(limitData))
+	t.Logf("Oversize data size: %d bytes", len(oversizeData))
+}

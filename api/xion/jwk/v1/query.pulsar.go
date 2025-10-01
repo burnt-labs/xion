@@ -2,22 +2,22 @@
 package jwkv1
 
 import (
-	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
+	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
+
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
-var (
-	md_QueryParamsRequest protoreflect.MessageDescriptor
-)
+var md_QueryParamsRequest protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_jwk_v1_query_proto_init()
@@ -44,17 +44,21 @@ func (x *QueryParamsRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
+var (
+	_fastReflection_QueryParamsRequest_messageType fastReflection_QueryParamsRequest_messageType
+	_                                              protoreflect.MessageType = fastReflection_QueryParamsRequest_messageType{}
+)
 
 type fastReflection_QueryParamsRequest_messageType struct{}
 
 func (x fastReflection_QueryParamsRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsRequest)(nil)
 }
+
 func (x fastReflection_QueryParamsRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsRequest)
 }
+
 func (x fastReflection_QueryParamsRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsRequest
 }
@@ -402,17 +406,21 @@ func (x *QueryParamsResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
+var (
+	_fastReflection_QueryParamsResponse_messageType fastReflection_QueryParamsResponse_messageType
+	_                                               protoreflect.MessageType = fastReflection_QueryParamsResponse_messageType{}
+)
 
 type fastReflection_QueryParamsResponse_messageType struct{}
 
 func (x fastReflection_QueryParamsResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryParamsResponse)(nil)
 }
+
 func (x fastReflection_QueryParamsResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryParamsResponse)
 }
+
 func (x fastReflection_QueryParamsResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryParamsResponse
 }
@@ -837,17 +845,21 @@ func (x *QueryAudienceClaimRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAudienceClaimRequest_messageType fastReflection_QueryAudienceClaimRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAudienceClaimRequest_messageType{}
+var (
+	_fastReflection_QueryAudienceClaimRequest_messageType fastReflection_QueryAudienceClaimRequest_messageType
+	_                                                     protoreflect.MessageType = fastReflection_QueryAudienceClaimRequest_messageType{}
+)
 
 type fastReflection_QueryAudienceClaimRequest_messageType struct{}
 
 func (x fastReflection_QueryAudienceClaimRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAudienceClaimRequest)(nil)
 }
+
 func (x fastReflection_QueryAudienceClaimRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAudienceClaimRequest)
 }
+
 func (x fastReflection_QueryAudienceClaimRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAudienceClaimRequest
 }
@@ -1259,17 +1271,21 @@ func (x *QueryAudienceClaimResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAudienceClaimResponse_messageType fastReflection_QueryAudienceClaimResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAudienceClaimResponse_messageType{}
+var (
+	_fastReflection_QueryAudienceClaimResponse_messageType fastReflection_QueryAudienceClaimResponse_messageType
+	_                                                      protoreflect.MessageType = fastReflection_QueryAudienceClaimResponse_messageType{}
+)
 
 type fastReflection_QueryAudienceClaimResponse_messageType struct{}
 
 func (x fastReflection_QueryAudienceClaimResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAudienceClaimResponse)(nil)
 }
+
 func (x fastReflection_QueryAudienceClaimResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAudienceClaimResponse)
 }
+
 func (x fastReflection_QueryAudienceClaimResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAudienceClaimResponse
 }
@@ -1694,17 +1710,21 @@ func (x *QueryGetAudienceClaimRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryGetAudienceClaimRequest_messageType fastReflection_QueryGetAudienceClaimRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryGetAudienceClaimRequest_messageType{}
+var (
+	_fastReflection_QueryGetAudienceClaimRequest_messageType fastReflection_QueryGetAudienceClaimRequest_messageType
+	_                                                        protoreflect.MessageType = fastReflection_QueryGetAudienceClaimRequest_messageType{}
+)
 
 type fastReflection_QueryGetAudienceClaimRequest_messageType struct{}
 
 func (x fastReflection_QueryGetAudienceClaimRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryGetAudienceClaimRequest)(nil)
 }
+
 func (x fastReflection_QueryGetAudienceClaimRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryGetAudienceClaimRequest)
 }
+
 func (x fastReflection_QueryGetAudienceClaimRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryGetAudienceClaimRequest
 }
@@ -2116,17 +2136,21 @@ func (x *QueryGetAudienceClaimResponse) slowProtoReflect() protoreflect.Message 
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryGetAudienceClaimResponse_messageType fastReflection_QueryGetAudienceClaimResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryGetAudienceClaimResponse_messageType{}
+var (
+	_fastReflection_QueryGetAudienceClaimResponse_messageType fastReflection_QueryGetAudienceClaimResponse_messageType
+	_                                                         protoreflect.MessageType = fastReflection_QueryGetAudienceClaimResponse_messageType{}
+)
 
 type fastReflection_QueryGetAudienceClaimResponse_messageType struct{}
 
 func (x fastReflection_QueryGetAudienceClaimResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryGetAudienceClaimResponse)(nil)
 }
+
 func (x fastReflection_QueryGetAudienceClaimResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryGetAudienceClaimResponse)
 }
+
 func (x fastReflection_QueryGetAudienceClaimResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryGetAudienceClaimResponse
 }
@@ -2551,17 +2575,21 @@ func (x *QueryAudienceRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAudienceRequest_messageType fastReflection_QueryAudienceRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAudienceRequest_messageType{}
+var (
+	_fastReflection_QueryAudienceRequest_messageType fastReflection_QueryAudienceRequest_messageType
+	_                                                protoreflect.MessageType = fastReflection_QueryAudienceRequest_messageType{}
+)
 
 type fastReflection_QueryAudienceRequest_messageType struct{}
 
 func (x fastReflection_QueryAudienceRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAudienceRequest)(nil)
 }
+
 func (x fastReflection_QueryAudienceRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAudienceRequest)
 }
+
 func (x fastReflection_QueryAudienceRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAudienceRequest
 }
@@ -2971,17 +2999,21 @@ func (x *QueryAudienceResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAudienceResponse_messageType fastReflection_QueryAudienceResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAudienceResponse_messageType{}
+var (
+	_fastReflection_QueryAudienceResponse_messageType fastReflection_QueryAudienceResponse_messageType
+	_                                                 protoreflect.MessageType = fastReflection_QueryAudienceResponse_messageType{}
+)
 
 type fastReflection_QueryAudienceResponse_messageType struct{}
 
 func (x fastReflection_QueryAudienceResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAudienceResponse)(nil)
 }
+
 func (x fastReflection_QueryAudienceResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAudienceResponse)
 }
+
 func (x fastReflection_QueryAudienceResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAudienceResponse
 }
@@ -3406,17 +3438,21 @@ func (x *QueryGetAudienceRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryGetAudienceRequest_messageType fastReflection_QueryGetAudienceRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryGetAudienceRequest_messageType{}
+var (
+	_fastReflection_QueryGetAudienceRequest_messageType fastReflection_QueryGetAudienceRequest_messageType
+	_                                                   protoreflect.MessageType = fastReflection_QueryGetAudienceRequest_messageType{}
+)
 
 type fastReflection_QueryGetAudienceRequest_messageType struct{}
 
 func (x fastReflection_QueryGetAudienceRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryGetAudienceRequest)(nil)
 }
+
 func (x fastReflection_QueryGetAudienceRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryGetAudienceRequest)
 }
+
 func (x fastReflection_QueryGetAudienceRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryGetAudienceRequest
 }
@@ -3826,17 +3862,21 @@ func (x *QueryGetAudienceResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryGetAudienceResponse_messageType fastReflection_QueryGetAudienceResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryGetAudienceResponse_messageType{}
+var (
+	_fastReflection_QueryGetAudienceResponse_messageType fastReflection_QueryGetAudienceResponse_messageType
+	_                                                    protoreflect.MessageType = fastReflection_QueryGetAudienceResponse_messageType{}
+)
 
 type fastReflection_QueryGetAudienceResponse_messageType struct{}
 
 func (x fastReflection_QueryGetAudienceResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryGetAudienceResponse)(nil)
 }
+
 func (x fastReflection_QueryGetAudienceResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryGetAudienceResponse)
 }
+
 func (x fastReflection_QueryGetAudienceResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryGetAudienceResponse
 }
@@ -4261,17 +4301,21 @@ func (x *QueryAudienceAllRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAudienceAllRequest_messageType fastReflection_QueryAudienceAllRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAudienceAllRequest_messageType{}
+var (
+	_fastReflection_QueryAudienceAllRequest_messageType fastReflection_QueryAudienceAllRequest_messageType
+	_                                                   protoreflect.MessageType = fastReflection_QueryAudienceAllRequest_messageType{}
+)
 
 type fastReflection_QueryAudienceAllRequest_messageType struct{}
 
 func (x fastReflection_QueryAudienceAllRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAudienceAllRequest)(nil)
 }
+
 func (x fastReflection_QueryAudienceAllRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAudienceAllRequest)
 }
+
 func (x fastReflection_QueryAudienceAllRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAudienceAllRequest
 }
@@ -4749,17 +4793,21 @@ func (x *QueryAudienceAllResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAudienceAllResponse_messageType fastReflection_QueryAudienceAllResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAudienceAllResponse_messageType{}
+var (
+	_fastReflection_QueryAudienceAllResponse_messageType fastReflection_QueryAudienceAllResponse_messageType
+	_                                                    protoreflect.MessageType = fastReflection_QueryAudienceAllResponse_messageType{}
+)
 
 type fastReflection_QueryAudienceAllResponse_messageType struct{}
 
 func (x fastReflection_QueryAudienceAllResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAudienceAllResponse)(nil)
 }
+
 func (x fastReflection_QueryAudienceAllResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAudienceAllResponse)
 }
+
 func (x fastReflection_QueryAudienceAllResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAudienceAllResponse
 }
@@ -5269,17 +5317,21 @@ func (x *QueryAllAudienceRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAllAudienceRequest_messageType fastReflection_QueryAllAudienceRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAllAudienceRequest_messageType{}
+var (
+	_fastReflection_QueryAllAudienceRequest_messageType fastReflection_QueryAllAudienceRequest_messageType
+	_                                                   protoreflect.MessageType = fastReflection_QueryAllAudienceRequest_messageType{}
+)
 
 type fastReflection_QueryAllAudienceRequest_messageType struct{}
 
 func (x fastReflection_QueryAllAudienceRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAllAudienceRequest)(nil)
 }
+
 func (x fastReflection_QueryAllAudienceRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAllAudienceRequest)
 }
+
 func (x fastReflection_QueryAllAudienceRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllAudienceRequest
 }
@@ -5757,17 +5809,21 @@ func (x *QueryAllAudienceResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryAllAudienceResponse_messageType fastReflection_QueryAllAudienceResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryAllAudienceResponse_messageType{}
+var (
+	_fastReflection_QueryAllAudienceResponse_messageType fastReflection_QueryAllAudienceResponse_messageType
+	_                                                    protoreflect.MessageType = fastReflection_QueryAllAudienceResponse_messageType{}
+)
 
 type fastReflection_QueryAllAudienceResponse_messageType struct{}
 
 func (x fastReflection_QueryAllAudienceResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAllAudienceResponse)(nil)
 }
+
 func (x fastReflection_QueryAllAudienceResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAllAudienceResponse)
 }
+
 func (x fastReflection_QueryAllAudienceResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllAudienceResponse
 }
@@ -6281,17 +6337,21 @@ func (x *QueryValidateJWTRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryValidateJWTRequest_messageType fastReflection_QueryValidateJWTRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryValidateJWTRequest_messageType{}
+var (
+	_fastReflection_QueryValidateJWTRequest_messageType fastReflection_QueryValidateJWTRequest_messageType
+	_                                                   protoreflect.MessageType = fastReflection_QueryValidateJWTRequest_messageType{}
+)
 
 type fastReflection_QueryValidateJWTRequest_messageType struct{}
 
 func (x fastReflection_QueryValidateJWTRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryValidateJWTRequest)(nil)
 }
+
 func (x fastReflection_QueryValidateJWTRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryValidateJWTRequest)
 }
+
 func (x fastReflection_QueryValidateJWTRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryValidateJWTRequest
 }
@@ -6827,17 +6887,21 @@ func (x *PrivateClaim) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_PrivateClaim_messageType fastReflection_PrivateClaim_messageType
-var _ protoreflect.MessageType = fastReflection_PrivateClaim_messageType{}
+var (
+	_fastReflection_PrivateClaim_messageType fastReflection_PrivateClaim_messageType
+	_                                        protoreflect.MessageType = fastReflection_PrivateClaim_messageType{}
+)
 
 type fastReflection_PrivateClaim_messageType struct{}
 
 func (x fastReflection_PrivateClaim_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_PrivateClaim)(nil)
 }
+
 func (x fastReflection_PrivateClaim_messageType) New() protoreflect.Message {
 	return new(fastReflection_PrivateClaim)
 }
+
 func (x fastReflection_PrivateClaim_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_PrivateClaim
 }
@@ -7360,17 +7424,21 @@ func (x *QueryValidateJWTResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryValidateJWTResponse_messageType fastReflection_QueryValidateJWTResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryValidateJWTResponse_messageType{}
+var (
+	_fastReflection_QueryValidateJWTResponse_messageType fastReflection_QueryValidateJWTResponse_messageType
+	_                                                    protoreflect.MessageType = fastReflection_QueryValidateJWTResponse_messageType{}
+)
 
 type fastReflection_QueryValidateJWTResponse_messageType struct{}
 
 func (x fastReflection_QueryValidateJWTResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryValidateJWTResponse)(nil)
 }
+
 func (x fastReflection_QueryValidateJWTResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryValidateJWTResponse)
 }
+
 func (x fastReflection_QueryValidateJWTResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryValidateJWTResponse
 }
@@ -8621,31 +8689,34 @@ func file_xion_jwk_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_jwk_v1_query_proto_rawDescData
 }
 
-var file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
-var file_xion_jwk_v1_query_proto_goTypes = []interface{}{
-	(*QueryParamsRequest)(nil),            // 0: xion.jwk.v1.QueryParamsRequest
-	(*QueryParamsResponse)(nil),           // 1: xion.jwk.v1.QueryParamsResponse
-	(*QueryAudienceClaimRequest)(nil),     // 2: xion.jwk.v1.QueryAudienceClaimRequest
-	(*QueryAudienceClaimResponse)(nil),    // 3: xion.jwk.v1.QueryAudienceClaimResponse
-	(*QueryGetAudienceClaimRequest)(nil),  // 4: xion.jwk.v1.QueryGetAudienceClaimRequest
-	(*QueryGetAudienceClaimResponse)(nil), // 5: xion.jwk.v1.QueryGetAudienceClaimResponse
-	(*QueryAudienceRequest)(nil),          // 6: xion.jwk.v1.QueryAudienceRequest
-	(*QueryAudienceResponse)(nil),         // 7: xion.jwk.v1.QueryAudienceResponse
-	(*QueryGetAudienceRequest)(nil),       // 8: xion.jwk.v1.QueryGetAudienceRequest
-	(*QueryGetAudienceResponse)(nil),      // 9: xion.jwk.v1.QueryGetAudienceResponse
-	(*QueryAudienceAllRequest)(nil),       // 10: xion.jwk.v1.QueryAudienceAllRequest
-	(*QueryAudienceAllResponse)(nil),      // 11: xion.jwk.v1.QueryAudienceAllResponse
-	(*QueryAllAudienceRequest)(nil),       // 12: xion.jwk.v1.QueryAllAudienceRequest
-	(*QueryAllAudienceResponse)(nil),      // 13: xion.jwk.v1.QueryAllAudienceResponse
-	(*QueryValidateJWTRequest)(nil),       // 14: xion.jwk.v1.QueryValidateJWTRequest
-	(*PrivateClaim)(nil),                  // 15: xion.jwk.v1.PrivateClaim
-	(*QueryValidateJWTResponse)(nil),      // 16: xion.jwk.v1.QueryValidateJWTResponse
-	(*Params)(nil),                        // 17: xion.jwk.v1.Params
-	(*AudienceClaim)(nil),                 // 18: xion.jwk.v1.AudienceClaim
-	(*Audience)(nil),                      // 19: xion.jwk.v1.Audience
-	(*v1beta1.PageRequest)(nil),           // 20: cosmos.base.query.v1beta1.PageRequest
-	(*v1beta1.PageResponse)(nil),          // 21: cosmos.base.query.v1beta1.PageResponse
-}
+var (
+	file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+	file_xion_jwk_v1_query_proto_goTypes  = []interface{}{
+		(*QueryParamsRequest)(nil),            // 0: xion.jwk.v1.QueryParamsRequest
+		(*QueryParamsResponse)(nil),           // 1: xion.jwk.v1.QueryParamsResponse
+		(*QueryAudienceClaimRequest)(nil),     // 2: xion.jwk.v1.QueryAudienceClaimRequest
+		(*QueryAudienceClaimResponse)(nil),    // 3: xion.jwk.v1.QueryAudienceClaimResponse
+		(*QueryGetAudienceClaimRequest)(nil),  // 4: xion.jwk.v1.QueryGetAudienceClaimRequest
+		(*QueryGetAudienceClaimResponse)(nil), // 5: xion.jwk.v1.QueryGetAudienceClaimResponse
+		(*QueryAudienceRequest)(nil),          // 6: xion.jwk.v1.QueryAudienceRequest
+		(*QueryAudienceResponse)(nil),         // 7: xion.jwk.v1.QueryAudienceResponse
+		(*QueryGetAudienceRequest)(nil),       // 8: xion.jwk.v1.QueryGetAudienceRequest
+		(*QueryGetAudienceResponse)(nil),      // 9: xion.jwk.v1.QueryGetAudienceResponse
+		(*QueryAudienceAllRequest)(nil),       // 10: xion.jwk.v1.QueryAudienceAllRequest
+		(*QueryAudienceAllResponse)(nil),      // 11: xion.jwk.v1.QueryAudienceAllResponse
+		(*QueryAllAudienceRequest)(nil),       // 12: xion.jwk.v1.QueryAllAudienceRequest
+		(*QueryAllAudienceResponse)(nil),      // 13: xion.jwk.v1.QueryAllAudienceResponse
+		(*QueryValidateJWTRequest)(nil),       // 14: xion.jwk.v1.QueryValidateJWTRequest
+		(*PrivateClaim)(nil),                  // 15: xion.jwk.v1.PrivateClaim
+		(*QueryValidateJWTResponse)(nil),      // 16: xion.jwk.v1.QueryValidateJWTResponse
+		(*Params)(nil),                        // 17: xion.jwk.v1.Params
+		(*AudienceClaim)(nil),                 // 18: xion.jwk.v1.AudienceClaim
+		(*Audience)(nil),                      // 19: xion.jwk.v1.Audience
+		(*v1beta1.PageRequest)(nil),           // 20: cosmos.base.query.v1beta1.PageRequest
+		(*v1beta1.PageResponse)(nil),          // 21: cosmos.base.query.v1beta1.PageResponse
+	}
+)
+
 var file_xion_jwk_v1_query_proto_depIdxs = []int32{
 	17, // 0: xion.jwk.v1.QueryParamsResponse.params:type_name -> xion.jwk.v1.Params
 	18, // 1: xion.jwk.v1.QueryAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim

@@ -41,7 +41,7 @@ func TestORM(t *testing.T) {
 
 	res, err := f.k.DkimPubKeys.Get(f.ctx, key)
 	require.NoError(t, err)
-	require.NotNil(t, res)
+	// res is a value type, not a pointer, so NotNil check is not applicable
 	require.EqualValues(t, pubKey, res.PubKey)
 	require.EqualValues(t, poseidonHash, res.PoseidonHash)
 	require.EqualValues(t, types.Version_VERSION_DKIM1_UNSPECIFIED, res.Version)

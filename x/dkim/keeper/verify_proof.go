@@ -13,7 +13,7 @@ const TX_BODY_MAX_BYTES = 512
 func fromLeBytesModOrder(bytes []byte) fr.Element {
 	var field fr.Element
 	field.SetBytes(ToLittleEndian(bytes)) // Little-endian, modulo BN254 scalar field order.
-	return fr.Element(field)
+	return field
 }
 
 // padBytes pads the input bytes to the specified length by appending zeros.
@@ -77,7 +77,7 @@ func CalculateTxBodyCommitment(tx string) (fr.Element, error) {
 
 		// Update commitment.
 		if i == 0 {
-			commitment = fr.Element(chunkCommitment)
+			commitment = chunkCommitment
 		} else {
 			combined := []*big.Int{commitment.BigInt(new(big.Int)), chunkCommitment.BigInt(new(big.Int))}
 			commitmentBI, err := poseidon.Hash(combined)
@@ -86,7 +86,7 @@ func CalculateTxBodyCommitment(tx string) (fr.Element, error) {
 			}
 			var newCommitment fr.Element
 			newCommitment.SetBigInt(commitmentBI)
-			commitment = fr.Element(newCommitment)
+			commitment = newCommitment
 		}
 	}
 
@@ -111,6 +111,9 @@ func Inputs(tx, email, dkim string) (inputs []string, err error) {
 	var dkimBz [32]byte
 	copy(dkimBz[:], dkim)
 	dkimHash, err := fr.LittleEndian.Element(&dkimBz)
+	if err != nil {
+		return []string{}, err
+	}
 
 	txBz, err := CalculateTxBodyCommitment(tx)
 	if err != nil {

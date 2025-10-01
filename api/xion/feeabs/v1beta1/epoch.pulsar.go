@@ -3,6 +3,10 @@ package feeabsv1beta1
 
 import (
 	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -10,9 +14,6 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var (
@@ -58,17 +59,21 @@ func (x *EpochInfo) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_EpochInfo_messageType fastReflection_EpochInfo_messageType
-var _ protoreflect.MessageType = fastReflection_EpochInfo_messageType{}
+var (
+	_fastReflection_EpochInfo_messageType fastReflection_EpochInfo_messageType
+	_                                     protoreflect.MessageType = fastReflection_EpochInfo_messageType{}
+)
 
 type fastReflection_EpochInfo_messageType struct{}
 
 func (x fastReflection_EpochInfo_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_EpochInfo)(nil)
 }
+
 func (x fastReflection_EpochInfo_messageType) New() protoreflect.Message {
 	return new(fastReflection_EpochInfo)
 }
+
 func (x fastReflection_EpochInfo_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_EpochInfo
 }
@@ -855,17 +860,21 @@ func (x *ExponentialBackoff) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_ExponentialBackoff_messageType fastReflection_ExponentialBackoff_messageType
-var _ protoreflect.MessageType = fastReflection_ExponentialBackoff_messageType{}
+var (
+	_fastReflection_ExponentialBackoff_messageType fastReflection_ExponentialBackoff_messageType
+	_                                              protoreflect.MessageType = fastReflection_ExponentialBackoff_messageType{}
+)
 
 type fastReflection_ExponentialBackoff_messageType struct{}
 
 func (x fastReflection_ExponentialBackoff_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_ExponentialBackoff)(nil)
 }
+
 func (x fastReflection_ExponentialBackoff_messageType) New() protoreflect.Message {
 	return new(fastReflection_ExponentialBackoff)
 }
+
 func (x fastReflection_ExponentialBackoff_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_ExponentialBackoff
 }
@@ -1528,13 +1537,16 @@ func file_xion_feeabs_v1beta1_epoch_proto_rawDescGZIP() []byte {
 	return file_xion_feeabs_v1beta1_epoch_proto_rawDescData
 }
 
-var file_xion_feeabs_v1beta1_epoch_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_xion_feeabs_v1beta1_epoch_proto_goTypes = []interface{}{
-	(*EpochInfo)(nil),             // 0: xion.feeabs.v1beta1.EpochInfo
-	(*ExponentialBackoff)(nil),    // 1: xion.feeabs.v1beta1.ExponentialBackoff
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 3: google.protobuf.Duration
-}
+var (
+	file_xion_feeabs_v1beta1_epoch_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+	file_xion_feeabs_v1beta1_epoch_proto_goTypes  = []interface{}{
+		(*EpochInfo)(nil),             // 0: xion.feeabs.v1beta1.EpochInfo
+		(*ExponentialBackoff)(nil),    // 1: xion.feeabs.v1beta1.ExponentialBackoff
+		(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+		(*durationpb.Duration)(nil),   // 3: google.protobuf.Duration
+	}
+)
+
 var file_xion_feeabs_v1beta1_epoch_proto_depIdxs = []int32{
 	2, // 0: xion.feeabs.v1beta1.EpochInfo.start_time:type_name -> google.protobuf.Timestamp
 	3, // 1: xion.feeabs.v1beta1.EpochInfo.duration:type_name -> google.protobuf.Duration

@@ -2,19 +2,21 @@
 package feeabsv1beta1
 
 import (
+	fmt "fmt"
+	io "io"
+	reflect "reflect"
+	sync "sync"
+
 	_ "cosmossdk.io/api/amino"
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
 	_ "cosmossdk.io/api/cosmos/msg/v1"
-	fmt "fmt"
+
 	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	io "io"
-	reflect "reflect"
-	sync "sync"
 )
 
 var _ protoreflect.List = (*_MsgFundFeeAbsModuleAccount_2_list)(nil)
@@ -101,17 +103,21 @@ func (x *MsgFundFeeAbsModuleAccount) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgFundFeeAbsModuleAccount_messageType fastReflection_MsgFundFeeAbsModuleAccount_messageType
-var _ protoreflect.MessageType = fastReflection_MsgFundFeeAbsModuleAccount_messageType{}
+var (
+	_fastReflection_MsgFundFeeAbsModuleAccount_messageType fastReflection_MsgFundFeeAbsModuleAccount_messageType
+	_                                                      protoreflect.MessageType = fastReflection_MsgFundFeeAbsModuleAccount_messageType{}
+)
 
 type fastReflection_MsgFundFeeAbsModuleAccount_messageType struct{}
 
 func (x fastReflection_MsgFundFeeAbsModuleAccount_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgFundFeeAbsModuleAccount)(nil)
 }
+
 func (x fastReflection_MsgFundFeeAbsModuleAccount_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgFundFeeAbsModuleAccount)
 }
+
 func (x fastReflection_MsgFundFeeAbsModuleAccount_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgFundFeeAbsModuleAccount
 }
@@ -575,9 +581,7 @@ func (x *fastReflection_MsgFundFeeAbsModuleAccount) ProtoMethods() *protoiface.M
 	}
 }
 
-var (
-	md_MsgFundFeeAbsModuleAccountResponse protoreflect.MessageDescriptor
-)
+var md_MsgFundFeeAbsModuleAccountResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_feeabs_v1beta1_tx_proto_init()
@@ -604,17 +608,21 @@ func (x *MsgFundFeeAbsModuleAccountResponse) slowProtoReflect() protoreflect.Mes
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType{}
+var (
+	_fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType
+	_                                                              protoreflect.MessageType = fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType{}
+)
 
 type fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType struct{}
 
 func (x fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgFundFeeAbsModuleAccountResponse)(nil)
 }
+
 func (x fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgFundFeeAbsModuleAccountResponse)
 }
+
 func (x fastReflection_MsgFundFeeAbsModuleAccountResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgFundFeeAbsModuleAccountResponse
 }
@@ -962,17 +970,21 @@ func (x *MsgSendQueryIbcDenomTWAP) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSendQueryIbcDenomTWAP_messageType fastReflection_MsgSendQueryIbcDenomTWAP_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSendQueryIbcDenomTWAP_messageType{}
+var (
+	_fastReflection_MsgSendQueryIbcDenomTWAP_messageType fastReflection_MsgSendQueryIbcDenomTWAP_messageType
+	_                                                    protoreflect.MessageType = fastReflection_MsgSendQueryIbcDenomTWAP_messageType{}
+)
 
 type fastReflection_MsgSendQueryIbcDenomTWAP_messageType struct{}
 
 func (x fastReflection_MsgSendQueryIbcDenomTWAP_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSendQueryIbcDenomTWAP)(nil)
 }
+
 func (x fastReflection_MsgSendQueryIbcDenomTWAP_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSendQueryIbcDenomTWAP)
 }
+
 func (x fastReflection_MsgSendQueryIbcDenomTWAP_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSendQueryIbcDenomTWAP
 }
@@ -1351,9 +1363,7 @@ func (x *fastReflection_MsgSendQueryIbcDenomTWAP) ProtoMethods() *protoiface.Met
 	}
 }
 
-var (
-	md_MsgSendQueryIbcDenomTWAPResponse protoreflect.MessageDescriptor
-)
+var md_MsgSendQueryIbcDenomTWAPResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_feeabs_v1beta1_tx_proto_init()
@@ -1380,17 +1390,21 @@ func (x *MsgSendQueryIbcDenomTWAPResponse) slowProtoReflect() protoreflect.Messa
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType{}
+var (
+	_fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType
+	_                                                            protoreflect.MessageType = fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType{}
+)
 
 type fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType struct{}
 
 func (x fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSendQueryIbcDenomTWAPResponse)(nil)
 }
+
 func (x fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSendQueryIbcDenomTWAPResponse)
 }
+
 func (x fastReflection_MsgSendQueryIbcDenomTWAPResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSendQueryIbcDenomTWAPResponse
 }
@@ -1740,17 +1754,21 @@ func (x *MsgSwapCrossChain) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSwapCrossChain_messageType fastReflection_MsgSwapCrossChain_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSwapCrossChain_messageType{}
+var (
+	_fastReflection_MsgSwapCrossChain_messageType fastReflection_MsgSwapCrossChain_messageType
+	_                                             protoreflect.MessageType = fastReflection_MsgSwapCrossChain_messageType{}
+)
 
 type fastReflection_MsgSwapCrossChain_messageType struct{}
 
 func (x fastReflection_MsgSwapCrossChain_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSwapCrossChain)(nil)
 }
+
 func (x fastReflection_MsgSwapCrossChain_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSwapCrossChain)
 }
+
 func (x fastReflection_MsgSwapCrossChain_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSwapCrossChain
 }
@@ -2191,9 +2209,7 @@ func (x *fastReflection_MsgSwapCrossChain) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgSwapCrossChainResponse protoreflect.MessageDescriptor
-)
+var md_MsgSwapCrossChainResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_feeabs_v1beta1_tx_proto_init()
@@ -2220,17 +2236,21 @@ func (x *MsgSwapCrossChainResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgSwapCrossChainResponse_messageType fastReflection_MsgSwapCrossChainResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgSwapCrossChainResponse_messageType{}
+var (
+	_fastReflection_MsgSwapCrossChainResponse_messageType fastReflection_MsgSwapCrossChainResponse_messageType
+	_                                                     protoreflect.MessageType = fastReflection_MsgSwapCrossChainResponse_messageType{}
+)
 
 type fastReflection_MsgSwapCrossChainResponse_messageType struct{}
 
 func (x fastReflection_MsgSwapCrossChainResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgSwapCrossChainResponse)(nil)
 }
+
 func (x fastReflection_MsgSwapCrossChainResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgSwapCrossChainResponse)
 }
+
 func (x fastReflection_MsgSwapCrossChainResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgSwapCrossChainResponse
 }
@@ -2580,17 +2600,21 @@ func (x *MsgUpdateParams) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateParams_messageType fastReflection_MsgUpdateParams_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateParams_messageType{}
+var (
+	_fastReflection_MsgUpdateParams_messageType fastReflection_MsgUpdateParams_messageType
+	_                                           protoreflect.MessageType = fastReflection_MsgUpdateParams_messageType{}
+)
 
 type fastReflection_MsgUpdateParams_messageType struct{}
 
 func (x fastReflection_MsgUpdateParams_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateParams)(nil)
 }
+
 func (x fastReflection_MsgUpdateParams_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateParams)
 }
+
 func (x fastReflection_MsgUpdateParams_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateParams
 }
@@ -3046,9 +3070,7 @@ func (x *fastReflection_MsgUpdateParams) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgUpdateParamsResponse protoreflect.MessageDescriptor
-)
+var md_MsgUpdateParamsResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_feeabs_v1beta1_tx_proto_init()
@@ -3075,17 +3097,21 @@ func (x *MsgUpdateParamsResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateParamsResponse_messageType fastReflection_MsgUpdateParamsResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateParamsResponse_messageType{}
+var (
+	_fastReflection_MsgUpdateParamsResponse_messageType fastReflection_MsgUpdateParamsResponse_messageType
+	_                                                   protoreflect.MessageType = fastReflection_MsgUpdateParamsResponse_messageType{}
+)
 
 type fastReflection_MsgUpdateParamsResponse_messageType struct{}
 
 func (x fastReflection_MsgUpdateParamsResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateParamsResponse)(nil)
 }
+
 func (x fastReflection_MsgUpdateParamsResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateParamsResponse)
 }
+
 func (x fastReflection_MsgUpdateParamsResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateParamsResponse
 }
@@ -3435,17 +3461,21 @@ func (x *MsgAddHostZone) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgAddHostZone_messageType fastReflection_MsgAddHostZone_messageType
-var _ protoreflect.MessageType = fastReflection_MsgAddHostZone_messageType{}
+var (
+	_fastReflection_MsgAddHostZone_messageType fastReflection_MsgAddHostZone_messageType
+	_                                          protoreflect.MessageType = fastReflection_MsgAddHostZone_messageType{}
+)
 
 type fastReflection_MsgAddHostZone_messageType struct{}
 
 func (x fastReflection_MsgAddHostZone_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgAddHostZone)(nil)
 }
+
 func (x fastReflection_MsgAddHostZone_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgAddHostZone)
 }
+
 func (x fastReflection_MsgAddHostZone_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgAddHostZone
 }
@@ -3901,9 +3931,7 @@ func (x *fastReflection_MsgAddHostZone) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgAddHostZoneResponse protoreflect.MessageDescriptor
-)
+var md_MsgAddHostZoneResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_feeabs_v1beta1_tx_proto_init()
@@ -3930,17 +3958,21 @@ func (x *MsgAddHostZoneResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgAddHostZoneResponse_messageType fastReflection_MsgAddHostZoneResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgAddHostZoneResponse_messageType{}
+var (
+	_fastReflection_MsgAddHostZoneResponse_messageType fastReflection_MsgAddHostZoneResponse_messageType
+	_                                                  protoreflect.MessageType = fastReflection_MsgAddHostZoneResponse_messageType{}
+)
 
 type fastReflection_MsgAddHostZoneResponse_messageType struct{}
 
 func (x fastReflection_MsgAddHostZoneResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgAddHostZoneResponse)(nil)
 }
+
 func (x fastReflection_MsgAddHostZoneResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgAddHostZoneResponse)
 }
+
 func (x fastReflection_MsgAddHostZoneResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgAddHostZoneResponse
 }
@@ -4290,17 +4322,21 @@ func (x *MsgUpdateHostZone) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateHostZone_messageType fastReflection_MsgUpdateHostZone_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateHostZone_messageType{}
+var (
+	_fastReflection_MsgUpdateHostZone_messageType fastReflection_MsgUpdateHostZone_messageType
+	_                                             protoreflect.MessageType = fastReflection_MsgUpdateHostZone_messageType{}
+)
 
 type fastReflection_MsgUpdateHostZone_messageType struct{}
 
 func (x fastReflection_MsgUpdateHostZone_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateHostZone)(nil)
 }
+
 func (x fastReflection_MsgUpdateHostZone_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateHostZone)
 }
+
 func (x fastReflection_MsgUpdateHostZone_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateHostZone
 }
@@ -4756,9 +4792,7 @@ func (x *fastReflection_MsgUpdateHostZone) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgUpdateHostZoneResponse protoreflect.MessageDescriptor
-)
+var md_MsgUpdateHostZoneResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_feeabs_v1beta1_tx_proto_init()
@@ -4785,17 +4819,21 @@ func (x *MsgUpdateHostZoneResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgUpdateHostZoneResponse_messageType fastReflection_MsgUpdateHostZoneResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgUpdateHostZoneResponse_messageType{}
+var (
+	_fastReflection_MsgUpdateHostZoneResponse_messageType fastReflection_MsgUpdateHostZoneResponse_messageType
+	_                                                     protoreflect.MessageType = fastReflection_MsgUpdateHostZoneResponse_messageType{}
+)
 
 type fastReflection_MsgUpdateHostZoneResponse_messageType struct{}
 
 func (x fastReflection_MsgUpdateHostZoneResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgUpdateHostZoneResponse)(nil)
 }
+
 func (x fastReflection_MsgUpdateHostZoneResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgUpdateHostZoneResponse)
 }
+
 func (x fastReflection_MsgUpdateHostZoneResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgUpdateHostZoneResponse
 }
@@ -5145,17 +5183,21 @@ func (x *MsgRemoveHostZone) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgRemoveHostZone_messageType fastReflection_MsgRemoveHostZone_messageType
-var _ protoreflect.MessageType = fastReflection_MsgRemoveHostZone_messageType{}
+var (
+	_fastReflection_MsgRemoveHostZone_messageType fastReflection_MsgRemoveHostZone_messageType
+	_                                             protoreflect.MessageType = fastReflection_MsgRemoveHostZone_messageType{}
+)
 
 type fastReflection_MsgRemoveHostZone_messageType struct{}
 
 func (x fastReflection_MsgRemoveHostZone_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgRemoveHostZone)(nil)
 }
+
 func (x fastReflection_MsgRemoveHostZone_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgRemoveHostZone)
 }
+
 func (x fastReflection_MsgRemoveHostZone_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgRemoveHostZone
 }
@@ -5596,9 +5638,7 @@ func (x *fastReflection_MsgRemoveHostZone) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var (
-	md_MsgRemoveHostZoneResponse protoreflect.MessageDescriptor
-)
+var md_MsgRemoveHostZoneResponse protoreflect.MessageDescriptor
 
 func init() {
 	file_xion_feeabs_v1beta1_tx_proto_init()
@@ -5625,17 +5665,21 @@ func (x *MsgRemoveHostZoneResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_MsgRemoveHostZoneResponse_messageType fastReflection_MsgRemoveHostZoneResponse_messageType
-var _ protoreflect.MessageType = fastReflection_MsgRemoveHostZoneResponse_messageType{}
+var (
+	_fastReflection_MsgRemoveHostZoneResponse_messageType fastReflection_MsgRemoveHostZoneResponse_messageType
+	_                                                     protoreflect.MessageType = fastReflection_MsgRemoveHostZoneResponse_messageType{}
+)
 
 type fastReflection_MsgRemoveHostZoneResponse_messageType struct{}
 
 func (x fastReflection_MsgRemoveHostZoneResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_MsgRemoveHostZoneResponse)(nil)
 }
+
 func (x fastReflection_MsgRemoveHostZoneResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_MsgRemoveHostZoneResponse)
 }
+
 func (x fastReflection_MsgRemoveHostZoneResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_MsgRemoveHostZoneResponse
 }
@@ -6647,26 +6691,29 @@ func file_xion_feeabs_v1beta1_tx_proto_rawDescGZIP() []byte {
 	return file_xion_feeabs_v1beta1_tx_proto_rawDescData
 }
 
-var file_xion_feeabs_v1beta1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
-var file_xion_feeabs_v1beta1_tx_proto_goTypes = []interface{}{
-	(*MsgFundFeeAbsModuleAccount)(nil),         // 0: xion.feeabs.v1beta1.MsgFundFeeAbsModuleAccount
-	(*MsgFundFeeAbsModuleAccountResponse)(nil), // 1: xion.feeabs.v1beta1.MsgFundFeeAbsModuleAccountResponse
-	(*MsgSendQueryIbcDenomTWAP)(nil),           // 2: xion.feeabs.v1beta1.MsgSendQueryIbcDenomTWAP
-	(*MsgSendQueryIbcDenomTWAPResponse)(nil),   // 3: xion.feeabs.v1beta1.MsgSendQueryIbcDenomTWAPResponse
-	(*MsgSwapCrossChain)(nil),                  // 4: xion.feeabs.v1beta1.MsgSwapCrossChain
-	(*MsgSwapCrossChainResponse)(nil),          // 5: xion.feeabs.v1beta1.MsgSwapCrossChainResponse
-	(*MsgUpdateParams)(nil),                    // 6: xion.feeabs.v1beta1.MsgUpdateParams
-	(*MsgUpdateParamsResponse)(nil),            // 7: xion.feeabs.v1beta1.MsgUpdateParamsResponse
-	(*MsgAddHostZone)(nil),                     // 8: xion.feeabs.v1beta1.MsgAddHostZone
-	(*MsgAddHostZoneResponse)(nil),             // 9: xion.feeabs.v1beta1.MsgAddHostZoneResponse
-	(*MsgUpdateHostZone)(nil),                  // 10: xion.feeabs.v1beta1.MsgUpdateHostZone
-	(*MsgUpdateHostZoneResponse)(nil),          // 11: xion.feeabs.v1beta1.MsgUpdateHostZoneResponse
-	(*MsgRemoveHostZone)(nil),                  // 12: xion.feeabs.v1beta1.MsgRemoveHostZone
-	(*MsgRemoveHostZoneResponse)(nil),          // 13: xion.feeabs.v1beta1.MsgRemoveHostZoneResponse
-	(*v1beta1.Coin)(nil),                       // 14: cosmos.base.v1beta1.Coin
-	(*Params)(nil),                             // 15: xion.feeabs.v1beta1.Params
-	(*HostChainFeeAbsConfig)(nil),              // 16: xion.feeabs.v1beta1.HostChainFeeAbsConfig
-}
+var (
+	file_xion_feeabs_v1beta1_tx_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+	file_xion_feeabs_v1beta1_tx_proto_goTypes  = []interface{}{
+		(*MsgFundFeeAbsModuleAccount)(nil),         // 0: xion.feeabs.v1beta1.MsgFundFeeAbsModuleAccount
+		(*MsgFundFeeAbsModuleAccountResponse)(nil), // 1: xion.feeabs.v1beta1.MsgFundFeeAbsModuleAccountResponse
+		(*MsgSendQueryIbcDenomTWAP)(nil),           // 2: xion.feeabs.v1beta1.MsgSendQueryIbcDenomTWAP
+		(*MsgSendQueryIbcDenomTWAPResponse)(nil),   // 3: xion.feeabs.v1beta1.MsgSendQueryIbcDenomTWAPResponse
+		(*MsgSwapCrossChain)(nil),                  // 4: xion.feeabs.v1beta1.MsgSwapCrossChain
+		(*MsgSwapCrossChainResponse)(nil),          // 5: xion.feeabs.v1beta1.MsgSwapCrossChainResponse
+		(*MsgUpdateParams)(nil),                    // 6: xion.feeabs.v1beta1.MsgUpdateParams
+		(*MsgUpdateParamsResponse)(nil),            // 7: xion.feeabs.v1beta1.MsgUpdateParamsResponse
+		(*MsgAddHostZone)(nil),                     // 8: xion.feeabs.v1beta1.MsgAddHostZone
+		(*MsgAddHostZoneResponse)(nil),             // 9: xion.feeabs.v1beta1.MsgAddHostZoneResponse
+		(*MsgUpdateHostZone)(nil),                  // 10: xion.feeabs.v1beta1.MsgUpdateHostZone
+		(*MsgUpdateHostZoneResponse)(nil),          // 11: xion.feeabs.v1beta1.MsgUpdateHostZoneResponse
+		(*MsgRemoveHostZone)(nil),                  // 12: xion.feeabs.v1beta1.MsgRemoveHostZone
+		(*MsgRemoveHostZoneResponse)(nil),          // 13: xion.feeabs.v1beta1.MsgRemoveHostZoneResponse
+		(*v1beta1.Coin)(nil),                       // 14: cosmos.base.v1beta1.Coin
+		(*Params)(nil),                             // 15: xion.feeabs.v1beta1.Params
+		(*HostChainFeeAbsConfig)(nil),              // 16: xion.feeabs.v1beta1.HostChainFeeAbsConfig
+	}
+)
+
 var file_xion_feeabs_v1beta1_tx_proto_depIdxs = []int32{
 	14, // 0: xion.feeabs.v1beta1.MsgFundFeeAbsModuleAccount.amount:type_name -> cosmos.base.v1beta1.Coin
 	15, // 1: xion.feeabs.v1beta1.MsgUpdateParams.params:type_name -> xion.feeabs.v1beta1.Params
