@@ -292,6 +292,12 @@ test-integration-xion-update-treasury-configs-aa: compile-integration-tests
 test-integration-xion-update-treasury-params: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestUpdateTreasuryContractParams
 
+test-integration-dkim-module: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestDKIMModule
+	
+test-integration-zkemail-abstract-account: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestZKEmailAuthenticator
+
 test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 
