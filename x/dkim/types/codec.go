@@ -9,7 +9,6 @@ import (
 
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgUpdateParams{}, ModuleName+"/MsgUpdateParams", nil)
 	cdc.RegisterConcrete(&MsgAddDkimPubKeys{}, ModuleName+"/MsgAddDkimPubKey", nil)
 }
 
@@ -18,7 +17,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgUpdateParams{},
 		&MsgAddDkimPubKeys{},
 	)
 

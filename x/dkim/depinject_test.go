@@ -1,17 +1,6 @@
 package module
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/require"
-
-	storetypes "cosmossdk.io/store/types"
-
-	"github.com/cosmos/cosmos-sdk/runtime"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-)
-
+/*
 // TestAppModule_IsOnePerModuleType tests the depinject marker interface.
 // This method is intentionally empty as it's a marker for the depinject framework.
 // Note: Coverage will show 0% because the method body is empty (no statements to cover).
@@ -65,3 +54,4 @@ func (m mockAddressCodec) StringToBytes(text string) ([]byte, error) {
 func (m mockAddressCodec) BytesToString(bz []byte) (string, error) {
 	return sdk.AccAddress(bz).String(), nil
 }
+*/

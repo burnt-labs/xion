@@ -64,9 +64,7 @@ func (a AppModuleBasic) Name() string {
 }
 
 func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(&types.GenesisState{
-		Params: types.DefaultParams(),
-	})
+	return cdc.MustMarshalJSON(&types.GenesisState{})
 }
 
 func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEncodingConfig, message json.RawMessage) error {
@@ -111,10 +109,6 @@ func (a AppModuleBasic) RegisterInterfaces(r codectypes.InterfaceRegistry) {
 func (am AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
-
-	if err := am.keeper.Params.Set(ctx, genesisState.Params); err != nil {
-		panic(err)
-	}
 
 	if isSaved, err := keeper.SaveDkimPubKeys(ctx, genesisState.DkimPubkeys, &am.keeper); !isSaved {
 		panic(err)

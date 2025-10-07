@@ -35,7 +35,6 @@ func setupModule(t *testing.T) (*dkimmodule.AppModule, sdk.Context) {
 	logger := log.NewTestLogger(t)
 
 	k := keeper.NewKeeper(encCfg.Codec, storeService, logger, govModAddr)
-	require.NoError(t, k.Params.Set(testCtx.Ctx, types.DefaultParams()))
 
 	appModule := dkimmodule.NewAppModule(encCfg.Codec, k)
 
@@ -62,7 +61,6 @@ func TestAppModule_DefaultGenesis(t *testing.T) {
 	var genesisState types.GenesisState
 	err := encCfg.Codec.UnmarshalJSON(genesis, &genesisState)
 	require.NoError(t, err)
-	require.NotNil(t, genesisState.Params)
 }
 
 func TestAppModule_ValidateGenesis(t *testing.T) {
@@ -99,7 +97,6 @@ func TestAppModule_InitAndExportGenesis(t *testing.T) {
 	var exportedState types.GenesisState
 	err := encCfg.Codec.UnmarshalJSON(exported, &exportedState)
 	require.NoError(t, err)
-	require.NotNil(t, exportedState.Params)
 }
 
 func TestAppModuleBasic_Name(t *testing.T) {

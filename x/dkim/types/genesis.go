@@ -7,19 +7,12 @@ const DefaultIndex uint64 = 1
 
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
-	return &GenesisState{
-		// this line is used by starport scaffolding # genesis/types/default
-		Params: DefaultParams(),
-	}
+	return &GenesisState{}
 }
 
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	// this line is used by starport scaffolding # genesis/types/validate
-	if err := gs.Params.Validate(); err != nil {
-		return err
-	}
 	for _, pubkey := range gs.DkimPubkeys {
 		if err := pubkey.Validate(); err != nil {
 			return err

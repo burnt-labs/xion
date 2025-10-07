@@ -2,18 +2,16 @@
 package xionv1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
-
+	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var _ protoreflect.List = (*_GenesisState_2_list)(nil)
@@ -100,21 +98,17 @@ func (x *GenesisState) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_GenesisState_messageType fastReflection_GenesisState_messageType
-	_                                        protoreflect.MessageType = fastReflection_GenesisState_messageType{}
-)
+var _fastReflection_GenesisState_messageType fastReflection_GenesisState_messageType
+var _ protoreflect.MessageType = fastReflection_GenesisState_messageType{}
 
 type fastReflection_GenesisState_messageType struct{}
 
 func (x fastReflection_GenesisState_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_GenesisState)(nil)
 }
-
 func (x fastReflection_GenesisState_messageType) New() protoreflect.Message {
 	return new(fastReflection_GenesisState)
 }
-
 func (x fastReflection_GenesisState_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_GenesisState
 }
@@ -668,14 +662,11 @@ func file_xion_v1_genesis_proto_rawDescGZIP() []byte {
 	return file_xion_v1_genesis_proto_rawDescData
 }
 
-var (
-	file_xion_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-	file_xion_v1_genesis_proto_goTypes  = []interface{}{
-		(*GenesisState)(nil), // 0: xion.v1.GenesisState
-		(*v1beta1.Coin)(nil), // 1: cosmos.base.v1beta1.Coin
-	}
-)
-
+var file_xion_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_xion_v1_genesis_proto_goTypes = []interface{}{
+	(*GenesisState)(nil), // 0: xion.v1.GenesisState
+	(*v1beta1.Coin)(nil), // 1: cosmos.base.v1beta1.Coin
+}
 var file_xion_v1_genesis_proto_depIdxs = []int32{
 	1, // 0: xion.v1.GenesisState.platform_minimums:type_name -> cosmos.base.v1beta1.Coin
 	1, // [1:1] is the sub-list for method output_type

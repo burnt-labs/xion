@@ -23,36 +23,6 @@ func GetQueryCmd() *cobra.Command {
 	return queryCmd
 }
 
-// QueryParams is a helper function that queries module parameters.
-// This function is extracted for testability.
-func QueryParams(queryClient types.QueryClient, cmd *cobra.Command) (*types.QueryParamsResponse, error) {
-	return queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
-}
-
-func GetCmdParams() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "params",
-		Short: "Show module params",
-		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-			res, err := QueryParams(queryClient, cmd)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-	flags.AddQueryFlagsToCmd(cmd)
-	return cmd
-}
-
 // QueryDkimPubKey is a helper function that queries a single DKIM public key.
 // This function is extracted for testability.
 func QueryDkimPubKey(queryClient types.QueryClient, cmd *cobra.Command, domain, selector string) (*types.QueryDkimPubKeyResponse, error) {

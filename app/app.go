@@ -987,6 +987,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)

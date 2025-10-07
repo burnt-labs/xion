@@ -1,0 +1,161 @@
+package module
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	"cosmossdk.io/client/v2/autocli"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+
+	"github.com/burnt-labs/xion/x/zk/client/cli"
+	"github.com/burnt-labs/xion/x/zk/keeper"
+	"github.com/burnt-labs/xion/x/zk/types"
+
+	"cosmossdk.io/core/appmodule"
+)
+
+const (
+	// ConsensusVersion defines the current x/dkim module consensus version.
+	ConsensusVersion = 1
+
+// this line is used by starport scaffolding # simapp/module/const
+)
+
+var (
+	_ module.AppModuleBasic    = AppModuleBasic{}
+	_ module.AppModuleGenesis  = AppModule{}
+	_ module.AppModule         = AppModule{}
+	_ autocli.HasAutoCLIConfig = AppModule{}
+	_ appmodule.AppModule      = AppModule{}
+)
+
+// AppModuleBasic defines the basic application module used by the wasm module.
+type AppModuleBasic struct {
+	cdc codec.Codec
+}
+
+type AppModule struct {
+	AppModuleBasic
+
+	keeper keeper.Keeper
+}
+
+// NewAppModule constructor
+func NewAppModule(
+	cdc codec.Codec,
+	keeper keeper.Keeper,
+) *AppModule {
+	return &AppModule{
+		AppModuleBasic: AppModuleBasic{cdc: cdc},
+		keeper:         keeper,
+	}
+}
+
+func (a AppModuleBasic) Name() string {
+	return types.ModuleName
+}
+
+func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(&types.GenesisState{})
+}
+
+func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEncodingConfig, message json.RawMessage) error {
+	var data types.GenesisState
+	err := marshaler.UnmarshalJSON(message, &data)
+	if err != nil {
+		return err
+	}
+	return data.Validate()
+}
+
+func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
+	_ = a
+}
+
+func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err != nil {
+		// same behavior as in cosmos-sdk
+		panic(err)
+	}
+}
+
+// Disable in favor of autocli.go. If you wish to use these, it will override AutoCLI methods.
+
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.NewTxCmd()
+}
+
+func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
+
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
+}
+
+func (a AppModuleBasic) RegisterInterfaces(r codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(r)
+}
+
+func (am AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState types.GenesisState
+	marshaler.MustUnmarshalJSON(message, &genesisState)
+
+	if err := am.keeper.Params.Set(ctx, genesisState.Params); err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
+func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
+	genState := am.keeper.ExportGenesis(ctx)
+	return marshaler.MustMarshalJSON(genState)
+}
+
+// RegisterInvariants registers the module's invariants.
+// Deprecated: InvariantRegistry is deprecated and will be removed with x/crisis module.
+//
+//nolint:staticcheck // SA1019: Deprecated but required for module.AppModule interface
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+	_ = am
+}
+
+func (am AppModule) QuerierRoute() string {
+	return types.QuerierRoute
+}
+
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
+}
+
+// ConsensusVersion is a sequence number for state-breaking change of the
+// module. It should be incremented on each consensus-breaking change
+// introduced by the module. To avoid wrong/empty versions, the initial version
+// should be set to 1.
+func (am AppModule) ConsensusVersion() uint64 {
+	return ConsensusVersion
+}
+
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (am AppModule) IsOnePerModuleType() {
+	_ = am
+}
+
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {
+	_ = am
+}

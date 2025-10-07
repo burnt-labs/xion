@@ -19,10 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Query_Params_FullMethodName      = "/xion.dkim.v1.Query/Params"
 	Query_DkimPubKey_FullMethodName  = "/xion.dkim.v1.Query/DkimPubKey"
 	Query_DkimPubKeys_FullMethodName = "/xion.dkim.v1.Query/DkimPubKeys"
-	Query_ProofVerify_FullMethodName = "/xion.dkim.v1.Query/ProofVerify"
 )
 
 // QueryClient is the client API for Query service.
@@ -31,14 +29,10 @@ const (
 //
 // Query provides defines the gRPC querier service.
 type QueryClient interface {
-	// Params queries all parameters of the module.
-	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// DkimPubKey queries the DKIM public key for a given selector and domain.
 	DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
 	// DkimPubKeys queries the DKIM public keys for a given selectors and domains.
 	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error)
-	// ProofVerify verifies a DKIM proof for email authentication.
-	ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error)
 }
 
 type queryClient struct {
@@ -47,16 +41,6 @@ type queryClient struct {
 
 func NewQueryClient(cc grpc.ClientConnInterface) QueryClient {
 	return &queryClient{cc}
-}
-
-func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QueryParamsResponse)
-	err := c.cc.Invoke(ctx, Query_Params_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *queryClient) DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error) {
@@ -79,30 +63,16 @@ func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysReque
 	return out, nil
 }
 
-func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProofVerifyResponse)
-	err := c.cc.Invoke(ctx, Query_ProofVerify_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
 //
 // Query provides defines the gRPC querier service.
 type QueryServer interface {
-	// Params queries all parameters of the module.
-	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// DkimPubKey queries the DKIM public key for a given selector and domain.
 	DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
 	// DkimPubKeys queries the DKIM public keys for a given selectors and domains.
 	DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error)
-	// ProofVerify verifies a DKIM proof for email authentication.
-	ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -113,17 +83,11 @@ type QueryServer interface {
 // pointer dereference when methods are called.
 type UnimplementedQueryServer struct{}
 
-func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
-}
 func (UnimplementedQueryServer) DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKey not implemented")
 }
 func (UnimplementedQueryServer) DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKeys not implemented")
-}
-func (UnimplementedQueryServer) ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -144,24 +108,6 @@ func RegisterQueryServer(s grpc.ServiceRegistrar, srv QueryServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Query_ServiceDesc, srv)
-}
-
-func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryParamsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Params(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_Params_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Query_DkimPubKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -200,24 +146,6 @@ func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_ProofVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryVerifyRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).ProofVerify(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_ProofVerify_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ProofVerify(ctx, req.(*QueryVerifyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -226,20 +154,12 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Params",
-			Handler:    _Query_Params_Handler,
-		},
-		{
 			MethodName: "DkimPubKey",
 			Handler:    _Query_DkimPubKey_Handler,
 		},
 		{
 			MethodName: "DkimPubKeys",
 			Handler:    _Query_DkimPubKeys_Handler,
-		},
-		{
-			MethodName: "ProofVerify",
-			Handler:    _Query_ProofVerify_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

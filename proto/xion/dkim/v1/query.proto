@@ -10,11 +10,6 @@ option go_package = "github.com/burnt-labs/xion/x/dkim/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
-  // Params queries all parameters of the module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/dkim/v1/params";
-  }
-
   // DkimPubKey queries the DKIM public key for a given selector and domain.
   rpc DkimPubKey(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkey";
@@ -24,20 +19,6 @@ service Query {
   rpc DkimPubKeys(QueryDkimPubKeysRequest) returns (QueryDkimPubKeysResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
-
-  // ProofVerify verifies a DKIM proof for email authentication.
-  rpc ProofVerify(QueryVerifyRequest) returns (ProofVerifyResponse) {
-    option (google.api.http).get = "/dkim/v1/dkim_verify";
-  }
-}
-
-// QueryParamsRequest is the request type for the Query/Params RPC method.
-message QueryParamsRequest {}
-
-// QueryParamsResponse is the response type for the Query/Params RPC method.
-message QueryParamsResponse {
-  // params defines the parameters of the module.
-  Params params = 1;
 }
 
 // QueryDkimPubKeyRequest is the request type for the Query/DkimPubKey RPC
@@ -78,32 +59,3 @@ message QueryDkimPubKeysResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
-// SnarkJsProof represents a ZK-SNARK proof in SnarkJS format.
-message SnarkJsProof {
-  // pi_a defines the first component of the proof.
-  repeated bytes pi_a = 1;
-  // pi_b defines the second component of the proof.
-  repeated bytes pi_b = 2;
-  // pi_c defines the third component of the proof.
-  repeated bytes pi_c = 3;
-}
-
-// QueryVerifyRequest defines the request structure for proof verification.
-message QueryVerifyRequest {
-  // dkim_domain defines the domain for DKIM verification.
-  string dkim_domain = 1;
-  // tx_bytes defines the transaction bytes to verify.
-  bytes tx_bytes = 2;
-  // email_hash defines the hash of the email.
-  bytes email_hash = 3;
-  // dkim_hash defines the DKIM hash.
-  bytes dkim_hash = 4;
-  // proof defines the ZK proof for verification.
-  bytes proof = 5;
-}
-
-// ProofVerifyResponse defines the response structure for proof verification.
-message ProofVerifyResponse {
-  // verified indicates whether the proof verification was successful.
-  bool verified = 1;
-}

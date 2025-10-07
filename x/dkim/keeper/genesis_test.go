@@ -19,16 +19,13 @@ func TestGenesis(t *testing.T) {
 		err     bool
 	}{
 		{
-			name: "success, only default params",
-			request: &types.GenesisState{
-				Params: types.DefaultParams(),
-			},
-			err: false,
+			name:    "success, only default params",
+			request: &types.GenesisState{},
+			err:     false,
 		},
 		{
 			name: "success, with dkim records",
 			request: &types.GenesisState{
-				Params: types.DefaultParams(),
 				DkimPubkeys: []types.DkimPubKey{
 					{
 						Domain:       "x.com",
@@ -43,7 +40,6 @@ func TestGenesis(t *testing.T) {
 		{
 			name: "fail, invalid dkim record",
 			request: &types.GenesisState{
-				Params: types.DefaultParams(),
 				DkimPubkeys: []types.DkimPubKey{
 					{
 						Domain:       "x.com",
@@ -58,7 +54,6 @@ func TestGenesis(t *testing.T) {
 		{
 			name: "fail, invalid data",
 			request: &types.GenesisState{
-				Params: types.DefaultParams(),
 				DkimPubkeys: []types.DkimPubKey{
 					{
 						Domain:       "x.com",

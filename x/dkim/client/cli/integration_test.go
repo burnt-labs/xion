@@ -58,9 +58,6 @@ func setupIntegrationTest(t *testing.T) *IntegrationTestSuite {
 	logger := log.NewTestLogger(t)
 	suite.keeper = keeper.NewKeeper(suite.cdc, storeService, logger, govModAddr)
 
-	// Initialize params
-	require.NoError(t, suite.keeper.Params.Set(suite.ctx, types.DefaultParams()))
-
 	// Create query server
 	suite.queryServer = keeper.NewQuerier(suite.keeper)
 
@@ -73,26 +70,6 @@ func setupIntegrationTest(t *testing.T) *IntegrationTestSuite {
 		WithOutputFormat(flags.OutputFormatJSON)
 
 	return suite
-}
-
-func TestIntegration_GetCmdParams(t *testing.T) {
-	suite := setupIntegrationTest(t)
-
-	// Create command
-	cmd := cli.GetCmdParams()
-	require.NotNil(t, cmd)
-
-	// Setup client context on command
-	cmd.SetContext(context.Background())
-	require.NoError(t, client.SetCmdClientContext(cmd, suite.clientCtx))
-
-	// The command will fail because we don't have a gRPC connection,
-	// but we can verify it gets past the context setup
-	err := cmd.RunE(cmd, []string{})
-	require.Error(t, err) // Expected - no gRPC connection
-
-	// Verify the error is about gRPC, not about missing context
-	require.Contains(t, err.Error(), "dial", "Should fail on gRPC dial, not context")
 }
 
 func TestIntegration_ParseDkimPubKeysFlags_WithCommand(t *testing.T) {
@@ -123,21 +100,6 @@ func TestIntegration_ParseDkimPubKeysFlags_WithCommand(t *testing.T) {
 	err = cmd.RunE(cmd, []string{})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "dial", "Should fail on gRPC dial")
-}
-
-func TestIntegration_QueryParams_Direct(t *testing.T) {
-	suite := setupIntegrationTest(t)
-
-	// Create a mock command with context
-	cmd := &cobra.Command{}
-	cmd.SetContext(suite.ctx)
-
-	// Test QueryParams directly with our query server
-	// This tests the helper function with a real query server
-	res, err := suite.queryServer.Params(suite.ctx, &types.QueryParamsRequest{})
-	require.NoError(t, err)
-	require.NotNil(t, res)
-	require.NotNil(t, res.Params)
 }
 
 func TestIntegration_GetDkimPublicKey(t *testing.T) {
@@ -194,13 +156,6 @@ func TestIntegration_CommandStructure(t *testing.T) {
 		createCmd  func() *cobra.Command
 		checkFlags []string
 	}{
-		{
-			name:      "GetCmdParams",
-			createCmd: cli.GetCmdParams,
-			checkFlags: []string{
-				flags.FlagOutput,
-			},
-		},
 		{
 			name:      "GetDkimPublicKey",
 			createCmd: cli.GetDkimPublicKey,

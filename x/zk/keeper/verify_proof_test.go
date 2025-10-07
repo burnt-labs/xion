@@ -9,7 +9,7 @@ import (
 	"github.com/vocdoni/circom2gnark/parser"
 	"gotest.tools/assert"
 
-	verify "github.com/burnt-labs/xion/x/dkim/keeper"
+	verify "github.com/burnt-labs/xion/x/zk/keeper"
 )
 
 const TX_BODY_MAX_BYTES = 512

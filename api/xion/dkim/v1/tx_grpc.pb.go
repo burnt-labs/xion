@@ -19,7 +19,6 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Msg_UpdateParams_FullMethodName     = "/xion.dkim.v1.Msg/UpdateParams"
 	Msg_AddDkimPubKeys_FullMethodName   = "/xion.dkim.v1.Msg/AddDkimPubKeys"
 	Msg_RemoveDkimPubKey_FullMethodName = "/xion.dkim.v1.Msg/RemoveDkimPubKey"
 	Msg_RevokeDkimPubKey_FullMethodName = "/xion.dkim.v1.Msg/RevokeDkimPubKey"
@@ -31,10 +30,6 @@ const (
 //
 // Msg defines the Msg service.
 type MsgClient interface {
-	// UpdateParams defines a governance operation for updating the parameters.
-	//
-	// Since: cosmos-sdk 0.47
-	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error)
 	// RemoveDkimPubKey defines a message to remove a DKIM public key via
@@ -51,16 +46,6 @@ type msgClient struct {
 
 func NewMsgClient(cc grpc.ClientConnInterface) MsgClient {
 	return &msgClient{cc}
-}
-
-func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MsgUpdateParamsResponse)
-	err := c.cc.Invoke(ctx, Msg_UpdateParams_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *msgClient) AddDkimPubKeys(ctx context.Context, in *MsgAddDkimPubKeys, opts ...grpc.CallOption) (*MsgAddDkimPubKeysResponse, error) {
@@ -99,10 +84,6 @@ func (c *msgClient) RevokeDkimPubKey(ctx context.Context, in *MsgRevokeDkimPubKe
 //
 // Msg defines the Msg service.
 type MsgServer interface {
-	// UpdateParams defines a governance operation for updating the parameters.
-	//
-	// Since: cosmos-sdk 0.47
-	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	// AddDkimPubKey defines a message to add DKIM public keys.
 	AddDkimPubKeys(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error)
 	// RemoveDkimPubKey defines a message to remove a DKIM public key via
@@ -121,9 +102,6 @@ type MsgServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMsgServer struct{}
 
-func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
-}
 func (UnimplementedMsgServer) AddDkimPubKeys(context.Context, *MsgAddDkimPubKeys) (*MsgAddDkimPubKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddDkimPubKeys not implemented")
 }
@@ -152,24 +130,6 @@ func RegisterMsgServer(s grpc.ServiceRegistrar, srv MsgServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Msg_ServiceDesc, srv)
-}
-
-func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateParams)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).UpdateParams(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Msg_UpdateParams_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).UpdateParams(ctx, req.(*MsgUpdateParams))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_AddDkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -233,10 +193,6 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.dkim.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "UpdateParams",
-			Handler:    _Msg_UpdateParams_Handler,
-		},
 		{
 			MethodName: "AddDkimPubKeys",
 			Handler:    _Msg_AddDkimPubKeys_Handler,

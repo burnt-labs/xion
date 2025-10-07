@@ -30,34 +30,6 @@ func NewTxCmd() *cobra.Command {
 
 // Returns a CLI command handler for registering a
 // contract for the module.
-func MsgUpdateParams() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "update-params [some-value]",
-		Short: "Update the params (must be submitted from the authority)",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			cliCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			senderAddress := cliCtx.GetFromAddress()
-
-			msg := &types.MsgUpdateParams{
-				Authority: senderAddress.String(),
-				Params:    types.Params{},
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(cliCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-	return cmd
-}
-
-// Returns a CLI command handler for registering a
-// contract for the module.
 // ParseAndValidateRevokeDkimMsg parses the private key and creates a revoke message.
 // This function is extracted for testability.
 func ParseAndValidateRevokeDkimMsg(signer, domain, privKeyStr string) (*types.MsgRevokeDkimPubKey, error) {
