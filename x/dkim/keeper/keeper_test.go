@@ -21,6 +21,8 @@ import (
 	module "github.com/burnt-labs/xion/x/dkim"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
 type TestFixture struct {
@@ -28,6 +30,7 @@ type TestFixture struct {
 
 	ctx         sdk.Context
 	k           keeper.Keeper
+	zkeeper     zkkeeper.Keeper
 	msgServer   types.MsgServer
 	queryServer types.QueryServer
 	appModule   *module.AppModule
@@ -58,10 +61,14 @@ func SetupTest(t *testing.T) *TestFixture {
 	registerBaseSDKModules(f, encCfg, storeService, logger, require)
 
 	// Setup Keeper.
-	f.k = keeper.NewKeeper(encCfg.Codec, storeService, logger, f.govModAddr)
+	f.zkeeper = zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, f.govModAddr)
+	f.zkeeper.Params.Set(f.ctx, zktypes.DefaultParams())
+	f.k = keeper.NewKeeper(encCfg.Codec, storeService, logger, f.govModAddr, f.zkeeper)
 	f.msgServer = keeper.NewMsgServerImpl(f.k)
 	f.queryServer = keeper.NewQuerier(f.k)
 	f.appModule = module.NewAppModule(encCfg.Codec, f.k)
+
+	// Setup Keeper.
 
 	return f
 }

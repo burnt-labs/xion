@@ -3,8 +3,6 @@ package keeper
 import (
 	"context"
 
-	"github.com/vocdoni/circom2gnark/parser"
-
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -15,6 +13,7 @@ import (
 
 	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 )
 
 type Keeper struct {
@@ -25,6 +24,7 @@ type Keeper struct {
 	// state management
 	Schema      collections.Schema
 	DkimPubKeys collections.Map[collections.Pair[string, string], apiv1.DkimPubKey]
+	ZkKeeper    zkkeeper.Keeper
 
 	authority string
 }
@@ -35,6 +35,7 @@ func NewKeeper(
 	storeService storetypes.KVStoreService,
 	logger log.Logger,
 	authority string,
+	zkKeeper zkkeeper.Keeper,
 ) Keeper {
 	logger = logger.With(log.ModuleKey, "x/"+types.ModuleName)
 
@@ -49,12 +50,13 @@ func NewKeeper(
 		logger: logger,
 		DkimPubKeys: collections.NewMap(
 			sb,
-			types.DkimPrefix, // NOTE: add an actual prefix
+			types.DkimPrefix,
 			"dkim_pubkeys",
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
 			codec.CollValue[apiv1.DkimPubKey](cdc),
 		),
 		authority: authority,
+		ZkKeeper:  zkKeeper,
 	}
 
 	schema, err := sb.Build()
@@ -121,12 +123,4 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	return &types.GenesisState{
 		DkimPubkeys: dkimPubKeys,
 	}
-}
-
-func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *parser.CircomVerificationKey, inputs *[]string) (bool, error) {
-	gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
-	if err != nil {
-		return false, err
-	}
-	return parser.VerifyProof(gnarkProof)
 }

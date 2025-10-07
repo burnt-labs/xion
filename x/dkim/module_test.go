@@ -21,6 +21,8 @@ import (
 	dkimmodule "github.com/burnt-labs/xion/x/dkim"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
+
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 )
 
 func setupModule(t *testing.T) (*dkimmodule.AppModule, sdk.Context) {
@@ -34,7 +36,9 @@ func setupModule(t *testing.T) (*dkimmodule.AppModule, sdk.Context) {
 	govModAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	logger := log.NewTestLogger(t)
 
-	k := keeper.NewKeeper(encCfg.Codec, storeService, logger, govModAddr)
+	zkeeper := zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, govModAddr)
+
+	k := keeper.NewKeeper(encCfg.Codec, storeService, logger, govModAddr, zkeeper)
 
 	appModule := dkimmodule.NewAppModule(encCfg.Codec, k)
 

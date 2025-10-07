@@ -10,8 +10,14 @@ import (
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/vocdoni/circom2gnark/parser"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
+
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
+
+	"cosmossdk.io/errors"
 )
 
 var _ types.QueryServer = Querier{}
@@ -150,6 +156,45 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 		DkimPubKeys: paginatedPubKeys,
 		Pagination:  pageRes,
 	}, nil
+}
+
+func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
+	var verified bool
+	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
+	}
+	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
+	}
+	// encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
+	// txBz, err := CalculateTxBodyCommitment(encodedTxBytes)
+	txBz, err := zktypes.CalculateTxBodyCommitment(string(req.TxBytes))
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
+	}
+	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
+	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := k.ZkKeeper.Params.Get(c)
+	if err != nil {
+		return nil, err
+	}
+	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
+	if err != nil {
+		return nil, err
+	}
+
+	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &inputs)
+	if err != nil {
+		fmt.Printf("we have passed verifications with errors??: %s\n", err.Error())
+		return nil, err
+	}
+	return &types.AuthenticateResponse{Verified: verified}, nil
 }
 
 // func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {

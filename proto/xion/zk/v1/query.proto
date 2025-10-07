@@ -16,7 +16,7 @@ service Query {
 
   // ProofVerify verifies a zk proof for email authentication.
   rpc ProofVerify(QueryVerifyRequest) returns (ProofVerifyResponse) {
-    option (google.api.http).get = "/zk/v1/dkim_verify";
+    option (google.api.http).get = "/zk/v1/verify";
   }
 }
 

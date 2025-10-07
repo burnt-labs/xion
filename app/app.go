@@ -20,6 +20,10 @@ import (
 	dkim "github.com/burnt-labs/xion/x/dkim"
 	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
 	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
+
+	zk "github.com/burnt-labs/xion/x/zk"
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings"
@@ -280,6 +284,7 @@ type WasmApp struct {
 	JwkKeeper          jwkkeeper.Keeper
 	TokenFactoryKeeper tokenfactorykeeper.Keeper
 	DkimKeeper         dkimkeeper.Keeper
+	ZkKeeper           zkkeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -357,7 +362,7 @@ func NewWasmApp(
 		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, packetforwardtypes.StoreKey,
-		jwktypes.StoreKey, tokenfactorytypes.StoreKey, dkimtypes.StoreKey,
+		jwktypes.StoreKey, tokenfactorytypes.StoreKey, zktypes.StoreKey, dkimtypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -589,11 +594,19 @@ func NewWasmApp(
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
+
+	app.ZkKeeper = zkkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[zktypes.StoreKey]),
+		logger,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 	app.DkimKeeper = dkimkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[dkimtypes.StoreKey]),
 		logger,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.ZkKeeper,
 	)
 
 	app.JwkKeeper = jwkkeeper.NewKeeper(
@@ -880,6 +893,7 @@ func NewWasmApp(
 		// ibchooks.NewAppModule(app.AccountKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
+		zk.NewAppModule(appCodec, app.ZkKeeper),
 		dkim.NewAppModule(appCodec, app.DkimKeeper),
 	)
 
@@ -987,6 +1001,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		zktypes.ModuleName,
 		dkimtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -1329,6 +1344,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
+	paramsKeeper.Subspace(zktypes.ModuleName)
 	paramsKeeper.Subspace(dkimtypes.ModuleName)
 
 	// IBC params migration - legacySubspace to selfManaged

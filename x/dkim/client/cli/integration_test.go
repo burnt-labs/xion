@@ -25,11 +25,15 @@ import (
 	"github.com/burnt-labs/xion/x/dkim/client/cli"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
+
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
 type IntegrationTestSuite struct {
 	ctx         sdk.Context
 	keeper      keeper.Keeper
+	zkeeper     zkkeeper.Keeper
 	queryServer types.QueryServer
 	clientCtx   client.Context
 	cdc         codec.Codec
@@ -56,7 +60,9 @@ func setupIntegrationTest(t *testing.T) *IntegrationTestSuite {
 	// Create keeper
 	govModAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	logger := log.NewTestLogger(t)
-	suite.keeper = keeper.NewKeeper(suite.cdc, storeService, logger, govModAddr)
+	suite.zkeeper = zkkeeper.NewKeeper(suite.cdc, storeService, logger, govModAddr)
+	suite.zkeeper.Params.Set(suite.ctx, zktypes.DefaultParams())
+	suite.keeper = keeper.NewKeeper(suite.cdc, storeService, logger, govModAddr, suite.zkeeper)
 
 	// Create query server
 	suite.queryServer = keeper.NewQuerier(suite.keeper)

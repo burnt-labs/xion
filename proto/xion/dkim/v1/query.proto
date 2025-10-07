@@ -19,6 +19,11 @@ service Query {
   rpc DkimPubKeys(QueryDkimPubKeysRequest) returns (QueryDkimPubKeysResponse) {
     option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
   }
+
+  // ProofVerify verifies a zk proof for email authentication.
+  rpc Authenticate(QueryAuthenticateRequest) returns (AuthenticateResponse) {
+    option (google.api.http).get = "/dkim/v1/auth";
+  }
 }
 
 // QueryDkimPubKeyRequest is the request type for the Query/DkimPubKey RPC
@@ -57,5 +62,19 @@ message QueryDkimPubKeysResponse {
   repeated DkimPubKey dkim_pub_keys = 1;
   // pagination defines the pagination response.
   cosmos.base.query.v1beta1.PageResponse pagination = 3;
+}
+
+
+message QueryAuthenticateRequest {
+  string dkim_domain = 1;
+  bytes tx_bytes = 2;
+  bytes email_hash = 3;
+  bytes dkim_hash = 4;
+  bytes proof = 5;
+}
+// AuthenticateResponse defines the response structure for proof verification.
+message AuthenticateResponse {
+  // verified indicates whether the proof verification was successful.
+  bool verified = 1;
 }
 

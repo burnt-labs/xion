@@ -47,7 +47,7 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	}
 	// encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
 	// txBz, err := CalculateTxBodyCommitment(encodedTxBytes)
-	txBz, err := CalculateTxBodyCommitment(string(req.TxBytes))
+	txBz, err := types.CalculateTxBodyCommitment(string(req.TxBytes))
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
 	}
