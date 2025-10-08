@@ -28,66 +28,71 @@ func TestQueryProofVerify(t *testing.T) {
 	dkimBz, err := b64.StdEncoding.DecodeString("iEeNSGFNAiTctrIgoVuE40DFz/ATm+ip5RBx3HfHqQ4=")
 	require.NoError(t, err)
 
+	emailHash, err := fr.LittleEndian.Element(&emailBz)
+	require.NoError(t, err)
+
+	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(dkimBz))
+	require.NoError(t, err)
+
+	// encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
+	// txBz, err := CalculateTxBodyCommitment(encodedTxBytes)
+	txBz, err := types.CalculateTxBodyCommitment(txB4s)
+	require.NoError(t, err)
+
 	testCases := []struct {
 		name        string
 		proofBz     []byte
-		txBz        string
-		dkimBz      []byte
-		emailBz     []byte
+		tx          string
+		dkim        string
+		email       string
 		shouldError bool
 	}{
 		{
 			name:        "verify proof success",
 			proofBz:     proofData,
-			txBz:        txB4s,
-			dkimBz:      dkimBz,
-			emailBz:     email,
+			tx:          txBz.String(),
+			dkim:        dkimHash.String(),
+			email:       emailHash.String(),
 			shouldError: false,
 		},
 		{
 			name:        "invalid proof data",
 			proofBz:     []byte("invalid"),
-			txBz:        txB4s,
-			dkimBz:      dkimBz,
-			emailBz:     email,
+			tx:          txBz.String(),
+			dkim:        dkimHash.String(),
+			email:       emailHash.String(),
 			shouldError: true,
 		},
 		{
 			name:        "empty proof",
 			proofBz:     []byte{},
-			txBz:        txB4s,
-			dkimBz:      dkimBz,
-			emailBz:     email,
+			tx:          txBz.String(),
+			dkim:        dkimHash.String(),
+			email:       emailHash.String(),
 			shouldError: true,
 		},
 		{
-			name:    "invalid email hash - all zeros",
-			proofBz: proofData,
-			txBz:    txB4s,
-			dkimBz:  dkimBz,
-			emailBz: func() []byte {
-				b := make([]byte, 32)
-				return b
-			}(),
+			name:        "invalid email hash - all zeros",
+			proofBz:     proofData,
+			tx:          txBz.String(),
+			dkim:        dkimHash.String(),
+			email:       "",
 			shouldError: true, // Will fail proof verification
 		},
 		{
-			name:    "invalid dkim hash - all zeros",
-			proofBz: proofData,
-			txBz:    txB4s,
-			dkimBz: func() []byte {
-				b := make([]byte, 32)
-				return b
-			}(),
-			emailBz:     email,
+			name:        "invalid dkim hash - all zeros",
+			proofBz:     proofData,
+			tx:          txBz.String(),
+			dkim:        "",
+			email:       emailHash.String(),
 			shouldError: true, // Will fail proof verification
 		},
 		{
 			name:        "invalid transaction bytes",
 			proofBz:     proofData,
-			txBz:        "invalid-base64-tx!!!",
-			dkimBz:      dkimBz,
-			emailBz:     email,
+			tx:          "invalid-base64-tx!!!",
+			dkim:        dkimHash.String(),
+			email:       emailHash.String(),
 			shouldError: true,
 		},
 	}
@@ -95,17 +100,16 @@ func TestQueryProofVerify(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(_ *testing.T) {
 			r := &types.QueryVerifyRequest{
-				TxBytes:   []byte(tc.txBz),
-				Proof:     tc.proofBz,
-				DkimHash:  tc.dkimBz,
-				EmailHash: tc.emailBz,
+				Proof:        tc.proofBz,
+				PublicInputs: []string{tc.tx, tc.email, tc.dkim},
+				Vkey:         types.DefaultParams().Vkey,
 			}
 			res, err := f.queryServer.ProofVerify(f.ctx, r)
 			if tc.shouldError {
 				require.Error(t, err)
 			} else {
-				require.NoError(t, err)
-				require.True(t, res.Verified)
+				require.NoError(t, err, tc.name)
+				require.True(t, res.Verified, tc.name)
 			}
 		})
 	}

@@ -41,11 +41,9 @@ message SnarkJsProof {
 
 
 message QueryVerifyRequest {
-  string dkim_domain = 1;
-  bytes tx_bytes = 2;
-  bytes email_hash = 3;
-  bytes dkim_hash = 4;
-  bytes proof = 5;
+  bytes proof = 1;
+  repeated string public_inputs = 2;
+  bytes vkey = 3;
 }
 // ProofVerifyResponse defines the response structure for proof verification.
 message ProofVerifyResponse {

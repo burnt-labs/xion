@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Query_DkimPubKey_FullMethodName  = "/xion.dkim.v1.Query/DkimPubKey"
-	Query_DkimPubKeys_FullMethodName = "/xion.dkim.v1.Query/DkimPubKeys"
+	Query_DkimPubKey_FullMethodName   = "/xion.dkim.v1.Query/DkimPubKey"
+	Query_DkimPubKeys_FullMethodName  = "/xion.dkim.v1.Query/DkimPubKeys"
+	Query_Authenticate_FullMethodName = "/xion.dkim.v1.Query/Authenticate"
 )
 
 // QueryClient is the client API for Query service.
@@ -33,6 +34,8 @@ type QueryClient interface {
 	DkimPubKey(ctx context.Context, in *QueryDkimPubKeyRequest, opts ...grpc.CallOption) (*QueryDkimPubKeyResponse, error)
 	// DkimPubKeys queries the DKIM public keys for a given selectors and domains.
 	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error)
+	// ProofVerify verifies a zk proof for email authentication.
+	Authenticate(ctx context.Context, in *QueryAuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 }
 
 type queryClient struct {
@@ -63,6 +66,16 @@ func (c *queryClient) DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysReque
 	return out, nil
 }
 
+func (c *queryClient) Authenticate(ctx context.Context, in *QueryAuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthenticateResponse)
+	err := c.cc.Invoke(ctx, Query_Authenticate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
@@ -73,6 +86,8 @@ type QueryServer interface {
 	DkimPubKey(context.Context, *QueryDkimPubKeyRequest) (*QueryDkimPubKeyResponse, error)
 	// DkimPubKeys queries the DKIM public keys for a given selectors and domains.
 	DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error)
+	// ProofVerify verifies a zk proof for email authentication.
+	Authenticate(context.Context, *QueryAuthenticateRequest) (*AuthenticateResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -88,6 +103,9 @@ func (UnimplementedQueryServer) DkimPubKey(context.Context, *QueryDkimPubKeyRequ
 }
 func (UnimplementedQueryServer) DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DkimPubKeys not implemented")
+}
+func (UnimplementedQueryServer) Authenticate(context.Context, *QueryAuthenticateRequest) (*AuthenticateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -146,6 +164,24 @@ func _Query_DkimPubKeys_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAuthenticateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).Authenticate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_Authenticate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).Authenticate(ctx, req.(*QueryAuthenticateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +196,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DkimPubKeys",
 			Handler:    _Query_DkimPubKeys_Handler,
+		},
+		{
+			MethodName: "Authenticate",
+			Handler:    _Query_Authenticate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

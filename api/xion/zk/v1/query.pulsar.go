@@ -1533,23 +1533,65 @@ func (x *fastReflection_SnarkJsProof) ProtoMethods() *protoiface.Methods {
 	}
 }
 
+var _ protoreflect.List = (*_QueryVerifyRequest_2_list)(nil)
+
+type _QueryVerifyRequest_2_list struct {
+	list *[]string
+}
+
+func (x *_QueryVerifyRequest_2_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_QueryVerifyRequest_2_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfString((*x.list)[i])
+}
+
+func (x *_QueryVerifyRequest_2_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_QueryVerifyRequest_2_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_QueryVerifyRequest_2_list) AppendMutable() protoreflect.Value {
+	panic(fmt.Errorf("AppendMutable can not be called on message QueryVerifyRequest at list field PublicInputs as it is not of Message kind"))
+}
+
+func (x *_QueryVerifyRequest_2_list) Truncate(n int) {
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_QueryVerifyRequest_2_list) NewElement() protoreflect.Value {
+	v := ""
+	return protoreflect.ValueOfString(v)
+}
+
+func (x *_QueryVerifyRequest_2_list) IsValid() bool {
+	return x.list != nil
+}
+
 var (
-	md_QueryVerifyRequest             protoreflect.MessageDescriptor
-	fd_QueryVerifyRequest_dkim_domain protoreflect.FieldDescriptor
-	fd_QueryVerifyRequest_tx_bytes    protoreflect.FieldDescriptor
-	fd_QueryVerifyRequest_email_hash  protoreflect.FieldDescriptor
-	fd_QueryVerifyRequest_dkim_hash   protoreflect.FieldDescriptor
-	fd_QueryVerifyRequest_proof       protoreflect.FieldDescriptor
+	md_QueryVerifyRequest               protoreflect.MessageDescriptor
+	fd_QueryVerifyRequest_proof         protoreflect.FieldDescriptor
+	fd_QueryVerifyRequest_public_inputs protoreflect.FieldDescriptor
+	fd_QueryVerifyRequest_vkey          protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_xion_zk_v1_query_proto_init()
 	md_QueryVerifyRequest = File_xion_zk_v1_query_proto.Messages().ByName("QueryVerifyRequest")
-	fd_QueryVerifyRequest_dkim_domain = md_QueryVerifyRequest.Fields().ByName("dkim_domain")
-	fd_QueryVerifyRequest_tx_bytes = md_QueryVerifyRequest.Fields().ByName("tx_bytes")
-	fd_QueryVerifyRequest_email_hash = md_QueryVerifyRequest.Fields().ByName("email_hash")
-	fd_QueryVerifyRequest_dkim_hash = md_QueryVerifyRequest.Fields().ByName("dkim_hash")
 	fd_QueryVerifyRequest_proof = md_QueryVerifyRequest.Fields().ByName("proof")
+	fd_QueryVerifyRequest_public_inputs = md_QueryVerifyRequest.Fields().ByName("public_inputs")
+	fd_QueryVerifyRequest_vkey = md_QueryVerifyRequest.Fields().ByName("vkey")
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryVerifyRequest)(nil)
@@ -1617,33 +1659,21 @@ func (x *fastReflection_QueryVerifyRequest) Interface() protoreflect.ProtoMessag
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_QueryVerifyRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.DkimDomain != "" {
-		value := protoreflect.ValueOfString(x.DkimDomain)
-		if !f(fd_QueryVerifyRequest_dkim_domain, value) {
-			return
-		}
-	}
-	if len(x.TxBytes) != 0 {
-		value := protoreflect.ValueOfBytes(x.TxBytes)
-		if !f(fd_QueryVerifyRequest_tx_bytes, value) {
-			return
-		}
-	}
-	if len(x.EmailHash) != 0 {
-		value := protoreflect.ValueOfBytes(x.EmailHash)
-		if !f(fd_QueryVerifyRequest_email_hash, value) {
-			return
-		}
-	}
-	if len(x.DkimHash) != 0 {
-		value := protoreflect.ValueOfBytes(x.DkimHash)
-		if !f(fd_QueryVerifyRequest_dkim_hash, value) {
-			return
-		}
-	}
 	if len(x.Proof) != 0 {
 		value := protoreflect.ValueOfBytes(x.Proof)
 		if !f(fd_QueryVerifyRequest_proof, value) {
+			return
+		}
+	}
+	if len(x.PublicInputs) != 0 {
+		value := protoreflect.ValueOfList(&_QueryVerifyRequest_2_list{list: &x.PublicInputs})
+		if !f(fd_QueryVerifyRequest_public_inputs, value) {
+			return
+		}
+	}
+	if len(x.Vkey) != 0 {
+		value := protoreflect.ValueOfBytes(x.Vkey)
+		if !f(fd_QueryVerifyRequest_vkey, value) {
 			return
 		}
 	}
@@ -1662,16 +1692,12 @@ func (x *fastReflection_QueryVerifyRequest) Range(f func(protoreflect.FieldDescr
 // a repeated field is populated if it is non-empty.
 func (x *fastReflection_QueryVerifyRequest) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "xion.zk.v1.QueryVerifyRequest.dkim_domain":
-		return x.DkimDomain != ""
-	case "xion.zk.v1.QueryVerifyRequest.tx_bytes":
-		return len(x.TxBytes) != 0
-	case "xion.zk.v1.QueryVerifyRequest.email_hash":
-		return len(x.EmailHash) != 0
-	case "xion.zk.v1.QueryVerifyRequest.dkim_hash":
-		return len(x.DkimHash) != 0
 	case "xion.zk.v1.QueryVerifyRequest.proof":
 		return len(x.Proof) != 0
+	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
+		return len(x.PublicInputs) != 0
+	case "xion.zk.v1.QueryVerifyRequest.vkey":
+		return len(x.Vkey) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -1688,16 +1714,12 @@ func (x *fastReflection_QueryVerifyRequest) Has(fd protoreflect.FieldDescriptor)
 // Clear is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryVerifyRequest) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "xion.zk.v1.QueryVerifyRequest.dkim_domain":
-		x.DkimDomain = ""
-	case "xion.zk.v1.QueryVerifyRequest.tx_bytes":
-		x.TxBytes = nil
-	case "xion.zk.v1.QueryVerifyRequest.email_hash":
-		x.EmailHash = nil
-	case "xion.zk.v1.QueryVerifyRequest.dkim_hash":
-		x.DkimHash = nil
 	case "xion.zk.v1.QueryVerifyRequest.proof":
 		x.Proof = nil
+	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
+		x.PublicInputs = nil
+	case "xion.zk.v1.QueryVerifyRequest.vkey":
+		x.Vkey = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -1714,20 +1736,17 @@ func (x *fastReflection_QueryVerifyRequest) Clear(fd protoreflect.FieldDescripto
 // of the value; to obtain a mutable reference, use Mutable.
 func (x *fastReflection_QueryVerifyRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "xion.zk.v1.QueryVerifyRequest.dkim_domain":
-		value := x.DkimDomain
-		return protoreflect.ValueOfString(value)
-	case "xion.zk.v1.QueryVerifyRequest.tx_bytes":
-		value := x.TxBytes
-		return protoreflect.ValueOfBytes(value)
-	case "xion.zk.v1.QueryVerifyRequest.email_hash":
-		value := x.EmailHash
-		return protoreflect.ValueOfBytes(value)
-	case "xion.zk.v1.QueryVerifyRequest.dkim_hash":
-		value := x.DkimHash
-		return protoreflect.ValueOfBytes(value)
 	case "xion.zk.v1.QueryVerifyRequest.proof":
 		value := x.Proof
+		return protoreflect.ValueOfBytes(value)
+	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
+		if len(x.PublicInputs) == 0 {
+			return protoreflect.ValueOfList(&_QueryVerifyRequest_2_list{})
+		}
+		listValue := &_QueryVerifyRequest_2_list{list: &x.PublicInputs}
+		return protoreflect.ValueOfList(listValue)
+	case "xion.zk.v1.QueryVerifyRequest.vkey":
+		value := x.Vkey
 		return protoreflect.ValueOfBytes(value)
 	default:
 		if descriptor.IsExtension() {
@@ -1749,16 +1768,14 @@ func (x *fastReflection_QueryVerifyRequest) Get(descriptor protoreflect.FieldDes
 // Set is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryVerifyRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "xion.zk.v1.QueryVerifyRequest.dkim_domain":
-		x.DkimDomain = value.Interface().(string)
-	case "xion.zk.v1.QueryVerifyRequest.tx_bytes":
-		x.TxBytes = value.Bytes()
-	case "xion.zk.v1.QueryVerifyRequest.email_hash":
-		x.EmailHash = value.Bytes()
-	case "xion.zk.v1.QueryVerifyRequest.dkim_hash":
-		x.DkimHash = value.Bytes()
 	case "xion.zk.v1.QueryVerifyRequest.proof":
 		x.Proof = value.Bytes()
+	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
+		lv := value.List()
+		clv := lv.(*_QueryVerifyRequest_2_list)
+		x.PublicInputs = *clv.list
+	case "xion.zk.v1.QueryVerifyRequest.vkey":
+		x.Vkey = value.Bytes()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -1779,16 +1796,16 @@ func (x *fastReflection_QueryVerifyRequest) Set(fd protoreflect.FieldDescriptor,
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_QueryVerifyRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "xion.zk.v1.QueryVerifyRequest.dkim_domain":
-		panic(fmt.Errorf("field dkim_domain of message xion.zk.v1.QueryVerifyRequest is not mutable"))
-	case "xion.zk.v1.QueryVerifyRequest.tx_bytes":
-		panic(fmt.Errorf("field tx_bytes of message xion.zk.v1.QueryVerifyRequest is not mutable"))
-	case "xion.zk.v1.QueryVerifyRequest.email_hash":
-		panic(fmt.Errorf("field email_hash of message xion.zk.v1.QueryVerifyRequest is not mutable"))
-	case "xion.zk.v1.QueryVerifyRequest.dkim_hash":
-		panic(fmt.Errorf("field dkim_hash of message xion.zk.v1.QueryVerifyRequest is not mutable"))
+	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
+		if x.PublicInputs == nil {
+			x.PublicInputs = []string{}
+		}
+		value := &_QueryVerifyRequest_2_list{list: &x.PublicInputs}
+		return protoreflect.ValueOfList(value)
 	case "xion.zk.v1.QueryVerifyRequest.proof":
 		panic(fmt.Errorf("field proof of message xion.zk.v1.QueryVerifyRequest is not mutable"))
+	case "xion.zk.v1.QueryVerifyRequest.vkey":
+		panic(fmt.Errorf("field vkey of message xion.zk.v1.QueryVerifyRequest is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -1802,15 +1819,12 @@ func (x *fastReflection_QueryVerifyRequest) Mutable(fd protoreflect.FieldDescrip
 // For lists, maps, and messages, this returns a new, empty, mutable value.
 func (x *fastReflection_QueryVerifyRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "xion.zk.v1.QueryVerifyRequest.dkim_domain":
-		return protoreflect.ValueOfString("")
-	case "xion.zk.v1.QueryVerifyRequest.tx_bytes":
-		return protoreflect.ValueOfBytes(nil)
-	case "xion.zk.v1.QueryVerifyRequest.email_hash":
-		return protoreflect.ValueOfBytes(nil)
-	case "xion.zk.v1.QueryVerifyRequest.dkim_hash":
-		return protoreflect.ValueOfBytes(nil)
 	case "xion.zk.v1.QueryVerifyRequest.proof":
+		return protoreflect.ValueOfBytes(nil)
+	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
+		list := []string{}
+		return protoreflect.ValueOfList(&_QueryVerifyRequest_2_list{list: &list})
+	case "xion.zk.v1.QueryVerifyRequest.vkey":
 		return protoreflect.ValueOfBytes(nil)
 	default:
 		if fd.IsExtension() {
@@ -1881,23 +1895,17 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		l = len(x.DkimDomain)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		l = len(x.TxBytes)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		l = len(x.EmailHash)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		l = len(x.DkimHash)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
 		l = len(x.Proof)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if len(x.PublicInputs) > 0 {
+			for _, s := range x.PublicInputs {
+				l = len(s)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		l = len(x.Vkey)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
@@ -1930,38 +1938,26 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
+		if len(x.Vkey) > 0 {
+			i -= len(x.Vkey)
+			copy(dAtA[i:], x.Vkey)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Vkey)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if len(x.PublicInputs) > 0 {
+			for iNdEx := len(x.PublicInputs) - 1; iNdEx >= 0; iNdEx-- {
+				i -= len(x.PublicInputs[iNdEx])
+				copy(dAtA[i:], x.PublicInputs[iNdEx])
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.PublicInputs[iNdEx])))
+				i--
+				dAtA[i] = 0x12
+			}
+		}
 		if len(x.Proof) > 0 {
 			i -= len(x.Proof)
 			copy(dAtA[i:], x.Proof)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Proof)))
-			i--
-			dAtA[i] = 0x2a
-		}
-		if len(x.DkimHash) > 0 {
-			i -= len(x.DkimHash)
-			copy(dAtA[i:], x.DkimHash)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.DkimHash)))
-			i--
-			dAtA[i] = 0x22
-		}
-		if len(x.EmailHash) > 0 {
-			i -= len(x.EmailHash)
-			copy(dAtA[i:], x.EmailHash)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.EmailHash)))
-			i--
-			dAtA[i] = 0x1a
-		}
-		if len(x.TxBytes) > 0 {
-			i -= len(x.TxBytes)
-			copy(dAtA[i:], x.TxBytes)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.TxBytes)))
-			i--
-			dAtA[i] = 0x12
-		}
-		if len(x.DkimDomain) > 0 {
-			i -= len(x.DkimDomain)
-			copy(dAtA[i:], x.DkimDomain)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.DkimDomain)))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -2016,140 +2012,6 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 			switch fieldNum {
 			case 1:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DkimDomain", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.DkimDomain = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 2:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field TxBytes", wireType)
-				}
-				var byteLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					byteLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if byteLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + byteLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.TxBytes = append(x.TxBytes[:0], dAtA[iNdEx:postIndex]...)
-				if x.TxBytes == nil {
-					x.TxBytes = []byte{}
-				}
-				iNdEx = postIndex
-			case 3:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EmailHash", wireType)
-				}
-				var byteLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					byteLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if byteLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + byteLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.EmailHash = append(x.EmailHash[:0], dAtA[iNdEx:postIndex]...)
-				if x.EmailHash == nil {
-					x.EmailHash = []byte{}
-				}
-				iNdEx = postIndex
-			case 4:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DkimHash", wireType)
-				}
-				var byteLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					byteLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if byteLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + byteLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.DkimHash = append(x.DkimHash[:0], dAtA[iNdEx:postIndex]...)
-				if x.DkimHash == nil {
-					x.DkimHash = []byte{}
-				}
-				iNdEx = postIndex
-			case 5:
-				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
 				}
 				var byteLen int
@@ -2180,6 +2042,72 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 				x.Proof = append(x.Proof[:0], dAtA[iNdEx:postIndex]...)
 				if x.Proof == nil {
 					x.Proof = []byte{}
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field PublicInputs", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.PublicInputs = append(x.PublicInputs, string(dAtA[iNdEx:postIndex]))
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Vkey = append(x.Vkey[:0], dAtA[iNdEx:postIndex]...)
+				if x.Vkey == nil {
+					x.Vkey = []byte{}
 				}
 				iNdEx = postIndex
 			default:
@@ -2764,11 +2692,9 @@ type QueryVerifyRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DkimDomain string `protobuf:"bytes,1,opt,name=dkim_domain,json=dkimDomain,proto3" json:"dkim_domain,omitempty"`
-	TxBytes    []byte `protobuf:"bytes,2,opt,name=tx_bytes,json=txBytes,proto3" json:"tx_bytes,omitempty"`
-	EmailHash  []byte `protobuf:"bytes,3,opt,name=email_hash,json=emailHash,proto3" json:"email_hash,omitempty"`
-	DkimHash   []byte `protobuf:"bytes,4,opt,name=dkim_hash,json=dkimHash,proto3" json:"dkim_hash,omitempty"`
-	Proof      []byte `protobuf:"bytes,5,opt,name=proof,proto3" json:"proof,omitempty"`
+	Proof        []byte   `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
+	PublicInputs []string `protobuf:"bytes,2,rep,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
+	Vkey         []byte   `protobuf:"bytes,3,opt,name=vkey,proto3" json:"vkey,omitempty"`
 }
 
 func (x *QueryVerifyRequest) Reset() {
@@ -2791,37 +2717,23 @@ func (*QueryVerifyRequest) Descriptor() ([]byte, []int) {
 	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *QueryVerifyRequest) GetDkimDomain() string {
-	if x != nil {
-		return x.DkimDomain
-	}
-	return ""
-}
-
-func (x *QueryVerifyRequest) GetTxBytes() []byte {
-	if x != nil {
-		return x.TxBytes
-	}
-	return nil
-}
-
-func (x *QueryVerifyRequest) GetEmailHash() []byte {
-	if x != nil {
-		return x.EmailHash
-	}
-	return nil
-}
-
-func (x *QueryVerifyRequest) GetDkimHash() []byte {
-	if x != nil {
-		return x.DkimHash
-	}
-	return nil
-}
-
 func (x *QueryVerifyRequest) GetProof() []byte {
 	if x != nil {
 		return x.Proof
+	}
+	return nil
+}
+
+func (x *QueryVerifyRequest) GetPublicInputs() []string {
+	if x != nil {
+		return x.PublicInputs
+	}
+	return nil
+}
+
+func (x *QueryVerifyRequest) GetVkey() []byte {
+	if x != nil {
+		return x.Vkey
 	}
 	return nil
 }
@@ -2884,44 +2796,40 @@ var file_xion_zk_v1_query_proto_rawDesc = []byte{
 	0x66, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69, 0x5f, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0c, 0x52,
 	0x03, 0x70, 0x69, 0x41, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69, 0x5f, 0x62, 0x18, 0x02, 0x20, 0x03,
 	0x28, 0x0c, 0x52, 0x03, 0x70, 0x69, 0x42, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69, 0x5f, 0x63, 0x18,
-	0x03, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x03, 0x70, 0x69, 0x43, 0x22, 0xa2, 0x01, 0x0a, 0x12, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x1f, 0x0a, 0x0b, 0x64, 0x6b, 0x69, 0x6d, 0x5f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x64, 0x6b, 0x69, 0x6d, 0x44, 0x6f, 0x6d, 0x61,
-	0x69, 0x6e, 0x12, 0x19, 0x0a, 0x08, 0x74, 0x78, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x0c, 0x52, 0x07, 0x74, 0x78, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x1d, 0x0a,
-	0x0a, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x0c, 0x52, 0x09, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x48, 0x61, 0x73, 0x68, 0x12, 0x1b, 0x0a, 0x09,
-	0x64, 0x6b, 0x69, 0x6d, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0c, 0x52,
-	0x08, 0x64, 0x6b, 0x69, 0x6d, 0x48, 0x61, 0x73, 0x68, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x72, 0x6f,
-	0x6f, 0x66, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x22,
+	0x03, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x03, 0x70, 0x69, 0x43, 0x22, 0x63, 0x0a, 0x12, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x14, 0x0a, 0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52,
+	0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x12, 0x23, 0x0a, 0x0d, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63,
+	0x5f, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0c, 0x70,
+	0x75, 0x62, 0x6c, 0x69, 0x63, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x76,
+	0x6b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x22,
 	0x31, 0x0a, 0x13, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69,
 	0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69,
-	0x65, 0x64, 0x32, 0xd5, 0x01, 0x0a, 0x05, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x60, 0x0a, 0x06,
+	0x65, 0x64, 0x32, 0xd0, 0x01, 0x0a, 0x05, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x60, 0x0a, 0x06,
 	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x1e, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b,
 	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b,
 	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52,
 	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x15, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0f, 0x12,
-	0x0d, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x6a,
+	0x0d, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x65,
 	0x0a, 0x0b, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x12, 0x1e, 0x2e,
 	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
 	0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e,
 	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x6f, 0x66,
-	0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1a,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x14, 0x12, 0x12, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x64,
-	0x6b, 0x69, 0x6d, 0x5f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x79, 0x42, 0x96, 0x01, 0x0a, 0x0e, 0x63,
-	0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2e, 0x67, 0x69, 0x74,
-	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61,
-	0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e,
-	0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x3b, 0x7a, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x5a,
-	0x58, 0xaa, 0x02, 0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x5a, 0x6b, 0x2e, 0x56, 0x31, 0xca, 0x02,
-	0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x58, 0x69,
-	0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61,
-	0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x5a, 0x6b, 0x3a,
-	0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x15,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0f, 0x12, 0x0d, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x76,
+	0x65, 0x72, 0x69, 0x66, 0x79, 0x42, 0x96, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69,
+	0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50,
+	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78, 0x69,
+	0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x7a, 0x6b, 0x2f, 0x76,
+	0x31, 0x3b, 0x7a, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x5a, 0x58, 0xaa, 0x02, 0x0a, 0x58,
+	0x69, 0x6f, 0x6e, 0x2e, 0x5a, 0x6b, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0a, 0x58, 0x69, 0x6f, 0x6e,
+	0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x5a, 0x6b,
+	0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
+	0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x5a, 0x6b, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
