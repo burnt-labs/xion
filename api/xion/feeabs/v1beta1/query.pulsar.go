@@ -2,19 +2,17 @@
 package feeabsv1beta1
 
 import (
-	fmt "fmt"
-	io "io"
-	reflect "reflect"
-	sync "sync"
-
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
-
+	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	io "io"
+	reflect "reflect"
+	sync "sync"
 )
 
 var (
@@ -48,21 +46,17 @@ func (x *QueryHostChainConfigRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryHostChainConfigRequest_messageType fastReflection_QueryHostChainConfigRequest_messageType
-	_                                                       protoreflect.MessageType = fastReflection_QueryHostChainConfigRequest_messageType{}
-)
+var _fastReflection_QueryHostChainConfigRequest_messageType fastReflection_QueryHostChainConfigRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryHostChainConfigRequest_messageType{}
 
 type fastReflection_QueryHostChainConfigRequest_messageType struct{}
 
 func (x fastReflection_QueryHostChainConfigRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryHostChainConfigRequest)(nil)
 }
-
 func (x fastReflection_QueryHostChainConfigRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryHostChainConfigRequest)
 }
-
 func (x fastReflection_QueryHostChainConfigRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryHostChainConfigRequest
 }
@@ -472,21 +466,17 @@ func (x *QueryHostChainConfigResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryHostChainConfigResponse_messageType fastReflection_QueryHostChainConfigResponse_messageType
-	_                                                        protoreflect.MessageType = fastReflection_QueryHostChainConfigResponse_messageType{}
-)
+var _fastReflection_QueryHostChainConfigResponse_messageType fastReflection_QueryHostChainConfigResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryHostChainConfigResponse_messageType{}
 
 type fastReflection_QueryHostChainConfigResponse_messageType struct{}
 
 func (x fastReflection_QueryHostChainConfigResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryHostChainConfigResponse)(nil)
 }
-
 func (x fastReflection_QueryHostChainConfigResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryHostChainConfigResponse)
 }
-
 func (x fastReflection_QueryHostChainConfigResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryHostChainConfigResponse
 }
@@ -911,21 +901,17 @@ func (x *QueryOsmosisArithmeticTwapRequest) slowProtoReflect() protoreflect.Mess
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryOsmosisArithmeticTwapRequest_messageType fastReflection_QueryOsmosisArithmeticTwapRequest_messageType
-	_                                                             protoreflect.MessageType = fastReflection_QueryOsmosisArithmeticTwapRequest_messageType{}
-)
+var _fastReflection_QueryOsmosisArithmeticTwapRequest_messageType fastReflection_QueryOsmosisArithmeticTwapRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryOsmosisArithmeticTwapRequest_messageType{}
 
 type fastReflection_QueryOsmosisArithmeticTwapRequest_messageType struct{}
 
 func (x fastReflection_QueryOsmosisArithmeticTwapRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryOsmosisArithmeticTwapRequest)(nil)
 }
-
 func (x fastReflection_QueryOsmosisArithmeticTwapRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryOsmosisArithmeticTwapRequest)
 }
-
 func (x fastReflection_QueryOsmosisArithmeticTwapRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryOsmosisArithmeticTwapRequest
 }
@@ -1335,21 +1321,17 @@ func (x *QueryOsmosisArithmeticTwapResponse) slowProtoReflect() protoreflect.Mes
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryOsmosisArithmeticTwapResponse_messageType fastReflection_QueryOsmosisArithmeticTwapResponse_messageType
-	_                                                              protoreflect.MessageType = fastReflection_QueryOsmosisArithmeticTwapResponse_messageType{}
-)
+var _fastReflection_QueryOsmosisArithmeticTwapResponse_messageType fastReflection_QueryOsmosisArithmeticTwapResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryOsmosisArithmeticTwapResponse_messageType{}
 
 type fastReflection_QueryOsmosisArithmeticTwapResponse_messageType struct{}
 
 func (x fastReflection_QueryOsmosisArithmeticTwapResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryOsmosisArithmeticTwapResponse)(nil)
 }
-
 func (x fastReflection_QueryOsmosisArithmeticTwapResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryOsmosisArithmeticTwapResponse)
 }
-
 func (x fastReflection_QueryOsmosisArithmeticTwapResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryOsmosisArithmeticTwapResponse
 }
@@ -1728,7 +1710,9 @@ func (x *fastReflection_QueryOsmosisArithmeticTwapResponse) ProtoMethods() *prot
 	}
 }
 
-var md_QueryFeeabsModuleBalancesRequest protoreflect.MessageDescriptor
+var (
+	md_QueryFeeabsModuleBalancesRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_feeabs_v1beta1_query_proto_init()
@@ -1755,21 +1739,17 @@ func (x *QueryFeeabsModuleBalancesRequest) slowProtoReflect() protoreflect.Messa
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryFeeabsModuleBalancesRequest_messageType fastReflection_QueryFeeabsModuleBalancesRequest_messageType
-	_                                                            protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalancesRequest_messageType{}
-)
+var _fastReflection_QueryFeeabsModuleBalancesRequest_messageType fastReflection_QueryFeeabsModuleBalancesRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalancesRequest_messageType{}
 
 type fastReflection_QueryFeeabsModuleBalancesRequest_messageType struct{}
 
 func (x fastReflection_QueryFeeabsModuleBalancesRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryFeeabsModuleBalancesRequest)(nil)
 }
-
 func (x fastReflection_QueryFeeabsModuleBalancesRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryFeeabsModuleBalancesRequest)
 }
-
 func (x fastReflection_QueryFeeabsModuleBalancesRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryFeeabsModuleBalancesRequest
 }
@@ -2170,21 +2150,17 @@ func (x *QueryFeeabsModuleBalancesResponse) slowProtoReflect() protoreflect.Mess
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryFeeabsModuleBalancesResponse_messageType fastReflection_QueryFeeabsModuleBalancesResponse_messageType
-	_                                                             protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalancesResponse_messageType{}
-)
+var _fastReflection_QueryFeeabsModuleBalancesResponse_messageType fastReflection_QueryFeeabsModuleBalancesResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryFeeabsModuleBalancesResponse_messageType{}
 
 type fastReflection_QueryFeeabsModuleBalancesResponse_messageType struct{}
 
 func (x fastReflection_QueryFeeabsModuleBalancesResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryFeeabsModuleBalancesResponse)(nil)
 }
-
 func (x fastReflection_QueryFeeabsModuleBalancesResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryFeeabsModuleBalancesResponse)
 }
-
 func (x fastReflection_QueryFeeabsModuleBalancesResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryFeeabsModuleBalancesResponse
 }
@@ -2648,7 +2624,9 @@ func (x *fastReflection_QueryFeeabsModuleBalancesResponse) ProtoMethods() *proto
 	}
 }
 
-var md_QueryAllHostChainConfigRequest protoreflect.MessageDescriptor
+var (
+	md_QueryAllHostChainConfigRequest protoreflect.MessageDescriptor
+)
 
 func init() {
 	file_xion_feeabs_v1beta1_query_proto_init()
@@ -2675,21 +2653,17 @@ func (x *QueryAllHostChainConfigRequest) slowProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryAllHostChainConfigRequest_messageType fastReflection_QueryAllHostChainConfigRequest_messageType
-	_                                                          protoreflect.MessageType = fastReflection_QueryAllHostChainConfigRequest_messageType{}
-)
+var _fastReflection_QueryAllHostChainConfigRequest_messageType fastReflection_QueryAllHostChainConfigRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAllHostChainConfigRequest_messageType{}
 
 type fastReflection_QueryAllHostChainConfigRequest_messageType struct{}
 
 func (x fastReflection_QueryAllHostChainConfigRequest_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAllHostChainConfigRequest)(nil)
 }
-
 func (x fastReflection_QueryAllHostChainConfigRequest_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAllHostChainConfigRequest)
 }
-
 func (x fastReflection_QueryAllHostChainConfigRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllHostChainConfigRequest
 }
@@ -3088,21 +3062,17 @@ func (x *QueryAllHostChainConfigResponse) slowProtoReflect() protoreflect.Messag
 	return mi.MessageOf(x)
 }
 
-var (
-	_fastReflection_QueryAllHostChainConfigResponse_messageType fastReflection_QueryAllHostChainConfigResponse_messageType
-	_                                                           protoreflect.MessageType = fastReflection_QueryAllHostChainConfigResponse_messageType{}
-)
+var _fastReflection_QueryAllHostChainConfigResponse_messageType fastReflection_QueryAllHostChainConfigResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryAllHostChainConfigResponse_messageType{}
 
 type fastReflection_QueryAllHostChainConfigResponse_messageType struct{}
 
 func (x fastReflection_QueryAllHostChainConfigResponse_messageType) Zero() protoreflect.Message {
 	return (*fastReflection_QueryAllHostChainConfigResponse)(nil)
 }
-
 func (x fastReflection_QueryAllHostChainConfigResponse_messageType) New() protoreflect.Message {
 	return new(fastReflection_QueryAllHostChainConfigResponse)
 }
-
 func (x fastReflection_QueryAllHostChainConfigResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
 	return md_QueryAllHostChainConfigResponse
 }
@@ -3949,22 +3919,19 @@ func file_xion_feeabs_v1beta1_query_proto_rawDescGZIP() []byte {
 	return file_xion_feeabs_v1beta1_query_proto_rawDescData
 }
 
-var (
-	file_xion_feeabs_v1beta1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-	file_xion_feeabs_v1beta1_query_proto_goTypes  = []interface{}{
-		(*QueryHostChainConfigRequest)(nil),        // 0: xion.feeabs.v1beta1.QueryHostChainConfigRequest
-		(*QueryHostChainConfigResponse)(nil),       // 1: xion.feeabs.v1beta1.QueryHostChainConfigResponse
-		(*QueryOsmosisArithmeticTwapRequest)(nil),  // 2: xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapRequest
-		(*QueryOsmosisArithmeticTwapResponse)(nil), // 3: xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapResponse
-		(*QueryFeeabsModuleBalancesRequest)(nil),   // 4: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest
-		(*QueryFeeabsModuleBalancesResponse)(nil),  // 5: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse
-		(*QueryAllHostChainConfigRequest)(nil),     // 6: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest
-		(*QueryAllHostChainConfigResponse)(nil),    // 7: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse
-		(*HostChainFeeAbsConfig)(nil),              // 8: xion.feeabs.v1beta1.HostChainFeeAbsConfig
-		(*v1beta1.Coin)(nil),                       // 9: cosmos.base.v1beta1.Coin
-	}
-)
-
+var file_xion_feeabs_v1beta1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_xion_feeabs_v1beta1_query_proto_goTypes = []interface{}{
+	(*QueryHostChainConfigRequest)(nil),        // 0: xion.feeabs.v1beta1.QueryHostChainConfigRequest
+	(*QueryHostChainConfigResponse)(nil),       // 1: xion.feeabs.v1beta1.QueryHostChainConfigResponse
+	(*QueryOsmosisArithmeticTwapRequest)(nil),  // 2: xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapRequest
+	(*QueryOsmosisArithmeticTwapResponse)(nil), // 3: xion.feeabs.v1beta1.QueryOsmosisArithmeticTwapResponse
+	(*QueryFeeabsModuleBalancesRequest)(nil),   // 4: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesRequest
+	(*QueryFeeabsModuleBalancesResponse)(nil),  // 5: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse
+	(*QueryAllHostChainConfigRequest)(nil),     // 6: xion.feeabs.v1beta1.QueryAllHostChainConfigRequest
+	(*QueryAllHostChainConfigResponse)(nil),    // 7: xion.feeabs.v1beta1.QueryAllHostChainConfigResponse
+	(*HostChainFeeAbsConfig)(nil),              // 8: xion.feeabs.v1beta1.HostChainFeeAbsConfig
+	(*v1beta1.Coin)(nil),                       // 9: cosmos.base.v1beta1.Coin
+}
 var file_xion_feeabs_v1beta1_query_proto_depIdxs = []int32{
 	8, // 0: xion.feeabs.v1beta1.QueryHostChainConfigResponse.host_chain_config:type_name -> xion.feeabs.v1beta1.HostChainFeeAbsConfig
 	9, // 1: xion.feeabs.v1beta1.QueryFeeabsModuleBalancesResponse.balances:type_name -> cosmos.base.v1beta1.Coin
