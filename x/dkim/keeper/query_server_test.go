@@ -196,20 +196,22 @@ func TestQueryProofVerify(t *testing.T) {
 	require.NoError(t, err)
 
 	txB4s := "CqIBCp8BChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEn8KP3hpb24xNG43OWVocGZ3aGRoNHN6dWRhZ2Q0bm14N2NsajU3bHk1dTBsenhzNm1nZjVxeTU1a3k5c21zenM0OBIreGlvbjFxYWYyeGZseDVqM2FndGx2cWs1dmhqcGV1aGw2ZzQ1aHhzaHdxahoPCgV1eGlvbhIGMTAwMDAwEmUKTQpDCh0vYWJzdHJhY3RhY2NvdW50LnYxLk5pbFB1YktleRIiCiCs/FzcKXXbesBcb1Daz2b2Pyp75Kcf8Roa2hNAEpSxCxIECgIIARgBEhQKDgoFdXhpb24SBTYwMDAwEICJehoGeGlvbi0xIAw="
+	txBytes, err := b64.StdEncoding.DecodeString(txB4s)
+	require.NoError(t, err)
 	dkimBz, err := b64.StdEncoding.DecodeString("iEeNSGFNAiTctrIgoVuE40DFz/ATm+ip5RBx3HfHqQ4=")
 	require.NoError(t, err)
 
 	testCases := []struct {
 		name    string
 		proofBz []byte
-		txBz    string
+		txBz    []byte
 		dkimBz  []byte
 		emailBz []byte
 	}{
 		{
 			name:    "verify proof",
 			proofBz: proofData,
-			txBz:    txB4s,
+			txBz:    txBytes,
 			dkimBz:  dkimBz,
 			emailBz: email,
 		},
@@ -218,7 +220,7 @@ func TestQueryProofVerify(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(_ *testing.T) {
 			r := &types.QueryAuthenticateRequest{
-				TxBytes:   []byte(tc.txBz),
+				TxBytes:   tc.txBz,
 				Proof:     tc.proofBz,
 				DkimHash:  tc.dkimBz,
 				EmailHash: tc.emailBz,

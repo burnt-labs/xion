@@ -163,45 +163,37 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 
 func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
 	var verified bool
-	ctx := sdk.UnwrapSDKContext(c)
 	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]invalid email bytes ??: %s\n", err.Error()))
 		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
 	}
 	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]invalid dkim hash ??: %s\n", err.Error()))
 		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
 	}
 	encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
 	txBz, err := zktypes.CalculateTxBodyCommitment(encodedTxBytes)
 	// txBz, err := zktypes.CalculateTxBodyCommitment(string(req.TxBytes))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]error calculating ??: %s\n", err.Error()))
 		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
 	}
 	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]error unmarshalling circom:%s\n", err.Error()))
 		return nil, err
 	}
 
 	p, err := k.Keeper.Params.Get(c)
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim] getting params circom: %s\n", err.Error()))
 		return nil, err
 	}
 	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]error unmarshalling vkey: %s\n", err.Error()))
 		return nil, err
 	}
 
 	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &inputs)
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]verifying: %s\n", err.Error()))
 		return nil, err
 	}
 	return &types.AuthenticateResponse{Verified: verified}, nil
@@ -209,60 +201,37 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 
 func (k Querier) ProofVerify(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
 	var verified bool
-	ctx := sdk.UnwrapSDKContext(c)
-	ctx.Logger().Info(fmt.Sprintf("[dkim]req: %+v\n", req))
 	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]invalid email bytes ??: %s\n", err.Error()))
 		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
 	}
 	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]invalid dkim hash ??: %s\n", err.Error()))
 		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
 	}
 
-	fmt.Printf("[dkim]txBytes: %s\n", string(req.TxBytes))
-	fmt.Printf("[dkim]txBytes: %v\n", req.TxBytes)
-	ctx.Logger().Info(fmt.Sprintf("[dkim]txBytes: %s\n", string(req.TxBytes)))
 	encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
-	ctx.Logger().Info(fmt.Sprintf("[dkim]encodedtxBytes: %s\n", string(encodedTxBytes)))
 	txBz, err := zktypes.CalculateTxBodyCommitment(encodedTxBytes)
-	//
-	// txBz, err := zktypes.CalculateTxBodyCommitment(string(req.TxBytes))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]error calculating ??: %s\n", err.Error()))
 		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
 	}
 	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]error unmarshalling circom: %s\n", err.Error()))
 		return nil, err
 	}
 
 	p, err := k.Keeper.Params.Get(c)
-	ctx.Logger().Info(fmt.Sprintf("[dkim] params  %+v\n", p))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim] getting params circom: %s\n", err.Error()))
 		return nil, err
 	}
 	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim] params  %+v\n", p))
-		ctx.Logger().Info(fmt.Sprintf("[dkim]error unmarshalling vkey: %s and error: %s\n", p.Vkey, err.Error()))
 		return nil, err
 	}
 
 	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &inputs)
-	fmt.Printf("[dkim]snarkProof: %v\n", snarkProof)
-	fmt.Printf("[dkim]snarkVk: %v\n", snarkVk)
-	fmt.Printf("[dkim]inputs: %v\n", inputs)
-	ctx.Logger().Info(fmt.Sprintf("[dkim]snarkProof: %v\n", snarkProof))
-	ctx.Logger().Info(fmt.Sprintf("[dkim]snarkVk: %v\n", snarkVk))
-	ctx.Logger().Info(fmt.Sprintf("[dkim]inputs: %v\n", inputs))
 	if err != nil {
-		ctx.Logger().Info(fmt.Sprintf("[dkim]we have passed verifications with errors??: %s\n", err.Error()))
 		return nil, err
 	}
 	return &types.AuthenticateResponse{Verified: verified}, nil

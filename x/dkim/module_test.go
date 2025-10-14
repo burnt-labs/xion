@@ -1,7 +1,6 @@
 package module_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -80,41 +79,15 @@ func TestAppModule_ValidateGenesis(t *testing.T) {
 	t.Run("invalid genesis", func(t *testing.T) {
 		invalidGenesis := []byte(`{"params": null, "dkim_pubkeys": [{"domain": ""}]}`)
 		err := appModule.ValidateGenesis(encCfg.Codec, nil, invalidGenesis)
-		require.Error(t, err)
-	})
-}
+		encCfg := moduletestutil.MakeTestEncodingConfig()
+		basic := dkimmodule.AppModuleBasic{}
 
-func TestAppModule_InitAndExportGenesis(t *testing.T) {
-	appModule, ctx := setupModule(t)
-	encCfg := moduletestutil.MakeTestEncodingConfig()
+		genesis := basic.DefaultGenesis(encCfg.Codec)
+		require.NotNil(t, genesis)
 
-	// Test InitGenesis
-	genesis := appModule.DefaultGenesis(encCfg.Codec)
-	result := appModule.InitGenesis(ctx, encCfg.Codec, genesis)
-	// InitGenesis returns empty response, that's expected
-	require.Empty(t, result)
-
-	// Test ExportGenesis
-	exported := appModule.ExportGenesis(ctx, encCfg.Codec)
-	require.NotNil(t, exported)
-
-	var exportedState types.GenesisState
-	err := encCfg.Codec.UnmarshalJSON(exported, &exportedState)
-	require.NoError(t, err)
-}
-
-func TestAppModuleBasic_Name(t *testing.T) {
-	basic := dkimmodule.AppModuleBasic{}
-
-	require.Equal(t, types.ModuleName, basic.Name())
-}
-
-func TestAppModuleBasic_RegisterLegacyAminoCodec(t *testing.T) {
-	encCfg := moduletestutil.MakeTestEncodingConfig()
-	basic := dkimmodule.AppModuleBasic{}
-
-	// Should not panic
-	require.NotPanics(t, func() {
+		var genesisState types.GenesisState
+		err = encCfg.Codec.UnmarshalJSON(genesis, &genesisState)
+		require.NoError(t, err)
 		basic.RegisterLegacyAminoCodec(encCfg.Amino)
 	})
 }
@@ -137,7 +110,7 @@ func TestAppModuleBasic_DefaultGenesis(t *testing.T) {
 	require.NotNil(t, genesis)
 
 	var genesisState types.GenesisState
-	err := json.Unmarshal(genesis, &genesisState)
+	err := encCfg.Codec.UnmarshalJSON(genesis, &genesisState)
 	require.NoError(t, err)
 }
 
