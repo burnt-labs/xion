@@ -69,7 +69,7 @@ jobs:
 
   interchain-tests:
     name: Interchain tests
-    needs: 
+    needs:
       - build-docker
       - build-integration
     uses: burnt-labs/xion/.github/workflows/integration-tests.yaml@workflows/main
@@ -85,14 +85,7 @@ jobs:
       - build-darwin
       - docker-scout
       - interchain-tests
-    uses: burnt-labs/xion/.github/workflows/goreleaser.yaml@workflows/main
-    secrets: inherit
-
-  # TODO: move to goreleaser
-  publish-types:
-    name: Publish Typescript Types
-    needs: build-release
-    uses: burnt-labs/xion/.github/workflows/publish-types.yaml@workflows/main
+    uses: burnt-labs/xion/.github/workflows/exec-goreleaser.yaml@workflows/main
     secrets: inherit
 
   verify-installers:
