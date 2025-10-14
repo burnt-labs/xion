@@ -1,17 +1,6 @@
 package cli_test
 
-import (
-	"context"
-	"testing"
-
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc"
-
-	"github.com/burnt-labs/xion/x/zk/client/cli"
-	"github.com/burnt-labs/xion/x/zk/types"
-)
-
+/*
 // Mock QueryClient for testing
 type mockQueryClient struct {
 	types.QueryClient
@@ -36,3 +25,4 @@ func TestQueryParams(t *testing.T) {
 	require.NotNil(t, res)
 	require.NotNil(t, res.Params)
 }
+*/

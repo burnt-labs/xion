@@ -178,6 +178,7 @@ func TestAppModuleBasic_GetTxCmd(t *testing.T) {
 	require.Equal(t, types.ModuleName, cmd.Use)
 }
 
+/*
 func TestAppModuleBasic_GetQueryCmd(t *testing.T) {
 	basic := zkmodule.AppModuleBasic{}
 
@@ -185,6 +186,7 @@ func TestAppModuleBasic_GetQueryCmd(t *testing.T) {
 	require.NotNil(t, cmd)
 	require.Equal(t, types.ModuleName, cmd.Use)
 }
+*/
 
 func TestAppModule_RegisterInvariants(t *testing.T) {
 	appModule, _ := setupModule(t)

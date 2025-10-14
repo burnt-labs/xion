@@ -83,7 +83,7 @@ require (
 	cloud.google.com/go/iam v1.5.2 // indirect
 	cloud.google.com/go/monitoring v1.24.2 // indirect
 	cloud.google.com/go/storage v1.57.0 // indirect
-	cosmossdk.io/depinject v1.2.1
+	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/log v1.6.0
 	cosmossdk.io/schema v1.1.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect

@@ -24,6 +24,7 @@ type Keeper struct {
 	// state management
 	Schema      collections.Schema
 	DkimPubKeys collections.Map[collections.Pair[string, string], apiv1.DkimPubKey]
+	Params      collections.Item[types.Params]
 	ZkKeeper    zkkeeper.Keeper
 
 	authority string
@@ -55,6 +56,7 @@ func NewKeeper(
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
 			codec.CollValue[apiv1.DkimPubKey](cdc),
 		),
+		Params:    collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		authority: authority,
 		ZkKeeper:  zkKeeper,
 	}
@@ -79,7 +81,7 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 	if err := data.Validate(); err != nil {
 		return err
 	}
-	for _, dkimPubKey := range data.DkimPubkeys {
+	for _, dkimPubKey := range data.Params.DkimPubkeys {
 		pk := apiv1.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
@@ -121,6 +123,6 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return &types.GenesisState{
-		DkimPubkeys: dkimPubKeys,
+		Params: types.Params{DkimPubkeys: dkimPubKeys},
 	}
 }

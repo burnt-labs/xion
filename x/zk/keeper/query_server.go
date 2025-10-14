@@ -6,8 +6,6 @@ import (
 
 	"github.com/vocdoni/circom2gnark/parser"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 
@@ -19,17 +17,6 @@ type Querier struct {
 
 func NewQuerier(keeper Keeper) Querier {
 	return Querier{Keeper: keeper}
-}
-
-func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-
-	p, err := k.Keeper.Params.Get(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.QueryParamsResponse{Params: &p}, nil
 }
 
 func (k Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (*types.ProofVerifyResponse, error) {

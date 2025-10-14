@@ -9,17 +9,18 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
@@ -54,6 +55,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
+
 	xion := BuildXionChain(t)
 
 	t.Parallel()
@@ -105,6 +107,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		"--authenticator", "Secp256K1",
 		"--chain-id", xion.Config().ChainID,
 	)
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
 	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", registeredTxHash)
@@ -234,7 +238,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	signerData := txsigning.SignerData{
 		Address:       aaContractAddr,
 		ChainID:       xion.Config().ChainID,
-		AccountNumber: account.GetAccountNumber(),
+		AccountNumber: account.GetAccountNumber() + 1,
 		Sequence:      account.GetSequence(),
 		PubKey: &anypb.Any{
 			TypeUrl: anyPk.TypeUrl,
@@ -286,7 +290,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
-	txBuilder.SetGasLimit(1_900_000) // 20 million because verification takes a lot of gas
+	txBuilder.SetGasLimit(2_000_000) // 20 million because verification takes a lot of gas
 
 	builtTx := txBuilder.GetTx()
 	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
@@ -313,6 +317,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	fmt.Println("waiting")
+	time.Sleep(10 * time.Minute)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)

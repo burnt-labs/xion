@@ -2,31 +2,16 @@ syntax = "proto3";
 package xion.zk.v1;
 
 import "google/api/annotations.proto";
-import "xion/zk/v1/genesis.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/zk/types";
 
 // Query provides defines the gRPC querier service.
 service Query {
-  // Params queries all parameters of the module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/zk/v1/params";
-  }
-
   // ProofVerify verifies a zk proof for email authentication.
   rpc ProofVerify(QueryVerifyRequest) returns (ProofVerifyResponse) {
     option (google.api.http).get = "/zk/v1/verify";
   }
-}
-
-// QueryParamsRequest is the request type for the Query/Params RPC method.
-message QueryParamsRequest {}
-
-// QueryParamsResponse is the response type for the Query/Params RPC method.
-message QueryParamsResponse {
-  // params defines the parameters of the module.
-  Params params = 1;
 }
 
 // SnarkJsProof represents a ZK-SNARK proof in SnarkJS format.
@@ -39,7 +24,6 @@ message SnarkJsProof {
   repeated bytes pi_c = 3;
 }
 
-
 message QueryVerifyRequest {
   bytes proof = 1;
   repeated string public_inputs = 2;
@@ -50,4 +34,3 @@ message ProofVerifyResponse {
   // verified indicates whether the proof verification was successful.
   bool verified = 1;
 }
-

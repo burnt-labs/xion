@@ -1,32 +1,6 @@
 package cli_test
 
-import (
-	"bytes"
-	"context"
-	"fmt"
-	"testing"
-
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/require"
-
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/burnt-labs/xion/x/zk/client/cli"
-	"github.com/burnt-labs/xion/x/zk/keeper"
-	"github.com/burnt-labs/xion/x/zk/types"
-)
-
+/*
 type IntegrationTestSuite struct {
 	ctx         sdk.Context
 	keeper      keeper.Keeper
@@ -75,6 +49,7 @@ func setupIntegrationTest(t *testing.T) *IntegrationTestSuite {
 	return suite
 }
 
+/*
 func TestIntegration_GetCmdParams(t *testing.T) {
 	suite := setupIntegrationTest(t)
 
@@ -140,3 +115,4 @@ func TestIntegration_CommandStructure(t *testing.T) {
 		})
 	}
 }
+*/
