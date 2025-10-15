@@ -10,9 +10,6 @@ import (
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 
-	b64 "encoding/base64"
-
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/stretchr/testify/require"
 )
 

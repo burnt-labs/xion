@@ -7,8 +7,6 @@ import (
 	stdmath "math"
 	"math/big"
 
-	b64 "encoding/base64"
-
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
 
@@ -235,41 +233,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 }
 
 func (k Querier) ProofVerify(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
-	var verified bool
-	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
-	}
-	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
-	}
-
-	encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
-	txBz, err := zktypes.CalculateTxBodyCommitment(encodedTxBytes)
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
-	}
-	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
-	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
-	if err != nil {
-		return nil, err
-	}
-
-	p, err := k.Keeper.Params.Get(c)
-	if err != nil {
-		return nil, err
-	}
-	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
-	if err != nil {
-		return nil, err
-	}
-
-	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &inputs)
-	if err != nil {
-		return nil, err
-	}
-	return &types.AuthenticateResponse{Verified: verified}, nil
+	return &types.AuthenticateResponse{Verified: false}, nil
 }
 
 func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
