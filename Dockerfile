@@ -71,6 +71,8 @@ USER heighliner:heighliner
 # --------------------------------------------------------
 FROM heighliner AS release
 
+USER root:root
+
 COPY --from=builder /go/bin/xiond /usr/bin/xiond
 
 # Add tools and cosmovisor
