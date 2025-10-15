@@ -1,0 +1,18 @@
+# buf.gen.docs.yaml - For documentation generation
+# This replaces the gen_swagger function from the shell script
+# Generates OpenAPI docs from query.proto and service.proto files
+version: v2
+plugins:
+  - protoc_builtin: openapiv2
+    out: .
+    opt: logtostderr=true,fqn_for_openapi_name=true,simple_operation_ids=true
+    # Include all query and service proto files
+    strategy: all
+inputs:
+  - directory: .
+    exclude_paths:
+      - "**/packet-forward-middleware/**"
+      - "**/regen-network/protobuf/**"
+      - "**/poa/genesis.proto"
+      - "**/tokenfactory/v1beta1/**"
+      - "**/abstractaccount/**"
