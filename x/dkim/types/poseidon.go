@@ -10,6 +10,8 @@ import (
 	"math/big"
 
 	"github.com/iden3/go-iden3-crypto/poseidon"
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
+
 
 	"cosmossdk.io/errors"
 
@@ -77,6 +79,40 @@ func ConvertStringArrayToBigInt(arr []string) ([]*big.Int, error) {
 		res[i] = val
 	}
 	return res, nil
+}
+
+// This is an helper method for objects encoded as an array of 31byte (bn254) string objects  little-endian bytes
+func ConvertBigIntArrayToString(arr []*big.Int) (string, error) {
+	var allBytes []byte
+
+	for fieldIndex := range arr {
+		field := arr[fieldIndex]
+
+		fieldElem := fr.NewElement(0)
+		fieldBytes := fieldElem.SetBigInt(field).Bytes()
+		allBytes = append(allBytes, ToLittleEndianWithLeadingZerosTrimming(fieldBytes[:])...)
+	}
+	return string(allBytes), nil
+}
+
+// this function converts a byte slice to little-endian format and trims leading zeros
+func ToLittleEndianWithLeadingZerosTrimming(b []byte) []byte {
+	result := make([]byte, 0)
+	skipZeros := true
+
+	for i := range b {
+		val := b[i]
+		if skipZeros && val == 0 {
+			continue
+		}
+		skipZeros = false
+		result = append(result, val)
+	}
+	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
 }
 
 // Converts a base64 encoded string `pk` into a PEM format key. It essentially adds the PEM header and footer

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -176,4 +177,113 @@ func TestQueryDkimPubKeysPagination(t *testing.T) {
 		require.NoError(err)
 		require.Empty(res.DkimPubKeys)
 	})
+}
+
+func TestAuthenticate(t *testing.T) {
+	f := SetupTest(t)
+	require := require.New(t)
+
+	publicInputs := []string{
+		"2018721414038404820327",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"6632353713085157925504008443078919716322386156160602218536961028046468237192",
+		"7124795577407215906429701664882261509693262157925400448966588838950094204364",
+		"1729865810",
+		"43113996133614694763028116931624199507",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"15410845306913030315557266389633342942173932394505300961928199486942755829435",
+		"0",
+	}
+
+	domainParts, err := types.ConvertStringArrayToBigInt(publicInputs[0:9])
+	require.NoError(err)
+	dkimDomain, err := types.ConvertBigIntArrayToString(domainParts)
+	require.NoError(err)
+	poseidonHash, ok := new(big.Int).SetString(publicInputs[9], 10)
+	require.True(ok)
+	_, err = f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+		Authority: f.govModAddr,
+		DkimPubkeys: []types.DkimPubKey{
+			{
+				Domain:       "gmail.com",
+				PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+				PoseidonHash: poseidonHash.Bytes(),
+				Selector:     "selector1",
+				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+			},
+		},
+	})
+	require.NoError(err)
+
+	txParts, err := types.ConvertStringArrayToBigInt(publicInputs[12:32])
+	require.NoError(err)
+	txBytes, err := types.ConvertBigIntArrayToString(txParts)
+	require.NoError(err)
+
+	emailHashStr := "15410845306913030315557266389633342942173932394505300961928199486942755829435"
+	emailHash, ok := new(big.Int).SetString(emailHashStr, 10)
+	require.True(ok)
+
+	emailHashBz := emailHash.FillBytes(make([]byte, 32))
+	for i, j := 0, len(emailHashBz)-1; i < j; i, j = i+1, j-1 {
+		emailHashBz[i], emailHashBz[j] = emailHashBz[j], emailHashBz[i]
+	}
+
+	proofJSON := []byte(`{"pi_a":["9304174403335741259315518336518591609512748783415613804180487556630236265024","6713554026312915505201081736695954389800531920719678211757357553378458757296","1"],"pi_b":[["16283592920163593399978697946723173702052308100676484085110069910633272630880","9039537598426725764887907662186734325645584110941201061286098607080677326933"],["14554757751308593637715610618566027327163703939068223562934833009988299531481","3001065032657973076124882599580187748929460243547839080637309134158102691344"],["1","0"]],"pi_c":["4535679481576908067801207899542111592376066219403823905750205749141422222138","18664092154600451155500251476777053301690018888778183657315682284589674588917","1"],"protocol":"groth16","curve":"bn128"}`)
+
+	res, err := f.queryServer.Authenticate(f.ctx, &types.QueryAuthenticateRequest{
+		DkimDomain:   dkimDomain,
+		TxBytes:      []byte(txBytes),
+		EmailHash:    emailHashBz,
+		Proof:        proofJSON,
+		PublicInputs: publicInputs,
+	})
+	require.Nil(err)
+	require.NotNil(res)
+	require.True(res.Verified)
+}
+
+// this function converts a byte slice to little-endian format and trims leading zeros
+func ToLittleEndianWithTrimming(b []byte) []byte {
+	result := make([]byte, 0)
+	skipZeros := true
+
+	for i := range b {
+		val := b[i]
+		if skipZeros && val == 0 {
+			continue
+		}
+		skipZeros = false
+		result = append(result, val)
+	}
+	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
 }

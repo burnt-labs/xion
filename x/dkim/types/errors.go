@@ -12,4 +12,5 @@ var (
 	ErrParsingPubKey       = errorsmod.Register(ModuleName, 1101, "error parsing pubkey")
 	ErrEncodingElement     = errorsmod.Register(ModuleName, 1102, "error encoding element")
 	ErrCalculatingPoseidon = errorsmod.Register(ModuleName, 1103, "error hashing poseidon hash")
+	ErrInvalidPublicInput  = errorsmod.Register(ModuleName, 1104, "invalid public input")
 )

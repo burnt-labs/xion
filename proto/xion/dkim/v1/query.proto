@@ -69,8 +69,8 @@ message QueryAuthenticateRequest {
   string dkim_domain = 1;
   bytes tx_bytes = 2;
   bytes email_hash = 3;
-  bytes dkim_hash = 4;
-  bytes proof = 5;
+  bytes proof = 4;
+  repeated string public_inputs = 5;
 }
 // AuthenticateResponse defines the response structure for proof verification.
 message AuthenticateResponse {
