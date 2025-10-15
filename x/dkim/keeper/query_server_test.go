@@ -4,13 +4,16 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"cosmossdk.io/collections"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
+
+	b64 "encoding/base64"
+
+	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
+	"github.com/stretchr/testify/require"
 )
 
 func TestQueryDkimPubKey(t *testing.T) {

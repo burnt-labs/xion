@@ -6,6 +6,7 @@ import (
 
 // ParamsKey saves the current module params.
 var (
+	ParamsKey  = collections.NewPrefix(0)
 	DkimPrefix = collections.NewPrefix(1)
 )
 

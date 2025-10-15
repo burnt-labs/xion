@@ -93,5 +93,4 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 		return false, err
 	}
 	return parser.VerifyProof(gnarkProof)
-	return true, nil
 }

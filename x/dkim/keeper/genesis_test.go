@@ -26,12 +26,14 @@ func TestGenesis(t *testing.T) {
 		{
 			name: "success, with dkim records",
 			request: &types.GenesisState{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "x.com",
-						Selector:     "test",
-						PubKey:       PubKey,
-						PoseidonHash: []byte(hash.String()),
+				Params: types.Params{
+					DkimPubkeys: []types.DkimPubKey{
+						{
+							Domain:       "x.com",
+							Selector:     "test",
+							PubKey:       PubKey,
+							PoseidonHash: []byte(hash.String()),
+						},
 					},
 				},
 			},
@@ -40,12 +42,14 @@ func TestGenesis(t *testing.T) {
 		{
 			name: "fail, invalid dkim record",
 			request: &types.GenesisState{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "x.com",
-						Selector:     "test",
-						PubKey:       "invalid",
-						PoseidonHash: hash.Bytes(),
+				Params: types.Params{
+					DkimPubkeys: []types.DkimPubKey{
+						{
+							Domain:       "x.com",
+							Selector:     "test",
+							PubKey:       "invalid",
+							PoseidonHash: hash.Bytes(),
+						},
 					},
 				},
 			},
@@ -54,12 +58,14 @@ func TestGenesis(t *testing.T) {
 		{
 			name: "fail, invalid data",
 			request: &types.GenesisState{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "x.com",
-						PubKey:       "test",
-						Selector:     "test",
-						PoseidonHash: []byte("test"),
+				Params: types.Params{
+					DkimPubkeys: []types.DkimPubKey{
+						{
+							Domain:       "x.com",
+							PubKey:       "test",
+							Selector:     "test",
+							PoseidonHash: []byte("test"),
+						},
 					},
 				},
 			},

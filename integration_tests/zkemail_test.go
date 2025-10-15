@@ -14,12 +14,12 @@ import (
 	"cosmossdk.io/math"
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	ibctest "github.com/strangelove-ventures/interchaintest/v10"
 	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
@@ -54,6 +54,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
+
 	xion := BuildXionChain(t)
 
 	t.Parallel()
@@ -63,17 +64,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
 	gPubKeyHash, err := dkimTypes.ComputePoseidonHash(dkimPubkey)
 	require.NoError(t, err)
-	// gPubKeyBz, _ := json.Marshal([]dkimTypes.DkimPubKey{
-	// 	{
-	// 		Domain:       dkimDomain,
-	// 		Selector:     dkimSelector,
-	// 		PubKey:       dkimPubkey,
-	// 		PoseidonHash: []byte(gPubKeyHash.String()),
-	// 	},
-	// })
-	// vkey := "eyJ2a19hbHBoYV8xIjpbIjIwNDkxMTkyODA1MzkwNDg1Mjk5MTUzMDA5NzczNTk0NTM0OTQwMTg5MjYxODY2MjI4NDQ3OTE4MDY4NjU4NDcxOTcwNDgxNzYzMDQyIiwiOTM4MzQ4NTM2MzA1MzI5MDIwMDkxODM0NzE1NjE1NzgzNjU2NjU2Mjk2Nzk5NDAzOTcxMjI3MzQ0OTkwMjYyMTI2NjE3ODU0NTk1OCIsIjEiXSwidmtfYmV0YV8yIjpbWyI2Mzc1NjE0MzUxNjg4NzI1MjA2NDAzOTQ4MjYyODY4OTYyNzkzNjI1NzQ0MDQzNzk0MzA1NzE1MjIyMDExNTI4NDU5NjU2NzM4NzMxIiwiNDI1MjgyMjg3ODc1ODMwMDg1OTEyMzg5Nzk4MTQ1MDU5MTM1MzUzMzA3MzQxMzE5Nzc3MTc2ODY1MTQ0MjY2NTc1MjI1OTM5NzEzMiJdLFsiMTA1MDUyNDI2MjYzNzAyNjIyNzc1NTI5MDEwODIwOTQzNTY2OTc0MDk4MzU2ODAyMjA1OTA5NzE4NzMxNzExNDAzNzEzMzEyMDY4NTYiLCIyMTg0NzAzNTEwNTUyODc0NTQwMzI4ODIzMjY5MTE0NzU4NDcyODE5MTE2MjczMjI5OTg2NTMzODM3NzE1OTY5MjM1MDA1OTEzNjY3OSJdLFsiMSIsIjAiXV0sInZrX2dhbW1hXzIiOltbIjEwODU3MDQ2OTk5MDIzMDU3MTM1OTQ0NTcwNzYyMjMyODI5NDgxMzcwNzU2MzU5NTc4NTE4MDg2OTkwNTE5OTkzMjg1NjU1ODUyNzgxIiwiMTE1NTk3MzIwMzI5ODYzODcxMDc5OTEwMDQwMjEzOTIyODU3ODM5MjU4MTI4NjE4MjExOTI1MzA5MTc0MDMxNTE0NTIzOTE4MDU2MzQiXSxbIjg0OTU2NTM5MjMxMjM0MzE0MTc2MDQ5NzMyNDc0ODkyNzI0Mzg0MTgxOTA1ODcyNjM2MDAxNDg3NzAyODA2NDkzMDY5NTgxMDE5MzAiLCI0MDgyMzY3ODc1ODYzNDMzNjgxMzMyMjAzNDAzMTQ1NDM1NTY4MzE2ODUxMzI3NTkzNDAxMjA4MTA1NzQxMDc2MjE0MTIwMDkzNTMxIl0sWyIxIiwiMCJdXSwidmtfZGVsdGFfMiI6W1siNTY4MTAwNjE2NDMwODI1MTk1MzAwMjExMzkyNTU4NTQ5MDE1OTM4MjM2NTQ1OTkwMDYxNjY5NTA2OTczODA5OTYxNjIyMTAwNzQ0MCIsIjE3ODQzNzI1MzIwMjMyODUyMzQ3ODgxMTI5MTI2MDUwMTY0MTg3ODU4NTMwODI2Nzg0MzAxNjI4NDE4MzM2ODg5NzI0MDQ3NTQ1MjYiXSxbIjEzMjA3MzcyNzAwMzc0OTUxMjE3OTcyNzM0MzA1OTg3OTg0MjExMjk5NTQxOTUzMjcyMTk1ODA0NDAzMDE5Mjk0Mjg1MDE1NDMyMjMwIiwiMTEyMDgwOTg4MTU5MzE0OTgyNTg1NjYzMzU5NTMyNTU3Njg5MTU3ODEwMjQ1Njg0MzE0NzI5NzMwMDM3NDAzNTEyNDIxNDUyNzQ4ODIiXSxbIjEiLCIwIl1dLCJJQyI6W1siMTM1NTI3OTYxNTkzMjE1MDA0NDY1NDIwOTIzMzM5MjU3ODk2MjcyMjE3NjM5OTU5MTcwNTc3MDUwMjUwMjQ3MzY4NDU3MjE5NDIzNTMiLCI5NjgwOTg1Mjg1MDQwMjMwNzUxNjQ0NDk1ODkzMjE1MzgyNjc2MDgxNTM1ODc2MzYzNTUzNjYwMzc0MTE1NTg4ODYyMDYwNDg3MDM0IiwiMSJdLFsiMTUyNTQ3NzY3NzI2MTA1MzMzMjc0ODg4MTQyODE5MzEyODc2NjU4OTM5NDMxNzc5NzczMTAxNjgwNTY3MjIzNjgyODE3Mjg2MTg2NjIiLCIxNDM2NzY1NzcwMTI0OTU0NzkxODUxMzY3NTUzMzA5MTI4NjM4MzM1ODE4NTY2Mjg2OTg4NzMxNjQ2NjgxMzA2MjE0MjY3NDQ5OTI2MCIsIjEiXSxbIjE0ODY2ODU5MTc3NzU4NjM1MDMwMDc5MjI2MzQxODYyNjAxMTEyOTgzNDg3ODM4NTExNjkwNTY3ODk1NTc0MDMwNjcyMjEyNDQxNjc2IiwiMTEzMTQ1NDIyOTM1MzM5NzMzMjg0MTY0NDE2NjMxNzYwMzIzOTk4NDU1MTkzMDA0NDY4OTQ0MDc1MjAwODM0MTIwMzY4ODgzNDI5OCIsIjEiXSxbIjE0NDUyOTAyNDgyODI4NTU4MjcwMjk4Mzc0NzM3NzA1NjU4MzUxMjcwNzg4NDI4MDE5NTg1MjQxMDI2OTAxMzMxMzY4ODU4NTI3OTQ4IiwiMTkwOTc5OTc3NzQ2MDY1MjM1MjcxNTg1Mjk1NTI2NDU5NjEyNTcxNTAxODkzNTczNTc2MDEwMzUwNzgxMTE2NDM5NTMzODUxNzEzODQiLCIxIl1dfQ=="
-
-	// NOTE: must rework
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -87,6 +77,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
 	require.NoError(t, err)
 	t.Logf("created xion user %s", xionUser.FormattedAddress())
+
+	_ = ibctest.GetAndFundTestUsers(t, ctx, "tmp", fundAmount, xion)
 
 	// Store Abstract Account Contract
 	fp, err := os.Getwd()
@@ -105,6 +97,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		"--authenticator", "Secp256K1",
 		"--chain-id", xion.Config().ChainID,
 	)
+	require.NoError(t, err)
+	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
 	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", registeredTxHash)
@@ -286,7 +280,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
-	txBuilder.SetGasLimit(1_900_000) // 20 million because verification takes a lot of gas
+	txBuilder.SetGasLimit(2_000_000) // 20 million because verification takes a lot of gas
 
 	builtTx := txBuilder.GetTx()
 	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
@@ -312,7 +306,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 
-	fmt.Println("waiting")
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 	recipientBalance, err := xion.GetBalance(ctx, recipient, xion.Config().Denom)
