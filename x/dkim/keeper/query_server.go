@@ -5,8 +5,7 @@ import (
 	"context"
 	"fmt"
 	stdmath "math"
-
-	b64 "encoding/base64"
+	"math/big"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
@@ -15,7 +14,6 @@ import (
 	"github.com/vocdoni/circom2gnark/parser"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
-	zktypes "github.com/burnt-labs/xion/x/zk/types"
 
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 
@@ -167,17 +165,51 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
 	}
-	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
+	emailHashPInput := req.PublicInputs[32]
+	if emailHash.String() != emailHashPInput {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s", emailHashPInput, emailHash.String())
 	}
-	encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
-	txBz, err := zktypes.CalculateTxBodyCommitment(encodedTxBytes)
-	// txBz, err := zktypes.CalculateTxBodyCommitment(string(req.TxBytes))
+	dkimDomainPInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[0:9])
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs: %s", err.Error())
 	}
-	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
+	dkimDomainPInput, err := types.ConvertBigIntArrayToString(dkimDomainPInputBz)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs to string: %s", err.Error())
+	}
+	if req.DkimDomain != dkimDomainPInput {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "dkim domain does not match public input, got %s, expected %s", dkimDomainPInput, req.DkimDomain)
+	}
+	dkimHashPInput := req.PublicInputs[9]
+	dkimHashPInputBig, ok := new(big.Int).SetString(dkimHashPInput, 10)
+	if !ok {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse dkim hash public input")
+	}
+	res, err := k.DkimPubKeys(c, &types.QueryDkimPubKeysRequest{
+		Domain:       req.DkimDomain,
+		PoseidonHash: dkimHashPInputBig.Bytes(),
+		Pagination:   nil,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(res.DkimPubKeys) == 0 {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", req.DkimDomain, dkimHashPInputBig.String())
+	}
+
+	txBytePInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[12:32])
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert masked command")
+	}
+	txBytePInput, err := types.ConvertBigIntArrayToString(txBytePInputBz)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert masked command to string: %s", err.Error())
+	}
+
+	if txBytePInput != string(req.TxBytes) {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "masked command does not match got %s expected %s", txBytePInput, string(req.TxBytes))
+	}
+
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
 		return nil, err
@@ -187,12 +219,13 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	if err != nil {
 		return nil, err
 	}
+	// TODO: remove vkey from dkim to zk
 	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
 	if err != nil {
 		return nil, err
 	}
 
-	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &inputs)
+	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
 	if err != nil {
 		return nil, err
 	}
@@ -200,41 +233,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 }
 
 func (k Querier) ProofVerify(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
-	var verified bool
-	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
-	}
-	dkimHash, err := fr.LittleEndian.Element((*[32]byte)(req.DkimHash))
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid Dkim Hash, got %s", err.Error())
-	}
-
-	encodedTxBytes := b64.StdEncoding.EncodeToString(req.TxBytes)
-	txBz, err := zktypes.CalculateTxBodyCommitment(encodedTxBytes)
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrCalculatingPoseidon, "got %s", err.Error())
-	}
-	inputs := []string{txBz.String(), emailHash.String(), dkimHash.String()}
-	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
-	if err != nil {
-		return nil, err
-	}
-
-	p, err := k.Keeper.Params.Get(c)
-	if err != nil {
-		return nil, err
-	}
-	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
-	if err != nil {
-		return nil, err
-	}
-
-	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &inputs)
-	if err != nil {
-		return nil, err
-	}
-	return &types.AuthenticateResponse{Verified: verified}, nil
+	return &types.AuthenticateResponse{Verified: false}, nil
 }
 
 func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {

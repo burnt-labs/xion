@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"math/big"
 	"testing"
 
 	"cosmossdk.io/collections"
@@ -9,9 +10,6 @@ import (
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 
-	b64 "encoding/base64"
-
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
 	"github.com/stretchr/testify/require"
 )
 
@@ -181,53 +179,111 @@ func TestQueryDkimPubKeysPagination(t *testing.T) {
 	})
 }
 
-func TestQueryProofVerify(t *testing.T) {
+func TestAuthenticate(t *testing.T) {
 	f := SetupTest(t)
+	require := require.New(t)
 
-	email, err := b64.StdEncoding.DecodeString("sAcYdn1nulpzJIM0RMaX6Vn5GPPGXuHxM//AfW7b7yU=")
-	require.NoError(t, err)
-	var emailBz [32]byte
-	copy(emailBz[:], email)
-	_, err = fr.LittleEndian.Element(&emailBz)
-	require.NoError(t, err)
+	publicInputs := []string{
+		"2018721414038404820327",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"6632353713085157925504008443078919716322386156160602218536961028046468237192",
+		"7124795577407215906429701664882261509693262157925400448966588838950094204364",
+		"1729865810",
+		"43113996133614694763028116931624199507",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"15410845306913030315557266389633342942173932394505300961928199486942755829435",
+		"0",
+	}
 
-	proof64 := "eyJwaV9hIjpbIjEyNTA3NDQ3MTEzNzIzNDEyMDAzMjI0MTg2NDI3NTAyMDIwNzk1MjMzMDY1NjAxNjk0NDc1OTQ4MzUzOTE2MzY3NDU4MDIzOTE3Mzc4IiwiMTE2NDc0OTIzMTc0MTEyMDM1MDEwMDUwMDA0MDA0NDUzNTc5NjA1MjYxNjQ2Nzg4NjAwNzMyNDA5MzQ1Mzk0MTIxNzI1Mzk2NjIzOTMiLCIxIl0sInBpX2IiOltbIjc5NDA1NDkzMTQzODQxMDU2OTYwMjkwNTg5OTY5NzA0NzcyMjIyNTA3MjIzMTg0NzMyMjIzMDYzNjU3NTc3MDk5NTAzMTYzMjg2MjIiLCIzODcxODAzODIyMzE1NzM3ODE0NTA3OTkwNjc4MzA1NzM4OTQ2OTYyNDM0MjkzNDg4MDEwMzE0NjE0NjczMDQ5ODcyMzYxMzU3ODI0Il0sWyI5MzIxNjI4MTQ3MjY4ODM3MzMyODI2Njg1NjkxNDk2NjE5OTc2MjE0MzQwNTI5NjI2ODkwNjA1OTAxNTMwMjA1NjQ0ODkxMTU3NjIzIiwiMTEwNTU2MzM2MjM4NjM1MjI1NTA4MzkyOTIyMTUxOTkyNTAxMDI2ODE2NzY5MjMyOTQ1NDI1NzE4NDU4NTY2MzY5MTI0NzgyMTUyNDkiXSxbIjEiLCIwIl1dLCJwaV9jIjpbIjE0NjU3MDc0NDIxNzY4NTE1ODM1ODU4OTg1OTE3NTc4NjIxMjM5NTY1MzI4OTY1NDAyODU0MTc5MzU2MjE4NDQ4NjU0ODYwNTcyODg5IiwiMTMyNzk0MDQ2MzkyNjg2MTQ3MjY0NTE2MDY5NTIyMzE0NjU4ODI2NDEzNjUxNDk2NzI4NDE5MjQ1NDE3NjgzOTkwMjU2NjEzMjEzMTEiLCIxIl19"
-	proofData, err := b64.StdEncoding.DecodeString(proof64)
-	require.NoError(t, err)
-
-	txB4s := "CqIBCp8BChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEn8KP3hpb24xNG43OWVocGZ3aGRoNHN6dWRhZ2Q0bm14N2NsajU3bHk1dTBsenhzNm1nZjVxeTU1a3k5c21zenM0OBIreGlvbjFxYWYyeGZseDVqM2FndGx2cWs1dmhqcGV1aGw2ZzQ1aHhzaHdxahoPCgV1eGlvbhIGMTAwMDAwEmUKTQpDCh0vYWJzdHJhY3RhY2NvdW50LnYxLk5pbFB1YktleRIiCiCs/FzcKXXbesBcb1Daz2b2Pyp75Kcf8Roa2hNAEpSxCxIECgIIARgBEhQKDgoFdXhpb24SBTYwMDAwEICJehoGeGlvbi0xIAw="
-	txBytes, err := b64.StdEncoding.DecodeString(txB4s)
-	require.NoError(t, err)
-	dkimBz, err := b64.StdEncoding.DecodeString("iEeNSGFNAiTctrIgoVuE40DFz/ATm+ip5RBx3HfHqQ4=")
-	require.NoError(t, err)
-
-	testCases := []struct {
-		name    string
-		proofBz []byte
-		txBz    []byte
-		dkimBz  []byte
-		emailBz []byte
-	}{
-		{
-			name:    "verify proof",
-			proofBz: proofData,
-			txBz:    txBytes,
-			dkimBz:  dkimBz,
-			emailBz: email,
+	domainParts, err := types.ConvertStringArrayToBigInt(publicInputs[0:9])
+	require.NoError(err)
+	dkimDomain, err := types.ConvertBigIntArrayToString(domainParts)
+	require.NoError(err)
+	poseidonHash, ok := new(big.Int).SetString(publicInputs[9], 10)
+	require.True(ok)
+	_, err = f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+		Authority: f.govModAddr,
+		DkimPubkeys: []types.DkimPubKey{
+			{
+				Domain:       "gmail.com",
+				PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+				PoseidonHash: poseidonHash.Bytes(),
+				Selector:     "selector1",
+				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+			},
 		},
+	})
+	require.NoError(err)
+
+	txParts, err := types.ConvertStringArrayToBigInt(publicInputs[12:32])
+	require.NoError(err)
+	txBytes, err := types.ConvertBigIntArrayToString(txParts)
+	require.NoError(err)
+
+	emailHashStr := "15410845306913030315557266389633342942173932394505300961928199486942755829435"
+	emailHash, ok := new(big.Int).SetString(emailHashStr, 10)
+	require.True(ok)
+
+	emailHashBz := emailHash.FillBytes(make([]byte, 32))
+	for i, j := 0, len(emailHashBz)-1; i < j; i, j = i+1, j-1 {
+		emailHashBz[i], emailHashBz[j] = emailHashBz[j], emailHashBz[i]
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(_ *testing.T) {
-			r := &types.QueryAuthenticateRequest{
-				TxBytes:   tc.txBz,
-				Proof:     tc.proofBz,
-				DkimHash:  tc.dkimBz,
-				EmailHash: tc.emailBz,
-			}
-			res, err := f.queryServer.ProofVerify(f.ctx, r)
-			require.NoError(t, err)
-			require.True(t, res.Verified)
-		})
+	proofJSON := []byte(`{"pi_a":["9304174403335741259315518336518591609512748783415613804180487556630236265024","6713554026312915505201081736695954389800531920719678211757357553378458757296","1"],"pi_b":[["16283592920163593399978697946723173702052308100676484085110069910633272630880","9039537598426725764887907662186734325645584110941201061286098607080677326933"],["14554757751308593637715610618566027327163703939068223562934833009988299531481","3001065032657973076124882599580187748929460243547839080637309134158102691344"],["1","0"]],"pi_c":["4535679481576908067801207899542111592376066219403823905750205749141422222138","18664092154600451155500251476777053301690018888778183657315682284589674588917","1"],"protocol":"groth16","curve":"bn128"}`)
+
+	res, err := f.queryServer.Authenticate(f.ctx, &types.QueryAuthenticateRequest{
+		DkimDomain:   dkimDomain,
+		TxBytes:      []byte(txBytes),
+		EmailHash:    emailHashBz,
+		Proof:        proofJSON,
+		PublicInputs: publicInputs,
+	})
+	require.Nil(err)
+	require.NotNil(res)
+	require.True(res.Verified)
+}
+
+// this function converts a byte slice to little-endian format and trims leading zeros
+func ToLittleEndianWithTrimming(b []byte) []byte {
+	result := make([]byte, 0)
+	skipZeros := true
+
+	for i := range b {
+		val := b[i]
+		if skipZeros && val == 0 {
+			continue
+		}
+		skipZeros = false
+		result = append(result, val)
 	}
+	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
 }
