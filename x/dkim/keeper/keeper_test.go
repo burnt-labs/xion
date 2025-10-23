@@ -64,6 +64,7 @@ func SetupTest(t *testing.T) *TestFixture {
 	f.zkeeper = zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, f.govModAddr)
 	f.zkeeper.Params.Set(f.ctx, zktypes.DefaultParams())
 	f.k = keeper.NewKeeper(encCfg.Codec, storeService, logger, f.govModAddr, f.zkeeper)
+	f.k.Params.Set(f.ctx, types.DefaultParams())
 	f.msgServer = keeper.NewMsgServerImpl(f.k)
 	f.queryServer = keeper.NewQuerier(f.k)
 	f.appModule = module.NewAppModule(encCfg.Codec, f.k)
