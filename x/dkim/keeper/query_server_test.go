@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
+	"time"
 
 	"cosmossdk.io/collections"
 
@@ -183,7 +185,8 @@ func TestAuthenticate(t *testing.T) {
 	f := SetupTest(t)
 	require := require.New(t)
 
-	publicInputs := []string{
+	// Common test data
+	basePublicInputs := []string{
 		"2018721414038404820327",
 		"0",
 		"0",
@@ -220,13 +223,10 @@ func TestAuthenticate(t *testing.T) {
 		"1",
 	}
 
-	domainParts, err := types.ConvertStringArrayToBigInt(publicInputs[0:9])
-	require.NoError(err)
-	dkimDomain, err := types.ConvertBigIntArrayToString(domainParts)
-	require.NoError(err)
-	poseidonHash, ok := new(big.Int).SetString(publicInputs[9], 10)
+	// Setup DKIM pub key
+	poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 	require.True(ok)
-	_, err = f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+	_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
 		Authority: f.govModAddr,
 		DkimPubkeys: []types.DkimPubKey{
 			{
@@ -240,20 +240,7 @@ func TestAuthenticate(t *testing.T) {
 	})
 	require.NoError(err)
 
-	txParts, err := types.ConvertStringArrayToBigInt(publicInputs[12:32])
-	require.NoError(err)
-	txBytes, err := types.ConvertBigIntArrayToString(txParts)
-	require.NoError(err)
-
-	emailHashStr := "8106355043968901587346579634598098765933160394002251948170420219958523220425"
-	emailHash, ok := new(big.Int).SetString(emailHashStr, 10)
-	require.True(ok)
-
-	emailHashBz := emailHash.FillBytes(make([]byte, 32))
-	for i, j := 0, len(emailHashBz)-1; i < j; i, j = i+1, j-1 {
-		emailHashBz[i], emailHashBz[j] = emailHashBz[j], emailHashBz[i]
-	}
-
+	// Common proof JSON
 	proofJSON := []byte(`{
     "pi_a": [
         "2567498309095945123001915525425675597905999851760478825045526651681215626331",
@@ -283,16 +270,102 @@ func TestAuthenticate(t *testing.T) {
     "curve": "bn128"
 }`)
 
-	res, err := f.queryServer.Authenticate(f.ctx, &types.QueryAuthenticateRequest{
-		DkimDomain:   dkimDomain,
-		TxBytes:      []byte(txBytes),
-		EmailHash:    emailHashBz,
-		Proof:        proofJSON,
-		PublicInputs: publicInputs,
-	})
-	require.Nil(err)
-	require.NotNil(res)
-	require.True(res.Verified)
+	// Common email hash
+	emailHashStr := "8106355043968901587346579634598098765933160394002251948170420219958523220425"
+	emailHash, ok := new(big.Int).SetString(emailHashStr, 10)
+	require.True(ok)
+	emailHashBz := emailHash.FillBytes(make([]byte, 32))
+	for i, j := 0, len(emailHashBz)-1; i < j; i, j = i+1, j-1 {
+		emailHashBz[i], emailHashBz[j] = emailHashBz[j], emailHashBz[i]
+	}
+
+	// Common tx bytes
+	txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+	require.NoError(err)
+	txBytes, err := types.ConvertBigIntArrayToString(txParts)
+	require.NoError(err)
+
+	// Set a deterministic block time for testing
+	testBlockTime := time.Now()
+	f.ctx = f.ctx.WithBlockTime(testBlockTime)
+
+	testCases := []struct {
+		name             string
+		timestampOffset  time.Duration
+		expectedError    bool
+		expectedVerified bool
+		errorContains    string
+	}{
+		{
+			name:             "success - valid timestamp (current time)",
+			timestampOffset:  0,
+			expectedError:    false,
+			expectedVerified: true,
+		},
+		{
+			name:             "success - timestamp at boundary (exactly 15 minutes)",
+			timestampOffset:  -15 * time.Minute,
+			expectedError:    false,
+			expectedVerified: true,
+		},
+		{
+			name:             "fail - timestamp too old (expired)",
+			timestampOffset:  -16 * time.Minute,
+			expectedError:    true,
+			expectedVerified: false,
+			errorContains:    "timestamp is too old",
+		},
+		{
+			name:             "fail - timestamp too far in future",
+			timestampOffset:  16 * time.Minute,
+			expectedError:    true,
+			expectedVerified: false,
+			errorContains:    "timestamp is too far in the future",
+		},
+		{
+			name:             "fail - invalid timestamp format",
+			timestampOffset:  0, // Will be overridden
+			expectedError:    true,
+			expectedVerified: false,
+			errorContains:    "failed to parse timestamp",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a copy of public inputs for this test case
+			publicInputs := make([]string, len(basePublicInputs))
+			copy(publicInputs, basePublicInputs)
+
+			// Set timestamp based on test case
+			if tc.name == "fail - invalid timestamp format" {
+				publicInputs[11] = "invalid-timestamp"
+			} else {
+				timestamp := testBlockTime.Add(tc.timestampOffset).Unix()
+				publicInputs[11] = fmt.Sprintf("%d", timestamp)
+			}
+
+			res, err := f.queryServer.Authenticate(f.ctx, &types.QueryAuthenticateRequest{
+				TxBytes:      []byte(txBytes),
+				EmailHash:    emailHashBz,
+				Proof:        proofJSON,
+				PublicInputs: publicInputs,
+			})
+
+			if tc.expectedError {
+				require.Error(err)
+				if tc.errorContains != "" {
+					require.Contains(err.Error(), tc.errorContains)
+				}
+				require.ErrorIs(err, types.ErrInvalidPublicInput)
+				require.Nil(res)
+			} else {
+				require.NoError(err)
+				require.NotNil(res)
+				require.Equal(tc.expectedVerified, res.Verified)
+			}
+		})
+	}
 }
 
 // this function converts a byte slice to little-endian format and trims leading zeros
