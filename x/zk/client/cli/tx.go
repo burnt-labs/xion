@@ -4,8 +4,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
 
 	"github.com/burnt-labs/xion/x/zk/types"
 )
@@ -22,10 +20,11 @@ func NewTxCmd() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	txCmd.AddCommand(MsgUpdateParams())
+	//txCmd.AddCommand(MsgUpdateParams())
 	return txCmd
 }
 
+/*
 // Returns a CLI command handler for registering a
 // contract for the module.
 func MsgUpdateParams() *cobra.Command {
@@ -53,3 +52,5 @@ func MsgUpdateParams() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }
+
+*/

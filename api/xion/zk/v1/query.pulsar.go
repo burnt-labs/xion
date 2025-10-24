@@ -2,9 +2,10 @@
 package zkv1
 
 import (
-	_ "cosmossdk.io/api/cosmos/base/query/v1beta1"
+	v1beta1 "cosmossdk.io/api/cosmos/base/query/v1beta1"
 	fmt "fmt"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
@@ -792,7 +793,8 @@ var (
 	md_QueryVerifyRequest               protoreflect.MessageDescriptor
 	fd_QueryVerifyRequest_proof         protoreflect.FieldDescriptor
 	fd_QueryVerifyRequest_public_inputs protoreflect.FieldDescriptor
-	fd_QueryVerifyRequest_vkey          protoreflect.FieldDescriptor
+	fd_QueryVerifyRequest_vkey_name     protoreflect.FieldDescriptor
+	fd_QueryVerifyRequest_vkey_id       protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -800,7 +802,8 @@ func init() {
 	md_QueryVerifyRequest = File_xion_zk_v1_query_proto.Messages().ByName("QueryVerifyRequest")
 	fd_QueryVerifyRequest_proof = md_QueryVerifyRequest.Fields().ByName("proof")
 	fd_QueryVerifyRequest_public_inputs = md_QueryVerifyRequest.Fields().ByName("public_inputs")
-	fd_QueryVerifyRequest_vkey = md_QueryVerifyRequest.Fields().ByName("vkey")
+	fd_QueryVerifyRequest_vkey_name = md_QueryVerifyRequest.Fields().ByName("vkey_name")
+	fd_QueryVerifyRequest_vkey_id = md_QueryVerifyRequest.Fields().ByName("vkey_id")
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryVerifyRequest)(nil)
@@ -880,9 +883,15 @@ func (x *fastReflection_QueryVerifyRequest) Range(f func(protoreflect.FieldDescr
 			return
 		}
 	}
-	if len(x.Vkey) != 0 {
-		value := protoreflect.ValueOfBytes(x.Vkey)
-		if !f(fd_QueryVerifyRequest_vkey, value) {
+	if x.VkeyName != "" {
+		value := protoreflect.ValueOfString(x.VkeyName)
+		if !f(fd_QueryVerifyRequest_vkey_name, value) {
+			return
+		}
+	}
+	if x.VkeyId != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.VkeyId)
+		if !f(fd_QueryVerifyRequest_vkey_id, value) {
 			return
 		}
 	}
@@ -905,8 +914,10 @@ func (x *fastReflection_QueryVerifyRequest) Has(fd protoreflect.FieldDescriptor)
 		return len(x.Proof) != 0
 	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
 		return len(x.PublicInputs) != 0
-	case "xion.zk.v1.QueryVerifyRequest.vkey":
-		return len(x.Vkey) != 0
+	case "xion.zk.v1.QueryVerifyRequest.vkey_name":
+		return x.VkeyName != ""
+	case "xion.zk.v1.QueryVerifyRequest.vkey_id":
+		return x.VkeyId != uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -927,8 +938,10 @@ func (x *fastReflection_QueryVerifyRequest) Clear(fd protoreflect.FieldDescripto
 		x.Proof = nil
 	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
 		x.PublicInputs = nil
-	case "xion.zk.v1.QueryVerifyRequest.vkey":
-		x.Vkey = nil
+	case "xion.zk.v1.QueryVerifyRequest.vkey_name":
+		x.VkeyName = ""
+	case "xion.zk.v1.QueryVerifyRequest.vkey_id":
+		x.VkeyId = uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -954,9 +967,12 @@ func (x *fastReflection_QueryVerifyRequest) Get(descriptor protoreflect.FieldDes
 		}
 		listValue := &_QueryVerifyRequest_2_list{list: &x.PublicInputs}
 		return protoreflect.ValueOfList(listValue)
-	case "xion.zk.v1.QueryVerifyRequest.vkey":
-		value := x.Vkey
-		return protoreflect.ValueOfBytes(value)
+	case "xion.zk.v1.QueryVerifyRequest.vkey_name":
+		value := x.VkeyName
+		return protoreflect.ValueOfString(value)
+	case "xion.zk.v1.QueryVerifyRequest.vkey_id":
+		value := x.VkeyId
+		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -983,8 +999,10 @@ func (x *fastReflection_QueryVerifyRequest) Set(fd protoreflect.FieldDescriptor,
 		lv := value.List()
 		clv := lv.(*_QueryVerifyRequest_2_list)
 		x.PublicInputs = *clv.list
-	case "xion.zk.v1.QueryVerifyRequest.vkey":
-		x.Vkey = value.Bytes()
+	case "xion.zk.v1.QueryVerifyRequest.vkey_name":
+		x.VkeyName = value.Interface().(string)
+	case "xion.zk.v1.QueryVerifyRequest.vkey_id":
+		x.VkeyId = value.Uint()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -1013,8 +1031,10 @@ func (x *fastReflection_QueryVerifyRequest) Mutable(fd protoreflect.FieldDescrip
 		return protoreflect.ValueOfList(value)
 	case "xion.zk.v1.QueryVerifyRequest.proof":
 		panic(fmt.Errorf("field proof of message xion.zk.v1.QueryVerifyRequest is not mutable"))
-	case "xion.zk.v1.QueryVerifyRequest.vkey":
-		panic(fmt.Errorf("field vkey of message xion.zk.v1.QueryVerifyRequest is not mutable"))
+	case "xion.zk.v1.QueryVerifyRequest.vkey_name":
+		panic(fmt.Errorf("field vkey_name of message xion.zk.v1.QueryVerifyRequest is not mutable"))
+	case "xion.zk.v1.QueryVerifyRequest.vkey_id":
+		panic(fmt.Errorf("field vkey_id of message xion.zk.v1.QueryVerifyRequest is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -1033,8 +1053,10 @@ func (x *fastReflection_QueryVerifyRequest) NewField(fd protoreflect.FieldDescri
 	case "xion.zk.v1.QueryVerifyRequest.public_inputs":
 		list := []string{}
 		return protoreflect.ValueOfList(&_QueryVerifyRequest_2_list{list: &list})
-	case "xion.zk.v1.QueryVerifyRequest.vkey":
-		return protoreflect.ValueOfBytes(nil)
+	case "xion.zk.v1.QueryVerifyRequest.vkey_name":
+		return protoreflect.ValueOfString("")
+	case "xion.zk.v1.QueryVerifyRequest.vkey_id":
+		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVerifyRequest"))
@@ -1114,9 +1136,12 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
-		l = len(x.Vkey)
+		l = len(x.VkeyName)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.VkeyId != 0 {
+			n += 1 + runtime.Sov(uint64(x.VkeyId))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -1147,10 +1172,15 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Vkey) > 0 {
-			i -= len(x.Vkey)
-			copy(dAtA[i:], x.Vkey)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Vkey)))
+		if x.VkeyId != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.VkeyId))
+			i--
+			dAtA[i] = 0x20
+		}
+		if len(x.VkeyName) > 0 {
+			i -= len(x.VkeyName)
+			copy(dAtA[i:], x.VkeyName)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.VkeyName)))
 			i--
 			dAtA[i] = 0x1a
 		}
@@ -1287,9 +1317,9 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 3:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field VkeyName", wireType)
 				}
-				var byteLen int
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -1299,26 +1329,43 @@ func (x *fastReflection_QueryVerifyRequest) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					byteLen |= int(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if byteLen < 0 {
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + byteLen
+				postIndex := iNdEx + intStringLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Vkey = append(x.Vkey[:0], dAtA[iNdEx:postIndex]...)
-				if x.Vkey == nil {
-					x.Vkey = []byte{}
-				}
+				x.VkeyName = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
+			case 4:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field VkeyId", wireType)
+				}
+				x.VkeyId = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.VkeyId |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -1764,6 +1811,5491 @@ func (x *fastReflection_ProofVerifyResponse) ProtoMethods() *protoiface.Methods 
 	}
 }
 
+var (
+	md_VKey              protoreflect.MessageDescriptor
+	fd_VKey_key_bytes    protoreflect.FieldDescriptor
+	fd_VKey_name         protoreflect.FieldDescriptor
+	fd_VKey_description  protoreflect.FieldDescriptor
+	fd_VKey_circuit_hash protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_VKey = File_xion_zk_v1_query_proto.Messages().ByName("VKey")
+	fd_VKey_key_bytes = md_VKey.Fields().ByName("key_bytes")
+	fd_VKey_name = md_VKey.Fields().ByName("name")
+	fd_VKey_description = md_VKey.Fields().ByName("description")
+	fd_VKey_circuit_hash = md_VKey.Fields().ByName("circuit_hash")
+}
+
+var _ protoreflect.Message = (*fastReflection_VKey)(nil)
+
+type fastReflection_VKey VKey
+
+func (x *VKey) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_VKey)(x)
+}
+
+func (x *VKey) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_VKey_messageType fastReflection_VKey_messageType
+var _ protoreflect.MessageType = fastReflection_VKey_messageType{}
+
+type fastReflection_VKey_messageType struct{}
+
+func (x fastReflection_VKey_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_VKey)(nil)
+}
+func (x fastReflection_VKey_messageType) New() protoreflect.Message {
+	return new(fastReflection_VKey)
+}
+func (x fastReflection_VKey_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_VKey
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_VKey) Descriptor() protoreflect.MessageDescriptor {
+	return md_VKey
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_VKey) Type() protoreflect.MessageType {
+	return _fastReflection_VKey_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_VKey) New() protoreflect.Message {
+	return new(fastReflection_VKey)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_VKey) Interface() protoreflect.ProtoMessage {
+	return (*VKey)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_VKey) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.KeyBytes) != 0 {
+		value := protoreflect.ValueOfBytes(x.KeyBytes)
+		if !f(fd_VKey_key_bytes, value) {
+			return
+		}
+	}
+	if x.Name != "" {
+		value := protoreflect.ValueOfString(x.Name)
+		if !f(fd_VKey_name, value) {
+			return
+		}
+	}
+	if x.Description != "" {
+		value := protoreflect.ValueOfString(x.Description)
+		if !f(fd_VKey_description, value) {
+			return
+		}
+	}
+	if x.CircuitHash != "" {
+		value := protoreflect.ValueOfString(x.CircuitHash)
+		if !f(fd_VKey_circuit_hash, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_VKey) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKey.key_bytes":
+		return len(x.KeyBytes) != 0
+	case "xion.zk.v1.VKey.name":
+		return x.Name != ""
+	case "xion.zk.v1.VKey.description":
+		return x.Description != ""
+	case "xion.zk.v1.VKey.circuit_hash":
+		return x.CircuitHash != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKey"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKey does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKey) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKey.key_bytes":
+		x.KeyBytes = nil
+	case "xion.zk.v1.VKey.name":
+		x.Name = ""
+	case "xion.zk.v1.VKey.description":
+		x.Description = ""
+	case "xion.zk.v1.VKey.circuit_hash":
+		x.CircuitHash = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKey"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKey does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_VKey) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.VKey.key_bytes":
+		value := x.KeyBytes
+		return protoreflect.ValueOfBytes(value)
+	case "xion.zk.v1.VKey.name":
+		value := x.Name
+		return protoreflect.ValueOfString(value)
+	case "xion.zk.v1.VKey.description":
+		value := x.Description
+		return protoreflect.ValueOfString(value)
+	case "xion.zk.v1.VKey.circuit_hash":
+		value := x.CircuitHash
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKey"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKey does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKey) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKey.key_bytes":
+		x.KeyBytes = value.Bytes()
+	case "xion.zk.v1.VKey.name":
+		x.Name = value.Interface().(string)
+	case "xion.zk.v1.VKey.description":
+		x.Description = value.Interface().(string)
+	case "xion.zk.v1.VKey.circuit_hash":
+		x.CircuitHash = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKey"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKey does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKey) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKey.key_bytes":
+		panic(fmt.Errorf("field key_bytes of message xion.zk.v1.VKey is not mutable"))
+	case "xion.zk.v1.VKey.name":
+		panic(fmt.Errorf("field name of message xion.zk.v1.VKey is not mutable"))
+	case "xion.zk.v1.VKey.description":
+		panic(fmt.Errorf("field description of message xion.zk.v1.VKey is not mutable"))
+	case "xion.zk.v1.VKey.circuit_hash":
+		panic(fmt.Errorf("field circuit_hash of message xion.zk.v1.VKey is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKey"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKey does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_VKey) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKey.key_bytes":
+		return protoreflect.ValueOfBytes(nil)
+	case "xion.zk.v1.VKey.name":
+		return protoreflect.ValueOfString("")
+	case "xion.zk.v1.VKey.description":
+		return protoreflect.ValueOfString("")
+	case "xion.zk.v1.VKey.circuit_hash":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKey"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKey does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_VKey) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.VKey", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_VKey) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKey) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_VKey) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_VKey) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*VKey)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.KeyBytes)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Name)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Description)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.CircuitHash)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*VKey)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.CircuitHash) > 0 {
+			i -= len(x.CircuitHash)
+			copy(dAtA[i:], x.CircuitHash)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.CircuitHash)))
+			i--
+			dAtA[i] = 0x22
+		}
+		if len(x.Description) > 0 {
+			i -= len(x.Description)
+			copy(dAtA[i:], x.Description)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Description)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if len(x.Name) > 0 {
+			i -= len(x.Name)
+			copy(dAtA[i:], x.Name)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Name)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.KeyBytes) > 0 {
+			i -= len(x.KeyBytes)
+			copy(dAtA[i:], x.KeyBytes)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.KeyBytes)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*VKey)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: VKey: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: VKey: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field KeyBytes", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.KeyBytes = append(x.KeyBytes[:0], dAtA[iNdEx:postIndex]...)
+				if x.KeyBytes == nil {
+					x.KeyBytes = []byte{}
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Name = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Description = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field CircuitHash", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.CircuitHash = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryVKeyRequest    protoreflect.MessageDescriptor
+	fd_QueryVKeyRequest_id protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryVKeyRequest = File_xion_zk_v1_query_proto.Messages().ByName("QueryVKeyRequest")
+	fd_QueryVKeyRequest_id = md_QueryVKeyRequest.Fields().ByName("id")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVKeyRequest)(nil)
+
+type fastReflection_QueryVKeyRequest QueryVKeyRequest
+
+func (x *QueryVKeyRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVKeyRequest)(x)
+}
+
+func (x *QueryVKeyRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVKeyRequest_messageType fastReflection_QueryVKeyRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVKeyRequest_messageType{}
+
+type fastReflection_QueryVKeyRequest_messageType struct{}
+
+func (x fastReflection_QueryVKeyRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVKeyRequest)(nil)
+}
+func (x fastReflection_QueryVKeyRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyRequest)
+}
+func (x fastReflection_QueryVKeyRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVKeyRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVKeyRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVKeyRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVKeyRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVKeyRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryVKeyRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVKeyRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Id != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Id)
+		if !f(fd_QueryVKeyRequest_id, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVKeyRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyRequest.id":
+		return x.Id != uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyRequest.id":
+		x.Id = uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVKeyRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryVKeyRequest.id":
+		value := x.Id
+		return protoreflect.ValueOfUint64(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyRequest.id":
+		x.Id = value.Uint()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyRequest.id":
+		panic(fmt.Errorf("field id of message xion.zk.v1.QueryVKeyRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVKeyRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyRequest.id":
+		return protoreflect.ValueOfUint64(uint64(0))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVKeyRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryVKeyRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVKeyRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVKeyRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVKeyRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVKeyRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Id != 0 {
+			n += 1 + runtime.Sov(uint64(x.Id))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Id != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Id))
+			i--
+			dAtA[i] = 0x8
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+				}
+				x.Id = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Id |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryVKeyResponse      protoreflect.MessageDescriptor
+	fd_QueryVKeyResponse_vkey protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryVKeyResponse = File_xion_zk_v1_query_proto.Messages().ByName("QueryVKeyResponse")
+	fd_QueryVKeyResponse_vkey = md_QueryVKeyResponse.Fields().ByName("vkey")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVKeyResponse)(nil)
+
+type fastReflection_QueryVKeyResponse QueryVKeyResponse
+
+func (x *QueryVKeyResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVKeyResponse)(x)
+}
+
+func (x *QueryVKeyResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVKeyResponse_messageType fastReflection_QueryVKeyResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVKeyResponse_messageType{}
+
+type fastReflection_QueryVKeyResponse_messageType struct{}
+
+func (x fastReflection_QueryVKeyResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVKeyResponse)(nil)
+}
+func (x fastReflection_QueryVKeyResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyResponse)
+}
+func (x fastReflection_QueryVKeyResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVKeyResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVKeyResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVKeyResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVKeyResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVKeyResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryVKeyResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVKeyResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Vkey != nil {
+		value := protoreflect.ValueOfMessage(x.Vkey.ProtoReflect())
+		if !f(fd_QueryVKeyResponse_vkey, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVKeyResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyResponse.vkey":
+		return x.Vkey != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyResponse.vkey":
+		x.Vkey = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVKeyResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryVKeyResponse.vkey":
+		value := x.Vkey
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyResponse.vkey":
+		x.Vkey = value.Message().Interface().(*VKey)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyResponse.vkey":
+		if x.Vkey == nil {
+			x.Vkey = new(VKey)
+		}
+		return protoreflect.ValueOfMessage(x.Vkey.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVKeyResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyResponse.vkey":
+		m := new(VKey)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVKeyResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryVKeyResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVKeyResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVKeyResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVKeyResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVKeyResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Vkey != nil {
+			l = options.Size(x.Vkey)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Vkey != nil {
+			encoded, err := options.Marshal(x.Vkey)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Vkey == nil {
+					x.Vkey = &VKey{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Vkey); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryVKeyByNameRequest      protoreflect.MessageDescriptor
+	fd_QueryVKeyByNameRequest_name protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryVKeyByNameRequest = File_xion_zk_v1_query_proto.Messages().ByName("QueryVKeyByNameRequest")
+	fd_QueryVKeyByNameRequest_name = md_QueryVKeyByNameRequest.Fields().ByName("name")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVKeyByNameRequest)(nil)
+
+type fastReflection_QueryVKeyByNameRequest QueryVKeyByNameRequest
+
+func (x *QueryVKeyByNameRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVKeyByNameRequest)(x)
+}
+
+func (x *QueryVKeyByNameRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVKeyByNameRequest_messageType fastReflection_QueryVKeyByNameRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVKeyByNameRequest_messageType{}
+
+type fastReflection_QueryVKeyByNameRequest_messageType struct{}
+
+func (x fastReflection_QueryVKeyByNameRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVKeyByNameRequest)(nil)
+}
+func (x fastReflection_QueryVKeyByNameRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyByNameRequest)
+}
+func (x fastReflection_QueryVKeyByNameRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyByNameRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVKeyByNameRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyByNameRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVKeyByNameRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVKeyByNameRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVKeyByNameRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyByNameRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVKeyByNameRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryVKeyByNameRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVKeyByNameRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Name != "" {
+		value := protoreflect.ValueOfString(x.Name)
+		if !f(fd_QueryVKeyByNameRequest_name, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVKeyByNameRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameRequest.name":
+		return x.Name != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameRequest.name":
+		x.Name = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVKeyByNameRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameRequest.name":
+		value := x.Name
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameRequest.name":
+		x.Name = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameRequest.name":
+		panic(fmt.Errorf("field name of message xion.zk.v1.QueryVKeyByNameRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVKeyByNameRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameRequest.name":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVKeyByNameRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryVKeyByNameRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVKeyByNameRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVKeyByNameRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVKeyByNameRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVKeyByNameRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Name)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyByNameRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Name) > 0 {
+			i -= len(x.Name)
+			copy(dAtA[i:], x.Name)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Name)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyByNameRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyByNameRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyByNameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Name = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryVKeyByNameResponse      protoreflect.MessageDescriptor
+	fd_QueryVKeyByNameResponse_vkey protoreflect.FieldDescriptor
+	fd_QueryVKeyByNameResponse_id   protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryVKeyByNameResponse = File_xion_zk_v1_query_proto.Messages().ByName("QueryVKeyByNameResponse")
+	fd_QueryVKeyByNameResponse_vkey = md_QueryVKeyByNameResponse.Fields().ByName("vkey")
+	fd_QueryVKeyByNameResponse_id = md_QueryVKeyByNameResponse.Fields().ByName("id")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVKeyByNameResponse)(nil)
+
+type fastReflection_QueryVKeyByNameResponse QueryVKeyByNameResponse
+
+func (x *QueryVKeyByNameResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVKeyByNameResponse)(x)
+}
+
+func (x *QueryVKeyByNameResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVKeyByNameResponse_messageType fastReflection_QueryVKeyByNameResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVKeyByNameResponse_messageType{}
+
+type fastReflection_QueryVKeyByNameResponse_messageType struct{}
+
+func (x fastReflection_QueryVKeyByNameResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVKeyByNameResponse)(nil)
+}
+func (x fastReflection_QueryVKeyByNameResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyByNameResponse)
+}
+func (x fastReflection_QueryVKeyByNameResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyByNameResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVKeyByNameResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeyByNameResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVKeyByNameResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVKeyByNameResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVKeyByNameResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeyByNameResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVKeyByNameResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryVKeyByNameResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVKeyByNameResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Vkey != nil {
+		value := protoreflect.ValueOfMessage(x.Vkey.ProtoReflect())
+		if !f(fd_QueryVKeyByNameResponse_vkey, value) {
+			return
+		}
+	}
+	if x.Id != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Id)
+		if !f(fd_QueryVKeyByNameResponse_id, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVKeyByNameResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameResponse.vkey":
+		return x.Vkey != nil
+	case "xion.zk.v1.QueryVKeyByNameResponse.id":
+		return x.Id != uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameResponse.vkey":
+		x.Vkey = nil
+	case "xion.zk.v1.QueryVKeyByNameResponse.id":
+		x.Id = uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVKeyByNameResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameResponse.vkey":
+		value := x.Vkey
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "xion.zk.v1.QueryVKeyByNameResponse.id":
+		value := x.Id
+		return protoreflect.ValueOfUint64(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameResponse.vkey":
+		x.Vkey = value.Message().Interface().(*VKey)
+	case "xion.zk.v1.QueryVKeyByNameResponse.id":
+		x.Id = value.Uint()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameResponse.vkey":
+		if x.Vkey == nil {
+			x.Vkey = new(VKey)
+		}
+		return protoreflect.ValueOfMessage(x.Vkey.ProtoReflect())
+	case "xion.zk.v1.QueryVKeyByNameResponse.id":
+		panic(fmt.Errorf("field id of message xion.zk.v1.QueryVKeyByNameResponse is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVKeyByNameResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeyByNameResponse.vkey":
+		m := new(VKey)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "xion.zk.v1.QueryVKeyByNameResponse.id":
+		return protoreflect.ValueOfUint64(uint64(0))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeyByNameResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeyByNameResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVKeyByNameResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryVKeyByNameResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVKeyByNameResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeyByNameResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVKeyByNameResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVKeyByNameResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVKeyByNameResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Vkey != nil {
+			l = options.Size(x.Vkey)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.Id != 0 {
+			n += 1 + runtime.Sov(uint64(x.Id))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyByNameResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Id != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Id))
+			i--
+			dAtA[i] = 0x10
+		}
+		if x.Vkey != nil {
+			encoded, err := options.Marshal(x.Vkey)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeyByNameResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyByNameResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeyByNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Vkey == nil {
+					x.Vkey = &VKey{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Vkey); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+				}
+				x.Id = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Id |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryVKeysRequest            protoreflect.MessageDescriptor
+	fd_QueryVKeysRequest_pagination protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryVKeysRequest = File_xion_zk_v1_query_proto.Messages().ByName("QueryVKeysRequest")
+	fd_QueryVKeysRequest_pagination = md_QueryVKeysRequest.Fields().ByName("pagination")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVKeysRequest)(nil)
+
+type fastReflection_QueryVKeysRequest QueryVKeysRequest
+
+func (x *QueryVKeysRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVKeysRequest)(x)
+}
+
+func (x *QueryVKeysRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVKeysRequest_messageType fastReflection_QueryVKeysRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVKeysRequest_messageType{}
+
+type fastReflection_QueryVKeysRequest_messageType struct{}
+
+func (x fastReflection_QueryVKeysRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVKeysRequest)(nil)
+}
+func (x fastReflection_QueryVKeysRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeysRequest)
+}
+func (x fastReflection_QueryVKeysRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeysRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVKeysRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeysRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVKeysRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVKeysRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVKeysRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeysRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVKeysRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryVKeysRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVKeysRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Pagination != nil {
+		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+		if !f(fd_QueryVKeysRequest_pagination, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVKeysRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysRequest.pagination":
+		return x.Pagination != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysRequest.pagination":
+		x.Pagination = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVKeysRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryVKeysRequest.pagination":
+		value := x.Pagination
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysRequest.pagination":
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysRequest.pagination":
+		if x.Pagination == nil {
+			x.Pagination = new(v1beta1.PageRequest)
+		}
+		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVKeysRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysRequest.pagination":
+		m := new(v1beta1.PageRequest)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVKeysRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryVKeysRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVKeysRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVKeysRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVKeysRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVKeysRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Pagination != nil {
+			l = options.Size(x.Pagination)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeysRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Pagination != nil {
+			encoded, err := options.Marshal(x.Pagination)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeysRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeysRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeysRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Pagination == nil {
+					x.Pagination = &v1beta1.PageRequest{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var _ protoreflect.List = (*_QueryVKeysResponse_1_list)(nil)
+
+type _QueryVKeysResponse_1_list struct {
+	list *[]*VKeyWithID
+}
+
+func (x *_QueryVKeysResponse_1_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_QueryVKeysResponse_1_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_QueryVKeysResponse_1_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*VKeyWithID)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_QueryVKeysResponse_1_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*VKeyWithID)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_QueryVKeysResponse_1_list) AppendMutable() protoreflect.Value {
+	v := new(VKeyWithID)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryVKeysResponse_1_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_QueryVKeysResponse_1_list) NewElement() protoreflect.Value {
+	v := new(VKeyWithID)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryVKeysResponse_1_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_QueryVKeysResponse            protoreflect.MessageDescriptor
+	fd_QueryVKeysResponse_vkeys      protoreflect.FieldDescriptor
+	fd_QueryVKeysResponse_pagination protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryVKeysResponse = File_xion_zk_v1_query_proto.Messages().ByName("QueryVKeysResponse")
+	fd_QueryVKeysResponse_vkeys = md_QueryVKeysResponse.Fields().ByName("vkeys")
+	fd_QueryVKeysResponse_pagination = md_QueryVKeysResponse.Fields().ByName("pagination")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVKeysResponse)(nil)
+
+type fastReflection_QueryVKeysResponse QueryVKeysResponse
+
+func (x *QueryVKeysResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVKeysResponse)(x)
+}
+
+func (x *QueryVKeysResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVKeysResponse_messageType fastReflection_QueryVKeysResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVKeysResponse_messageType{}
+
+type fastReflection_QueryVKeysResponse_messageType struct{}
+
+func (x fastReflection_QueryVKeysResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVKeysResponse)(nil)
+}
+func (x fastReflection_QueryVKeysResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeysResponse)
+}
+func (x fastReflection_QueryVKeysResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeysResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVKeysResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVKeysResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVKeysResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVKeysResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVKeysResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryVKeysResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVKeysResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryVKeysResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVKeysResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Vkeys) != 0 {
+		value := protoreflect.ValueOfList(&_QueryVKeysResponse_1_list{list: &x.Vkeys})
+		if !f(fd_QueryVKeysResponse_vkeys, value) {
+			return
+		}
+	}
+	if x.Pagination != nil {
+		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+		if !f(fd_QueryVKeysResponse_pagination, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVKeysResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysResponse.vkeys":
+		return len(x.Vkeys) != 0
+	case "xion.zk.v1.QueryVKeysResponse.pagination":
+		return x.Pagination != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysResponse.vkeys":
+		x.Vkeys = nil
+	case "xion.zk.v1.QueryVKeysResponse.pagination":
+		x.Pagination = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVKeysResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryVKeysResponse.vkeys":
+		if len(x.Vkeys) == 0 {
+			return protoreflect.ValueOfList(&_QueryVKeysResponse_1_list{})
+		}
+		listValue := &_QueryVKeysResponse_1_list{list: &x.Vkeys}
+		return protoreflect.ValueOfList(listValue)
+	case "xion.zk.v1.QueryVKeysResponse.pagination":
+		value := x.Pagination
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysResponse.vkeys":
+		lv := value.List()
+		clv := lv.(*_QueryVKeysResponse_1_list)
+		x.Vkeys = *clv.list
+	case "xion.zk.v1.QueryVKeysResponse.pagination":
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysResponse.vkeys":
+		if x.Vkeys == nil {
+			x.Vkeys = []*VKeyWithID{}
+		}
+		value := &_QueryVKeysResponse_1_list{list: &x.Vkeys}
+		return protoreflect.ValueOfList(value)
+	case "xion.zk.v1.QueryVKeysResponse.pagination":
+		if x.Pagination == nil {
+			x.Pagination = new(v1beta1.PageResponse)
+		}
+		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVKeysResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryVKeysResponse.vkeys":
+		list := []*VKeyWithID{}
+		return protoreflect.ValueOfList(&_QueryVKeysResponse_1_list{list: &list})
+	case "xion.zk.v1.QueryVKeysResponse.pagination":
+		m := new(v1beta1.PageResponse)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryVKeysResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryVKeysResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVKeysResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryVKeysResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVKeysResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVKeysResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVKeysResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVKeysResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVKeysResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if len(x.Vkeys) > 0 {
+			for _, e := range x.Vkeys {
+				l = options.Size(e)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.Pagination != nil {
+			l = options.Size(x.Pagination)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeysResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Pagination != nil {
+			encoded, err := options.Marshal(x.Pagination)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Vkeys) > 0 {
+			for iNdEx := len(x.Vkeys) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Vkeys[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+				i--
+				dAtA[i] = 0xa
+			}
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVKeysResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeysResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVKeysResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Vkeys", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Vkeys = append(x.Vkeys, &VKeyWithID{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Vkeys[len(x.Vkeys)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Pagination == nil {
+					x.Pagination = &v1beta1.PageResponse{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_VKeyWithID      protoreflect.MessageDescriptor
+	fd_VKeyWithID_id   protoreflect.FieldDescriptor
+	fd_VKeyWithID_vkey protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_VKeyWithID = File_xion_zk_v1_query_proto.Messages().ByName("VKeyWithID")
+	fd_VKeyWithID_id = md_VKeyWithID.Fields().ByName("id")
+	fd_VKeyWithID_vkey = md_VKeyWithID.Fields().ByName("vkey")
+}
+
+var _ protoreflect.Message = (*fastReflection_VKeyWithID)(nil)
+
+type fastReflection_VKeyWithID VKeyWithID
+
+func (x *VKeyWithID) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_VKeyWithID)(x)
+}
+
+func (x *VKeyWithID) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_VKeyWithID_messageType fastReflection_VKeyWithID_messageType
+var _ protoreflect.MessageType = fastReflection_VKeyWithID_messageType{}
+
+type fastReflection_VKeyWithID_messageType struct{}
+
+func (x fastReflection_VKeyWithID_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_VKeyWithID)(nil)
+}
+func (x fastReflection_VKeyWithID_messageType) New() protoreflect.Message {
+	return new(fastReflection_VKeyWithID)
+}
+func (x fastReflection_VKeyWithID_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_VKeyWithID
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_VKeyWithID) Descriptor() protoreflect.MessageDescriptor {
+	return md_VKeyWithID
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_VKeyWithID) Type() protoreflect.MessageType {
+	return _fastReflection_VKeyWithID_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_VKeyWithID) New() protoreflect.Message {
+	return new(fastReflection_VKeyWithID)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_VKeyWithID) Interface() protoreflect.ProtoMessage {
+	return (*VKeyWithID)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_VKeyWithID) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Id != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Id)
+		if !f(fd_VKeyWithID_id, value) {
+			return
+		}
+	}
+	if x.Vkey != nil {
+		value := protoreflect.ValueOfMessage(x.Vkey.ProtoReflect())
+		if !f(fd_VKeyWithID_vkey, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_VKeyWithID) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKeyWithID.id":
+		return x.Id != uint64(0)
+	case "xion.zk.v1.VKeyWithID.vkey":
+		return x.Vkey != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKeyWithID"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKeyWithID does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKeyWithID) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKeyWithID.id":
+		x.Id = uint64(0)
+	case "xion.zk.v1.VKeyWithID.vkey":
+		x.Vkey = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKeyWithID"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKeyWithID does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_VKeyWithID) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.VKeyWithID.id":
+		value := x.Id
+		return protoreflect.ValueOfUint64(value)
+	case "xion.zk.v1.VKeyWithID.vkey":
+		value := x.Vkey
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKeyWithID"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKeyWithID does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKeyWithID) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKeyWithID.id":
+		x.Id = value.Uint()
+	case "xion.zk.v1.VKeyWithID.vkey":
+		x.Vkey = value.Message().Interface().(*VKey)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKeyWithID"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKeyWithID does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKeyWithID) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKeyWithID.vkey":
+		if x.Vkey == nil {
+			x.Vkey = new(VKey)
+		}
+		return protoreflect.ValueOfMessage(x.Vkey.ProtoReflect())
+	case "xion.zk.v1.VKeyWithID.id":
+		panic(fmt.Errorf("field id of message xion.zk.v1.VKeyWithID is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKeyWithID"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKeyWithID does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_VKeyWithID) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.VKeyWithID.id":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "xion.zk.v1.VKeyWithID.vkey":
+		m := new(VKey)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.VKeyWithID"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.VKeyWithID does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_VKeyWithID) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.VKeyWithID", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_VKeyWithID) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_VKeyWithID) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_VKeyWithID) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_VKeyWithID) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*VKeyWithID)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Id != 0 {
+			n += 1 + runtime.Sov(uint64(x.Id))
+		}
+		if x.Vkey != nil {
+			l = options.Size(x.Vkey)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*VKeyWithID)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Vkey != nil {
+			encoded, err := options.Marshal(x.Vkey)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if x.Id != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Id))
+			i--
+			dAtA[i] = 0x8
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*VKeyWithID)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: VKeyWithID: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: VKeyWithID: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+				}
+				x.Id = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Id |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Vkey == nil {
+					x.Vkey = &VKey{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Vkey); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryHasVKeyRequest      protoreflect.MessageDescriptor
+	fd_QueryHasVKeyRequest_name protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryHasVKeyRequest = File_xion_zk_v1_query_proto.Messages().ByName("QueryHasVKeyRequest")
+	fd_QueryHasVKeyRequest_name = md_QueryHasVKeyRequest.Fields().ByName("name")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryHasVKeyRequest)(nil)
+
+type fastReflection_QueryHasVKeyRequest QueryHasVKeyRequest
+
+func (x *QueryHasVKeyRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryHasVKeyRequest)(x)
+}
+
+func (x *QueryHasVKeyRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryHasVKeyRequest_messageType fastReflection_QueryHasVKeyRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryHasVKeyRequest_messageType{}
+
+type fastReflection_QueryHasVKeyRequest_messageType struct{}
+
+func (x fastReflection_QueryHasVKeyRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryHasVKeyRequest)(nil)
+}
+func (x fastReflection_QueryHasVKeyRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryHasVKeyRequest)
+}
+func (x fastReflection_QueryHasVKeyRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryHasVKeyRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryHasVKeyRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryHasVKeyRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryHasVKeyRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryHasVKeyRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryHasVKeyRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryHasVKeyRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryHasVKeyRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryHasVKeyRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryHasVKeyRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Name != "" {
+		value := protoreflect.ValueOfString(x.Name)
+		if !f(fd_QueryHasVKeyRequest_name, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryHasVKeyRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyRequest.name":
+		return x.Name != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyRequest.name":
+		x.Name = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryHasVKeyRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryHasVKeyRequest.name":
+		value := x.Name
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyRequest.name":
+		x.Name = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyRequest.name":
+		panic(fmt.Errorf("field name of message xion.zk.v1.QueryHasVKeyRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryHasVKeyRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyRequest.name":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryHasVKeyRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryHasVKeyRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryHasVKeyRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryHasVKeyRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryHasVKeyRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryHasVKeyRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Name)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryHasVKeyRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Name) > 0 {
+			i -= len(x.Name)
+			copy(dAtA[i:], x.Name)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Name)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryHasVKeyRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryHasVKeyRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryHasVKeyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Name = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryHasVKeyResponse        protoreflect.MessageDescriptor
+	fd_QueryHasVKeyResponse_exists protoreflect.FieldDescriptor
+	fd_QueryHasVKeyResponse_id     protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryHasVKeyResponse = File_xion_zk_v1_query_proto.Messages().ByName("QueryHasVKeyResponse")
+	fd_QueryHasVKeyResponse_exists = md_QueryHasVKeyResponse.Fields().ByName("exists")
+	fd_QueryHasVKeyResponse_id = md_QueryHasVKeyResponse.Fields().ByName("id")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryHasVKeyResponse)(nil)
+
+type fastReflection_QueryHasVKeyResponse QueryHasVKeyResponse
+
+func (x *QueryHasVKeyResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryHasVKeyResponse)(x)
+}
+
+func (x *QueryHasVKeyResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryHasVKeyResponse_messageType fastReflection_QueryHasVKeyResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryHasVKeyResponse_messageType{}
+
+type fastReflection_QueryHasVKeyResponse_messageType struct{}
+
+func (x fastReflection_QueryHasVKeyResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryHasVKeyResponse)(nil)
+}
+func (x fastReflection_QueryHasVKeyResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryHasVKeyResponse)
+}
+func (x fastReflection_QueryHasVKeyResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryHasVKeyResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryHasVKeyResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryHasVKeyResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryHasVKeyResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryHasVKeyResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryHasVKeyResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryHasVKeyResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryHasVKeyResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryHasVKeyResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryHasVKeyResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Exists != false {
+		value := protoreflect.ValueOfBool(x.Exists)
+		if !f(fd_QueryHasVKeyResponse_exists, value) {
+			return
+		}
+	}
+	if x.Id != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.Id)
+		if !f(fd_QueryHasVKeyResponse_id, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryHasVKeyResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyResponse.exists":
+		return x.Exists != false
+	case "xion.zk.v1.QueryHasVKeyResponse.id":
+		return x.Id != uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyResponse.exists":
+		x.Exists = false
+	case "xion.zk.v1.QueryHasVKeyResponse.id":
+		x.Id = uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryHasVKeyResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryHasVKeyResponse.exists":
+		value := x.Exists
+		return protoreflect.ValueOfBool(value)
+	case "xion.zk.v1.QueryHasVKeyResponse.id":
+		value := x.Id
+		return protoreflect.ValueOfUint64(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyResponse.exists":
+		x.Exists = value.Bool()
+	case "xion.zk.v1.QueryHasVKeyResponse.id":
+		x.Id = value.Uint()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyResponse.exists":
+		panic(fmt.Errorf("field exists of message xion.zk.v1.QueryHasVKeyResponse is not mutable"))
+	case "xion.zk.v1.QueryHasVKeyResponse.id":
+		panic(fmt.Errorf("field id of message xion.zk.v1.QueryHasVKeyResponse is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryHasVKeyResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryHasVKeyResponse.exists":
+		return protoreflect.ValueOfBool(false)
+	case "xion.zk.v1.QueryHasVKeyResponse.id":
+		return protoreflect.ValueOfUint64(uint64(0))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryHasVKeyResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryHasVKeyResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryHasVKeyResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryHasVKeyResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryHasVKeyResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryHasVKeyResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryHasVKeyResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryHasVKeyResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryHasVKeyResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Exists {
+			n += 2
+		}
+		if x.Id != 0 {
+			n += 1 + runtime.Sov(uint64(x.Id))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryHasVKeyResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Id != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Id))
+			i--
+			dAtA[i] = 0x10
+		}
+		if x.Exists {
+			i--
+			if x.Exists {
+				dAtA[i] = 1
+			} else {
+				dAtA[i] = 0
+			}
+			i--
+			dAtA[i] = 0x8
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryHasVKeyResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryHasVKeyResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryHasVKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Exists", wireType)
+				}
+				var v int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				x.Exists = bool(v != 0)
+			case 2:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+				}
+				x.Id = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Id |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryNextVKeyIDRequest protoreflect.MessageDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryNextVKeyIDRequest = File_xion_zk_v1_query_proto.Messages().ByName("QueryNextVKeyIDRequest")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryNextVKeyIDRequest)(nil)
+
+type fastReflection_QueryNextVKeyIDRequest QueryNextVKeyIDRequest
+
+func (x *QueryNextVKeyIDRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryNextVKeyIDRequest)(x)
+}
+
+func (x *QueryNextVKeyIDRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryNextVKeyIDRequest_messageType fastReflection_QueryNextVKeyIDRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryNextVKeyIDRequest_messageType{}
+
+type fastReflection_QueryNextVKeyIDRequest_messageType struct{}
+
+func (x fastReflection_QueryNextVKeyIDRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryNextVKeyIDRequest)(nil)
+}
+func (x fastReflection_QueryNextVKeyIDRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryNextVKeyIDRequest)
+}
+func (x fastReflection_QueryNextVKeyIDRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryNextVKeyIDRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryNextVKeyIDRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryNextVKeyIDRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryNextVKeyIDRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryNextVKeyIDRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryNextVKeyIDRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryNextVKeyIDRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryNextVKeyIDRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryNextVKeyIDRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryNextVKeyIDRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryNextVKeyIDRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryNextVKeyIDRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryNextVKeyIDRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDRequest"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryNextVKeyIDRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryNextVKeyIDRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryNextVKeyIDRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryNextVKeyIDRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryNextVKeyIDRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryNextVKeyIDRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryNextVKeyIDRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryNextVKeyIDRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryNextVKeyIDRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryNextVKeyIDRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryNextVKeyIDResponse         protoreflect.MessageDescriptor
+	fd_QueryNextVKeyIDResponse_next_id protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_zk_v1_query_proto_init()
+	md_QueryNextVKeyIDResponse = File_xion_zk_v1_query_proto.Messages().ByName("QueryNextVKeyIDResponse")
+	fd_QueryNextVKeyIDResponse_next_id = md_QueryNextVKeyIDResponse.Fields().ByName("next_id")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryNextVKeyIDResponse)(nil)
+
+type fastReflection_QueryNextVKeyIDResponse QueryNextVKeyIDResponse
+
+func (x *QueryNextVKeyIDResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryNextVKeyIDResponse)(x)
+}
+
+func (x *QueryNextVKeyIDResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_zk_v1_query_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryNextVKeyIDResponse_messageType fastReflection_QueryNextVKeyIDResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryNextVKeyIDResponse_messageType{}
+
+type fastReflection_QueryNextVKeyIDResponse_messageType struct{}
+
+func (x fastReflection_QueryNextVKeyIDResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryNextVKeyIDResponse)(nil)
+}
+func (x fastReflection_QueryNextVKeyIDResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryNextVKeyIDResponse)
+}
+func (x fastReflection_QueryNextVKeyIDResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryNextVKeyIDResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryNextVKeyIDResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryNextVKeyIDResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryNextVKeyIDResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryNextVKeyIDResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryNextVKeyIDResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryNextVKeyIDResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryNextVKeyIDResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryNextVKeyIDResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryNextVKeyIDResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.NextId != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.NextId)
+		if !f(fd_QueryNextVKeyIDResponse_next_id, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryNextVKeyIDResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryNextVKeyIDResponse.next_id":
+		return x.NextId != uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryNextVKeyIDResponse.next_id":
+		x.NextId = uint64(0)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryNextVKeyIDResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.zk.v1.QueryNextVKeyIDResponse.next_id":
+		value := x.NextId
+		return protoreflect.ValueOfUint64(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryNextVKeyIDResponse.next_id":
+		x.NextId = value.Uint()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryNextVKeyIDResponse.next_id":
+		panic(fmt.Errorf("field next_id of message xion.zk.v1.QueryNextVKeyIDResponse is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryNextVKeyIDResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.zk.v1.QueryNextVKeyIDResponse.next_id":
+		return protoreflect.ValueOfUint64(uint64(0))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.QueryNextVKeyIDResponse"))
+		}
+		panic(fmt.Errorf("message xion.zk.v1.QueryNextVKeyIDResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryNextVKeyIDResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.zk.v1.QueryNextVKeyIDResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryNextVKeyIDResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryNextVKeyIDResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryNextVKeyIDResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryNextVKeyIDResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryNextVKeyIDResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.NextId != 0 {
+			n += 1 + runtime.Sov(uint64(x.NextId))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryNextVKeyIDResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.NextId != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.NextId))
+			i--
+			dAtA[i] = 0x8
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryNextVKeyIDResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryNextVKeyIDResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryNextVKeyIDResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NextId", wireType)
+				}
+				x.NextId = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.NextId |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 // 	protoc-gen-go v1.27.0
@@ -1839,7 +7371,8 @@ type QueryVerifyRequest struct {
 
 	Proof        []byte   `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
 	PublicInputs []string `protobuf:"bytes,2,rep,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
-	Vkey         []byte   `protobuf:"bytes,3,opt,name=vkey,proto3" json:"vkey,omitempty"`
+	VkeyName     string   `protobuf:"bytes,3,opt,name=vkey_name,json=vkeyName,proto3" json:"vkey_name,omitempty"`
+	VkeyId       uint64   `protobuf:"varint,4,opt,name=vkey_id,json=vkeyId,proto3" json:"vkey_id,omitempty"`
 }
 
 func (x *QueryVerifyRequest) Reset() {
@@ -1876,11 +7409,18 @@ func (x *QueryVerifyRequest) GetPublicInputs() []string {
 	return nil
 }
 
-func (x *QueryVerifyRequest) GetVkey() []byte {
+func (x *QueryVerifyRequest) GetVkeyName() string {
 	if x != nil {
-		return x.Vkey
+		return x.VkeyName
 	}
-	return nil
+	return ""
+}
+
+func (x *QueryVerifyRequest) GetVkeyId() uint64 {
+	if x != nil {
+		return x.VkeyId
+	}
+	return 0
 }
 
 // ProofVerifyResponse defines the response structure for proof verification.
@@ -1920,47 +7460,626 @@ func (x *ProofVerifyResponse) GetVerified() bool {
 	return false
 }
 
+type VKey struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	KeyBytes    []byte `protobuf:"bytes,1,opt,name=key_bytes,json=keyBytes,proto3" json:"key_bytes,omitempty"`
+	Name        string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	CircuitHash string `protobuf:"bytes,4,opt,name=circuit_hash,json=circuitHash,proto3" json:"circuit_hash,omitempty"`
+}
+
+func (x *VKey) Reset() {
+	*x = VKey{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *VKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VKey) ProtoMessage() {}
+
+// Deprecated: Use VKey.ProtoReflect.Descriptor instead.
+func (*VKey) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *VKey) GetKeyBytes() []byte {
+	if x != nil {
+		return x.KeyBytes
+	}
+	return nil
+}
+
+func (x *VKey) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *VKey) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *VKey) GetCircuitHash() string {
+	if x != nil {
+		return x.CircuitHash
+	}
+	return ""
+}
+
+// QueryVKeyRequest is the request type for the Query/VKey RPC method
+type QueryVKeyRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// id is the unique identifier of the verification key
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *QueryVKeyRequest) Reset() {
+	*x = QueryVKeyRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVKeyRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryVKeyRequest.ProtoReflect.Descriptor instead.
+func (*QueryVKeyRequest) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *QueryVKeyRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+// QueryVKeyResponse is the response type for the Query/VKey RPC method
+type QueryVKeyResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// vkey is the verification key
+	Vkey *VKey `protobuf:"bytes,1,opt,name=vkey,proto3" json:"vkey,omitempty"`
+}
+
+func (x *QueryVKeyResponse) Reset() {
+	*x = QueryVKeyResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVKeyResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryVKeyResponse.ProtoReflect.Descriptor instead.
+func (*QueryVKeyResponse) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *QueryVKeyResponse) GetVkey() *VKey {
+	if x != nil {
+		return x.Vkey
+	}
+	return nil
+}
+
+// QueryVKeyByNameRequest is the request type for the Query/VKeyByName RPC method
+type QueryVKeyByNameRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// name is the unique name of the verification key
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *QueryVKeyByNameRequest) Reset() {
+	*x = QueryVKeyByNameRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVKeyByNameRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVKeyByNameRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryVKeyByNameRequest.ProtoReflect.Descriptor instead.
+func (*QueryVKeyByNameRequest) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *QueryVKeyByNameRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// QueryVKeyByNameResponse is the response type for the Query/VKeyByName RPC method
+type QueryVKeyByNameResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// vkey is the verification key
+	Vkey *VKey `protobuf:"bytes,1,opt,name=vkey,proto3" json:"vkey,omitempty"`
+	// id is the numeric identifier of the verification key
+	Id uint64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *QueryVKeyByNameResponse) Reset() {
+	*x = QueryVKeyByNameResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVKeyByNameResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVKeyByNameResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryVKeyByNameResponse.ProtoReflect.Descriptor instead.
+func (*QueryVKeyByNameResponse) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *QueryVKeyByNameResponse) GetVkey() *VKey {
+	if x != nil {
+		return x.Vkey
+	}
+	return nil
+}
+
+func (x *QueryVKeyByNameResponse) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+// QueryVKeysRequest is the request type for the Query/VKeys RPC method
+type QueryVKeysRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// pagination defines an optional pagination for the request
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (x *QueryVKeysRequest) Reset() {
+	*x = QueryVKeysRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVKeysRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVKeysRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryVKeysRequest.ProtoReflect.Descriptor instead.
+func (*QueryVKeysRequest) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *QueryVKeysRequest) GetPagination() *v1beta1.PageRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+// QueryVKeysResponse is the response type for the Query/VKeys RPC method
+type QueryVKeysResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// vkeys is the list of all verification keys with their IDs
+	Vkeys []*VKeyWithID `protobuf:"bytes,1,rep,name=vkeys,proto3" json:"vkeys,omitempty"`
+	// pagination defines the pagination in the response
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (x *QueryVKeysResponse) Reset() {
+	*x = QueryVKeysResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVKeysResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVKeysResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryVKeysResponse.ProtoReflect.Descriptor instead.
+func (*QueryVKeysResponse) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *QueryVKeysResponse) GetVkeys() []*VKeyWithID {
+	if x != nil {
+		return x.Vkeys
+	}
+	return nil
+}
+
+func (x *QueryVKeysResponse) GetPagination() *v1beta1.PageResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+// VKeyWithID combines a verification key with its ID
+type VKeyWithID struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// id is the unique identifier
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// vkey is the verification key
+	Vkey *VKey `protobuf:"bytes,2,opt,name=vkey,proto3" json:"vkey,omitempty"`
+}
+
+func (x *VKeyWithID) Reset() {
+	*x = VKeyWithID{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *VKeyWithID) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VKeyWithID) ProtoMessage() {}
+
+// Deprecated: Use VKeyWithID.ProtoReflect.Descriptor instead.
+func (*VKeyWithID) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *VKeyWithID) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *VKeyWithID) GetVkey() *VKey {
+	if x != nil {
+		return x.Vkey
+	}
+	return nil
+}
+
+// QueryHasVKeyRequest is the request type for the Query/HasVKey RPC method
+type QueryHasVKeyRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// name is the name of the verification key to check
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *QueryHasVKeyRequest) Reset() {
+	*x = QueryHasVKeyRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryHasVKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryHasVKeyRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryHasVKeyRequest.ProtoReflect.Descriptor instead.
+func (*QueryHasVKeyRequest) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *QueryHasVKeyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// QueryHasVKeyResponse is the response type for the Query/HasVKey RPC method
+type QueryHasVKeyResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// exists indicates whether the verification key exists
+	Exists bool `protobuf:"varint,1,opt,name=exists,proto3" json:"exists,omitempty"`
+	// id is the numeric identifier if the key exists (0 if not found)
+	Id uint64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *QueryHasVKeyResponse) Reset() {
+	*x = QueryHasVKeyResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryHasVKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryHasVKeyResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryHasVKeyResponse.ProtoReflect.Descriptor instead.
+func (*QueryHasVKeyResponse) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *QueryHasVKeyResponse) GetExists() bool {
+	if x != nil {
+		return x.Exists
+	}
+	return false
+}
+
+func (x *QueryHasVKeyResponse) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+// QueryNextVKeyIDRequest is the request type for the Query/NextVKeyID RPC method
+type QueryNextVKeyIDRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *QueryNextVKeyIDRequest) Reset() {
+	*x = QueryNextVKeyIDRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryNextVKeyIDRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryNextVKeyIDRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryNextVKeyIDRequest.ProtoReflect.Descriptor instead.
+func (*QueryNextVKeyIDRequest) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{13}
+}
+
+// QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC method
+type QueryNextVKeyIDResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// next_id is the next available verification key ID
+	NextId uint64 `protobuf:"varint,1,opt,name=next_id,json=nextId,proto3" json:"next_id,omitempty"`
+}
+
+func (x *QueryNextVKeyIDResponse) Reset() {
+	*x = QueryNextVKeyIDResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_zk_v1_query_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryNextVKeyIDResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryNextVKeyIDResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryNextVKeyIDResponse.ProtoReflect.Descriptor instead.
+func (*QueryNextVKeyIDResponse) Descriptor() ([]byte, []int) {
+	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *QueryNextVKeyIDResponse) GetNextId() uint64 {
+	if x != nil {
+		return x.NextId
+	}
+	return 0
+}
+
 var File_xion_zk_v1_query_proto protoreflect.FileDescriptor
 
 var file_xion_zk_v1_query_proto_rawDesc = []byte{
 	0x0a, 0x16, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x71, 0x75, 0x65,
 	0x72, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0a, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a,
-	0x6b, 0x2e, 0x76, 0x31, 0x1a, 0x1c, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x61, 0x70, 0x69,
-	0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x1a, 0x2a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f,
-	0x71, 0x75, 0x65, 0x72, 0x79, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2f, 0x70, 0x61,
-	0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x47,
-	0x0a, 0x0c, 0x53, 0x6e, 0x61, 0x72, 0x6b, 0x4a, 0x73, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x12, 0x11,
-	0x0a, 0x04, 0x70, 0x69, 0x5f, 0x61, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x03, 0x70, 0x69,
-	0x41, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69, 0x5f, 0x62, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0c, 0x52,
-	0x03, 0x70, 0x69, 0x42, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69, 0x5f, 0x63, 0x18, 0x03, 0x20, 0x03,
-	0x28, 0x0c, 0x52, 0x03, 0x70, 0x69, 0x43, 0x22, 0x63, 0x0a, 0x12, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a,
-	0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x70, 0x72,
-	0x6f, 0x6f, 0x66, 0x12, 0x23, 0x0a, 0x0d, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x5f, 0x69, 0x6e,
-	0x70, 0x75, 0x74, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0c, 0x70, 0x75, 0x62, 0x6c,
-	0x69, 0x63, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x76, 0x6b, 0x65, 0x79,
-	0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x22, 0x31, 0x0a, 0x13,
-	0x50, 0x72, 0x6f, 0x6f, 0x66, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x65, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x65, 0x64, 0x32,
-	0x6e, 0x0a, 0x05, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x65, 0x0a, 0x0b, 0x50, 0x72, 0x6f, 0x6f,
-	0x66, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x12, 0x1e, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a,
-	0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a,
-	0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x15, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0f,
-	0x12, 0x0d, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x79, 0x42,
-	0x96, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e,
-	0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01,
-	0x5a, 0x2e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72,
-	0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69,
-	0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x3b, 0x7a, 0x6b, 0x76, 0x31,
-	0xa2, 0x02, 0x03, 0x58, 0x5a, 0x58, 0xaa, 0x02, 0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x5a, 0x6b,
-	0x2e, 0x56, 0x31, 0xca, 0x02, 0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31,
-	0xe2, 0x02, 0x16, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50,
-	0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e,
-	0x3a, 0x3a, 0x5a, 0x6b, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6b, 0x2e, 0x76, 0x31, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f,
+	0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1c, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x6e, 0x6e, 0x6f, 0x74, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x2a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
+	0x2f, 0x62, 0x61, 0x73, 0x65, 0x2f, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2f, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x31, 0x2f, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x22, 0x47, 0x0a, 0x0c, 0x53, 0x6e, 0x61, 0x72, 0x6b, 0x4a, 0x73, 0x50,
+	0x72, 0x6f, 0x6f, 0x66, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69, 0x5f, 0x61, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0c, 0x52, 0x03, 0x70, 0x69, 0x41, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69, 0x5f, 0x62, 0x18,
+	0x02, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x03, 0x70, 0x69, 0x42, 0x12, 0x11, 0x0a, 0x04, 0x70, 0x69,
+	0x5f, 0x63, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x03, 0x70, 0x69, 0x43, 0x22, 0x85, 0x01,
+	0x0a, 0x12, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0c, 0x52, 0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x12, 0x23, 0x0a, 0x0d, 0x70, 0x75,
+	0x62, 0x6c, 0x69, 0x63, 0x5f, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
+	0x09, 0x52, 0x0c, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x73, 0x12,
+	0x1b, 0x0a, 0x09, 0x76, 0x6b, 0x65, 0x79, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x08, 0x76, 0x6b, 0x65, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x17, 0x0a, 0x07,
+	0x76, 0x6b, 0x65, 0x79, 0x5f, 0x69, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x76,
+	0x6b, 0x65, 0x79, 0x49, 0x64, 0x22, 0x31, 0x0a, 0x13, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x56, 0x65,
+	0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08,
+	0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08,
+	0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x65, 0x64, 0x22, 0x7c, 0x0a, 0x04, 0x56, 0x4b, 0x65, 0x79,
+	0x12, 0x1b, 0x0a, 0x09, 0x6b, 0x65, 0x79, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0c, 0x52, 0x08, 0x6b, 0x65, 0x79, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x12, 0x0a,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74,
+	0x69, 0x6f, 0x6e, 0x12, 0x21, 0x0a, 0x0c, 0x63, 0x69, 0x72, 0x63, 0x75, 0x69, 0x74, 0x5f, 0x68,
+	0x61, 0x73, 0x68, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x63, 0x69, 0x72, 0x63, 0x75,
+	0x69, 0x74, 0x48, 0x61, 0x73, 0x68, 0x22, 0x22, 0x0a, 0x10, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56,
+	0x4b, 0x65, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22, 0x3f, 0x0a, 0x11, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x56, 0x4b, 0x65, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x2a, 0x0a, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x4b, 0x65, 0x79, 0x42,
+	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x22, 0x2c, 0x0a, 0x16, 0x51,
+	0x75, 0x65, 0x72, 0x79, 0x56, 0x4b, 0x65, 0x79, 0x42, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x55, 0x0a, 0x17, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x56, 0x4b, 0x65, 0x79, 0x42, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2a, 0x0a, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x10, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e,
+	0x56, 0x4b, 0x65, 0x79, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x04, 0x76, 0x6b, 0x65, 0x79,
+	0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64,
+	0x22, 0x5b, 0x0a, 0x11, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x4b, 0x65, 0x79, 0x73, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x91, 0x01,
+	0x0a, 0x12, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x4b, 0x65, 0x79, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x32, 0x0a, 0x05, 0x76, 0x6b, 0x65, 0x79, 0x73, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31,
+	0x2e, 0x56, 0x4b, 0x65, 0x79, 0x57, 0x69, 0x74, 0x68, 0x49, 0x44, 0x42, 0x04, 0xc8, 0xde, 0x1f,
+	0x00, 0x52, 0x05, 0x76, 0x6b, 0x65, 0x79, 0x73, 0x12, 0x47, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69,
+	0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79,
+	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x22, 0x48, 0x0a, 0x0a, 0x56, 0x4b, 0x65, 0x79, 0x57, 0x69, 0x74, 0x68, 0x49, 0x44, 0x12,
+	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x12,
+	0x2a, 0x0a, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x4b, 0x65, 0x79, 0x42,
+	0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x04, 0x76, 0x6b, 0x65, 0x79, 0x22, 0x29, 0x0a, 0x13, 0x51,
+	0x75, 0x65, 0x72, 0x79, 0x48, 0x61, 0x73, 0x56, 0x4b, 0x65, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x22, 0x3e, 0x0a, 0x14, 0x51, 0x75, 0x65, 0x72, 0x79, 0x48,
+	0x61, 0x73, 0x56, 0x4b, 0x65, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16,
+	0x0a, 0x06, 0x65, 0x78, 0x69, 0x73, 0x74, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06,
+	0x65, 0x78, 0x69, 0x73, 0x74, 0x73, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22, 0x18, 0x0a, 0x16, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e,
+	0x65, 0x78, 0x74, 0x56, 0x4b, 0x65, 0x79, 0x49, 0x44, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x22, 0x32, 0x0a, 0x17, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4e, 0x65, 0x78, 0x74, 0x56, 0x4b, 0x65,
+	0x79, 0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x17, 0x0a, 0x07, 0x6e,
+	0x65, 0x78, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x6e, 0x65,
+	0x78, 0x74, 0x49, 0x64, 0x32, 0xc4, 0x04, 0x0a, 0x05, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x65,
+	0x0a, 0x0b, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x12, 0x1e, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x6f, 0x66,
+	0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x15,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x0f, 0x12, 0x0d, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x76,
+	0x65, 0x72, 0x69, 0x66, 0x79, 0x12, 0x69, 0x0a, 0x04, 0x56, 0x4b, 0x65, 0x79, 0x12, 0x1c, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x56, 0x4b, 0x65, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1d, 0x2e, 0x78, 0x69,
+	0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x4b,
+	0x65, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x24, 0x82, 0xd3, 0xe4, 0x93,
+	0x02, 0x1e, 0x12, 0x1c, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f,
+	0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x6b, 0x65, 0x79, 0x73, 0x2f, 0x7b, 0x69, 0x64, 0x7d,
+	0x12, 0x82, 0x01, 0x0a, 0x0a, 0x56, 0x4b, 0x65, 0x79, 0x42, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x12,
+	0x22, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x56, 0x4b, 0x65, 0x79, 0x42, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31,
+	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x4b, 0x65, 0x79, 0x42, 0x79, 0x4e, 0x61, 0x6d, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2b, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x25,
+	0x12, 0x23, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x7a, 0x6b,
+	0x2f, 0x76, 0x31, 0x2f, 0x76, 0x6b, 0x65, 0x79, 0x73, 0x2f, 0x6e, 0x61, 0x6d, 0x65, 0x2f, 0x7b,
+	0x6e, 0x61, 0x6d, 0x65, 0x7d, 0x12, 0x67, 0x0a, 0x05, 0x56, 0x4b, 0x65, 0x79, 0x73, 0x12, 0x1d,
+	0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
+	0x79, 0x56, 0x4b, 0x65, 0x79, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1e, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x56, 0x4b, 0x65, 0x79, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1f, 0x82,
+	0xd3, 0xe4, 0x93, 0x02, 0x19, 0x12, 0x17, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2f, 0x78, 0x69,
+	0x6f, 0x6e, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x6b, 0x65, 0x79, 0x73, 0x12, 0x7b,
+	0x0a, 0x07, 0x48, 0x61, 0x73, 0x56, 0x4b, 0x65, 0x79, 0x12, 0x1f, 0x2e, 0x78, 0x69, 0x6f, 0x6e,
+	0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x48, 0x61, 0x73, 0x56,
+	0x4b, 0x65, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e, 0x78, 0x69, 0x6f,
+	0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x48, 0x61, 0x73,
+	0x56, 0x4b, 0x65, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2d, 0x82, 0xd3,
+	0xe4, 0x93, 0x02, 0x27, 0x12, 0x25, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2f, 0x78, 0x69, 0x6f,
+	0x6e, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x2f, 0x76, 0x6b, 0x65, 0x79, 0x73, 0x2f, 0x65, 0x78,
+	0x69, 0x73, 0x74, 0x73, 0x2f, 0x7b, 0x6e, 0x61, 0x6d, 0x65, 0x7d, 0x42, 0x96, 0x01, 0x0a, 0x0e,
+	0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0a,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2e, 0x67, 0x69,
+	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c,
+	0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f,
+	0x6e, 0x2f, 0x7a, 0x6b, 0x2f, 0x76, 0x31, 0x3b, 0x7a, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58,
+	0x5a, 0x58, 0xaa, 0x02, 0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x5a, 0x6b, 0x2e, 0x56, 0x31, 0xca,
+	0x02, 0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x58,
+	0x69, 0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74,
+	0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x5a, 0x6b,
+	0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1975,20 +8094,48 @@ func file_xion_zk_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_zk_v1_query_proto_rawDescData
 }
 
-var file_xion_zk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_xion_zk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_xion_zk_v1_query_proto_goTypes = []interface{}{
-	(*SnarkJsProof)(nil),        // 0: xion.zk.v1.SnarkJsProof
-	(*QueryVerifyRequest)(nil),  // 1: xion.zk.v1.QueryVerifyRequest
-	(*ProofVerifyResponse)(nil), // 2: xion.zk.v1.ProofVerifyResponse
+	(*SnarkJsProof)(nil),            // 0: xion.zk.v1.SnarkJsProof
+	(*QueryVerifyRequest)(nil),      // 1: xion.zk.v1.QueryVerifyRequest
+	(*ProofVerifyResponse)(nil),     // 2: xion.zk.v1.ProofVerifyResponse
+	(*VKey)(nil),                    // 3: xion.zk.v1.VKey
+	(*QueryVKeyRequest)(nil),        // 4: xion.zk.v1.QueryVKeyRequest
+	(*QueryVKeyResponse)(nil),       // 5: xion.zk.v1.QueryVKeyResponse
+	(*QueryVKeyByNameRequest)(nil),  // 6: xion.zk.v1.QueryVKeyByNameRequest
+	(*QueryVKeyByNameResponse)(nil), // 7: xion.zk.v1.QueryVKeyByNameResponse
+	(*QueryVKeysRequest)(nil),       // 8: xion.zk.v1.QueryVKeysRequest
+	(*QueryVKeysResponse)(nil),      // 9: xion.zk.v1.QueryVKeysResponse
+	(*VKeyWithID)(nil),              // 10: xion.zk.v1.VKeyWithID
+	(*QueryHasVKeyRequest)(nil),     // 11: xion.zk.v1.QueryHasVKeyRequest
+	(*QueryHasVKeyResponse)(nil),    // 12: xion.zk.v1.QueryHasVKeyResponse
+	(*QueryNextVKeyIDRequest)(nil),  // 13: xion.zk.v1.QueryNextVKeyIDRequest
+	(*QueryNextVKeyIDResponse)(nil), // 14: xion.zk.v1.QueryNextVKeyIDResponse
+	(*v1beta1.PageRequest)(nil),     // 15: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageResponse)(nil),    // 16: cosmos.base.query.v1beta1.PageResponse
 }
 var file_xion_zk_v1_query_proto_depIdxs = []int32{
-	1, // 0: xion.zk.v1.Query.ProofVerify:input_type -> xion.zk.v1.QueryVerifyRequest
-	2, // 1: xion.zk.v1.Query.ProofVerify:output_type -> xion.zk.v1.ProofVerifyResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3,  // 0: xion.zk.v1.QueryVKeyResponse.vkey:type_name -> xion.zk.v1.VKey
+	3,  // 1: xion.zk.v1.QueryVKeyByNameResponse.vkey:type_name -> xion.zk.v1.VKey
+	15, // 2: xion.zk.v1.QueryVKeysRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	10, // 3: xion.zk.v1.QueryVKeysResponse.vkeys:type_name -> xion.zk.v1.VKeyWithID
+	16, // 4: xion.zk.v1.QueryVKeysResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	3,  // 5: xion.zk.v1.VKeyWithID.vkey:type_name -> xion.zk.v1.VKey
+	1,  // 6: xion.zk.v1.Query.ProofVerify:input_type -> xion.zk.v1.QueryVerifyRequest
+	4,  // 7: xion.zk.v1.Query.VKey:input_type -> xion.zk.v1.QueryVKeyRequest
+	6,  // 8: xion.zk.v1.Query.VKeyByName:input_type -> xion.zk.v1.QueryVKeyByNameRequest
+	8,  // 9: xion.zk.v1.Query.VKeys:input_type -> xion.zk.v1.QueryVKeysRequest
+	11, // 10: xion.zk.v1.Query.HasVKey:input_type -> xion.zk.v1.QueryHasVKeyRequest
+	2,  // 11: xion.zk.v1.Query.ProofVerify:output_type -> xion.zk.v1.ProofVerifyResponse
+	5,  // 12: xion.zk.v1.Query.VKey:output_type -> xion.zk.v1.QueryVKeyResponse
+	7,  // 13: xion.zk.v1.Query.VKeyByName:output_type -> xion.zk.v1.QueryVKeyByNameResponse
+	9,  // 14: xion.zk.v1.Query.VKeys:output_type -> xion.zk.v1.QueryVKeysResponse
+	12, // 15: xion.zk.v1.Query.HasVKey:output_type -> xion.zk.v1.QueryHasVKeyResponse
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_xion_zk_v1_query_proto_init() }
@@ -2033,6 +8180,150 @@ func file_xion_zk_v1_query_proto_init() {
 				return nil
 			}
 		}
+		file_xion_zk_v1_query_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VKey); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVKeyRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVKeyResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVKeyByNameRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVKeyByNameResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVKeysRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVKeysResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*VKeyWithID); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryHasVKeyRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryHasVKeyResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryNextVKeyIDRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_zk_v1_query_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryNextVKeyIDResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2040,7 +8331,7 @@ func file_xion_zk_v1_query_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_xion_zk_v1_query_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

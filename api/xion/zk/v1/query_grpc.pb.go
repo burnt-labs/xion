@@ -20,6 +20,10 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Query_ProofVerify_FullMethodName = "/xion.zk.v1.Query/ProofVerify"
+	Query_VKey_FullMethodName        = "/xion.zk.v1.Query/VKey"
+	Query_VKeyByName_FullMethodName  = "/xion.zk.v1.Query/VKeyByName"
+	Query_VKeys_FullMethodName       = "/xion.zk.v1.Query/VKeys"
+	Query_HasVKey_FullMethodName     = "/xion.zk.v1.Query/HasVKey"
 )
 
 // QueryClient is the client API for Query service.
@@ -30,6 +34,14 @@ const (
 type QueryClient interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error)
+	// VKey queries a verification key by ID
+	VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error)
+	// VKeyByName queries a verification key by name
+	VKeyByName(ctx context.Context, in *QueryVKeyByNameRequest, opts ...grpc.CallOption) (*QueryVKeyByNameResponse, error)
+	// VKeys queries all verification keys with pagination
+	VKeys(ctx context.Context, in *QueryVKeysRequest, opts ...grpc.CallOption) (*QueryVKeysResponse, error)
+	// HasVKey checks if a verification key exists by name
+	HasVKey(ctx context.Context, in *QueryHasVKeyRequest, opts ...grpc.CallOption) (*QueryHasVKeyResponse, error)
 }
 
 type queryClient struct {
@@ -50,6 +62,46 @@ func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, o
 	return out, nil
 }
 
+func (c *queryClient) VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryVKeyResponse)
+	err := c.cc.Invoke(ctx, Query_VKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) VKeyByName(ctx context.Context, in *QueryVKeyByNameRequest, opts ...grpc.CallOption) (*QueryVKeyByNameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryVKeyByNameResponse)
+	err := c.cc.Invoke(ctx, Query_VKeyByName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) VKeys(ctx context.Context, in *QueryVKeysRequest, opts ...grpc.CallOption) (*QueryVKeysResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryVKeysResponse)
+	err := c.cc.Invoke(ctx, Query_VKeys_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) HasVKey(ctx context.Context, in *QueryHasVKeyRequest, opts ...grpc.CallOption) (*QueryHasVKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryHasVKeyResponse)
+	err := c.cc.Invoke(ctx, Query_HasVKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility.
@@ -58,6 +110,14 @@ func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, o
 type QueryServer interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error)
+	// VKey queries a verification key by ID
+	VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error)
+	// VKeyByName queries a verification key by name
+	VKeyByName(context.Context, *QueryVKeyByNameRequest) (*QueryVKeyByNameResponse, error)
+	// VKeys queries all verification keys with pagination
+	VKeys(context.Context, *QueryVKeysRequest) (*QueryVKeysResponse, error)
+	// HasVKey checks if a verification key exists by name
+	HasVKey(context.Context, *QueryHasVKeyRequest) (*QueryHasVKeyResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -70,6 +130,18 @@ type UnimplementedQueryServer struct{}
 
 func (UnimplementedQueryServer) ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
+}
+func (UnimplementedQueryServer) VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VKey not implemented")
+}
+func (UnimplementedQueryServer) VKeyByName(context.Context, *QueryVKeyByNameRequest) (*QueryVKeyByNameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VKeyByName not implemented")
+}
+func (UnimplementedQueryServer) VKeys(context.Context, *QueryVKeysRequest) (*QueryVKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VKeys not implemented")
+}
+func (UnimplementedQueryServer) HasVKey(context.Context, *QueryHasVKeyRequest) (*QueryHasVKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasVKey not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -110,6 +182,78 @@ func _Query_ProofVerify_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_VKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_VKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VKey(ctx, req.(*QueryVKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_VKeyByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVKeyByNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VKeyByName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_VKeyByName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VKeyByName(ctx, req.(*QueryVKeyByNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_VKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_VKeys_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VKeys(ctx, req.(*QueryVKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_HasVKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryHasVKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).HasVKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_HasVKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).HasVKey(ctx, req.(*QueryHasVKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -120,6 +264,22 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProofVerify",
 			Handler:    _Query_ProofVerify_Handler,
+		},
+		{
+			MethodName: "VKey",
+			Handler:    _Query_VKey_Handler,
+		},
+		{
+			MethodName: "VKeyByName",
+			Handler:    _Query_VKeyByName_Handler,
+		},
+		{
+			MethodName: "VKeys",
+			Handler:    _Query_VKeys_Handler,
+		},
+		{
+			MethodName: "HasVKey",
+			Handler:    _Query_HasVKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

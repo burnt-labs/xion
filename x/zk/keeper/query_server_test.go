@@ -1,14 +1,19 @@
+// keeper/query_server_test.go
+
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 
-// define the proof data here to be used in the test
+// Define the proof data here to be used in the test
 var proofData = []byte(`{
     "pi_a": [
         "2567498309095945123001915525425675597905999851760478825045526651681215626331",
@@ -38,7 +43,7 @@ var proofData = []byte(`{
     "curve": "bn128"
 }`)
 
-// define the public inputs here to be used in the test
+// Define the public inputs here to be used in the test
 var publicInputs = []string{
 	"2018721414038404820327",
 	"0",
@@ -76,7 +81,7 @@ var publicInputs = []string{
 	"1",
 }
 
-// define the vkey here to be used in the test
+// Define the vkey here to be used in the test
 var vkeyData = []byte(`{
     "protocol": "groth16",
     "curve": "bn128",
@@ -340,84 +345,570 @@ var vkeyData = []byte(`{
 func TestQueryProofVerify(t *testing.T) {
 	f := SetupTest(t)
 
+	// Add valid vkey to the keeper for successful tests
+	validVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth_circuit", vkeyData, "Email authentication circuit")
+	require.NoError(t, err)
+
+	// Add an invalid vkey for error testing
+	invalidVKeyBytes := []byte(`{
+		"protocol": "groth16",
+		"curve": "bn128",
+		"nPublic": 2,
+		"vk_alpha_1": ["1", "2", "1"],
+		"vk_beta_2": [["3", "4"], ["5", "6"], ["1", "0"]],
+		"vk_gamma_2": [["7", "8"], ["9", "10"], ["1", "0"]],
+		"vk_delta_2": [["11", "12"], ["13", "14"], ["1", "0"]],
+		"IC": [
+			["15", "16", "1"],
+			["17", "18", "1"],
+			["19", "20", "1"]
+		]
+	}`)
+	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKeyBytes, "Invalid circuit for testing")
+	require.NoError(t, err)
+
 	testCases := []struct {
 		name         string
 		proofBz      []byte
 		publicInputs []string
-		vkeyBz       []byte
+		vkeyName     string
+		vkeyID       uint64
 		shouldError  bool
+		errorMsg     string
 	}{
 		{
-			name:         "verify proof success with valid data",
+			name:         "verify proof success with valid data using vkey name",
 			proofBz:      proofData,
 			publicInputs: publicInputs,
-			vkeyBz:       vkeyData,
+			vkeyName:     "email_auth_circuit",
+			shouldError:  false,
+		},
+		{
+			name:         "verify proof success with valid data using vkey ID",
+			proofBz:      proofData,
+			publicInputs: publicInputs,
+			vkeyID:       validVKeyID,
 			shouldError:  false,
 		},
 		{
 			name:         "invalid proof data format",
 			proofBz:      []byte("invalid-json-proof"),
 			publicInputs: publicInputs,
-			vkeyBz:       vkeyData,
+			vkeyName:     "email_auth_circuit",
 			shouldError:  true,
+			errorMsg:     "failed to parse proof JSON",
 		},
 		{
 			name:         "empty proof data",
 			proofBz:      []byte{},
 			publicInputs: publicInputs,
-			vkeyBz:       vkeyData,
+			vkeyName:     "email_auth_circuit",
 			shouldError:  true,
+			errorMsg:     "proof cannot be empty",
 		},
 		{
-			name:         "invalid verification key format",
+			name:         "non-existent vkey name",
 			proofBz:      proofData,
 			publicInputs: publicInputs,
-			vkeyBz:       []byte("invalid-json-vkey"),
+			vkeyName:     "non_existent_circuit",
 			shouldError:  true,
+			errorMsg:     "not found",
 		},
 		{
-			name:         "empty verification key",
+			name:         "non-existent vkey ID",
 			proofBz:      proofData,
 			publicInputs: publicInputs,
-			vkeyBz:       []byte{},
+			vkeyID:       9999,
 			shouldError:  true,
+			errorMsg:     "not found",
+		},
+		{
+			name:         "neither vkey name nor ID provided",
+			proofBz:      proofData,
+			publicInputs: publicInputs,
+			shouldError:  true,
+			errorMsg:     "either vkey_name or vkey_id must be provided",
 		},
 		{
 			name:         "mismatched public inputs count",
 			proofBz:      proofData,
 			publicInputs: []string{"1", "2"}, // Wrong number of inputs
-			vkeyBz:       vkeyData,
+			vkeyID:       validVKeyID,
 			shouldError:  true,
+			errorMsg:     "verification failed",
 		},
 		{
 			name:         "empty public inputs",
 			proofBz:      proofData,
 			publicInputs: []string{},
-			vkeyBz:       vkeyData,
+			vkeyID:       validVKeyID,
 			shouldError:  true,
+			errorMsg:     "verification failed",
 		},
 		{
 			name:         "invalid public input values",
 			proofBz:      proofData,
 			publicInputs: make([]string, len(publicInputs)), // Same count but all empty
-			vkeyBz:       vkeyData,
+			vkeyID:       validVKeyID,
 			shouldError:  true,
+			errorMsg:     "failed to parse public input",
+		},
+		{
+			name:         "wrong vkey for proof",
+			proofBz:      proofData,
+			publicInputs: publicInputs,
+			vkeyID:       invalidVKeyID, // Using wrong vkey
+			shouldError:  true,
+			errorMsg:     "invalid point",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			r := &types.QueryVerifyRequest{
+			req := &types.QueryVerifyRequest{
 				Proof:        tc.proofBz,
 				PublicInputs: tc.publicInputs,
-				Vkey:         tc.vkeyBz,
 			}
-			res, err := f.queryServer.ProofVerify(f.ctx, r)
+
+			// Set either vkey name or ID based on test case
+			if tc.vkeyName != "" {
+				req.VkeyName = tc.vkeyName
+			}
+			if tc.vkeyID != 0 {
+				req.VkeyId = tc.vkeyID
+			}
+
+			res, err := f.queryServer.ProofVerify(f.ctx, req)
+
 			if tc.shouldError {
 				require.Error(t, err, "Expected error for test case: %s", tc.name)
+				if tc.errorMsg != "" {
+					require.Contains(t, err.Error(), tc.errorMsg, "Error message mismatch for test case: %s", tc.name)
+				}
+				require.Nil(t, res, "Response should be nil on error for test case: %s", tc.name)
 			} else {
 				require.NoError(t, err, "Unexpected error for test case: %s", tc.name)
+				require.NotNil(t, res, "Response should not be nil for test case: %s", tc.name)
 				require.True(t, res.Verified, "Proof should be verified for test case: %s", tc.name)
+			}
+		})
+	}
+}
+
+// TestQueryProofVerifyWithStoredVKey tests the complete flow of storing a vkey and using it for verification
+func TestQueryProofVerifyWithStoredVKey(t *testing.T) {
+	f := SetupTest(t)
+
+	// 1. Add vkey to keeper
+	vkeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyData, "Email authentication circuit")
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), vkeyID)
+
+	// 2. Verify it was stored correctly
+	storedVKey, err := f.k.GetVKeyByName(f.ctx, "email_auth")
+	require.NoError(t, err)
+	require.Equal(t, "email_auth", storedVKey.Name)
+	require.Equal(t, vkeyData, storedVKey.KeyBytes)
+
+	// 3. Verify we can retrieve it as CircomVerificationKey
+	circomVKey, err := f.k.GetCircomVKeyByName(f.ctx, "email_auth")
+	require.NoError(t, err)
+	require.NotNil(t, circomVKey)
+	require.Equal(t, "groth16", circomVKey.Protocol)
+	require.Equal(t, "bn128", circomVKey.Curve)
+	require.Equal(t, 34, circomVKey.NPublic)
+
+	// 4. Verify proof using the stored vkey by name
+	reqByName := &types.QueryVerifyRequest{
+		Proof:        proofData,
+		PublicInputs: publicInputs,
+		VkeyName:     "email_auth",
+	}
+
+	respByName, err := f.queryServer.ProofVerify(f.ctx, reqByName)
+	require.NoError(t, err)
+	require.NotNil(t, respByName)
+	require.True(t, respByName.Verified)
+
+	// 5. Verify proof using the stored vkey by ID
+	reqByID := &types.QueryVerifyRequest{
+		Proof:        proofData,
+		PublicInputs: publicInputs,
+		VkeyId:       vkeyID,
+	}
+
+	respByID, err := f.queryServer.ProofVerify(f.ctx, reqByID)
+	require.NoError(t, err)
+	require.NotNil(t, respByID)
+	require.True(t, respByID.Verified)
+}
+
+// TestQueryProofVerifyMultipleVKeys tests verification with multiple stored vkeys
+func TestQueryProofVerifyMultipleVKeys(t *testing.T) {
+	f := SetupTest(t)
+
+	// Add multiple vkeys
+	vkey1ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_1", vkeyData, "Circuit 1")
+	require.NoError(t, err)
+
+	vkey2ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_2", vkeyData, "Circuit 2")
+	require.NoError(t, err)
+
+	vkey3ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_3", vkeyData, "Circuit 3")
+	require.NoError(t, err)
+
+	// Verify proof with each vkey
+	for i, vkeyID := range []uint64{vkey1ID, vkey2ID, vkey3ID} {
+		t.Run(fmt.Sprintf("verify_with_vkey_%d", i+1), func(t *testing.T) {
+			req := &types.QueryVerifyRequest{
+				Proof:        proofData,
+				PublicInputs: publicInputs,
+				VkeyId:       vkeyID,
+			}
+
+			resp, err := f.queryServer.ProofVerify(f.ctx, req)
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+			require.True(t, resp.Verified)
+		})
+	}
+}
+
+// TestQueryProofVerifyNilRequest tests nil request handling
+func TestQueryProofVerifyNilRequest(t *testing.T) {
+	f := SetupTest(t)
+
+	resp, err := f.queryServer.ProofVerify(f.ctx, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "empty request")
+	require.Nil(t, resp)
+}
+
+// ============================================================================
+// VKey Query Tests
+// ============================================================================
+
+func TestQueryVKey(t *testing.T) {
+	f := SetupTest(t)
+
+	// Add a test vkey
+	vkeyBytes := createTestVKeyBytes("test_key")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test verification key")
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		req         *types.QueryVKeyRequest
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name: "successfully query vkey by ID",
+			req: &types.QueryVKeyRequest{
+				Id: id,
+			},
+			expectError: false,
+		},
+		{
+			name: "fail to query non-existent vkey",
+			req: &types.QueryVKeyRequest{
+				Id: 9999,
+			},
+			expectError: true,
+			errorMsg:    "not found",
+		},
+		{
+			name:        "nil request",
+			req:         nil,
+			expectError: true,
+			errorMsg:    "empty request",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := f.queryServer.VKey(f.ctx, tt.req)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.errorMsg)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+				require.Equal(t, "test_key", resp.Vkey.Name)
+				require.Equal(t, "Test verification key", resp.Vkey.Description)
+			}
+		})
+	}
+}
+
+func TestQueryVKeyByName(t *testing.T) {
+	f := SetupTest(t)
+
+	// Add a test vkey
+	vkeyBytes := createTestVKeyBytes("email_auth")
+	expectedID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication")
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		req         *types.QueryVKeyByNameRequest
+		expectError bool
+		errorMsg    string
+		expectedID  uint64
+	}{
+		{
+			name: "successfully query vkey by name",
+			req: &types.QueryVKeyByNameRequest{
+				Name: "email_auth",
+			},
+			expectError: false,
+			expectedID:  expectedID,
+		},
+		{
+			name: "fail to query non-existent vkey",
+			req: &types.QueryVKeyByNameRequest{
+				Name: "non_existent",
+			},
+			expectError: true,
+			errorMsg:    "not found",
+		},
+		{
+			name: "fail with empty name",
+			req: &types.QueryVKeyByNameRequest{
+				Name: "",
+			},
+			expectError: true,
+			errorMsg:    "name cannot be empty",
+		},
+		{
+			name:        "nil request",
+			req:         nil,
+			expectError: true,
+			errorMsg:    "empty request",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := f.queryServer.VKeyByName(f.ctx, tt.req)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.errorMsg)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+				require.Equal(t, "email_auth", resp.Vkey.Name)
+				require.Equal(t, "Email authentication", resp.Vkey.Description)
+				require.Equal(t, tt.expectedID, resp.Id)
+			}
+		})
+	}
+}
+
+func TestQueryVKeys(t *testing.T) {
+	f := SetupTest(t)
+
+	// Test with empty store
+	resp, err := f.queryServer.VKeys(f.ctx, &types.QueryVKeysRequest{})
+	require.NoError(t, err)
+	require.Empty(t, resp.Vkeys)
+
+	// Add multiple vkeys
+	for i := 0; i < 5; i++ {
+		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		require.NoError(t, err)
+	}
+
+	tests := []struct {
+		name          string
+		req           *types.QueryVKeysRequest
+		expectedCount int
+		expectError   bool
+		errorMsg      string
+	}{
+		{
+			name:          "query all vkeys without pagination",
+			req:           &types.QueryVKeysRequest{},
+			expectedCount: 5,
+			expectError:   false,
+		},
+		{
+			name: "query with pagination - first page",
+			req: &types.QueryVKeysRequest{
+				Pagination: &query.PageRequest{
+					Limit: 2,
+				},
+			},
+			expectedCount: 2,
+			expectError:   false,
+		},
+		{
+			name: "query with pagination - offset",
+			req: &types.QueryVKeysRequest{
+				Pagination: &query.PageRequest{
+					Offset: 2,
+					Limit:  2,
+				},
+			},
+			expectedCount: 2,
+			expectError:   false,
+		},
+		{
+			name: "query with pagination - large offset",
+			req: &types.QueryVKeysRequest{
+				Pagination: &query.PageRequest{
+					Offset: 10,
+					Limit:  2,
+				},
+			},
+			expectedCount: 0,
+			expectError:   false,
+		},
+		{
+			name:        "nil request",
+			req:         nil,
+			expectError: true,
+			errorMsg:    "empty request",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := f.queryServer.VKeys(f.ctx, tt.req)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.errorMsg)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+				require.Len(t, resp.Vkeys, tt.expectedCount)
+
+				// Verify structure
+				for _, vkeyWithID := range resp.Vkeys {
+					require.NotEmpty(t, vkeyWithID.Vkey.Name)
+					require.NotEmpty(t, vkeyWithID.Vkey.KeyBytes)
+					require.GreaterOrEqual(t, vkeyWithID.Id, uint64(0))
+				}
+			}
+		})
+	}
+}
+
+func TestQueryVKeysPagination(t *testing.T) {
+	f := SetupTest(t)
+
+	// Add 10 vkeys
+	totalVKeys := 10
+	for i := 0; i < totalVKeys; i++ {
+		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		require.NoError(t, err)
+	}
+
+	// Test pagination - get all items in pages of 3
+	var allVKeys []types.VKeyWithID
+	var nextKey []byte
+	pageSize := uint64(3)
+
+	for {
+		resp, err := f.queryServer.VKeys(f.ctx, &types.QueryVKeysRequest{
+			Pagination: &query.PageRequest{
+				Key:   nextKey,
+				Limit: pageSize,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		allVKeys = append(allVKeys, resp.Vkeys...)
+
+		if resp.Pagination.NextKey == nil {
+			break
+		}
+		nextKey = resp.Pagination.NextKey
+	}
+
+	// Should have retrieved all 10 vkeys
+	require.Len(t, allVKeys, totalVKeys)
+
+	// Verify all names are unique
+	names := make(map[string]bool)
+	for _, vkey := range allVKeys {
+		require.False(t, names[vkey.Vkey.Name], "duplicate vkey name: %s", vkey.Vkey.Name)
+		names[vkey.Vkey.Name] = true
+	}
+}
+
+func TestQueryHasVKey(t *testing.T) {
+	f := SetupTest(t)
+
+	// Add a test vkey
+	vkeyBytes := createTestVKeyBytes("test_key")
+	expectedID, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	require.NoError(t, err)
+
+	tests := []struct {
+		name           string
+		req            *types.QueryHasVKeyRequest
+		expectError    bool
+		errorMsg       string
+		expectedExists bool
+		expectedID     uint64
+	}{
+		{
+			name: "vkey exists",
+			req: &types.QueryHasVKeyRequest{
+				Name: "test_key",
+			},
+			expectError:    false,
+			expectedExists: true,
+			expectedID:     expectedID,
+		},
+		{
+			name: "vkey does not exist",
+			req: &types.QueryHasVKeyRequest{
+				Name: "non_existent",
+			},
+			expectError:    false,
+			expectedExists: false,
+			expectedID:     0,
+		},
+		{
+			name: "empty name",
+			req: &types.QueryHasVKeyRequest{
+				Name: "",
+			},
+			expectError: true,
+			errorMsg:    "name cannot be empty",
+		},
+		{
+			name:        "nil request",
+			req:         nil,
+			expectError: true,
+			errorMsg:    "empty request",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := f.queryServer.HasVKey(f.ctx, tt.req)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.errorMsg)
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+				require.Equal(t, tt.expectedExists, resp.Exists)
+				require.Equal(t, tt.expectedID, resp.Id)
 			}
 		})
 	}

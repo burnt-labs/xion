@@ -8,6 +8,7 @@ import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -30,30 +31,30 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgUpdateParams is the Msg/UpdateParams request type.
-//
-// Since: cosmos-sdk 0.47
-type MsgUpdateParams struct {
-	// authority is the address of the governance account.
+// MsgAddVKey is the message for adding a verification key
+type MsgAddVKey struct {
+	// authority is the address that controls the module (governance)
 	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
-	// params defines the parameters to update.
-	//
-	// NOTE: All parameters must be supplied.
-	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
+	// name is the unique identifier for this verification key
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// description provides context about this verification key
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// vkey_json is the JSON representation of the verification key
+	VkeyBytes []byte `protobuf:"bytes,4,opt,name=vkey_bytes,json=vkeyBytes,proto3" json:"vkey_bytes,omitempty"`
 }
 
-func (m *MsgUpdateParams) Reset()         { *m = MsgUpdateParams{} }
-func (m *MsgUpdateParams) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateParams) ProtoMessage()    {}
-func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
+func (m *MsgAddVKey) Reset()         { *m = MsgAddVKey{} }
+func (m *MsgAddVKey) String() string { return proto.CompactTextString(m) }
+func (*MsgAddVKey) ProtoMessage()    {}
+func (*MsgAddVKey) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0fd0a73891654106, []int{0}
 }
-func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddVKey) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddVKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateParams.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddVKey.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -63,51 +64,64 @@ func (m *MsgUpdateParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateParams) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateParams.Merge(m, src)
+func (m *MsgAddVKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddVKey.Merge(m, src)
 }
-func (m *MsgUpdateParams) XXX_Size() int {
+func (m *MsgAddVKey) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateParams) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateParams.DiscardUnknown(m)
+func (m *MsgAddVKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddVKey.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateParams proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddVKey proto.InternalMessageInfo
 
-func (m *MsgUpdateParams) GetAuthority() string {
+func (m *MsgAddVKey) GetAuthority() string {
 	if m != nil {
 		return m.Authority
 	}
 	return ""
 }
 
-func (m *MsgUpdateParams) GetParams() Params {
+func (m *MsgAddVKey) GetName() string {
 	if m != nil {
-		return m.Params
+		return m.Name
 	}
-	return Params{}
+	return ""
 }
 
-// MsgUpdateParamsResponse defines the response structure for executing a
-// MsgUpdateParams message.
-//
-// Since: cosmos-sdk 0.47
-type MsgUpdateParamsResponse struct {
+func (m *MsgAddVKey) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
 }
 
-func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse{} }
-func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateParamsResponse) ProtoMessage()    {}
-func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
+func (m *MsgAddVKey) GetVkeyBytes() []byte {
+	if m != nil {
+		return m.VkeyBytes
+	}
+	return nil
+}
+
+// MsgAddVKeyResponse is the response for MsgAddVKey
+type MsgAddVKeyResponse struct {
+	// id is the unique numeric identifier assigned to the vkey
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *MsgAddVKeyResponse) Reset()         { *m = MsgAddVKeyResponse{} }
+func (m *MsgAddVKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAddVKeyResponse) ProtoMessage()    {}
+func (*MsgAddVKeyResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_0fd0a73891654106, []int{1}
 }
-func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgAddVKeyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAddVKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateParamsResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAddVKeyResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -117,48 +131,269 @@ func (m *MsgUpdateParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateParamsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateParamsResponse.Merge(m, src)
+func (m *MsgAddVKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAddVKeyResponse.Merge(m, src)
 }
-func (m *MsgUpdateParamsResponse) XXX_Size() int {
+func (m *MsgAddVKeyResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateParamsResponse.DiscardUnknown(m)
+func (m *MsgAddVKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAddVKeyResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgAddVKeyResponse proto.InternalMessageInfo
+
+func (m *MsgAddVKeyResponse) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+// MsgUpdateVKey is the message for updating a verification key
+type MsgUpdateVKey struct {
+	// authority is the address that controls the module (governance)
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// name is the identifier of the verification key to update
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// description provides updated context
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// vkey_json is the new JSON representation of the verification key
+	VkeyBytes []byte `protobuf:"bytes,4,opt,name=vkey_bytes,json=vkeyBytes,proto3" json:"vkey_bytes,omitempty"`
+}
+
+func (m *MsgUpdateVKey) Reset()         { *m = MsgUpdateVKey{} }
+func (m *MsgUpdateVKey) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateVKey) ProtoMessage()    {}
+func (*MsgUpdateVKey) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0fd0a73891654106, []int{2}
+}
+func (m *MsgUpdateVKey) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateVKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateVKey.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateVKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateVKey.Merge(m, src)
+}
+func (m *MsgUpdateVKey) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateVKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateVKey.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateVKey proto.InternalMessageInfo
+
+func (m *MsgUpdateVKey) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+func (m *MsgUpdateVKey) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *MsgUpdateVKey) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *MsgUpdateVKey) GetVkeyBytes() []byte {
+	if m != nil {
+		return m.VkeyBytes
+	}
+	return nil
+}
+
+// MsgUpdateVKeyResponse is the response for MsgUpdateVKey
+type MsgUpdateVKeyResponse struct {
+}
+
+func (m *MsgUpdateVKeyResponse) Reset()         { *m = MsgUpdateVKeyResponse{} }
+func (m *MsgUpdateVKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateVKeyResponse) ProtoMessage()    {}
+func (*MsgUpdateVKeyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0fd0a73891654106, []int{3}
+}
+func (m *MsgUpdateVKeyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateVKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateVKeyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateVKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateVKeyResponse.Merge(m, src)
+}
+func (m *MsgUpdateVKeyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateVKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateVKeyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateVKeyResponse proto.InternalMessageInfo
+
+// MsgRemoveVKey is the message for removing a verification key
+type MsgRemoveVKey struct {
+	// authority is the address that controls the module (governance)
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// name is the identifier of the verification key to remove
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (m *MsgRemoveVKey) Reset()         { *m = MsgRemoveVKey{} }
+func (m *MsgRemoveVKey) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveVKey) ProtoMessage()    {}
+func (*MsgRemoveVKey) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0fd0a73891654106, []int{4}
+}
+func (m *MsgRemoveVKey) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveVKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveVKey.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveVKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveVKey.Merge(m, src)
+}
+func (m *MsgRemoveVKey) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveVKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveVKey.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveVKey proto.InternalMessageInfo
+
+func (m *MsgRemoveVKey) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+func (m *MsgRemoveVKey) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+// MsgRemoveVKeyResponse is the response for MsgRemoveVKey
+type MsgRemoveVKeyResponse struct {
+}
+
+func (m *MsgRemoveVKeyResponse) Reset()         { *m = MsgRemoveVKeyResponse{} }
+func (m *MsgRemoveVKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveVKeyResponse) ProtoMessage()    {}
+func (*MsgRemoveVKeyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0fd0a73891654106, []int{5}
+}
+func (m *MsgRemoveVKeyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRemoveVKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRemoveVKeyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRemoveVKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveVKeyResponse.Merge(m, src)
+}
+func (m *MsgRemoveVKeyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRemoveVKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveVKeyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRemoveVKeyResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgUpdateParams)(nil), "xion.zk.v1.MsgUpdateParams")
-	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "xion.zk.v1.MsgUpdateParamsResponse")
+	proto.RegisterType((*MsgAddVKey)(nil), "xion.zk.v1.MsgAddVKey")
+	proto.RegisterType((*MsgAddVKeyResponse)(nil), "xion.zk.v1.MsgAddVKeyResponse")
+	proto.RegisterType((*MsgUpdateVKey)(nil), "xion.zk.v1.MsgUpdateVKey")
+	proto.RegisterType((*MsgUpdateVKeyResponse)(nil), "xion.zk.v1.MsgUpdateVKeyResponse")
+	proto.RegisterType((*MsgRemoveVKey)(nil), "xion.zk.v1.MsgRemoveVKey")
+	proto.RegisterType((*MsgRemoveVKeyResponse)(nil), "xion.zk.v1.MsgRemoveVKeyResponse")
 }
 
 func init() { proto.RegisterFile("xion/zk/v1/tx.proto", fileDescriptor_0fd0a73891654106) }
 
 var fileDescriptor_0fd0a73891654106 = []byte{
-	// 325 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xae, 0xc8, 0xcc, 0xcf,
-	0xd3, 0xaf, 0xca, 0xd6, 0x2f, 0x33, 0xd4, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
-	0xe2, 0x02, 0x09, 0xea, 0x55, 0x65, 0xeb, 0x95, 0x19, 0x4a, 0x89, 0x27, 0xe7, 0x17, 0xe7, 0xe6,
-	0x17, 0xeb, 0xe7, 0x16, 0xa7, 0x83, 0xd4, 0xe4, 0x16, 0xa7, 0x43, 0x14, 0x49, 0x49, 0x20, 0xe9,
-	0x4c, 0x4f, 0xcd, 0x4b, 0x2d, 0xce, 0x2c, 0x86, 0xca, 0x88, 0xa4, 0xe7, 0xa7, 0xe7, 0x83, 0x99,
-	0xfa, 0x20, 0x16, 0x54, 0x54, 0x12, 0x62, 0x50, 0x3c, 0x44, 0x02, 0xc2, 0x81, 0x48, 0x29, 0x75,
-	0x33, 0x72, 0xf1, 0xfb, 0x16, 0xa7, 0x87, 0x16, 0xa4, 0x24, 0x96, 0xa4, 0x06, 0x24, 0x16, 0x25,
-	0xe6, 0x16, 0x0b, 0x99, 0x71, 0x71, 0x26, 0x96, 0x96, 0x64, 0xe4, 0x17, 0x65, 0x96, 0x54, 0x4a,
-	0x30, 0x2a, 0x30, 0x6a, 0x70, 0x3a, 0x49, 0x5c, 0xda, 0xa2, 0x2b, 0x02, 0xd5, 0xe8, 0x98, 0x92,
-	0x52, 0x94, 0x5a, 0x5c, 0x1c, 0x5c, 0x52, 0x94, 0x99, 0x97, 0x1e, 0x84, 0x50, 0x2a, 0x64, 0xc0,
-	0xc5, 0x56, 0x00, 0x36, 0x41, 0x82, 0x49, 0x81, 0x51, 0x83, 0xdb, 0x48, 0x48, 0x0f, 0xe1, 0x19,
-	0x3d, 0x88, 0xd9, 0x4e, 0x2c, 0x27, 0xee, 0xc9, 0x33, 0x04, 0x41, 0xd5, 0x59, 0xf1, 0x35, 0x3d,
-	0xdf, 0xa0, 0x85, 0x30, 0x41, 0x49, 0x92, 0x4b, 0x1c, 0xcd, 0x31, 0x41, 0xa9, 0xc5, 0x05, 0xf9,
-	0x79, 0xc5, 0xa9, 0x46, 0x71, 0x5c, 0xcc, 0xbe, 0xc5, 0xe9, 0x42, 0x01, 0x5c, 0x3c, 0x28, 0x6e,
-	0x95, 0x46, 0xb6, 0x03, 0x4d, 0xaf, 0x94, 0x32, 0x1e, 0x49, 0x98, 0xc1, 0x52, 0xac, 0x0d, 0xcf,
-	0x37, 0x68, 0x31, 0x3a, 0xd9, 0x9f, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47,
-	0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43, 0x94,
-	0x6a, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x7e, 0x52, 0x69, 0x51, 0x5e,
-	0x89, 0x6e, 0x4e, 0x62, 0x52, 0xb1, 0x3e, 0x38, 0x0e, 0x2a, 0x40, 0xb1, 0x50, 0x52, 0x59, 0x90,
-	0x5a, 0x9c, 0xc4, 0x06, 0x0e, 0x50, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd6, 0x2c, 0x57,
-	0xad, 0xd7, 0x01, 0x00, 0x00,
+	// 458 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x53, 0xbf, 0x8f, 0xd3, 0x30,
+	0x14, 0xae, 0x7b, 0x05, 0xd4, 0x07, 0x87, 0xc0, 0x1c, 0x5c, 0x2e, 0x12, 0x51, 0x09, 0x20, 0x9d,
+	0x2a, 0x5d, 0xac, 0x03, 0x89, 0x81, 0x05, 0xb5, 0x23, 0xa8, 0x4b, 0x10, 0x0c, 0x2c, 0xa7, 0xa4,
+	0xb6, 0x7c, 0x56, 0x49, 0x1c, 0xc5, 0x6e, 0xd5, 0x74, 0x3a, 0x31, 0x32, 0xf1, 0xa7, 0x74, 0x60,
+	0x63, 0x62, 0x63, 0x3c, 0x31, 0x31, 0xa2, 0x76, 0xc8, 0xbf, 0x81, 0xf2, 0xa3, 0x38, 0x5c, 0x81,
+	0x89, 0x81, 0x25, 0xf2, 0xfb, 0xbe, 0x97, 0xe7, 0xef, 0xf3, 0x7b, 0x0f, 0x6e, 0xcd, 0x85, 0x8c,
+	0xc9, 0x62, 0x42, 0x66, 0xc7, 0x44, 0xcf, 0xbd, 0x24, 0x95, 0x5a, 0x62, 0x28, 0x40, 0x6f, 0x31,
+	0xf1, 0x66, 0xc7, 0xf6, 0xfe, 0x58, 0xaa, 0x48, 0x2a, 0x12, 0x29, 0x5e, 0xe4, 0x44, 0x8a, 0x57,
+	0x49, 0xf6, 0x41, 0x45, 0x9c, 0x94, 0x11, 0xa9, 0x82, 0x9a, 0xda, 0xe3, 0x92, 0xcb, 0x0a, 0x2f,
+	0x4e, 0x35, 0x7a, 0x33, 0x88, 0x44, 0x2c, 0x49, 0xf9, 0xad, 0x20, 0xf7, 0x13, 0x02, 0x18, 0x29,
+	0x3e, 0xa0, 0xf4, 0xf5, 0x0b, 0x96, 0xe1, 0x27, 0xd0, 0x0d, 0xa6, 0xfa, 0x54, 0xa6, 0x42, 0x67,
+	0x16, 0xea, 0xa1, 0xc3, 0xee, 0xd0, 0xfa, 0xfa, 0xf1, 0x68, 0xaf, 0x2e, 0x3e, 0xa0, 0x34, 0x65,
+	0x4a, 0xbd, 0xd4, 0xa9, 0x88, 0xb9, 0x6f, 0x52, 0x31, 0x86, 0x4e, 0x1c, 0x44, 0xcc, 0x6a, 0x17,
+	0xbf, 0xf8, 0xe5, 0x19, 0xf7, 0xe0, 0x2a, 0x65, 0x6a, 0x9c, 0x8a, 0x44, 0x0b, 0x19, 0x5b, 0x3b,
+	0x25, 0xd5, 0x84, 0xf0, 0x5d, 0x80, 0xd9, 0x84, 0x65, 0x27, 0x61, 0xa6, 0x99, 0xb2, 0x3a, 0x3d,
+	0x74, 0x78, 0xcd, 0xef, 0x16, 0xc8, 0xb0, 0x00, 0x9e, 0xf6, 0xde, 0xe5, 0xcb, 0xbe, 0xb9, 0xe4,
+	0x7d, 0xbe, 0xec, 0xef, 0x2e, 0x26, 0xc4, 0xc8, 0x75, 0x1f, 0x00, 0x36, 0x91, 0xcf, 0x54, 0x22,
+	0x63, 0xc5, 0xf0, 0x75, 0x68, 0x0b, 0x5a, 0xaa, 0xef, 0xf8, 0x6d, 0x41, 0xdd, 0xcf, 0x08, 0x76,
+	0x47, 0x8a, 0xbf, 0x4a, 0x68, 0xa0, 0xd9, 0xff, 0x67, 0xf3, 0xfe, 0xb6, 0xcd, 0x1b, 0x95, 0x4d,
+	0xa3, 0xd8, 0xdd, 0x87, 0xdb, 0xbf, 0x00, 0x1b, 0xb3, 0xee, 0x59, 0x65, 0xce, 0x67, 0x91, 0x9c,
+	0xfd, 0x73, 0x73, 0x7f, 0xd1, 0x66, 0x2e, 0xac, 0xb5, 0x19, 0x60, 0xa3, 0xed, 0x51, 0x8e, 0x60,
+	0x67, 0xa4, 0x38, 0x1e, 0xc0, 0x95, 0xcd, 0x80, 0xdd, 0xf1, 0xcc, 0x64, 0x7b, 0xa6, 0x77, 0xb6,
+	0xf3, 0x7b, 0xfc, 0x67, 0x4f, 0x9f, 0x03, 0x34, 0xfa, 0x77, 0x70, 0x21, 0xdb, 0x50, 0xf6, 0xbd,
+	0x3f, 0x52, 0xcd, 0x5a, 0x8d, 0xe7, 0xba, 0x58, 0xcb, 0x50, 0x5b, 0xb5, 0xb6, 0x2d, 0xda, 0x97,
+	0xce, 0xf2, 0x65, 0x1f, 0x0d, 0x9f, 0x7d, 0x59, 0x39, 0xe8, 0x7c, 0xe5, 0xa0, 0xef, 0x2b, 0x07,
+	0x7d, 0x58, 0x3b, 0xad, 0xf3, 0xb5, 0xd3, 0xfa, 0xb6, 0x76, 0x5a, 0x6f, 0x1e, 0x72, 0xa1, 0x4f,
+	0xa7, 0xa1, 0x37, 0x96, 0x11, 0x09, 0xa7, 0x69, 0xac, 0x8f, 0xde, 0x06, 0xa1, 0x22, 0xe5, 0xd2,
+	0xcf, 0x8b, 0xb5, 0xd7, 0x59, 0xc2, 0x54, 0x78, 0xb9, 0x5c, 0xc7, 0xc7, 0x3f, 0x02, 0x00, 0x00,
+	0xff, 0xff, 0xaf, 0x58, 0xc2, 0x17, 0x0e, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -173,10 +408,12 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// UpdateParams defines a governance operation for updating the parameters.
-	//
-	// Since: cosmos-sdk 0.47
-	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// AddVKey adds a new verification key
+	AddVKey(ctx context.Context, in *MsgAddVKey, opts ...grpc.CallOption) (*MsgAddVKeyResponse, error)
+	// UpdateVKey updates an existing verification key
+	UpdateVKey(ctx context.Context, in *MsgUpdateVKey, opts ...grpc.CallOption) (*MsgUpdateVKeyResponse, error)
+	// RemoveVKey removes a verification key
+	RemoveVKey(ctx context.Context, in *MsgRemoveVKey, opts ...grpc.CallOption) (*MsgRemoveVKeyResponse, error)
 }
 
 type msgClient struct {
@@ -187,9 +424,27 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
-func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
-	out := new(MsgUpdateParamsResponse)
-	err := c.cc.Invoke(ctx, "/xion.zk.v1.Msg/UpdateParams", in, out, opts...)
+func (c *msgClient) AddVKey(ctx context.Context, in *MsgAddVKey, opts ...grpc.CallOption) (*MsgAddVKeyResponse, error) {
+	out := new(MsgAddVKeyResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Msg/AddVKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateVKey(ctx context.Context, in *MsgUpdateVKey, opts ...grpc.CallOption) (*MsgUpdateVKeyResponse, error) {
+	out := new(MsgUpdateVKeyResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Msg/UpdateVKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) RemoveVKey(ctx context.Context, in *MsgRemoveVKey, opts ...grpc.CallOption) (*MsgRemoveVKeyResponse, error) {
+	out := new(MsgRemoveVKeyResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Msg/RemoveVKey", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -198,38 +453,82 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// UpdateParams defines a governance operation for updating the parameters.
-	//
-	// Since: cosmos-sdk 0.47
-	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// AddVKey adds a new verification key
+	AddVKey(context.Context, *MsgAddVKey) (*MsgAddVKeyResponse, error)
+	// UpdateVKey updates an existing verification key
+	UpdateVKey(context.Context, *MsgUpdateVKey) (*MsgUpdateVKeyResponse, error)
+	// RemoveVKey removes a verification key
+	RemoveVKey(context.Context, *MsgRemoveVKey) (*MsgRemoveVKeyResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
 }
 
-func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
+func (*UnimplementedMsgServer) AddVKey(ctx context.Context, req *MsgAddVKey) (*MsgAddVKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddVKey not implemented")
+}
+func (*UnimplementedMsgServer) UpdateVKey(ctx context.Context, req *MsgUpdateVKey) (*MsgUpdateVKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateVKey not implemented")
+}
+func (*UnimplementedMsgServer) RemoveVKey(ctx context.Context, req *MsgRemoveVKey) (*MsgRemoveVKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveVKey not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
-func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateParams)
+func _Msg_AddVKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAddVKey)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).UpdateParams(ctx, in)
+		return srv.(MsgServer).AddVKey(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/xion.zk.v1.Msg/UpdateParams",
+		FullMethod: "/xion.zk.v1.Msg/AddVKey",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).UpdateParams(ctx, req.(*MsgUpdateParams))
+		return srv.(MsgServer).AddVKey(ctx, req.(*MsgAddVKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateVKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateVKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateVKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Msg/UpdateVKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateVKey(ctx, req.(*MsgUpdateVKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_RemoveVKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveVKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RemoveVKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Msg/RemoveVKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RemoveVKey(ctx, req.(*MsgRemoveVKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -240,15 +539,23 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UpdateParams",
-			Handler:    _Msg_UpdateParams_Handler,
+			MethodName: "AddVKey",
+			Handler:    _Msg_AddVKey_Handler,
+		},
+		{
+			MethodName: "UpdateVKey",
+			Handler:    _Msg_UpdateVKey_Handler,
+		},
+		{
+			MethodName: "RemoveVKey",
+			Handler:    _Msg_RemoveVKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "xion/zk/v1/tx.proto",
 }
 
-func (m *MsgUpdateParams) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddVKey) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -258,26 +565,37 @@ func (m *MsgUpdateParams) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateParams) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddVKey) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddVKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintTx(dAtA, i, uint64(size))
+	if len(m.VkeyBytes) > 0 {
+		i -= len(m.VkeyBytes)
+		copy(dAtA[i:], m.VkeyBytes)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.VkeyBytes)))
+		i--
+		dAtA[i] = 0x22
 	}
-	i--
-	dAtA[i] = 0x12
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.Authority) > 0 {
 		i -= len(m.Authority)
 		copy(dAtA[i:], m.Authority)
@@ -288,7 +606,7 @@ func (m *MsgUpdateParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateParamsResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgAddVKeyResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -298,12 +616,151 @@ func (m *MsgUpdateParamsResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAddVKeyResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAddVKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Id != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateVKey) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateVKey) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateVKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.VkeyBytes) > 0 {
+		i -= len(m.VkeyBytes)
+		copy(dAtA[i:], m.VkeyBytes)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.VkeyBytes)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateVKeyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateVKeyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateVKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveVKey) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveVKey) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveVKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgRemoveVKeyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRemoveVKeyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRemoveVKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -322,7 +779,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MsgUpdateParams) Size() (n int) {
+func (m *MsgAddVKey) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -332,12 +789,85 @@ func (m *MsgUpdateParams) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = m.Params.Size()
-	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.VkeyBytes)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	return n
 }
 
-func (m *MsgUpdateParamsResponse) Size() (n int) {
+func (m *MsgAddVKeyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovTx(uint64(m.Id))
+	}
+	return n
+}
+
+func (m *MsgUpdateVKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.VkeyBytes)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgUpdateVKeyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgRemoveVKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgRemoveVKeyResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -352,7 +882,7 @@ func sovTx(x uint64) (n int) {
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
+func (m *MsgAddVKey) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -375,10 +905,10 @@ func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateParams: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddVKey: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateParams: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddVKey: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -415,9 +945,9 @@ func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -427,23 +957,88 @@ func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyBytes", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VkeyBytes = append(m.VkeyBytes[:0], dAtA[iNdEx:postIndex]...)
+			if m.VkeyBytes == nil {
+				m.VkeyBytes = []byte{}
 			}
 			iNdEx = postIndex
 		default:
@@ -467,7 +1062,7 @@ func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAddVKeyResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -490,10 +1085,423 @@ func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateParamsResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAddVKeyResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAddVKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateVKey) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateVKey: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateVKey: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyBytes", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VkeyBytes = append(m.VkeyBytes[:0], dAtA[iNdEx:postIndex]...)
+			if m.VkeyBytes == nil {
+				m.VkeyBytes = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateVKeyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateVKeyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateVKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveVKey) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveVKey: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveVKey: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRemoveVKeyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRemoveVKeyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRemoveVKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

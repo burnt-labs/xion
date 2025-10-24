@@ -1,40 +1,69 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
+	fmt "fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var _ sdk.Msg = &MsgUpdateParams{}
+var _ sdk.Msg = &MsgAddVKey{}
+var _ sdk.Msg = &MsgUpdateVKey{}
+var _ sdk.Msg = &MsgRemoveVKey{}
 
-// NewMsgUpdateParams creates new instance of MsgUpdateParams
-func NewMsgUpdateParams(
-	sender sdk.Address,
-) *MsgUpdateParams {
-	return &MsgUpdateParams{
-		Authority: sender.String(),
-		Params:    Params{},
-	}
-}
+// types/msgs.go
 
-// Route returns the name of the module
-func (msg MsgUpdateParams) Route() string { return ModuleName }
-
-// Type returns the the action
-func (msg MsgUpdateParams) Type() string { return "update_params" }
-
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
-	return []sdk.AccAddress{addr}
-}
-
-// ValidateBasic does a sanity check on the provided data.
-func (msg *MsgUpdateParams) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
-		return errors.Wrap(err, "invalid authority address")
+func (m *MsgAddVKey) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return fmt.Errorf("invalid authority address: %w", err)
 	}
 
-	return msg.Params.Validate()
+	if m.Name == "" {
+		return fmt.Errorf("name cannot be empty")
+	}
+
+	if len(m.VkeyBytes) == 0 {
+		return fmt.Errorf("vkey_bytes cannot be empty")
+	}
+
+	// Validate using the parser library
+	if err := ValidateVKeyBytes(m.VkeyBytes); err != nil {
+		return fmt.Errorf("invalid vkey_bytes: %w", err)
+	}
+
+	return nil
+}
+
+// ValidateBasic performs basic validation on MsgUpdateVKey
+func (m *MsgUpdateVKey) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return fmt.Errorf("invalid authority address: %w", err)
+	}
+
+	if m.Name == "" {
+		return fmt.Errorf("name cannot be empty")
+	}
+
+	if len(m.VkeyBytes) == 0 {
+		return fmt.Errorf("vkey_bytes cannot be empty")
+	}
+
+	// Validate using the parser library
+	if err := ValidateVKeyBytes(m.VkeyBytes); err != nil {
+		return fmt.Errorf("invalid vkey_bytes: %w", err)
+	}
+
+	return nil
+}
+
+// ValidateBasic performs basic validation on MsgRemoveVKey
+func (m *MsgRemoveVKey) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return fmt.Errorf("invalid authority address: %w", err)
+	}
+
+	if m.Name == "" {
+		return fmt.Errorf("name cannot be empty")
+	}
+
+	return nil
 }

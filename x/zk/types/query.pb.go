@@ -6,7 +6,8 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	_ "github.com/cosmos/cosmos-sdk/types/query"
+	query "github.com/cosmos/cosmos-sdk/types/query"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -96,7 +97,8 @@ func (m *SnarkJsProof) GetPiC() [][]byte {
 type QueryVerifyRequest struct {
 	Proof        []byte   `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
 	PublicInputs []string `protobuf:"bytes,2,rep,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
-	Vkey         []byte   `protobuf:"bytes,3,opt,name=vkey,proto3" json:"vkey,omitempty"`
+	VkeyName     string   `protobuf:"bytes,3,opt,name=vkey_name,json=vkeyName,proto3" json:"vkey_name,omitempty"`
+	VkeyId       uint64   `protobuf:"varint,4,opt,name=vkey_id,json=vkeyId,proto3" json:"vkey_id,omitempty"`
 }
 
 func (m *QueryVerifyRequest) Reset()         { *m = QueryVerifyRequest{} }
@@ -146,11 +148,18 @@ func (m *QueryVerifyRequest) GetPublicInputs() []string {
 	return nil
 }
 
-func (m *QueryVerifyRequest) GetVkey() []byte {
+func (m *QueryVerifyRequest) GetVkeyName() string {
 	if m != nil {
-		return m.Vkey
+		return m.VkeyName
 	}
-	return nil
+	return ""
+}
+
+func (m *QueryVerifyRequest) GetVkeyId() uint64 {
+	if m != nil {
+		return m.VkeyId
+	}
+	return 0
 }
 
 // ProofVerifyResponse defines the response structure for proof verification.
@@ -199,40 +208,682 @@ func (m *ProofVerifyResponse) GetVerified() bool {
 	return false
 }
 
+type VKey struct {
+	KeyBytes    []byte `protobuf:"bytes,1,opt,name=key_bytes,json=keyBytes,proto3" json:"key_bytes,omitempty"`
+	Name        string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	CircuitHash string `protobuf:"bytes,4,opt,name=circuit_hash,json=circuitHash,proto3" json:"circuit_hash,omitempty"`
+}
+
+func (m *VKey) Reset()         { *m = VKey{} }
+func (m *VKey) String() string { return proto.CompactTextString(m) }
+func (*VKey) ProtoMessage()    {}
+func (*VKey) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{3}
+}
+func (m *VKey) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VKey) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VKey.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VKey) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VKey.Merge(m, src)
+}
+func (m *VKey) XXX_Size() int {
+	return m.Size()
+}
+func (m *VKey) XXX_DiscardUnknown() {
+	xxx_messageInfo_VKey.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VKey proto.InternalMessageInfo
+
+func (m *VKey) GetKeyBytes() []byte {
+	if m != nil {
+		return m.KeyBytes
+	}
+	return nil
+}
+
+func (m *VKey) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *VKey) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *VKey) GetCircuitHash() string {
+	if m != nil {
+		return m.CircuitHash
+	}
+	return ""
+}
+
+// QueryVKeyRequest is the request type for the Query/VKey RPC method
+type QueryVKeyRequest struct {
+	// id is the unique identifier of the verification key
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *QueryVKeyRequest) Reset()         { *m = QueryVKeyRequest{} }
+func (m *QueryVKeyRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryVKeyRequest) ProtoMessage()    {}
+func (*QueryVKeyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{4}
+}
+func (m *QueryVKeyRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVKeyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVKeyRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVKeyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVKeyRequest.Merge(m, src)
+}
+func (m *QueryVKeyRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVKeyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVKeyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVKeyRequest proto.InternalMessageInfo
+
+func (m *QueryVKeyRequest) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+// QueryVKeyResponse is the response type for the Query/VKey RPC method
+type QueryVKeyResponse struct {
+	// vkey is the verification key
+	Vkey VKey `protobuf:"bytes,1,opt,name=vkey,proto3" json:"vkey"`
+}
+
+func (m *QueryVKeyResponse) Reset()         { *m = QueryVKeyResponse{} }
+func (m *QueryVKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryVKeyResponse) ProtoMessage()    {}
+func (*QueryVKeyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{5}
+}
+func (m *QueryVKeyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVKeyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVKeyResponse.Merge(m, src)
+}
+func (m *QueryVKeyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVKeyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVKeyResponse proto.InternalMessageInfo
+
+func (m *QueryVKeyResponse) GetVkey() VKey {
+	if m != nil {
+		return m.Vkey
+	}
+	return VKey{}
+}
+
+// QueryVKeyByNameRequest is the request type for the Query/VKeyByName RPC method
+type QueryVKeyByNameRequest struct {
+	// name is the unique name of the verification key
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (m *QueryVKeyByNameRequest) Reset()         { *m = QueryVKeyByNameRequest{} }
+func (m *QueryVKeyByNameRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryVKeyByNameRequest) ProtoMessage()    {}
+func (*QueryVKeyByNameRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{6}
+}
+func (m *QueryVKeyByNameRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVKeyByNameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVKeyByNameRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVKeyByNameRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVKeyByNameRequest.Merge(m, src)
+}
+func (m *QueryVKeyByNameRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVKeyByNameRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVKeyByNameRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVKeyByNameRequest proto.InternalMessageInfo
+
+func (m *QueryVKeyByNameRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+// QueryVKeyByNameResponse is the response type for the Query/VKeyByName RPC method
+type QueryVKeyByNameResponse struct {
+	// vkey is the verification key
+	Vkey VKey `protobuf:"bytes,1,opt,name=vkey,proto3" json:"vkey"`
+	// id is the numeric identifier of the verification key
+	Id uint64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *QueryVKeyByNameResponse) Reset()         { *m = QueryVKeyByNameResponse{} }
+func (m *QueryVKeyByNameResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryVKeyByNameResponse) ProtoMessage()    {}
+func (*QueryVKeyByNameResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{7}
+}
+func (m *QueryVKeyByNameResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVKeyByNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVKeyByNameResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVKeyByNameResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVKeyByNameResponse.Merge(m, src)
+}
+func (m *QueryVKeyByNameResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVKeyByNameResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVKeyByNameResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVKeyByNameResponse proto.InternalMessageInfo
+
+func (m *QueryVKeyByNameResponse) GetVkey() VKey {
+	if m != nil {
+		return m.Vkey
+	}
+	return VKey{}
+}
+
+func (m *QueryVKeyByNameResponse) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+// QueryVKeysRequest is the request type for the Query/VKeys RPC method
+type QueryVKeysRequest struct {
+	// pagination defines an optional pagination for the request
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryVKeysRequest) Reset()         { *m = QueryVKeysRequest{} }
+func (m *QueryVKeysRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryVKeysRequest) ProtoMessage()    {}
+func (*QueryVKeysRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{8}
+}
+func (m *QueryVKeysRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVKeysRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVKeysRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVKeysRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVKeysRequest.Merge(m, src)
+}
+func (m *QueryVKeysRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVKeysRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVKeysRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVKeysRequest proto.InternalMessageInfo
+
+func (m *QueryVKeysRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+// QueryVKeysResponse is the response type for the Query/VKeys RPC method
+type QueryVKeysResponse struct {
+	// vkeys is the list of all verification keys with their IDs
+	Vkeys []VKeyWithID `protobuf:"bytes,1,rep,name=vkeys,proto3" json:"vkeys"`
+	// pagination defines the pagination in the response
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryVKeysResponse) Reset()         { *m = QueryVKeysResponse{} }
+func (m *QueryVKeysResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryVKeysResponse) ProtoMessage()    {}
+func (*QueryVKeysResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{9}
+}
+func (m *QueryVKeysResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVKeysResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVKeysResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVKeysResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVKeysResponse.Merge(m, src)
+}
+func (m *QueryVKeysResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVKeysResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVKeysResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVKeysResponse proto.InternalMessageInfo
+
+func (m *QueryVKeysResponse) GetVkeys() []VKeyWithID {
+	if m != nil {
+		return m.Vkeys
+	}
+	return nil
+}
+
+func (m *QueryVKeysResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+// VKeyWithID combines a verification key with its ID
+type VKeyWithID struct {
+	// id is the unique identifier
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// vkey is the verification key
+	Vkey VKey `protobuf:"bytes,2,opt,name=vkey,proto3" json:"vkey"`
+}
+
+func (m *VKeyWithID) Reset()         { *m = VKeyWithID{} }
+func (m *VKeyWithID) String() string { return proto.CompactTextString(m) }
+func (*VKeyWithID) ProtoMessage()    {}
+func (*VKeyWithID) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{10}
+}
+func (m *VKeyWithID) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VKeyWithID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VKeyWithID.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VKeyWithID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VKeyWithID.Merge(m, src)
+}
+func (m *VKeyWithID) XXX_Size() int {
+	return m.Size()
+}
+func (m *VKeyWithID) XXX_DiscardUnknown() {
+	xxx_messageInfo_VKeyWithID.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VKeyWithID proto.InternalMessageInfo
+
+func (m *VKeyWithID) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *VKeyWithID) GetVkey() VKey {
+	if m != nil {
+		return m.Vkey
+	}
+	return VKey{}
+}
+
+// QueryHasVKeyRequest is the request type for the Query/HasVKey RPC method
+type QueryHasVKeyRequest struct {
+	// name is the name of the verification key to check
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (m *QueryHasVKeyRequest) Reset()         { *m = QueryHasVKeyRequest{} }
+func (m *QueryHasVKeyRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryHasVKeyRequest) ProtoMessage()    {}
+func (*QueryHasVKeyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{11}
+}
+func (m *QueryHasVKeyRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryHasVKeyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryHasVKeyRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryHasVKeyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryHasVKeyRequest.Merge(m, src)
+}
+func (m *QueryHasVKeyRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryHasVKeyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryHasVKeyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryHasVKeyRequest proto.InternalMessageInfo
+
+func (m *QueryHasVKeyRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+// QueryHasVKeyResponse is the response type for the Query/HasVKey RPC method
+type QueryHasVKeyResponse struct {
+	// exists indicates whether the verification key exists
+	Exists bool `protobuf:"varint,1,opt,name=exists,proto3" json:"exists,omitempty"`
+	// id is the numeric identifier if the key exists (0 if not found)
+	Id uint64 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *QueryHasVKeyResponse) Reset()         { *m = QueryHasVKeyResponse{} }
+func (m *QueryHasVKeyResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryHasVKeyResponse) ProtoMessage()    {}
+func (*QueryHasVKeyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{12}
+}
+func (m *QueryHasVKeyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryHasVKeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryHasVKeyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryHasVKeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryHasVKeyResponse.Merge(m, src)
+}
+func (m *QueryHasVKeyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryHasVKeyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryHasVKeyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryHasVKeyResponse proto.InternalMessageInfo
+
+func (m *QueryHasVKeyResponse) GetExists() bool {
+	if m != nil {
+		return m.Exists
+	}
+	return false
+}
+
+func (m *QueryHasVKeyResponse) GetId() uint64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+// QueryNextVKeyIDRequest is the request type for the Query/NextVKeyID RPC method
+type QueryNextVKeyIDRequest struct {
+}
+
+func (m *QueryNextVKeyIDRequest) Reset()         { *m = QueryNextVKeyIDRequest{} }
+func (m *QueryNextVKeyIDRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryNextVKeyIDRequest) ProtoMessage()    {}
+func (*QueryNextVKeyIDRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{13}
+}
+func (m *QueryNextVKeyIDRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNextVKeyIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNextVKeyIDRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNextVKeyIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNextVKeyIDRequest.Merge(m, src)
+}
+func (m *QueryNextVKeyIDRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNextVKeyIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNextVKeyIDRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNextVKeyIDRequest proto.InternalMessageInfo
+
+// QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC method
+type QueryNextVKeyIDResponse struct {
+	// next_id is the next available verification key ID
+	NextId uint64 `protobuf:"varint,1,opt,name=next_id,json=nextId,proto3" json:"next_id,omitempty"`
+}
+
+func (m *QueryNextVKeyIDResponse) Reset()         { *m = QueryNextVKeyIDResponse{} }
+func (m *QueryNextVKeyIDResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryNextVKeyIDResponse) ProtoMessage()    {}
+func (*QueryNextVKeyIDResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{14}
+}
+func (m *QueryNextVKeyIDResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNextVKeyIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNextVKeyIDResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNextVKeyIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNextVKeyIDResponse.Merge(m, src)
+}
+func (m *QueryNextVKeyIDResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNextVKeyIDResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNextVKeyIDResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNextVKeyIDResponse proto.InternalMessageInfo
+
+func (m *QueryNextVKeyIDResponse) GetNextId() uint64 {
+	if m != nil {
+		return m.NextId
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*SnarkJsProof)(nil), "xion.zk.v1.SnarkJsProof")
 	proto.RegisterType((*QueryVerifyRequest)(nil), "xion.zk.v1.QueryVerifyRequest")
 	proto.RegisterType((*ProofVerifyResponse)(nil), "xion.zk.v1.ProofVerifyResponse")
+	proto.RegisterType((*VKey)(nil), "xion.zk.v1.VKey")
+	proto.RegisterType((*QueryVKeyRequest)(nil), "xion.zk.v1.QueryVKeyRequest")
+	proto.RegisterType((*QueryVKeyResponse)(nil), "xion.zk.v1.QueryVKeyResponse")
+	proto.RegisterType((*QueryVKeyByNameRequest)(nil), "xion.zk.v1.QueryVKeyByNameRequest")
+	proto.RegisterType((*QueryVKeyByNameResponse)(nil), "xion.zk.v1.QueryVKeyByNameResponse")
+	proto.RegisterType((*QueryVKeysRequest)(nil), "xion.zk.v1.QueryVKeysRequest")
+	proto.RegisterType((*QueryVKeysResponse)(nil), "xion.zk.v1.QueryVKeysResponse")
+	proto.RegisterType((*VKeyWithID)(nil), "xion.zk.v1.VKeyWithID")
+	proto.RegisterType((*QueryHasVKeyRequest)(nil), "xion.zk.v1.QueryHasVKeyRequest")
+	proto.RegisterType((*QueryHasVKeyResponse)(nil), "xion.zk.v1.QueryHasVKeyResponse")
+	proto.RegisterType((*QueryNextVKeyIDRequest)(nil), "xion.zk.v1.QueryNextVKeyIDRequest")
+	proto.RegisterType((*QueryNextVKeyIDResponse)(nil), "xion.zk.v1.QueryNextVKeyIDResponse")
 }
 
 func init() { proto.RegisterFile("xion/zk/v1/query.proto", fileDescriptor_fa7f6c10cd66eb21) }
 
 var fileDescriptor_fa7f6c10cd66eb21 = []byte{
-	// 375 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x91, 0x4f, 0x6b, 0xdb, 0x30,
-	0x18, 0xc6, 0xe3, 0x38, 0x19, 0x99, 0xe6, 0x30, 0xa6, 0xfd, 0xc1, 0x98, 0xe1, 0x05, 0x8f, 0x41,
-	0x18, 0xcc, 0xc2, 0xdb, 0x07, 0x18, 0xcb, 0x0e, 0x63, 0x3d, 0xb5, 0x2e, 0xf4, 0xd0, 0x4b, 0x90,
-	0x5c, 0xc5, 0x15, 0x4e, 0x24, 0xc5, 0x92, 0x4d, 0x9c, 0x63, 0x3f, 0x41, 0xa1, 0x5f, 0xaa, 0xc7,
-	0x40, 0x2f, 0x3d, 0x96, 0xa4, 0x1f, 0xa4, 0x58, 0x4e, 0xda, 0x40, 0x7b, 0xf3, 0xfb, 0xf3, 0xfb,
-	0x3e, 0xcf, 0x83, 0x1e, 0xf0, 0x69, 0xc1, 0x04, 0x47, 0xcb, 0x0c, 0x95, 0x11, 0x9a, 0x17, 0x34,
-	0xaf, 0x42, 0x99, 0x0b, 0x2d, 0x20, 0xa8, 0x79, 0xb8, 0xcc, 0xc2, 0x32, 0xf2, 0x3e, 0xa7, 0x42,
-	0xa4, 0x53, 0x8a, 0xb0, 0x64, 0x08, 0x73, 0x2e, 0x34, 0xd6, 0x4c, 0x70, 0xd5, 0x6c, 0x7a, 0xdf,
-	0x13, 0xa1, 0x66, 0x42, 0x21, 0x82, 0x15, 0x6d, 0x24, 0x50, 0x19, 0x11, 0xaa, 0x71, 0x84, 0x24,
-	0x4e, 0x19, 0x37, 0xcb, 0xcd, 0x6e, 0xf0, 0x0f, 0x38, 0xc7, 0x1c, 0xe7, 0xd9, 0x81, 0x3a, 0xcc,
-	0x85, 0x98, 0xc0, 0x77, 0xa0, 0x23, 0xd9, 0x18, 0xbb, 0xd6, 0xc0, 0x1e, 0x3a, 0xb1, 0x2d, 0xd9,
-	0x9f, 0x2d, 0x22, 0x6e, 0x7b, 0x87, 0x46, 0x5b, 0x94, 0xb8, 0xf6, 0x0e, 0xfd, 0x0d, 0x12, 0x00,
-	0x8f, 0x6a, 0xab, 0x13, 0x9a, 0xb3, 0x49, 0x15, 0xd3, 0x79, 0x41, 0x95, 0x86, 0x1f, 0x40, 0x57,
-	0xd6, 0xba, 0xae, 0x35, 0xb0, 0x86, 0x4e, 0xdc, 0x0c, 0xf0, 0x2b, 0xe8, 0xcb, 0x82, 0x4c, 0x59,
-	0x32, 0x66, 0x5c, 0x16, 0x5a, 0x19, 0xe9, 0xd7, 0xb1, 0xd3, 0xc0, 0xff, 0x86, 0x41, 0x08, 0x3a,
-	0x65, 0x46, 0x2b, 0xd7, 0x36, 0x97, 0xe6, 0x3b, 0x88, 0xc0, 0x7b, 0x13, 0x73, 0x67, 0xa2, 0xa4,
-	0xe0, 0x8a, 0x42, 0x0f, 0xf4, 0xca, 0x9a, 0x30, 0x7a, 0x66, 0x8c, 0x7a, 0xf1, 0xe3, 0xfc, 0x93,
-	0x83, 0xae, 0xc9, 0x05, 0x29, 0x78, 0xb3, 0x77, 0x0b, 0xfd, 0xf0, 0xe9, 0x3d, 0xc3, 0xe7, 0xc9,
-	0xbd, 0x2f, 0xfb, 0xff, 0x5f, 0x30, 0x0d, 0x3e, 0x5e, 0xdc, 0xdc, 0x5f, 0xb5, 0xdf, 0xc2, 0xfe,
-	0xb6, 0x2b, 0xe3, 0x58, 0x8d, 0x7e, 0x5f, 0xaf, 0x7d, 0x6b, 0xb5, 0xf6, 0xad, 0xbb, 0xb5, 0x6f,
-	0x5d, 0x6e, 0xfc, 0xd6, 0x6a, 0xe3, 0xb7, 0x6e, 0x37, 0x7e, 0xeb, 0xf4, 0x5b, 0xca, 0xf4, 0x79,
-	0x41, 0xc2, 0x44, 0xcc, 0x10, 0x29, 0x72, 0xae, 0x7f, 0x4c, 0x31, 0x51, 0xc8, 0xd4, 0xbd, 0xa8,
-	0x45, 0x74, 0x25, 0xa9, 0x22, 0xaf, 0x4c, 0x31, 0xbf, 0x1e, 0x02, 0x00, 0x00, 0xff, 0xff, 0x8c,
-	0xe2, 0xc8, 0x8d, 0x08, 0x02, 0x00, 0x00,
+	// 841 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x55, 0xcd, 0x8f, 0xdb, 0x44,
+	0x14, 0x8f, 0x1d, 0x27, 0x9b, 0xbc, 0xa4, 0xd0, 0x4e, 0x97, 0x24, 0x98, 0xc5, 0x09, 0x5e, 0x96,
+	0x86, 0x42, 0x6d, 0x25, 0xdc, 0xa9, 0x08, 0x15, 0xdd, 0x50, 0xa9, 0x2a, 0x46, 0x14, 0x09, 0x0e,
+	0x91, 0x9d, 0x4c, 0x9d, 0x51, 0x36, 0xb6, 0xeb, 0x71, 0xa2, 0xa4, 0x4b, 0x2f, 0x95, 0xb8, 0x83,
+	0xf8, 0x97, 0x38, 0xf4, 0xb8, 0x12, 0x17, 0x4e, 0x08, 0xed, 0xf2, 0x87, 0xa0, 0xf9, 0x70, 0xe2,
+	0x6c, 0x12, 0x3e, 0x2e, 0x91, 0xe7, 0xcd, 0xf3, 0xef, 0x63, 0xe6, 0xf7, 0x1c, 0xa8, 0x2d, 0x48,
+	0x18, 0xd8, 0x2f, 0x26, 0xf6, 0xbc, 0x63, 0x3f, 0x9f, 0xe1, 0x78, 0x69, 0x45, 0x71, 0x98, 0x84,
+	0x08, 0x58, 0xdd, 0x7a, 0x31, 0xb1, 0xe6, 0x1d, 0xfd, 0xd0, 0x0f, 0xfd, 0x90, 0x97, 0x6d, 0xf6,
+	0x24, 0x3a, 0xf4, 0x23, 0x3f, 0x0c, 0xfd, 0x33, 0x6c, 0xbb, 0x11, 0xb1, 0xdd, 0x20, 0x08, 0x13,
+	0x37, 0x21, 0x61, 0x40, 0xe5, 0xee, 0xdd, 0x61, 0x48, 0xa7, 0x21, 0xb5, 0x3d, 0x97, 0x62, 0x01,
+	0x6c, 0xcf, 0x3b, 0x1e, 0x4e, 0xdc, 0x8e, 0x1d, 0xb9, 0x3e, 0x09, 0x78, 0xb3, 0xe8, 0x35, 0x1f,
+	0x42, 0xf5, 0xeb, 0xc0, 0x8d, 0x27, 0x5f, 0xd2, 0x27, 0x71, 0x18, 0x3e, 0x43, 0xb7, 0x40, 0x8b,
+	0xc8, 0xc0, 0x6d, 0x28, 0xad, 0x7c, 0xbb, 0xea, 0xe4, 0x23, 0xf2, 0x99, 0x2c, 0x79, 0x0d, 0x35,
+	0x2d, 0xf5, 0x64, 0x69, 0xd8, 0xc8, 0xa7, 0xa5, 0xcf, 0xcd, 0x1f, 0x15, 0x40, 0x5f, 0x31, 0xae,
+	0xa7, 0x38, 0x26, 0xcf, 0x96, 0x0e, 0x7e, 0x3e, 0xc3, 0x34, 0x41, 0x87, 0x50, 0x88, 0x18, 0x70,
+	0x43, 0x69, 0x29, 0xed, 0xaa, 0x23, 0x16, 0xe8, 0x18, 0x6e, 0x44, 0x33, 0xef, 0x8c, 0x0c, 0x07,
+	0x24, 0x88, 0x66, 0x09, 0xe5, 0xd8, 0x65, 0xa7, 0x2a, 0x8a, 0x7d, 0x5e, 0x43, 0xef, 0x40, 0x79,
+	0x3e, 0xc1, 0xcb, 0x41, 0xe0, 0x4e, 0x71, 0x23, 0xdf, 0x52, 0xda, 0x65, 0xa7, 0xc4, 0x0a, 0x8f,
+	0xdd, 0x29, 0x46, 0x75, 0x38, 0xe0, 0x9b, 0x64, 0xd4, 0xd0, 0x5a, 0x4a, 0x5b, 0x73, 0x8a, 0x6c,
+	0xd9, 0x1f, 0x99, 0x1d, 0xb8, 0xcd, 0x9d, 0xa4, 0x32, 0x68, 0x14, 0x06, 0x14, 0x23, 0x1d, 0x4a,
+	0x73, 0x56, 0x21, 0x78, 0xc4, 0xa5, 0x94, 0x9c, 0xd5, 0xda, 0xfc, 0x01, 0xb4, 0xa7, 0x8f, 0xf0,
+	0x92, 0x11, 0x32, 0x48, 0x6f, 0x99, 0x60, 0x2a, 0xf5, 0x96, 0x26, 0x78, 0xd9, 0x63, 0x6b, 0x84,
+	0x40, 0xe3, 0x42, 0x54, 0x2e, 0x84, 0x3f, 0xa3, 0x16, 0x54, 0x46, 0x98, 0x0e, 0x63, 0x12, 0xb1,
+	0x13, 0x95, 0x1a, 0xb3, 0x25, 0xf4, 0x1e, 0x54, 0x87, 0x24, 0x1e, 0xce, 0x48, 0x32, 0x18, 0xbb,
+	0x74, 0xcc, 0xb5, 0x96, 0x9d, 0x8a, 0xac, 0x9d, 0xba, 0x74, 0x6c, 0x9a, 0x70, 0x53, 0x9c, 0xdb,
+	0x23, 0xbc, 0x3a, 0xb5, 0x37, 0x40, 0x25, 0x42, 0xa7, 0xe6, 0xa8, 0x64, 0x64, 0xde, 0x87, 0x5b,
+	0x99, 0x1e, 0x69, 0xe9, 0x2e, 0x68, 0xcc, 0x33, 0x6f, 0xab, 0x74, 0x6f, 0x5a, 0xeb, 0xd4, 0x58,
+	0xac, 0xaf, 0xa7, 0xbd, 0xfe, 0xa3, 0x99, 0x73, 0x78, 0x8f, 0xf9, 0x31, 0xd4, 0x56, 0x00, 0x3d,
+	0x7e, 0x82, 0x29, 0x55, 0xea, 0x4b, 0x59, 0xfb, 0x32, 0xbf, 0x81, 0xfa, 0x56, 0xf7, 0xff, 0x27,
+	0x95, 0x2e, 0xd4, 0x95, 0x8b, 0xef, 0x33, 0x2e, 0x68, 0xca, 0xff, 0x05, 0xc0, 0x3a, 0x94, 0x12,
+	0xf6, 0x03, 0x4b, 0x24, 0xd8, 0x62, 0x09, 0xb6, 0xc4, 0x68, 0xc8, 0x04, 0x5b, 0x4f, 0x5c, 0x3f,
+	0xd5, 0xee, 0x64, 0xde, 0x34, 0x7f, 0x5e, 0xe5, 0x4f, 0xa0, 0x4b, 0xbd, 0x5d, 0x28, 0x30, 0x2d,
+	0x94, 0x07, 0xba, 0xd2, 0xad, 0x5d, 0x17, 0xfc, 0x2d, 0x49, 0xc6, 0xfd, 0x07, 0x52, 0xb6, 0x68,
+	0x45, 0x0f, 0x37, 0x24, 0xa9, 0x5c, 0xd2, 0x9d, 0x7f, 0x95, 0x24, 0x08, 0x37, 0x34, 0x9d, 0x02,
+	0xac, 0x39, 0xae, 0x5f, 0xea, 0xea, 0x28, 0xd5, 0xff, 0x70, 0x7f, 0x1f, 0xc2, 0x6d, 0x6e, 0xee,
+	0xd4, 0xa5, 0xd9, 0x9c, 0xec, 0xba, 0xbc, 0x4f, 0xe1, 0x70, 0xb3, 0x55, 0x9e, 0x44, 0x0d, 0x8a,
+	0x78, 0x41, 0x68, 0x42, 0x65, 0xfe, 0xe5, 0x6a, 0xeb, 0x96, 0x1a, 0x32, 0x2a, 0x8f, 0xf1, 0x22,
+	0x61, 0x00, 0xfd, 0x07, 0x92, 0xcd, 0xec, 0xca, 0x58, 0x64, 0x77, 0x24, 0x78, 0x1d, 0x0e, 0x02,
+	0xbc, 0x48, 0x06, 0x2b, 0x83, 0x45, 0xb6, 0xec, 0x8f, 0xba, 0xbf, 0x6a, 0x50, 0xe0, 0x2f, 0x21,
+	0x0c, 0x95, 0xcc, 0x60, 0x22, 0x23, 0xeb, 0x77, 0xfb, 0xc3, 0xa1, 0x37, 0xb3, 0xfb, 0x3b, 0x26,
+	0xda, 0x7c, 0xeb, 0xd5, 0x6f, 0x7f, 0xfd, 0xa2, 0xbe, 0x89, 0x6e, 0xc8, 0x2f, 0xe8, 0x5c, 0xe0,
+	0x12, 0x39, 0xcc, 0x47, 0xdb, 0xf8, 0xeb, 0x83, 0xd3, 0xdf, 0xdd, 0xb3, 0x2b, 0xb1, 0xdf, 0xe7,
+	0xd8, 0x06, 0x3a, 0xb2, 0xbd, 0x59, 0x1c, 0x24, 0x76, 0xe6, 0x43, 0xcd, 0x23, 0x62, 0x9f, 0x93,
+	0xd1, 0x4b, 0xf4, 0x4a, 0x11, 0xf7, 0x2b, 0x46, 0x04, 0x99, 0x3b, 0x31, 0x37, 0xa6, 0x4d, 0x3f,
+	0xfe, 0xc7, 0x1e, 0xc9, 0xfe, 0x11, 0x67, 0x3f, 0x41, 0xc7, 0xfb, 0xd8, 0xd9, 0x3d, 0xdb, 0xe7,
+	0xec, 0xf7, 0x25, 0xf2, 0xa1, 0xc0, 0x13, 0x8f, 0x76, 0x5b, 0x4a, 0xe7, 0x4c, 0x37, 0xf6, 0x6d,
+	0x4b, 0xd2, 0x26, 0x27, 0x7d, 0x1b, 0xd5, 0xf7, 0x90, 0xa2, 0x73, 0x38, 0x90, 0x91, 0x42, 0xcd,
+	0x2d, 0xac, 0xcd, 0x5c, 0xea, 0xad, 0xfd, 0x0d, 0x92, 0xee, 0x1e, 0xa7, 0xbb, 0x83, 0x4e, 0xf6,
+	0x79, 0x14, 0xe9, 0x94, 0x2e, 0x7b, 0xf7, 0x5f, 0x5f, 0x1a, 0xca, 0xc5, 0xa5, 0xa1, 0xfc, 0x79,
+	0x69, 0x28, 0x3f, 0x5d, 0x19, 0xb9, 0x8b, 0x2b, 0x23, 0xf7, 0xfb, 0x95, 0x91, 0xfb, 0xee, 0xc4,
+	0x27, 0xc9, 0x78, 0xe6, 0x59, 0xc3, 0x70, 0x2a, 0xa0, 0xee, 0x9d, 0xb9, 0x1e, 0x15, 0x78, 0x0b,
+	0x86, 0x98, 0x2c, 0x23, 0x4c, 0xbd, 0x22, 0xff, 0xbb, 0xfb, 0xe4, 0xef, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x99, 0x80, 0xb4, 0x4c, 0x74, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -249,6 +900,14 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error)
+	// VKey queries a verification key by ID
+	VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error)
+	// VKeyByName queries a verification key by name
+	VKeyByName(ctx context.Context, in *QueryVKeyByNameRequest, opts ...grpc.CallOption) (*QueryVKeyByNameResponse, error)
+	// VKeys queries all verification keys with pagination
+	VKeys(ctx context.Context, in *QueryVKeysRequest, opts ...grpc.CallOption) (*QueryVKeysResponse, error)
+	// HasVKey checks if a verification key exists by name
+	HasVKey(ctx context.Context, in *QueryHasVKeyRequest, opts ...grpc.CallOption) (*QueryHasVKeyResponse, error)
 }
 
 type queryClient struct {
@@ -268,10 +927,54 @@ func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, o
 	return out, nil
 }
 
+func (c *queryClient) VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error) {
+	out := new(QueryVKeyResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Query/VKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) VKeyByName(ctx context.Context, in *QueryVKeyByNameRequest, opts ...grpc.CallOption) (*QueryVKeyByNameResponse, error) {
+	out := new(QueryVKeyByNameResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Query/VKeyByName", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) VKeys(ctx context.Context, in *QueryVKeysRequest, opts ...grpc.CallOption) (*QueryVKeysResponse, error) {
+	out := new(QueryVKeysResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Query/VKeys", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) HasVKey(ctx context.Context, in *QueryHasVKeyRequest, opts ...grpc.CallOption) (*QueryHasVKeyResponse, error) {
+	out := new(QueryHasVKeyResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Query/HasVKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error)
+	// VKey queries a verification key by ID
+	VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error)
+	// VKeyByName queries a verification key by name
+	VKeyByName(context.Context, *QueryVKeyByNameRequest) (*QueryVKeyByNameResponse, error)
+	// VKeys queries all verification keys with pagination
+	VKeys(context.Context, *QueryVKeysRequest) (*QueryVKeysResponse, error)
+	// HasVKey checks if a verification key exists by name
+	HasVKey(context.Context, *QueryHasVKeyRequest) (*QueryHasVKeyResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -280,6 +983,18 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) ProofVerify(ctx context.Context, req *QueryVerifyRequest) (*ProofVerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
+}
+func (*UnimplementedQueryServer) VKey(ctx context.Context, req *QueryVKeyRequest) (*QueryVKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VKey not implemented")
+}
+func (*UnimplementedQueryServer) VKeyByName(ctx context.Context, req *QueryVKeyByNameRequest) (*QueryVKeyByNameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VKeyByName not implemented")
+}
+func (*UnimplementedQueryServer) VKeys(ctx context.Context, req *QueryVKeysRequest) (*QueryVKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VKeys not implemented")
+}
+func (*UnimplementedQueryServer) HasVKey(ctx context.Context, req *QueryHasVKeyRequest) (*QueryHasVKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasVKey not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -304,6 +1019,78 @@ func _Query_ProofVerify_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_VKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Query/VKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VKey(ctx, req.(*QueryVKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_VKeyByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVKeyByNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VKeyByName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Query/VKeyByName",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VKeyByName(ctx, req.(*QueryVKeyByNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_VKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVKeysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Query/VKeys",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VKeys(ctx, req.(*QueryVKeysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_HasVKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryHasVKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).HasVKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Query/HasVKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).HasVKey(ctx, req.(*QueryHasVKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.zk.v1.Query",
@@ -312,6 +1099,22 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProofVerify",
 			Handler:    _Query_ProofVerify_Handler,
+		},
+		{
+			MethodName: "VKey",
+			Handler:    _Query_VKey_Handler,
+		},
+		{
+			MethodName: "VKeyByName",
+			Handler:    _Query_VKeyByName_Handler,
+		},
+		{
+			MethodName: "VKeys",
+			Handler:    _Query_VKeys_Handler,
+		},
+		{
+			MethodName: "HasVKey",
+			Handler:    _Query_HasVKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -388,10 +1191,15 @@ func (m *QueryVerifyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Vkey) > 0 {
-		i -= len(m.Vkey)
-		copy(dAtA[i:], m.Vkey)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Vkey)))
+	if m.VkeyId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.VkeyId))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.VkeyName) > 0 {
+		i -= len(m.VkeyName)
+		copy(dAtA[i:], m.VkeyName)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.VkeyName)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -441,6 +1249,427 @@ func (m *ProofVerifyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		} else {
 			dAtA[i] = 0
 		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *VKey) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VKey) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.CircuitHash) > 0 {
+		i -= len(m.CircuitHash)
+		copy(dAtA[i:], m.CircuitHash)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.CircuitHash)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.KeyBytes) > 0 {
+		i -= len(m.KeyBytes)
+		copy(dAtA[i:], m.KeyBytes)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.KeyBytes)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVKeyRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVKeyRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVKeyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Id != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVKeyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVKeyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Vkey.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVKeyByNameRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVKeyByNameRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVKeyByNameRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVKeyByNameResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVKeyByNameResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVKeyByNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Id != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x10
+	}
+	{
+		size, err := m.Vkey.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVKeysRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVKeysRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVKeysRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVKeysResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVKeysResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVKeysResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Vkeys) > 0 {
+		for iNdEx := len(m.Vkeys) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Vkeys[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *VKeyWithID) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VKeyWithID) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VKeyWithID) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Vkey.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if m.Id != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryHasVKeyRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryHasVKeyRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryHasVKeyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryHasVKeyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryHasVKeyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryHasVKeyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Id != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Exists {
+		i--
+		if m.Exists {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNextVKeyIDRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNextVKeyIDRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNextVKeyIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNextVKeyIDResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNextVKeyIDResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNextVKeyIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.NextId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.NextId))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -501,9 +1730,12 @@ func (m *QueryVerifyRequest) Size() (n int) {
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
-	l = len(m.Vkey)
+	l = len(m.VkeyName)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.VkeyId != 0 {
+		n += 1 + sovQuery(uint64(m.VkeyId))
 	}
 	return n
 }
@@ -516,6 +1748,176 @@ func (m *ProofVerifyResponse) Size() (n int) {
 	_ = l
 	if m.Verified {
 		n += 2
+	}
+	return n
+}
+
+func (m *VKey) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.KeyBytes)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.CircuitHash)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryVKeyRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovQuery(uint64(m.Id))
+	}
+	return n
+}
+
+func (m *QueryVKeyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Vkey.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryVKeyByNameRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryVKeyByNameResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Vkey.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	if m.Id != 0 {
+		n += 1 + sovQuery(uint64(m.Id))
+	}
+	return n
+}
+
+func (m *QueryVKeysRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryVKeysResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Vkeys) > 0 {
+		for _, e := range m.Vkeys {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *VKeyWithID) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovQuery(uint64(m.Id))
+	}
+	l = m.Vkey.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryHasVKeyRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryHasVKeyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Exists {
+		n += 2
+	}
+	if m.Id != 0 {
+		n += 1 + sovQuery(uint64(m.Id))
+	}
+	return n
+}
+
+func (m *QueryNextVKeyIDRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryNextVKeyIDResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.NextId != 0 {
+		n += 1 + sovQuery(uint64(m.NextId))
 	}
 	return n
 }
@@ -769,9 +2171,9 @@ func (m *QueryVerifyRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyName", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowQuery
@@ -781,26 +2183,43 @@ func (m *QueryVerifyRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthQuery
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthQuery
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Vkey = append(m.Vkey[:0], dAtA[iNdEx:postIndex]...)
-			if m.Vkey == nil {
-				m.Vkey = []byte{}
-			}
+			m.VkeyName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyId", wireType)
+			}
+			m.VkeyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.VkeyId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -871,6 +2290,1120 @@ func (m *ProofVerifyResponse) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.Verified = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VKey) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VKey: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VKey: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field KeyBytes", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.KeyBytes = append(m.KeyBytes[:0], dAtA[iNdEx:postIndex]...)
+			if m.KeyBytes == nil {
+				m.KeyBytes = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CircuitHash", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CircuitHash = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVKeyRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVKeyRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVKeyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVKeyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVKeyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Vkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVKeyByNameRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVKeyByNameRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVKeyByNameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVKeyByNameResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVKeyByNameResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVKeyByNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Vkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVKeysRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVKeysRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVKeysRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVKeysResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVKeysResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVKeysResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Vkeys", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Vkeys = append(m.Vkeys, VKeyWithID{})
+			if err := m.Vkeys[len(m.Vkeys)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VKeyWithID) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VKeyWithID: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VKeyWithID: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Vkey", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Vkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryHasVKeyRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryHasVKeyRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryHasVKeyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryHasVKeyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryHasVKeyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryHasVKeyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Exists", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Exists = bool(v != 0)
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNextVKeyIDRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNextVKeyIDRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNextVKeyIDRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNextVKeyIDResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNextVKeyIDResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNextVKeyIDResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NextId", wireType)
+			}
+			m.NextId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NextId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
