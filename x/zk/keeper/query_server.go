@@ -56,7 +56,7 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
 	}
 
-	verified, err := q.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
+	verified, err := q.Keeper.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
 	if err != nil {
 		fmt.Printf("we have passed verifications with errors??: %s\n", err.Error())
 		return nil, err
@@ -184,53 +184,3 @@ func (q Querier) NextVKeyID(goCtx context.Context, req *types.QueryNextVKeyIDReq
 		NextId: nextID,
 	}, nil
 }
-
-/*
-// ProofVerify verifies a zero-knowledge proof using a stored verification key
-func (q Querier) ProofVerify(goCtx context.Context, req *types.QueryVerifyRequest) (*types.ProofVerifyResponse, error) {
-	if req == nil {
-		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
-	}
-
-	// Validate proof bytes
-	if len(req.Proof) == 0 {
-		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
-	}
-
-	// Unmarshal the proof
-	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
-	if err != nil {
-		return nil, errors.Wrap(types.ErrInvalidRequest, fmt.Sprintf("invalid proof: %v", err))
-	}
-
-	// Get the verification key by name or ID
-	var snarkVk *parser.CircomVerificationKey
-
-	if req.VkeyName != "" {
-		// Retrieve by name
-		snarkVk, err = q.Keeper.GetCircomVKeyByName(goCtx, req.VkeyName)
-		if err != nil {
-			return nil, errors.Wrap(types.ErrVKeyNotFound, fmt.Sprintf("failed to get vkey '%s': %v", req.VkeyName, err))
-		}
-	} else if req.VkeyId != 0 {
-		// Retrieve by ID
-		snarkVk, err = q.Keeper.GetCircomVKeyByID(goCtx, req.VkeyId)
-		if err != nil {
-			return nil, errors.Wrap(types.ErrVKeyNotFound, fmt.Sprintf("failed to get vkey ID %d: %v", req.VkeyId, err))
-		}
-	} else {
-		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
-	}
-
-	// Verify the proof
-	verified, err := q.Verify(goCtx, snarkProof, snarkVk, &req.PublicInputs)
-	if err != nil {
-		q.Keeper.logger.Error("proof verification failed", "error", err)
-		return nil, errors.Wrap(types.ErrVerificationFailed, err.Error())
-	}
-
-	q.Keeper.logger.Info("proof verification completed", "verified", verified)
-	return &types.ProofVerifyResponse{Verified: verified}, nil
-}
-
-*/

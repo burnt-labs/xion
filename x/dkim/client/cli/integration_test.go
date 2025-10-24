@@ -27,7 +27,6 @@ import (
 	"github.com/burnt-labs/xion/x/dkim/types"
 
 	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
-	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
 type IntegrationTestSuite struct {
@@ -61,7 +60,6 @@ func setupIntegrationTest(t *testing.T) *IntegrationTestSuite {
 	govModAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	logger := log.NewTestLogger(t)
 	suite.zkeeper = zkkeeper.NewKeeper(suite.cdc, storeService, logger, govModAddr)
-	suite.zkeeper.Params.Set(suite.ctx, zktypes.DefaultParams())
 	suite.keeper = keeper.NewKeeper(suite.cdc, storeService, logger, govModAddr, suite.zkeeper)
 
 	// Create query server

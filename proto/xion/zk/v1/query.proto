@@ -5,6 +5,8 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
+option go_package = "github.com/burnt-labs/xion/x/zk/types";
+
 // Query provides defines the gRPC querier service.
 service Query {
   // ProofVerify verifies a zk proof for email authentication.

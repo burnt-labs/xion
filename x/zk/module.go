@@ -67,7 +67,7 @@ func (a AppModuleBasic) Name() string {
 }
 
 func (a AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(&types.GenesisState{})
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEncodingConfig, message json.RawMessage) error {
@@ -86,7 +86,6 @@ func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 	if err != nil {
-		// same behavior as in cosmos-sdk
 		panic(err)
 	}
 }
@@ -94,14 +93,12 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux 
 // Disable in favor of autocli.go. If you wish to use these, it will override AutoCLI methods.
 
 func (a AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
+	return cli.GetTxCmd()
 }
 
-/*
 func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return nil
+	return cli.GetQueryCmd()
 }
-*/
 
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
@@ -114,17 +111,15 @@ func (a AppModuleBasic) RegisterInterfaces(r codectypes.InterfaceRegistry) {
 func (am AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
-
-	if err := am.keeper.Params.Set(ctx, genesisState.Params); err != nil {
-		panic(err)
-	}
+	am.keeper.InitGenesis(ctx, &genesisState)
 
 	return nil
 }
 
-func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
-	genState := am.keeper.ExportGenesis(ctx)
-	return marshaler.MustMarshalJSON(genState)
+// ExportGenesis returns the exported genesis state as raw bytes for the zk module.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	gs := am.keeper.ExportGenesis(ctx)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // RegisterInvariants registers the module's invariants.

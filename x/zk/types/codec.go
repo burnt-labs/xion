@@ -4,6 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 // RegisterLegacyAminoCodec registers the necessary x/zk interfaces and concrete types

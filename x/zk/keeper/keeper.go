@@ -7,6 +7,8 @@ import (
 	storetypes "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -83,25 +85,59 @@ func (k Keeper) Logger() log.Logger {
 }
 
 // InitGenesis initializes the module's state from a genesis state.
-func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) error {
-	// this line is used by starport scaffolding # genesis/module/init
-	if err := data.Validate(); err != nil {
-		return err
+func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
+	// Import all vkeys
+	for _, vkeyWithID := range gs.Vkeys {
+		// Set the vkey
+		if err := k.VKeys.Set(ctx, vkeyWithID.Id, vkeyWithID.Vkey); err != nil {
+			panic(err)
+		}
+
+		// Set the name index
+		if err := k.VKeyNameIndex.Set(ctx, vkeyWithID.Vkey.Name, vkeyWithID.Id); err != nil {
+			panic(err)
+		}
+
+		// Update the sequence to be after the highest ID
+		currentSeq, err := k.NextVKeyID.Peek(ctx)
+		if err != nil {
+			panic(err)
+		}
+		if vkeyWithID.Id >= currentSeq {
+			// Set the sequence to be one more than the highest ID
+			if err := k.NextVKeyID.Set(ctx, vkeyWithID.Id+1); err != nil {
+				panic(err)
+			}
+		}
 	}
-	return k.Params.Set(ctx, data.Params)
+
+	k.logger.Info("initialized zk module genesis state", "vkeys_count", len(gs.Vkeys))
 }
 
-// ExportGenesis exports the module's state to a genesis state.
-func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
-	params, err := k.Params.Get(ctx)
+// ExportGenesis returns the module's exported genesis state.
+func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+	vkeys, err := k.ListVKeys(ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	// this line is used by starport scaffolding # genesis/module/export
+	// Convert to VKeyWithID format
+	vkeysWithID := make([]types.VKeyWithID, 0, len(vkeys))
+	for _, vkey := range vkeys {
+		// Get the ID from the name index
+		id, err := k.VKeyNameIndex.Get(ctx, vkey.Name)
+		if err != nil {
+			panic(err)
+		}
+
+		vkeysWithID = append(vkeysWithID, types.VKeyWithID{
+			Id:   id,
+			Vkey: vkey,
+		})
+	}
 
 	return &types.GenesisState{
-		Params: params,
+		Vkeys: vkeysWithID,
 	}
 }
 
