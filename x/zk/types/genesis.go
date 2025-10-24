@@ -14,7 +14,7 @@ func NewGenesisState(vkeys []VKeyWithID) *GenesisState {
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Vkeys: []VKeyWithID{},
+		Vkeys: []VKeyWithID{}, // TODO: add basic vkey for this
 	}
 }
 

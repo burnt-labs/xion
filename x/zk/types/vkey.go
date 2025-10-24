@@ -19,6 +19,7 @@ func ValidateVKeyBytes(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("invalid verification key JSON: %w", err)
 	}
+	// TODO: verify circomverification key
 
 	return nil
 }

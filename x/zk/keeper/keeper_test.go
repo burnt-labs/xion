@@ -841,7 +841,6 @@ func TestValidateVKeyBytes(t *testing.T) {
 			expectError: true,
 			errorMsg:    "invalid verification key JSON",
 		},
-		/* TODO: add validation for missing fields
 		{
 			name: "missing required fields",
 			data: []byte(`{
@@ -851,7 +850,6 @@ func TestValidateVKeyBytes(t *testing.T) {
 			expectError: true,
 			errorMsg:    "invalid verification key JSON",
 		},
-		*/
 	}
 
 	for _, tt := range tests {

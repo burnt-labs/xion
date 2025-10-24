@@ -242,36 +242,35 @@ func TestGenesisStateValidate(t *testing.T) {
 			},
 			expectError: true,
 			errorMsg:    "has invalid key_bytes",
-		}, /*
-			/*NOTE: WE need a way to validate vkeys
-			{
-				name: "invalid key bytes - missing required fields",
-				gs: &types.GenesisState{
-					Vkeys: []types.VKeyWithID{
-						{
-							Id: 0,
-							Vkey: types.VKey{
-								KeyBytes: []byte(`{
+		},
+		{
+			name: "invalid key bytes - missing required fields",
+			gs: &types.GenesisState{
+				Vkeys: []types.VKeyWithID{
+					{
+						Id: 0,
+						Vkey: types.VKey{
+							KeyBytes: []byte(`{
 									"protocol": "groth16",
 									"curve": "bn128"
 								}`),
-								Name:        "key1",
-								Description: "Key 1",
-							},
+							Name:        "key1",
+							Description: "Key 1",
 						},
 					},
 				},
-				expectError: true,
-				errorMsg:    "has invalid key_bytes",
 			},
-			{
-				name: "invalid key bytes - wrong protocol",
-				gs: &types.GenesisState{
-					Vkeys: []types.VKeyWithID{
-						{
-							Id: 0,
-							Vkey: types.VKey{
-								KeyBytes: []byte(`{
+			expectError: true,
+			errorMsg:    "has invalid key_bytes",
+		},
+		{
+			name: "invalid key bytes - wrong protocol",
+			gs: &types.GenesisState{
+				Vkeys: []types.VKeyWithID{
+					{
+						Id: 0,
+						Vkey: types.VKey{
+							KeyBytes: []byte(`{
 									"protocol": "plonk",
 									"curve": "bn128",
 									"nPublic": 2,
@@ -281,15 +280,15 @@ func TestGenesisStateValidate(t *testing.T) {
 									"vk_delta_2": [["11", "12"], ["13", "14"], ["1", "0"]],
 									"IC": [["15", "16", "1"], ["17", "18", "1"], ["19", "20", "1"]]
 								}`),
-								Name:        "key1",
-								Description: "Key 1",
-							},
+							Name:        "key1",
+							Description: "Key 1",
 						},
 					},
 				},
-				expectError: true,
-				errorMsg:    "has invalid key_bytes",
-			},*/
+			},
+			expectError: true,
+			errorMsg:    "has invalid key_bytes",
+		},
 		{
 			name: "non-sequential IDs are valid",
 			gs: &types.GenesisState{
