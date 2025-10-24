@@ -20,7 +20,7 @@ message Params {
   option (gogoproto.goproto_stringer) = false;
 
   // vkey defines the verification key used by the module.
-  bytes vkey = 1;
+  string vkey_identifier = 1;
 
   repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	stdmath "math"
 	"math/big"
+	"time"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
@@ -169,6 +170,40 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	if emailHash.String() != emailHashPInput {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s", emailHashPInput, emailHash.String())
 	}
+
+	// Validate timestamp from public_inputs[11]
+	if len(req.PublicInputs) < 12 {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 12 elements")
+	}
+
+	timestampStr := req.PublicInputs[11]
+	timestampBig, ok := new(big.Int).SetString(timestampStr, 10)
+	if !ok {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse timestamp from public input")
+	}
+
+	timestampInt64 := timestampBig.Int64()
+	timestampFromInput := time.Unix(timestampInt64, 0)
+
+	// Get current block time for deterministic validation
+	ctx := sdk.UnwrapSDKContext(c)
+	blockTime := ctx.BlockTime()
+
+	// Calculate time difference
+	timeDiff := blockTime.Sub(timestampFromInput)
+	if timeDiff < 0 {
+		timeDiff = -timeDiff // Get absolute value
+	}
+
+	// Validate timestamp is within 15 minutes
+	fifteenMinutes := 15 * time.Minute
+	if timeDiff > fifteenMinutes {
+		if timestampFromInput.Before(blockTime) {
+			return nil, errors.Wrapf(types.ErrInvalidPublicInput, "timestamp is too old, must be within 15 minutes")
+		} else {
+			return nil, errors.Wrapf(types.ErrInvalidPublicInput, "timestamp is too far in the future, must be within 15 minutes")
+		}
+	}
 	dkimDomainPInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[0:9])
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs: %s", err.Error())
@@ -177,16 +212,13 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs to string: %s", err.Error())
 	}
-	if req.DkimDomain != dkimDomainPInput {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "dkim domain does not match public input, got %s, expected %s", dkimDomainPInput, req.DkimDomain)
-	}
 	dkimHashPInput := req.PublicInputs[9]
 	dkimHashPInputBig, ok := new(big.Int).SetString(dkimHashPInput, 10)
 	if !ok {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse dkim hash public input")
 	}
 	res, err := k.DkimPubKeys(c, &types.QueryDkimPubKeysRequest{
-		Domain:       req.DkimDomain,
+		Domain:       dkimDomainPInput,
 		PoseidonHash: dkimHashPInputBig.Bytes(),
 		Pagination:   nil,
 	})
@@ -194,7 +226,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, err
 	}
 	if len(res.DkimPubKeys) == 0 {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", req.DkimDomain, dkimHashPInputBig.String())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", dkimDomainPInput, dkimHashPInputBig.String())
 	}
 
 	txBytePInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[12:32])
@@ -215,17 +247,23 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, err
 	}
 
-	p, err := k.Keeper.Params.Get(c)
-	if err != nil {
-		return nil, err
-	}
-	// TODO: remove vkey from dkim to zk
-	snarkVk, err := parser.UnmarshalCircomVerificationKeyJSON(p.Vkey)
-	if err != nil {
-		return nil, err
-	}
+	// p, err := k.Keeper.Params.Get(c)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	verified, err = k.ZkKeeper.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
+	// TODO:send vkey identifier to zk module to verify the proof for now send a dummy vkey to zk module (replace with p.VkeyIdentifier)
+	dummyVkey := &parser.CircomVerificationKey{
+		Protocol: "groth16",
+		Curve:    "bn128",
+		NPublic:  1,
+		VkAlpha1: []string{"1", "2", "1"},
+		VkBeta2:  [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
+		VkGamma2: [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
+		VkDelta2: [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
+		IC:       [][]string{{"1", "2", "1"}, {"3", "4", "1"}},
+	}
+	verified, err = k.ZkKeeper.Verify(c, snarkProof, dummyVkey, &req.PublicInputs)
 	if err != nil {
 		return nil, err
 	}
