@@ -9,17 +9,87 @@ import (
 )
 
 // ValidateVKeyBytes validates that the bytes can be unmarshaled into a CircomVerificationKey
+// and that it contains all required parameters for a valid groth16 verification key.
+// It validates both affine and projective form representations.
 func ValidateVKeyBytes(data []byte) error {
 	if len(data) == 0 {
 		return fmt.Errorf("empty vkey data")
 	}
 
 	// Validate by attempting to unmarshal
-	_, err := parser.UnmarshalCircomVerificationKeyJSON(data)
+	vk, err := parser.UnmarshalCircomVerificationKeyJSON(data)
 	if err != nil {
 		return fmt.Errorf("invalid verification key JSON: %w", err)
 	}
-	// TODO: verify circomverification key
+
+	// Validate the unmarshaled verification key
+	return validateCircomVerificationKey(vk)
+}
+
+// validateCircomVerificationKey validates the structure and fields of a CircomVerificationKey
+func validateCircomVerificationKey(vk *parser.CircomVerificationKey) error {
+	// Validate protocol (only groth16 is supported for now)
+	if vk.Protocol != "groth16" {
+		return fmt.Errorf("unsupported protocol: %s (only 'groth16' is supported)", vk.Protocol)
+	}
+
+	// Validate NPublic (should be greater than 0)
+	if vk.NPublic <= 0 {
+		return fmt.Errorf("invalid nPublic: %d (must be greater than 0)", vk.NPublic)
+	}
+
+	// Validate VkAlpha1 (G1 point: affine form with 2 coordinates, extended affine with 3)
+	// The parser only uses the first 2 coordinates, so we accept both formats
+	if len(vk.VkAlpha1) < 2 {
+		return fmt.Errorf("invalid VkAlpha1: expected at least 2 coordinates, got %d", len(vk.VkAlpha1))
+	}
+
+	// Validate VkBeta2 (G2 point: affine form with 2 rows, projective with 3 rows)
+	// Both forms are acceptable, but we need at least 2 rows with 2 columns each
+	if len(vk.VkBeta2) < 2 {
+		return fmt.Errorf("invalid VkBeta2: expected at least 2 rows for G2 point, got %d", len(vk.VkBeta2))
+	}
+	// For projective form, we may have 3 rows (x, y, z), but only check the first 2 rows
+	// as the parser only uses the first 2 rows
+	for i := 0; i < 2 && i < len(vk.VkBeta2); i++ {
+		if len(vk.VkBeta2[i]) != 2 {
+			return fmt.Errorf("invalid VkBeta2: row %d should have 2 columns, got %d", i, len(vk.VkBeta2[i]))
+		}
+	}
+
+	// Validate VkGamma2 (G2 point: same structure as VkBeta2)
+	if len(vk.VkGamma2) < 2 {
+		return fmt.Errorf("invalid VkGamma2: expected at least 2 rows for G2 point, got %d", len(vk.VkGamma2))
+	}
+	for i := 0; i < 2 && i < len(vk.VkGamma2); i++ {
+		if len(vk.VkGamma2[i]) != 2 {
+			return fmt.Errorf("invalid VkGamma2: row %d should have 2 columns, got %d", i, len(vk.VkGamma2[i]))
+		}
+	}
+
+	// Validate VkDelta2 (G2 point: same structure as VkBeta2)
+	if len(vk.VkDelta2) < 2 {
+		return fmt.Errorf("invalid VkDelta2: expected at least 2 rows for G2 point, got %d", len(vk.VkDelta2))
+	}
+	for i := 0; i < 2 && i < len(vk.VkDelta2); i++ {
+		if len(vk.VkDelta2[i]) != 2 {
+			return fmt.Errorf("invalid VkDelta2: row %d should have 2 columns, got %d", i, len(vk.VkDelta2[i]))
+		}
+	}
+
+	// Validate IC (array of G1 points for public inputs)
+	// IC should have length = NPublic + 1 (constant term + each public input)
+	expectedICLen := vk.NPublic + 1
+	if len(vk.IC) != expectedICLen {
+		return fmt.Errorf("invalid IC length: expected %d points (nPublic + 1), got %d", expectedICLen, len(vk.IC))
+	}
+
+	// Validate each IC point has at least 2 coordinates (affine or extended affine form)
+	for i, icPoint := range vk.IC {
+		if len(icPoint) < 2 {
+			return fmt.Errorf("invalid IC[%d]: expected at least 2 coordinates, got %d", i, len(icPoint))
+		}
+	}
 
 	return nil
 }
