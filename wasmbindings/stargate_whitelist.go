@@ -87,7 +87,7 @@ func init() {
 	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKeys", &dkimtypes.QueryDkimPubKeysResponse{})
 	setWhitelistedQuery("/xion.dkim.v1.Query/Params", &dkimtypes.QueryParamsResponse{})
 	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKey", &dkimtypes.QueryDkimPubKeyResponse{})
-	setWhitelistedQuery("/xion.dkim.v1.Query/ProofVerify", &dkimtypes.AuthenticateResponse{})
+	setWhitelistedQuery("/xion.dkim.v1.Query/Authenticate", &dkimtypes.AuthenticateResponse{})
 	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerify", &zktypes.ProofVerifyResponse{})
 }
 

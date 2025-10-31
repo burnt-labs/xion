@@ -36,6 +36,18 @@ type SnarkJSVkey struct {
 type ZKVerificationInstantiateMsg struct {
 	Vkey SnarkJSVkey `json:"vkey"`
 }
+type ProofData struct {
+	PiA      []string   `json:"pi_a"`
+	PiB      [][]string `json:"pi_b"`
+	PiC      []string   `json:"pi_c"`
+	Protocol string     `json:"protocol"`
+	Curve    string     `json:"curve"`
+}
+
+type Signature struct {
+	Proof        ProofData `json:"proof"`
+	PublicInputs []string  `json:"publicInputs"`
+}
 
 type QueryContractRequest struct {
 	AuthenticatorById map[string]interface{} `json:"authenticator_by_i_d"`
@@ -84,9 +96,26 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	fp, err := os.Getwd()
 	require.NoError(t, err)
 
-	accountCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "xion-account.wasm"))
+	accountCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "xion_account.wasm"))
 	require.NoError(t, err)
 
+	signatureJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "signature.json")
+	// Read the file
+	fileContent, err := os.ReadFile(signatureJSONPath)
+	require.NoError(t, err)
+
+	var signature Signature
+	err = json.Unmarshal(fileContent, &signature)
+	require.NoError(t, err)
+
+	emailSalt := signature.PublicInputs[len(signature.PublicInputs)-2]
+	fmt.Println(emailSalt)
+	b64signture := "ewogICAgInByb29mIjogewogICAgICAgICJwaV9hIjogWwogICAgICAgICAgICAiMjU2NzQ5ODMwOTA5NTk0NTEyMzAwMTkxNTUyNTQyNTY3NTU5NzkwNTk5OTg1MTc2MDQ3ODgyNTA0NTUyNjY1MTY4MTIxNTYyNjMzMSIsCiAgICAgICAgICAgICIxNDk5OTQ4ODg1NDAwMTcyOTA5NjI2NDI2Mjc2NTQ4MTU0OTUyMDQxOTExMDEyMTcwNjYwNDA5MTM4Mjc5OTMzNTc2ODEzODM1OTcyOSIsCiAgICAgICAgICAgICIxIgogICAgICAgIF0sCiAgICAgICAgInBpX2IiOiBbCiAgICAgICAgICAgIFsKICAgICAgICAgICAgICAgICIxNzg5ODM5MTg1MzMwNTI1MDE2NTM2NDgwMzU3MjkxNDA0NjIxNzE0Mzg0NjA1OTgzMjQyMTk5ODExMzAzMDU3NzE2MjE4ODQ1MzMxMCIsCiAgICAgICAgICAgICAgICAiNDQ5NzEzNzEyNTY3ODg4MDg3MjIxOTE1MTAzNzA5MTA2ODI1MzI1ODg1NzA4Mjk5NzQyNDA2OTIxNjgyMjQzMTg0OTkyNTgyMjgzNiIKICAgICAgICAgICAgXSwKICAgICAgICAgICAgWwogICAgICAgICAgICAgICAgIjE5MzMwMDU1NTkwODg0MzA5OTUwNTUyMTYyNTU4NzQyNjE0NTM1MTkwNjc2NzM5MzA5MjgzMTY3Mjg3Mjg5NDE4NDk5NTM3NTU1NTEwIiwKICAgICAgICAgICAgICAgICIzNjYzOTgxMzk5ODM4NTU5Mzk3NjA4NDA3MTA4MDYzODYyNzQyNjQ3OTgzNjQ0NTUyODA1NDkxMzg1OTAyMjA5NTU3NTMzMDk4MCIKICAgICAgICAgICAgXSwKICAgICAgICAgICAgWwogICAgICAgICAgICAgICAgIjEiLAogICAgICAgICAgICAgICAgIjAiCiAgICAgICAgICAgIF0KICAgICAgICBdLAogICAgICAgICJwaV9jIjogWwogICAgICAgICAgICAiNjM3NjE5NTUzMDE4MDQ1NDM1NzcxODQwMjYzMDcxNTc3OTkyOTc1NzMzMTA5MTM1NTE4MTI4MDk5NTUzNDk5NzMxODQ5Mjg1NTMzMyIsCiAgICAgICAgICAgICIyMDU3NTI3MDEzNDcyMjI4MjY4OTg5MTg4NDMzNzYxOTMzMjE1MzEzMDg1MTI4MTExODE1MzEwMTYxNDY4MjczNDgxNzA2MTA2Nzk0IiwKICAgICAgICAgICAgIjEiCiAgICAgICAgXSwKICAgICAgICAicHJvdG9jb2wiOiAiZ3JvdGgxNiIsCiAgICAgICAgImN1cnZlIjogImJuMTI4IgogICAgfSwKICAgICJwdWJsaWNJbnB1dHMiOiBbCiAgICAgICAgIjIwMTg3MjE0MTQwMzg0MDQ4MjAzMjciLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjY2MzIzNTM3MTMwODUxNTc5MjU1MDQwMDg0NDMwNzg5MTk3MTYzMjIzODYxNTYxNjA2MDIyMTg1MzY5NjEwMjgwNDY0NjgyMzcxOTIiLAogICAgICAgICI2NDg4NDgxOTU5NDQ5NTMzMDcyMjIzMjY1NTEyOTM1ODI2OTU1MjkzNjEwNzk0NjIzNzE2MDI3MzA2NDQxODA5NTU3ODM4OTQyMTM3IiwKICAgICAgICAiMTc2MTAzNDk1NCIsCiAgICAgICAgIjE4NDM2MTU2NDA2MzA3MDQ1MzI3MzY4NTkyMjEzNjAwMzk2NjMzODY5MjkxNTg0NjQ2OTI2NzAxMzk4ODAxNjU4OTA4Mjc0MDU4MSIsCiAgICAgICAgIjE1NjE2OTA4NjI1MDIyNjIwMDMzMDU0MzM3MDgyMTkxMzQzNzAxOTMxMTU1Njk0MzcyODQyMjkzODQ1MjY5ODY4NjY4NDYxOTM3NyIsCiAgICAgICAgIjQzOTMzMTUyNTAwMjIwNjE2NzUyMDQ4NDMxNzEyNDEwNDUxODg0NjYyMzIwMzM4MjA1MDA2IiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICI4MTA2MzU1MDQzOTY4OTAxNTg3MzQ2NTc5NjM0NTk4MDk4NzY1OTMzMTYwMzk0MDAyMjUxOTQ4MTcwNDIwMjE5OTU4NTIzMjIwNDI1IiwKICAgICAgICAiMSIKICAgIF0KfQ=="
+	fmt.Println(b64signture)
+
+	// signatre a conjunction of (email_salt, proof)
+	//
+	//
 	// Register Abstract Account Contract (Ensuring Fixed Address)
 	registeredTxHash, err := ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(), "xion", "register",
@@ -114,10 +143,11 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	t.Logf("email hash: %s", emailHash)
 
 	// send a execute msg to add a zkemail authenticator to the account
+	// TODO: update ZKEmail id, email_salt, signature
 	authExecuteMsg := fmt.Sprintf(
-		`{"add_auth_method":{"add_authenticator":{"ZKEmail": {"id": 1, "email_hash": "%s", "dkim_domain": "%s"}}}}`,
-		emailHash,
-		dkimDomain,
+		`{"add_auth_method":{"add_authenticator":{"ZKEmail": {"id": 1, "email_salt": "%s", "signature": "%s"}}}}`,
+		emailSalt,
+		b64signture,
 	)
 	t.Logf("auth execute msg: %s", authExecuteMsg)
 
@@ -162,8 +192,10 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	// Query the transaction result
-	_, err = ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
 	require.NoError(t, err)
+	fmt.Println(txDetails)
+
 	// Query the contract to verify the zk-email authenticator was created
 	queryMsg := QueryContractRequest{
 		AuthenticatorById: map[string]any{"id": 1},
@@ -280,7 +312,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(60_000)}})
-	txBuilder.SetGasLimit(2_000_000) // 20 million because verification takes a lot of gas
+	txBuilder.SetGasLimit(2_000_000) // 2 million because verification takes a lot of gas
 
 	builtTx := txBuilder.GetTx()
 	adaptableTx, ok := builtTx.(authsigning.V2AdaptableTx)
