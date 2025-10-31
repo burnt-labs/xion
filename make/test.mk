@@ -106,6 +106,12 @@ test-integration-xion-update-treasury-configs-aa: compile-integration-tests
 test-integration-xion-update-treasury-params: compile-integration-tests
 	$(MAKE) run-integration-test TEST_NAME=TestUpdateTreasuryContractParams
 
+test-integration-dkim-module: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestDKIMModule
+	
+test-integration-zkemail-abstract-account: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestZKEmailAuthenticator
+
 # Simulation tests
 test-sim-import-export: runsim
 	@echo "Running application import/export simulation. This may take several minutes..."
