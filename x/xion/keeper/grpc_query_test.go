@@ -495,4 +495,3 @@ func TestValidateAttestation_ErrorBranches(t *testing.T) {
 		require.Contains(t, err.Error(), "malformed")
 	}
 }
-

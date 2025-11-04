@@ -1,0 +1,32 @@
+# OS artifacts
+.DS_Store
+*.swp
+*.swo
+
+# Test binaries and executables
+*.test
+*.out
+e2e_tests
+e2e_tests.test
+
+# Coverage reports
+coverage.txt
+coverage*.out
+coverage*.html
+profile.out
+
+# Test data and artifacts
+*.log
+xion-data/
+.testnode/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Go workspace files (if any)
+go.work
+go.work.sum
+
+*TEST_COVERAGE.md
