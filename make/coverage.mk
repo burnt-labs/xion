@@ -23,8 +23,8 @@ TESTABLE_PACKAGES = $(shell go list ./... |  grep -v '$(TEST_EXCLUSIONS_PATTERN)
 # Run tests with coverage on selected packages
 test-cover-run:
 	@echo "🧪 Running tests with coverage..."
-	@echo "Testing packages (excluding: $(TEST_EXCLUSIONS))..."
-	@set -o pipefail; go test $(TESTABLE_PACKAGES) -coverprofile=$(COVERAGE_OUT) -covermode=atomic -timeout=30m -race -tags='ledger test_ledger_mock' 2>&1 | { grep -v "has malformed LC_DYSYMTAB" | grep -v "DBG\|INF" | grep -v "params.*send_enabled" | grep -v "loadVersion\|SAVE TREE\|BATCH SAVE" | grep -v "Upgrading IAVL storage" | grep -v "Finished loading IAVL tree"; }
+	@echo "Testing packages (excluding .coveragerc excludes)..."
+	@go test $(TESTABLE_PACKAGES) -coverprofile=$(COVERAGE_OUT) -covermode=atomic -timeout=30m -race -tags='ledger test_ledger_mock' -ldflags="-w"
 
 # Filter coverage report (remove generated files)
 test-cover-filter: test-cover-run

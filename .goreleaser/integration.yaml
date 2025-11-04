@@ -12,7 +12,7 @@ builds:
       - arm64
       - amd64
     command: test
-    dir: integration_tests
+    dir: e2e_tests
     binary: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
     no_unique_dist_dir: true
     no_main_check: true
