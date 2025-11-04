@@ -6,6 +6,10 @@ exclude github.com/CosmWasm/wasmvm/v2 v2.2.4
 
 replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
+
+	// wasmd fork with genesis exports
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.5-xion.2
+
 	github.com/burnt-labs/xion => ../
 	github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.2
 
@@ -23,7 +27,7 @@ require (
 	cosmossdk.io/x/feegrant v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
-	github.com/CosmWasm/wasmd v0.61.4
+	github.com/CosmWasm/wasmd v0.61.5
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/burnt-labs/abstract-account v0.1.3
 	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
@@ -55,7 +59,7 @@ require (
 	cloud.google.com/go/storage v1.57.1 // indirect
 	cosmossdk.io/client/v2 v2.0.0-beta.9 // indirect
 	cosmossdk.io/collections v1.3.1 // indirect
-	cosmossdk.io/core v0.12.1-0.20240725072823-6a2d039e1212 // indirect
+	cosmossdk.io/core v0.11.3 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/errors v1.0.2 // indirect
 	cosmossdk.io/log v1.6.1 // indirect

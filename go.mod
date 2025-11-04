@@ -3,8 +3,12 @@ module github.com/burnt-labs/xion
 go 1.25.3
 
 replace (
-	cosmossdk.io/collections => github.com/jhernandezb/cosmos-sdk/collections v0.0.0-20250808231741-fb92d24b92fe
+	cosmossdk.io/core => cosmossdk.io/core v0.11.3
+
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+
+	// wasmd fork with genesis exports
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.5-xion.2
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
@@ -43,7 +47,7 @@ require (
 	cosmossdk.io/x/nft v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
-	github.com/CosmWasm/wasmd v0.61.4
+	github.com/CosmWasm/wasmd v0.61.5
 	github.com/CosmWasm/wasmvm/v3 v3.0.2
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/burnt-labs/abstract-account v0.1.3
