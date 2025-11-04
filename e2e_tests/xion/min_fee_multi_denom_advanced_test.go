@@ -71,9 +71,12 @@ func TestXionMinFeeExtremeValues(t *testing.T) {
 	recipient := users[1]
 
 	t.Run("AcceptsHighFeeValue", func(t *testing.T) {
+		// Test with a high but reasonable gas price (10x normal)
+		// Normal: 0.025 uxion/gas, High: 0.25 uxion/gas
+		// With ~100k gas, this results in ~25,000 uxion fee (well within 10B balance)
 		_, err := testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"1000000uxion",
+			"0.25uxion", // 10x normal gas price - high but reasonable
 			"bank", "send", sender.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),

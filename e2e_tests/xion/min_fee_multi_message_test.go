@@ -118,9 +118,10 @@ func TestXionMinFeeMultiMessageMixedTypes(t *testing.T) {
 		t.Log("Simulates multi-message with combined gas > 1M")
 
 		// Even bypass messages need fee if gas > 1M
+		// 1.4M gas * 0.025 uxion/gas = 35,000 uxion minimum fee
 		_, err := testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"35000uxion", // Sufficient fee for high gas
+			"0.03uxion", // Sufficient gas price (results in ~42,000 uxion fee)
 			"bank", "send", sender.FormattedAddress(),
 			recipient1.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -242,9 +243,10 @@ func TestXionMinFeeMultiMessageSameType(t *testing.T) {
 
 		// Single transaction with gas over cap requires fee
 		// This simulates what would happen with multiple messages totaling > 1M
+		// 1.25M gas * 0.025 uxion/gas = 31,250 uxion minimum fee
 		_, err := testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"32000uxion", // Sufficient for high gas
+			"0.03uxion", // Sufficient gas price (results in ~37,500 uxion fee)
 			"bank", "send", sender.FormattedAddress(),
 			recipients[1].FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -337,9 +339,10 @@ func TestXionMinFeeMultiMessageGasAccounting(t *testing.T) {
 		}
 
 		// Second: just over cap (should require fee)
+		// 1M+1 gas * 0.025 uxion/gas = 25,000+ uxion minimum fee
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"26000uxion", // Sufficient for 1M+1
+			"0.03uxion", // Sufficient gas price (results in ~30,000 uxion fee)
 			"bank", "send", sender.FormattedAddress(),
 			recipient2.FormattedAddress(),
 			fmt.Sprintf("%d%s", 50, xion.Config().Denom),
@@ -737,9 +740,10 @@ func TestXionMinFeeBypassMessageTypes(t *testing.T) {
 
 		// Any message not in bypass list requires fee
 		// Test by using high gas to force fee requirement
+		// 1.5M gas * 0.025 uxion/gas = 37,500 uxion minimum fee
 		_, err := testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"30000uxion", // Proper fee
+			"0.03uxion", // Sufficient gas price (results in ~45,000 uxion fee)
 			"bank", "send", sender.FormattedAddress(),
 			recipient2.FormattedAddress(),
 			fmt.Sprintf("%d%s", 50, xion.Config().Denom),

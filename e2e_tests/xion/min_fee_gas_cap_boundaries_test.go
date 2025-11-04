@@ -169,9 +169,10 @@ func TestXionMinFeeGasCapWithFees(t *testing.T) {
 		t.Log("Test: Gas > 1M with insufficient fee should be rejected")
 
 		// Try to bypass with high gas but insufficient fee
+		// With 1.5M gas and 0.000001 uxion/gas price, total fee = 1.5 uxion (way below minimum)
 		_, err := testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"1uxion", // Way below required fee for 1M+ gas
+			"0.000001uxion", // Extremely low gas price - results in insufficient total fee
 			"bank", "send", sender.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -188,10 +189,11 @@ func TestXionMinFeeGasCapWithFees(t *testing.T) {
 		t.Log("Test: Gas > 1M with sufficient fee should succeed")
 
 		// Provide proper fee for high gas transaction
-		// 1.5M gas * 0.025 = 37,500 minimum
+		// 1.5M gas * 0.025 uxion/gas = 37,500 uxion minimum fee
+		// Use 0.03 uxion/gas to be safely above minimum
 		_, err := testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"40000uxion", // Sufficient for 1.5M gas
+			"0.03uxion", // Sufficient gas price (results in ~45,000 uxion fee)
 			"bank", "send", sender.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -305,9 +307,10 @@ func TestXionMinFeeGasCapMultipleMessages(t *testing.T) {
 		t.Log("Test: Single transaction with high gas over cap requires fee")
 
 		// Single transaction but with gas > 1M (simulates what multi-msg would do)
+		// 1.2M gas * 0.025 uxion/gas = 30,000 uxion minimum fee
 		_, err := testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			sender.KeyName(),
-			"30000uxion", // Provide sufficient fee for 1.2M gas
+			"0.03uxion", // Sufficient gas price (results in ~36,000 uxion fee)
 			"bank", "send", sender.FormattedAddress(),
 			recipient1.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),

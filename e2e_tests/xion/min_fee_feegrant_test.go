@@ -187,10 +187,10 @@ func TestXionMinFeeFeeGrantAllowanceTypes(t *testing.T) {
 		require.NoError(t, err)
 		t.Log("✓ BasicAllowance created with 500000uxion spend limit")
 
-		// Step 2: Use the grant with SUFFICIENT fee meeting MinFee
+		// Step 2: Use the grant with normal gas price (0.025uxion)
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			grantee.KeyName(),
-			"30000uxion", // Sufficient fee
+			"0.025uxion", // Normal gas price
 			"bank", "send", grantee.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -204,9 +204,10 @@ func TestXionMinFeeFeeGrantAllowanceTypes(t *testing.T) {
 		t.Log("✓ Grantee successfully used BasicAllowance with minimum fee met")
 
 		// Step 3: Try with INSUFFICIENT fee (below MinFee)
+		// Using extremely low gas price (0.000001uxion) which results in insufficient fees
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			grantee.KeyName(),
-			"1uxion", // Below minimum!
+			"0.000001uxion", // Below minimum!
 			"bank", "send", grantee.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -243,10 +244,10 @@ func TestXionMinFeeFeeGrantAllowanceTypes(t *testing.T) {
 		require.NoError(t, err)
 		t.Log("✓ PeriodicAllowance created")
 
-		// Try using with sufficient fee
+		// Try using with normal gas price
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			grantee.KeyName(),
-			"30000uxion",
+			"0.025uxion",
 			"bank", "send", grantee.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -305,25 +306,26 @@ func TestXionMinFeeFeeGrantExpiration(t *testing.T) {
 	t.Run("SmallSpendLimit_QuicklyDepleted", func(t *testing.T) {
 		t.Log("Test 1: Create grant with small spend limit that gets depleted")
 
-		// Create grant with very small spend limit
+		// Create grant with very small spend limit (10000uxion)
+		// Typical tx with gas price 0.025uxion and ~100k gas uses ~2500uxion
 		_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
 			granter.KeyName(),
 			"feegrant", "grant",
 			granter.FormattedAddress(),
 			grantee.FormattedAddress(),
-			"--spend-limit", "50000uxion", // Small limit
+			"--spend-limit", "10000uxion", // Small limit - allows ~4 txs
 			"--chain-id", xion.Config().ChainID,
 		)
 
 		require.NoError(t, err, "Grant creation should succeed")
 		err = testutil.WaitForBlocks(ctx, 2, xion)
 		require.NoError(t, err)
-		t.Log("✓ Grant created with 50000uxion spend limit")
+		t.Log("✓ Grant created with 10000uxion spend limit")
 
-		// Use grant once with sufficient fee
+		// Use grant once with normal gas price (should use ~2500uxion)
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			grantee.KeyName(),
-			"30000uxion",
+			"0.025uxion", // Normal gas price
 			"bank", "send", grantee.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -334,12 +336,31 @@ func TestXionMinFeeFeeGrantExpiration(t *testing.T) {
 		require.NoError(t, err, "First transaction should succeed")
 		err = testutil.WaitForBlocks(ctx, 2, xion)
 		require.NoError(t, err)
-		t.Log("✓ Used 30000uxion from grant, 20000uxion remaining")
+		t.Log("✓ First transaction used ~2500uxion from grant")
 
-		// Try to use grant again - should fail or deplete
+		// Use grant 3 more times to get close to or exceed limit
+		for i := 0; i < 3; i++ {
+			_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
+				grantee.KeyName(),
+				"0.025uxion",
+				"bank", "send", grantee.FormattedAddress(),
+				recipient.FormattedAddress(),
+				fmt.Sprintf("%d%s", 100, xion.Config().Denom),
+				"--fee-granter", granter.FormattedAddress(),
+				"--chain-id", xion.Config().ChainID,
+			)
+			if err != nil {
+				t.Logf("✓ Transaction %d correctly failed due to depleted allowance: %v", i+2, err)
+				break
+			}
+			err = testutil.WaitForBlocks(ctx, 2, xion)
+			require.NoError(t, err)
+		}
+
+		// Try one more transaction - should definitely fail
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			grantee.KeyName(),
-			"30000uxion", // Would exceed remaining allowance
+			"0.025uxion",
 			"bank", "send", grantee.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -349,7 +370,7 @@ func TestXionMinFeeFeeGrantExpiration(t *testing.T) {
 
 		// Should fail due to insufficient allowance
 		if err != nil {
-			t.Logf("✓ Second transaction correctly failed due to depleted allowance: %v", err)
+			t.Logf("✓ Final transaction correctly failed due to depleted allowance: %v", err)
 		} else {
 			t.Log("⚠️  Transaction succeeded - allowance may have been sufficient or implementation differs")
 		}
@@ -388,7 +409,7 @@ func TestXionMinFeeFeeGrantExpiration(t *testing.T) {
 		// Use it once successfully
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			grantee.KeyName(),
-			"30000uxion",
+			"0.025uxion",
 			"bank", "send", grantee.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
@@ -418,7 +439,7 @@ func TestXionMinFeeFeeGrantExpiration(t *testing.T) {
 		// Try to use revoked grant - should fail
 		_, err = testlib.ExecTxWithGas(t, ctx, xion.GetNode(),
 			grantee.KeyName(),
-			"30000uxion",
+			"0.025uxion",
 			"bank", "send", grantee.FormattedAddress(),
 			recipient.FormattedAddress(),
 			fmt.Sprintf("%d%s", 100, xion.Config().Denom),
