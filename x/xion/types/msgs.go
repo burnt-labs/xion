@@ -3,6 +3,8 @@ package types
 import (
 	"errors"
 
+	"github.com/btcsuite/btcd/btcutil/bech32"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,11 +42,12 @@ func (msg MsgSend) Type() string { return TypeMsgSend }
 
 // ValidateBasic Implements Msg.
 func (msg MsgSend) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.FromAddress); err != nil {
+	// Use bech32.Decode which accepts any valid Bech32 prefix, not just "cosmos"
+	if _, _, err := bech32.Decode(msg.FromAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid from address: %s", err)
 	}
 
-	if _, err := sdk.AccAddressFromBech32(msg.ToAddress); err != nil {
+	if _, _, err := bech32.Decode(msg.ToAddress); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid to address: %s", err)
 	}
 
@@ -147,8 +150,21 @@ func (msg MsgSetPlatformPercentage) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgSetPlatformPercentage) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
-	return []sdk.AccAddress{addr}
+	// Extract the address bytes while preserving the original Bech32 prefix
+	_, addrBytes, err := bech32.Decode(msg.Authority)
+	if err != nil {
+		// Fallback to standard conversion if decode fails
+		addr, _ := sdk.AccAddressFromBech32(msg.Authority)
+		return []sdk.AccAddress{addr}
+	}
+	// Convert from base32 to bytes
+	converted, err := bech32.ConvertBits(addrBytes, 5, 8, false)
+	if err != nil {
+		// Fallback to standard conversion if conversion fails
+		addr, _ := sdk.AccAddressFromBech32(msg.Authority)
+		return []sdk.AccAddress{addr}
+	}
+	return []sdk.AccAddress{converted}
 }
 
 // NewMsgSetPlatformMinimum constructs a message to set platform minimums.
@@ -164,7 +180,8 @@ func (msg MsgSetPlatformMinimum) Type() string { return TypeMsgSetPlatformMinimu
 
 // ValidateBasic Implements Msg.
 func (msg MsgSetPlatformMinimum) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+	// Use bech32.Decode which accepts any valid Bech32 prefix, not just "cosmos"
+	if _, _, err := bech32.Decode(msg.Authority); err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid authority address: %s", err)
 	}
 
@@ -185,6 +202,19 @@ func (msg MsgSetPlatformMinimum) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgSetPlatformMinimum) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
-	return []sdk.AccAddress{addr}
+	// Extract the address bytes while preserving the original Bech32 prefix
+	_, addrBytes, err := bech32.Decode(msg.Authority)
+	if err != nil {
+		// Fallback to standard conversion if decode fails
+		addr, _ := sdk.AccAddressFromBech32(msg.Authority)
+		return []sdk.AccAddress{addr}
+	}
+	// Convert from base32 to bytes
+	converted, err := bech32.ConvertBits(addrBytes, 5, 8, false)
+	if err != nil {
+		// Fallback to standard conversion if conversion fails
+		addr, _ := sdk.AccAddressFromBech32(msg.Authority)
+		return []sdk.AccAddress{addr}
+	}
+	return []sdk.AccAddress{converted}
 }
