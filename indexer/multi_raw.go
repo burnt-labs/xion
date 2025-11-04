@@ -27,7 +27,6 @@ func MultiIterateRaw[ReferenceKey, PrimaryKey, Value any](
 	start, end []byte,
 	order collections.Order,
 ) (collections.Iterator[collections.Pair[ReferenceKey, PrimaryKey], collections.NoValue], error) {
-
 	// Access the private refKeys field via reflection
 	// The Multi struct has: refKeys collections.KeySet[collections.Pair[ReferenceKey, PrimaryKey]]
 	v := reflect.ValueOf(multi).Elem()
