@@ -391,7 +391,18 @@ func TestXionMinFeeFeeGrantExpiration(t *testing.T) {
 	t.Run("RevokeGrant_CannotUseAfterRevocation", func(t *testing.T) {
 		t.Log("Test 3: Revoke grant and verify cannot use afterward")
 
-		// Create a grant
+		// First, revoke any existing grant (from previous test)
+		_, _ = testlib.ExecTx(t, ctx, xion.GetNode(),
+			granter.KeyName(),
+			"feegrant", "revoke",
+			granter.FormattedAddress(),
+			grantee.FormattedAddress(),
+			"--chain-id", xion.Config().ChainID,
+		)
+		// Ignore error if grant doesn't exist
+		_ = testutil.WaitForBlocks(ctx, 2, xion)
+
+		// Create a new grant
 		_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
 			granter.KeyName(),
 			"feegrant", "grant",
