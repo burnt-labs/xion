@@ -161,6 +161,9 @@ func QueryGrantsByGrantee() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
 	return cmd
 }
 
@@ -187,6 +190,9 @@ func QueryGrantsByGranter() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
 	return cmd
 }
 
@@ -213,6 +219,9 @@ func QueryAllowancesByGrantee() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
 	return cmd
 }
 
@@ -239,6 +248,9 @@ func QueryAllowancesByGranter() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
 	return cmd
 }
 
