@@ -270,6 +270,18 @@ func (aq *authzQuerier) GranteeGrants(ctx context.Context, req *indexerauthz.Que
 	}
 	granteeAddr := sdk.AccAddress(grantee)
 
+	// Use MultiIterateRaw for raw byte-range pagination when pagination key is provided
+	// This demonstrates the use case for MultiIterateRaw: custom pagination with byte boundaries
+	useRawIteration := req.Pagination != nil && len(req.Pagination.Key) > 0
+
+	if useRawIteration {
+		slog.Debug("authz_querier", "using_raw_iteration", true, "pagination_key_len", len(req.Pagination.Key))
+		// Use MultiIterateRaw for raw byte-range iteration
+		// This is the primary use case: pagination from a specific byte position
+		return aq.granteeGrantsWithRawIteration(ctx, req, granteeAddr)
+	}
+
+	slog.Debug("authz_querier", "using_standard_iteration", true)
 	// Use the grantee index to efficiently query grants for this grantee
 	// The index stores: Pair[grantee, Triple[granter, grantee, msgType]]
 	// We iterate over the index with a grantee prefix, then fetch from main collection
@@ -397,6 +409,136 @@ func (aq *authzQuerier) GranteeGrants(ctx context.Context, req *indexerauthz.Que
 	}
 
 	slog.Debug("authz_querier", "grants", len(grants))
+	return &indexerauthz.QueryGranteeGrantsResponse{
+		Grants:     grants,
+		Pagination: pageRes,
+	}, nil
+}
+
+// granteeGrantsWithRawIteration uses MultiIterateRaw for raw byte-range pagination
+// This demonstrates the primary use case for MultiIterateRaw: efficient pagination
+// from a specific byte position using raw iteration.
+func (aq *authzQuerier) granteeGrantsWithRawIteration(
+	ctx context.Context,
+	req *indexerauthz.QueryGranteeGrantsRequest,
+	granteeAddr sdk.AccAddress,
+) (*indexerauthz.QueryGranteeGrantsResponse, error) {
+	// Use MultiIterateRaw to start iteration from the pagination key's byte position
+	iter, err := MultiIterateRaw(
+		ctx,
+		aq.authzHandler.Authorizations.Indexes.Grantee,
+		req.Pagination.Key, // Start from this byte position
+		nil,                // No end boundary
+		collections.OrderAscending,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer iter.Close()
+
+	var (
+		grants     []*authz.GrantAuthorization
+		count      uint64
+		nextKey    []byte
+		limit      uint64 = query.DefaultLimit
+		countTotal bool
+		total      uint64
+	)
+
+	if req.Pagination != nil {
+		if req.Pagination.Limit > 0 {
+			limit = req.Pagination.Limit
+		}
+		countTotal = req.Pagination.CountTotal
+	}
+
+	// Collect results up to limit
+	// Note: With MultiIterateRaw, we get a Pair[grantee, Triple[granter, grantee, msgType]]
+	for ; iter.Valid() && count < limit; iter.Next() {
+		key, err := iter.Key()
+		if err != nil {
+			return nil, err
+		}
+
+		// Extract the primary key from the index key
+		// key.K1() is the grantee (reference key)
+		// key.K2() is the Triple[granter, grantee, msgType] (primary key)
+		primaryKey := key.K2()
+
+		// Filter by grantee if not matching (since raw iteration doesn't apply prefix)
+		if !key.K1().Equals(granteeAddr) {
+			continue
+		}
+
+		// Fetch the grant from the main collection
+		grant, err := aq.authzHandler.Authorizations.Get(ctx, primaryKey)
+		if err != nil {
+			return nil, err
+		}
+
+		auth, err := grant.GetAuthorization()
+		if err != nil {
+			return nil, err
+		}
+
+		anyValue, err := codectypes.NewAnyWithValue(auth)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "%v", err)
+		}
+
+		granter, err := aq.addrCodec.BytesToString(primaryKey.K1())
+		if err != nil {
+			return nil, err
+		}
+
+		grants = append(grants, &authz.GrantAuthorization{
+			Granter:       granter,
+			Grantee:       req.Grantee,
+			Authorization: anyValue,
+			Expiration:    grant.Expiration,
+		})
+
+		count++
+		total++
+	}
+
+	// If there are more results, set the next key
+	if iter.Valid() {
+		key, err := iter.Key()
+		if err != nil {
+			return nil, err
+		}
+		keyCodec := aq.authzHandler.Authorizations.Indexes.Grantee.KeyCodec()
+		buf := make([]byte, 128)
+		n, err := keyCodec.EncodeNonTerminal(buf, key)
+		if err != nil {
+			return nil, err
+		}
+		nextKey = buf[:n]
+	}
+
+	// Count remaining if countTotal is requested
+	if countTotal {
+		for ; iter.Valid(); iter.Next() {
+			key, err := iter.Key()
+			if err != nil {
+				return nil, err
+			}
+			// Only count entries for this grantee
+			if key.K1().Equals(granteeAddr) {
+				total++
+			}
+		}
+	}
+
+	pageRes := &query.PageResponse{
+		NextKey: nextKey,
+	}
+	if countTotal {
+		pageRes.Total = total
+	}
+
+	slog.Debug("authz_querier", "grants_via_raw_iteration", len(grants))
 	return &indexerauthz.QueryGranteeGrantsResponse{
 		Grants:     grants,
 		Pagination: pageRes,

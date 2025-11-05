@@ -188,6 +188,15 @@ test-jwk-transaction-hash:
 	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKTransactionHash
 
 # Xion Module Tests
+test-xion-genesis-export-import:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestGenesisExportImport
+
+test-xion-indexer-authz:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionIndexerAuthz
+
+test-xion-indexer-feegrant:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionIndexerFeeGrant
+
 test-xion-min-fee-bypass:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeBypass
 
@@ -370,6 +379,7 @@ test-sim-deterministic: runsim
         test-e2e-jwk-invalid-signature test-e2e-jwk-jwt-aa test-e2e-jwk-key-rotation \
         test-e2e-jwk-malformed-tokens test-e2e-jwk-missing-claims test-e2e-jwk-multiple-audiences \
         test-e2e-jwk-transaction-hash \
+        test-xion-genesis-export-import test-xion-indexer-authz test-xion-indexer-feegrant \
         test-e2e-xion-min-fee-bypass test-e2e-xion-min-fee-default test-e2e-xion-min-fee-multi-denom \
         test-e2e-xion-min-fee-multi-denom-ibc test-e2e-xion-min-fee-zero test-e2e-xion-platform-fee \
         test-e2e-xion-platform-fee-bypass test-e2e-xion-platform-min-codec-bug \
@@ -463,6 +473,9 @@ help-test:
 	@echo "    test-e2e-jwk-transaction-hash           Test replay attack prevention"
 	@echo ""
 	@echo "  Xion Module Individual Tests:"
+	@echo "    test-xion-genesis-export-import         Test genesis export and import cycle"
+	@echo "    test-xion-indexer-authz                 Test authz grant indexing"
+	@echo "    test-xion-indexer-feegrant              Test fee grant indexing"
 	@echo "    test-e2e-xion-min-fee-bypass            Test minimum fee bypass prevention"
 	@echo "    test-e2e-xion-min-fee-default           Test minimum fee default"
 	@echo "    test-e2e-xion-min-fee-multi-denom       Test multi-denom min global fee"
