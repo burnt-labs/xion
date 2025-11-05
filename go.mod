@@ -13,7 +13,7 @@ replace (
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
 
-	// ibc-go fork with wasmvm3 support
+	// ibc-go fork with wasmvm3 suppor3
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0-xion.1
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
