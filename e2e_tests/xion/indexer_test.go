@@ -79,9 +79,10 @@ func TestXionIndexerAuthz(t *testing.T) {
 		t.Log("Step 2: Query grants by granter address (tests granter index)")
 
 		// Query using the indexer command
-		stdout, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-granter",
 			granter.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		require.NoError(t, err, "Query by granter should succeed")
 
@@ -107,9 +108,10 @@ func TestXionIndexerAuthz(t *testing.T) {
 		t.Log("Step 3: Query grants by grantee address (tests grantee Multi index)")
 
 		// Query for grantee1
-		stdout, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee1.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		require.NoError(t, err, "Query by grantee should succeed")
 
@@ -130,9 +132,10 @@ func TestXionIndexerAuthz(t *testing.T) {
 		}
 
 		// Query for grantee2
-		stdout2, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout2, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee2.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		require.NoError(t, err, "Query by grantee2 should succeed")
 
@@ -148,10 +151,11 @@ func TestXionIndexerAuthz(t *testing.T) {
 		t.Log("Step 3b: Test pagination with page key (exercises MultiIterateRaw)")
 
 		// First query to get pagination.next_key
-		stdout1, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout1, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee1.FormattedAddress(),
 			"--limit", "1",
+			"--node", xion.GetRPCAddress(),
 		)
 		if err != nil {
 			t.Logf("Pagination query may not be fully supported: %v", err)
@@ -194,9 +198,10 @@ func TestXionIndexerAuthz(t *testing.T) {
 		require.NoError(t, err)
 
 		// Query again to ensure grant is still there (or removed if it was one-time)
-		stdout, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee1.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		require.NoError(t, err, "Query after grant use should succeed")
 
@@ -222,9 +227,10 @@ func TestXionIndexerAuthz(t *testing.T) {
 		require.NoError(t, err)
 
 		// Query for grantee2 - should have no grants now
-		stdout, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee2.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		require.NoError(t, err, "Query after revoke should succeed")
 
@@ -306,9 +312,10 @@ func TestXionIndexerFeeGrant(t *testing.T) {
 		t.Log("Step 2: Query allowances by grantee (tests grantee ReversePair index)")
 
 		// Note: The command is "query-grants-by-grantee" but it queries fee allowances
-		stdout, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		if err != nil {
 			t.Logf("Query error (may not be implemented yet): %v", err)
@@ -341,9 +348,10 @@ func TestXionIndexerFeeGrant(t *testing.T) {
 	t.Run("QueryAllowancesByGranter", func(t *testing.T) {
 		t.Log("Step 3: Query allowances by granter (tests granter primary key)")
 
-		stdout, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-allowances-by-granter",
 			granter1.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		require.NoError(t, err, "Query allowances by granter should succeed")
 
@@ -382,9 +390,10 @@ func TestXionIndexerFeeGrant(t *testing.T) {
 		require.NoError(t, err)
 
 		// Query grantee's allowances - should now have only 1 (from granter2)
-		stdout, _, err := xion.GetNode().ExecQuery(ctx,
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
 		)
 		require.NoError(t, err, "Query after revoke should succeed")
 
