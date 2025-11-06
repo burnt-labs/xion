@@ -197,7 +197,6 @@ func TestXionIndexerAuthz(t *testing.T) {
 			"--from", granter.FormattedAddress(),
 			"--chain-id", xion.Config().ChainID,
 			"--generate-only",
-			"--output", "json",
 		)
 		require.NoError(t, err, "Generating unsigned transaction should succeed")
 
