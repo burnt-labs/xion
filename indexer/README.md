@@ -97,6 +97,7 @@ go test -v ./app/indexer -run TestMultiIterateRaw
 ```
 
 Tests verify:
+
 - Basic iteration over Multi indexes
 - Ascending and descending order
 - Type compatibility with different key types (string, uint64)

@@ -43,6 +43,7 @@ import (
 
 	"github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/app/params"
+	indexercli "github.com/burnt-labs/xion/indexer/client/cli"
 )
 
 // NewRootCmd creates a new root command for xiond. It is called once in the
@@ -164,6 +165,8 @@ func initRootCmd(rootCmd *cobra.Command,
 		txCommand(basicManager),
 		keys.Commands(),
 	)
+	// add indexer
+	rootCmd.AddCommand(indexercli.Indexer(newApp, app.DefaultNodeHome))
 	// add rosetta
 	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 }

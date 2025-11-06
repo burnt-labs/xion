@@ -4,6 +4,8 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+
+	"github.com/burnt-labs/xion/indexer"
 )
 
 // CustomConfig defines a custom app.toml configuration file
@@ -11,7 +13,8 @@ import (
 // indexer configuration
 type CustomConfig struct {
 	serverconfig.Config
-	Wasm wasmtypes.NodeConfig `mapstructure:"wasm" json:"wasm"`
+	Wasm    wasmtypes.NodeConfig `mapstructure:"wasm" json:"wasm"`
+	Indexer indexer.Config       `mapstructure:"config" json:"config"`
 }
 
 func CustomconfigTemplate(config wasmtypes.NodeConfig) string {
@@ -30,9 +33,12 @@ func DefaultConfig() (string, any) {
 	wasmConfig.SmartQueryGasLimit = 50_000_00        // 50M Gas
 	wasmConfig.MemoryCacheSize = 1024                // 1GB memory caache
 
+	// Default Indexer Params
+	indexerConfig := indexer.DefaultConfig()
 	customConfig := CustomConfig{
-		Config: *serverConfig,
-		Wasm:   wasmConfig,
+		Config:  *serverConfig,
+		Wasm:    wasmConfig,
+		Indexer: indexerConfig,
 	}
 
 	return CustomconfigTemplate(wasmConfig), customConfig

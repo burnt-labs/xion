@@ -6,6 +6,8 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/indexer"
 )
 
 func TestCustomconfigTemplate(t *testing.T) {
@@ -48,6 +50,22 @@ func TestDefaultConfig(t *testing.T) {
 	require.Equal(t, uint64(50_000_00), customConfig.Wasm.SmartQueryGasLimit)
 	require.Equal(t, uint32(1024), customConfig.Wasm.MemoryCacheSize)
 
+	// Verify Indexer config is set
+	require.NotNil(t, customConfig.Indexer)
+	expectedIndexerConfig := indexer.DefaultConfig()
+	require.Equal(t, expectedIndexerConfig.Enabled, customConfig.Indexer.Enabled)
+
 	// Verify template contains wasm configuration
 	require.Contains(t, template, "wasm")
+}
+
+func TestCustomConfig(t *testing.T) {
+	// Test that CustomConfig struct can be created
+	config := CustomConfig{
+		Indexer: indexer.Config{
+			Enabled: true,
+		},
+	}
+
+	require.True(t, config.Indexer.Enabled)
 }

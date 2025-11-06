@@ -87,6 +87,10 @@ jobs:
           - "JWKMissingClaims"
           - "JWKMultipleAudiences"
           - "JWKTransactionHash"
+          # Xion Module Tests - Genesis and Indexer
+          - "GenesisExportImport"
+          - "XionIndexerAuthz"
+          - "XionIndexerFeeGrant"
           # Xion Module Tests - Original
           - "XionMinFeeBypass"
           - "XionMinFeeDefault"

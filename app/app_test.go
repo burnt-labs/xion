@@ -453,3 +453,23 @@ func TestInitAccountWithCoins(t *testing.T) {
 	balance2 := gapp.BankKeeper.GetAllBalances(ctx, testAddr2)
 	require.Equal(t, multiCoins, balance2)
 }
+
+func TestIndexerService(t *testing.T) {
+	db := dbm.NewMemDB()
+	gapp := NewWasmAppWithCustomOptions(t, false, SetupOptions{
+		Logger:  log.NewLogger(os.Stdout),
+		DB:      db,
+		AppOpts: simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
+	})
+
+	// Test that IndexerService returns a valid service
+	indexerService := gapp.IndexerService()
+	require.NotNil(t, indexerService, "IndexerService should not be nil")
+
+	// Test that we can access the handlers from the service
+	authzHandler := indexerService.AuthzHandler()
+	require.NotNil(t, authzHandler, "AuthzHandler should not be nil")
+
+	feeGrantHandler := indexerService.FeeGrantHandler()
+	require.NotNil(t, feeGrantHandler, "FeeGrantHandler should not be nil")
+}

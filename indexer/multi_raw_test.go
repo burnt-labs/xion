@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 
-	"github.com/burnt-labs/xion/app/indexer"
+	"github.com/burnt-labs/xion/indexer"
 )
 
 // deps creates test dependencies compatible with cosmos-sdk v0.53.4 (core v0.11.3)
