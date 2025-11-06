@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -198,7 +199,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 		_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
 			grantee1.KeyName(),
 			"authz", "exec",
-			msgFile,
+			path.Join(xion.GetNode().HomeDir(), msgFile),
 			"--chain-id", xion.Config().ChainID,
 		)
 		require.NoError(t, err, "Executing grant should succeed")
