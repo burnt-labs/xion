@@ -186,13 +186,19 @@ func TestXionIndexerAuthz(t *testing.T) {
 		t.Log("Step 4: Use a grant and verify it's still indexed")
 
 		// Grantee1 executes a transaction using the grant
+		// Note: authz exec requires the message to be in a file
 		sendMsg := fmt.Sprintf(`{"@type":"/cosmos.bank.v1beta1.MsgSend","from_address":"%s","to_address":"%s","amount":[{"denom":"uxion","amount":"100"}]}`,
 			granter.FormattedAddress(), recipient.FormattedAddress())
 
-		_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
+		// Create a temporary file with the message
+		msgFile := "/tmp/authz_msg.json"
+		_, _, err := xion.GetNode().ExecBin(ctx, "sh", "-c", fmt.Sprintf("echo '%s' > %s", sendMsg, msgFile))
+		require.NoError(t, err, "Creating message file should succeed")
+
+		_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
 			grantee1.KeyName(),
 			"authz", "exec",
-			sendMsg,
+			msgFile,
 			"--chain-id", xion.Config().ChainID,
 		)
 		require.NoError(t, err, "Executing grant should succeed")
