@@ -3,7 +3,6 @@ package e2e_xion
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"path"
 	"testing"
 
@@ -187,15 +186,26 @@ func TestXionIndexerAuthz(t *testing.T) {
 		t.Log("Step 4: Use a grant and verify it's still indexed")
 
 		// Grantee1 executes a transaction using the grant
-		// Note: authz exec requires the message to be in a file
-		sendMsg := fmt.Sprintf(`{"@type":"/cosmos.bank.v1beta1.MsgSend","from_address":"%s","to_address":"%s","amount":[{"denom":"uxion","amount":"100"}]}`,
-			granter.FormattedAddress(), recipient.FormattedAddress())
-
-		// Create a file with the message using WriteFile
+		// Note: authz exec requires an unsigned transaction file generated from granter's perspective
+		// First, generate the unsigned transaction using --generate-only
 		msgFile := "authz_msg.json"
-		err := xion.GetNode().WriteFile(ctx, []byte(sendMsg), msgFile)
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
+			"tx", "bank", "send",
+			granter.FormattedAddress(),
+			recipient.FormattedAddress(),
+			"100uxion",
+			"--from", granter.FormattedAddress(),
+			"--chain-id", xion.Config().ChainID,
+			"--generate-only",
+			"--output", "json",
+		)
+		require.NoError(t, err, "Generating unsigned transaction should succeed")
+
+		// Write the unsigned transaction to a file
+		err = xion.GetNode().WriteFile(ctx, stdout, msgFile)
 		require.NoError(t, err, "Creating message file should succeed")
 
+		// Now grantee1 executes the transaction using authz exec
 		_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
 			grantee1.KeyName(),
 			"authz", "exec",
@@ -209,7 +219,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 		require.NoError(t, err)
 
 		// Query again to ensure grant is still there (or removed if it was one-time)
-		stdout, _, err := xion.GetNode().ExecBin(ctx,
+		stdout, _, err = xion.GetNode().ExecBin(ctx,
 			"indexer", "query-grants-by-grantee",
 			grantee1.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
