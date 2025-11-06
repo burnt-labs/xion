@@ -83,6 +83,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 			"indexer", "query-grants-by-granter",
 			granter.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		require.NoError(t, err, "Query by granter should succeed")
 
@@ -112,6 +113,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 			"indexer", "query-grants-by-grantee",
 			grantee1.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		require.NoError(t, err, "Query by grantee should succeed")
 
@@ -136,6 +138,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 			"indexer", "query-grants-by-grantee",
 			grantee2.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		require.NoError(t, err, "Query by grantee2 should succeed")
 
@@ -156,6 +159,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 			grantee1.FormattedAddress(),
 			"--limit", "1",
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		if err != nil {
 			t.Logf("Pagination query may not be fully supported: %v", err)
@@ -202,6 +206,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 			"indexer", "query-grants-by-grantee",
 			grantee1.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		require.NoError(t, err, "Query after grant use should succeed")
 
@@ -231,6 +236,7 @@ func TestXionIndexerAuthz(t *testing.T) {
 			"indexer", "query-grants-by-grantee",
 			grantee2.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		require.NoError(t, err, "Query after revoke should succeed")
 
@@ -316,6 +322,7 @@ func TestXionIndexerFeeGrant(t *testing.T) {
 			"indexer", "query-grants-by-grantee",
 			grantee.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		if err != nil {
 			t.Logf("Query error (may not be implemented yet): %v", err)
@@ -352,6 +359,7 @@ func TestXionIndexerFeeGrant(t *testing.T) {
 			"indexer", "query-allowances-by-granter",
 			granter1.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		require.NoError(t, err, "Query allowances by granter should succeed")
 
@@ -394,6 +402,7 @@ func TestXionIndexerFeeGrant(t *testing.T) {
 			"indexer", "query-grants-by-grantee",
 			grantee.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
+			"--output", "json",
 		)
 		require.NoError(t, err, "Query after revoke should succeed")
 
