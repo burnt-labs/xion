@@ -190,9 +190,9 @@ func TestXionIndexerAuthz(t *testing.T) {
 		sendMsg := fmt.Sprintf(`{"@type":"/cosmos.bank.v1beta1.MsgSend","from_address":"%s","to_address":"%s","amount":[{"denom":"uxion","amount":"100"}]}`,
 			granter.FormattedAddress(), recipient.FormattedAddress())
 
-		// Create a temporary file with the message
-		msgFile := "/tmp/authz_msg.json"
-		_, _, err := xion.GetNode().ExecBin(ctx, "sh", "-c", fmt.Sprintf("echo '%s' > %s", sendMsg, msgFile))
+		// Create a file with the message using WriteFile
+		msgFile := "authz_msg.json"
+		err := xion.GetNode().WriteFile(ctx, []byte(sendMsg), msgFile)
 		require.NoError(t, err, "Creating message file should succeed")
 
 		_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
