@@ -15,7 +15,3 @@ inputs:
       - "**/regen-network/protobuf/**"
       - "**/poa/genesis.proto"
       - "**/tokenfactory/v1beta1/**"
-<<<<<<< HEAD
-=======
-      - "**/abstractaccount/**"
->>>>>>> 113b8da5 (fix GHSA-hrhf-2vcr-ghch)
