@@ -168,17 +168,20 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 	emailHashPInput := req.PublicInputs[32]
 	if emailHash.String() != emailHashPInput {
+		fmt.Printf("[dkim]: email hash does not match public input, got: %s, expected: %s\n", emailHashPInput, emailHash.String())
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s", emailHashPInput, emailHash.String())
 	}
 
 	// Validate timestamp from public_inputs[11]
 	if len(req.PublicInputs) < 12 {
+		fmt.Printf("[dkim]: insufficient public inputs, need at least 12 elements, %v\n", req.PublicInputs)
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 12 elements")
 	}
 
 	timestampStr := req.PublicInputs[11]
 	timestampBig, ok := new(big.Int).SetString(timestampStr, 10)
 	if !ok {
+		fmt.Printf("[dkim]: failed to parse timestamp form public Input", timestampStr)
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse timestamp from public input")
 	}
 
