@@ -370,12 +370,33 @@ func TestHasContractInfo(t *testing.T) {
 		contractKey := wasmtypes.GetContractAddressKey(contractAddr)
 
 		mockStore := new(MockKVStore)
-		// Legacy format data with field 7 as ibc2_port_id
+		// Create a complete legacy v0.61.2 format with swapped fields 7 and 8
 		var legacyData []byte
+
+		// Field 1: code_id
 		legacyData = protowire.AppendTag(legacyData, 1, protowire.VarintType)
 		legacyData = protowire.AppendVarint(legacyData, 42)
+
+		// Field 2: creator
+		legacyData = protowire.AppendTag(legacyData, 2, protowire.BytesType)
+		legacyData = protowire.AppendBytes(legacyData, []byte("creator1"))
+
+		// Field 3: admin
+		legacyData = protowire.AppendTag(legacyData, 3, protowire.BytesType)
+		legacyData = protowire.AppendBytes(legacyData, []byte(""))
+
+		// Field 4: label
+		legacyData = protowire.AppendTag(legacyData, 4, protowire.BytesType)
+		legacyData = protowire.AppendBytes(legacyData, []byte("test-contract"))
+
+		// Field 7: ibc2_port_id in legacy position (should be field 8 in new format)
 		legacyData = protowire.AppendTag(legacyData, 7, protowire.BytesType)
 		legacyData = protowire.AppendBytes(legacyData, []byte("wasm.contract123"))
+
+		// Field 8: extension in legacy position (should be field 7 in new format)
+		legacyData = protowire.AppendTag(legacyData, 8, protowire.BytesType)
+		legacyData = protowire.AppendBytes(legacyData, []byte{})
+
 		mockStore.On("Get", contractKey).Return(legacyData, nil)
 
 		mockStoreService := &MockKVStoreService{
