@@ -9,7 +9,6 @@ import (
 	"path"
 	"strings"
 	"testing"
-	"time"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
@@ -217,8 +216,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
 	require.NoError(t, err)
 	fmt.Println(txDetails)
-	fmt.Println("sleeping")
-	time.Sleep(10 * time.Minute)
 
 	// Query the contract to verify the zk-email authenticator was created
 	queryMsg := QueryContractRequest{

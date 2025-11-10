@@ -272,12 +272,6 @@ func TestAuthenticate(t *testing.T) {
 
 	// Common email hash
 	emailHashStr := "8106355043968901587346579634598098765933160394002251948170420219958523220425"
-	emailHash, ok := new(big.Int).SetString(emailHashStr, 10)
-	require.True(ok)
-	emailHashBz := emailHash.FillBytes(make([]byte, 32))
-	for i, j := 0, len(emailHashBz)-1; i < j; i, j = i+1, j-1 {
-		emailHashBz[i], emailHashBz[j] = emailHashBz[j], emailHashBz[i]
-	}
 
 	// Common tx bytes
 	txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
@@ -347,7 +341,7 @@ func TestAuthenticate(t *testing.T) {
 
 			res, err := f.queryServer.Authenticate(f.ctx, &types.QueryAuthenticateRequest{
 				TxBytes:      []byte(txBytes),
-				EmailHash:    emailHashBz,
+				EmailHash:    emailHashStr,
 				Proof:        proofJSON,
 				PublicInputs: publicInputs,
 			})

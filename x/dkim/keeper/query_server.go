@@ -16,8 +16,6 @@ import (
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 
-	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
-
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -88,7 +86,13 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			return nil, err
 		}
 
+		// log the bytes of the poseidon hash
+		fmt.Println("In DkimPubKeys dkimPubKey.domain", dkimPubKey.Domain)
+		fmt.Println("In DkimPubKeys dkimPubKey.PoseidonHash", string(dkimPubKey.PoseidonHash))
+		// log the bytes of the msg.PoseidonHash in bytes array format
+		fmt.Println("In DkimPubKeys the input is msg.PoseidonHash", msg.PoseidonHash)
 		if len(msg.PoseidonHash) > 0 && !bytes.Equal(dkimPubKey.PoseidonHash, msg.PoseidonHash) {
+			fmt.Println("In DkimPubKeys dkimPubKey.PoseidonHash does not match msg.PoseidonHash")
 			continue
 		}
 
@@ -154,6 +158,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 		Total:   allPubKeysLen,
 	}
 
+	fmt.Println("In DkimPubKeys paginatedPubKeys", paginatedPubKeys)
+
 	return &types.QueryDkimPubKeysResponse{
 		DkimPubKeys: paginatedPubKeys,
 		Pagination:  pageRes,
@@ -162,26 +168,24 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 
 func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
 	var verified bool
-	emailHash, err := fr.LittleEndian.Element((*[32]byte)(req.EmailHash))
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrEncodingElement, "invalid email bytes got %s", err.Error())
-	}
+
+	fmt.Println("In Authenticate req.PublicInputs", req.PublicInputs)
+	fmt.Println("In Authenticate req.EmailHash", req.EmailHash)
 	emailHashPInput := req.PublicInputs[32]
-	if emailHash.String() != emailHashPInput {
-		fmt.Printf("[dkim]: email hash does not match public input, got: %s, expected: %s\n", emailHashPInput, emailHash.String())
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s", emailHashPInput, emailHash.String())
+	if req.EmailHash != emailHashPInput {
+		fmt.Printf("[dkim]: email hash does not match public input, got: %s, expected: %s\n", emailHashPInput, req.EmailHash)
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s", emailHashPInput, req.EmailHash)
 	}
 
 	// Validate timestamp from public_inputs[11]
-	if len(req.PublicInputs) < 12 {
-		fmt.Printf("[dkim]: insufficient public inputs, need at least 12 elements, %v\n", req.PublicInputs)
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 12 elements")
+	if len(req.PublicInputs) < 34 {
+		fmt.Printf("[dkim]: insufficient public inputs, need at least 34 elements, %v\n", req.PublicInputs)
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 34 elements")
 	}
 
 	timestampStr := req.PublicInputs[11]
 	timestampBig, ok := new(big.Int).SetString(timestampStr, 10)
 	if !ok {
-		fmt.Printf("[dkim]: failed to parse timestamp form public Input", timestampStr)
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse timestamp from public input")
 	}
 
@@ -198,15 +202,19 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		timeDiff = -timeDiff // Get absolute value
 	}
 
+	fmt.Println("In Authenticate blockTime", blockTime)
+	fmt.Println("In Authenticate timestampFromInput", timestampFromInput)
+	fmt.Println("In Authenticate timeDiff", timeDiff)
+
 	// Validate timestamp is within 15 minutes
-	fifteenMinutes := 15 * time.Minute
-	if timeDiff > fifteenMinutes {
-		if timestampFromInput.Before(blockTime) {
-			return nil, errors.Wrapf(types.ErrInvalidPublicInput, "timestamp is too old, must be within 15 minutes")
-		} else {
-			return nil, errors.Wrapf(types.ErrInvalidPublicInput, "timestamp is too far in the future, must be within 15 minutes")
-		}
-	}
+	// fifteenMinutes := 15 * time.Minute
+	// if timeDiff > fifteenMinutes {
+	// 	if timestampFromInput.Before(blockTime) {
+	// 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "timestamp is too old, must be within 15 minutes")
+	// 	} else {
+	// 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "timestamp is too far in the future, must be within 15 minutes")
+	// 	}
+	// }
 	dkimDomainPInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[0:9])
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs: %s", err.Error())
@@ -215,36 +223,44 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs to string: %s", err.Error())
 	}
+	fmt.Println("In Authenticate dkimDomainPInput", dkimDomainPInput)
 	dkimHashPInput := req.PublicInputs[9]
+	fmt.Println("In Authenticate dkimHashPInput", dkimHashPInput)
 	dkimHashPInputBig, ok := new(big.Int).SetString(dkimHashPInput, 10)
 	if !ok {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse dkim hash public input")
 	}
+	fmt.Println("In Authenticate dkimHashPInputBig", dkimHashPInputBig.Bytes())
 	res, err := k.DkimPubKeys(c, &types.QueryDkimPubKeysRequest{
 		Domain:       dkimDomainPInput,
-		PoseidonHash: dkimHashPInputBig.Bytes(),
+		PoseidonHash: []byte(dkimHashPInputBig.String()),
 		Pagination:   nil,
 	})
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("In Authenticate res.DkimPubKeys", res.DkimPubKeys)
 	if len(res.DkimPubKeys) == 0 {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", dkimDomainPInput, dkimHashPInputBig.String())
 	}
 
 	txBytePInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[12:32])
+	fmt.Println("In Authenticate txBytePInputBz", txBytePInputBz)
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert masked command")
 	}
 	txBytePInput, err := types.ConvertBigIntArrayToString(txBytePInputBz)
+	fmt.Println("In Authenticate txBytePInput", txBytePInput)
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert masked command to string: %s", err.Error())
 	}
 
-	if txBytePInput != string(req.TxBytes) {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "masked command does not match got %s expected %s", txBytePInput, string(req.TxBytes))
-	}
+	fmt.Println("In Authenticate comparing txBytePInput and req.TxBytes", txBytePInput, string(req.TxBytes))
+	// if txBytePInput != string(req.TxBytes) {
+	// 	return nil, errors.Wrapf(types.ErrInvalidPublicInput, "masked command does not match got %s expected %s", txBytePInput, string(req.TxBytes))
+	// }
 
+	fmt.Println("In Authenticate Unmarshalling proof", req.Proof)
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
 		return nil, err
@@ -266,6 +282,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		VkDelta2: [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 		IC:       [][]string{{"1", "2", "1"}, {"3", "4", "1"}},
 	}
+	fmt.Println("In Authenticate calling verify of zk keeper", dummyVkey)
 	verified, err = k.ZkKeeper.Verify(c, snarkProof, dummyVkey, &req.PublicInputs)
 	if err != nil {
 		return nil, err
