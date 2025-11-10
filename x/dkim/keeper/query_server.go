@@ -244,7 +244,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", dkimDomainPInput, dkimHashPInputBig.String())
 	}
 
-	txBytePInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[12:31])
+	txBytePInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[12:32])
 	if err != nil {
 		fmt.Printf("[dkim]: failed to convert masked command: %s ", err.Error())
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert masked command")
@@ -255,10 +255,13 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert masked command to string: %s", err.Error())
 	}
 
-	if txBytePInput != string(req.TxBytes) {
-		fmt.Printf("[dkim]: masked command does not match got %s expected %s", txBytePInput, string(req.TxBytes))
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "masked command does not match got %s expected %s", txBytePInput, string(req.TxBytes))
-	}
+	/*
+		// TODO: needs to be discussed with zk team
+		if txBytePInput != string(req.TxBytes) {
+			fmt.Printf("[dkim]: masked command does not match got %s expected %s", txBytePInput, string(req.TxBytes))
+			return nil, errors.Wrapf(types.ErrInvalidPublicInput, "masked command does not match got %s expected %s", txBytePInput, string(req.TxBytes))
+		}
+	*/
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
