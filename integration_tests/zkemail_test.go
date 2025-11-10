@@ -15,7 +15,6 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
-	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -84,9 +83,9 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	// dkimDomain := "gmail.com"
 	// dkimSelector := "20230601"
-	dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
-	gPubKeyHash, err := dkimTypes.ComputePoseidonHash(dkimPubkey)
-	require.NoError(t, err)
+	// dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
+	// gPubKeyHash, err := dkimTypes.ComputePoseidonHash(dkimPubkey)
+	// require.NoError(t, err)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -299,20 +298,11 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		t.Fatalf("failed to read vkey.json file: %v", err)
 	}
 
-	type Signature struct {
-		Proof    map[string]any `json:"proof"`
-		DkimHash string         `json:"dkim_hash"`
-	}
-
 	var proof map[string]any
 	err = json.Unmarshal(proofBz, &proof)
 	require.NoError(t, err)
 
-	sig := &Signature{
-		Proof:    proof,
-		DkimHash: base64.StdEncoding.EncodeToString(ToLittleEndian(gPubKeyHash.Bytes())),
-	}
-	sigBz, err := json.Marshal(sig)
+	sigBz, err := json.Marshal(signature)
 	require.NoError(t, err)
 
 	// prepend auth index to signature
