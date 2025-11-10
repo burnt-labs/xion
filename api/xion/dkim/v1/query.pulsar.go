@@ -2269,8 +2269,8 @@ func (x *fastReflection_QueryAuthenticateRequest) Range(f func(protoreflect.Fiel
 			return
 		}
 	}
-	if len(x.EmailHash) != 0 {
-		value := protoreflect.ValueOfBytes(x.EmailHash)
+	if x.EmailHash != "" {
+		value := protoreflect.ValueOfString(x.EmailHash)
 		if !f(fd_QueryAuthenticateRequest_email_hash, value) {
 			return
 		}
@@ -2305,7 +2305,7 @@ func (x *fastReflection_QueryAuthenticateRequest) Has(fd protoreflect.FieldDescr
 	case "xion.dkim.v1.QueryAuthenticateRequest.tx_bytes":
 		return len(x.TxBytes) != 0
 	case "xion.dkim.v1.QueryAuthenticateRequest.email_hash":
-		return len(x.EmailHash) != 0
+		return x.EmailHash != ""
 	case "xion.dkim.v1.QueryAuthenticateRequest.proof":
 		return len(x.Proof) != 0
 	case "xion.dkim.v1.QueryAuthenticateRequest.public_inputs":
@@ -2329,7 +2329,7 @@ func (x *fastReflection_QueryAuthenticateRequest) Clear(fd protoreflect.FieldDes
 	case "xion.dkim.v1.QueryAuthenticateRequest.tx_bytes":
 		x.TxBytes = nil
 	case "xion.dkim.v1.QueryAuthenticateRequest.email_hash":
-		x.EmailHash = nil
+		x.EmailHash = ""
 	case "xion.dkim.v1.QueryAuthenticateRequest.proof":
 		x.Proof = nil
 	case "xion.dkim.v1.QueryAuthenticateRequest.public_inputs":
@@ -2355,7 +2355,7 @@ func (x *fastReflection_QueryAuthenticateRequest) Get(descriptor protoreflect.Fi
 		return protoreflect.ValueOfBytes(value)
 	case "xion.dkim.v1.QueryAuthenticateRequest.email_hash":
 		value := x.EmailHash
-		return protoreflect.ValueOfBytes(value)
+		return protoreflect.ValueOfString(value)
 	case "xion.dkim.v1.QueryAuthenticateRequest.proof":
 		value := x.Proof
 		return protoreflect.ValueOfBytes(value)
@@ -2388,7 +2388,7 @@ func (x *fastReflection_QueryAuthenticateRequest) Set(fd protoreflect.FieldDescr
 	case "xion.dkim.v1.QueryAuthenticateRequest.tx_bytes":
 		x.TxBytes = value.Bytes()
 	case "xion.dkim.v1.QueryAuthenticateRequest.email_hash":
-		x.EmailHash = value.Bytes()
+		x.EmailHash = value.Interface().(string)
 	case "xion.dkim.v1.QueryAuthenticateRequest.proof":
 		x.Proof = value.Bytes()
 	case "xion.dkim.v1.QueryAuthenticateRequest.public_inputs":
@@ -2443,7 +2443,7 @@ func (x *fastReflection_QueryAuthenticateRequest) NewField(fd protoreflect.Field
 	case "xion.dkim.v1.QueryAuthenticateRequest.tx_bytes":
 		return protoreflect.ValueOfBytes(nil)
 	case "xion.dkim.v1.QueryAuthenticateRequest.email_hash":
-		return protoreflect.ValueOfBytes(nil)
+		return protoreflect.ValueOfString("")
 	case "xion.dkim.v1.QueryAuthenticateRequest.proof":
 		return protoreflect.ValueOfBytes(nil)
 	case "xion.dkim.v1.QueryAuthenticateRequest.public_inputs":
@@ -2682,7 +2682,7 @@ func (x *fastReflection_QueryAuthenticateRequest) ProtoMethods() *protoiface.Met
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EmailHash", wireType)
 				}
-				var byteLen int
+				var stringLen uint64
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -2692,25 +2692,23 @@ func (x *fastReflection_QueryAuthenticateRequest) ProtoMethods() *protoiface.Met
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					byteLen |= int(b&0x7F) << shift
+					stringLen |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if byteLen < 0 {
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + byteLen
+				postIndex := iNdEx + intStringLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.EmailHash = append(x.EmailHash[:0], dAtA[iNdEx:postIndex]...)
-				if x.EmailHash == nil {
-					x.EmailHash = []byte{}
-				}
+				x.EmailHash = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			case 3:
 				if wireType != 2 {
@@ -4230,7 +4228,7 @@ type QueryAuthenticateRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	TxBytes      []byte   `protobuf:"bytes,1,opt,name=tx_bytes,json=txBytes,proto3" json:"tx_bytes,omitempty"`
-	EmailHash    []byte   `protobuf:"bytes,2,opt,name=email_hash,json=emailHash,proto3" json:"email_hash,omitempty"`
+	EmailHash    string   `protobuf:"bytes,2,opt,name=email_hash,json=emailHash,proto3" json:"email_hash,omitempty"`
 	Proof        []byte   `protobuf:"bytes,3,opt,name=proof,proto3" json:"proof,omitempty"`
 	PublicInputs []string `protobuf:"bytes,4,rep,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
 }
@@ -4262,11 +4260,11 @@ func (x *QueryAuthenticateRequest) GetTxBytes() []byte {
 	return nil
 }
 
-func (x *QueryAuthenticateRequest) GetEmailHash() []byte {
+func (x *QueryAuthenticateRequest) GetEmailHash() string {
 	if x != nil {
 		return x.EmailHash
 	}
-	return nil
+	return ""
 }
 
 func (x *QueryAuthenticateRequest) GetProof() []byte {
@@ -4434,7 +4432,7 @@ var file_xion_dkim_v1_query_proto_rawDesc = []byte{
 	0x63, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x19, 0x0a, 0x08, 0x74,
 	0x78, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x07, 0x74,
 	0x78, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x1d, 0x0a, 0x0a, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f,
-	0x68, 0x61, 0x73, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x09, 0x65, 0x6d, 0x61, 0x69,
+	0x68, 0x61, 0x73, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x65, 0x6d, 0x61, 0x69,
 	0x6c, 0x48, 0x61, 0x73, 0x68, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x12, 0x23, 0x0a, 0x0d, 0x70,
 	0x75, 0x62, 0x6c, 0x69, 0x63, 0x5f, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x73, 0x18, 0x04, 0x20, 0x03,

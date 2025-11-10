@@ -76,7 +76,7 @@ message QueryDkimPubKeysResponse {
 
 message QueryAuthenticateRequest {
   bytes tx_bytes = 1;
-  bytes email_hash = 2;
+  string email_hash = 2;
   bytes proof = 3;
   repeated string public_inputs = 4;
 }

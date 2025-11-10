@@ -11,6 +11,7 @@ func DefaultParams() Params {
 	dkimSelector := "20230601"
 	dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
 	gPubKeyHash, err := ComputePoseidonHash(dkimPubkey)
+	// NOTE: this is probably wrong way to store that byte
 	if err != nil {
 		panic(err)
 	}
@@ -21,7 +22,7 @@ func DefaultParams() Params {
 			Domain:       dkimDomain,
 			Selector:     dkimSelector,
 			PubKey:       dkimPubkey,
-			PoseidonHash: []byte(gPubKeyHash.String()),
+			PoseidonHash: gPubKeyHash.Bytes(), // []byte(gPubKeyHash)
 		}},
 	}
 }

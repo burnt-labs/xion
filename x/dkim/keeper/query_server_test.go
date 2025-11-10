@@ -347,7 +347,7 @@ func TestAuthenticate(t *testing.T) {
 
 			res, err := f.queryServer.Authenticate(f.ctx, &types.QueryAuthenticateRequest{
 				TxBytes:      []byte(txBytes),
-				EmailHash:    emailHashBz,
+				EmailHash:    emailHashStr,
 				Proof:        proofJSON,
 				PublicInputs: publicInputs,
 			})
