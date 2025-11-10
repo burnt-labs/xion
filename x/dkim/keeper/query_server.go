@@ -273,21 +273,19 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	// 	return nil, err
 	// }
 
-	// TODO:send vkey identifier to zk module to verify the proof for now send a dummy vkey to zk module (replace with p.VkeyIdentifier)
-	dummyVkey := &parser.CircomVerificationKey{
-		Protocol: "groth16",
-		Curve:    "bn128",
-		NPublic:  1,
-		VkAlpha1: []string{"1", "2", "1"},
-		VkBeta2:  [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
-		VkGamma2: [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
-		VkDelta2: [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
-		IC:       [][]string{{"1", "2", "1"}, {"3", "4", "1"}},
-	}
-	verified, err = k.ZkKeeper.Verify(c, snarkProof, dummyVkey, &req.PublicInputs)
+	params, err := k.Keeper.Params.Get(c)
 	if err != nil {
 		return nil, err
 	}
+	vkey, err := k.ZkKeeper.GetCircomVKeyByID(c, params.VkeyIdentifier)
+	if err != nil {
+		return nil, err
+	}
+	verified, err = k.ZkKeeper.Verify(c, snarkProof, vkey, &req.PublicInputs)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("[dkim] success!!!")
 	return &types.AuthenticateResponse{Verified: verified}, nil
 }
 

@@ -578,8 +578,8 @@ func (x *fastReflection_Params) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.VkeyIdentifier != "" {
-		value := protoreflect.ValueOfString(x.VkeyIdentifier)
+	if x.VkeyIdentifier != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.VkeyIdentifier)
 		if !f(fd_Params_vkey_identifier, value) {
 			return
 		}
@@ -606,7 +606,7 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "xion.dkim.v1.Params.vkey_identifier":
-		return x.VkeyIdentifier != ""
+		return x.VkeyIdentifier != uint64(0)
 	case "xion.dkim.v1.Params.dkim_pubkeys":
 		return len(x.DkimPubkeys) != 0
 	default:
@@ -626,7 +626,7 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "xion.dkim.v1.Params.vkey_identifier":
-		x.VkeyIdentifier = ""
+		x.VkeyIdentifier = uint64(0)
 	case "xion.dkim.v1.Params.dkim_pubkeys":
 		x.DkimPubkeys = nil
 	default:
@@ -647,7 +647,7 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 	switch descriptor.FullName() {
 	case "xion.dkim.v1.Params.vkey_identifier":
 		value := x.VkeyIdentifier
-		return protoreflect.ValueOfString(value)
+		return protoreflect.ValueOfUint64(value)
 	case "xion.dkim.v1.Params.dkim_pubkeys":
 		if len(x.DkimPubkeys) == 0 {
 			return protoreflect.ValueOfList(&_Params_2_list{})
@@ -675,7 +675,7 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "xion.dkim.v1.Params.vkey_identifier":
-		x.VkeyIdentifier = value.Interface().(string)
+		x.VkeyIdentifier = value.Uint()
 	case "xion.dkim.v1.Params.dkim_pubkeys":
 		lv := value.List()
 		clv := lv.(*_Params_2_list)
@@ -722,7 +722,7 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "xion.dkim.v1.Params.vkey_identifier":
-		return protoreflect.ValueOfString("")
+		return protoreflect.ValueOfUint64(uint64(0))
 	case "xion.dkim.v1.Params.dkim_pubkeys":
 		list := []*DkimPubKey{}
 		return protoreflect.ValueOfList(&_Params_2_list{list: &list})
@@ -795,9 +795,8 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		l = len(x.VkeyIdentifier)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
+		if x.VkeyIdentifier != 0 {
+			n += 1 + runtime.Sov(uint64(x.VkeyIdentifier))
 		}
 		if len(x.DkimPubkeys) > 0 {
 			for _, e := range x.DkimPubkeys {
@@ -850,12 +849,10 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 				dAtA[i] = 0x12
 			}
 		}
-		if len(x.VkeyIdentifier) > 0 {
-			i -= len(x.VkeyIdentifier)
-			copy(dAtA[i:], x.VkeyIdentifier)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.VkeyIdentifier)))
+		if x.VkeyIdentifier != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.VkeyIdentifier))
 			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x8
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -907,10 +904,10 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			}
 			switch fieldNum {
 			case 1:
-				if wireType != 2 {
+				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field VkeyIdentifier", wireType)
 				}
-				var stringLen uint64
+				x.VkeyIdentifier = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -920,24 +917,11 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					x.VkeyIdentifier |= uint64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.VkeyIdentifier = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
 			case 2:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DkimPubkeys", wireType)
@@ -1064,7 +1048,7 @@ type Params struct {
 	unknownFields protoimpl.UnknownFields
 
 	// vkey defines the verification key used by the module.
-	VkeyIdentifier string        `protobuf:"bytes,1,opt,name=vkey_identifier,json=vkeyIdentifier,proto3" json:"vkey_identifier,omitempty"`
+	VkeyIdentifier uint64        `protobuf:"varint,1,opt,name=vkey_identifier,json=vkeyIdentifier,proto3" json:"vkey_identifier,omitempty"`
 	DkimPubkeys    []*DkimPubKey `protobuf:"bytes,2,rep,name=dkim_pubkeys,json=dkimPubkeys,proto3" json:"dkim_pubkeys,omitempty"`
 }
 
@@ -1088,11 +1072,11 @@ func (*Params) Descriptor() ([]byte, []int) {
 	return file_xion_dkim_v1_genesis_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Params) GetVkeyIdentifier() string {
+func (x *Params) GetVkeyIdentifier() uint64 {
 	if x != nil {
 		return x.VkeyIdentifier
 	}
-	return ""
+	return 0
 }
 
 func (x *Params) GetDkimPubkeys() []*DkimPubKey {
@@ -1118,7 +1102,7 @@ var file_xion_dkim_v1_genesis_proto_rawDesc = []byte{
 	0x61, 0x6d, 0x73, 0x42, 0x04, 0xc8, 0xde, 0x1f, 0x00, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d,
 	0x73, 0x22, 0x8e, 0x01, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x27, 0x0a, 0x0f,
 	0x76, 0x6b, 0x65, 0x79, 0x5f, 0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x69, 0x65, 0x72, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x76, 0x6b, 0x65, 0x79, 0x49, 0x64, 0x65, 0x6e, 0x74,
+	0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0e, 0x76, 0x6b, 0x65, 0x79, 0x49, 0x64, 0x65, 0x6e, 0x74,
 	0x69, 0x66, 0x69, 0x65, 0x72, 0x12, 0x41, 0x0a, 0x0c, 0x64, 0x6b, 0x69, 0x6d, 0x5f, 0x70, 0x75,
 	0x62, 0x6b, 0x65, 0x79, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x78, 0x69,
 	0x6f, 0x6e, 0x2e, 0x64, 0x6b, 0x69, 0x6d, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x6b, 0x69, 0x6d, 0x50,

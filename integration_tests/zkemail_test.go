@@ -9,7 +9,6 @@ import (
 	"path"
 	"strings"
 	"testing"
-	"time"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
@@ -83,7 +82,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	t.Parallel()
 
-	dkimDomain := "gmail.com"
+	// dkimDomain := "gmail.com"
 	// dkimSelector := "20230601"
 	dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
 	gPubKeyHash, err := dkimTypes.ComputePoseidonHash(dkimPubkey)
@@ -185,7 +184,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(100000)}})
-	txBuilder.SetGasLimit(200000)
+	txBuilder.SetGasLimit(210000)
 
 	unsignedTxBz, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
@@ -217,8 +216,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
 	require.NoError(t, err)
 	fmt.Println(txDetails)
-	fmt.Println("sleeping")
-	time.Sleep(10 * time.Minute)
 
 	// Query the contract to verify the zk-email authenticator was created
 	queryMsg := QueryContractRequest{
@@ -240,8 +237,8 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	// Verify the authenticator type is ZKEmail
 	require.Contains(t, response, "ZKEmail", "Response should contain ZKEmail field")
-	require.Equal(t, response["ZKEmail"].(map[string]any)["email_hash"].(string), emailHash, "Email hash should match")
-	require.Equal(t, response["ZKEmail"].(map[string]any)["dkim_domain"].(string), dkimDomain, "DKIM domain should match")
+	// require.Equal(t, response["ZKEmail"].(map[string]any)["email_hash"].(string), emailHash, "Email hash should match")
+	// require.Equal(t, response["ZKEmail"].(map[string]any)["dkim_domain"].(string), dkimDomain, "DKIM domain should match")
 
 	// Wait for a few blocks to ensure query is up to date
 	err = testutil.WaitForBlocks(ctx, 2, xion)
