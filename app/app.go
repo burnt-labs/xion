@@ -150,6 +150,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/burnt-labs/xion/app/keepers"
 	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	"github.com/burnt-labs/xion/x/globalfee"
@@ -704,7 +705,7 @@ func NewWasmApp(
 
 	wasmOpts = append(wasmOpts, wasmkeeper.WithWasmEngine(wasmVM))
 
-	app.WasmKeeper = wasmkeeper.NewKeeper(
+	baseWasmKeeper := wasmkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
 		app.AccountKeeper,
@@ -724,6 +725,17 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		wasmOpts...,
 	)
+
+	// Wrap with XionWasmKeeper for:
+	// 1. Backward compatibility (v0.61.2 -> v0.61.6 protobuf format changes)
+	// 2. Xion-specific customizations and extensions
+	xionKeeper := keepers.NewXionWasmKeeper(
+		baseWasmKeeper,
+		appCodec,
+		runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
+		app.Logger(),
+	)
+	app.WasmKeeper = xionKeeper.Keeper
 
 	// Create fee enabled wasm ibc Stack
 	// var wasmStackIBCHandler porttypes.IBCModule
