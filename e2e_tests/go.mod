@@ -10,7 +10,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// wasmd fork with genesis exports
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.6-xion.2
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.6-xion.3
 	github.com/burnt-labs/xion => ../
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
