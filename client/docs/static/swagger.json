@@ -3,7 +3,7 @@
   "info": {
     "title": "XION - gRPC Gateway docs",
     "description": "A REST interface for state queries",
-    "version": "v21.0.1"
+    "version": "v22.0.0"
   },
   "paths": {
     "/cosmos/auth/v1beta1/account_info/{address}": {
@@ -96,7 +96,7 @@
       "get": {
         "summary": "Accounts returns all the existing accounts.",
         "description": "When called from another module, this query might consume a high amount of\ngas if the pagination field is incorrectly set.",
-        "operationId": "Accounts",
+        "operationId": "AuthAccounts",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -216,7 +216,7 @@
     "/cosmos/auth/v1beta1/accounts/{address}": {
       "get": {
         "summary": "Account returns account details based on address.",
-        "operationId": "Account",
+        "operationId": "AuthAccount",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -16976,6 +16976,90 @@
         ]
       }
     },
+    "/cosmwasm/wasm/v1/build_address": {
+      "get": {
+        "summary": "BuildAddress builds a contract address",
+        "operationId": "BuildAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "title": "Address is the contract address"
+                }
+              },
+              "description": "QueryBuildAddressResponse is the response type for the Query/BuildAddress RPC\nmethod."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string",
+                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                      }
+                    },
+                    "additionalProperties": {},
+                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "codeHash",
+            "description": "CodeHash is the hash of the code",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "creatorAddress",
+            "description": "CreatorAddress is the address of the contract instantiator",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "salt",
+            "description": "Salt is a hex encoded salt",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "initArgs",
+            "description": "InitArgs are optional json encoded init args to be used in contract address\nbuilding if provided",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          }
+        ],
+        "tags": [
+          "CosmWasm"
+        ]
+      }
+    },
     "/cosmwasm/wasm/v1/code": {
       "get": {
         "summary": "Codes gets the metadata for all stored wasm codes",
@@ -17648,90 +17732,6 @@
         ]
       }
     },
-    "/cosmwasm/wasm/v1/contract/build_address": {
-      "get": {
-        "summary": "BuildAddress builds a contract address",
-        "operationId": "BuildAddress",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "string",
-                  "title": "Address is the contract address"
-                }
-              },
-              "description": "QueryBuildAddressResponse is the response type for the Query/BuildAddress RPC\nmethod."
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "code": {
-                  "type": "integer",
-                  "format": "int32"
-                },
-                "message": {
-                  "type": "string"
-                },
-                "details": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "@type": {
-                        "type": "string",
-                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
-                      }
-                    },
-                    "additionalProperties": {},
-                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "codeHash",
-            "description": "CodeHash is the hash of the code",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "creatorAddress",
-            "description": "CreatorAddress is the address of the contract instantiator",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "salt",
-            "description": "Salt is a hex encoded salt",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "initArgs",
-            "description": "InitArgs are optional json encoded init args to be used in contract address\nbuilding if provided",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "byte"
-          }
-        ],
-        "tags": [
-          "CosmWasm"
-        ]
-      }
-    },
     "/cosmwasm/wasm/v1/contract/{address}": {
       "get": {
         "summary": "ContractInfo gets the contract meta data",
@@ -17785,9 +17785,6 @@
                     "ibcPortId": {
                       "type": "string"
                     },
-                    "ibc2PortId": {
-                      "type": "string"
-                    },
                     "extension": {
                       "description": "Extension is an extension point to store custom metadata within the\npersistence model.",
                       "type": "object",
@@ -17798,6 +17795,9 @@
                         }
                       },
                       "additionalProperties": {}
+                    },
+                    "ibc2PortId": {
+                      "type": "string"
                     }
                   },
                   "title": "ContractInfo stores a WASM contract instance"
@@ -22667,6 +22667,7 @@
     },
     "/xion/globalfee/v1/params": {
       "get": {
+        "summary": "Params queries the parameters of the module",
         "operationId": "GlobalFeeParams",
         "responses": {
           "200": {
@@ -22675,6 +22676,7 @@
               "type": "object",
               "properties": {
                 "params": {
+                  "title": "The global fee parameters",
                   "type": "object",
                   "properties": {
                     "minimumGasPrices": {
@@ -22747,6 +22749,7 @@
     },
     "/xion/jwk/audience": {
       "get": {
+        "summary": "AudienceAll queries all audiences",
         "operationId": "AudienceAll",
         "responses": {
           "200": {
@@ -22760,18 +22763,24 @@
                     "type": "object",
                     "properties": {
                       "aud": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The audience identifier"
                       },
                       "key": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The public key associated with this audience"
                       },
                       "admin": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The admin address for this audience"
                       }
-                    }
-                  }
+                    },
+                    "title": "Audience represents a JWT audience configuration"
+                  },
+                  "title": "List of all audiences"
                 },
                 "pagination": {
+                  "title": "Pagination response",
                   "type": "object",
                   "properties": {
                     "nextKey": {
@@ -22787,7 +22796,8 @@
                   },
                   "description": "PageResponse is to be embedded in gRPC response messages where the\ncorresponding request message has used PageRequest.\n\n message SomeResponse {\n         repeated Bar results = 1;\n         PageResponse page = 2;\n }"
                 }
-              }
+              },
+              "title": "QueryAudienceAllResponse is the response type for querying all audiences"
             }
           },
           "default": {
@@ -22874,20 +22884,25 @@
               "type": "object",
               "properties": {
                 "audience": {
+                  "title": "The audience information",
                   "type": "object",
                   "properties": {
                     "aud": {
-                      "type": "string"
+                      "type": "string",
+                      "title": "The audience identifier"
                     },
                     "key": {
-                      "type": "string"
+                      "type": "string",
+                      "title": "The public key associated with this audience"
                     },
                     "admin": {
-                      "type": "string"
+                      "type": "string",
+                      "title": "The admin address for this audience"
                     }
                   }
                 }
-              }
+              },
+              "title": "QueryAudienceResponse is the response type for querying an audience"
             }
           },
           "default": {
@@ -22921,6 +22936,7 @@
         "parameters": [
           {
             "name": "aud",
+            "description": "The audience identifier to query",
             "in": "path",
             "required": true,
             "type": "string"
@@ -22933,6 +22949,7 @@
     },
     "/xion/jwk/audience_claim/{hash}": {
       "get": {
+        "summary": "AudienceClaim queries an audience claim by hash",
         "operationId": "AudienceClaim",
         "responses": {
           "200": {
@@ -22941,14 +22958,17 @@
               "type": "object",
               "properties": {
                 "claim": {
+                  "title": "The audience claim",
                   "type": "object",
                   "properties": {
                     "signer": {
-                      "type": "string"
+                      "type": "string",
+                      "title": "The signer of the audience claim"
                     }
                   }
                 }
-              }
+              },
+              "title": "QueryAudienceClaimResponse is the response type for querying an audience\nclaim"
             }
           },
           "default": {
@@ -22982,6 +23002,7 @@
         "parameters": [
           {
             "name": "hash",
+            "description": "The hash of the audience claim to query",
             "in": "path",
             "required": true,
             "type": "string",
@@ -23010,12 +23031,12 @@
                     "timeOffset": {
                       "type": "string",
                       "format": "uint64",
-                      "title": "in nanoseconds"
+                      "title": "Time offset in nanoseconds for JWT validation"
                     },
                     "deploymentGas": {
                       "type": "string",
                       "format": "uint64",
-                      "title": "gas to deploy a new project/audience"
+                      "title": "Gas required to deploy a new project/audience"
                     }
                   }
                 }
@@ -23072,15 +23093,20 @@
                     "type": "object",
                     "properties": {
                       "key": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The claim key"
                       },
                       "value": {
-                        "type": "string"
+                        "type": "string",
+                        "title": "The claim value"
                       }
-                    }
-                  }
+                    },
+                    "title": "PrivateClaim represents a private claim in a JWT"
+                  },
+                  "title": "The private claims from the JWT"
                 }
-              }
+              },
+              "title": "QueryValidateJWTResponse is the response type for validating a JWT"
             }
           },
           "default": {
@@ -23114,18 +23140,21 @@
         "parameters": [
           {
             "name": "aud",
+            "description": "The audience identifier",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "sub",
+            "description": "The subject",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "sigBytes",
+            "description": "The signature bytes",
             "in": "path",
             "required": true,
             "type": "string"
@@ -23315,6 +23344,1165 @@
         },
         "tags": [
           "XionMint"
+        ]
+      }
+    },
+    "/cosmos/circuit/v1/accounts": {
+      "get": {
+        "summary": "Account returns account permissions.",
+        "operationId": "Accounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accounts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "address": {
+                        "type": "string"
+                      },
+                      "permissions": {
+                        "type": "object",
+                        "properties": {
+                          "level": {
+                            "description": "level is the level of permissions granted to this account.",
+                            "type": "string",
+                            "enum": [
+                              "LEVEL_NONE_UNSPECIFIED",
+                              "LEVEL_SOME_MSGS",
+                              "LEVEL_ALL_MSGS",
+                              "LEVEL_SUPER_ADMIN"
+                            ],
+                            "default": "LEVEL_NONE_UNSPECIFIED"
+                          },
+                          "limitTypeUrls": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+                          }
+                        },
+                        "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+                      }
+                    },
+                    "title": "GenesisAccountPermissions is the account permissions for the circuit breaker in genesis"
+                  }
+                },
+                "pagination": {
+                  "description": "pagination defines the pagination in the response.",
+                  "type": "object",
+                  "properties": {
+                    "nextKey": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+                    },
+                    "total": {
+                      "type": "string",
+                      "format": "uint64",
+                      "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+                    }
+                  }
+                }
+              },
+              "description": "AccountsResponse is the response type for the Query/Accounts RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.key",
+            "description": "key is a value returned in PageResponse.next_key to begin\nquerying the next page most efficiently. Only one of offset or key\nshould be set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "pagination.offset",
+            "description": "offset is a numeric offset that can be used when key is unavailable.\nIt is less efficient than using key. Only one of offset or key should\nbe set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.limit",
+            "description": "limit is the total number of results to be returned in the result page.\nIf left empty it will default to a value to be set by each app.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.countTotal",
+            "description": "count_total is set to true  to indicate that the result set should include\na count of the total number of items available for pagination in UIs.\ncount_total is only respected when offset is used. It is ignored when key\nis set.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pagination.reverse",
+            "description": "reverse is set to true if results are to be returned in the descending order.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "Circuit"
+        ]
+      }
+    },
+    "/cosmos/circuit/v1/accounts/{address}": {
+      "get": {
+        "summary": "Account returns account permissions.",
+        "operationId": "Account",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "permission": {
+                  "type": "object",
+                  "properties": {
+                    "level": {
+                      "description": "level is the level of permissions granted to this account.",
+                      "type": "string",
+                      "enum": [
+                        "LEVEL_NONE_UNSPECIFIED",
+                        "LEVEL_SOME_MSGS",
+                        "LEVEL_ALL_MSGS",
+                        "LEVEL_SUPER_ADMIN"
+                      ],
+                      "default": "LEVEL_NONE_UNSPECIFIED"
+                    },
+                    "limitTypeUrls": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+                    }
+                  },
+                  "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+                }
+              },
+              "description": "AccountResponse is the response type for the Query/Account RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Circuit"
+        ]
+      }
+    },
+    "/cosmos/circuit/v1/disable_list": {
+      "get": {
+        "summary": "DisabledList returns a list of disabled message urls",
+        "operationId": "DisabledList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "disabledList": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "description": "DisabledListResponse is the response type for the Query/DisabledList RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Circuit"
+        ]
+      }
+    },
+    "/abstractaccount/v1/params": {
+      "get": {
+        "summary": "Params queries the module's parameters.",
+        "operationId": "AbstractAccountParams",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "params": {
+                  "type": "object",
+                  "properties": {
+                    "allowAllCodeIds": {
+                      "type": "boolean",
+                      "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+                    },
+                    "allowedCodeIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uint64"
+                      },
+                      "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+                    },
+                    "maxGasBefore": {
+                      "type": "string",
+                      "format": "uint64",
+                      "description": "MaxGasBefore is the maximum amount of gas that can be consumed by the\ncontract call in the before_tx decorator.\n\nMust be greater than zero."
+                    },
+                    "maxGasAfter": {
+                      "type": "string",
+                      "format": "uint64",
+                      "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+                    }
+                  },
+                  "description": "Params defines the parameters for the abstractaccount module."
+                }
+              },
+              "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "AbstractAccount"
+        ]
+      }
+    },
+    "/xion/indexer/authz/v1/grants": {
+      "get": {
+        "summary": "Returns list of `Authorization`, granted to the grantee by the granter.",
+        "operationId": "XionGrants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "grants": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "authorization": {
+                        "type": "object",
+                        "properties": {
+                          "@type": {
+                            "type": "string",
+                            "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                          }
+                        },
+                        "additionalProperties": {},
+                        "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                      },
+                      "expiration": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "time when the grant will expire and will be pruned. If null, then the grant\ndoesn't have a time expiration (other conditions  in `authorization`\nmay apply to invalidate the grant)"
+                      }
+                    },
+                    "description": "Grant gives permissions to execute\nthe provide method with expiration time."
+                  },
+                  "description": "authorizations is a list of grants granted for grantee by granter."
+                },
+                "pagination": {
+                  "description": "pagination defines pagination for the response.",
+                  "type": "object",
+                  "properties": {
+                    "nextKey": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+                    },
+                    "total": {
+                      "type": "string",
+                      "format": "uint64",
+                      "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+                    }
+                  }
+                }
+              },
+              "description": "QueryGrantsResponse is the response type for the Query/Authorizations RPC\nmethod."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string",
+                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                      }
+                    },
+                    "additionalProperties": {},
+                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "granter",
+            "description": "granter is the address of the user granting an authorization",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "grantee",
+            "description": "grantee is the address of the user receiving an authorization",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "msgTypeUrl",
+            "description": "Optional, msg_type_url, when set, will query only grants matching given msg\ntype.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.key",
+            "description": "key is a value returned in PageResponse.next_key to begin\nquerying the next page most efficiently. Only one of offset or key\nshould be set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "pagination.offset",
+            "description": "offset is a numeric offset that can be used when key is unavailable.\nIt is less efficient than using key. Only one of offset or key should\nbe set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.limit",
+            "description": "limit is the total number of results to be returned in the result page.\nIf left empty it will default to a value to be set by each app.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.countTotal",
+            "description": "count_total is set to true  to indicate that the result set should include\na count of the total number of items available for pagination in UIs.\ncount_total is only respected when offset is used. It is ignored when key\nis set.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pagination.reverse",
+            "description": "reverse is set to true if results are to be returned in the descending order.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "XionIndexerAuthz"
+        ]
+      }
+    },
+    "/xion/indexer/authz/v1/grants/grantee/{grantee}": {
+      "get": {
+        "summary": "GranteeGrants returns a list of `GrantAuthorization` by grantee.",
+        "description": "Since: cosmos-sdk 0.46",
+        "operationId": "XionGranteeGrants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "grants": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "granter": {
+                        "type": "string"
+                      },
+                      "grantee": {
+                        "type": "string"
+                      },
+                      "authorization": {
+                        "type": "object",
+                        "properties": {
+                          "@type": {
+                            "type": "string",
+                            "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                          }
+                        },
+                        "additionalProperties": {},
+                        "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                      },
+                      "expiration": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "title": "GrantAuthorization extends a grant with both the addresses of the grantee and granter.\nIt is used in genesis.proto and query.proto"
+                  },
+                  "description": "grants is a list of grants granted to the grantee."
+                },
+                "pagination": {
+                  "description": "pagination defines pagination for the response.",
+                  "type": "object",
+                  "properties": {
+                    "nextKey": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+                    },
+                    "total": {
+                      "type": "string",
+                      "format": "uint64",
+                      "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+                    }
+                  }
+                }
+              },
+              "description": "QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants\nRPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string",
+                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                      }
+                    },
+                    "additionalProperties": {},
+                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "grantee",
+            "description": "grantee is the address of the user receiving an authorization",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pagination.key",
+            "description": "key is a value returned in PageResponse.next_key to begin\nquerying the next page most efficiently. Only one of offset or key\nshould be set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "pagination.offset",
+            "description": "offset is a numeric offset that can be used when key is unavailable.\nIt is less efficient than using key. Only one of offset or key should\nbe set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.limit",
+            "description": "limit is the total number of results to be returned in the result page.\nIf left empty it will default to a value to be set by each app.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.countTotal",
+            "description": "count_total is set to true  to indicate that the result set should include\na count of the total number of items available for pagination in UIs.\ncount_total is only respected when offset is used. It is ignored when key\nis set.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pagination.reverse",
+            "description": "reverse is set to true if results are to be returned in the descending order.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "XionIndexerAuthz"
+        ]
+      }
+    },
+    "/xion/indexer/authz/v1/grants/granter/{granter}": {
+      "get": {
+        "summary": "GranterGrants returns list of `GrantAuthorization`, granted by granter.",
+        "description": "Since: cosmos-sdk 0.46",
+        "operationId": "XionGranterGrants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "grants": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "granter": {
+                        "type": "string"
+                      },
+                      "grantee": {
+                        "type": "string"
+                      },
+                      "authorization": {
+                        "type": "object",
+                        "properties": {
+                          "@type": {
+                            "type": "string",
+                            "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                          }
+                        },
+                        "additionalProperties": {},
+                        "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                      },
+                      "expiration": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "title": "GrantAuthorization extends a grant with both the addresses of the grantee and granter.\nIt is used in genesis.proto and query.proto"
+                  },
+                  "description": "grants is a list of grants granted by the granter."
+                },
+                "pagination": {
+                  "description": "pagination defines pagination for the response.",
+                  "type": "object",
+                  "properties": {
+                    "nextKey": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+                    },
+                    "total": {
+                      "type": "string",
+                      "format": "uint64",
+                      "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+                    }
+                  }
+                }
+              },
+              "description": "QueryGranterGrantsResponse is the response type for the Query/GranterGrants\nRPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string",
+                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                      }
+                    },
+                    "additionalProperties": {},
+                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "granter",
+            "description": "granter is the address of the user granting an authorization",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pagination.key",
+            "description": "key is a value returned in PageResponse.next_key to begin\nquerying the next page most efficiently. Only one of offset or key\nshould be set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "pagination.offset",
+            "description": "offset is a numeric offset that can be used when key is unavailable.\nIt is less efficient than using key. Only one of offset or key should\nbe set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.limit",
+            "description": "limit is the total number of results to be returned in the result page.\nIf left empty it will default to a value to be set by each app.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.countTotal",
+            "description": "count_total is set to true  to indicate that the result set should include\na count of the total number of items available for pagination in UIs.\ncount_total is only respected when offset is used. It is ignored when key\nis set.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pagination.reverse",
+            "description": "reverse is set to true if results are to be returned in the descending order.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "XionIndexerAuthz"
+        ]
+      }
+    },
+    "/xion/indexer/feegrant/v1/allowance/{granter}/{grantee}": {
+      "get": {
+        "summary": "Allowance returns granted allowance to the grantee by the granter.",
+        "operationId": "XionAllowance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "allowance": {
+                  "description": "allowance is a allowance granted for grantee by granter.",
+                  "type": "object",
+                  "properties": {
+                    "granter": {
+                      "type": "string",
+                      "description": "granter is the address of the user granting an allowance of their funds."
+                    },
+                    "grantee": {
+                      "type": "string",
+                      "description": "grantee is the address of the user being granted an allowance of another user's funds."
+                    },
+                    "allowance": {
+                      "description": "allowance can be any of basic, periodic, allowed fee allowance.",
+                      "type": "object",
+                      "properties": {
+                        "@type": {
+                          "type": "string",
+                          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                        }
+                      },
+                      "additionalProperties": {}
+                    }
+                  },
+                  "title": "Grant is stored in the KVStore to record a grant with full context"
+                }
+              },
+              "description": "QueryAllowanceResponse is the response type for the Query/Allowance RPC\nmethod."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string",
+                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                      }
+                    },
+                    "additionalProperties": {},
+                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "granter",
+            "description": "granter is the address of the user granting an allowance of their funds.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "grantee",
+            "description": "grantee is the address of the user being granted an allowance of another\nuser's funds.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "XionIndexerFeegrant"
+        ]
+      }
+    },
+    "/xion/indexer/feegrant/v1/allowances/{grantee}": {
+      "get": {
+        "summary": "Allowances returns all the grants for the given grantee address.",
+        "operationId": "XionAllowances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "allowances": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "granter": {
+                        "type": "string",
+                        "description": "granter is the address of the user granting an allowance of their funds."
+                      },
+                      "grantee": {
+                        "type": "string",
+                        "description": "grantee is the address of the user being granted an allowance of another user's funds."
+                      },
+                      "allowance": {
+                        "description": "allowance can be any of basic, periodic, allowed fee allowance.",
+                        "type": "object",
+                        "properties": {
+                          "@type": {
+                            "type": "string",
+                            "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                          }
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "title": "Grant is stored in the KVStore to record a grant with full context"
+                  },
+                  "description": "allowances are allowances granted for grantee by granter."
+                },
+                "pagination": {
+                  "description": "pagination defines pagination for the response.",
+                  "type": "object",
+                  "properties": {
+                    "nextKey": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+                    },
+                    "total": {
+                      "type": "string",
+                      "format": "uint64",
+                      "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+                    }
+                  }
+                }
+              },
+              "description": "QueryAllowancesResponse is the response type for the Query/Allowances RPC\nmethod."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string",
+                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                      }
+                    },
+                    "additionalProperties": {},
+                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "grantee",
+            "description": "grantee is the address of the user being granted fee allowances",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pagination.key",
+            "description": "key is a value returned in PageResponse.next_key to begin\nquerying the next page most efficiently. Only one of offset or key\nshould be set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "pagination.offset",
+            "description": "offset is a numeric offset that can be used when key is unavailable.\nIt is less efficient than using key. Only one of offset or key should\nbe set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.limit",
+            "description": "limit is the total number of results to be returned in the result page.\nIf left empty it will default to a value to be set by each app.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.countTotal",
+            "description": "count_total is set to true  to indicate that the result set should include\na count of the total number of items available for pagination in UIs.\ncount_total is only respected when offset is used. It is ignored when key\nis set.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pagination.reverse",
+            "description": "reverse is set to true if results are to be returned in the descending order.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "XionIndexerFeegrant"
+        ]
+      }
+    },
+    "/xion/indexer/feegrant/v1/issued/{granter}": {
+      "get": {
+        "summary": "AllowancesByGranter returns all the grants given by an address",
+        "operationId": "XionAllowancesByGranter",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "allowances": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "granter": {
+                        "type": "string",
+                        "description": "granter is the address of the user granting an allowance of their funds."
+                      },
+                      "grantee": {
+                        "type": "string",
+                        "description": "grantee is the address of the user being granted an allowance of another user's funds."
+                      },
+                      "allowance": {
+                        "description": "allowance can be any of basic, periodic, allowed fee allowance.",
+                        "type": "object",
+                        "properties": {
+                          "@type": {
+                            "type": "string",
+                            "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                          }
+                        },
+                        "additionalProperties": {}
+                      }
+                    },
+                    "title": "Grant is stored in the KVStore to record a grant with full context"
+                  },
+                  "description": "allowances that have been issued by the granter."
+                },
+                "pagination": {
+                  "description": "pagination defines pagination for the response.",
+                  "type": "object",
+                  "properties": {
+                    "nextKey": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+                    },
+                    "total": {
+                      "type": "string",
+                      "format": "uint64",
+                      "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+                    }
+                  }
+                }
+              },
+              "description": "QueryAllowancesByGranterResponse is the response type for the\nQuery/AllowancesByGranter RPC method."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string",
+                        "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                      }
+                    },
+                    "additionalProperties": {},
+                    "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "granter",
+            "description": "granter is the address of the user granting fee allowances",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pagination.key",
+            "description": "key is a value returned in PageResponse.next_key to begin\nquerying the next page most efficiently. Only one of offset or key\nshould be set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          },
+          {
+            "name": "pagination.offset",
+            "description": "offset is a numeric offset that can be used when key is unavailable.\nIt is less efficient than using key. Only one of offset or key should\nbe set.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.limit",
+            "description": "limit is the total number of results to be returned in the result page.\nIf left empty it will default to a value to be set by each app.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "pagination.countTotal",
+            "description": "count_total is set to true  to indicate that the result set should include\na count of the total number of items available for pagination in UIs.\ncount_total is only respected when offset is used. It is ignored when key\nis set.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pagination.reverse",
+            "description": "reverse is set to true if results are to be returned in the descending order.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "XionIndexerFeegrant"
         ]
       }
     }
@@ -41258,9 +42446,6 @@
         "ibcPortId": {
           "type": "string"
         },
-        "ibc2PortId": {
-          "type": "string"
-        },
         "extension": {
           "description": "Extension is an extension point to store custom metadata within the\npersistence model.",
           "type": "object",
@@ -41271,6 +42456,9 @@
             }
           },
           "additionalProperties": {}
+        },
+        "ibc2PortId": {
+          "type": "string"
         }
       },
       "title": "ContractInfo stores a WASM contract instance"
@@ -41658,9 +42846,6 @@
             "ibcPortId": {
               "type": "string"
             },
-            "ibc2PortId": {
-              "type": "string"
-            },
             "extension": {
               "description": "Extension is an extension point to store custom metadata within the\npersistence model.",
               "type": "object",
@@ -41671,6 +42856,9 @@
                 }
               },
               "additionalProperties": {}
+            },
+            "ibc2PortId": {
+              "type": "string"
             }
           },
           "title": "ContractInfo stores a WASM contract instance"
@@ -44152,6 +45340,7 @@
       "type": "object",
       "properties": {
         "params": {
+          "title": "The global fee parameters",
           "type": "object",
           "properties": {
             "minimumGasPrices": {
@@ -44192,23 +45381,29 @@
       "type": "object",
       "properties": {
         "aud": {
-          "type": "string"
+          "type": "string",
+          "title": "The audience identifier"
         },
         "key": {
-          "type": "string"
+          "type": "string",
+          "title": "The public key associated with this audience"
         },
         "admin": {
-          "type": "string"
+          "type": "string",
+          "title": "The admin address for this audience"
         }
-      }
+      },
+      "title": "Audience represents a JWT audience configuration"
     },
     "xion.jwk.v1.AudienceClaim": {
       "type": "object",
       "properties": {
         "signer": {
-          "type": "string"
+          "type": "string",
+          "title": "The signer of the audience claim"
         }
-      }
+      },
+      "title": "AudienceClaim represents a claim for an audience"
     },
     "xion.jwk.v1.Params": {
       "type": "object",
@@ -44216,12 +45411,12 @@
         "timeOffset": {
           "type": "string",
           "format": "uint64",
-          "title": "in nanoseconds"
+          "title": "Time offset in nanoseconds for JWT validation"
         },
         "deploymentGas": {
           "type": "string",
           "format": "uint64",
-          "title": "gas to deploy a new project/audience"
+          "title": "Gas required to deploy a new project/audience"
         }
       },
       "description": "Params defines the parameters for the module."
@@ -44230,14 +45425,17 @@
       "type": "object",
       "properties": {
         "key": {
-          "type": "string"
+          "type": "string",
+          "title": "The claim key"
         },
         "value": {
-          "type": "string"
+          "type": "string",
+          "title": "The claim value"
         }
-      }
+      },
+      "title": "PrivateClaim represents a private claim in a JWT"
     },
-    "xion.jwk.v1.QueryAllAudienceResponse": {
+    "xion.jwk.v1.QueryAudienceAllResponse": {
       "type": "object",
       "properties": {
         "audience": {
@@ -44246,18 +45444,24 @@
             "type": "object",
             "properties": {
               "aud": {
-                "type": "string"
+                "type": "string",
+                "title": "The audience identifier"
               },
               "key": {
-                "type": "string"
+                "type": "string",
+                "title": "The public key associated with this audience"
               },
               "admin": {
-                "type": "string"
+                "type": "string",
+                "title": "The admin address for this audience"
               }
-            }
-          }
+            },
+            "title": "Audience represents a JWT audience configuration"
+          },
+          "title": "List of all audiences"
         },
         "pagination": {
+          "title": "Pagination response",
           "type": "object",
           "properties": {
             "nextKey": {
@@ -44273,39 +45477,48 @@
           },
           "description": "PageResponse is to be embedded in gRPC response messages where the\ncorresponding request message has used PageRequest.\n\n message SomeResponse {\n         repeated Bar results = 1;\n         PageResponse page = 2;\n }"
         }
-      }
+      },
+      "title": "QueryAudienceAllResponse is the response type for querying all audiences"
     },
-    "xion.jwk.v1.QueryGetAudienceClaimResponse": {
+    "xion.jwk.v1.QueryAudienceClaimResponse": {
       "type": "object",
       "properties": {
         "claim": {
+          "title": "The audience claim",
           "type": "object",
           "properties": {
             "signer": {
-              "type": "string"
+              "type": "string",
+              "title": "The signer of the audience claim"
             }
           }
         }
-      }
+      },
+      "title": "QueryAudienceClaimResponse is the response type for querying an audience\nclaim"
     },
-    "xion.jwk.v1.QueryGetAudienceResponse": {
+    "xion.jwk.v1.QueryAudienceResponse": {
       "type": "object",
       "properties": {
         "audience": {
+          "title": "The audience information",
           "type": "object",
           "properties": {
             "aud": {
-              "type": "string"
+              "type": "string",
+              "title": "The audience identifier"
             },
             "key": {
-              "type": "string"
+              "type": "string",
+              "title": "The public key associated with this audience"
             },
             "admin": {
-              "type": "string"
+              "type": "string",
+              "title": "The admin address for this audience"
             }
           }
         }
-      }
+      },
+      "title": "QueryAudienceResponse is the response type for querying an audience"
     },
     "xion.jwk.v1.QueryParamsResponse": {
       "type": "object",
@@ -44317,12 +45530,12 @@
             "timeOffset": {
               "type": "string",
               "format": "uint64",
-              "title": "in nanoseconds"
+              "title": "Time offset in nanoseconds for JWT validation"
             },
             "deploymentGas": {
               "type": "string",
               "format": "uint64",
-              "title": "gas to deploy a new project/audience"
+              "title": "Gas required to deploy a new project/audience"
             }
           }
         }
@@ -44338,15 +45551,20 @@
             "type": "object",
             "properties": {
               "key": {
-                "type": "string"
+                "type": "string",
+                "title": "The claim key"
               },
               "value": {
-                "type": "string"
+                "type": "string",
+                "title": "The claim value"
               }
-            }
-          }
+            },
+            "title": "PrivateClaim represents a private claim in a JWT"
+          },
+          "title": "The private claims from the JWT"
         }
-      }
+      },
+      "title": "QueryValidateJWTResponse is the response type for validating a JWT"
     },
     "xion.mint.v1.Params": {
       "type": "object",
@@ -44454,30 +45672,555 @@
               }
             },
             "description": "Coin defines a token with a denomination and an amount.\n\nNOTE: The amount field is an Int which implements the custom method\nsignatures required by gogoproto."
-          }
+          },
+          "title": "The minimum fees required by the platform"
         }
-      }
+      },
+      "title": "QueryPlatformMinimumResponse is the response type for querying platform\nminimum fees"
     },
     "xion.v1.QueryPlatformPercentageResponse": {
       "type": "object",
       "properties": {
         "platformPercentage": {
           "type": "string",
-          "format": "uint64"
+          "format": "uint64",
+          "title": "The platform percentage fee"
         }
-      }
+      },
+      "title": "QueryPlatformPercentageResponse is the response type for querying platform\npercentage"
     },
     "xion.v1.QueryWebAuthNVerifyAuthenticateResponse": {
-      "type": "object"
+      "type": "object",
+      "title": "QueryWebAuthNVerifyAuthenticateResponse is the response type for WebAuthN\nauthentication verification"
     },
     "xion.v1.QueryWebAuthNVerifyRegisterResponse": {
       "type": "object",
       "properties": {
         "credential": {
           "type": "string",
-          "format": "byte"
+          "format": "byte",
+          "title": "The generated credential"
         }
-      }
+      },
+      "title": "QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN\nregistration verification"
+    },
+    "cosmos.circuit.v1.AccountResponse": {
+      "type": "object",
+      "properties": {
+        "permission": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "description": "level is the level of permissions granted to this account.",
+              "type": "string",
+              "enum": [
+                "LEVEL_NONE_UNSPECIFIED",
+                "LEVEL_SOME_MSGS",
+                "LEVEL_ALL_MSGS",
+                "LEVEL_SUPER_ADMIN"
+              ],
+              "default": "LEVEL_NONE_UNSPECIFIED"
+            },
+            "limitTypeUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+            }
+          },
+          "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+        }
+      },
+      "description": "AccountResponse is the response type for the Query/Account RPC method."
+    },
+    "cosmos.circuit.v1.AccountsResponse": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "permissions": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "description": "level is the level of permissions granted to this account.",
+                    "type": "string",
+                    "enum": [
+                      "LEVEL_NONE_UNSPECIFIED",
+                      "LEVEL_SOME_MSGS",
+                      "LEVEL_ALL_MSGS",
+                      "LEVEL_SUPER_ADMIN"
+                    ],
+                    "default": "LEVEL_NONE_UNSPECIFIED"
+                  },
+                  "limitTypeUrls": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+                  }
+                },
+                "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+              }
+            },
+            "title": "GenesisAccountPermissions is the account permissions for the circuit breaker in genesis"
+          }
+        },
+        "pagination": {
+          "description": "pagination defines the pagination in the response.",
+          "type": "object",
+          "properties": {
+            "nextKey": {
+              "type": "string",
+              "format": "byte",
+              "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+            },
+            "total": {
+              "type": "string",
+              "format": "uint64",
+              "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+            }
+          }
+        }
+      },
+      "description": "AccountsResponse is the response type for the Query/Accounts RPC method."
+    },
+    "cosmos.circuit.v1.DisabledListResponse": {
+      "type": "object",
+      "properties": {
+        "disabledList": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "DisabledListResponse is the response type for the Query/DisabledList RPC method."
+    },
+    "cosmos.circuit.v1.GenesisAccountPermissions": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "description": "level is the level of permissions granted to this account.",
+              "type": "string",
+              "enum": [
+                "LEVEL_NONE_UNSPECIFIED",
+                "LEVEL_SOME_MSGS",
+                "LEVEL_ALL_MSGS",
+                "LEVEL_SUPER_ADMIN"
+              ],
+              "default": "LEVEL_NONE_UNSPECIFIED"
+            },
+            "limitTypeUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+            }
+          },
+          "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+        }
+      },
+      "title": "GenesisAccountPermissions is the account permissions for the circuit breaker in genesis"
+    },
+    "cosmos.circuit.v1.Permissions": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "description": "level is the level of permissions granted to this account.",
+          "type": "string",
+          "enum": [
+            "LEVEL_NONE_UNSPECIFIED",
+            "LEVEL_SOME_MSGS",
+            "LEVEL_ALL_MSGS",
+            "LEVEL_SUPER_ADMIN"
+          ],
+          "default": "LEVEL_NONE_UNSPECIFIED"
+        },
+        "limitTypeUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "limit_type_urls is used with LEVEL_SOME_MSGS to limit the lists of Msg type\nURLs that the account can trip. It is an error to use limit_type_urls with\na level other than LEVEL_SOME_MSGS."
+        }
+      },
+      "description": "Permissions are the permissions that an account has to trip\nor reset the circuit breaker."
+    },
+    "cosmos.circuit.v1.Permissions.Level": {
+      "type": "string",
+      "enum": [
+        "LEVEL_NONE_UNSPECIFIED",
+        "LEVEL_SOME_MSGS",
+        "LEVEL_ALL_MSGS",
+        "LEVEL_SUPER_ADMIN"
+      ],
+      "default": "LEVEL_NONE_UNSPECIFIED",
+      "description": "Level is the permission level.\n\n - LEVEL_NONE_UNSPECIFIED: LEVEL_NONE_UNSPECIFIED indicates that the account will have no circuit\nbreaker permissions.\n - LEVEL_SOME_MSGS: LEVEL_SOME_MSGS indicates that the account will have permission to\ntrip or reset the circuit breaker for some Msg type URLs. If this level\nis chosen, a non-empty list of Msg type URLs must be provided in\nlimit_type_urls.\n - LEVEL_ALL_MSGS: LEVEL_ALL_MSGS indicates that the account can trip or reset the circuit\nbreaker for Msg's of all type URLs.\n - LEVEL_SUPER_ADMIN: LEVEL_SUPER_ADMIN indicates that the account can take all circuit breaker\nactions and can grant permissions to other accounts."
+    },
+    "abstractaccount.v1.Params": {
+      "type": "object",
+      "properties": {
+        "allowAllCodeIds": {
+          "type": "boolean",
+          "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+        },
+        "allowedCodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
+          },
+          "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+        },
+        "maxGasBefore": {
+          "type": "string",
+          "format": "uint64",
+          "description": "MaxGasBefore is the maximum amount of gas that can be consumed by the\ncontract call in the before_tx decorator.\n\nMust be greater than zero."
+        },
+        "maxGasAfter": {
+          "type": "string",
+          "format": "uint64",
+          "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+        }
+      },
+      "description": "Params defines the parameters for the abstractaccount module."
+    },
+    "abstractaccount.v1.QueryParamsResponse": {
+      "type": "object",
+      "properties": {
+        "params": {
+          "type": "object",
+          "properties": {
+            "allowAllCodeIds": {
+              "type": "boolean",
+              "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+            },
+            "allowedCodeIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uint64"
+              },
+              "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+            },
+            "maxGasBefore": {
+              "type": "string",
+              "format": "uint64",
+              "description": "MaxGasBefore is the maximum amount of gas that can be consumed by the\ncontract call in the before_tx decorator.\n\nMust be greater than zero."
+            },
+            "maxGasAfter": {
+              "type": "string",
+              "format": "uint64",
+              "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+            }
+          },
+          "description": "Params defines the parameters for the abstractaccount module."
+        }
+      },
+      "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
+    },
+    "xion.indexer.authz.v1.QueryGranteeGrantsResponse": {
+      "type": "object",
+      "properties": {
+        "grants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "granter": {
+                "type": "string"
+              },
+              "grantee": {
+                "type": "string"
+              },
+              "authorization": {
+                "type": "object",
+                "properties": {
+                  "@type": {
+                    "type": "string",
+                    "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                  }
+                },
+                "additionalProperties": {},
+                "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+              },
+              "expiration": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "title": "GrantAuthorization extends a grant with both the addresses of the grantee and granter.\nIt is used in genesis.proto and query.proto"
+          },
+          "description": "grants is a list of grants granted to the grantee."
+        },
+        "pagination": {
+          "description": "pagination defines pagination for the response.",
+          "type": "object",
+          "properties": {
+            "nextKey": {
+              "type": "string",
+              "format": "byte",
+              "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+            },
+            "total": {
+              "type": "string",
+              "format": "uint64",
+              "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+            }
+          }
+        }
+      },
+      "description": "QueryGranteeGrantsResponse is the response type for the Query/GranteeGrants\nRPC method."
+    },
+    "xion.indexer.authz.v1.QueryGranterGrantsResponse": {
+      "type": "object",
+      "properties": {
+        "grants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "granter": {
+                "type": "string"
+              },
+              "grantee": {
+                "type": "string"
+              },
+              "authorization": {
+                "type": "object",
+                "properties": {
+                  "@type": {
+                    "type": "string",
+                    "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                  }
+                },
+                "additionalProperties": {},
+                "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+              },
+              "expiration": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "title": "GrantAuthorization extends a grant with both the addresses of the grantee and granter.\nIt is used in genesis.proto and query.proto"
+          },
+          "description": "grants is a list of grants granted by the granter."
+        },
+        "pagination": {
+          "description": "pagination defines pagination for the response.",
+          "type": "object",
+          "properties": {
+            "nextKey": {
+              "type": "string",
+              "format": "byte",
+              "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+            },
+            "total": {
+              "type": "string",
+              "format": "uint64",
+              "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+            }
+          }
+        }
+      },
+      "description": "QueryGranterGrantsResponse is the response type for the Query/GranterGrants\nRPC method."
+    },
+    "xion.indexer.authz.v1.QueryGrantsResponse": {
+      "type": "object",
+      "properties": {
+        "grants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "authorization": {
+                "type": "object",
+                "properties": {
+                  "@type": {
+                    "type": "string",
+                    "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                  }
+                },
+                "additionalProperties": {},
+                "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(&foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := &pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := &pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": <string>,\n      \"lastName\": <string>\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+              },
+              "expiration": {
+                "type": "string",
+                "format": "date-time",
+                "title": "time when the grant will expire and will be pruned. If null, then the grant\ndoesn't have a time expiration (other conditions  in `authorization`\nmay apply to invalidate the grant)"
+              }
+            },
+            "description": "Grant gives permissions to execute\nthe provide method with expiration time."
+          },
+          "description": "authorizations is a list of grants granted for grantee by granter."
+        },
+        "pagination": {
+          "description": "pagination defines pagination for the response.",
+          "type": "object",
+          "properties": {
+            "nextKey": {
+              "type": "string",
+              "format": "byte",
+              "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+            },
+            "total": {
+              "type": "string",
+              "format": "uint64",
+              "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+            }
+          }
+        }
+      },
+      "description": "QueryGrantsResponse is the response type for the Query/Authorizations RPC\nmethod."
+    },
+    "xion.indexer.feegrant.v1.QueryAllowanceResponse": {
+      "type": "object",
+      "properties": {
+        "allowance": {
+          "description": "allowance is a allowance granted for grantee by granter.",
+          "type": "object",
+          "properties": {
+            "granter": {
+              "type": "string",
+              "description": "granter is the address of the user granting an allowance of their funds."
+            },
+            "grantee": {
+              "type": "string",
+              "description": "grantee is the address of the user being granted an allowance of another user's funds."
+            },
+            "allowance": {
+              "description": "allowance can be any of basic, periodic, allowed fee allowance.",
+              "type": "object",
+              "properties": {
+                "@type": {
+                  "type": "string",
+                  "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                }
+              },
+              "additionalProperties": {}
+            }
+          },
+          "title": "Grant is stored in the KVStore to record a grant with full context"
+        }
+      },
+      "description": "QueryAllowanceResponse is the response type for the Query/Allowance RPC\nmethod."
+    },
+    "xion.indexer.feegrant.v1.QueryAllowancesByGranterResponse": {
+      "type": "object",
+      "properties": {
+        "allowances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "granter": {
+                "type": "string",
+                "description": "granter is the address of the user granting an allowance of their funds."
+              },
+              "grantee": {
+                "type": "string",
+                "description": "grantee is the address of the user being granted an allowance of another user's funds."
+              },
+              "allowance": {
+                "description": "allowance can be any of basic, periodic, allowed fee allowance.",
+                "type": "object",
+                "properties": {
+                  "@type": {
+                    "type": "string",
+                    "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                  }
+                },
+                "additionalProperties": {}
+              }
+            },
+            "title": "Grant is stored in the KVStore to record a grant with full context"
+          },
+          "description": "allowances that have been issued by the granter."
+        },
+        "pagination": {
+          "description": "pagination defines pagination for the response.",
+          "type": "object",
+          "properties": {
+            "nextKey": {
+              "type": "string",
+              "format": "byte",
+              "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+            },
+            "total": {
+              "type": "string",
+              "format": "uint64",
+              "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+            }
+          }
+        }
+      },
+      "description": "QueryAllowancesByGranterResponse is the response type for the\nQuery/AllowancesByGranter RPC method."
+    },
+    "xion.indexer.feegrant.v1.QueryAllowancesResponse": {
+      "type": "object",
+      "properties": {
+        "allowances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "granter": {
+                "type": "string",
+                "description": "granter is the address of the user granting an allowance of their funds."
+              },
+              "grantee": {
+                "type": "string",
+                "description": "grantee is the address of the user being granted an allowance of another user's funds."
+              },
+              "allowance": {
+                "description": "allowance can be any of basic, periodic, allowed fee allowance.",
+                "type": "object",
+                "properties": {
+                  "@type": {
+                    "type": "string",
+                    "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com. As of May 2023, there are no widely used type server\nimplementations and no plans to implement one.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                  }
+                },
+                "additionalProperties": {}
+              }
+            },
+            "title": "Grant is stored in the KVStore to record a grant with full context"
+          },
+          "description": "allowances are allowances granted for grantee by granter."
+        },
+        "pagination": {
+          "description": "pagination defines pagination for the response.",
+          "type": "object",
+          "properties": {
+            "nextKey": {
+              "type": "string",
+              "format": "byte",
+              "description": "next_key is the key to be passed to PageRequest.key to\nquery the next page most efficiently. It will be empty if\nthere are no more results."
+            },
+            "total": {
+              "type": "string",
+              "format": "uint64",
+              "title": "total is total number of results available if PageRequest.count_total\nwas set, its value is undefined otherwise"
+            }
+          }
+        }
+      },
+      "description": "QueryAllowancesResponse is the response type for the Query/Allowances RPC\nmethod."
     }
   }
 }

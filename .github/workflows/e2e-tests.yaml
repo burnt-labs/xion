@@ -1,0 +1,161 @@
+name: E2E tests
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cache-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "e2e_tests/go.mod"
+          cache-dependency-path: "e2e_tests/go.sum"
+
+      - name: Download dependencies
+        working-directory: e2e_tests
+        run: go mod download
+
+  e2e-tests:
+    needs: cache-dependencies
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          # - arm64
+        test_type:
+          # Abstract Account Module Tests
+          - "AABasic"
+          - "AAClientEvent"
+          - "AAJWTCLI"
+          - "AAMultiAuth"
+          - "AAPanic"
+          - "AAWebAuthn"
+          # App Module Tests
+          - "AppGovernance"
+          # - "AppIBCTimeout"
+          # - "AppIBCTransfer"
+          - "AppMintInflationHighFees"
+          - "AppMintInflationLowFees"
+          - "AppMintInflationNoFees"
+          - "AppMintNoInflationNoFees"
+          - "AppSendPlatformFee"
+          - "AppSimulate"
+          - "AppTokenFactory"
+          - "AppTreasuryContract"
+          - "AppTreasuryMulti"
+          - "AppUpdateTreasuryConfigs"
+          - "AppUpdateTreasuryConfigsAA"
+          - "AppUpdateTreasuryParams"
+          # - "AppUpgradeIBC"
+          # - "AppUpgradeNetwork"
+          # DKIM Module Tests
+          # - "DKIMGovernance"
+          # - "DKIMKeyRevocation"
+          # - "DKIMModule"
+          # - "DKIMZKEmail"
+          # - "DKIMZKProof"
+          # Indexer Module Tests
+          # - "IndexerAuthzCreate"
+          # - "IndexerAuthzMultiple"
+          # - "IndexerAuthzRevoke"
+          # - "IndexerFeeGrantCreate"
+          # - "IndexerFeeGrantMultiple"
+          # - "IndexerFeeGrantPeriodic"
+          # - "IndexerFeeGrantRevoke"
+          # JWK Module Tests
+          - "JWKAlgorithmConfusion"
+          - "JWKAudienceMismatch"
+          - "JWKExpiredToken"
+          - "JWKInvalidSignature"
+          - "JWKJWTAA"
+          - "JWKKeyRotation"
+          - "JWKMalformedTokens"
+          - "JWKMissingClaims"
+          - "JWKMultipleAudiences"
+          - "JWKTransactionHash"
+          # Xion Module Tests - Genesis and Indexer
+          - "GenesisExportImport"
+          - "XionIndexerAuthz"
+          - "XionIndexerFeeGrant"
+          # Xion Module Tests - Original
+          - "XionMinFeeBypass"
+          - "XionMinFeeDefault"
+          - "XionMinFeeMultiDenom"
+          - "XionMinFeeMultiDenomIBC"
+          - "XionMinFeeZero"
+          - "XionPlatformFee"
+          - "XionPlatformFeeBypass"
+          - "XionPlatformMinCodecBug"
+          - "XionPlatformMinDirect"
+          # Xion Module Tests - Coverage Tests
+          - "XionMinFeeMultiDenomAdvanced"
+          - "XionMinFeeExtremeValues"
+          - "XionMinFeeConcurrentTransactions"
+          - "XionMinFeeSequenceHandling"
+          - "XionPlatformMinimumWithFees"
+          - "XionPlatformMinimumCodecValidation"
+          - "XionPlatformMinimumBypassInteraction"
+          - "XionMinFeeErrorMessages"
+          - "XionMinFeeInsufficientBalance"
+          - "XionMinFeeEdgeCaseScenarios"
+          - "XionMinFeeMemPoolBehavior"
+          # Xion Module Tests - Critical Security Tests
+          - "XionMinFeeGasCapBoundaries"
+          - "XionMinFeeGasCapWithFees"
+          - "XionMinFeeGasCapMultipleMessages"
+          - "XionMinFeeWithFeeGrant"
+          - "XionMinFeeFeeGrantAllowanceTypes"
+          - "XionMinFeeFeeGrantExpiration"
+          - "XionMinFeeMultipleFeeGrants"
+          - "XionMinFeeMultiMessageMixedTypes"
+          - "XionMinFeeMultiMessageSameType"
+          - "XionMinFeeMultiMessageGasAccounting"
+          - "XionMinFeeMultiMessageWithFeeGrant"
+          - "XionMinFeeMultiMessageErrorPaths"
+          - "XionMinFeeMultiMessageSequential"
+          - "XionMinFeeBypassMessageTypes"
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "e2e_tests/go.mod"
+          cache-dependency-path: "e2e_tests/go.sum"
+
+      - name: Download heighliner image
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}
+          pattern: heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar
+          merge-multiple: true
+
+      - name: Load images
+        working-directory: ${{ runner.temp }}
+        run: |
+          docker load < "heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar"
+
+      - name: Run e2e test
+        env:
+          E2E_SKIP_CLEANUP: true
+          XION_IMAGE: heighliner:${{ matrix.os }}-${{ matrix.arch }}
+        run: |
+          make test-run TEST_NAME=Test${{ matrix.test_type }}

@@ -86,7 +86,7 @@ gen_pulsar() {
   buf generate --output "${base_dir}/api" --template "$proto_dir/buf.gen.pulsar.yaml" "$proto_dir"
   
   # remove problematic generated files
-  rm $base_dir/api/feeabstraction/feeabs/v1beta1/osmosisibc.pulsar.go
+  rm $base_dir/api/xion/feeabs/v1beta1/osmosisibc.pulsar.go
 }
 
 
@@ -102,9 +102,6 @@ gen_swagger() {
     
     # Skip problematic dependencies that have incompatible imports
     if echo "$query_file" | grep -q "tokenfactory"; then
-      continue
-    fi
-    if echo "$query_file" | grep -q "abstract-account"; then
       continue
     fi
 

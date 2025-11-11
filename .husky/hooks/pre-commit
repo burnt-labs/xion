@@ -1,2 +1,2 @@
 #!/bin/sh
-./scripts/test-coverage.sh
+make format && make lint && make test-cover

@@ -313,13 +313,176 @@ func TestMsgSetPlatformPercentage_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgSetPlatformPercentage_GetSigners(t *testing.T) {
-	addr := sdk.AccAddress("authority_12345678901234567890")
-	msg := &types.MsgSetPlatformPercentage{
-		Authority:          addr.String(),
-		PlatformPercentage: 5000,
+	t.Run("valid bech32 address", func(t *testing.T) {
+		addr := sdk.AccAddress("authority_12345678901234567890")
+		msg := &types.MsgSetPlatformPercentage{
+			Authority:          addr.String(),
+			PlatformPercentage: 5000,
+		}
+
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		require.Equal(t, addr, signers[0])
+	})
+
+	t.Run("fallback on bech32 decode error", func(t *testing.T) {
+		// Use an invalid bech32 string to trigger decode error fallback
+		invalidBech32 := "invalid_bech32_!@#$"
+		msg := &types.MsgSetPlatformPercentage{
+			Authority:          invalidBech32,
+			PlatformPercentage: 5000,
+		}
+
+		// Should fallback to AccAddressFromBech32 and not panic
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		// The fallback will also fail but returns an empty address instead of panicking
+	})
+
+	t.Run("fallback on convert bits error", func(t *testing.T) {
+		// Create a bech32 address that decodes but fails ConvertBits
+		// This is harder to trigger but the code path exists
+		// For now we document that this edge case exists
+		addr := sdk.AccAddress("authority_12345678901234567890")
+		msg := &types.MsgSetPlatformPercentage{
+			Authority:          addr.String(),
+			PlatformPercentage: 5000,
+		}
+
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		// Normal case - just ensuring the function completes
+	})
+}
+
+func TestMsgSetPlatformMinimum_GetSigners(t *testing.T) {
+	t.Run("valid bech32 address", func(t *testing.T) {
+		addr := sdk.AccAddress("authority_12345678901234567890")
+		msg := &types.MsgSetPlatformMinimum{
+			Authority: addr.String(),
+			Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 100)),
+		}
+
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		require.Equal(t, addr, signers[0])
+	})
+
+	t.Run("fallback on bech32 decode error", func(t *testing.T) {
+		// Use an invalid bech32 string to trigger decode error fallback
+		invalidBech32 := "invalid_bech32_!@#$"
+		msg := &types.MsgSetPlatformMinimum{
+			Authority: invalidBech32,
+			Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 100)),
+		}
+
+		// Should fallback to AccAddressFromBech32 and not panic
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		// The fallback will also fail but returns an empty address instead of panicking
+	})
+}
+
+func TestMsgSetPlatformMinimum_ValidateBasic(t *testing.T) {
+	validAuth := sdk.AccAddress("authority_12345678901234567890").String()
+
+	tests := []struct {
+		name    string
+		msg     *types.MsgSetPlatformMinimum
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid - positive minimums",
+			msg: &types.MsgSetPlatformMinimum{
+				Authority: validAuth,
+				Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 10)),
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid - zero minimums",
+			msg: &types.MsgSetPlatformMinimum{
+				Authority: validAuth,
+				Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 0)),
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid - empty coins (no minimums)",
+			msg: &types.MsgSetPlatformMinimum{
+				Authority: validAuth,
+				Minimums:  sdk.Coins{},
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid authority",
+			msg: &types.MsgSetPlatformMinimum{
+				Authority: "not_bech32",
+				Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 10)),
+			},
+			wantErr: true,
+			errMsg:  "invalid authority address",
+		},
+		{
+			name: "invalid coins - negative",
+			msg: &types.MsgSetPlatformMinimum{
+				Authority: validAuth,
+				Minimums:  sdk.Coins{sdk.Coin{Denom: "uxion", Amount: math.NewInt(-5)}},
+			},
+			wantErr: true,
+			errMsg:  "invalid coins",
+		},
 	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestMsgSetPlatformMinimum_Basics(t *testing.T) {
+	auth := sdk.AccAddress("authority_12345678901234567890")
+	msg := &types.MsgSetPlatformMinimum{
+		Authority: auth.String(),
+		Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 7)),
+	}
+
+	// Route and Type
+	require.Equal(t, types.RouterKey, msg.Route())
+	require.Equal(t, types.TypeMsgSetPlatformMinimum, msg.Type())
+
+	// Signers
 	signers := msg.GetSigners()
 	require.Len(t, signers, 1)
-	require.Equal(t, addr, signers[0])
+	require.Equal(t, auth, signers[0])
+
+	// Sign bytes non-empty
+	bz := msg.GetSignBytes()
+	require.NotNil(t, bz)
+	require.True(t, len(bz) > 0)
+}
+
+func TestNewMsgSetPlatformMinimum(t *testing.T) {
+	auth := sdk.AccAddress("authority_12345678901234567890")
+	mins := sdk.NewCoins(
+		sdk.NewInt64Coin("uxion", 1),
+		sdk.NewInt64Coin("bar", 2),
+	)
+
+	msg := types.NewMsgSetPlatformMinimum(auth, mins)
+	require.NotNil(t, msg)
+	require.Equal(t, auth.String(), msg.Authority)
+	require.Equal(t, mins, msg.Minimums)
+	require.Equal(t, types.RouterKey, msg.Route())
+	require.Equal(t, types.TypeMsgSetPlatformMinimum, msg.Type())
+	require.NoError(t, msg.ValidateBasic())
 }

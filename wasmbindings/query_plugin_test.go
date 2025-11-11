@@ -10,7 +10,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 	"github.com/golang-jwt/jwt/v5"
 	proto "github.com/golang/protobuf/proto" //nolint:staticcheck // we're intentionally using this deprecated package to be compatible with cosmos protos
-	jwk "github.com/lestrrat-go/jwx/jwk"
+	jwk "github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -48,7 +48,7 @@ func TestStargateTestSuite(t *testing.T) {
 func SetUpAudience(suite *StargateTestSuite) {
 	privKey, err := wasmbinding.SetupKeys()
 	suite.Require().NoError(err)
-	jwkPrivKey, err := jwk.New(privKey)
+	jwkPrivKey, err := jwk.FromRaw(privKey)
 	suite.Require().NoError(err)
 	pubKey, err := jwkPrivKey.PublicKey()
 	suite.NoError(err)
@@ -173,7 +173,7 @@ func (suite *StargateTestSuite) TestWebauthNStargateQuerier() {
 func (suite *StargateTestSuite) TestJWKStargateQuerier() {
 	privKey, err := wasmbinding.SetupKeys()
 	suite.Require().NoError(err)
-	jwkPrivKey, err := jwk.New(privKey)
+	jwkPrivKey, err := jwk.FromRaw(privKey)
 	suite.Require().NoError(err)
 	publicKey, err := jwkPrivKey.PublicKey()
 	suite.NoError(err)
@@ -442,6 +442,118 @@ func (suite *StargateTestSuite) TestAuthzStargateQuerier() {
 				resendResponse, err := stargateQuerier(suite.ctx, stargateRequest)
 				suite.Require().NoError(err)
 				suite.Require().Equal(stargateResponse, resendResponse)
+			}
+		})
+	}
+}
+
+func (suite *StargateTestSuite) TestStargateQuerierErrorCases() {
+	testCases := []struct {
+		name             string
+		path             string
+		requestData      []byte
+		expectedError    string
+		expectedErrorMsg bool
+	}{
+		{
+			name:          "non-whitelisted path",
+			path:          "/invalid.query.path/NonWhitelistedQuery",
+			requestData:   []byte("dummy data"),
+			expectedError: "path is not allowed from the contract",
+		},
+		{
+			name:          "unsupported route - no router found",
+			path:          "/nonexistent.service.v1.Query/NonExistentMethod",
+			requestData:   []byte("dummy data"),
+			expectedError: "path is not allowed from the contract", // This will fail at whitelist check first
+		},
+		{
+			name:             "invalid path format",
+			path:             "invalid-path-format",
+			requestData:      []byte("dummy data"),
+			expectedErrorMsg: true,
+		},
+		{
+			name:             "empty path",
+			path:             "",
+			requestData:      []byte("dummy data"),
+			expectedErrorMsg: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			stargateQuerier := wasmbinding.StargateQuerier(*suite.app.GRPCQueryRouter(), suite.app.AppCodec())
+			stargateRequest := &wasmvmtypes.StargateQuery{
+				Path: tc.path,
+				Data: tc.requestData,
+			}
+
+			_, err := stargateQuerier(suite.ctx, stargateRequest)
+			suite.Require().Error(err, "Expected error for test case: %s", tc.name)
+
+			if tc.expectedError != "" {
+				suite.Require().Contains(err.Error(), tc.expectedError)
+			}
+			if tc.expectedErrorMsg {
+				suite.Require().NotEmpty(err.Error())
+			}
+		})
+	}
+}
+
+func (suite *StargateTestSuite) TestConvertProtoToJSONMarshal() {
+	testCases := []struct {
+		name          string
+		setupData     func() (proto.Message, []byte)
+		expectErr     bool
+		expectErrType bool
+	}{
+		{
+			name: "valid conversion",
+			setupData: func() (proto.Message, []byte) {
+				resp := &authztypes.QueryGrantsResponse{
+					Grants: []*authztypes.Grant{},
+					Pagination: &query.PageResponse{
+						Total: 0,
+					},
+				}
+				bz, err := proto.Marshal(resp)
+				suite.Require().NoError(err)
+				return resp, bz
+			},
+			expectErr: false,
+		},
+		{
+			name: "invalid proto bytes",
+			setupData: func() (proto.Message, []byte) {
+				return &authztypes.QueryGrantsResponse{}, []byte("invalid proto bytes")
+			},
+			expectErr:     true,
+			expectErrType: true, // Should return wasmvmtypes.Unknown{}
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			protoMsg, data := tc.setupData()
+
+			result, err := wasmbinding.ConvertProtoToJSONMarshal(protoMsg, data, suite.app.AppCodec())
+
+			if tc.expectErr {
+				suite.Require().Error(err)
+				if tc.expectErrType {
+					// Check that error is of type wasmvmtypes.Unknown
+					_, ok := err.(wasmvmtypes.Unknown)
+					suite.Require().True(ok, "Expected error to be wasmvmtypes.Unknown type")
+				}
+			} else {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(result)
 			}
 		})
 	}

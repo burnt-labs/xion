@@ -2,12 +2,14 @@ swagger: "2.0"
 info:
   title: XION - gRPC Gateway docs
   description: A REST interface for state queries
-  version: v21.0.1
+  version: v22.0.0
 apis:
   - url: ./cosmos/auth/v1beta1/query.swagger.json
     operationIds:
       rename:
         Params: AuthParams
+        Account: AuthAccount
+        Accounts: AuthAccounts
     tags:
       rename:
         Query: Auth
@@ -219,10 +221,41 @@ apis:
     tags:
       rename:
         Query: Xion
+  - url: ./cosmos/circuit/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: CircuitParams
+    tags:
+      rename:
+        Query: Circuit
+  - url: ./abstractaccount/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: AbstractAccountParams
+    tags:
+      rename:
+        Query: AbstractAccount
+  - url: ./xion/indexer/authz/v1/query.swagger.json
+    operationIds:
+      rename:
+        Grants: XionGrants
+        GranteeGrants: XionGranteeGrants
+        GranterGrants: XionGranterGrants
+    tags:
+      rename:
+        Query: XionIndexerAuthz
+  - url: ./xion/indexer/feegrant/v1/query.swagger.json
+    operationIds:
+      rename:
+        Allowance: XionAllowance
+        Allowances: XionAllowances
+        AllowancesByGranter: XionAllowancesByGranter
+    tags:
+      rename:
+        Query: XionIndexerFeegrant
 
 # not included
 # ./cosmos/app/v1alpha1/query.swagger.json
-# ./cosmos/circuit/v1/query.swagger.json
 # ./cosmos/orm/query/v1alpha1/query.swagger.json
 # ./cosmos/query/v1/query.swagger.json
 # ./cosmos/autocli/v1/query.swagger.json

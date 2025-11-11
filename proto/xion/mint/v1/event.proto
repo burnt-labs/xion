@@ -9,26 +9,33 @@ option go_package = "github.com/burnt-labs/xion/x/mint/types";
 // MintIncentiveTokens defines an event emitted on each block from the mint
 // module EndBlocker
 message MintIncentiveTokens {
+  // The ratio of bonded tokens to total supply
   string bonded_ratio = 1 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.moretags) = "yaml:\"bonded_ratio\"",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+  // The current inflation rate
   string inflation = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.moretags) = "yaml:\"inflation\"",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+  // The total annual provisions for minting
   string annual_provisions = 3 [
     (gogoproto.moretags) = "yaml:\"annual_provisions\"",
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
+  // The amount of tokens needed for incentives
   uint64 needed_amount = 4;
+  // The amount of tokens collected for incentives
   uint64 collected_amount = 5;
+  // The amount of tokens minted
   uint64 minted_amount = 6;
+  // The amount of tokens burned
   uint64 burned_amount = 7;
 }

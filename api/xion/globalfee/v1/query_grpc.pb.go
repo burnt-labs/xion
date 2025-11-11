@@ -28,6 +28,7 @@ const (
 //
 // Query defines the gRPC querier service.
 type QueryClient interface {
+	// Params queries the parameters of the module
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 }
 
@@ -55,6 +56,7 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 //
 // Query defines the gRPC querier service.
 type QueryServer interface {
+	// Params queries the parameters of the module
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }

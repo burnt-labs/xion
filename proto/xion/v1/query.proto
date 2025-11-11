@@ -4,46 +4,82 @@ package xion.v1;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-
 option go_package = "github.com/burnt-labs/xion/x/xion/types";
 
+// Query defines the gRPC querier service
 service Query {
-  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest) returns (QueryWebAuthNVerifyRegisterResponse) {}
-  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest) returns (QueryWebAuthNVerifyAuthenticateResponse) {}
-  rpc PlatformPercentage(QueryPlatformPercentageRequest) returns (QueryPlatformPercentageResponse) {}
-  rpc PlatformMinimum(QueryPlatformMinimumRequest) returns (QueryPlatformMinimumResponse) {}
+  // WebAuthNVerifyRegister verifies a WebAuthN registration
+  rpc WebAuthNVerifyRegister(QueryWebAuthNVerifyRegisterRequest)
+      returns (QueryWebAuthNVerifyRegisterResponse) {}
+  // WebAuthNVerifyAuthenticate verifies a WebAuthN authentication
+  rpc WebAuthNVerifyAuthenticate(QueryWebAuthNVerifyAuthenticateRequest)
+      returns (QueryWebAuthNVerifyAuthenticateResponse) {}
+  // PlatformPercentage queries the platform percentage fee
+  rpc PlatformPercentage(QueryPlatformPercentageRequest)
+      returns (QueryPlatformPercentageResponse) {}
+  // PlatformMinimum queries the platform minimum fees
+  rpc PlatformMinimum(QueryPlatformMinimumRequest)
+      returns (QueryPlatformMinimumResponse) {}
 }
 
+// QueryWebAuthNVerifyRegisterRequest is the request type for WebAuthN
+// registration verification
 message QueryWebAuthNVerifyRegisterRequest {
+  // The account address
   string addr = 1;
+  // The challenge string for registration
   string challenge = 2;
+  // The relying party identifier
   string rp = 3;
+  // The registration data
   bytes data = 4;
 }
 
+// QueryWebAuthNVerifyRegisterResponse is the response type for WebAuthN
+// registration verification
 message QueryWebAuthNVerifyRegisterResponse {
+  // The generated credential
   bytes credential = 1;
 }
 
+// QueryWebAuthNVerifyAuthenticateRequest is the request type for WebAuthN
+// authentication verification
 message QueryWebAuthNVerifyAuthenticateRequest {
+  // The account address
   string addr = 1;
+  // The challenge string for authentication
   string challenge = 2;
+  // The relying party identifier
   string rp = 3;
+  // The credential to verify
   bytes credential = 4;
+  // The authentication data
   bytes data = 5;
 }
 
+// QueryWebAuthNVerifyAuthenticateResponse is the response type for WebAuthN
+// authentication verification
 message QueryWebAuthNVerifyAuthenticateResponse {}
 
+// QueryPlatformPercentageRequest is the request type for querying platform
+// percentage
 message QueryPlatformPercentageRequest {}
 
+// QueryPlatformPercentageResponse is the response type for querying platform
+// percentage
 message QueryPlatformPercentageResponse {
+  // The platform percentage fee
   uint64 platform_percentage = 1;
 }
 
+// QueryPlatformMinimumRequest is the request type for querying platform minimum
+// fees
 message QueryPlatformMinimumRequest {}
 
+// QueryPlatformMinimumResponse is the response type for querying platform
+// minimum fees
 message QueryPlatformMinimumResponse {
+  // The minimum fees required by the platform
   repeated cosmos.base.v1beta1.Coin minimums = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
