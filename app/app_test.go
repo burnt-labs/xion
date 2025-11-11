@@ -348,13 +348,13 @@ func TestUpgradeFunctions(t *testing.T) {
 	})
 
 	// Test NextStoreLoader with different upgrade scenarios
-	upgradeInfoV22 := upgradetypes.Plan{
-		Name:   "v22",
+	upgradeInfoNext := upgradetypes.Plan{
+		Name:   UpgradeName,
 		Height: 200,
 	}
 
 	require.NotPanics(t, func() {
-		storeLoader := gapp.NextStoreLoader(upgradeInfoV22)
+		storeLoader := gapp.NextStoreLoader(upgradeInfoNext)
 		require.NotNil(t, storeLoader)
 	})
 
