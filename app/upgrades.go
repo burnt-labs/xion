@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v22"
+const UpgradeName = "v23"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -55,14 +55,19 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
-
-	// Add upgrade logic here
-
-	// Run the migrations for all modules
+	// Log wasm module version before migration
+	if wasmVersion, ok := fromVM["wasm"]; ok {
+		sdkCtx.Logger().Info("wasm module version before migration", "version", wasmVersion)
+	}
+	// Run the migrations for all modules (including wasm 4->5)
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 	if err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %s", err))
 	}
-
+	// Log wasm module version after migration
+	if wasmVersion, ok := migrations["wasm"]; ok {
+		sdkCtx.Logger().Info("wasm module version after migration", "version", wasmVersion)
+	}
+	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
 }
