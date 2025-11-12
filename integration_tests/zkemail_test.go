@@ -51,17 +51,6 @@ type Signature struct {
 type QueryContractRequest struct {
 	AuthenticatorById map[string]interface{} `json:"authenticator_by_i_d"`
 }
-type AuthExecuteMsg struct {
-	AddAuthMethod struct {
-		AddAuthenticator struct {
-			ZKEmail struct {
-				ID        int             `json:"id"`
-				EmailSalt string          `json:"email_salt"`
-				Signature json.RawMessage `json:"signature"`
-			} `json:"ZKEmail"`
-		} `json:"add_authenticator"`
-	} `json:"add_auth_method"`
-}
 
 func ToLittleEndian(b []byte) []byte {
 	result := make([]byte, len(b))
@@ -80,12 +69,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	xion := BuildXionChain(t)
 
 	t.Parallel()
-
-	// dkimDomain := "gmail.com"
-	// dkimSelector := "20230601"
-	// dkimPubkey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
-	// gPubKeyHash, err := dkimTypes.ComputePoseidonHash(dkimPubkey)
-	// require.NoError(t, err)
 
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -151,7 +134,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.True(t, isSet)
 	emailHash := base64.StdEncoding.EncodeToString(ToLittleEndian(emailCommitmentBIG.Bytes()))
 	t.Logf("email hash: %s", emailHash)
-	// tmpSignature := "eyJwcm9vZiI6eyJwaV9hIjpbIjEzMzU5MjM1NDM3OTA1NTEwMTQ2NDg4NTQ1MjY3NTgwODQ3ODY4NzY4NTYzOTYwNzgxNzI5MTk0OTM5NTI3NTIzMjQzNzk1Njg4NzcyIiwiMTYyNTUyMTI0Nzk0NjUwODk2Mzk1MDIwMTM0MzI5MzY1NzI0MTcxMDA3OTQwMjMwMDQ0MDg5MDY3NzAwODA4MzQxNDIxMjMwMDYxMzUiLCIxIl0sInBpX2IiOltbIjE5Mjg0NDEzOTA3MjQ4NTY4ODA5MDc2ODAyOTMxNDcxNjIwNDcxNTMwNzg3MjUyMzkyNDc4MzE1NTY5NDE0MDI4NTM2MTI3NTQwMzMyIiwiMzM5MTM0ODE3NzA0MzIwMDQ1MDQ1MTQ2MTc5MzMzMDA5Mjg4ODA4ODI2ODQ1MjI4MDg3ODg3MDM3ODY1NDc4ODA0ODgxNjQ2MzEwOCJdLFsiMTk4NTI4NTMxMzMyMzY0NjY5NjQ2MzMwMDY5OTg5OTg2MzA4ODIyMDI1OTg3MDExMDgyNzI3NDc5MTQzODAzMzYwMTYzMTA4Nzc3MjUiLCIxMzIwNTY2MDgyMjYyMTc2ODA0OTE3NTc0MjA4NjYzODY1NzY5NTI3NzE4NzcxNzE2OTI4MDk4OTAzNzAxNjgxMzU3MTQ2NTg2MTY5Il0sWyIxIiwiMCJdXSwicGlfYyI6WyIxNTY4MzI2OTMwMjk4NTQ0MzcwODk3MTgyMjUzMjIwOTk1NzY0NTYxODYzMDM5MzMwNjM2OTk4NDk1ODE0ODE2NzI4MzUzOTU4NjgyMSIsIjY0NDI0NzY5MzU3OTIyMjQxNTY1MTE5MDc2NjE1MDA0NzcxMjk1MTM1MjYxNDIxMzk1NTQ5MTUwNDM2ODUzMDE1NzI1Njg0MTYzODAiLCIxIl0sInByb3RvY29sIjoiZ3JvdGgxNiJ9LCJwdWJsaWNJbnB1dHMiOlsiMjAxODcyMTQxNDAzODQwNDgyMDMyNyIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiNjYzMjM1MzcxMzA4NTE1NzkyNTUwNDAwODQ0MzA3ODkxOTcxNjMyMjM4NjE1NjE2MDYwMjIxODUzNjk2MTAyODA0NjQ2ODIzNzE5MiIsIjE5NTQ0NTE1NDg0Mjk0MTMzMzY1NjIxMTUwODYwNzk4MjQ4OTA4NzgxOTk0NzYwNDMyNTg5Nzg0ODAzODU4NDE4Njk4Nzg5MDUwMDg3IiwiMTc1OTE0NzI5MSIsIjEyNDQxMzU4ODAxMDkzNTU3MzEwMDQ0OTQ1NjQ2ODk1OTgzOTI3MDAyNzc1NzIxNTEzODQzOTgxNjk1NTAyNDczNjI3MTI5ODg4MyIsIjEyNTk4NzcxODUwNDg4MTE2ODcwMjgxNzM3Mjc1MTQwNTUxMTMxMTYyNjUxNTM5OTEyODExNTk1NzY4MzA1NTcwNjE2Mjg3OTA4MSIsIjEzODE3NDI5NDQxOTU2NjA3MzYzODkxNzM5ODQ3ODQ4MDIzMzc4MzQ2MjY1NTQ4MjI4MzQ4OTc3ODQ3NzAzMjEyOTg2MDQxNjMwOCIsIjg3MTY0NDI5OTM1MTgzNTMwMjMxMTA2NTI0MjM4NzcyNDY5MDgzMDIxMzc2NTM2ODU3NTQ3NjAxMjg2MzUwNTExODk1OTU3MDQyIiwiMTU5NTA4OTk1NTU0ODMwMjM1NDIyODgxMjIwMjIxNjU5MjIyODgyNDE2NzAxNTM3Njg0MzY3OTA3MjYyNTQxMDgxMTgxMTA3MDQxIiwiMjE2MTc3ODU5NjMzMDMzOTkzNjE2NjA3NDU2MDEwOTg3ODcwOTgwNzIzMjE0ODMyNjU3MzA0MjUwOTI5MDUyMDU0Mzg3NDUxMjUxIiwiMTM2ODcwMjkzMDc3NzYwMDUxNTM2NTE0Njg5ODE0NTI4MDQwNjUyOTgyMTU4MjY4MjM4OTI0MjExNDQzMTA1MTQzMzE1MzEyOTc3IiwiMjA5MDI3NjQ3MjcxOTQxNTQwNjM0MjYwMTI4MjI3MTM5MTQzMzA1MjEyNjI1NTMwMTMwOTg4Mjg2MzA4NTc3NDUxOTM0NDMzNjA0IiwiMjE2MDQxMDM3NDgwODE2NTAxODQ2MzQ4NzA1MzUzNzM4MDc5Nzc1ODAzNjIzNjA3MzczNjY1Mzc4NDk5ODc2NDc4NzU3NzIxOTU2IiwiMTg0MDk5ODA4ODkyNjA2MDYxOTQyNTU5MTQxMDU5MDgxNTI3MjYyODM0ODU5NjI5MTgxNTgxMjcwNTg1OTA4NTI5MDE0MDAwNDgzIiwiMTczOTI2ODIxMDgyMzA4MDU2ODI5NDQxNzczODYwNDgzODQ5MTI4NDA0OTk2MDg0OTMyOTE5NTA1OTQ2ODAyNDg4MzY3OTg5MDcwIiwiMTM2NDk4MDgzMzMyOTAwMzIxMjE1NTI2MjYwODY4NTYyMDU2NjcwODkyNDEyOTMyNjcxNTE5NTEwOTgxNzA0NDI3OTA1NDMwNTc4IiwiMCIsIjAiLCIwIiwiMCIsIjAiLCIwIiwiMCIsIjAiLCI4MTA2MzU1MDQzOTY4OTAxNTg3MzQ2NTc5NjM0NTk4MDk4NzY1OTMzMTYwMzk0MDAyMjUxOTQ4MTcwNDIwMjE5OTU4NTIzMjIwNDI1IiwiMSJdfQ=="
 
 	// send a execute msg to add a zkemail authenticator to the account
 	// TODO: update ZKEmail id, email_salt, signature
@@ -160,14 +142,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		emailSalt,
 		b64signture,
 	)
-	/*
-			tmpMsg := AuthExecuteMsg{}
-			tmpMsg.AddAuthMethod.AddAuthenticator.ZKEmail.ID = 1
-			tmpMsg.AddAuthMethod.AddAuthenticator.ZKEmail.EmailSalt = emailSalt
-			tmpMsg.AddAuthMethod.AddAuthenticator.ZKEmail.Signature = json.RawMessage(fileContent)
-		authExecuteMsg, err := json.Marshal(tmpMsg)
-		require.NoError(t, err)
-	*/
 
 	t.Logf("auth execute msg: %s", authExecuteMsg)
 
@@ -236,8 +210,6 @@ func TestZKEmailAuthenticator(t *testing.T) {
 
 	// Verify the authenticator type is ZKEmail
 	require.Contains(t, response, "ZKEmail", "Response should contain ZKEmail field")
-	// require.Equal(t, response["ZKEmail"].(map[string]any)["email_hash"].(string), emailHash, "Email hash should match")
-	// require.Equal(t, response["ZKEmail"].(map[string]any)["dkim_domain"].(string), dkimDomain, "DKIM domain should match")
 
 	// Wait for a few blocks to ensure query is up to date
 	err = testutil.WaitForBlocks(ctx, 2, xion)
