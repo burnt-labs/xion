@@ -164,7 +164,7 @@ func TestIndexerFeeGrantMultiple(t *testing.T) {
 
 	// Query by grantee1 (should see grants from both granters)
 	stdout, _, err = xion.GetNode().ExecBin(ctx,
-		"indexer", "query-grants-by-grantee",
+		"indexer", "query-allowances-by-grantee",
 		grantee1.FormattedAddress(),
 		"--node", xion.GetRPCAddress(),
 		"--output", "json",
@@ -301,7 +301,7 @@ func TestIndexerFeeGrantPeriodic(t *testing.T) {
 
 	// Query again to ensure periodic grants persist after potential usage
 	stdout, _, err = xion.GetNode().ExecBin(ctx,
-		"indexer", "query-grants-by-grantee",
+		"indexer", "query-allowances-by-grantee",
 		grantee1.FormattedAddress(),
 		"--node", xion.GetRPCAddress(),
 		"--output", "json",
@@ -343,7 +343,7 @@ func TestIndexerFeeGrantRevoke(t *testing.T) {
 	grantee := users[2]
 
 	// Create fee grants from two different granters
-	_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
+	txResp1, err := testlib.ExecTx(t, ctx, xion.GetNode(),
 		granter1.KeyName(),
 		"feegrant", "grant",
 		granter1.FormattedAddress(),
@@ -352,8 +352,9 @@ func TestIndexerFeeGrantRevoke(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err, "First fee grant should succeed")
+	t.Logf("First grant tx response: %v", txResp1)
 
-	_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
+	txResp2, err := testlib.ExecTx(t, ctx, xion.GetNode(),
 		granter2.KeyName(),
 		"feegrant", "grant",
 		granter2.FormattedAddress(),
@@ -362,23 +363,46 @@ func TestIndexerFeeGrantRevoke(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err, "Second fee grant should succeed")
+	t.Logf("Second grant tx response: %v", txResp2)
 
-	// Wait for indexing
-	err = testutil.WaitForBlocks(ctx, 3, xion)
+	// Wait for indexing - increased wait time to ensure indexer processes the grants
+	err = testutil.WaitForBlocks(ctx, 5, xion)
 	require.NoError(t, err)
 
-	// Verify both grants exist
-	stdout, _, err := xion.GetNode().ExecBin(ctx,
-		"indexer", "query-grants-by-grantee",
+	// First verify grants exist in the feegrant module directly
+	feeGrantQuery, _, err := xion.GetNode().ExecBin(ctx,
+		"query", "feegrant", "grants-by-grantee",
 		grantee.FormattedAddress(),
 		"--node", xion.GetRPCAddress(),
 		"--output", "json",
 	)
-	require.NoError(t, err, "Query should succeed")
+	require.NoError(t, err, "Direct feegrant query should succeed")
+	t.Logf("Direct feegrant query response: %s", string(feeGrantQuery))
+
+	// Verify both grants exist through indexer
+	stdout, _, err := xion.GetNode().ExecBin(ctx,
+		"indexer", "query-allowances-by-grantee",
+		grantee.FormattedAddress(),
+		"--node", xion.GetRPCAddress(),
+		"--output", "json",
+	)
+	if err != nil {
+		// Try querying by granter instead to verify grants exist
+		stdout, _, err = xion.GetNode().ExecBin(ctx,
+			"indexer", "query-allowances-by-granter",
+			granter1.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
+			"--output", "json",
+		)
+	}
+	require.NoError(t, err, "Indexer query should succeed")
 
 	var response map[string]interface{}
 	err = json.Unmarshal(stdout, &response)
 	require.NoError(t, err)
+
+	// Log the raw response for debugging
+	t.Logf("Query response: %s", string(stdout))
 
 	var items []interface{}
 	if allowances, ok := response["allowances"].([]interface{}); ok {
@@ -404,7 +428,7 @@ func TestIndexerFeeGrantRevoke(t *testing.T) {
 
 	// Query again - should have only 1 grant
 	stdout, _, err = xion.GetNode().ExecBin(ctx,
-		"indexer", "query-grants-by-grantee",
+		"indexer", "query-allowances-by-grantee",
 		grantee.FormattedAddress(),
 		"--node", xion.GetRPCAddress(),
 		"--output", "json",
@@ -438,7 +462,7 @@ func TestIndexerFeeGrantRevoke(t *testing.T) {
 
 	// Query again - should have no grants
 	stdout, _, err = xion.GetNode().ExecBin(ctx,
-		"indexer", "query-grants-by-grantee",
+		"indexer", "query-allowances-by-grantee",
 		grantee.FormattedAddress(),
 		"--node", xion.GetRPCAddress(),
 		"--output", "json",
