@@ -212,7 +212,7 @@ func TestIndexerFeeGrantPeriodic(t *testing.T) {
 		"feegrant", "grant",
 		granter.FormattedAddress(),
 		grantee1.FormattedAddress(),
-		"--period", "3600s", // 1 hour period
+		"--period", "3600", // 1 hour period (in seconds)
 		"--period-limit", "100000uxion",
 		"--chain-id", xion.Config().ChainID,
 	)
@@ -224,7 +224,7 @@ func TestIndexerFeeGrantPeriodic(t *testing.T) {
 		"feegrant", "grant",
 		granter.FormattedAddress(),
 		grantee2.FormattedAddress(),
-		"--period", "1800s", // 30 minute period
+		"--period", "1800", // 30 minute period (in seconds)
 		"--period-limit", "50000uxion",
 		"--spend-limit", "1000000uxion", // Overall limit
 		"--chain-id", xion.Config().ChainID,
