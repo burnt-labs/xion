@@ -2,7 +2,22 @@
 
 SIMAPP = ./app
 BINDIR ?= $(GOPATH)/bin
-export XION_IMAGE ?= xiond:local
+XION_IMAGE_DEFAULT = xiond:local
+
+# Automatically ensure Docker image exists when running any e2e tests
+DOCKER_IMAGE_CHECK := $(shell \
+	if [ -z "$(XION_IMAGE)" ]; then \
+		echo "XION_IMAGE is not set. Building default image $(XION_IMAGE_DEFAULT)..." >&2; \
+		$(MAKE) -f make/build.mk build-docker XION_IMAGE=$(XION_IMAGE_DEFAULT) >&2; \
+	elif ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "^$(XION_IMAGE)$$"; then \
+		echo "Docker image $(XION_IMAGE) not found. Building..." >&2; \
+		$(MAKE) -f make/build.mk build-docker XION_IMAGE=$(XION_IMAGE) >&2; \
+	else \
+		echo "Docker image $(XION_IMAGE) found." >&2; \
+	fi \
+)
+
+export XION_IMAGE ?= $(XION_IMAGE_DEFAULT)
 
 test: test-unit
 test-all: check test-race test-cover
@@ -118,6 +133,37 @@ test-app-upgrade-ibc:
 test-app-upgrade-network:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetwork
 
+test-app-v24-upgrade-full-flow:
+	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_FullUpgradeFlow
+
+test-app-v24-upgrade-performance:
+	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradePerformance
+
+test-app-v24-upgrade-idempotency:
+	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeIdempotency
+
+test-app-v24-upgrade-analysis:
+	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeAnalysis
+
+test-app-v24-upgrade-corrupted-data:
+	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeWithCorruptedData
+
+test-app-v24-upgrade-timeout:
+	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeContextTimeout
+
+test-app-v24-upgrade-schema-detection:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestV24Upgrade_SchemaDetection
+
+# Run all v24 upgrade e2e tests
+test-app-v24-upgrade-all: \
+	test-app-v24-upgrade-full-flow \
+	test-app-v24-upgrade-performance \
+	test-app-v24-upgrade-idempotency \
+	test-app-v24-upgrade-analysis \
+	test-app-v24-upgrade-corrupted-data \
+	test-app-v24-upgrade-timeout \
+	test-app-v24-upgrade-schema-detection
+
 # DKIM Module Tests
 test-dkim-governance:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMGovernance
@@ -196,6 +242,9 @@ test-xion-indexer-authz:
 
 test-xion-indexer-feegrant:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionIndexerFeeGrant
+
+test-xion-indexer-non-consensus-critical:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestIndexerNonConsensusCritical
 
 test-xion-min-fee-bypass:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeBypass
@@ -444,6 +493,16 @@ help-test:
 	@echo "    test-e2e-app-upgrade-ibc                Test IBC upgrade"
 	@echo "    test-e2e-app-upgrade-network            Test network upgrade"
 	@echo ""
+	@echo "  V24 Upgrade E2E Tests:"
+	@echo "    test-app-v24-upgrade-full-flow          Test v24 complete upgrade flow"
+	@echo "    test-app-v24-upgrade-performance        Test v24 performance with 100 contracts"
+	@echo "    test-app-v24-upgrade-idempotency        Test v24 idempotent behavior"
+	@echo "    test-app-v24-upgrade-analysis           Test v24 dry-run analysis"
+	@echo "    test-app-v24-upgrade-corrupted-data     Test v24 edge case handling"
+	@echo "    test-app-v24-upgrade-timeout            Test v24 timeout handling"
+	@echo "    test-app-v24-upgrade-schema-detection   Test v24 schema detection logic"
+	@echo "    test-app-v24-upgrade-all                Run all v24 upgrade tests"
+	@echo ""
 	@echo "  DKIM Module Individual Tests:"
 	@echo "    test-e2e-dkim-governance                Test governance-only key registration"
 	@echo "    test-e2e-dkim-key-revocation            Test key revocation"
@@ -474,8 +533,9 @@ help-test:
 	@echo ""
 	@echo "  Xion Module Individual Tests:"
 	@echo "    test-xion-genesis-export-import         Test genesis export and import cycle"
-	@echo "    test-xion-indexer-authz                 Test authz grant indexing"
-	@echo "    test-xion-indexer-feegrant              Test fee grant indexing"
+	@echo "    test-xion-indexer-authz                 Test authz grant indexing (includes robustness tests)"
+	@echo "    test-xion-indexer-feegrant              Test fee grant indexing (includes robustness tests)"
+	@echo "    test-xion-indexer-non-consensus-critical Test indexer non-consensus-critical operation"
 	@echo "    test-e2e-xion-min-fee-bypass            Test minimum fee bypass prevention"
 	@echo "    test-e2e-xion-min-fee-default           Test minimum fee default"
 	@echo "    test-e2e-xion-min-fee-multi-denom       Test multi-denom min global fee"

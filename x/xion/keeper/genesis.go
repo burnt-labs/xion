@@ -20,7 +20,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState *types.GenesisState) {
 // ExportGenesis returns the bank module's genesis state.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	bz := ctx.KVStore(k.storeKey).Get(types.PlatformPercentageKey)
-	platformPercentage := binary.BigEndian.Uint32(bz)
+	// Read as uint64 (8 bytes) since that's how it's stored, then convert to uint32
+	platformPercentage := uint32(binary.BigEndian.Uint64(bz))
 
 	platformMinimums, err := k.GetPlatformMinimums(ctx)
 	if err != nil {

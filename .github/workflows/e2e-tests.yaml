@@ -43,6 +43,7 @@ jobs:
           - "AAJWTCLI"
           - "AAMultiAuth"
           - "AAPanic"
+          - "AASingleMigration"
           - "AAWebAuthn"
           # App Module Tests
           - "AppGovernance"
@@ -56,6 +57,7 @@ jobs:
           - "AppSimulate"
           - "AppTokenFactory"
           - "AppTreasuryContract"
+          - "AppTreasuryGrants"
           - "AppTreasuryMulti"
           - "AppUpdateTreasuryConfigs"
           - "AppUpdateTreasuryConfigsAA"
@@ -69,13 +71,13 @@ jobs:
           # - "DKIMZKEmail"
           # - "DKIMZKProof"
           # Indexer Module Tests
-          # - "IndexerAuthzCreate"
-          # - "IndexerAuthzMultiple"
-          # - "IndexerAuthzRevoke"
-          # - "IndexerFeeGrantCreate"
-          # - "IndexerFeeGrantMultiple"
-          # - "IndexerFeeGrantPeriodic"
-          # - "IndexerFeeGrantRevoke"
+          - "IndexerAuthzCreate"
+          - "IndexerAuthzMultiple"
+          - "IndexerAuthzRevoke"
+          - "IndexerFeeGrantCreate"
+          - "IndexerFeeGrantMultiple"
+          - "IndexerFeeGrantPeriodic"
+          - "IndexerFeeGrantRevoke"
           # JWK Module Tests
           - "JWKAlgorithmConfusion"
           - "JWKAudienceMismatch"
@@ -91,6 +93,7 @@ jobs:
           - "GenesisExportImport"
           - "XionIndexerAuthz"
           - "XionIndexerFeeGrant"
+          - "XionIndexerNonConsensusCritical"
           # Xion Module Tests - Original
           - "XionMinFeeBypass"
           - "XionMinFeeDefault"
@@ -141,21 +144,21 @@ jobs:
           go-version-file: "e2e_tests/go.mod"
           cache-dependency-path: "e2e_tests/go.sum"
 
-      - name: Download heighliner image
+      - name: Download docker image
         uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}
-          pattern: heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar
+          pattern: docker-${{ matrix.os }}-${{ matrix.arch }}.tar
           merge-multiple: true
 
       - name: Load images
         working-directory: ${{ runner.temp }}
         run: |
-          docker load < "heighliner-${{ matrix.os }}-${{ matrix.arch }}.tar"
+          docker load < "docker-${{ matrix.os }}-${{ matrix.arch }}.tar"
 
       - name: Run e2e test
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: heighliner:${{ matrix.os }}-${{ matrix.arch }}
+          XION_IMAGE: xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
           make test-run TEST_NAME=Test${{ matrix.test_type }}

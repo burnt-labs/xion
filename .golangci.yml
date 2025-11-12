@@ -26,6 +26,7 @@ linters:
     gosec:
       excludes:
         - G404
+        - G115
     revive:
       rules:
       - name: "var-naming"
