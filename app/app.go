@@ -996,22 +996,27 @@ func NewWasmApp(
 	// Configure Indexer
 	app.indexerService = indexer.New(homePath, app.appCodec, authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), app.Logger())
 	if err = app.indexerService.RegisterServices(app.configurator); err != nil {
-		panic(err)
+		// Log the error but don't panic - indexer is not consensus-critical
+		app.Logger().Error("Failed to register indexer services", "error", err)
 	}
 
-	// Add listeners to commitmultistore
-	// otherwise the ABCILister attached to the streammanager
-	// will receive block information but empty []ChangeSet
-	listenKeys := []storetypes.StoreKey{
-		keys[feegrant.StoreKey],
-		keys[authzkeeper.StoreKey],
+	indexerConfig := indexer.NewConfigFromOptions(appOpts)
+	services := []storetypes.ABCIListener{}
+	if indexerConfig.Enabled {
+		// Add listeners to commitmultistore
+		// otherwise the ABCILister attached to the streammanager
+		// will receive block information but empty []ChangeSet
+		listenKeys := []storetypes.StoreKey{
+			keys[feegrant.StoreKey],
+			keys[authzkeeper.StoreKey],
+		}
+		app.CommitMultiStore().AddListeners(listenKeys)
+		services = append(services, app.indexerService)
 	}
-	app.CommitMultiStore().AddListeners(listenKeys)
+
 	streamManager := storetypes.StreamingManager{
-		ABCIListeners: []storetypes.ABCIListener{
-			app.indexerService,
-		},
-		StopNodeOnErr: true,
+		ABCIListeners: services,
+		StopNodeOnErr: false, // Changed from true to prevent indexer errors from halting the node
 	}
 	// attach stream manager
 	app.SetStreamingManager(streamManager)

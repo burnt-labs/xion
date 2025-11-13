@@ -89,7 +89,9 @@ func (ah *FeeGrantHandler) HandleUpdate(ctx context.Context, pair *storetypes.St
 		if has, err := ah.FeeAllowances.Has(ctx, collections.Join(granterAddr, granteeAddr)); err != nil {
 			return err
 		} else if !has {
-			return ErrAllowanceNotFound
+			// Graceful handling: deleting a non-existent allowance is a no-op, not an error
+			// This ensures the indexer remains robust during edge cases
+			return nil
 		}
 		return ah.FeeAllowances.Remove(ctx, collections.Join(granterAddr, granteeAddr))
 	}

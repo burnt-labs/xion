@@ -198,8 +198,8 @@ func QueryGrantsByGranter() *cobra.Command {
 
 func QueryAllowancesByGrantee() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "query-grants-by-grantee [grantee]",
-		Short: "query grants by grantee",
+		Use:   "query-allowances-by-grantee [grantee]",
+		Short: "query fee grant allowances by grantee",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			grantee := args[0]
