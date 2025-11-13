@@ -137,16 +137,20 @@ func (ss *StreamService) ListenCommit(ctx context.Context, res abci.ResponseComm
 		case authz.ModuleName:
 			// if the key is a grant index it
 			if bytes.HasPrefix(pair.Key, authzkeeper.GrantKey) {
-				err := ss.authzHandler.HandleUpdate(ctx, pair)
-				if err != nil {
-					return err
+				// Use safe handler with logging
+				if err := SafeAuthzHandlerUpdate(ctx, ss.authzHandler, pair, ss.log); err != nil {
+					// Even with safe handlers, log any unexpected errors
+					ss.log.Error("Unexpected error in authz handler", "error", err)
+					// Don't return error - continue processing
 				}
 			}
 		case feegrant.ModuleName:
 			if bytes.HasPrefix(pair.Key, feegrant.FeeAllowanceKeyPrefix) {
-				err := ss.feeGrantHandler.HandleUpdate(ctx, pair)
-				if err != nil {
-					return err
+				// Use safe handler with logging
+				if err := SafeFeeGrantHandlerUpdate(ctx, ss.feeGrantHandler, pair, ss.log); err != nil {
+					// Even with safe handlers, log any unexpected errors
+					ss.log.Error("Unexpected error in feegrant handler", "error", err)
+					// Don't return error - continue processing
 				}
 			}
 		}

@@ -996,7 +996,8 @@ func NewWasmApp(
 	// Configure Indexer
 	app.indexerService = indexer.New(homePath, app.appCodec, authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), app.Logger())
 	if err = app.indexerService.RegisterServices(app.configurator); err != nil {
-		panic(err)
+		// Log the error but don't panic - indexer is not consensus-critical
+		app.Logger().Error("Failed to register indexer services", "error", err)
 	}
 
 	// Add listeners to commitmultistore
@@ -1011,7 +1012,7 @@ func NewWasmApp(
 		ABCIListeners: []storetypes.ABCIListener{
 			app.indexerService,
 		},
-		StopNodeOnErr: true,
+		StopNodeOnErr: false, // Changed from true to prevent indexer errors from halting the node
 	}
 	// attach stream manager
 	app.SetStreamingManager(streamManager)

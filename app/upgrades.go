@@ -10,9 +10,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	v24_upgrade "github.com/burnt-labs/xion/app/v24_upgrade"
 )
 
-const UpgradeName = "v23"
+const UpgradeName = "v24"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -55,19 +57,21 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
-	// Log wasm module version before migration
-	if wasmVersion, ok := fromVM["wasm"]; ok {
-		sdkCtx.Logger().Info("wasm module version before migration", "version", wasmVersion)
-	}
-	// Run the migrations for all modules (including wasm 4->5)
+
+	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 	if err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %s", err))
 	}
-	// Log wasm module version after migration
-	if wasmVersion, ok := migrations["wasm"]; ok {
-		sdkCtx.Logger().Info("wasm module version after migration", "version", wasmVersion)
+
+	// Perform v24-specific contract migration
+	// This fixes the protobuf field ordering issue from wasmd v0.61.0-v0.61.4
+	sdkCtx.Logger().Info("starting v24 contract migration")
+	if err := v24_upgrade.PerformMigration(sdkCtx, app.GetKey("wasm")); err != nil {
+		return nil, fmt.Errorf("v24 contract migration failed: %w", err)
 	}
+	sdkCtx.Logger().Info("v24 contract migration complete")
+
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
 }
