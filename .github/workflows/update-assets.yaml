@@ -1,0 +1,33 @@
+name: Update Assets
+
+on:
+  workflow_call: # is called from the create-release workflow
+  workflow_dispatch: # manual trigger
+  release: # triggered by release event
+    types: [released]
+    # Notice:
+    # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
+    # - "published" type is happening when the release is marked as "latest"
+    # - "released" type is happening when a release was published, or a pre-release was changed to a release.
+    # - "prereleased" type is happening when a release was created and identified as a pre-release. A pre-release is a release that is not ready for production and may be unstable.
+
+concurrency: # With concurrency control: Only the latest workflow run executes, previous runs get cancelled
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trigger-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger xion-assets workflow
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.REPO_DISPATCH_TOKEN }}
+          repository: burnt-labs/xion-assets
+          event-type: xion-assets-release-trigger # NOTICE: must match the trigger in xion-assets workflow
+          client-payload: |
+            {
+              "tag_name": "${{ github.event.release.tag_name }}",
+              "release_name": "${{ github.event.release.name }}"
+            }
+
