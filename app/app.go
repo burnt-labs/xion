@@ -1000,18 +1000,22 @@ func NewWasmApp(
 		app.Logger().Error("Failed to register indexer services", "error", err)
 	}
 
-	// Add listeners to commitmultistore
-	// otherwise the ABCILister attached to the streammanager
-	// will receive block information but empty []ChangeSet
-	listenKeys := []storetypes.StoreKey{
-		keys[feegrant.StoreKey],
-		keys[authzkeeper.StoreKey],
+	indexerConfig := indexer.NewConfigFromOptions(appOpts)
+	services := []storetypes.ABCIListener{}
+	if indexerConfig.Enabled {
+		// Add listeners to commitmultistore
+		// otherwise the ABCILister attached to the streammanager
+		// will receive block information but empty []ChangeSet
+		listenKeys := []storetypes.StoreKey{
+			keys[feegrant.StoreKey],
+			keys[authzkeeper.StoreKey],
+		}
+		app.CommitMultiStore().AddListeners(listenKeys)
+		services = append(services, app.indexerService)
 	}
-	app.CommitMultiStore().AddListeners(listenKeys)
+
 	streamManager := storetypes.StreamingManager{
-		ABCIListeners: []storetypes.ABCIListener{
-			app.indexerService,
-		},
+		ABCIListeners: services,
 		StopNodeOnErr: false, // Changed from true to prevent indexer errors from halting the node
 	}
 	// attach stream manager
