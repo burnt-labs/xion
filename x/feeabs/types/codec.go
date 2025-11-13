@@ -1,6 +1,8 @@
 package types
 
 import (
+	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -36,6 +38,22 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
+
+	// Register legacy type URLs to maintain
+	// backward compatibility with governance proposals stored before the proto package rename.
+	// This allows the node to decode messages that were stored with the old package name.
+	type customTypeURLRegistry interface {
+		RegisterCustomTypeURL(iface any, typeURL string, impl proto.Message)
+	}
+	if customReg, ok := registry.(customTypeURLRegistry); ok {
+		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgUpdateParams", &MsgUpdateParams{})
+		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgSendQueryIbcDenomTWAP", &MsgSendQueryIbcDenomTWAP{})
+		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgSwapCrossChain", &MsgSwapCrossChain{})
+		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgFundFeeAbsModuleAccount", &MsgFundFeeAbsModuleAccount{})
+		customReg.RegisterCustomTypeURL((*v1beta1types.Content)(nil), "/feeabstraction.feeabs.v1beta1.AddHostZoneProposal", &AddHostZoneProposal{})
+		customReg.RegisterCustomTypeURL((*v1beta1types.Content)(nil), "/feeabstraction.feeabs.v1beta1.DeleteHostZoneProposal", &DeleteHostZoneProposal{})
+		customReg.RegisterCustomTypeURL((*v1beta1types.Content)(nil), "/feeabstraction.feeabs.v1beta1.SetHostZoneProposal", &SetHostZoneProposal{})
+	}
 }
 
 func init() {

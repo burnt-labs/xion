@@ -197,8 +197,8 @@ github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0-xion.1 h1
 github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0-xion.1/go.mod h1:TGSD3/2yfkgB4KWxK9pLE+Sssxf5ffOs5wfFK1JMeBM=
 github.com/burnt-labs/tokenfactory v0.53.4-xion.2 h1:c55X9mQSPj7WfVDixPBBRZDmsyOOT9uXvMBimvotDzw=
 github.com/burnt-labs/tokenfactory v0.53.4-xion.2/go.mod h1:qxp8BvH6EYuHK/l9ZQrPL4K1/TqyGvtXb7ztKFOwUqw=
-github.com/burnt-labs/wasmd v0.61.6-xion.1 h1:NJ+xouxRr2DKPe0FZfc5STzVJeZSMqw9yc3rQ/JSdSo=
-github.com/burnt-labs/wasmd v0.61.6-xion.1/go.mod h1:avXvRlXa7z31gCH0I16NGjcEUPkWwX0f6Z+vnloHwV8=
+github.com/burnt-labs/wasmd v0.61.6-xion.3 h1:RkB+glQ9blKj+wP3JCMOGep4SYDHdSUG03M0NPdAloQ=
+github.com/burnt-labs/wasmd v0.61.6-xion.3/go.mod h1:avXvRlXa7z31gCH0I16NGjcEUPkWwX0f6Z+vnloHwV8=
 github.com/bytedance/gopkg v0.1.3 h1:TPBSwH8RsouGCBcMBktLt1AymVo2TVsBVCY4b6TnZ/M=
 github.com/bytedance/gopkg v0.1.3/go.mod h1:576VvJ+eJgyCzdjS+c4+77QF3p7ubbtiKARP3TxducM=
 github.com/bytedance/sonic v1.14.2 h1:k1twIoe97C1DtYUo+fZQy865IuHia4PR5RPiuGPPIIE=
