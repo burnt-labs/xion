@@ -100,8 +100,8 @@ func TestQueryGrantsByGranter(t *testing.T) {
 func TestQueryAllowancesByGrantee(t *testing.T) {
 	cmd := QueryAllowancesByGrantee()
 	require.NotNil(t, cmd)
-	require.Equal(t, "query-grants-by-grantee [grantee]", cmd.Use)
-	require.Equal(t, "query grants by grantee", cmd.Short)
+	require.Equal(t, "query-allowances-by-grantee [grantee]", cmd.Use)
+	require.Equal(t, "query fee grant allowances by grantee", cmd.Short)
 	require.NotNil(t, cmd.RunE)
 
 	// Test that it requires exactly 1 argument
