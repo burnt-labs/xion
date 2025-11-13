@@ -235,6 +235,148 @@ func TestClearField8(t *testing.T) {
 	}
 }
 
+func TestAddEmptyField7(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   map[int][]byte
+		wantErr bool
+	}{
+		{
+			name: "add field 7 to legacy contract",
+			input: map[int][]byte{
+				1: []byte("code_id"),
+				2: []byte("creator"),
+				// No field 7
+			},
+			wantErr: false,
+		},
+		{
+			name: "field 7 already exists - no change",
+			input: map[int][]byte{
+				1: []byte("code_id"),
+				7: []byte("extension"),
+			},
+			wantErr: false,
+		},
+		{
+			name:    "empty protobuf",
+			input:   map[int][]byte{},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input := createTestProtobuf(tt.input)
+
+			result, err := AddEmptyField7(input)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+
+			// Verify field 7 exists
+			fields, err := ParseProtobufFields(result)
+			require.NoError(t, err)
+
+			field7, ok := fields[7]
+			require.True(t, ok, "field 7 should exist after AddEmptyField7")
+			require.Equal(t, WireBytes, field7.WireType, "field 7 should have wire type bytes")
+
+			// Get the value to verify it's empty
+			value, err := GetFieldValue(result, 7)
+			require.NoError(t, err)
+			if len(tt.input) > 0 && tt.input[7] == nil {
+				// If field 7 didn't exist before, it should be empty now
+				require.Equal(t, 0, len(value), "field 7 should be empty")
+			}
+
+			// Verify other fields still exist
+			for fieldNum := range tt.input {
+				if fieldNum != 7 {
+					_, ok := fields[fieldNum]
+					require.True(t, ok, "field %d should still exist", fieldNum)
+				}
+			}
+		})
+	}
+}
+
+func TestEnsureEmptyField8(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   map[int][]byte
+		wantErr bool
+	}{
+		{
+			name: "field 8 missing - should add empty",
+			input: map[int][]byte{
+				1: []byte("code_id"),
+				7: []byte("extension"),
+				// No field 8
+			},
+			wantErr: false,
+		},
+		{
+			name: "field 8 has data - should replace with empty",
+			input: map[int][]byte{
+				1: []byte("code_id"),
+				7: []byte("extension"),
+				8: []byte("data"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "field 8 already empty - no change",
+			input: map[int][]byte{
+				1: []byte("code_id"),
+				7: []byte("extension"),
+				8: []byte(""),
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input := createTestProtobuf(tt.input)
+
+			result, err := EnsureEmptyField8(input)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+
+			// Verify field 8 exists
+			fields, err := ParseProtobufFields(result)
+			require.NoError(t, err)
+
+			field8, ok := fields[8]
+			require.True(t, ok, "field 8 should exist after EnsureEmptyField8")
+			require.Equal(t, WireBytes, field8.WireType, "field 8 should have wire type bytes")
+
+			// Verify field 8 is empty
+			value, err := GetFieldValue(result, 8)
+			require.NoError(t, err)
+			require.Equal(t, 0, len(value), "field 8 should be empty")
+
+			// Verify other fields still exist
+			for fieldNum := range tt.input {
+				if fieldNum != 8 {
+					_, ok := fields[fieldNum]
+					require.True(t, ok, "field %d should still exist", fieldNum)
+				}
+			}
+		})
+	}
+}
+
 func TestGetFieldValue(t *testing.T) {
 	tests := []struct {
 		name      string

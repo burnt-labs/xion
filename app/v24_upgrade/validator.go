@@ -27,26 +27,15 @@ func NewValidator(logger log.Logger, storeKey storetypes.StoreKey, network Netwo
 	}
 }
 
-// ValidateMigration performs statistical validation of the migration
+// ValidateMigration performs full validation of ALL contracts after migration
 func (v *Validator) ValidateMigration(ctx sdk.Context, totalContracts uint64) ([]ValidationResult, error) {
 	v.logger.Info("Starting post-migration validation")
 
 	startTime := time.Now()
 
-	// Get sample size based on network
-	sampleRate := GetSampleRate(v.network)
-	sampleSize := int(float64(totalContracts) * sampleRate)
-	if sampleSize < 100 {
-		sampleSize = 100 // Minimum sample size
-	}
-	if sampleSize > int(totalContracts) {
-		sampleSize = int(totalContracts)
-	}
-
 	v.logger.Info("Validation parameters",
 		"total_contracts", totalContracts,
-		"sample_rate", sampleRate,
-		"sample_size", sampleSize,
+		"validation_mode", "FULL (all contracts)",
 	)
 
 	// Get all contract addresses
@@ -55,15 +44,13 @@ func (v *Validator) ValidateMigration(ctx sdk.Context, totalContracts uint64) ([
 		return nil, fmt.Errorf("failed to get contract addresses: %w", err)
 	}
 
-	// Sample random contracts
-	sampleAddresses := v.sampleAddresses(addresses, sampleSize)
-
-	// Validate each sampled contract
-	results := make([]ValidationResult, 0, len(sampleAddresses))
+	// Validate ALL contracts (no sampling)
+	// Validate each contract
+	results := make([]ValidationResult, 0, len(addresses))
 	successCount := 0
 	failureCount := 0
 
-	for i, addr := range sampleAddresses {
+	for i, addr := range addresses {
 		result := v.validateContract(ctx, addr)
 		results = append(results, result)
 
@@ -72,7 +59,7 @@ func (v *Validator) ValidateMigration(ctx sdk.Context, totalContracts uint64) ([
 		} else {
 			failureCount++
 			v.logger.Error("Validation failed for contract",
-				"address", addr,
+				"address", FormatAddress(addr),
 				"error", result.Error,
 				"field7_type", result.Field7Type,
 				"field8_empty", result.Field8Empty,
@@ -83,7 +70,7 @@ func (v *Validator) ValidateMigration(ctx sdk.Context, totalContracts uint64) ([
 		if (i+1)%1000 == 0 {
 			v.logger.Info("Validation progress",
 				"validated", i+1,
-				"total", len(sampleAddresses),
+				"total", len(addresses),
 				"success", successCount,
 				"failures", failureCount,
 			)
@@ -92,16 +79,23 @@ func (v *Validator) ValidateMigration(ctx sdk.Context, totalContracts uint64) ([
 
 	duration := time.Since(startTime)
 
+	// Calculate rate
+	var contractsPerSecond float64
+	if duration.Seconds() > 0 {
+		contractsPerSecond = float64(len(addresses)) / duration.Seconds()
+	}
+
 	v.logger.Info("Validation complete",
-		"sample_size", len(sampleAddresses),
+		"total_validated", len(addresses),
 		"successes", successCount,
 		"failures", failureCount,
-		"success_rate", fmt.Sprintf("%.2f%%", float64(successCount)/float64(len(sampleAddresses))*100),
+		"success_rate", fmt.Sprintf("%.2f%%", float64(successCount)/float64(len(addresses))*100),
 		"duration", duration,
+		"contracts_per_second", fmt.Sprintf("%.0f", contractsPerSecond),
 	)
 
 	if failureCount > 0 {
-		return results, fmt.Errorf("validation failed: %d/%d contracts failed validation", failureCount, len(sampleAddresses))
+		return results, fmt.Errorf("validation failed: %d/%d contracts failed validation", failureCount, len(addresses))
 	}
 
 	return results, nil
@@ -132,29 +126,66 @@ func (v *Validator) validateContract(ctx sdk.Context, address string) Validation
 		return result
 	}
 
-	// Validate field 7 exists and is extension (wire type 2)
-	field7, hasField7 := fields[7]
-	if !hasField7 {
-		result.Error = fmt.Errorf("field 7 (extension) is missing")
+	// Detect schema version to determine expected structure
+	schema := DetectSchemaVersion(data)
+
+	switch schema {
+	case SchemaLegacy:
+		// Pre-v20 legacy contract - should have been migrated to add field 8
+		// After migration, this should not exist (all SchemaLegacy become SchemaCanonical)
+		result.Error = fmt.Errorf("contract still has SchemaLegacy after migration (field 8 missing)")
+		result.Field8Empty = true // Field 8 is missing
+		return result
+
+	case SchemaBroken:
+		// Should NEVER see this after migration - all broken contracts should be fixed
+		result.Error = fmt.Errorf("contract still has SchemaBroken after migration (field 8 has data)")
+		result.Field8Empty = false
+		return result
+
+	case SchemaCanonical:
+		// Post-migration canonical state: Field 7 present (extension), field 8 present and empty
+		// This is the ONLY valid state after migration
+		field7, hasField7 := fields[7]
+		if !hasField7 {
+			result.Error = fmt.Errorf("canonical schema requires field 7 (extension)")
+			return result
+		}
+
+		result.Field7Type = field7.WireType
+		if field7.WireType != WireBytes {
+			result.Error = fmt.Errorf("field 7 has wrong wire type: expected %d (bytes), got %d", WireBytes, field7.WireType)
+			return result
+		}
+
+		// Validate field 8 exists and is empty (all contracts must have field 8 after v24)
+		_, hasField8 := fields[8]
+		if !hasField8 {
+			result.Error = fmt.Errorf("field 8 (ibc2_port_id) is missing - all contracts must have field 8 after v24 migration")
+			result.Field8Empty = true // Technically empty but missing
+			return result
+		}
+
+		// Validate field 8 is empty (IBCv2 never used)
+		result.Field8Empty = IsField8Empty(data)
+		if !result.Field8Empty {
+			result.Error = fmt.Errorf("field 8 is not empty (IBCv2 should never be used)")
+			return result
+		}
+
+		// Canonical contract is valid
+		result.Valid = true
+		return result
+
+	case SchemaCorrupted:
+		// Data corruption detected
+		result.Error = fmt.Errorf("contract data is corrupted (invalid wire types, truncated data, etc.)")
+		return result
+
+	default:
+		result.Error = fmt.Errorf("unknown schema version")
 		return result
 	}
-
-	result.Field7Type = field7.WireType
-	if field7.WireType != WireBytes {
-		result.Error = fmt.Errorf("field 7 has wrong wire type: expected %d (bytes), got %d", WireBytes, field7.WireType)
-		return result
-	}
-
-	// Validate field 8 is empty (IBCv2 never used)
-	result.Field8Empty = IsField8Empty(data)
-	if !result.Field8Empty {
-		result.Error = fmt.Errorf("field 8 is not empty (IBCv2 should never be used)")
-		return result
-	}
-
-	// All checks passed
-	result.Valid = true
-	return result
 }
 
 // getAllContractAddresses retrieves all contract addresses

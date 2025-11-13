@@ -13,7 +13,7 @@ func TestDetectSchemaVersion(t *testing.T) {
 		want  SchemaVersion
 	}{
 		{
-			name: "SchemaLegacy - no field 8",
+			name: "SchemaLegacy - field 7 present, no field 8",
 			input: map[int][]byte{
 				1: []byte("code_id"),
 				7: []byte("extension"),
@@ -22,7 +22,7 @@ func TestDetectSchemaVersion(t *testing.T) {
 			want: SchemaLegacy,
 		},
 		{
-			name: "SchemaCanonical - field 8 empty",
+			name: "SchemaCanonical - field 7 present, field 8 empty",
 			input: map[int][]byte{
 				1: []byte("code_id"),
 				7: []byte("extension"),
@@ -38,6 +38,15 @@ func TestDetectSchemaVersion(t *testing.T) {
 				8: []byte("extension"), // Has data - indicates corruption
 			},
 			want: SchemaBroken,
+		},
+		{
+			name: "SchemaLegacy - no field 7, no field 8",
+			input: map[int][]byte{
+				1: []byte("code_id"),
+				// No field 7
+				// No field 8
+			},
+			want: SchemaLegacy,
 		},
 		{
 			name:  "SchemaLegacy - completely empty",
@@ -57,11 +66,11 @@ func TestDetectSchemaVersion(t *testing.T) {
 }
 
 func TestDetectSchemaVersion_Corrupted(t *testing.T) {
-	// Test with corrupted data
+	// Test with corrupted data (invalid protobuf)
 	corruptedData := []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 
 	result := DetectSchemaVersion(corruptedData)
-	require.Equal(t, SchemaUnknown, result)
+	require.Equal(t, SchemaCorrupted, result, "Invalid protobuf should be detected as SchemaCorrupted")
 }
 
 func TestNeedsMigration(t *testing.T) {
@@ -70,9 +79,10 @@ func TestNeedsMigration(t *testing.T) {
 		schema SchemaVersion
 		want   bool
 	}{
-		{"SchemaLegacy doesn't need migration", SchemaLegacy, false},
+		{"SchemaLegacy needs migration (add field 7)", SchemaLegacy, true},
 		{"SchemaCanonical doesn't need migration", SchemaCanonical, false},
 		{"SchemaBroken needs migration", SchemaBroken, true},
+		{"SchemaCorrupted needs attention (will fail)", SchemaCorrupted, true},
 		{"SchemaUnknown doesn't need migration", SchemaUnknown, false},
 	}
 
@@ -93,7 +103,7 @@ func TestGetMigrationAction(t *testing.T) {
 		{
 			name:   "SchemaLegacy",
 			schema: SchemaLegacy,
-			want:   "None - already safe (pre-v20)",
+			want:   "Add missing fields (field 7 extension and/or field 8 ibc2_port_id)",
 		},
 		{
 			name:   "SchemaBroken",
@@ -104,6 +114,11 @@ func TestGetMigrationAction(t *testing.T) {
 			name:   "SchemaCanonical",
 			schema: SchemaCanonical,
 			want:   "None - already correct",
+		},
+		{
+			name:   "SchemaCorrupted",
+			schema: SchemaCorrupted,
+			want:   "Cannot fix - data corruption (invalid wire types, truncated data, etc.)",
 		},
 		{
 			name:   "SchemaUnknown",
@@ -136,13 +151,13 @@ func TestAnalyzeContractData(t *testing.T) {
 			address: "xion1test1",
 			input: map[int][]byte{
 				1: []byte("code_id"),
-				7: []byte("extension"),
+				// No field 7 - true legacy
 			},
 			wantSchema:         SchemaLegacy,
-			wantHasField7:      true,
+			wantHasField7:      false,
 			wantHasField8:      false,
 			wantField8HasData:  false,
-			wantNeedsMigration: false,
+			wantNeedsMigration: true,
 		},
 		{
 			name:    "SchemaBroken contract",
@@ -266,15 +281,15 @@ func TestDetectSchemaVersion_RealWorldScenarios(t *testing.T) {
 	}{
 		{
 			name:        "Pre-v20 contract (ancient)",
-			description: "Contract created before wasmd v0.61.0",
+			description: "Contract created before wasmd v0.61.0 - no extension field",
 			input: map[int][]byte{
-				1: []byte("100"),               // code_id
-				2: []byte("xion1creator"),      // creator
-				3: []byte("xion1admin"),        // admin
-				4: []byte("my-contract"),       // label
-				5: {1, 2, 3},                   // created (AbsoluteTxPosition)
-				6: []byte(""),                  // ibc_port_id (empty)
-				7: {10, 5, 116, 101, 115, 116}, // extension (Any type)
+				1: []byte("100"),          // code_id
+				2: []byte("xion1creator"), // creator
+				3: []byte("xion1admin"),   // admin
+				4: []byte("my-contract"),  // label
+				5: {1, 2, 3},              // created (AbsoluteTxPosition)
+				6: []byte(""),             // ibc_port_id (empty)
+				// No field 7 (extension) - true pre-v20 contract
 				// No field 8
 			},
 			wantSchema: SchemaLegacy,

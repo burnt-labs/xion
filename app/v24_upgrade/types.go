@@ -11,10 +11,11 @@ const (
 	// SchemaUnknown indicates we couldn't determine the schema
 	SchemaUnknown SchemaVersion = iota
 
-	// SchemaLegacy: Pre-v20 contracts (< wasmd v0.61.0)
-	// - extension at position 7 (correct)
-	// - No ibc2_port_id field (position 8 empty)
-	// Action: None needed - already safe
+	// SchemaLegacy: Contracts missing field 7 and/or field 8
+	// - May be missing extension (field 7), ibc2_port_id (field 8), or both
+	// - These contracts may work but don't have consistent structure
+	// - We make NO assumptions - check each contract individually
+	// Action: Add any missing fields (field 7 and/or field 8) to ensure consistency
 	SchemaLegacy
 
 	// SchemaBroken: v20 & v21 contracts (wasmd v0.61.0 - v0.61.4)
@@ -28,6 +29,12 @@ const (
 	// - ibc2_port_id at position 8 (correct, but always null since IBCv2 never used)
 	// Action: None needed - already correct
 	SchemaCanonical
+
+	// SchemaCorrupted: Data corruption (invalid wire types, truncated data, etc.)
+	// - Protobuf structure cannot be parsed
+	// - May have invalid wire types (6, 7), truncated data, etc.
+	// Action: Cannot be fixed by migration - requires manual intervention
+	SchemaCorrupted
 )
 
 // String returns the name of the schema version
@@ -39,6 +46,8 @@ func (s SchemaVersion) String() string {
 		return "SchemaBroken"
 	case SchemaCanonical:
 		return "SchemaCanonical"
+	case SchemaCorrupted:
+		return "SchemaCorrupted"
 	default:
 		return "SchemaUnknown"
 	}
@@ -87,6 +96,7 @@ type MigrationReport struct {
 	FailedAddresses []string // Addresses that failed migration
 	NetworkType     NetworkType
 	Mode            MigrationMode
+	DryRun          bool // True if this was a dry-run (no changes saved)
 
 	// Phase timings
 	DiscoveryDuration  time.Duration

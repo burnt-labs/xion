@@ -21,6 +21,7 @@ type Migrator struct {
 	stats       *MigrationStats
 	statsMutex  sync.Mutex
 	failedAddrs []string
+	dryRun      bool // If true, migration runs but doesn't save changes
 }
 
 // NewMigrator creates a new migrator instance
@@ -32,7 +33,22 @@ func NewMigrator(logger log.Logger, storeKey storetypes.StoreKey, network Networ
 		mode:        mode,
 		stats:       &MigrationStats{},
 		failedAddrs: make([]string, 0),
+		dryRun:      false, // Default to real migration
 	}
+}
+
+// SetDryRun enables or disables dry-run mode
+// In dry-run mode, migration logic executes but changes are not saved to the store
+func (m *Migrator) SetDryRun(enabled bool) {
+	m.dryRun = enabled
+	if enabled {
+		m.logger.Warn("⚠️  DRY-RUN MODE ENABLED - No changes will be saved to blockchain state")
+	}
+}
+
+// IsDryRun returns whether dry-run mode is enabled
+func (m *Migrator) IsDryRun() bool {
+	return m.dryRun
 }
 
 // MigrateContract migrates a single contract based on the simplified strategy
@@ -44,21 +60,82 @@ func (m *Migrator) MigrateContract(address string, data []byte) ([]byte, bool, e
 	// Update stats
 	m.updateSchemaCount(schema)
 
-	// Check if migration is needed
+	// Check if this is unfixable corruption
+	if schema == SchemaCorrupted {
+		// Log the corrupted contract address for investigation
+		m.logger.Error("Found corrupted contract that cannot be fixed",
+			"address", FormatAddress(address),
+			"error", "unfixable data corruption (invalid wire types, truncated data, etc.)",
+			"recommendation", "Manual investigation required - contract may need to be deleted or recreated",
+		)
+		// Cannot fix corrupted contracts - report as failed
+		return nil, false, fmt.Errorf("unfixable data corruption (invalid wire types, truncated data, etc.)")
+	}
+
+	// Check if SchemaCanonical needs field 8 added (even if otherwise correct)
+	if schema == SchemaCanonical {
+		// Parse to check if field 8 exists
+		fields, err := ParseProtobufFields(data)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to parse protobuf: %w", err)
+		}
+
+		_, hasField8 := fields[8]
+		if hasField8 {
+			// Field 8 already exists - check if it's empty
+			value, err := GetFieldValue(data, 8)
+			if err == nil && len(value) == 0 {
+				// Already correct - no migration needed
+				return data, false, nil
+			}
+		}
+
+		// Field 8 missing or not empty - ensure it's empty
+		migratedData, err := EnsureEmptyField8(data)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to ensure field 8: %w", err)
+		}
+		return migratedData, true, nil
+	}
+
+	// Check if migration is needed for other schemas
 	if !NeedsMigration(schema) {
 		return data, false, nil // No changes needed
 	}
 
-	// Schema is SchemaBroken - need to swap fields 7 and 8
-	migratedData, err := SwapFields7And8(data)
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to swap fields: %w", err)
-	}
+	var migratedData []byte
+	var err error
 
-	// Clear field 8 to ensure it's null (IBCv2 never used)
-	migratedData, err = ClearField8(migratedData)
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to clear field 8: %w", err)
+	switch schema {
+	case SchemaLegacy:
+		// Legacy contract - might be missing field 7, field 8, or both
+		// First ensure field 7 exists
+		migratedData, err = AddEmptyField7(data)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to add field 7: %w", err)
+		}
+
+		// Then ensure field 8 exists
+		migratedData, err = EnsureEmptyField8(migratedData)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to ensure field 8: %w", err)
+		}
+
+	case SchemaBroken:
+		// v20/v21 contract - swap fields 7 and 8
+		migratedData, err = SwapFields7And8(data)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to swap fields: %w", err)
+		}
+
+		// Ensure field 8 exists as empty string (replaces data with empty, or adds if missing)
+		migratedData, err = EnsureEmptyField8(migratedData)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to ensure field 8: %w", err)
+		}
+
+	default:
+		return nil, false, fmt.Errorf("unexpected schema type: %v", schema)
 	}
 
 	return migratedData, true, nil
@@ -119,6 +196,7 @@ func (m *Migrator) MigrateAllContracts(ctx sdk.Context) (*MigrationReport, error
 		FailedAddresses:   m.failedAddrs,
 		NetworkType:       m.network,
 		Mode:              m.mode,
+		DryRun:            m.dryRun,
 		DiscoveryDuration: discoveryDuration,
 		MigrationDuration: migrationDuration,
 	}
@@ -220,8 +298,17 @@ func (m *Migrator) worker(ctx sdk.Context, workChan <-chan contractWork, resultC
 
 		// Write migrated data back to store if changed
 		if changed {
-			key := append(prefix, []byte(work.address)...)
-			store.Set(key, migratedData)
+			if m.dryRun {
+				// Dry-run mode: Log what would be migrated but don't save
+				m.logger.Debug("DRY-RUN: Would migrate contract",
+					"address", FormatAddress(work.address),
+					"original_schema", result.OriginalSchema.String(),
+				)
+			} else {
+				// Real migration: Save the migrated data
+				key := append(prefix, []byte(work.address)...)
+				store.Set(key, migratedData)
+			}
 		}
 
 		resultChan <- result
@@ -250,7 +337,7 @@ func (m *Migrator) collectResults(resultChan <-chan ContractMigrationResult, don
 			m.statsMutex.Unlock()
 
 			m.logger.Error("Failed to migrate contract",
-				"address", result.Address,
+				"address", FormatAddress(result.Address),
 				"error", result.Error,
 			)
 		}

@@ -1,6 +1,10 @@
 package v24_upgrade
 
-import "time"
+import (
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 // Migration configuration constants
 const (
@@ -84,4 +88,15 @@ func GetSampleRate(network NetworkType) float64 {
 		return MainnetSampleRate
 	}
 	return TestnetSampleRate
+}
+
+// FormatAddress converts raw address bytes to human-readable Bech32 format
+// Handles both raw bytes and string-encoded bytes
+func FormatAddress(addr string) string {
+	// Convert string to bytes (addresses are stored as raw bytes converted to string)
+	addrBytes := []byte(addr)
+
+	// Convert to SDK AccAddress and then to Bech32
+	accAddr := sdk.AccAddress(addrBytes)
+	return accAddr.String()
 }

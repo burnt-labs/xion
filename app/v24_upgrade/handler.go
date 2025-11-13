@@ -2,6 +2,7 @@ package v24_upgrade
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	storetypes "cosmossdk.io/store/types"
@@ -37,8 +38,18 @@ func PerformMigration(ctx sdk.Context, storeKey storetypes.StoreKey) error {
 	// For testing: use ModeLogAndContinue or ModeFailOnCorruption
 	mode := ModeAutoMigrate
 
+	// Check for dry-run mode
+	dryRun := os.Getenv("V24_DRY_RUN") == "true"
+	if dryRun {
+		logger.Warn("⚠️ ⚠️ ⚠️  V24 DRY-RUN MODE ENABLED  ⚠️ ⚠️ ⚠️")
+		logger.Warn("Running migration preview - NO CHANGES WILL BE SAVED TO BLOCKCHAIN STATE")
+		logger.Warn("Set V24_DRY_RUN=false or unset to perform actual migration")
+		logger.Warn("==========================================")
+	}
+
 	logger.Info("Migration configuration",
 		"mode", mode,
+		"dry_run", dryRun,
 		"workers", GetWorkerCount(network),
 		"batch_size", GetBatchSize(network),
 	)
@@ -48,6 +59,8 @@ func PerformMigration(ctx sdk.Context, storeKey storetypes.StoreKey) error {
 	migrationStart := time.Now()
 
 	migrator := NewMigrator(logger, storeKey, network, mode)
+	migrator.SetDryRun(dryRun) // Enable dry-run if env var is set
+
 	report, err := migrator.MigrateAllContracts(ctx)
 	if err != nil {
 		return fmt.Errorf("migration failed: %w", err)
@@ -90,8 +103,16 @@ func PerformMigration(ctx sdk.Context, storeKey storetypes.StoreKey) error {
 	}
 
 	logger.Info("=================================================================")
-	logger.Info("          V24 Upgrade Complete")
-	logger.Info("=================================================================")
+	if dryRun {
+		logger.Warn("          V24 MIGRATION COMPLETE (DRY-RUN)")
+		logger.Warn("=================================================================")
+		logger.Warn("⚠️  NO CHANGES WERE SAVED - This was a preview only")
+		logger.Warn("⚠️  To perform actual migration, set V24_DRY_RUN=false or unset the variable")
+		logger.Info("=================================================================")
+	} else {
+		logger.Info("          V24 Upgrade Complete")
+		logger.Info("=================================================================")
+	}
 
 	return nil
 }
@@ -142,7 +163,7 @@ func DryRunAnalysis(ctx sdk.Context, storeKey storetypes.StoreKey) (*MigrationSt
 			stats.CanonicalCount++
 		default:
 			stats.UnknownCount++
-			logger.Warn("Unknown schema detected", "address", address)
+			logger.Warn("Unknown schema detected", "address", FormatAddress(address))
 		}
 
 		// Log progress every 100k contracts

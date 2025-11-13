@@ -272,8 +272,8 @@ func TestIntegration_MigrationWithMultipleContracts(t *testing.T) {
 	}
 
 	// Verify counts
-	require.Equal(t, 2, migratedCount, "should have migrated 2 broken contracts")
-	require.Equal(t, 3, skippedCount, "should have skipped 3 safe contracts")
+	require.Equal(t, 4, migratedCount, "should have migrated 2 legacy + 2 broken contracts")
+	require.Equal(t, 1, skippedCount, "should have skipped 1 canonical contract")
 }
 
 func TestIntegration_ValidatorSchemaDistribution(t *testing.T) {
@@ -397,14 +397,14 @@ func TestIntegration_MigrateAllContracts(t *testing.T) {
 	// Verify migration stats
 	require.Equal(t, uint64(10), report.Stats.TotalContracts)
 	require.Equal(t, uint64(10), report.Stats.ProcessedContracts)
-	require.Equal(t, uint64(4), report.Stats.MigratedContracts, "should migrate 4 broken contracts")
-	require.Equal(t, uint64(6), report.Stats.SkippedContracts, "should skip 6 safe contracts")
+	require.Equal(t, uint64(7), report.Stats.MigratedContracts, "should migrate 3 legacy + 4 broken contracts")
+	require.Equal(t, uint64(3), report.Stats.SkippedContracts, "should skip 3 canonical contracts")
 	require.Equal(t, uint64(0), report.Stats.FailedContracts)
 
 	// Verify schema distribution
-	require.Equal(t, uint64(3), report.Stats.LegacyCount)
-	require.Equal(t, uint64(4), report.Stats.BrokenCount)
-	require.Equal(t, uint64(3), report.Stats.CanonicalCount)
+	require.Equal(t, uint64(3), report.Stats.LegacyCount, "3 legacy contracts (have field 7 but missing field 8)")
+	require.Equal(t, uint64(4), report.Stats.BrokenCount, "4 broken contracts with field 8 data")
+	require.Equal(t, uint64(3), report.Stats.CanonicalCount, "3 canonical contracts (both fields present, field 8 empty)")
 
 	// Verify all broken contracts are now fixed
 	brokenAddresses := []string{"xion1broken1", "xion1broken2", "xion1broken3", "xion1broken4"}
@@ -487,16 +487,16 @@ func TestIntegration_ValidateMigration(t *testing.T) {
 	wasmApp, ctx := setupTestApp(t)
 	store := ctx.KVStore(wasmApp.GetKey("wasm"))
 
-	// Create contracts that are properly migrated
+	// Create contracts that are properly migrated (all have field 7 and empty field 8)
 	contracts := []struct {
 		address string
 		data    map[int][]byte
 	}{
-		{"xion1valid1", map[int][]byte{1: []byte("1"), 7: []byte("ext1")}},
-		{"xion1valid2", map[int][]byte{1: []byte("2"), 7: []byte("ext2")}},
+		{"xion1valid1", map[int][]byte{1: []byte("1"), 7: []byte("ext1"), 8: []byte("")}},
+		{"xion1valid2", map[int][]byte{1: []byte("2"), 7: []byte("ext2"), 8: []byte("")}},
 		{"xion1valid3", map[int][]byte{1: []byte("3"), 7: []byte("ext3"), 8: []byte("")}},
 		{"xion1valid4", map[int][]byte{1: []byte("4"), 7: []byte("ext4"), 8: []byte("")}},
-		{"xion1valid5", map[int][]byte{1: []byte("5"), 7: []byte("ext5")}},
+		{"xion1valid5", map[int][]byte{1: []byte("5"), 7: []byte("ext5"), 8: []byte("")}},
 	}
 
 	for _, c := range contracts {
@@ -530,10 +530,10 @@ func TestIntegration_ValidateMigration_WithBrokenContract(t *testing.T) {
 		data    map[int][]byte
 		broken  bool
 	}{
-		{"xion1valid1", map[int][]byte{1: []byte("1"), 7: []byte("ext1")}, false},
-		{"xion1valid2", map[int][]byte{1: []byte("2"), 7: []byte("ext2")}, false},
+		{"xion1valid1", map[int][]byte{1: []byte("1"), 7: []byte("ext1"), 8: []byte("")}, false},
+		{"xion1valid2", map[int][]byte{1: []byte("2"), 7: []byte("ext2"), 8: []byte("")}, false},
 		{"xion1broken1", map[int][]byte{1: []byte("3"), 7: []byte("ibc"), 8: []byte("ext3")}, true},
-		{"xion1valid3", map[int][]byte{1: []byte("4"), 7: []byte("ext4")}, false},
+		{"xion1valid3", map[int][]byte{1: []byte("4"), 7: []byte("ext4"), 8: []byte("")}, false},
 	}
 
 	for _, c := range contracts {
@@ -629,11 +629,12 @@ func TestIntegration_ValidateContract_Public(t *testing.T) {
 	wasmApp, ctx := setupTestApp(t)
 	store := ctx.KVStore(wasmApp.GetKey("wasm"))
 
-	// Create a valid contract
+	// Create a valid contract (properly migrated with field 8 empty)
 	validAddr := "xion1validcontract"
 	validData := createTestProtobuf(map[int][]byte{
 		1: []byte("1"),
 		7: []byte("extension"),
+		8: []byte(""),
 	})
 	createTestContract(t, ctx, store, validAddr, validData)
 

@@ -401,3 +401,73 @@ func TestValidationErrors(t *testing.T) {
 		})
 	}
 }
+
+// TestValidateContract_SchemaDetection tests that validation correctly handles different schemas
+func TestValidateContract_SchemaDetection(t *testing.T) {
+	tests := []struct {
+		name      string
+		hasField7 bool
+		hasField8Data bool
+		expectedSchema SchemaVersion
+		expectedValid bool
+		description string
+	}{
+		{
+			name:      "Legacy contract (no field 7, no field 8)",
+			hasField7: false,
+			hasField8Data: false,
+			expectedSchema: SchemaLegacy,
+			expectedValid: true,
+			description: "Pre-v20 contracts without extension field",
+		},
+		{
+			name:      "Broken contract (field 8 has data)",
+			hasField7: true,
+			hasField8Data: true,
+			expectedSchema: SchemaBroken,
+			expectedValid: false,
+			description: "v20/v21 contracts with extension at field 8 (should be migrated)",
+		},
+		{
+			name:      "Canonical/migrated contract (field 7 present, field 8 empty)",
+			hasField7: true,
+			hasField8Data: false,
+			expectedSchema: SchemaLegacy, // Detector groups both safe schemas as SchemaLegacy
+			expectedValid: true,
+			description: "Post-migration or v22 contracts - validator differentiates by field 7",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Build test contract data
+			fields := map[int][]byte{
+				1: []byte{0x01}, // code_id
+			}
+
+			if tt.hasField7 {
+				fields[7] = []byte("extension-data")
+			}
+
+			if tt.hasField8Data {
+				fields[8] = []byte("field8-data")
+			}
+
+			data := createTestProtobuf(fields)
+
+			// Verify schema detection
+			schema := DetectSchemaVersion(data)
+			require.Equal(t, tt.expectedSchema, schema, tt.description)
+
+			// Verify migration decision is correct
+			needsMigration := NeedsMigration(schema)
+			// Both SchemaLegacy and SchemaBroken need migration
+			shouldMigrate := (tt.expectedSchema == SchemaBroken || tt.expectedSchema == SchemaLegacy)
+			require.Equal(t, shouldMigrate, needsMigration,
+				"SchemaLegacy and SchemaBroken should need migration")
+
+			// Note: Actual validation requires a context and store,
+			// which is tested in integration tests
+		})
+	}
+}

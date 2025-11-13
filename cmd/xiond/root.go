@@ -169,6 +169,8 @@ func initRootCmd(rootCmd *cobra.Command,
 	rootCmd.AddCommand(indexercli.Indexer(newApp, app.DefaultNodeHome))
 	// add rosetta
 	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
+	// add v24 migration command (temporary - for manual migration outside of upgrades)
+	rootCmd.AddCommand(MigrateV24Cmd())
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {

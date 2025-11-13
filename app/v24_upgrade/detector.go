@@ -5,57 +5,84 @@ import (
 )
 
 // DetectSchemaVersion determines which schema version a contract is using
-// Based on the simplified detection strategy: check if field 8 has data
+// Uses comprehensive validation approach:
+// 1. First, try to parse protobuf structure - if this fails, it's corrupted
+// 2. Check field 7 and field 8 to determine the schema state
+// 3. Distinguish between:
+//    - SchemaLegacy: Missing field 7 or field 8 (or both) - needs fields added
+//    - SchemaCanonical: Both field 7 and field 8 present, field 8 empty (correct state)
+//    - SchemaBroken: Field 8 has data (needs swap and clear)
+//    - SchemaCorrupted: Cannot parse (unfixable)
 //
-// Detection logic:
-// - If field 8 is empty/absent -> SchemaLegacy or SchemaCanonical (both safe)
-// - If field 8 has data -> SchemaBroken (needs migration)
-//
-// Since IBCv2 was never used on XION, any data in field 8 indicates the
-// extension field was incorrectly placed there during v20/v21.
+// NOTE: We make NO assumptions about which fields exist - all contracts are checked
 func DetectSchemaVersion(data []byte) SchemaVersion {
-	// Parse protobuf fields
+	// First, try to parse the protobuf structure
 	fields, err := ParseProtobufFields(data)
 	if err != nil {
-		return SchemaUnknown
+		// Cannot parse protobuf at all - this is corrupted (invalid wire types, truncated data, etc.)
+		// These contracts cannot be fixed by simple field swapping
+		return SchemaCorrupted
 	}
+
+	// Check if field 7 exists
+	_, hasField7 := fields[7]
 
 	// Check if field 8 exists and has data
 	_, hasField8 := fields[8]
+	var field8HasData bool
+	if hasField8 {
+		value, err := GetFieldValue(data, 8)
+		field8HasData = (err == nil && len(value) > 0)
+	}
 
-	if !hasField8 {
-		// Field 8 doesn't exist - this is SchemaLegacy or SchemaCanonical
-		// Both are safe (extension at position 7, no ibc2_port_id)
-		// We'll treat them as SchemaLegacy for stats purposes
+	// Determine schema based on field 7 and field 8 state
+	// We CANNOT assume field 7 exists - must check explicitly
+	switch {
+	case field8HasData:
+		// Field 8 has data - this is SchemaBroken (extension moved to field 8 by v20/v21 bug)
+		return SchemaBroken
+
+	case hasField7 && hasField8:
+		// Both field 7 and field 8 exist (field 8 is empty) - this is SchemaCanonical (correct state)
+		return SchemaCanonical
+
+	default:
+		// Missing field 7 or field 8 (or both) - this is SchemaLegacy (needs fields added)
 		return SchemaLegacy
 	}
-
-	// Field 8 exists - check if it has actual data
-	value, err := GetFieldValue(data, 8)
-	if err != nil || len(value) == 0 {
-		// Field 8 is empty - safe schema
-		return SchemaCanonical
-	}
-
-	// Field 8 has data - this is SchemaBroken
-	// The extension was incorrectly moved to position 8
-	return SchemaBroken
 }
 
-// NeedsM igration determines if a contract needs migration based on its schema
+// NeedsMigration determines if a contract needs migration based on its schema
 func NeedsMigration(schema SchemaVersion) bool {
-	return schema == SchemaBroken
+	switch schema {
+	case SchemaBroken:
+		// Field 8 has data - needs field swap
+		return true
+	case SchemaLegacy:
+		// Missing field 7 and/or field 8 - needs fields added
+		return true
+	case SchemaCorrupted:
+		// Corrupted data - migration will fail but we'll try to report it
+		return true
+	case SchemaCanonical:
+		// Already correct - no migration needed
+		return false
+	default:
+		return false
+	}
 }
 
 // GetMigrationAction returns a human-readable description of what action is needed
 func GetMigrationAction(schema SchemaVersion) string {
 	switch schema {
 	case SchemaLegacy:
-		return "None - already safe (pre-v20)"
+		return "Add missing fields (field 7 extension and/or field 8 ibc2_port_id)"
 	case SchemaBroken:
 		return "Swap fields 7 and 8, then null field 8"
 	case SchemaCanonical:
 		return "None - already correct"
+	case SchemaCorrupted:
+		return "Cannot fix - data corruption (invalid wire types, truncated data, etc.)"
 	default:
 		return "Unknown - manual inspection required"
 	}

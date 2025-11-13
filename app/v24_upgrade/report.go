@@ -22,13 +22,23 @@ func NewReportGenerator(logger log.Logger) *ReportGenerator {
 // GenerateReport creates a comprehensive migration report
 func (r *ReportGenerator) GenerateReport(report *MigrationReport, validationResults []ValidationResult) {
 	r.logger.Info("=================================================================")
-	r.logger.Info("               V24 MIGRATION REPORT")
-	r.logger.Info("=================================================================")
+	if report.DryRun {
+		r.logger.Warn("            V24 MIGRATION REPORT (DRY-RUN)")
+		r.logger.Warn("=================================================================")
+		r.logger.Warn("⚠️  DRY-RUN MODE - NO CHANGES WERE SAVED")
+		r.logger.Warn("=================================================================")
+	} else {
+		r.logger.Info("               V24 MIGRATION REPORT")
+		r.logger.Info("=================================================================")
+	}
 	r.logger.Info("")
 
 	// Network and mode
 	r.logger.Info(fmt.Sprintf("Network: %s", report.NetworkType))
 	r.logger.Info(fmt.Sprintf("Mode: %v", report.Mode))
+	if report.DryRun {
+		r.logger.Warn(fmt.Sprintf("Dry-Run: %v (Preview only, no changes saved)", report.DryRun))
+	}
 	r.logger.Info("")
 
 	// Overall statistics
@@ -47,13 +57,13 @@ func (r *ReportGenerator) GenerateReport(report *MigrationReport, validationResu
 
 	// Schema distribution
 	r.logSection("SCHEMA DISTRIBUTION")
-	r.logger.Info(fmt.Sprintf("SchemaLegacy:        %d (%.2f%%) - Pre-v20, already safe",
+	r.logger.Info(fmt.Sprintf("SchemaLegacy:        %d (%.2f%%) - Missing field 7 and/or field 8 (needed migration)",
 		stats.LegacyCount,
 		r.percentage(stats.LegacyCount, stats.TotalContracts)))
-	r.logger.Info(fmt.Sprintf("SchemaBroken:        %d (%.2f%%) - v20/v21, needed migration",
+	r.logger.Info(fmt.Sprintf("SchemaBroken:        %d (%.2f%%) - Field 8 has data (needed field swap)",
 		stats.BrokenCount,
 		r.percentage(stats.BrokenCount, stats.TotalContracts)))
-	r.logger.Info(fmt.Sprintf("SchemaCanonical:     %d (%.2f%%) - Already correct",
+	r.logger.Info(fmt.Sprintf("SchemaCanonical:     %d (%.2f%%) - Both fields present and correct",
 		stats.CanonicalCount,
 		r.percentage(stats.CanonicalCount, stats.TotalContracts)))
 	r.logger.Info(fmt.Sprintf("SchemaUnknown:       %d (%.2f%%)",
@@ -102,7 +112,7 @@ func (r *ReportGenerator) GenerateReport(report *MigrationReport, validationResu
 				failureCount++
 			}
 		}
-		r.logger.Info(fmt.Sprintf("Sample Size:         %d", len(validationResults)))
+		r.logger.Info(fmt.Sprintf("Total Validated:     %d (100%% of contracts)", len(validationResults)))
 		r.logger.Info(fmt.Sprintf("Successes:           %d", successCount))
 		r.logger.Info(fmt.Sprintf("Failures:            %d", failureCount))
 		r.logger.Info(fmt.Sprintf("Success Rate:        %.2f%%",
@@ -137,7 +147,7 @@ func (r *ReportGenerator) GenerateReport(report *MigrationReport, validationResu
 		r.logger.Info("✅ Migration completed successfully!")
 		r.logger.Info(fmt.Sprintf("✅ All %d contracts processed", stats.ProcessedContracts))
 		r.logger.Info(fmt.Sprintf("✅ %d contracts migrated to canonical schema", stats.MigratedContracts))
-		r.logger.Info(fmt.Sprintf("✅ %d contracts were already safe", stats.SkippedContracts))
+		r.logger.Info(fmt.Sprintf("✅ %d contracts were already correct (SchemaCanonical)", stats.SkippedContracts))
 	} else {
 		r.logger.Warn("⚠️  Migration completed with errors")
 		r.logger.Warn(fmt.Sprintf("⚠️  %d contracts failed migration", stats.FailedContracts))

@@ -213,3 +213,81 @@ func IsField8Empty(data []byte) bool {
 	}
 	return len(value) == 0
 }
+
+// AddEmptyField7 adds an empty extension field at position 7
+// This is used to migrate SchemaLegacy contracts to SchemaCanonical
+func AddEmptyField7(data []byte) ([]byte, error) {
+	fields, err := ParseProtobufFields(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse protobuf: %w", err)
+	}
+
+	// If field 7 already exists, nothing to do
+	if _, has7 := fields[7]; has7 {
+		return data, nil
+	}
+
+	// Create empty extension field (wire type 2 = length-delimited, length 0)
+	emptyExtension := []byte{0} // Varint 0 = length 0
+
+	// Rebuild the protobuf with field 7 inserted
+	result := make([]byte, 0, len(data)+10) // +10 for field 7 tag + length
+
+	// Write all fields in order, inserting field 7 in the correct position
+	for fieldNum := 1; fieldNum <= 10; fieldNum++ {
+		if fieldNum == 7 {
+			// Insert empty field 7
+			result = append(result, EncodeFieldTag(7, WireBytes)...)
+			result = append(result, emptyExtension...)
+		}
+
+		if field, ok := fields[fieldNum]; ok && fieldNum != 7 {
+			// Write original field
+			result = append(result, EncodeFieldTag(fieldNum, field.WireType)...)
+			result = append(result, field.Data...)
+		}
+	}
+
+	return result, nil
+}
+
+// EnsureEmptyField8 ensures field 8 exists as an empty string
+// This is different from ClearField8 which removes field 8 entirely
+// After v24 migration, ALL contracts should have field 8 present but empty
+func EnsureEmptyField8(data []byte) ([]byte, error) {
+	fields, err := ParseProtobufFields(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse protobuf: %w", err)
+	}
+
+	// Check if field 8 already exists and is empty
+	if _, has8 := fields[8]; has8 {
+		value, err := GetFieldValue(data, 8)
+		if err == nil && len(value) == 0 {
+			// Field 8 already exists and is empty
+			return data, nil
+		}
+		// Field 8 exists but has data - we'll replace it
+	}
+
+	// Create empty string field (wire type 2 = length-delimited, length 0)
+	emptyString := []byte{0} // Varint 0 = length 0
+
+	// Rebuild the protobuf with field 8 as empty string
+	result := make([]byte, 0, len(data)+10)
+
+	// Write all fields in order, setting/adding field 8 as empty
+	for fieldNum := 1; fieldNum <= 10; fieldNum++ {
+		if fieldNum == 8 {
+			// Set field 8 to empty string (wire type 2 for string)
+			result = append(result, EncodeFieldTag(8, WireBytes)...)
+			result = append(result, emptyString...)
+		} else if field, ok := fields[fieldNum]; ok {
+			// Write original field
+			result = append(result, EncodeFieldTag(fieldNum, field.WireType)...)
+			result = append(result, field.Data...)
+		}
+	}
+
+	return result, nil
+}

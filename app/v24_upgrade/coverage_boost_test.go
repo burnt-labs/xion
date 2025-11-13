@@ -67,3 +67,27 @@ func TestValidator_ValidateContract_Direct(t *testing.T) {
 	// This is already tested in integration tests where we have a proper context
 	// The wrapper just provides a public API to the internal validateContract function
 }
+
+// Test FormatAddress function
+func TestFormatAddress(t *testing.T) {
+	// Test with a valid 20-byte address
+	rawAddr := make([]byte, 20)
+	for i := range rawAddr {
+		rawAddr[i] = byte(i + 1)
+	}
+
+	// Convert to string (simulates how addresses are stored)
+	addrStr := string(rawAddr)
+
+	// Format the address
+	formatted := FormatAddress(addrStr)
+
+	// Should return a valid Bech32 address
+	require.NotEmpty(t, formatted)
+	require.Contains(t, formatted, "1") // Bech32 addresses contain '1' separator
+
+	// Test that it doesn't panic with empty address (edge case)
+	require.NotPanics(t, func() {
+		FormatAddress("")
+	})
+}

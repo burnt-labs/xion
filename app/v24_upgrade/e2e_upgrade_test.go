@@ -40,13 +40,13 @@ func TestE2E_FullUpgradeFlow(t *testing.T) {
 		createTestContract(t, ctx, store, c.address, data)
 	}
 
-	// Step 2: Create some legacy contracts (pre-v20, already safe)
+	// Step 2: Create some legacy contracts (pre-v20, missing field 8 - needs migration)
 	t.Log("Creating legacy contracts (simulating pre-v20 state)")
 	legacyContracts := []struct {
 		address string
 		data    map[int][]byte
 	}{
-		// These have extension at field 7 (correct position), no field 8
+		// These have extension at field 7 (correct position), but missing field 8
 		{"xion1legacy001", map[int][]byte{1: []byte("10"), 7: []byte("legacy_ext1")}},
 		{"xion1legacy002", map[int][]byte{1: []byte("11"), 7: []byte("legacy_ext2")}},
 	}
@@ -104,18 +104,23 @@ func TestE2E_FullUpgradeFlow(t *testing.T) {
 		t.Logf("✓ Contract %s successfully migrated", c.address)
 	}
 
-	// Step 6: Verify legacy contracts are unchanged
-	t.Log("Verifying legacy contracts are unchanged...")
+	// Step 6: Verify legacy contracts now have field 8 added (migrated)
+	t.Log("Verifying legacy contracts now have field 8 added...")
 	for _, c := range legacyContracts {
 		key := append([]byte{v24_upgrade.ContractKeyPrefix}, []byte(c.address)...)
 		data := store.Get(key)
 		require.NotNil(t, data, "contract %s should exist", c.address)
 
+		// Field 7 should remain unchanged (original extension preserved)
 		field7, err := v24_upgrade.GetFieldValue(data, 7)
 		require.NoError(t, err)
-		require.Contains(t, string(field7), "legacy_ext", "legacy contract should be unchanged")
+		require.Contains(t, string(field7), "legacy_ext", "legacy contract field 7 should be preserved")
 
-		t.Logf("✓ Legacy contract %s unchanged", c.address)
+		// Field 8 should now exist and be empty (added by migration)
+		isEmpty := v24_upgrade.IsField8Empty(data)
+		require.True(t, isEmpty, "legacy contract should now have empty field 8")
+
+		t.Logf("✓ Legacy contract %s successfully migrated (field 8 added)", c.address)
 	}
 
 	// Step 7: Verify canonical contracts are unchanged

@@ -21,14 +21,14 @@ func TestMigratorMigrateContract(t *testing.T) {
 		wantField8Empty bool
 	}{
 		{
-			name:    "SchemaLegacy - no changes needed",
+			name:    "SchemaLegacy - needs field 8 added",
 			address: "xion1legacy",
 			input: map[int][]byte{
 				1: []byte("100"),
 				7: []byte("extension"),
-				// No field 8
+				// No field 8 - needs to be added
 			},
-			wantChanged:     false,
+			wantChanged:     true,
 			wantField7Data:  []byte("extension"),
 			wantField8Empty: true,
 		},
@@ -176,15 +176,16 @@ func TestMigrateContract_ErrorHandling(t *testing.T) {
 	logger := log.NewNopLogger()
 	migrator := NewMigrator(logger, nil, Mainnet, ModeAutoMigrate)
 
-	// Test with corrupted data
+	// Test with corrupted data (invalid protobuf)
 	corruptedData := []byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 
 	result, changed, err := migrator.MigrateContract("xion1corrupted", corruptedData)
 
-	// Should handle gracefully
-	require.NoError(t, err) // Corrupted data is detected as SchemaUnknown, which doesn't need migration
-	require.False(t, changed)
-	require.NotNil(t, result)
+	// Corrupted data is now properly detected as SchemaCorrupted and returns an error
+	require.Error(t, err, "Corrupted data should return an error")
+	require.Contains(t, err.Error(), "unfixable data corruption", "Error should indicate unfixable corruption")
+	require.False(t, changed, "Corrupted data should not be marked as changed")
+	require.Nil(t, result, "Result should be nil for unfixable corruption")
 }
 
 // Test constants and configuration
@@ -297,4 +298,49 @@ func TestNetworkType(t *testing.T) {
 	require.Equal(t, NetworkType("mainnet"), Mainnet)
 	require.Equal(t, NetworkType("testnet"), Testnet)
 	require.NotEqual(t, Mainnet, Testnet)
+}
+
+// Test dry-run mode
+func TestMigrator_DryRunMode(t *testing.T) {
+	logger := log.NewNopLogger()
+	migrator := NewMigrator(logger, nil, Mainnet, ModeAutoMigrate)
+
+	// Verify dry-run is disabled by default
+	require.False(t, migrator.IsDryRun(), "Dry-run should be disabled by default")
+
+	// Enable dry-run
+	migrator.SetDryRun(true)
+	require.True(t, migrator.IsDryRun(), "Dry-run should be enabled after SetDryRun(true)")
+
+	// Process a broken contract in dry-run mode
+	brokenContract := createTestProtobuf(map[int][]byte{
+		1: []byte("100"),
+		7: []byte("ibc_port_id"),
+		8: []byte("extension"),
+	})
+
+	result, changed, err := migrator.MigrateContract("xion1broken", brokenContract)
+
+	// Migration logic should still execute
+	require.NoError(t, err)
+	require.True(t, changed, "Contract should be detected as needing migration")
+	require.NotNil(t, result, "Migration should return result data")
+
+	// Verify field 7 was migrated correctly
+	field7, err := GetFieldValue(result, 7)
+	require.NoError(t, err)
+	require.Equal(t, []byte("extension"), field7)
+
+	// Verify field 8 is empty
+	require.True(t, IsField8Empty(result))
+
+	// Schema statistics should be tracked (MigrateContract updates schema counts)
+	require.Equal(t, uint64(1), migrator.stats.BrokenCount)
+
+	// Note: MigrateContract doesn't update ProcessedContracts or MigratedContracts
+	// Those are only updated by the parallel migration worker code
+
+	// Disable dry-run
+	migrator.SetDryRun(false)
+	require.False(t, migrator.IsDryRun(), "Dry-run should be disabled after SetDryRun(false)")
 }
