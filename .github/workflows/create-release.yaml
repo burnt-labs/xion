@@ -62,12 +62,12 @@ jobs:
     uses: burnt-labs/xion/.github/workflows/docker-scout.yaml@workflows/main
     secrets: inherit
 
-  # e2e-tests:
-  #   name: E2E tests
-  #   needs:
-  #     - build-docker
-  #   uses: burnt-labs/xion/.github/workflows/e2e-tests.yaml@workflows/main
-  #   secrets: inherit
+  e2e-tests:
+    name: E2E tests
+    needs:
+      - build-docker
+    uses: burnt-labs/xion/.github/workflows/e2e-tests.yaml@workflows/main
+    secrets: inherit
 
   build-release:
     name: Build Release
@@ -78,7 +78,7 @@ jobs:
       - unit-tests
       - build-darwin
       - docker-scout
-     # - e2e-tests
+      - e2e-tests
     uses: burnt-labs/xion/.github/workflows/exec-goreleaser.yaml@workflows/main
     secrets: inherit
 
