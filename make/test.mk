@@ -2,7 +2,7 @@
 
 SIMAPP = ./app
 BINDIR ?= $(GOPATH)/bin
-export XION_IMAGE = xiond:local
+export XION_IMAGE ?= xiond:local
 
 # Target to ensure Docker image exists (only runs once when needed)
 .ensure-docker-image:
