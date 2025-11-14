@@ -98,7 +98,9 @@ func (ah *AuthzHandler) HandleUpdate(ctx context.Context, pair *storetypes.Store
 		if has, err := ah.Authorizations.Has(ctx, collections.Join3(granterAddr, granteeAddr, msgType)); err != nil {
 			return err
 		} else if !has {
-			return ErrGrantNotFound
+			// Graceful handling: deleting a non-existent grant is a no-op, not an error
+			// This ensures the indexer remains robust during edge cases
+			return nil
 		}
 		return ah.Authorizations.Remove(ctx, collections.Join3(granterAddr, granteeAddr, msgType))
 	}

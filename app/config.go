@@ -18,7 +18,7 @@ type CustomConfig struct {
 }
 
 func CustomconfigTemplate(config wasmtypes.NodeConfig) string {
-	return serverconfig.DefaultConfigTemplate + wasmtypes.ConfigTemplate(config)
+	return serverconfig.DefaultConfigTemplate + wasmtypes.ConfigTemplate(config) + indexer.DefaultConfigTemplate()
 }
 
 func DefaultConfig() (string, any) {

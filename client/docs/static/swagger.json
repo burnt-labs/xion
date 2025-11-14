@@ -3,7 +3,7 @@
   "info": {
     "title": "XION - gRPC Gateway docs",
     "description": "A REST interface for state queries",
-    "version": "v23.0.0"
+    "version": "v24.0.0"
   },
   "paths": {
     "/cosmos/auth/v1beta1/account_info/{address}": {
@@ -17785,9 +17785,6 @@
                     "ibcPortId": {
                       "type": "string"
                     },
-                    "ibc2PortId": {
-                      "type": "string"
-                    },
                     "extension": {
                       "description": "Extension is an extension point to store custom metadata within the\npersistence model.",
                       "type": "object",
@@ -17798,6 +17795,9 @@
                         }
                       },
                       "additionalProperties": {}
+                    },
+                    "ibc2PortId": {
+                      "type": "string"
                     }
                   },
                   "title": "ContractInfo stores a WASM contract instance"
@@ -42446,9 +42446,6 @@
         "ibcPortId": {
           "type": "string"
         },
-        "ibc2PortId": {
-          "type": "string"
-        },
         "extension": {
           "description": "Extension is an extension point to store custom metadata within the\npersistence model.",
           "type": "object",
@@ -42459,6 +42456,9 @@
             }
           },
           "additionalProperties": {}
+        },
+        "ibc2PortId": {
+          "type": "string"
         }
       },
       "title": "ContractInfo stores a WASM contract instance"
@@ -42846,9 +42846,6 @@
             "ibcPortId": {
               "type": "string"
             },
-            "ibc2PortId": {
-              "type": "string"
-            },
             "extension": {
               "description": "Extension is an extension point to store custom metadata within the\npersistence model.",
               "type": "object",
@@ -42859,6 +42856,9 @@
                 }
               },
               "additionalProperties": {}
+            },
+            "ibc2PortId": {
+              "type": "string"
             }
           },
           "title": "ContractInfo stores a WASM contract instance"

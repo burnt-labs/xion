@@ -128,10 +128,10 @@ func TestAuthzHandler(t *testing.T) {
 	err = handler.HandleUpdate(ctx, pair)
 	require.NoError(t, err)
 
-	// Test HandleUpdate - Delete non-existent (should error)
+	// Test HandleUpdate - Delete non-existent (should succeed gracefully)
+	// This tests the robustness of the indexer handling edge cases
 	err = handler.HandleUpdate(ctx, pair)
-	require.Error(t, err)
-	require.Equal(t, ErrGrantNotFound, err)
+	require.NoError(t, err) // Graceful handling: no error when deleting non-existent grant
 }
 
 func TestAuthzQuerier(t *testing.T) {
@@ -389,10 +389,10 @@ func TestFeeGrantHandler(t *testing.T) {
 	err = handler.HandleUpdate(ctx, pair)
 	require.NoError(t, err)
 
-	// Test HandleUpdate - Delete non-existent (should error)
+	// Test HandleUpdate - Delete non-existent (should succeed gracefully)
+	// This tests the robustness of the indexer handling edge cases
 	err = handler.HandleUpdate(ctx, pair)
-	require.Error(t, err)
-	require.Equal(t, ErrAllowanceNotFound, err)
+	require.NoError(t, err) // Graceful handling: no error when deleting non-existent allowance
 }
 
 func TestFeeGrantQuerier(t *testing.T) {

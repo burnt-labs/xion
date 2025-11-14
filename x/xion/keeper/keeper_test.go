@@ -354,10 +354,8 @@ func TestKeeper_ExportGenesis(t *testing.T) {
 	// Test ExportGenesis
 	exportedState := keeper.ExportGenesis(ctx)
 
-	// Note: There's a bug in ExportGenesis - it reads uint32 from uint64 storage
-	// This causes it to read 0 instead of the actual value on big-endian systems
-	// For the test, we verify the current (buggy) behavior
-	require.Equal(t, uint32(0), exportedState.PlatformPercentage) // Bug: should be testPercentage
+	// Verify that ExportGenesis correctly reads the platform percentage
+	require.Equal(t, testPercentage, exportedState.PlatformPercentage)
 	require.True(t, testMinimums.Equal(exportedState.PlatformMinimums))
 }
 

@@ -121,8 +121,8 @@ func TestExportGenesis(t *testing.T) {
 		}
 	})
 
-	// Test case 2: Test that demonstrates the percentage storage vs export bug
-	t.Run("demonstrates percentage export bug", func(t *testing.T) {
+	// Test case 2: Verify that percentage export now works correctly after fix
+	t.Run("percentage export works correctly", func(t *testing.T) {
 		platformPercentage := uint32(15)
 		keeper.OverwritePlatformPercentage(ctx, platformPercentage)
 
@@ -130,23 +130,22 @@ func TestExportGenesis(t *testing.T) {
 		storedPercentage := keeper.GetPlatformPercentage(ctx)
 		require.True(t, math.NewIntFromUint64(uint64(platformPercentage)).Equal(storedPercentage))
 
-		// Export will return 0 due to the uint32/uint64 mismatch bug
+		// Export now correctly returns the value after the fix
 		exportedGenesis := keeper.ExportGenesis(ctx)
 
-		// Document the bug: this SHOULD be equal but isn't due to ExportGenesis implementation
-		require.NotEqual(t, platformPercentage, exportedGenesis.PlatformPercentage)
-		require.Equal(t, uint32(0), exportedGenesis.PlatformPercentage)
+		// Verify that ExportGenesis now correctly reads the platform percentage
+		require.Equal(t, platformPercentage, exportedGenesis.PlatformPercentage)
 	})
 }
 
 func TestGenesisRoundTrip(t *testing.T) {
-	// Test with only minimums since there's a bug with percentage export
+	// Test with only minimums
 	t.Run("minimums only round trip", func(t *testing.T) {
 		keeper1, ctx1 := setupKeeperForTesting(t)
 
 		// Create an initial genesis state with only minimums
 		originalGenesis := &types.GenesisState{
-			PlatformPercentage: uint32(0), // Keep at 0 due to export bug
+			PlatformPercentage: uint32(0), // Zero percentage for this test
 			PlatformMinimums: sdk.NewCoins(
 				sdk.NewCoin("uround", math.NewInt(999)),
 				sdk.NewCoin("utrip", math.NewInt(777)),
@@ -182,8 +181,8 @@ func TestGenesisRoundTrip(t *testing.T) {
 		require.Equal(t, len(originalGenesis.PlatformMinimums), len(storedMinimums))
 	})
 
-	// Test demonstrating the percentage round-trip issue
-	t.Run("percentage round trip issue", func(t *testing.T) {
+	// Test percentage round-trip works correctly after fix
+	t.Run("percentage round trip works", func(t *testing.T) {
 		keeper1, ctx1 := setupKeeperForTesting(t)
 
 		// Try with a non-zero percentage
@@ -202,9 +201,8 @@ func TestGenesisRoundTrip(t *testing.T) {
 		// Export the genesis state
 		exportedGenesis := keeper1.ExportGenesis(ctx1)
 
-		// This will fail due to the bug - percentage gets lost in export
-		require.NotEqual(t, originalGenesis.PlatformPercentage, exportedGenesis.PlatformPercentage)
-		require.Equal(t, uint32(0), exportedGenesis.PlatformPercentage)
+		// After the fix, percentage is correctly preserved in export
+		require.Equal(t, originalGenesis.PlatformPercentage, exportedGenesis.PlatformPercentage)
 	})
 }
 
