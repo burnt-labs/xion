@@ -14,7 +14,7 @@ import (
 	v24_upgrade "github.com/burnt-labs/xion/app/v25_upgrade"
 )
 
-const UpgradeName = "v24"
+const UpgradeName = "v25"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
