@@ -3,8 +3,9 @@ package indexer
 import (
 	"fmt"
 
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/spf13/cast"
+
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 )
 
 // Config defines the indexer configuration.

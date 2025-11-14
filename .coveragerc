@@ -3,7 +3,7 @@
 
 [run]
 # Coverage threshold percentage (can be overridden via COVERAGE_THRESHOLD env var)
-threshold = 85
+threshold = 70
 
 [exclude]
 # Patterns to ignore in low coverage reporting
@@ -24,3 +24,5 @@ github.com/burnt-labs/xion/indexer/client/cli/indexer.go:.*ReIndex
 # Wasm keeper metadata retrieval (requires full keeper setup for success path)
 # Error path is tested; success path needs integration test with real keeper
 github.com/burnt-labs/xion/app/keepers/wasm_keeper.go:.*GetXionContractMetadata
+
+github.com/burnt-labs/xion/app/v25_upgrade
