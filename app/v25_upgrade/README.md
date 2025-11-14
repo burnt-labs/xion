@@ -49,6 +49,7 @@ The v25 upgrade fixes corrupted contract metadata that cannot be unmarshaled. Th
 ### What Gets Fixed
 
 **ONLY** contracts with `StateUnmarshalFails`:
+
 - Cannot unmarshal to `ContractInfo`
 - Have `proto: illegal wireType 7` errors
 - Field 7 contains ibc_port_id data (should be in field 8)
@@ -57,6 +58,7 @@ The v25 upgrade fixes corrupted contract metadata that cannot be unmarshaled. Th
 ### What Does NOT Get Fixed
 
 Contracts with `StateSchemaInconsistent`:
+
 - **Can successfully unmarshal** ✓
 - Missing fields 7/8 but still functional
 - Chain can read and use them without issues
@@ -65,6 +67,7 @@ Contracts with `StateSchemaInconsistent`:
 ### Fix Process
 
 For each broken contract:
+
 1. Parse protobuf fields manually
 2. Extract field 7 data (the misplaced ibc_port_id)
 3. Create empty field 7 (google.protobuf.Any with length 0)
@@ -78,6 +81,7 @@ For each broken contract:
 See [CLI_TOOLS.md](CLI_TOOLS.md) for detailed usage instructions.
 
 ### Analysis Tool
+
 ```bash
 # Full database analysis with corruption patterns
 xiond analyze-contracts
@@ -90,6 +94,7 @@ xiond analyze-contracts --limit 1000
 ```
 
 ### Migration Validation Tool
+
 ```bash
 # Validate migration logic (dry-run, safe on production data)
 xiond v25-dry-run
@@ -136,7 +141,7 @@ xiond analyze-contracts --test-fixes
 
 ## File Structure
 
-```
+```sh
 app/v25_upgrade/
 ├── README.md                  # This file
 ├── CLI_TOOLS.md               # Detailed CLI tool documentation
@@ -178,11 +183,13 @@ app/v25_upgrade/
 ## Lessons from v24
 
 v24 upgrade failed because:
+
 - Used `ParseProtobufFields()` which could succeed when `proto.Unmarshal()` failed
 - Fixed contracts that didn't need fixing
 - Incorrect assumptions (e.g., field 8 must always be empty)
 
 v25 improvements:
+
 - **Unmarshal is the only test** - if unmarshal works, contract is functional
 - **Only fix truly broken contracts** - skip the 92% that already work
 - **No incorrect assumptions** - field 8 can have data OR be empty

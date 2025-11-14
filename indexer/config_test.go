@@ -1,4 +1,4 @@
-package indexer
+package indexer_test
 
 import (
 	"strings"
@@ -6,18 +6,20 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/indexer"
 )
 
 // TestDefaultConfig verifies the default indexer configuration
 func TestDefaultConfig(t *testing.T) {
-	config := DefaultConfig()
+	config := indexer.DefaultConfig()
 
 	require.False(t, config.Enabled, "indexer should be disabled by default")
 }
 
 // TestDefaultConfigTemplate verifies the default TOML template generation
 func TestDefaultConfigTemplate(t *testing.T) {
-	template := DefaultConfigTemplate()
+	template := indexer.DefaultConfigTemplate()
 
 	// Should contain the indexer section
 	require.Contains(t, template, "[indexer]")
@@ -35,11 +37,11 @@ func TestDefaultConfigTemplate(t *testing.T) {
 
 // TestConfigTemplateEnabled verifies template with enabled config
 func TestConfigTemplateEnabled(t *testing.T) {
-	config := Config{
+	config := indexer.Config{
 		Enabled: true,
 	}
 
-	template := ConfigTemplate(config)
+	template := indexer.ConfigTemplate(config)
 
 	require.Contains(t, template, "[indexer]")
 	require.Contains(t, template, "enabled = true")
@@ -56,11 +58,11 @@ func TestConfigTemplateEnabled(t *testing.T) {
 
 // TestConfigTemplateDisabled verifies template with disabled config
 func TestConfigTemplateDisabled(t *testing.T) {
-	config := Config{
+	config := indexer.Config{
 		Enabled: false,
 	}
 
-	template := ConfigTemplate(config)
+	template := indexer.ConfigTemplate(config)
 
 	require.Contains(t, template, "[indexer]")
 	require.Contains(t, template, "enabled = false")
@@ -80,7 +82,7 @@ func TestNewConfigFromOptions(t *testing.T) {
 	tests := []struct {
 		name           string
 		optionsContent string
-		expectedConfig Config
+		expectedConfig indexer.Config
 	}{
 		{
 			name: "enabled true",
@@ -88,7 +90,7 @@ func TestNewConfigFromOptions(t *testing.T) {
 [indexer]
 enabled = true
 `,
-			expectedConfig: Config{Enabled: true},
+			expectedConfig: indexer.Config{Enabled: true},
 		},
 		{
 			name: "enabled false",
@@ -96,12 +98,12 @@ enabled = true
 [indexer]
 enabled = false
 `,
-			expectedConfig: Config{Enabled: false},
+			expectedConfig: indexer.Config{Enabled: false},
 		},
 		{
 			name:           "missing config defaults to false",
 			optionsContent: ``,
-			expectedConfig: Config{Enabled: false},
+			expectedConfig: indexer.Config{Enabled: false},
 		},
 		{
 			name: "other sections present",
@@ -115,7 +117,7 @@ enabled = true
 [grpc]
 enable = true
 `,
-			expectedConfig: Config{Enabled: true},
+			expectedConfig: indexer.Config{Enabled: true},
 		},
 	}
 
@@ -131,7 +133,7 @@ enable = true
 			}
 
 			// Create config from options
-			config := NewConfigFromOptions(v)
+			config := indexer.NewConfigFromOptions(v)
 
 			require.Equal(t, tt.expectedConfig.Enabled, config.Enabled)
 		})
@@ -141,12 +143,12 @@ enable = true
 // TestConfigRoundTrip verifies config can be written and read back
 func TestConfigRoundTrip(t *testing.T) {
 	// Create config
-	originalConfig := Config{
+	originalConfig := indexer.Config{
 		Enabled: true,
 	}
 
 	// Generate template
-	template := ConfigTemplate(originalConfig)
+	template := indexer.ConfigTemplate(originalConfig)
 
 	// Parse template back
 	v := viper.New()
@@ -155,7 +157,7 @@ func TestConfigRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create new config from parsed template
-	newConfig := NewConfigFromOptions(v)
+	newConfig := indexer.NewConfigFromOptions(v)
 
 	// Should match original
 	require.Equal(t, originalConfig.Enabled, newConfig.Enabled)
@@ -163,8 +165,8 @@ func TestConfigRoundTrip(t *testing.T) {
 
 // TestConfigTemplateFormat verifies the template formatting
 func TestConfigTemplateFormat(t *testing.T) {
-	config := Config{Enabled: true}
-	template := ConfigTemplate(config)
+	config := indexer.Config{Enabled: true}
+	template := indexer.ConfigTemplate(config)
 
 	// Should have proper TOML section header
 	require.Contains(t, template, "[indexer]")
@@ -182,7 +184,7 @@ func TestNewConfigFromOptionsInvalidTypes(t *testing.T) {
 	tests := []struct {
 		name           string
 		optionsContent string
-		expectedConfig Config
+		expectedConfig indexer.Config
 		description    string
 	}{
 		{
@@ -191,7 +193,7 @@ func TestNewConfigFromOptionsInvalidTypes(t *testing.T) {
 [indexer]
 enabled = "true"
 `,
-			expectedConfig: Config{Enabled: true},
+			expectedConfig: indexer.Config{Enabled: true},
 			description:    "cast.ToBool should handle string 'true'",
 		},
 		{
@@ -200,7 +202,7 @@ enabled = "true"
 [indexer]
 enabled = "false"
 `,
-			expectedConfig: Config{Enabled: false},
+			expectedConfig: indexer.Config{Enabled: false},
 			description:    "cast.ToBool should handle string 'false'",
 		},
 		{
@@ -209,7 +211,7 @@ enabled = "false"
 [indexer]
 enabled = 1
 `,
-			expectedConfig: Config{Enabled: true},
+			expectedConfig: indexer.Config{Enabled: true},
 			description:    "cast.ToBool should handle number 1 as true",
 		},
 		{
@@ -218,7 +220,7 @@ enabled = 1
 [indexer]
 enabled = 0
 `,
-			expectedConfig: Config{Enabled: false},
+			expectedConfig: indexer.Config{Enabled: false},
 			description:    "cast.ToBool should handle number 0 as false",
 		},
 		{
@@ -227,7 +229,7 @@ enabled = 0
 [indexer]
 enabled = "invalid"
 `,
-			expectedConfig: Config{Enabled: false},
+			expectedConfig: indexer.Config{Enabled: false},
 			description:    "cast.ToBool should default to false for invalid strings",
 		},
 	}
@@ -239,7 +241,7 @@ enabled = "invalid"
 			err := v.ReadConfig(strings.NewReader(tt.optionsContent))
 			require.NoError(t, err)
 
-			config := NewConfigFromOptions(v)
+			config := indexer.NewConfigFromOptions(v)
 			require.Equal(t, tt.expectedConfig.Enabled, config.Enabled, tt.description)
 		})
 	}
@@ -247,7 +249,7 @@ enabled = "invalid"
 
 // TestConfigStruct verifies the Config struct fields
 func TestConfigStruct(t *testing.T) {
-	config := Config{
+	config := indexer.Config{
 		Enabled: true,
 	}
 
@@ -261,9 +263,9 @@ func TestConfigStruct(t *testing.T) {
 
 // TestMultipleConfigInstances verifies each config instance is independent
 func TestMultipleConfigInstances(t *testing.T) {
-	config1 := Config{Enabled: true}
-	config2 := Config{Enabled: false}
-	config3 := DefaultConfig()
+	config1 := indexer.Config{Enabled: true}
+	config2 := indexer.Config{Enabled: false}
+	config3 := indexer.DefaultConfig()
 
 	// Each should have independent values
 	require.True(t, config1.Enabled)
