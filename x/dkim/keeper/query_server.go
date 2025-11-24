@@ -193,6 +193,11 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", dkimDomainPInput, dkimHashPInputBig.String())
 	}
 
+	allowedDomains := req.PublicInputs[len(req.PublicInputs)-4:]
+	if !IsSubset(req.AllowedDomains, allowedDomains) {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "request allowed domains: %s are not a subset of public inputs: %s", req.AllowedDomains, allowedDomains)
+	}
+
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
 		return nil, err
@@ -226,6 +231,23 @@ func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.
 	}
 
 	return &types.QueryParamsResponse{Params: &p}, nil
+}
+
+// IsSubset returns true if all elements in A are contained in B
+func IsSubset[T comparable](a, b []T) bool {
+	// Build a set from B for O(1) lookups
+	set := make(map[T]struct{}, len(b))
+	for _, v := range b {
+		set[v] = struct{}{}
+	}
+
+	// Check if every element in A exists in B
+	for _, v := range a {
+		if _, exists := set[v]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 // func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {
