@@ -159,13 +159,25 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 
 func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
 	var verified bool
+	if len(req.PublicInputs) < 38 {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 38 elements for email hosts, got %d", len(req.PublicInputs))
+	}
+
 	if req.EmailHash != req.PublicInputs[32] {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s\n", req.EmailHash, req.PublicInputs[32])
 	}
 
-	// Validate timestamp from public_inputs[11]
-	if len(req.PublicInputs) < 12 {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 12 elements")
+	// Verify tx_bytes match public inputs [12:32]
+	txPartsFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[12:32])
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert tx bytes public inputs to big int: %s", err.Error())
+	}
+	txBytesFromPublicInputs, err := types.ConvertBigIntArrayToString(txPartsFromPublicInputs)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert tx bytes public inputs to string: %s", err.Error())
+	}
+	if !bytes.Equal(req.TxBytes, []byte(txBytesFromPublicInputs)) {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "tx bytes do not match public inputs [12:32]")
 	}
 
 	dkimDomainPInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[0:9])
@@ -176,11 +188,13 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs to string: %s", err.Error())
 	}
+
 	dkimHashPInput := req.PublicInputs[9]
 	dkimHashPInputBig, ok := new(big.Int).SetString(dkimHashPInput, 10)
 	if !ok {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse dkim hash public input")
 	}
+
 	res, err := k.DkimPubKeys(c, &types.QueryDkimPubKeysRequest{
 		Domain:       dkimDomainPInput,
 		PoseidonHash: dkimHashPInputBig.Bytes(),
@@ -193,9 +207,24 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", dkimDomainPInput, dkimHashPInputBig.String())
 	}
 
-	allowedDomains := req.PublicInputs[len(req.PublicInputs)-4:]
-	if !IsSubset(req.AllowedDomains, allowedDomains) {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "request allowed domains: %s are not a subset of public inputs: %s", req.AllowedDomains, allowedDomains)
+	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[34:38])
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to big int: %s", err.Error())
+	}
+
+	emailHostFromPublicInputsString, err := types.ConvertBigIntArrayToString(emailHostFromPublicInputs)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to string: %s", err.Error())
+	}
+
+	// If public inputs have email hosts but allowedEmailHosts is empty, return error
+	if emailHostFromPublicInputsString != "" && len(req.AllowedEmailHosts) == 0 {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email host from public inputs %s is not present in allowed email hosts list", emailHostFromPublicInputsString)
+	}
+
+	// Check if the email host from public inputs is present in the allowedEmailHosts list
+	if !IsSubset([]string{emailHostFromPublicInputsString}, req.AllowedEmailHosts) {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email host from public inputs %s is not present in allowed email hosts list: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
 	}
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
@@ -207,14 +236,17 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	if err != nil {
 		return nil, err
 	}
+
 	vkey, err := k.ZkKeeper.GetCircomVKeyByID(c, params.VkeyIdentifier)
 	if err != nil {
 		return nil, err
 	}
+
 	verified, err = k.ZkKeeper.Verify(c, snarkProof, vkey, &req.PublicInputs)
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.AuthenticateResponse{Verified: verified}, nil
 }
 

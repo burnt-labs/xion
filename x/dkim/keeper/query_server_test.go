@@ -1,10 +1,8 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
-	"time"
 
 	"cosmossdk.io/collections"
 
@@ -181,6 +179,17 @@ func TestQueryDkimPubKeysPagination(t *testing.T) {
 	})
 }
 
+// createModifiedPublicInputs creates a copy of publicInputs with modified tx bytes (indices [12:32])
+func createModifiedPublicInputs(publicInputs []string) []string {
+	modified := make([]string, len(publicInputs))
+	copy(modified, publicInputs)
+	// Modify one of the tx bytes elements to create a mismatch
+	if len(modified) > 12 {
+		modified[12] = "99999999999999999999999999999999999999999999999999999999999999999999999999999"
+	}
+	return modified
+}
+
 func TestAuthenticate(t *testing.T) {
 	f := SetupTest(t)
 	require := require.New(t)
@@ -197,11 +206,20 @@ func TestAuthenticate(t *testing.T) {
 		"0",
 		"0",
 		"6632353713085157925504008443078919716322386156160602218536961028046468237192",
-		"6488481959449533072223265512935826955293610794623716027306441809557838942137",
-		"1761034954",
-		"184361564063070453273685922136003966338692915846469267013988016589082740581",
-		"156169086250226200330543370821913437019311556943728422938452698686684619377",
-		"43933152500220616752048431712410451884662320338205006",
+		"12057794547485210516928817874827048708844252651510875086257455163416697746512",
+		"0",
+		"124413588010935573100449456468959839270027757215138439816955024736271298883",
+		"125987718504881168702817372751405511311626515399128115957683055706162879081",
+		"138174294419566073638917398478480233783462655482283489778477032129860416308",
+		"87164429935183530231106524238772469083021376536857547601286350511895957042",
+		"159508995554830235422881220221659222882416701537684367907262541081181107041",
+		"216177859633033993616607456010987870980723214832657304250929052054387451251",
+		"136870293077760051536514689814528040652982158268238924211443105143315312977",
+		"209027647271941540634260128227139143305212625530130988286308577451934433604",
+		"216041037480816501846348705353738079775803623607373665378499876478757721956",
+		"184099808892606061942559141059081527262834859629181581270585908529014000483",
+		"173926821082308056829441773860483849128404996084932919505946802488367989070",
+		"136498083332900321215526260868562056670892412932671519510981704427905430578",
 		"0",
 		"0",
 		"0",
@@ -210,17 +228,12 @@ func TestAuthenticate(t *testing.T) {
 		"0",
 		"0",
 		"0",
-		"0",
-		"0",
-		"0",
-		"0",
-		"0",
-		"0",
-		"0",
-		"0",
-		"0",
-		"8106355043968901587346579634598098765933160394002251948170420219958523220425",
+		"19446427605026428332697445173245129703428784356663998533737434935925391210840",
 		"1",
+		"145464208130933216679374873468710647147",
+		"0",
+		"0",
+		"0",
 	}
 
 	// Setup DKIM pub key
@@ -243,41 +256,35 @@ func TestAuthenticate(t *testing.T) {
 	// Common proof JSON
 	proofJSON := []byte(`{
     "pi_a": [
-        "2567498309095945123001915525425675597905999851760478825045526651681215626331",
-        "14999488854001729096264262765481549520419110121706604091382799335768138359729",
-        "1"
+      "6043643433140642569280898259541128431907635878547614935681440820683038963792",
+      "9992132192779112865958667381915120532497401445863381693125708878412867819429",
+      "1"
     ],
     "pi_b": [
-        [
-            "17898391853305250165364803572914046217143846059832421998113030577162188453310",
-            "4497137125678880872219151037091068253258857082997424069216822431849925822836"
-        ],
-        [
-            "19330055590884309950552162558742614535190676739309283167287289418499537555510",
-            "36639813998385593976084071080638627426479836445528054913859022095575330980"
-        ],
-        [
-            "1",
-            "0"
-        ]
+      [
+        "857150703036151009004130834885577860944545321105272581149620288148902385440",
+        "3313419972466342030467701882126850537491115446681093222335468857323210697295"
+      ],
+      [
+        "21712445344172795956102361993647268776674729003569584506047190630474625887295",
+        "13180126619787644952475441454844294991198251669191962852459355269881478597074"
+      ],
+      [
+        "1",
+        "0"
+      ]
     ],
     "pi_c": [
-        "6376195530180454357718402630715779929757331091355181280995534997318492855333",
-        "2057527013472228268989188433761933215313085128111815310161468273481706106794",
-        "1"
+      "5608874530415768909531379297509258028398465201351680955270584280524807563327",
+      "12825389375859294537236568763270506206901646432644007343954893485864905401313",
+      "1"
     ],
     "protocol": "groth16",
     "curve": "bn128"
 }`)
 
 	// Common email hash
-	emailHashStr := "8106355043968901587346579634598098765933160394002251948170420219958523220425"
-	emailHash, ok := new(big.Int).SetString(emailHashStr, 10)
-	require.True(ok)
-	emailHashBz := emailHash.FillBytes(make([]byte, 32))
-	for i, j := 0, len(emailHashBz)-1; i < j; i, j = i+1, j-1 {
-		emailHashBz[i], emailHashBz[j] = emailHashBz[j], emailHashBz[i]
-	}
+	emailHashStr := "19446427605026428332697445173245129703428784356663998533737434935925391210840"
 
 	// Common tx bytes
 	txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
@@ -285,73 +292,112 @@ func TestAuthenticate(t *testing.T) {
 	txBytes, err := types.ConvertBigIntArrayToString(txParts)
 	require.NoError(err)
 
-	// Set a deterministic block time for testing
-	testBlockTime := time.Now()
-	f.ctx = f.ctx.WithBlockTime(testBlockTime)
-
 	testCases := []struct {
-		name             string
-		timestampOffset  time.Duration
-		expectedError    bool
-		expectedVerified bool
-		errorContains    string
+		name              string
+		emailHash         string
+		allowedEmailHosts []string
+		publicInputs      []string
+		txBytes           []byte // nil means compute from publicInputs[12:32]
+		expectedError     bool
+		expectedVerified  bool
+		errorContains     string
 	}{
 		{
-			name:             "success - valid timestamp (current time)",
-			timestampOffset:  0,
-			expectedError:    false,
-			expectedVerified: true,
+			name:              "success - basic proof verification",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{"kushal@burnt.com"},
+			publicInputs:      basePublicInputs,
+			txBytes:           nil, // will be computed from publicInputs
+			expectedError:     false,
+			expectedVerified:  true,
 		},
 		{
-			name:             "success - timestamp at boundary (exactly 15 minutes)",
-			timestampOffset:  -15 * time.Minute,
-			expectedError:    false,
-			expectedVerified: true,
+			name:              "fail - email hash mismatch",
+			emailHash:         "99999999999999999999999999999999999999999999999999999999999999999999999999999",
+			allowedEmailHosts: []string{"kushal@burnt.com"},
+			publicInputs:      basePublicInputs,
+			txBytes:           nil, // will be computed from publicInputs
+			expectedError:     true,
+			errorContains:     "email hash does not match public input",
 		},
 		{
-			name:             "fail - timestamp too old (expired)",
-			timestampOffset:  -16 * time.Minute,
-			expectedError:    true,
-			expectedVerified: false,
-			errorContains:    "timestamp is too old",
+			name:              "fail - allowed email hosts not subset of public inputs",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{"jose@burnt.com", "jane@burnt.com"},
+			publicInputs:      basePublicInputs,
+			txBytes:           nil, // will be computed from publicInputs
+			expectedError:     true,
+			errorContains:     "is not present in allowed email hosts list",
 		},
 		{
-			name:             "fail - timestamp too far in future",
-			timestampOffset:  16 * time.Minute,
-			expectedError:    true,
-			expectedVerified: false,
-			errorContains:    "timestamp is too far in the future",
+			name:              "success - allowed list of email hosts match public inputs",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{"kushal@burnt.com", "jose@burnt.com", "jane@burnt.com"},
+			publicInputs:      basePublicInputs,
+			txBytes:           nil, // will be computed from publicInputs
+			expectedError:     false,
+			expectedVerified:  true,
 		},
 		{
-			name:             "fail - invalid timestamp format",
-			timestampOffset:  0, // Will be overridden
-			expectedError:    true,
-			expectedVerified: false,
-			errorContains:    "failed to parse timestamp",
+			name:              "fail - empty allowed email hosts when public inputs have hosts",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{},
+			publicInputs:      basePublicInputs,
+			txBytes:           nil, // will be computed from publicInputs
+			expectedError:     true,
+			errorContains:     "is not present in allowed email hosts list",
+		},
+		{
+			name:              "fail - tx bytes mismatch",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{"kushal@burnt.com"},
+			publicInputs:      basePublicInputs,
+			txBytes:           []byte("wrong-tx-bytes"),
+			expectedError:     true,
+			errorContains:     "tx bytes do not match public inputs",
+		},
+		{
+			name:              "fail - empty tx bytes when public inputs have tx bytes",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{"kushal@burnt.com"},
+			publicInputs:      basePublicInputs,
+			txBytes:           []byte{},
+			expectedError:     true,
+			errorContains:     "tx bytes do not match public inputs",
+		},
+		{
+			name:              "fail - tx bytes with modified public inputs",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{"kushal@burnt.com"},
+			publicInputs:      createModifiedPublicInputs(basePublicInputs),
+			txBytes:           []byte(txBytes), // using original txBytes with modified publicInputs
+			expectedError:     true,
+			errorContains:     "tx bytes do not match public inputs",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a copy of public inputs for this test case
-			publicInputs := make([]string, len(basePublicInputs))
-			copy(publicInputs, basePublicInputs)
-
-			// Set timestamp based on test case
-			if tc.name == "fail - invalid timestamp format" {
-				publicInputs[11] = "invalid-timestamp"
+			var reqTxBytes []byte
+			if tc.txBytes != nil {
+				reqTxBytes = tc.txBytes
 			} else {
-				timestamp := testBlockTime.Add(tc.timestampOffset).Unix()
-				publicInputs[11] = fmt.Sprintf("%d", timestamp)
+				// Compute txBytes from publicInputs[12:32]
+				txParts, err := types.ConvertStringArrayToBigInt(tc.publicInputs[12:32])
+				require.NoError(err)
+				txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+				require.NoError(err)
+				reqTxBytes = []byte(txBytesStr)
 			}
 
-			res, err := f.queryServer.Authenticate(f.ctx, &types.QueryAuthenticateRequest{
-				TxBytes:      []byte(txBytes),
-				EmailHash:    emailHashStr,
-				Proof:        proofJSON,
-				PublicInputs: publicInputs,
-			})
-
+			req := &types.QueryAuthenticateRequest{
+				TxBytes:           reqTxBytes,
+				EmailHash:         tc.emailHash,
+				Proof:             proofJSON,
+				PublicInputs:      tc.publicInputs,
+				AllowedEmailHosts: tc.allowedEmailHosts,
+			}
+			res, err := f.queryServer.Authenticate(f.ctx, req)
 			if tc.expectedError {
 				require.Error(err)
 				if tc.errorContains != "" {

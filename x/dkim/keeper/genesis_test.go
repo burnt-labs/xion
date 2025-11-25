@@ -62,7 +62,7 @@ func TestGenesis(t *testing.T) {
 					DkimPubkeys: []types.DkimPubKey{
 						{
 							Domain:       "x.com",
-							PubKey:       "test",
+							PubKey:       "test!@#", // invalid base64 characters
 							Selector:     "test",
 							PoseidonHash: []byte("test"),
 						},

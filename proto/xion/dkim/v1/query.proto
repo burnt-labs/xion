@@ -79,7 +79,7 @@ message QueryAuthenticateRequest {
   string email_hash = 2;
   bytes proof = 3;
   repeated string public_inputs = 4;
-  repeated string allowed_domains = 5;
+  repeated string allowed_email_hosts = 5;
 }
 // AuthenticateResponse defines the response structure for proof verification.
 message AuthenticateResponse {
