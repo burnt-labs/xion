@@ -91,18 +91,26 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	accountCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "xion_account.wasm"))
 	require.NoError(t, err)
 
-	signatureJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "signature.json")
-	// Read the file
-	fileContent, err := os.ReadFile(signatureJSONPath)
+	// Read zk-auth.json and generate base64 signature
+	zkAuthJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "zk-auth.json")
+	zkAuthContent, err := os.ReadFile(zkAuthJSONPath)
 	require.NoError(t, err)
 
-	var signature Signature
-	err = json.Unmarshal(fileContent, &signature)
+	var zkAuthData map[string]interface{}
+	err = json.Unmarshal(zkAuthContent, &zkAuthData)
 	require.NoError(t, err)
 
-	emailSalt := signature.PublicInputs[32]
+	// Extract emailSalt from publicInputs
+	publicInputs, ok := zkAuthData["publicInputs"].([]interface{})
+	require.True(t, ok, "publicInputs should be an array")
+	emailSalt, ok := publicInputs[32].(string)
+	require.True(t, ok, "emailSalt should be a string")
 	fmt.Println(emailSalt)
-	b64signture := "ewogICAgInByb29mIjogewogICAgICAgICJwaV9hIjogWwogICAgICAgICAgICAiNjA0MzY0MzQzMzE0MDY0MjU2OTI4MDg5ODI1OTU0MTEyODQzMTkwNzYzNTg3ODU0NzYxNDkzNTY4MTQ0MDgyMDY4MzAzODk2Mzc5MiIsCiAgICAgICAgICAgICI5OTkyMTMyMTkyNzc5MTEyODY1OTU4NjY3MzgxOTE1MTIwNTMyNDk3NDAxNDQ1ODYzMzgxNjkzMTI1NzA4ODc4NDEyODY3ODE5NDI5IiwKICAgICAgICAgICAgIjEiCiAgICAgICAgXSwKICAgICAgICAicGlfYiI6IFsKICAgICAgICAgICAgWwogICAgICAgICAgICAgICAgIjg1NzE1MDcwMzAzNjE1MTAwOTAwNDEzMDgzNDg4NTU3Nzg2MDk0NDU0NTMyMTEwNTI3MjU4MTE0OTYyMDI4ODE0ODkwMjM4NTQ0MCIsCiAgICAgICAgICAgICAgICAiMzMxMzQxOTk3MjQ2NjM0MjAzMDQ2NzcwMTg4MjEyNjg1MDUzNzQ5MTExNTQ0NjY4MTA5MzIyMjMzNTQ2ODg1NzMyMzIxMDY5NzI5NSIKICAgICAgICAgICAgXSwKICAgICAgICAgICAgWwogICAgICAgICAgICAgICAgIjIxNzEyNDQ1MzQ0MTcyNzk1OTU2MTAyMzYxOTkzNjQ3MjY4Nzc2Njc0NzI5MDAzNTY5NTg0NTA2MDQ3MTkwNjMwNDc0NjI1ODg3Mjk1IiwKICAgICAgICAgICAgICAgICIxMzE4MDEyNjYxOTc4NzY0NDk1MjQ3NTQ0MTQ1NDg0NDI5NDk5MTE5ODI1MTY2OTE5MTk2Mjg1MjQ1OTM1NTI2OTg4MTQ3ODU5NzA3NCIKICAgICAgICAgICAgXSwKICAgICAgICAgICAgWwogICAgICAgICAgICAgICAgIjEiLAogICAgICAgICAgICAgICAgIjAiCiAgICAgICAgICAgIF0KICAgICAgICBdLAogICAgICAgICJwaV9jIjogWwogICAgICAgICAgICAiNTYwODg3NDUzMDQxNTc2ODkwOTUzMTM3OTI5NzUwOTI1ODAyODM5ODQ2NTIwMTM1MTY4MDk1NTI3MDU4NDI4MDUyNDgwNzU2MzMyNyIsCiAgICAgICAgICAgICIxMjgyNTM4OTM3NTg1OTI5NDUzNzIzNjU2ODc2MzI3MDUwNjIwNjkwMTY0NjQzMjY0NDAwNzM0Mzk1NDg5MzQ4NTg2NDkwNTQwMTMxMyIsCiAgICAgICAgICAgICIxIgogICAgICAgIF0sCiAgICAgICAgInByb3RvY29sIjogImdyb3RoMTYiCiAgICB9LAogICAgInB1YmxpY0lucHV0cyI6IFsKICAgICAgICAiMjAxODcyMTQxNDAzODQwNDgyMDMyNyIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiNjYzMjM1MzcxMzA4NTE1NzkyNTUwNDAwODQ0MzA3ODkxOTcxNjMyMjM4NjE1NjE2MDYwMjIxODUzNjk2MTAyODA0NjQ2ODIzNzE5MiIsCiAgICAgICAgIjEyMDU3Nzk0NTQ3NDg1MjEwNTE2OTI4ODE3ODc0ODI3MDQ4NzA4ODQ0MjUyNjUxNTEwODc1MDg2MjU3NDU1MTYzNDE2Njk3NzQ2NTEyIiwKICAgICAgICAiMCIsCiAgICAgICAgIjEyNDQxMzU4ODAxMDkzNTU3MzEwMDQ0OTQ1NjQ2ODk1OTgzOTI3MDAyNzc1NzIxNTEzODQzOTgxNjk1NTAyNDczNjI3MTI5ODg4MyIsCiAgICAgICAgIjEyNTk4NzcxODUwNDg4MTE2ODcwMjgxNzM3Mjc1MTQwNTUxMTMxMTYyNjUxNTM5OTEyODExNTk1NzY4MzA1NTcwNjE2Mjg3OTA4MSIsCiAgICAgICAgIjEzODE3NDI5NDQxOTU2NjA3MzYzODkxNzM5ODQ3ODQ4MDIzMzc4MzQ2MjY1NTQ4MjI4MzQ4OTc3ODQ3NzAzMjEyOTg2MDQxNjMwOCIsCiAgICAgICAgIjg3MTY0NDI5OTM1MTgzNTMwMjMxMTA2NTI0MjM4NzcyNDY5MDgzMDIxMzc2NTM2ODU3NTQ3NjAxMjg2MzUwNTExODk1OTU3MDQyIiwKICAgICAgICAiMTU5NTA4OTk1NTU0ODMwMjM1NDIyODgxMjIwMjIxNjU5MjIyODgyNDE2NzAxNTM3Njg0MzY3OTA3MjYyNTQxMDgxMTgxMTA3MDQxIiwKICAgICAgICAiMjE2MTc3ODU5NjMzMDMzOTkzNjE2NjA3NDU2MDEwOTg3ODcwOTgwNzIzMjE0ODMyNjU3MzA0MjUwOTI5MDUyMDU0Mzg3NDUxMjUxIiwKICAgICAgICAiMTM2ODcwMjkzMDc3NzYwMDUxNTM2NTE0Njg5ODE0NTI4MDQwNjUyOTgyMTU4MjY4MjM4OTI0MjExNDQzMTA1MTQzMzE1MzEyOTc3IiwKICAgICAgICAiMjA5MDI3NjQ3MjcxOTQxNTQwNjM0MjYwMTI4MjI3MTM5MTQzMzA1MjEyNjI1NTMwMTMwOTg4Mjg2MzA4NTc3NDUxOTM0NDMzNjA0IiwKICAgICAgICAiMjE2MDQxMDM3NDgwODE2NTAxODQ2MzQ4NzA1MzUzNzM4MDc5Nzc1ODAzNjIzNjA3MzczNjY1Mzc4NDk5ODc2NDc4NzU3NzIxOTU2IiwKICAgICAgICAiMTg0MDk5ODA4ODkyNjA2MDYxOTQyNTU5MTQxMDU5MDgxNTI3MjYyODM0ODU5NjI5MTgxNTgxMjcwNTg1OTA4NTI5MDE0MDAwNDgzIiwKICAgICAgICAiMTczOTI2ODIxMDgyMzA4MDU2ODI5NDQxNzczODYwNDgzODQ5MTI4NDA0OTk2MDg0OTMyOTE5NTA1OTQ2ODAyNDg4MzY3OTg5MDcwIiwKICAgICAgICAiMTM2NDk4MDgzMzMyOTAwMzIxMjE1NTI2MjYwODY4NTYyMDU2NjcwODkyNDEyOTMyNjcxNTE5NTEwOTgxNzA0NDI3OTA1NDMwNTc4IiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIxOTQ0NjQyNzYwNTAyNjQyODMzMjY5NzQ0NTE3MzI0NTEyOTcwMzQyODc4NDM1NjY2Mzk5ODUzMzczNzQzNDkzNTkyNTM5MTIxMDg0MCIsCiAgICAgICAgIjEiLAogICAgICAgICIxNDU0NjQyMDgxMzA5MzMyMTY2NzkzNzQ4NzM0Njg3MTA2NDcxNDciLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiCiAgICBdCn0="
+
+	zkAuthJSONBytes, err := json.Marshal(zkAuthData)
+	require.NoError(t, err)
+
+	b64signture := base64.StdEncoding.EncodeToString(zkAuthJSONBytes)
 	fmt.Println(b64signture)
 	// create allowed email hosts json marshalled string
 	allowedEmailHosts := []string{"kushal@burnt.com", "jose@burnt.com", "jane@burnt.com"}
@@ -264,24 +272,25 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	// Hardcoded proof (pre-generated externally)
-	proofBz, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "keys", "zkproof.json"))
+	zkTransactionJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "zk-transaction.json")
+	zkTransactionContent, err := os.ReadFile(zkTransactionJSONPath)
 	if err != nil {
 		t.Fatalf("failed to read vkey.json file: %v", err)
 	}
 
-	var proof map[string]any
-	err = json.Unmarshal(proofBz, &proof)
+	var zkTransaction Signature
+	err = json.Unmarshal(zkTransactionContent, &zkTransaction)
 	require.NoError(t, err)
 
-	sigBz, err := json.Marshal(signature)
+	sigBz, err := json.Marshal(zkTransaction)
 	require.NoError(t, err)
 
 	// prepend auth index to signature
-	proofBz = append([]byte{uint8(1)}, sigBz...)
+	zkTransactionBz := append([]byte{uint8(1)}, sigBz...)
 
 	sigData := signing.SingleSignatureData{
 		SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
-		Signature: proofBz,
+		Signature: zkTransactionBz,
 	}
 
 	sigV2 := signing.SignatureV2{
