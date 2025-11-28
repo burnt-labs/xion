@@ -1,15 +1,3 @@
-# ========================================================================
-# THIS FILE NEEDS TO BE ADDED TO THE XION REPOSITORY
-# Location: burnt-labs/xion/.github/workflows/trigger-chain-registry.yaml
-# ========================================================================
-#
-# This workflow triggers the chain-registry update workflow when a new
-# release is published in the xion repository.
-#
-# After testing, copy this file to the xion repository at:
-# .github/workflows/trigger-chain-registry.yaml
-# ========================================================================
-
 name: Trigger Chain Registry Update
 
 on:
