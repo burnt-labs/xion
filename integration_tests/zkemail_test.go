@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"os"
 	"path"
 	"strings"
@@ -92,19 +91,32 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	accountCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "xion_account.wasm"))
 	require.NoError(t, err)
 
-	signatureJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "signature.json")
-	// Read the file
-	fileContent, err := os.ReadFile(signatureJSONPath)
+	// Read zk-auth.json and generate base64 signature
+	zkAuthJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "zk-auth.json")
+	zkAuthContent, err := os.ReadFile(zkAuthJSONPath)
 	require.NoError(t, err)
 
-	var signature Signature
-	err = json.Unmarshal(fileContent, &signature)
+	var zkAuthData map[string]interface{}
+	err = json.Unmarshal(zkAuthContent, &zkAuthData)
 	require.NoError(t, err)
 
-	emailSalt := signature.PublicInputs[len(signature.PublicInputs)-2]
+	// Extract emailSalt from publicInputs
+	publicInputs, ok := zkAuthData["publicInputs"].([]interface{})
+	require.True(t, ok, "publicInputs should be an array")
+	emailSalt, ok := publicInputs[32].(string)
+	require.True(t, ok, "emailSalt should be a string")
 	fmt.Println(emailSalt)
-	b64signture := "ewogICAgInByb29mIjogewogICAgICAgICJwaV9hIjogWwogICAgICAgICAgICAiMjU2NzQ5ODMwOTA5NTk0NTEyMzAwMTkxNTUyNTQyNTY3NTU5NzkwNTk5OTg1MTc2MDQ3ODgyNTA0NTUyNjY1MTY4MTIxNTYyNjMzMSIsCiAgICAgICAgICAgICIxNDk5OTQ4ODg1NDAwMTcyOTA5NjI2NDI2Mjc2NTQ4MTU0OTUyMDQxOTExMDEyMTcwNjYwNDA5MTM4Mjc5OTMzNTc2ODEzODM1OTcyOSIsCiAgICAgICAgICAgICIxIgogICAgICAgIF0sCiAgICAgICAgInBpX2IiOiBbCiAgICAgICAgICAgIFsKICAgICAgICAgICAgICAgICIxNzg5ODM5MTg1MzMwNTI1MDE2NTM2NDgwMzU3MjkxNDA0NjIxNzE0Mzg0NjA1OTgzMjQyMTk5ODExMzAzMDU3NzE2MjE4ODQ1MzMxMCIsCiAgICAgICAgICAgICAgICAiNDQ5NzEzNzEyNTY3ODg4MDg3MjIxOTE1MTAzNzA5MTA2ODI1MzI1ODg1NzA4Mjk5NzQyNDA2OTIxNjgyMjQzMTg0OTkyNTgyMjgzNiIKICAgICAgICAgICAgXSwKICAgICAgICAgICAgWwogICAgICAgICAgICAgICAgIjE5MzMwMDU1NTkwODg0MzA5OTUwNTUyMTYyNTU4NzQyNjE0NTM1MTkwNjc2NzM5MzA5MjgzMTY3Mjg3Mjg5NDE4NDk5NTM3NTU1NTEwIiwKICAgICAgICAgICAgICAgICIzNjYzOTgxMzk5ODM4NTU5Mzk3NjA4NDA3MTA4MDYzODYyNzQyNjQ3OTgzNjQ0NTUyODA1NDkxMzg1OTAyMjA5NTU3NTMzMDk4MCIKICAgICAgICAgICAgXSwKICAgICAgICAgICAgWwogICAgICAgICAgICAgICAgIjEiLAogICAgICAgICAgICAgICAgIjAiCiAgICAgICAgICAgIF0KICAgICAgICBdLAogICAgICAgICJwaV9jIjogWwogICAgICAgICAgICAiNjM3NjE5NTUzMDE4MDQ1NDM1NzcxODQwMjYzMDcxNTc3OTkyOTc1NzMzMTA5MTM1NTE4MTI4MDk5NTUzNDk5NzMxODQ5Mjg1NTMzMyIsCiAgICAgICAgICAgICIyMDU3NTI3MDEzNDcyMjI4MjY4OTg5MTg4NDMzNzYxOTMzMjE1MzEzMDg1MTI4MTExODE1MzEwMTYxNDY4MjczNDgxNzA2MTA2Nzk0IiwKICAgICAgICAgICAgIjEiCiAgICAgICAgXSwKICAgICAgICAicHJvdG9jb2wiOiAiZ3JvdGgxNiIsCiAgICAgICAgImN1cnZlIjogImJuMTI4IgogICAgfSwKICAgICJwdWJsaWNJbnB1dHMiOiBbCiAgICAgICAgIjIwMTg3MjE0MTQwMzg0MDQ4MjAzMjciLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjY2MzIzNTM3MTMwODUxNTc5MjU1MDQwMDg0NDMwNzg5MTk3MTYzMjIzODYxNTYxNjA2MDIyMTg1MzY5NjEwMjgwNDY0NjgyMzcxOTIiLAogICAgICAgICI2NDg4NDgxOTU5NDQ5NTMzMDcyMjIzMjY1NTEyOTM1ODI2OTU1MjkzNjEwNzk0NjIzNzE2MDI3MzA2NDQxODA5NTU3ODM4OTQyMTM3IiwKICAgICAgICAiMTc2MTAzNDk1NCIsCiAgICAgICAgIjE4NDM2MTU2NDA2MzA3MDQ1MzI3MzY4NTkyMjEzNjAwMzk2NjMzODY5MjkxNTg0NjQ2OTI2NzAxMzk4ODAxNjU4OTA4Mjc0MDU4MSIsCiAgICAgICAgIjE1NjE2OTA4NjI1MDIyNjIwMDMzMDU0MzM3MDgyMTkxMzQzNzAxOTMxMTU1Njk0MzcyODQyMjkzODQ1MjY5ODY4NjY4NDYxOTM3NyIsCiAgICAgICAgIjQzOTMzMTUyNTAwMjIwNjE2NzUyMDQ4NDMxNzEyNDEwNDUxODg0NjYyMzIwMzM4MjA1MDA2IiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICIwIiwKICAgICAgICAiMCIsCiAgICAgICAgIjAiLAogICAgICAgICI4MTA2MzU1MDQzOTY4OTAxNTg3MzQ2NTc5NjM0NTk4MDk4NzY1OTMzMTYwMzk0MDAyMjUxOTQ4MTcwNDIwMjE5OTU4NTIzMjIwNDI1IiwKICAgICAgICAiMSIKICAgIF0KfQ=="
+
+	zkAuthJSONBytes, err := json.Marshal(zkAuthData)
+	require.NoError(t, err)
+
+	b64signture := base64.StdEncoding.EncodeToString(zkAuthJSONBytes)
 	fmt.Println(b64signture)
+	// create allowed email hosts json marshalled string
+	allowedEmailHosts := []string{"kushal@burnt.com", "jose@burnt.com", "jane@burnt.com"}
+	allowedEmailHostsJSON, err := json.Marshal(allowedEmailHosts)
+	require.NoError(t, err)
+	allowedEmailHostsString := string(allowedEmailHostsJSON)
 
 	// signatre a conjunction of (email_salt, proof)
 	//
@@ -128,18 +140,13 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	t.Logf("TxDetails: %s", txDetails)
 	aaContractAddr := GetAAContractAddress(t, txDetails)
 
-	// poseidon([salt, email_address])
-	emailCommitment := "17159366307350401517208657413587014704131356894001302493847352957889395820464"
-	emailCommitmentBIG, isSet := new(big.Int).SetString(emailCommitment, 10)
-	require.True(t, isSet)
-	emailHash := base64.StdEncoding.EncodeToString(ToLittleEndian(emailCommitmentBIG.Bytes()))
-	t.Logf("email hash: %s", emailHash)
-
 	// send a execute msg to add a zkemail authenticator to the account
 	// TODO: update ZKEmail id, email_salt, signature
+	require.NoError(t, err)
 	authExecuteMsg := fmt.Sprintf(
-		`{"add_auth_method":{"add_authenticator":{"ZKEmail": {"id": 1, "email_salt": "%s", "signature": "%s"}}}}`,
+		`{"add_auth_method":{"add_authenticator":{"ZKEmail": {"id": 1, "email_salt": "%s", "allowed_email_hosts": %s, "signature": "%s"}}}}`,
 		emailSalt,
+		allowedEmailHostsString,
 		b64signture,
 	)
 
@@ -157,7 +164,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	txBuilder.SetFeeAmount(types.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(100000)}})
-	txBuilder.SetGasLimit(210000)
+	txBuilder.SetGasLimit(500000)
 
 	unsignedTxBz, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
@@ -265,24 +272,25 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	// Hardcoded proof (pre-generated externally)
-	proofBz, err := os.ReadFile(path.Join(fp, "integration_tests", "testdata", "keys", "zkproof.json"))
+	zkTransactionJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "zk-transaction.json")
+	zkTransactionContent, err := os.ReadFile(zkTransactionJSONPath)
 	if err != nil {
 		t.Fatalf("failed to read vkey.json file: %v", err)
 	}
 
-	var proof map[string]any
-	err = json.Unmarshal(proofBz, &proof)
+	var zkTransaction Signature
+	err = json.Unmarshal(zkTransactionContent, &zkTransaction)
 	require.NoError(t, err)
 
-	sigBz, err := json.Marshal(signature)
+	sigBz, err := json.Marshal(zkTransaction)
 	require.NoError(t, err)
 
 	// prepend auth index to signature
-	proofBz = append([]byte{uint8(1)}, sigBz...)
+	zkTransactionBz := append([]byte{uint8(1)}, sigBz...)
 
 	sigData := signing.SingleSignatureData{
 		SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
-		Signature: proofBz,
+		Signature: zkTransactionBz,
 	}
 
 	sigV2 := signing.SignatureV2{
