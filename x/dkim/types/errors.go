@@ -13,4 +13,9 @@ var (
 	ErrEncodingElement     = errorsmod.Register(ModuleName, 1102, "error encoding element")
 	ErrCalculatingPoseidon = errorsmod.Register(ModuleName, 1103, "error hashing poseidon hash")
 	ErrInvalidPublicInput  = errorsmod.Register(ModuleName, 1104, "invalid public input")
+
+	ErrInvalidKeyType = errorsmod.Register(ModuleName, 1105, "invalid key type: only RSA keys are supported")
+	ErrInvalidVersion = errorsmod.Register(ModuleName, 1106, "invalid version: only DKIM1 is supported")
+	ErrInvalidPubKey  = errorsmod.Register(ModuleName, 1107, "invalid public key")
+	ErrNotRSAKey      = errorsmod.Register(ModuleName, 1108, "public key is not an RSA key")
 )

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"strings"
 
@@ -57,6 +58,13 @@ func SaveDkimPubKeys(ctx context.Context, dkimKeys []types.DkimPubKey, k *Keeper
 func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPubKeys) (*types.MsgAddDkimPubKeysResponse, error) {
 	if ms.k.authority != msg.Authority {
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
+	}
+
+	// Validate all DKIM public keys before saving
+	for _, dkimKey := range msg.DkimPubkeys {
+		if err := ValidateDkimPubKey(dkimKey); err != nil {
+			return nil, err
+		}
 	}
 	_, err := SaveDkimPubKeys(ctx, msg.DkimPubkeys, &ms.k)
 	if err != nil {
@@ -137,4 +145,50 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 	}
 
 	return nil, ms.k.Params.Set(ctx, msg.Params)
+}
+
+// ValidateDkimPubKey validates a DKIM public key entry
+func ValidateDkimPubKey(dkimKey types.DkimPubKey) error {
+	// Validate KeyType
+	if dkimKey.KeyType != types.KeyType_KEY_TYPE_RSA_UNSPECIFIED {
+		return types.ErrInvalidKeyType
+	}
+
+	// Validate Version
+	if dkimKey.Version != types.Version_VERSION_DKIM1_UNSPECIFIED {
+		return types.ErrInvalidVersion
+	}
+
+	// Validate PubKey is valid base64-encoded RSA public key
+	if err := ValidateRSAPubKey(dkimKey.PubKey); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
+func ValidateRSAPubKey(pubKeyStr string) error {
+	// Decode base64
+	pubKeyBytes, err := base64.StdEncoding.DecodeString(pubKeyStr)
+	if err != nil {
+		return errors.Wrapf(types.ErrInvalidPubKey, "failed to decode base64: %s", err)
+	}
+
+	// Try PKIX/SPKI format first (standard format for DKIM public keys)
+	pub, err := x509.ParsePKIXPublicKey(pubKeyBytes)
+	if err == nil {
+		if _, ok := pub.(*rsa.PublicKey); !ok {
+			return types.ErrNotRSAKey
+		}
+		return nil
+	}
+
+	// Fall back to PKCS#1 format
+	_, err = x509.ParsePKCS1PublicKey(pubKeyBytes)
+	if err != nil {
+		return errors.Wrapf(types.ErrInvalidPubKey, "failed to parse public key: %s", err)
+	}
+
+	return nil
 }

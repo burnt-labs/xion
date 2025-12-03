@@ -1,7 +1,6 @@
 package module_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -133,7 +132,7 @@ func TestAppModuleBasic_DefaultGenesis(t *testing.T) {
 	require.NotNil(t, genesis)
 
 	var genesisState types.GenesisState
-	err := json.Unmarshal(genesis, &genesisState)
+	err := encCfg.Codec.UnmarshalJSON(genesis, &genesisState)
 	require.NoError(t, err)
 }
 

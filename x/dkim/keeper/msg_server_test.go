@@ -30,7 +30,7 @@ func TestAddDkimPubKey(t *testing.T) {
 		{
 			name: "fail; invalid authority",
 			request: &types.MsgAddDkimPubKeys{
-				Authority: f.addrs[0].String(),
+				Authority: "invalid_authority",
 				DkimPubkeys: []types.DkimPubKey{
 					{
 						Domain:   "xion.burnt.com",
@@ -104,11 +104,11 @@ func TestAddDkimPubKey(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(_ *testing.T) {
-			err := tc.request.ValidateBasic()
+			_, err := f.msgServer.AddDkimPubKeys(f.ctx, tc.request)
 			if tc.err {
 				require.Error(err)
 			} else {
-				_, err = f.msgServer.AddDkimPubKeys(f.ctx, tc.request)
+
 				require.NoError(err)
 
 				r, err := f.queryServer.DkimPubKey(f.ctx, &types.QueryDkimPubKeyRequest{
