@@ -68,6 +68,7 @@ func TestCommandMetadata(t *testing.T) {
 		{"update-audience", cli.CmdUpdateAudience()},
 		{"delete-audience", cli.CmdDeleteAudience()},
 		{"create-audience-claim", cli.CmdCreateAudienceClaim()},
+		{"delete-audience-claim", cli.CmdDeleteAudienceClaim()},
 		{"convert-pem", cli.CmdConvertPemToJSON()},
 	}
 	for _, m := range meta {
@@ -100,6 +101,8 @@ func TestArgumentValidation_Table(t *testing.T) {
 		{"delete audience ok (no ctx)", cli.CmdDeleteAudience, []string{"aud"}, true},
 		{"claim audience missing", cli.CmdCreateAudienceClaim, []string{}, true},
 		{"claim audience ok (no ctx)", cli.CmdCreateAudienceClaim, []string{"aud"}, true},
+		{"delete claim missing", cli.CmdDeleteAudienceClaim, []string{}, true},
+		{"delete claim ok (no ctx)", cli.CmdDeleteAudienceClaim, []string{"aud"}, true},
 		{"convert pem missing", cli.CmdConvertPemToJSON, []string{}, true},
 	}
 	for _, tc := range tests {
@@ -173,6 +176,7 @@ func TestAudienceTxCommands(t *testing.T) {
 		{"update with flags", cli.CmdUpdateAudience(), []string{"aud", "newkey", "--new-admin", "cosmos1bad", "--new-aud", "aud2"}},
 		{"delete audience", cli.CmdDeleteAudience(), []string{"aud"}},
 		{"create claim", cli.CmdCreateAudienceClaim(), []string{"aud"}},
+		{"delete claim", cli.CmdDeleteAudienceClaim(), []string{"aud"}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -375,6 +379,20 @@ func TestCreateAudienceClaimVariants(t *testing.T) {
 
 	// With empty context
 	_, err = clitestutil.ExecTestCLICmd(empty, cli.CmdCreateAudienceClaim(), []string{"test-aud"})
+	require.Error(t, err)
+}
+
+func TestDeleteAudienceClaimVariants(t *testing.T) {
+	ctx := newMockCtx(t)
+	empty := newEmptyCtx()
+
+	// With mock context - should error due to validation
+	_, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdDeleteAudienceClaim(), []string{"test-aud"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid admin address")
+
+	// With empty context
+	_, err = clitestutil.ExecTestCLICmd(empty, cli.CmdDeleteAudienceClaim(), []string{"test-aud"})
 	require.Error(t, err)
 }
 

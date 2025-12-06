@@ -295,6 +295,34 @@ func TestMsgServer_Send_MinimumNotMet(t *testing.T) {
 	require.Contains(t, err.Error(), "minimum send amount not met")
 }
 
+func TestMsgServer_Send_EmptyMinimumsNotMet(t *testing.T) {
+	goCtx, server, _, mockBankKeeper := setupMsgServerTest(t)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	fromAddr := sdk.AccAddress("from_address_12345678")
+	toAddr := sdk.AccAddress("to_address_123456789")
+	amount := sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100)))
+
+	msg := &types.MsgSend{
+		FromAddress: fromAddr.String(),
+		ToAddress:   toAddr.String(),
+		Amount:      amount,
+	}
+
+	// No platform minimums set (empty by default)
+	// This should fail because platform minimums must be explicitly configured
+
+	mockBankKeeper.On("IsSendEnabledCoins", ctx, mock.AnythingOfType("[]types.Coin")).Return(nil)
+	mockBankKeeper.On("BlockedAddr", toAddr).Return(false)
+
+	// Execute
+	_, err := server.Send(goCtx, msg)
+
+	// Assert - should fail when no minimums are configured
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "minimum send amount not met")
+}
+
 func TestMsgServer_Send_ZeroPercentage(t *testing.T) {
 	goCtx, server, keeper, mockBankKeeper := setupMsgServerTest(t)
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -636,4 +664,108 @@ func TestMsgServer_MultiSend_HighPlatformFee(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	require.NotNil(t, response)
+}
+
+func TestGetPlatformCoins(t *testing.T) {
+	tests := []struct {
+		name       string
+		coins      sdk.Coins
+		percentage math.Int
+		expected   sdk.Coins
+	}{
+		{
+			name:       "zero percentage",
+			coins:      sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+			percentage: math.NewInt(0),
+			expected:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(0))),
+		},
+		{
+			name:       "10% of 1000",
+			coins:      sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+			percentage: math.NewInt(1000), // 10% in basis points
+			expected:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100))),
+		},
+		{
+			name:       "50% of 2000",
+			coins:      sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(2000))),
+			percentage: math.NewInt(5000), // 50% in basis points
+			expected:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+		},
+		{
+			name:       "multiple coins",
+			coins:      sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000)), sdk.NewCoin("uatom", math.NewInt(500))),
+			percentage: math.NewInt(1000), // 10%
+			expected:   sdk.NewCoins(sdk.NewCoin("uatom", math.NewInt(50)), sdk.NewCoin("uxion", math.NewInt(100))),
+		},
+		{
+			name:       "100% fee",
+			coins:      sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+			percentage: math.NewInt(10000), // 100%
+			expected:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+		},
+		{
+			name:       "very small amount",
+			coins:      sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1))),
+			percentage: math.NewInt(1000),                                  // 10%
+			expected:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(0))), // Rounds down
+		},
+		{
+			name:       "empty coins",
+			coins:      sdk.NewCoins(),
+			percentage: math.NewInt(1000),
+			expected:   sdk.NewCoins(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := getPlatformCoins(tt.coins, tt.percentage)
+			require.True(t, tt.expected.Equal(result),
+				"expected %s, got %s", tt.expected, result)
+		})
+	}
+}
+
+func TestGetPlatformCoins_LargeAmounts(t *testing.T) {
+	// Test the big integer arithmetic path for very large amounts
+	tests := []struct {
+		name       string
+		amount     string
+		percentage math.Int
+		expectedFn func(amount math.Int) math.Int
+	}{
+		{
+			name:       "very large amount - normal path",
+			amount:     "1000000000000000000", // 1e18
+			percentage: math.NewInt(1000),     // 10%
+			expectedFn: func(amount math.Int) math.Int {
+				return amount.Mul(math.NewInt(1000)).Quo(math.NewInt(10000))
+			},
+		},
+		{
+			name:       "extremely large amount - big int path",
+			amount:     "999999999999999999999999999999999999999999", // Very large number
+			percentage: math.NewInt(1000),                            // 10%
+			expectedFn: func(amount math.Int) math.Int {
+				// Should use big integer arithmetic
+				return amount.Mul(math.NewInt(1000)).Quo(math.NewInt(10000))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			amount, ok := math.NewIntFromString(tt.amount)
+			require.True(t, ok, "failed to parse amount")
+
+			coins := sdk.NewCoins(sdk.NewCoin("uxion", amount))
+			result := getPlatformCoins(coins, tt.percentage)
+
+			expected := tt.expectedFn(amount)
+			expectedCoins := sdk.NewCoins(sdk.NewCoin("uxion", expected))
+
+			require.True(t, expectedCoins.Equal(result),
+				"expected %s, got %s", expectedCoins, result)
+		})
+	}
 }

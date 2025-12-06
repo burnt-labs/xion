@@ -100,6 +100,22 @@ func (suite *GrpcTestSuite) TestAuthzGrpcQuerier() {
 			},
 			checkResponseStruct: true,
 		},
+		{
+			name:                 "UnsupportedRoute",
+			path:                 "/unsupported.route.Query/InvalidMethod",
+			expectedQuerierError: true,
+			requestData: func() []byte {
+				return []byte("dummy data")
+			},
+		},
+		{
+			name:                 "WhitelistError",
+			path:                 "/invalid.path",
+			expectedQuerierError: true,
+			requestData: func() []byte {
+				return []byte("dummy data")
+			},
+		},
 	}
 
 	for _, tc := range testCases {

@@ -53,9 +53,9 @@ type ExplicitAny struct {
 }
 
 type GrantConfig struct {
-	Description   string      `json:"description"`
-	Authorization interface{} `json:"authorization"`
-	Optional      bool        `json:"optional"`
+	Description   string `json:"description"`
+	Authorization any    `json:"authorization"`
+	Optional      bool   `json:"optional"`
 }
 
 type UpdateGrantConfig struct {
@@ -64,9 +64,9 @@ type UpdateGrantConfig struct {
 }
 
 type FeeConfig struct {
-	Description string      `json:"description"`
-	Allowance   interface{} `json:"allowance,omitempty"`
-	Expiration  int32       `json:"expiration,omitempty"`
+	Description string `json:"description"`
+	Allowance   any    `json:"allowance,omitempty"`
+	Expiration  int32  `json:"expiration,omitempty"`
 }
 
 // NewTxCmd returns a root CLI command handler for all x/xion transaction commands.
@@ -368,18 +368,18 @@ func NewAddAuthenticatorCmd() *cobra.Command {
 				return fmt.Errorf("error signing address : %s", err)
 			}
 
-			secp256k1 := map[string]interface{}{}
+			secp256k1 := map[string]any{}
 			secp256k1["id"] = authenticatorID
 			secp256k1["pubkey"] = pubKey.Bytes()
 			secp256k1["signature"] = signature
 
-			addAuthenticator := map[string]interface{}{}
+			addAuthenticator := map[string]any{}
 			addAuthenticator["Secp256K1"] = secp256k1
 
-			addAuthMethod := map[string]interface{}{}
+			addAuthMethod := map[string]any{}
 			addAuthMethod["add_authenticator"] = addAuthenticator
 
-			msg := map[string]interface{}{}
+			msg := map[string]any{}
 			msg["add_auth_method"] = addAuthMethod
 
 			jsonMsg, err := json.Marshal(msg)
@@ -559,9 +559,9 @@ func NewEmitArbitraryDataCmd() *cobra.Command {
 
 			contractAddr := args[1]
 
-			data := map[string]interface{}{}
+			data := map[string]any{}
 			data["data"] = arbitraryData
-			msg := map[string]interface{}{}
+			msg := map[string]any{}
 			msg["emit"] = data
 
 			jsonMsg, err := json.Marshal(msg)
@@ -660,7 +660,7 @@ func NewUpdateConfigsCmd() *cobra.Command {
 			// Process Grant Configs
 			for _, grant := range configData.GrantConfig {
 				auth := grant.GrantConfig.Authorization
-				authM, ok := auth.(map[string]interface{})
+				authM, ok := auth.(map[string]any)
 				if !ok {
 					return fmt.Errorf("failed to parse authorization from grant config")
 				}
@@ -669,8 +669,8 @@ func NewUpdateConfigsCmd() *cobra.Command {
 					return fmt.Errorf("failed to convert grant config to Any: %w", err)
 				}
 				grant.GrantConfig.Authorization = grantConfig
-				executeMsg := map[string]interface{}{
-					"update_grant_config": map[string]interface{}{
+				executeMsg := map[string]any{
+					"update_grant_config": map[string]any{
 						"msg_type_url": grant.MsgTypeURL,
 						"grant_config": grant.GrantConfig,
 					},
@@ -690,15 +690,15 @@ func NewUpdateConfigsCmd() *cobra.Command {
 
 			// Process Fee Config
 			allowance := configData.FeeConfig.Allowance
-			allowanceM := allowance.(map[string]interface{})
+			allowanceM := allowance.(map[string]any)
 			feeConfig, err := ConvertJSONToAny(cdc, allowanceM)
 			if err != nil {
 				return fmt.Errorf("failed to convert fee config to Any: %w", err)
 			}
 			configData.FeeConfig.Allowance = feeConfig
 
-			feeExecuteMsg := map[string]interface{}{
-				"update_fee_config": map[string]interface{}{
+			feeExecuteMsg := map[string]any{
+				"update_fee_config": map[string]any{
 					"fee_config": configData.FeeConfig,
 				},
 			}
@@ -732,7 +732,7 @@ func NewUpdateParamsCmd() *cobra.Command {
 		Example:
 		update-params <contract_address> "https://example.com/display" "https://example.com/redirect" "https://example.com/icon.png"
 		`,
-		Args: cobra.ExactArgs(4),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -740,14 +740,9 @@ func NewUpdateParamsCmd() *cobra.Command {
 			}
 
 			contract := args[0]
-			displayURL := args[1]
-			redirectURL := args[2]
-			iconURL := args[3]
+			redirectURL := args[1]
+			iconURL := args[2]
 
-			_, err = url.ParseRequestURI(displayURL)
-			if err != nil {
-				return fmt.Errorf("invalid display URL: %w", err)
-			}
 			_, err = url.ParseRequestURI(redirectURL)
 			if err != nil {
 				return fmt.Errorf("invalid redirect URL: %w", err)
@@ -758,12 +753,12 @@ func NewUpdateParamsCmd() *cobra.Command {
 			}
 
 			// Construct the execute message
-			updateMsg := map[string]interface{}{
-				"update_params": map[string]interface{}{
+			updateMsg := map[string]any{
+				"update_params": map[string]any{
 					"params": map[string]string{
-						"display_url":  displayURL,
 						"redirect_url": redirectURL,
 						"icon_url":     iconURL,
+						"metadata":     "{}",
 					},
 				},
 			}
@@ -823,9 +818,9 @@ func registerMsg(sender, salt, instantiateMsg string, codeID uint64, amount sdk.
 }
 
 func newInstantiateMsg(authenticatorType string, authenticatorID uint8, signature, pubKey []byte) (string, error) {
-	instantiateMsg := map[string]interface{}{}
-	authenticatorDetails := map[string]interface{}{}
-	authenticator := map[string]interface{}{}
+	instantiateMsg := map[string]any{}
+	authenticatorDetails := map[string]any{}
+	authenticator := map[string]any{}
 
 	authenticatorDetails["id"] = authenticatorID
 	authenticatorDetails["pubkey"] = pubKey
@@ -841,9 +836,9 @@ func newInstantiateMsg(authenticatorType string, authenticatorID uint8, signatur
 }
 
 func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticatorID uint8) (string, error) {
-	instantiateMsg := map[string]interface{}{}
-	authenticatorDetails := map[string]interface{}{}
-	authenticator := map[string]interface{}{}
+	instantiateMsg := map[string]any{}
+	authenticatorDetails := map[string]any{}
+	authenticator := map[string]any{}
 
 	authenticatorDetails["sub"] = sub
 	authenticatorDetails["aud"] = aud
@@ -879,7 +874,7 @@ func newInstantiateJwtMsg(token, authenticatorType, sub, aud string, authenticat
 	*/
 }
 
-func ConvertJSONToAny(cdc codec.Codec, jsonInput map[string]interface{}) (ExplicitAny, error) {
+func ConvertJSONToAny(cdc codec.Codec, jsonInput map[string]any) (ExplicitAny, error) {
 	typeURL, ok := jsonInput["@type"].(string)
 	if !ok {
 		return ExplicitAny{}, fmt.Errorf("failed to parse type URL from JSON")

@@ -22,7 +22,16 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
+// WebAuthNVerifyRegister does NOT grant any permissions or access to accounts.
+// It only validates that WebAuthn registration data is cryptographically valid.
+// Authorization happens at the Abstract Account contract level
 func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.QueryWebAuthNVerifyRegisterRequest) (response *types.QueryWebAuthNVerifyRegisterResponse, err error) {
+	// Validate data size to prevent DoS attacks via oversized payloads
+	if len(request.Data) > types.MaxWebAuthDataSize {
+		return nil, errorsmod.Wrapf(types.ErrWebAuthDataTooLarge,
+			"data size %d exceeds maximum %d bytes", len(request.Data), types.MaxWebAuthDataSize)
+	}
+
 	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
 	defer func() {
 		if r := recover(); r != nil {
@@ -59,7 +68,15 @@ func (k Keeper) WebAuthNVerifyRegister(ctx context.Context, request *types.Query
 	return &types.QueryWebAuthNVerifyRegisterResponse{Credential: credentialBz}, nil
 }
 
+// WebAuthNVerifyAuthenticate does NOT provide authentication or authorization!
+// It only validates that a WebAuthn assertion is cryptographically valid for the given credential.
 func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.QueryWebAuthNVerifyAuthenticateRequest) (response *types.QueryWebAuthNVerifyAuthenticateResponse, err error) {
+	// Validate data size to prevent DoS attacks via oversized payloads
+	if len(request.Data) > types.MaxWebAuthDataSize {
+		return nil, errorsmod.Wrapf(types.ErrWebAuthDataTooLarge,
+			"data size %d exceeds maximum %d bytes", len(request.Data), types.MaxWebAuthDataSize)
+	}
+
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
 	defer func() {

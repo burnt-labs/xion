@@ -61,8 +61,8 @@ func TestCommandMetadataAndArgs(t *testing.T) {
 			newCmd:      cli.NewUpdateParamsCmd,
 			useContains: "update-params",
 			short:       "Update treasury contract parameters",
-			validArgs:   [][]string{{"c", "d", "r", "i"}},
-			invalidArgs: [][]string{{}, {"c"}, {"c", "d", "r"}, {"c", "d", "r", "i", "x"}},
+			validArgs:   [][]string{{"d", "r", "i"}},
+			invalidArgs: [][]string{{}, {"c"}, {"c", "d"}, {"c", "d", "r", "i", "x"}},
 		},
 		{
 			name:        "update-configs",
