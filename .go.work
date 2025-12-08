@@ -1,6 +1,6 @@
-go 1.20
+go 1.25
 
 use (
 	.
-	./integration_tests
+	./e2e_tests
 )

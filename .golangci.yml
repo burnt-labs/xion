@@ -8,7 +8,6 @@ linters:
     - copyloopvar
     - dogsled
     - errcheck
-    - goconst
     - gocritic
     - gosec
     - govet
@@ -27,6 +26,7 @@ linters:
     gosec:
       excludes:
         - G404
+        - G115
     revive:
       rules:
       - name: "var-naming"

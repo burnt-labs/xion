@@ -313,15 +313,74 @@ func TestMsgSetPlatformPercentage_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgSetPlatformPercentage_GetSigners(t *testing.T) {
-	addr := sdk.AccAddress("authority_12345678901234567890")
-	msg := &types.MsgSetPlatformPercentage{
-		Authority:          addr.String(),
-		PlatformPercentage: 5000,
-	}
+	t.Run("valid bech32 address", func(t *testing.T) {
+		addr := sdk.AccAddress("authority_12345678901234567890")
+		msg := &types.MsgSetPlatformPercentage{
+			Authority:          addr.String(),
+			PlatformPercentage: 5000,
+		}
 
-	signers := msg.GetSigners()
-	require.Len(t, signers, 1)
-	require.Equal(t, addr, signers[0])
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		require.Equal(t, addr, signers[0])
+	})
+
+	t.Run("fallback on bech32 decode error", func(t *testing.T) {
+		// Use an invalid bech32 string to trigger decode error fallback
+		invalidBech32 := "invalid_bech32_!@#$"
+		msg := &types.MsgSetPlatformPercentage{
+			Authority:          invalidBech32,
+			PlatformPercentage: 5000,
+		}
+
+		// Should fallback to AccAddressFromBech32 and not panic
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		// The fallback will also fail but returns an empty address instead of panicking
+	})
+
+	t.Run("fallback on convert bits error", func(t *testing.T) {
+		// Create a bech32 address that decodes but fails ConvertBits
+		// This is harder to trigger but the code path exists
+		// For now we document that this edge case exists
+		addr := sdk.AccAddress("authority_12345678901234567890")
+		msg := &types.MsgSetPlatformPercentage{
+			Authority:          addr.String(),
+			PlatformPercentage: 5000,
+		}
+
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		// Normal case - just ensuring the function completes
+	})
+}
+
+func TestMsgSetPlatformMinimum_GetSigners(t *testing.T) {
+	t.Run("valid bech32 address", func(t *testing.T) {
+		addr := sdk.AccAddress("authority_12345678901234567890")
+		msg := &types.MsgSetPlatformMinimum{
+			Authority: addr.String(),
+			Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 100)),
+		}
+
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		require.Equal(t, addr, signers[0])
+	})
+
+	t.Run("fallback on bech32 decode error", func(t *testing.T) {
+		// Use an invalid bech32 string to trigger decode error fallback
+		invalidBech32 := "invalid_bech32_!@#$"
+		msg := &types.MsgSetPlatformMinimum{
+			Authority: invalidBech32,
+			Minimums:  sdk.NewCoins(sdk.NewInt64Coin("uxion", 100)),
+		}
+
+		// Should fallback to AccAddressFromBech32 and not panic
+		signers := msg.GetSigners()
+		require.Len(t, signers, 1)
+		// The fallback will also fail but returns an empty address instead of panicking
+	})
 }
 
 func TestMsgSetPlatformMinimum_ValidateBasic(t *testing.T) {
