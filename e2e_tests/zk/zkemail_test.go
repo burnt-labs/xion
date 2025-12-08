@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
+
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
 	txsigning "cosmossdk.io/x/tx/signing"
@@ -65,7 +67,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		t.Skip("skipping in short mode")
 	}
 
-	xion := BuildXionChain(t)
+	xion := testlib.BuildXionChain(t)
 
 	t.Parallel()
 
@@ -75,7 +77,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
 	fundAmount := math.NewInt(1_000_000_000_000)
-	xionUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", deployerMnemonic, fundAmount, xion)
+	xionUser, err := ibctest.GetAndFundTestUserWithMnemonic(ctx, "default", testlib.DeployerMnemonic, fundAmount, xion)
 	require.NoError(t, err)
 	currentHeight, _ := xion.Height(ctx)
 	err = testutil.WaitForBlocks(ctx, int(currentHeight)+8, xion)
@@ -122,7 +124,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	//
 	//
 	// Register Abstract Account Contract (Ensuring Fixed Address)
-	registeredTxHash, err := ExecTx(t, ctx, xion.GetNode(),
+	registeredTxHash, err := testlib.ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(), "xion", "register",
 		accountCodeID,
 		xionUser.KeyName(),
@@ -135,10 +137,10 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
-	txDetails, err := ExecQuery(t, ctx, xion.GetNode(), "tx", registeredTxHash)
+	txDetails, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", registeredTxHash)
 	require.NoError(t, err)
 	t.Logf("TxDetails: %s", txDetails)
-	aaContractAddr := GetAAContractAddress(t, txDetails)
+	aaContractAddr := testlib.GetAAContractAddress(t, txDetails)
 
 	// send a execute msg to add a zkemail authenticator to the account
 	// TODO: update ZKEmail id, email_salt, signature
@@ -173,7 +175,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 	_, err = file.Write(unsignedTxBz)
 	require.NoError(t, err)
-	err = UploadFileToContainer(t, ctx, xion.GetNode(), file)
+	err = testlib.UploadFileToContainer(t, ctx, xion.GetNode(), file)
 	require.NoError(t, err)
 
 	configFilePath := strings.Split(file.Name(), "/")
@@ -186,14 +188,14 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		"-y",
 	}
 
-	txHash, err := ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), cmd...)
+	txHash, err := testlib.ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), cmd...)
 	require.NoError(t, err)
 	// Wait for the transaction to be included in a block
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
 
 	// Query the transaction result
-	txDetails, err = ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	txDetails, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
 	require.NoError(t, err)
 	fmt.Println(txDetails)
 
@@ -225,14 +227,14 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	// Create a bank send message from the AA contract to a recipient
 	// Note if the tx changes, a new proof will need to be generated
 	recipient := "xion1qaf2xflx5j3agtlvqk5vhjpeuhl6g45hxshwqj"
-	jsonMsg := RawJSONMsgSend(t, aaContractAddr, recipient, "uxion")
+	jsonMsg := testlib.RawJSONMsgSend(t, aaContractAddr, recipient, "uxion")
 	require.NoError(t, err)
 
 	tx, err := xion.Config().EncodingConfig.TxConfig.TxJSONDecoder()([]byte(jsonMsg))
 	require.NoError(t, err)
 
 	// get the account from the chain. there might be a better way to do this
-	accountResponse, err := ExecQuery(t, ctx, xion.GetNode(),
+	accountResponse, err := testlib.ExecQuery(t, ctx, xion.GetNode(),
 		"auth", "account", aaContractAddr)
 	require.NoError(t, err)
 	t.Logf("account response: %s", accountResponse)
@@ -325,7 +327,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("json tx: %s", jsonTx)
 
-	output, err := ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
+	output, err := testlib.ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	t.Logf("tx details: %s", output)
 	require.NoError(t, err)
 

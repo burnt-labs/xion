@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -75,7 +76,7 @@ func TestDKIMModule(t *testing.T) {
 		t.Skip("skipping in short mode")
 	}
 
-	xion := BuildXionChain(t)
+	xion := testlib.BuildXionChain(t)
 
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
@@ -86,27 +87,27 @@ func TestDKIMModule(t *testing.T) {
 	fundAmount := math.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	chainUser := users[0]
-	govModAddress := GetModuleAddress(t, xion, ctx, govModule.ModuleName)
+	govModAddress := testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName)
 
 	// query chain for DKIM records
-	dkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, selector_1)
+	dkimRecord, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, selector_1)
 	require.NoError(t, err)
 	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey_1)
 
 	// query for all records of x.com
-	allDkimRecords, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1)
+	allDkimRecords, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1)
 	require.NoError(t, err)
 	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 2)
 
 	// query for a domain+poseidon hash pair matching domain_1 selector_3
-	allDkimRecords, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1, "--hash", poseidon_hash_3)
+	allDkimRecords, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1, "--hash", poseidon_hash_3)
 	require.NoError(t, err)
 	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 1)
 	require.Equal(t, allDkimRecords["dkim_pub_keys"].([]interface{})[0].(map[string]interface{})["selector"], selector_3)
 
 	// generate a dkim record by querying the chain
 	// and then submit a proposal to add it
-	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", customDomain, customSelector)
+	dkimRecord, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", customDomain, customSelector)
 	require.NoError(t, err)
 
 	customDkimPubkey := dkimRecord["pub_key"].(string)
@@ -129,7 +130,7 @@ func TestDKIMModule(t *testing.T) {
 	require.NoError(t, err)
 
 	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
-	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
+	dkimRecord, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.NoError(t, err)
 	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), customDkimPubkey)
 
@@ -142,7 +143,7 @@ func TestDKIMModule(t *testing.T) {
 	require.NoError(t, err)
 
 	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
-	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
+	_, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 
@@ -194,7 +195,7 @@ func TestDKIMModule(t *testing.T) {
 	require.NoError(t, err)
 
 	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
-	dkimRecord, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
+	dkimRecord, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
 	require.NoError(t, err)
 	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey)
 
@@ -203,11 +204,11 @@ func TestDKIMModule(t *testing.T) {
 	require.NoError(t, revokeDkimMsg.ValidateBasic())
 
 	// execute the revoke tx using the CLI command
-	_, err = ExecTx(t, ctx, xion.GetNode(), chainUser.KeyName(), "dkim", "rdkim", domain_1, privKey, "--chain-id", xion.Config().ChainID)
+	_, err = testlib.ExecTx(t, ctx, xion.GetNode(), chainUser.KeyName(), "dkim", "rdkim", domain_1, privKey, "--chain-id", xion.Config().ChainID)
 	require.NoError(t, err)
 
 	// query the chain for the revoked key
-	_, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
+	_, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 }
