@@ -146,7 +146,7 @@ test-dkim-zk-email:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail
 
 test-dkim-zk-proof:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKProof
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestZKEmailAuthenticator
 
 # Indexer Module Tests
 test-indexer-authz-create:
@@ -359,6 +359,12 @@ test-xion-min-fee-all: \
 	test-xion-min-fee-zero \
 	test-xion-min-fee-coverage-all \
 	test-xion-min-fee-critical-all
+
+test-integration-dkim-module: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestDKIMModule
+	
+test-integration-zkemail-abstract-account: compile-integration-tests
+	$(MAKE) run-integration-test TEST_NAME=TestZKEmailAuthenticator
 
 # Simulation tests
 test-sim-import-export: runsim
