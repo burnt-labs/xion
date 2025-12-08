@@ -70,7 +70,46 @@ var pubKeysBz, _ = json.Marshal([]dkimTypes.DkimPubKey{{
 	PoseidonHash: []byte(poseidon_hash_3),
 }})
 
+// TestDKIMModule tests basic DKIM query operations
 func TestDKIMModule(t *testing.T) {
+	ctx := t.Context()
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	xion := testlib.BuildXionChain(t)
+
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgAddDkimPubKeys{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgRemoveDkimPubKey{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.DkimPubKey{})
+
+	// query chain for DKIM records
+	dkimRecord, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, selector_1)
+	require.NoError(t, err)
+	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey_1)
+
+	// query for all records of x.com
+	allDkimRecords, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1)
+	require.NoError(t, err)
+	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 2)
+
+	// query for a domain+poseidon hash pair matching domain_1 selector_3
+	allDkimRecords, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1, "--hash", poseidon_hash_3)
+	require.NoError(t, err)
+	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 1)
+	require.Equal(t, allDkimRecords["dkim_pub_keys"].([]interface{})[0].(map[string]interface{})["selector"], selector_3)
+
+	// generate a dkim record by querying DNS
+	dkimRecord, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", customDomain, customSelector)
+	require.NoError(t, err)
+	require.NotEmpty(t, dkimRecord["pub_key"])
+	require.NotEmpty(t, dkimRecord["poseidon_hash"])
+}
+
+// TestDKIMGovernance tests adding and removing DKIM records via governance proposals
+func TestDKIMGovernance(t *testing.T) {
 	ctx := t.Context()
 	if testing.Short() {
 		t.Skip("skipping in short mode")
@@ -89,31 +128,15 @@ func TestDKIMModule(t *testing.T) {
 	chainUser := users[0]
 	govModAddress := testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName)
 
-	// query chain for DKIM records
-	dkimRecord, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, selector_1)
-	require.NoError(t, err)
-	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey_1)
-
-	// query for all records of x.com
-	allDkimRecords, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1)
-	require.NoError(t, err)
-	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 2)
-
-	// query for a domain+poseidon hash pair matching domain_1 selector_3
-	allDkimRecords, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", domain_1, "--hash", poseidon_hash_3)
-	require.NoError(t, err)
-	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 1)
-	require.Equal(t, allDkimRecords["dkim_pub_keys"].([]interface{})[0].(map[string]interface{})["selector"], selector_3)
-
 	// generate a dkim record by querying the chain
-	// and then submit a proposal to add it
-	dkimRecord, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", customDomain, customSelector)
+	dkimRecord, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "gdkim", customDomain, customSelector)
 	require.NoError(t, err)
 
 	customDkimPubkey := dkimRecord["pub_key"].(string)
 	poseidonHash, err := base64.StdEncoding.DecodeString(dkimRecord["poseidon_hash"].(string))
 	require.NoError(t, err)
 
+	// submit a proposal to add the DKIM record
 	governancePubKeys := []dkimTypes.DkimPubKey{
 		{
 			Domain:       customDomain,
@@ -129,11 +152,12 @@ func TestDKIMModule(t *testing.T) {
 	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{createDkimMsg}, "Add Netflix DKIM record", "Add Netflix DKIM record", "Add Netflix DKIM record", 1)
 	require.NoError(t, err)
 
-	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
+	// verify the record was added
 	dkimRecord, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.NoError(t, err)
 	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), customDkimPubkey)
 
+	// submit a proposal to remove the DKIM record
 	deleteDkimMsg := dkimTypes.NewMsgRemoveDkimPubKey(sdk.MustAccAddressFromBech32(govModAddress), dkimTypes.DkimPubKey{
 		Domain:   customDomain,
 		Selector: customSelector,
@@ -142,12 +166,33 @@ func TestDKIMModule(t *testing.T) {
 	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{deleteDkimMsg}, "Remove Netflix DKIM record", "Remove Netflix DKIM record", "Remove Netflix DKIM record", 2)
 	require.NoError(t, err)
 
-	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
+	// verify the record was removed
 	_, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", customDomain, customSelector)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
+}
 
-	// let's create a new key pair and submit a proposal to add it
+// TestDKIMKeyRevocation tests revoking a DKIM key using private key proof
+func TestDKIMKeyRevocation(t *testing.T) {
+	ctx := t.Context()
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+
+	xion := testlib.BuildXionChain(t)
+
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgAddDkimPubKeys{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.MsgRemoveDkimPubKey{})
+	xion.Config().EncodingConfig.InterfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &dkimTypes.DkimPubKey{})
+
+	fundAmount := math.NewInt(10_000_000_000)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
+	chainUser := users[0]
+	govModAddress := testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName)
+
+	// generate a new RSA key pair
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
@@ -159,56 +204,57 @@ func TestDKIMModule(t *testing.T) {
 	)
 
 	publicKey := privateKey.PublicKey
-	// Marshal the public key to PKCS1 DER format
 	pubKeyDER := x509.MarshalPKCS1PublicKey(&publicKey)
 
-	// Encode the public key in PEM format
 	pubKeyPEM := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PUBLIC KEY",
 		Bytes: pubKeyDER,
 	})
-	// remove the PEM header and footer from the public key
+
+	// remove PEM headers and newlines from public key
 	after, _ := strings.CutPrefix(string(pubKeyPEM), "-----BEGIN RSA PUBLIC KEY-----\n")
 	pubKey, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
 	pubKey = strings.ReplaceAll(pubKey, "\n", "")
+
+	// compute Poseidon hash
 	hash, err := dkimTypes.ComputePoseidonHash(pubKey)
 	require.NoError(t, err)
 
-	// remove the PEM header and footer from the private key
+	// remove PEM headers and newlines from private key
 	after, _ = strings.CutPrefix(string(privKeyPEM), "-----BEGIN RSA PRIVATE KEY-----\n")
 	privKey, _ := strings.CutSuffix(after, "\n-----END RSA PRIVATE KEY-----\n")
 	privKey = strings.ReplaceAll(privKey, "\n", "")
 
-	governancePubKeys = []dkimTypes.DkimPubKey{
+	// add the key via governance
+	governancePubKeys := []dkimTypes.DkimPubKey{
 		{
 			Domain:       domain_1,
-			Selector:     "personal_key",
+			Selector:     "revocation_test_key",
 			PubKey:       pubKey,
 			PoseidonHash: []byte(hash.String()),
 		},
 	}
 
-	createDkimMsg = dkimTypes.NewMsgAddDkimPubKeys(sdk.MustAccAddressFromBech32(govModAddress), governancePubKeys)
+	createDkimMsg := dkimTypes.NewMsgAddDkimPubKeys(sdk.MustAccAddressFromBech32(govModAddress), governancePubKeys)
 	require.NoError(t, createDkimMsg.ValidateBasic())
 
-	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{createDkimMsg}, "Add Xion DKIM record", "Add Xion DKIM record", "Add Xion DKIM record", 3)
+	err = createAndSubmitProposal(t, xion, ctx, chainUser, []cosmos.ProtoMessage{createDkimMsg}, "Add revocation test DKIM record", "Add revocation test DKIM record", "Add revocation test DKIM record", 1)
 	require.NoError(t, err)
 
-	// proposal must have gone through and msg submitted; let's query the chain for the pubkey
-	dkimRecord, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
+	// verify the key was added
+	dkimRecord, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "revocation_test_key")
 	require.NoError(t, err)
 	require.Equal(t, dkimRecord["dkim_pub_key"].(map[string]interface{})["pub_key"].(string), pubKey)
 
-	// let's revoke the key
+	// revoke the key using the private key
 	revokeDkimMsg := dkimTypes.NewMsgRevokeDkimPubKey(sdk.MustAccAddressFromBech32(chainUser.FormattedAddress()), domain_1, privKeyPEM)
 	require.NoError(t, revokeDkimMsg.ValidateBasic())
 
-	// execute the revoke tx using the CLI command
 	_, err = testlib.ExecTx(t, ctx, xion.GetNode(), chainUser.KeyName(), "dkim", "rdkim", domain_1, privKey, "--chain-id", xion.Config().ChainID)
 	require.NoError(t, err)
 
-	// query the chain for the revoked key
-	_, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "personal_key")
+	// verify the key was revoked
+	_, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", domain_1, "revocation_test_key")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "not found")
 }
@@ -219,7 +265,7 @@ func createAndSubmitProposal(t *testing.T, xion *cosmos.CosmosChain, ctx context
 		title,
 		summary,
 		metadata,
-		"500000000"+xion.Config().Denom, // greater than min deposit",
+		"500000000"+xion.Config().Denom, // greater than min deposit
 		proposer.FormattedAddress(),
 		false,
 	)
@@ -229,7 +275,7 @@ func createAndSubmitProposal(t *testing.T, xion *cosmos.CosmosChain, ctx context
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
 	_, err = xion.SubmitProposal(ctx, proposer.KeyName(), proposal)
-	require.NoError(t, err) // only governance account can submit proposals
+	require.NoError(t, err)
 
 	prop, err := xion.GovQueryProposal(ctx, uint64(proposalId))
 	require.NoError(t, err)

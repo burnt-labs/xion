@@ -87,14 +87,11 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	_ = ibctest.GetAndFundTestUsers(t, ctx, "tmp", fundAmount, xion)
 
 	// Store Abstract Account Contract
-	fp, err := os.Getwd()
-	require.NoError(t, err)
-
-	accountCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), path.Join(fp, "integration_tests", "testdata", "contracts", "xion_account.wasm"))
+	accountCodeID, err := xion.StoreContract(ctx, xionUser.FormattedAddress(), testlib.IntegrationTestPath("testdata", "contracts", "xion_account.wasm"))
 	require.NoError(t, err)
 
 	// Read zk-auth.json and generate base64 signature
-	zkAuthJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "zk-auth.json")
+	zkAuthJSONPath := testlib.IntegrationTestPath("testdata", "keys", "zk-auth.json")
 	zkAuthContent, err := os.ReadFile(zkAuthJSONPath)
 	require.NoError(t, err)
 
@@ -274,7 +271,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	require.NoError(t, err)
 
 	// Hardcoded proof (pre-generated externally)
-	zkTransactionJSONPath := path.Join(fp, "integration_tests", "testdata", "keys", "zk-transaction.json")
+	zkTransactionJSONPath := testlib.IntegrationTestPath("testdata", "keys", "zk-transaction.json")
 	zkTransactionContent, err := os.ReadFile(zkTransactionJSONPath)
 	if err != nil {
 		t.Fatalf("failed to read vkey.json file: %v", err)

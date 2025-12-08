@@ -146,7 +146,7 @@ test-dkim-zk-email:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail
 
 test-dkim-zk-proof:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKProof
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestZKEmailAuthenticator
 
 # Indexer Module Tests
 test-indexer-authz-create:

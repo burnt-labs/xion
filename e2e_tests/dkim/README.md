@@ -12,15 +12,36 @@ The DKIM module stores DKIM public keys and their Poseidon hashes on-chain, enab
 
 Tests core DKIM module functionality:
 
-- **TestDKIMModule** - Comprehensive DKIM operations test
+- **TestDKIMModule** - Basic DKIM query operations
   - Query single DKIM record by domain and selector
   - Query all DKIM records for a domain
   - Query by domain + Poseidon hash pair
   - Generate DKIM records from DNS lookup (`gdkim`)
-  - Add DKIM records via governance proposal
-  - Remove DKIM records via governance proposal
-  - RSA key pair generation with Poseidon hash computation
-  - Revoke DKIM keys using private key proof
+
+- **TestDKIMGovernance** - Governance-controlled key management
+  - Generate DKIM record from DNS
+  - Add DKIM record via governance proposal
+  - Verify record was added
+  - Remove DKIM record via governance proposal
+  - Verify record was removed
+
+- **TestDKIMKeyRevocation** - Private key revocation flow
+  - Generate RSA-2048 key pair
+  - Compute Poseidon hash for public key
+  - Register key via governance proposal
+  - Revoke key using private key proof (`rdkim`)
+  - Verify key was revoked
+
+### zk_email_test.go
+
+Tests ZK-Email authentication integration with Abstract Accounts:
+
+- **TestZKEmailAuthenticator** - End-to-end ZK-Email authentication
+  - Deploy Abstract Account contract
+  - Add ZK-Email authenticator with email salt and allowed hosts
+  - Query contract to verify authenticator was created
+  - Execute bank send using ZK proof signature
+  - Verify recipient received funds
 
 ## Test Data
 
@@ -38,14 +59,39 @@ The test chain is initialized with predefined DKIM records:
 
 - `account.netflix.com` / `kk6c473czcop4fqv6yhfgiqupmfz3cm2` - Netflix DKIM (fetched via DNS)
 
+### Test Keys and Proofs
+
+Located in `testdata/keys/`:
+
+- `zk-auth.json` - ZK proof for authenticator registration
+- `zk-transaction.json` - ZK proof for transaction signing
+
+### Contracts
+
+Located in `testdata/contracts/`:
+
+- `xion_account.wasm` - Abstract Account contract with ZK-Email support
+
 ## Running Tests
 
 ```bash
-# Run DKIM tests
-cd e2e_tests && go test -v -run TestDKIMModule
+# Run all DKIM module tests
+make test-dkim-module
 
-# Run with make target (if configured)
-make test-e2e-dkim
+# Run governance tests
+make test-dkim-governance
+
+# Run key revocation tests
+make test-dkim-key-revocation
+
+# Run ZK-Email authenticator test
+make test-zk-email
+
+# Run specific test directly
+cd e2e_tests/dkim && go test -v -run TestDKIMModule
+cd e2e_tests/dkim && go test -v -run TestDKIMGovernance
+cd e2e_tests/dkim && go test -v -run TestDKIMKeyRevocation
+cd e2e_tests/dkim && go test -v -run TestZKEmailAuthenticator
 ```
 
 ## Key Concepts
@@ -62,6 +108,14 @@ Each DKIM record consists of:
 ### Poseidon Hash
 
 The module computes Poseidon hashes of public keys, providing a secure and efficient way to verify email signatures within ZK circuits. Use `dkimTypes.ComputePoseidonHash(pubKey)` to generate hashes programmatically.
+
+### ZK-Email Authentication
+
+ZK-Email enables email-based authentication for Abstract Accounts:
+
+1. User proves ownership of an email address via ZK proof
+2. Proof validates against on-chain DKIM public keys
+3. Abstract Account executes transactions based on valid proofs
 
 ### Query Operations
 
@@ -98,14 +152,41 @@ This enables immediate revocation without governance when a private key is compr
 
 ## Test Flow
 
-1. **Genesis Verification** - Confirm pre-seeded DKIM records exist
-2. **Query Tests** - Verify single record, domain-wide, and hash-filtered queries
-3. **DNS Generation** - Fetch real DKIM record from DNS via `gdkim`
-4. **Governance Add** - Submit proposal to add Netflix DKIM record
-5. **Governance Remove** - Submit proposal to remove Netflix record
-6. **Key Generation** - Create RSA-2048 key pair and compute Poseidon hash
-7. **Governance Add** - Register generated key via governance
-8. **Direct Revocation** - Revoke key using private key proof via `rdkim`
+### TestDKIMModule
+
+1. Query single DKIM record by domain/selector
+2. Query all records for a domain
+3. Query with Poseidon hash filter
+4. Generate DKIM record from DNS
+
+### TestDKIMGovernance
+
+1. Generate DKIM record from DNS via `gdkim`
+2. Submit governance proposal to add record
+3. Verify record exists on-chain
+4. Submit governance proposal to remove record
+5. Verify record no longer exists
+
+### TestDKIMKeyRevocation
+
+1. Generate RSA-2048 key pair locally
+2. Compute Poseidon hash for public key
+3. Submit governance proposal to add key
+4. Verify key exists on-chain
+5. Revoke key via `rdkim` with private key proof
+6. Verify key no longer exists
+
+### TestZKEmailAuthenticator
+
+1. Fund deployer account
+2. Store Abstract Account contract
+3. Register Abstract Account with Secp256K1 authenticator
+4. Add ZK-Email authenticator with email salt and allowed hosts
+5. Query contract to verify ZK-Email authenticator exists
+6. Build bank send transaction
+7. Sign with pre-generated ZK proof
+8. Broadcast transaction
+9. Verify recipient received funds
 
 ## CLI Commands
 
@@ -138,6 +219,8 @@ These tests require:
 - Governance module for proposal submission
 - Network access for DNS DKIM lookups (`gdkim` command)
 - Pre-funded test accounts (10B uxion for fees and deposits)
+- Abstract Account WASM contracts (for ZK-Email tests)
+- Pre-generated ZK proofs in `testdata/keys/`
 
 ## Common Issues
 
@@ -161,6 +244,14 @@ These tests require:
 
 **Solution**: Verify public key is in correct format (base64, no PEM headers, no newlines) before hashing
 
+### Issue: ZK-Email proof verification fails
+
+**Solution**: Ensure the proof in `zk-transaction.json` matches the exact transaction being signed (sign bytes must match)
+
+### Issue: ZK-Email authenticator not found
+
+**Solution**: Verify the authenticator ID matches between registration and query; check email salt format
+
 ## Integration
 
 DKIM tests integrate with:
@@ -168,6 +259,7 @@ DKIM tests integrate with:
 - **Governance module** - Proposal-based key management via `MsgAddDkimPubKeys` and `MsgRemoveDkimPubKey`
 - **ZK module** - Poseidon hashes enable ZK-Email circuit verification
 - **Abstract Account** - DKIM keys authenticate ZK-Email based account operations
+- **Bank module** - Fund transfers in ZK-Email authentication tests
 
 ## Message Types
 
@@ -203,9 +295,15 @@ type DkimPubKey struct {
     PubKey       string // Base64-encoded RSA public key
     PoseidonHash []byte // ZK-compatible hash
 }
+
+// ZK-Email Signature format
+type Signature struct {
+    Proof        ProofData // Groth16 proof (pi_a, pi_b, pi_c)
+    PublicInputs []string  // Circuit public inputs
+}
 ```
 
 ---
 
 Package: `integration_tests`
-Shared utilities: `../testlib/` (BuildXionChain, ExecQuery, ExecTx, GetModuleAddress)
+Shared utilities: `../testlib/` (BuildXionChain, ExecQuery, ExecTx, GetModuleAddress, ExecBroadcast)
