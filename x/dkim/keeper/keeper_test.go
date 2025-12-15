@@ -66,11 +66,12 @@ func SetupTest(t *testing.T) *TestFixture {
 	defaultZkGenesis := zktypes.DefaultGenesisState()
 	f.zkeeper.InitGenesis(f.ctx, defaultZkGenesis)
 	f.k = keeper.NewKeeper(encCfg.Codec, storeService, logger, f.govModAddr, f.zkeeper)
-	f.k.Params.Set(f.ctx, types.DefaultParams())
+	err := f.k.Params.Set(f.ctx, types.DefaultParams())
+	require.NoError(err)
 	f.msgServer = keeper.NewMsgServerImpl(f.k)
 	f.queryServer = keeper.NewQuerier(f.k)
 	f.appModule = module.NewAppModule(encCfg.Codec, f.k)
-	err := f.k.Params.Set(f.ctx, types.DefaultParams())
+	err = f.k.Params.Set(f.ctx, types.DefaultParams())
 	require.NoError(err)
 	// Setup Keeper.
 

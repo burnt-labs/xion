@@ -6,9 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var _ sdk.Msg = &MsgAddVKey{}
-var _ sdk.Msg = &MsgUpdateVKey{}
-var _ sdk.Msg = &MsgRemoveVKey{}
+var (
+	_ sdk.Msg = &MsgAddVKey{}
+	_ sdk.Msg = &MsgUpdateVKey{}
+	_ sdk.Msg = &MsgRemoveVKey{}
+)
 
 // types/msgs.go
 

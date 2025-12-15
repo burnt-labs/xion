@@ -130,7 +130,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) js
 
 // RegisterInvariants registers the module's invariants.
 // Deprecated: InvariantRegistry is deprecated and will be removed with x/crisis module.
-//
+
 //nolint:staticcheck // SA1019: Deprecated but required for module.AppModule interface
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 	_ = am

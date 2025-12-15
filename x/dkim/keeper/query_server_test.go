@@ -4,13 +4,13 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"cosmossdk.io/collections"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestQueryDkimPubKey(t *testing.T) {

@@ -9,9 +9,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/consensys/gnark-crypto/ecc/bn254/fr"
-
+	"github.com/iden3/go-iden3-crypto/poseidon"
 
 	"cosmossdk.io/errors"
 

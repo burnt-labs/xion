@@ -7,16 +7,16 @@ import (
 	stdmath "math"
 	"math/big"
 
-	"cosmossdk.io/collections"
-	"cosmossdk.io/math"
-
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/vocdoni/circom2gnark/parser"
 
-	"github.com/burnt-labs/xion/x/dkim/types"
-
+	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
 var _ types.QueryServer = Querier{}

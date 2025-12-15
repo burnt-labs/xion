@@ -11,6 +11,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,8 +22,6 @@ import (
 	"github.com/burnt-labs/xion/x/zk/client/cli"
 	"github.com/burnt-labs/xion/x/zk/keeper"
 	"github.com/burnt-labs/xion/x/zk/types"
-
-	"cosmossdk.io/core/appmodule"
 )
 
 const (
@@ -124,7 +123,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // RegisterInvariants registers the module's invariants.
 // Deprecated: InvariantRegistry is deprecated and will be removed with x/crisis module.
-//
+
 //nolint:staticcheck // SA1019: Deprecated but required for module.AppModule interface
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
 	_ = am

@@ -18,13 +18,6 @@ import (
 	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
 	aakeeper "github.com/burnt-labs/abstract-account/x/abstractaccount/keeper"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
-	dkim "github.com/burnt-labs/xion/x/dkim"
-	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
-	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
-
-	zk "github.com/burnt-labs/xion/x/zk"
-	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
-	zktypes "github.com/burnt-labs/xion/x/zk/types"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings"
@@ -159,6 +152,9 @@ import (
 
 	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
+	dkim "github.com/burnt-labs/xion/x/dkim"
+	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
@@ -166,6 +162,9 @@ import (
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	zk "github.com/burnt-labs/xion/x/zk"
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
 const (

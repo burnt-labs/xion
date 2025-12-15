@@ -25,7 +25,6 @@ import (
 	"github.com/burnt-labs/xion/x/dkim/client/cli"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
-
 	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 )
 

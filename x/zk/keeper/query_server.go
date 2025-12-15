@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/vocdoni/circom2gnark/parser"
+
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/vocdoni/circom2gnark/parser"
 
 	"github.com/burnt-labs/xion/x/zk/types"
 )
@@ -40,23 +41,23 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	// Get the verification key by name or ID
 	var snarkVk *parser.CircomVerificationKey
 
-	if req.VkeyName != "" {
+	switch {
+	case req.VkeyName != "":
 		// Retrieve by name
-		snarkVk, err = q.Keeper.GetCircomVKeyByName(c, req.VkeyName)
+		snarkVk, err = q.GetCircomVKeyByName(c, req.VkeyName)
 		if err != nil {
 			return nil, errors.Wrap(types.ErrVKeyNotFound, fmt.Sprintf("failed to get vkey '%s': %v", req.VkeyName, err))
 		}
-	} else if req.VkeyId != 0 {
+	case req.VkeyId != 0:
 		// Retrieve by ID
-		snarkVk, err = q.Keeper.GetCircomVKeyByID(c, req.VkeyId)
+		snarkVk, err = q.GetCircomVKeyByID(c, req.VkeyId)
 		if err != nil {
 			return nil, errors.Wrap(types.ErrVKeyNotFound, fmt.Sprintf("failed to get vkey ID %d: %v", req.VkeyId, err))
 		}
-	} else {
+	default:
 		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
 	}
-
-	verified, err := q.Keeper.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
+	verified, err := q.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
 	if err != nil {
 		fmt.Printf("we have passed verifications with errors??: %s\n", err.Error())
 		return nil, err
@@ -71,7 +72,7 @@ func (q Querier) VKey(goCtx context.Context, req *types.QueryVKeyRequest) (*type
 		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
 	}
 
-	vkey, err := q.Keeper.GetVKeyByID(goCtx, req.Id)
+	vkey, err := q.GetVKeyByID(goCtx, req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func (q Querier) VKeyByName(goCtx context.Context, req *types.QueryVKeyByNameReq
 	}
 
 	// Get ID from name index
-	id, err := q.Keeper.VKeyNameIndex.Get(goCtx, req.Name)
+	id, err := q.VKeyNameIndex.Get(goCtx, req.Name)
 	if err != nil {
 		if errors.IsOf(err, collections.ErrNotFound) {
 			return nil, errors.Wrapf(types.ErrVKeyNotFound, "verification key with name '%s' not found", req.Name)
@@ -101,7 +102,7 @@ func (q Querier) VKeyByName(goCtx context.Context, req *types.QueryVKeyByNameReq
 	}
 
 	// Get vkey
-	vkey, err := q.Keeper.GetVKeyByID(goCtx, id)
+	vkey, err := q.GetVKeyByID(goCtx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +152,7 @@ func (q Querier) HasVKey(goCtx context.Context, req *types.QueryHasVKeyRequest) 
 	}
 
 	// Check if name exists in index
-	id, err := q.Keeper.VKeyNameIndex.Get(goCtx, req.Name)
+	id, err := q.VKeyNameIndex.Get(goCtx, req.Name)
 	if err != nil {
 		if errors.IsOf(err, collections.ErrNotFound) {
 			return &types.QueryHasVKeyResponse{

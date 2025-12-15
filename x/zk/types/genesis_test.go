@@ -117,7 +117,7 @@ func TestNewGenesisState(t *testing.T) {
 
 func TestGenesisStateValidate(t *testing.T) {
 	validVKeyBytes := createValidVKeyBytes()
-	fmt.Println(validVKeyBytes)
+	fmt.Println(string(validVKeyBytes))
 
 	tests := []struct {
 		name        string

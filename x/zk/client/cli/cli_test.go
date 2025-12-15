@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
@@ -89,7 +90,7 @@ func (s *IntegrationTestSuite) createTempVKeyFile() string {
 	}`
 
 	tmpFile := filepath.Join(s.T().TempDir(), "test_vkey.json")
-	err := os.WriteFile(tmpFile, []byte(vkeyJSON), 0644)
+	err := os.WriteFile(tmpFile, []byte(vkeyJSON), 0o600)
 	s.Require().NoError(err)
 
 	return tmpFile

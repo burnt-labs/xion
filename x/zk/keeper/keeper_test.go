@@ -90,7 +90,7 @@ func registerBaseSDKModules(
 // ============================================================================
 
 // createTestVKeyBytes creates test verification key bytes
-func createTestVKeyBytes(name string) []byte {
+func createTestVKeyBytes(_ string) []byte {
 	vkeyJSON := map[string]interface{}{
 		"protocol": "groth16",
 		"curve":    "bn128",

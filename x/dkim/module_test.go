@@ -11,8 +11,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -20,17 +18,15 @@ import (
 	dkimmodule "github.com/burnt-labs/xion/x/dkim"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
-
 	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 )
 
-func setupModule(t *testing.T) (*dkimmodule.AppModule, sdk.Context) {
+func setupModule(t *testing.T) *dkimmodule.AppModule {
 	t.Helper()
 
 	encCfg := moduletestutil.MakeTestEncodingConfig()
 	key := storetypes.NewKVStoreKey(types.ModuleName)
 	storeService := sdkruntime.NewKVStoreService(key)
-	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
 
 	govModAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	logger := log.NewTestLogger(t)
@@ -41,21 +37,21 @@ func setupModule(t *testing.T) (*dkimmodule.AppModule, sdk.Context) {
 
 	appModule := dkimmodule.NewAppModule(encCfg.Codec, k)
 
-	return appModule, testCtx.Ctx
+	return appModule
 }
 
 func TestAppModule_Name(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 	require.Equal(t, types.ModuleName, appModule.Name())
 }
 
 func TestAppModule_ConsensusVersion(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 	require.Equal(t, uint64(1), appModule.ConsensusVersion())
 }
 
 func TestAppModule_DefaultGenesis(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 	encCfg := moduletestutil.MakeTestEncodingConfig()
 
 	genesis := appModule.DefaultGenesis(encCfg.Codec)
@@ -67,7 +63,7 @@ func TestAppModule_DefaultGenesis(t *testing.T) {
 }
 
 func TestAppModule_ValidateGenesis(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 	encCfg := moduletestutil.MakeTestEncodingConfig()
 
 	t.Run("valid genesis", func(t *testing.T) {
@@ -79,6 +75,7 @@ func TestAppModule_ValidateGenesis(t *testing.T) {
 	t.Run("invalid genesis", func(t *testing.T) {
 		invalidGenesis := []byte(`{"params": null, "dkim_pubkeys": [{"domain": ""}]}`)
 		err := appModule.ValidateGenesis(encCfg.Codec, nil, invalidGenesis)
+		require.NoError(t, err)
 		encCfg := moduletestutil.MakeTestEncodingConfig()
 		basic := dkimmodule.AppModuleBasic{}
 
@@ -164,7 +161,7 @@ func TestAppModuleBasic_GetQueryCmd(t *testing.T) {
 }
 
 func TestAppModule_RegisterInvariants(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 
 	// Should not panic (it's a no-op)
 	require.NotPanics(t, func() {
@@ -176,14 +173,14 @@ func TestAppModule_RegisterInvariants(t *testing.T) {
 }
 
 func TestAppModule_QuerierRoute(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 
 	route := appModule.QuerierRoute()
 	require.Equal(t, types.ModuleName, route)
 }
 
 func TestAppModule_RegisterServices(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 
 	// Since we can't easily mock the module.Configurator interface,
 	// we test that the method exists and can be called
@@ -200,21 +197,21 @@ func TestAppModule_RegisterServices(t *testing.T) {
 }
 
 func TestAppModule_IsOnePerModuleType(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 	// IsOnePerModuleType is a marker method - just verify it can be called
 	appModule.IsOnePerModuleType()
 	require.True(t, true)
 }
 
 func TestAppModule_IsAppModule(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 	// IsAppModule is a marker method - just verify it can be called
 	appModule.IsAppModule()
 	require.True(t, true)
 }
 
 func TestAppModule_AutoCLIOptions(t *testing.T) {
-	appModule, _ := setupModule(t)
+	appModule := setupModule(t)
 	opts := appModule.AutoCLIOptions()
 	require.NotNil(t, opts)
 	// Verify the structure has expected fields

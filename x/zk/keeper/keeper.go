@@ -3,18 +3,17 @@ package keeper
 import (
 	"context"
 
+	"github.com/vocdoni/circom2gnark/parser"
+
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/errors"
 	"cosmossdk.io/log"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-
-	"github.com/vocdoni/circom2gnark/parser"
 
 	"github.com/burnt-labs/xion/x/zk/types"
 )
