@@ -122,3 +122,196 @@ func TestModulusToCircomBigIntBytes(t *testing.T) {
 		t.Errorf("Expected output: %v, but got: %v", expectedXBigInt, xInputChunk)
 	}
 }
+
+func TestConvertBigIntArrayToString(t *testing.T) {
+	t.Run("empty array returns empty string", func(t *testing.T) {
+		arr := []*big.Int{}
+		result, err := types.ConvertBigIntArrayToString(arr)
+		require.NoError(t, err)
+		require.Equal(t, "", result)
+	})
+
+	t.Run("single element array", func(t *testing.T) {
+		arr := []*big.Int{big.NewInt(65)} // ASCII 'A'
+		result, err := types.ConvertBigIntArrayToString(arr)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("array with zero value", func(t *testing.T) {
+		arr := []*big.Int{big.NewInt(0)}
+		result, err := types.ConvertBigIntArrayToString(arr)
+		require.NoError(t, err)
+		// Zero value should produce empty result after trimming
+		require.Equal(t, "", result)
+	})
+
+	t.Run("multiple elements", func(t *testing.T) {
+		arr := []*big.Int{
+			big.NewInt(72),  // H
+			big.NewInt(101), // e
+			big.NewInt(108), // l
+		}
+		result, err := types.ConvertBigIntArrayToString(arr)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("large big int value", func(t *testing.T) {
+		largeVal, _ := new(big.Int).SetString("12345678901234567890", 10)
+		arr := []*big.Int{largeVal}
+		result, err := types.ConvertBigIntArrayToString(arr)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+
+	t.Run("round trip with ConvertStringArrayToBigInt", func(t *testing.T) {
+		// Start with string array, convert to BigInt, then back
+		inputStrings := []string{"123", "456", "789"}
+		bigInts, err := types.ConvertStringArrayToBigInt(inputStrings)
+		require.NoError(t, err)
+
+		result, err := types.ConvertBigIntArrayToString(bigInts)
+		require.NoError(t, err)
+		require.NotEmpty(t, result)
+	})
+}
+
+func TestToLittleEndianWithLeadingZerosTrimming(t *testing.T) {
+	t.Run("empty input returns empty output", func(t *testing.T) {
+		input := []byte{}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		require.Empty(t, result)
+	})
+
+	t.Run("all zeros returns empty output", func(t *testing.T) {
+		input := []byte{0, 0, 0, 0}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		require.Empty(t, result)
+	})
+
+	t.Run("single non-zero byte", func(t *testing.T) {
+		input := []byte{42}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		require.Equal(t, []byte{42}, result)
+	})
+
+	t.Run("leading zeros are trimmed", func(t *testing.T) {
+		input := []byte{0, 0, 0, 1, 2, 3}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		// After trimming leading zeros: {1, 2, 3}
+		// After reversing to little-endian: {3, 2, 1}
+		require.Equal(t, []byte{3, 2, 1}, result)
+	})
+
+	t.Run("no leading zeros", func(t *testing.T) {
+		input := []byte{1, 2, 3, 4}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		// No trimming needed, just reverse: {4, 3, 2, 1}
+		require.Equal(t, []byte{4, 3, 2, 1}, result)
+	})
+
+	t.Run("single zero byte returns empty", func(t *testing.T) {
+		input := []byte{0}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		require.Empty(t, result)
+	})
+
+	t.Run("zeros in middle are preserved", func(t *testing.T) {
+		input := []byte{0, 0, 1, 0, 2}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		// After trimming leading zeros: {1, 0, 2}
+		// After reversing: {2, 0, 1}
+		require.Equal(t, []byte{2, 0, 1}, result)
+	})
+
+	t.Run("trailing zeros in input become leading in output", func(t *testing.T) {
+		input := []byte{0, 0, 5, 0, 0}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		// After trimming leading zeros: {5, 0, 0}
+		// After reversing: {0, 0, 5}
+		require.Equal(t, []byte{0, 0, 5}, result)
+	})
+
+	t.Run("byte values at boundaries", func(t *testing.T) {
+		input := []byte{0, 255, 128, 1}
+		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
+		// After trimming: {255, 128, 1}
+		// After reversing: {1, 128, 255}
+		require.Equal(t, []byte{1, 128, 255}, result)
+	})
+}
+
+func TestConvertStringArrayToBigInt(t *testing.T) {
+	t.Run("empty array returns empty result", func(t *testing.T) {
+		arr := []string{}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.NoError(t, err)
+		require.Empty(t, result)
+	})
+
+	t.Run("single valid number", func(t *testing.T) {
+		arr := []string{"12345"}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.Equal(t, big.NewInt(12345), result[0])
+	})
+
+	t.Run("multiple valid numbers", func(t *testing.T) {
+		arr := []string{"1", "2", "3"}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.NoError(t, err)
+		require.Len(t, result, 3)
+		require.Equal(t, big.NewInt(1), result[0])
+		require.Equal(t, big.NewInt(2), result[1])
+		require.Equal(t, big.NewInt(3), result[2])
+	})
+
+	t.Run("zero value", func(t *testing.T) {
+		arr := []string{"0"}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.Equal(t, big.NewInt(0), result[0])
+	})
+
+	t.Run("large number", func(t *testing.T) {
+		largeNum := "123456789012345678901234567890"
+		arr := []string{largeNum}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		expected, _ := new(big.Int).SetString(largeNum, 10)
+		require.Equal(t, expected, result[0])
+	})
+
+	t.Run("invalid number returns error", func(t *testing.T) {
+		arr := []string{"not-a-number"}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("empty string returns error", func(t *testing.T) {
+		arr := []string{""}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("mixed valid and invalid returns error", func(t *testing.T) {
+		arr := []string{"123", "invalid", "456"}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("negative number", func(t *testing.T) {
+		arr := []string{"-12345"}
+		result, err := types.ConvertStringArrayToBigInt(arr)
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.Equal(t, big.NewInt(-12345), result[0])
+	})
+}

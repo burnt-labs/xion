@@ -177,6 +177,158 @@ func TestQueryDkimPubKeysPagination(t *testing.T) {
 		require.NoError(err)
 		require.Empty(res.DkimPubKeys)
 	})
+
+	t.Run("pagination offset exceeds total", func(t *testing.T) {
+		res, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeysRequest{
+			Domain:     domain,
+			Pagination: &query.PageRequest{Offset: 1000, Limit: 10},
+		})
+		require.NoError(err)
+		require.Empty(res.DkimPubKeys)
+		require.NotNil(res.Pagination)
+		require.Equal(uint64(count), res.Pagination.Total)
+	})
+
+	t.Run("pagination with zero limit uses default", func(t *testing.T) {
+		res, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeysRequest{
+			Domain:     domain,
+			Pagination: &query.PageRequest{Limit: 0},
+		})
+		require.NoError(err)
+		require.Len(res.DkimPubKeys, count) // default limit is 100, but we only have 5
+	})
+
+	t.Run("pagination with nil pagination request", func(t *testing.T) {
+		res, err := f.queryServer.DkimPubKeys(f.ctx, &types.QueryDkimPubKeysRequest{
+			Domain:     domain,
+			Pagination: nil,
+		})
+		require.NoError(err)
+		require.Len(res.DkimPubKeys, count)
+	})
+}
+
+func TestProofVerify(t *testing.T) {
+	f := SetupTest(t)
+	require := require.New(t)
+
+	t.Run("returns false for any request", func(t *testing.T) {
+		// ProofVerify currently returns false for all requests
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte("test"),
+			EmailHash:         "test-hash",
+			Proof:             []byte("{}"),
+			PublicInputs:      []string{},
+			AllowedEmailHosts: []string{},
+		}
+
+		res, err := f.queryServer.ProofVerify(f.ctx, req)
+		require.NoError(err)
+		require.NotNil(res)
+		require.False(res.Verified)
+	})
+
+	t.Run("returns false with nil request fields", func(t *testing.T) {
+		req := &types.QueryAuthenticateRequest{}
+
+		res, err := f.queryServer.ProofVerify(f.ctx, req)
+		require.NoError(err)
+		require.NotNil(res)
+		require.False(res.Verified)
+	})
+
+	t.Run("returns false with populated request", func(t *testing.T) {
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte("some-tx-bytes"),
+			EmailHash:         "19446427605026428332697445173245129703428784356663998533737434935925391210840",
+			Proof:             []byte(`{"pi_a": ["1", "2", "1"], "pi_b": [["1", "2"], ["3", "4"], ["1", "0"]], "pi_c": ["1", "2", "1"], "protocol": "groth16", "curve": "bn128"}`),
+			PublicInputs:      make([]string, 38),
+			AllowedEmailHosts: []string{"test@example.com"},
+		}
+
+		res, err := f.queryServer.ProofVerify(f.ctx, req)
+		require.NoError(err)
+		require.NotNil(res)
+		require.False(res.Verified)
+	})
+}
+
+func TestParams(t *testing.T) {
+	f := SetupTest(t)
+	require := require.New(t)
+
+	t.Run("returns default params", func(t *testing.T) {
+		res, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.NotNil(res)
+		require.NotNil(res.Params)
+	})
+
+	t.Run("returns params with nil request", func(t *testing.T) {
+		res, err := f.queryServer.Params(f.ctx, nil)
+		require.NoError(err)
+		require.NotNil(res)
+		require.NotNil(res.Params)
+	})
+
+	t.Run("returns updated params after UpdateParams", func(t *testing.T) {
+		const PubKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+
+		hash, err := types.ComputePoseidonHash(PubKey)
+		require.NoError(err)
+
+		newParams := types.Params{
+			VkeyIdentifier: 42,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "updated.com",
+					PubKey:       PubKey,
+					Selector:     "selector1",
+					PoseidonHash: hash.Bytes(),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+			},
+		}
+
+		// Update params
+		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams,
+		})
+		require.NoError(err)
+
+		// Query params and verify
+		res, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.NotNil(res)
+		require.NotNil(res.Params)
+		require.Equal(uint64(42), res.Params.VkeyIdentifier)
+		require.Len(res.Params.DkimPubkeys, 1)
+		require.Equal("updated.com", res.Params.DkimPubkeys[0].Domain)
+	})
+
+	t.Run("returns params with empty dkim pubkeys", func(t *testing.T) {
+		newParams := types.Params{
+			VkeyIdentifier: 99,
+			DkimPubkeys:    []types.DkimPubKey{},
+		}
+
+		// Update params
+		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams,
+		})
+		require.NoError(err)
+
+		// Query params and verify
+		res, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.NotNil(res)
+		require.NotNil(res.Params)
+		require.Equal(uint64(99), res.Params.VkeyIdentifier)
+		require.Empty(res.Params.DkimPubkeys)
+	})
 }
 
 // createModifiedPublicInputs creates a copy of publicInputs with modified tx bytes (indices [12:32])
@@ -374,6 +526,15 @@ func TestAuthenticate(t *testing.T) {
 			expectedError:     true,
 			errorContains:     "tx bytes do not match public inputs",
 		},
+		{
+			name:              "fail - insufficient public inputs",
+			emailHash:         emailHashStr,
+			allowedEmailHosts: []string{"kushal@burnt.com"},
+			publicInputs:      basePublicInputs[:10], // Only 10 elements, need at least 38
+			txBytes:           nil,
+			expectedError:     true,
+			errorContains:     "insufficient public inputs",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -381,7 +542,7 @@ func TestAuthenticate(t *testing.T) {
 			var reqTxBytes []byte
 			if tc.txBytes != nil {
 				reqTxBytes = tc.txBytes
-			} else {
+			} else if len(tc.publicInputs) >= 32 {
 				// Compute txBytes from publicInputs[12:32]
 				txParts, err := types.ConvertStringArrayToBigInt(tc.publicInputs[12:32])
 				require.NoError(err)
@@ -412,6 +573,123 @@ func TestAuthenticate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAuthenticateEdgeCases(t *testing.T) {
+	f := SetupTest(t)
+	require := require.New(t)
+
+	t.Run("fail - invalid tx bytes public input conversion", func(t *testing.T) {
+		// Create public inputs with invalid tx bytes values (indices 12-32)
+		invalidPublicInputs := make([]string, 38)
+		for i := range invalidPublicInputs {
+			invalidPublicInputs[i] = "0"
+		}
+		invalidPublicInputs[12] = "invalid-number" // Invalid: should be numeric
+		invalidPublicInputs[32] = "test-hash"
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte("test"),
+			EmailHash:         "test-hash",
+			Proof:             []byte(`{}`),
+			PublicInputs:      invalidPublicInputs,
+			AllowedEmailHosts: []string{},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		require.Contains(err.Error(), "failed to convert tx bytes public inputs")
+	})
+
+	t.Run("fail - invalid dkim domain public input conversion", func(t *testing.T) {
+		// Create public inputs where tx bytes are valid but dkim domain is invalid
+		// We need tx bytes [12:32] to be valid AND match the provided txBytes
+		// Then dkim domain [0:9] should be invalid
+		invalidPublicInputs := make([]string, 38)
+		for i := range invalidPublicInputs {
+			invalidPublicInputs[i] = "0"
+		}
+		invalidPublicInputs[0] = "not-a-number" // Invalid dkim domain: should be numeric
+		invalidPublicInputs[32] = "test-hash"
+
+		// Compute txBytes from the valid publicInputs[12:32] (all zeros)
+		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         "test-hash",
+			Proof:             []byte(`{}`),
+			PublicInputs:      invalidPublicInputs,
+			AllowedEmailHosts: []string{},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		require.Contains(err.Error(), "failed to convert dkim domain public inputs")
+	})
+
+	t.Run("fail - invalid dkim hash public input", func(t *testing.T) {
+		// Create public inputs where tx bytes and dkim domain are valid but dkim hash is invalid
+		invalidPublicInputs := make([]string, 38)
+		for i := range invalidPublicInputs {
+			invalidPublicInputs[i] = "0"
+		}
+		invalidPublicInputs[9] = "not-a-valid-big-int" // Invalid: should be numeric
+		invalidPublicInputs[32] = "test-hash"
+
+		// Compute txBytes from the valid publicInputs[12:32] (all zeros)
+		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         "test-hash",
+			Proof:             []byte(`{}`),
+			PublicInputs:      invalidPublicInputs,
+			AllowedEmailHosts: []string{},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		require.Contains(err.Error(), "failed to parse dkim hash public input")
+	})
+
+	t.Run("fail - no dkim pubkey found for domain and hash", func(t *testing.T) {
+		// Create valid public inputs but with a domain/hash that doesn't exist
+		validPublicInputs := make([]string, 38)
+		for i := range validPublicInputs {
+			validPublicInputs[i] = "0"
+		}
+		validPublicInputs[9] = "12345" // Valid numeric but non-existent hash
+		validPublicInputs[32] = "test-hash"
+
+		// Compute txBytes from the valid publicInputs[12:32] (all zeros)
+		txParts, err := types.ConvertStringArrayToBigInt(validPublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         "test-hash",
+			Proof:             []byte(`{}`),
+			PublicInputs:      validPublicInputs,
+			AllowedEmailHosts: []string{},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		require.Contains(err.Error(), "no dkim pubkey found")
+	})
 }
 
 // this function converts a byte slice to little-endian format and trims leading zeros

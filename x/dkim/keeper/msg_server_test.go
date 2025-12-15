@@ -200,6 +200,120 @@ func TestRemoveDkimPubKey(t *testing.T) {
 	}
 }
 
+func TestUpdateParams(t *testing.T) {
+	f := SetupTest(t)
+	require := require.New(t)
+
+	const PubKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+
+	hash, err := types.ComputePoseidonHash(PubKey)
+	require.NoError(err)
+
+	testCases := []struct {
+		name    string
+		request *types.MsgUpdateParams
+		err     bool
+	}{
+		{
+			name: "fail; invalid authority",
+			request: &types.MsgUpdateParams{
+				Authority: f.addrs[0].String(),
+				Params: types.Params{
+					VkeyIdentifier: 1,
+					DkimPubkeys:    []types.DkimPubKey{},
+				},
+			},
+			err: true,
+		},
+		{
+			name: "success; update with empty params",
+			request: &types.MsgUpdateParams{
+				Authority: f.govModAddr,
+				Params: types.Params{
+					VkeyIdentifier: 0,
+					DkimPubkeys:    []types.DkimPubKey{},
+				},
+			},
+			err: false,
+		},
+		{
+			name: "success; update vkey identifier",
+			request: &types.MsgUpdateParams{
+				Authority: f.govModAddr,
+				Params: types.Params{
+					VkeyIdentifier: 42,
+					DkimPubkeys:    []types.DkimPubKey{},
+				},
+			},
+			err: false,
+		},
+		{
+			name: "success; update with dkim pubkeys",
+			request: &types.MsgUpdateParams{
+				Authority: f.govModAddr,
+				Params: types.Params{
+					VkeyIdentifier: 1,
+					DkimPubkeys: []types.DkimPubKey{
+						{
+							Domain:       "example.com",
+							PubKey:       PubKey,
+							Selector:     "selector1",
+							PoseidonHash: hash.Bytes(),
+							Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+							KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+						},
+					},
+				},
+			},
+			err: false,
+		},
+		{
+			name: "success; update with multiple dkim pubkeys",
+			request: &types.MsgUpdateParams{
+				Authority: f.govModAddr,
+				Params: types.Params{
+					VkeyIdentifier: 2,
+					DkimPubkeys: []types.DkimPubKey{
+						{
+							Domain:       "example.com",
+							PubKey:       PubKey,
+							Selector:     "selector1",
+							PoseidonHash: hash.Bytes(),
+							Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+							KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+						},
+						{
+							Domain:       "test.com",
+							PubKey:       PubKey,
+							Selector:     "selector2",
+							PoseidonHash: hash.Bytes(),
+							Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+							KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+						},
+					},
+				},
+			},
+			err: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(_ *testing.T) {
+			_, err := f.msgServer.UpdateParams(f.ctx, tc.request)
+			if tc.err {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+
+				// Verify params were updated
+				params, err := f.k.Params.Get(f.ctx)
+				require.NoError(err)
+				require.Equal(tc.request.Params.VkeyIdentifier, params.VkeyIdentifier)
+			}
+		})
+	}
+}
+
 func TestRevokeDkimPubKey(t *testing.T) {
 	f := SetupTest(t)
 	// Generate a test RSA private key
