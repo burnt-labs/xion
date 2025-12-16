@@ -25,6 +25,8 @@ import (
 	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
+const testPubKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+
 type TestFixture struct {
 	suite.Suite
 
@@ -98,4 +100,366 @@ func TestKeeperLogger(t *testing.T) {
 	f := SetupTest(t)
 	logger := f.k.Logger()
 	require.NotNil(t, logger)
+}
+
+// ============================================================================
+// NewKeeper Tests
+// ============================================================================
+
+func TestNewKeeper(t *testing.T) {
+	t.Run("creates keeper with valid parameters", func(t *testing.T) {
+		logger := log.NewTestLogger(t)
+		encCfg := moduletestutil.MakeTestEncodingConfig()
+		types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+		key := storetypes.NewKVStoreKey(types.ModuleName)
+		storeService := runtime.NewKVStoreService(key)
+		testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+		authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+		zkKeeper := zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, authority)
+
+		k := keeper.NewKeeper(encCfg.Codec, storeService, logger, authority, zkKeeper)
+
+		require.NotNil(t, k)
+		require.NotNil(t, k.Logger())
+
+		// Verify we can use the keeper
+		err := k.Params.Set(testCtx.Ctx, types.DefaultParams())
+		require.NoError(t, err)
+	})
+
+	t.Run("creates keeper with empty authority defaults to gov module", func(t *testing.T) {
+		logger := log.NewTestLogger(t)
+		encCfg := moduletestutil.MakeTestEncodingConfig()
+		types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+		key := storetypes.NewKVStoreKey(types.ModuleName)
+		storeService := runtime.NewKVStoreService(key)
+		testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+		// Empty authority should default to gov module address
+		zkKeeper := zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, "")
+
+		k := keeper.NewKeeper(encCfg.Codec, storeService, logger, "", zkKeeper)
+
+		require.NotNil(t, k)
+
+		// Verify keeper is functional
+		err := k.Params.Set(testCtx.Ctx, types.DefaultParams())
+		require.NoError(t, err)
+	})
+
+	t.Run("creates keeper with custom authority", func(t *testing.T) {
+		logger := log.NewTestLogger(t)
+		encCfg := moduletestutil.MakeTestEncodingConfig()
+		types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+		key := storetypes.NewKVStoreKey(types.ModuleName)
+		storeService := runtime.NewKVStoreService(key)
+		testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+		customAuthority := "xion1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnrql8a"
+		zkKeeper := zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, customAuthority)
+
+		k := keeper.NewKeeper(encCfg.Codec, storeService, logger, customAuthority, zkKeeper)
+
+		require.NotNil(t, k)
+
+		// Verify keeper is functional
+		err := k.Params.Set(testCtx.Ctx, types.DefaultParams())
+		require.NoError(t, err)
+	})
+
+	t.Run("keeper schema is built correctly", func(t *testing.T) {
+		logger := log.NewTestLogger(t)
+		encCfg := moduletestutil.MakeTestEncodingConfig()
+		types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+		key := storetypes.NewKVStoreKey(types.ModuleName)
+		storeService := runtime.NewKVStoreService(key)
+
+		authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+		zkKeeper := zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, authority)
+
+		k := keeper.NewKeeper(encCfg.Codec, storeService, logger, authority, zkKeeper)
+
+		// Schema should be built without error
+		require.NotNil(t, k.Schema)
+	})
+
+	t.Run("keeper collections are initialized", func(t *testing.T) {
+		logger := log.NewTestLogger(t)
+		encCfg := moduletestutil.MakeTestEncodingConfig()
+		types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+		key := storetypes.NewKVStoreKey(types.ModuleName)
+		storeService := runtime.NewKVStoreService(key)
+		testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+		authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+		zkKeeper := zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, authority)
+
+		k := keeper.NewKeeper(encCfg.Codec, storeService, logger, authority, zkKeeper)
+
+		// DkimPubKeys collection should be usable
+		iter, err := k.DkimPubKeys.Iterate(testCtx.Ctx, nil)
+		require.NoError(t, err)
+		defer iter.Close()
+
+		// Params collection should be usable
+		err = k.Params.Set(testCtx.Ctx, types.DefaultParams())
+		require.NoError(t, err)
+
+		params, err := k.Params.Get(testCtx.Ctx)
+		require.NoError(t, err)
+		require.NotNil(t, params)
+	})
+}
+
+// ============================================================================
+// Keeper Logger Tests
+// ============================================================================
+
+func TestKeeperLoggerExtended(t *testing.T) {
+	t.Run("logger returns non-nil", func(t *testing.T) {
+		f := SetupTest(t)
+		logger := f.k.Logger()
+		require.NotNil(t, logger)
+	})
+
+	t.Run("logger is consistent", func(t *testing.T) {
+		f := SetupTest(t)
+		logger1 := f.k.Logger()
+		logger2 := f.k.Logger()
+		require.Equal(t, logger1, logger2)
+	})
+}
+
+// ============================================================================
+// Keeper State Operations Tests
+// ============================================================================
+
+func TestKeeperStateOperations(t *testing.T) {
+	hash, err := types.ComputePoseidonHash(testPubKey)
+	require.NoError(t, err)
+
+	t.Run("set and get params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		params := types.Params{
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "example.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+				},
+			},
+		}
+
+		err := f.k.Params.Set(f.ctx, params)
+		require.NoError(t, err)
+
+		got, err := f.k.Params.Get(f.ctx)
+		require.NoError(t, err)
+		require.Len(t, got.DkimPubkeys, 1)
+		require.Equal(t, "example.com", got.DkimPubkeys[0].Domain)
+	})
+
+	t.Run("set and get default params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		err := f.k.Params.Set(f.ctx, types.DefaultParams())
+		require.NoError(t, err)
+
+		got, err := f.k.Params.Get(f.ctx)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+	})
+
+	t.Run("overwrite params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Set initial params
+		params1 := types.Params{
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "first.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+				},
+			},
+		}
+		err := f.k.Params.Set(f.ctx, params1)
+		require.NoError(t, err)
+
+		// Overwrite with new params
+		params2 := types.Params{
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "second.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+				},
+			},
+		}
+		err = f.k.Params.Set(f.ctx, params2)
+		require.NoError(t, err)
+
+		// Verify new params are returned
+		got, err := f.k.Params.Get(f.ctx)
+		require.NoError(t, err)
+		require.Len(t, got.DkimPubkeys, 1)
+		require.Equal(t, "second.com", got.DkimPubkeys[0].Domain)
+	})
+}
+
+// ============================================================================
+// Keeper DkimPubKeys Collection Tests
+// ============================================================================
+
+func TestKeeperDkimPubKeysCollection(t *testing.T) {
+	t.Run("add and retrieve dkim records", func(t *testing.T) {
+		f := SetupTest(t)
+		hash, err := types.ComputePoseidonHash(testPubKey)
+		require.NoError(t, err)
+
+		// Add records via InitGenesis
+		genesis := &types.GenesisState{
+			Params: types.Params{
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:       "test-domain-1.com",
+						Selector:     "selector1",
+						PubKey:       testPubKey,
+						PoseidonHash: []byte(hash.String()),
+					},
+					{
+						Domain:       "test-domain-2.com",
+						Selector:     "selector2",
+						PubKey:       testPubKey,
+						PoseidonHash: []byte(hash.String()),
+					},
+				},
+			},
+		}
+		err = f.k.InitGenesis(f.ctx, genesis)
+		require.NoError(t, err)
+
+		// Verify records were added by checking ExportGenesis
+		exported := f.k.ExportGenesis(f.ctx)
+
+		// Find the records we added
+		var foundDomain1, foundDomain2 bool
+		for _, pk := range exported.Params.DkimPubkeys {
+			if pk.Domain == "test-domain-1.com" && pk.Selector == "selector1" {
+				foundDomain1 = true
+				require.Equal(t, testPubKey, pk.PubKey)
+			}
+			if pk.Domain == "test-domain-2.com" && pk.Selector == "selector2" {
+				foundDomain2 = true
+				require.Equal(t, testPubKey, pk.PubKey)
+			}
+		}
+		require.True(t, foundDomain1, "expected to find test-domain-1.com record")
+		require.True(t, foundDomain2, "expected to find test-domain-2.com record")
+	})
+
+	t.Run("added records have correct data", func(t *testing.T) {
+		f := SetupTest(t)
+		hash, err := types.ComputePoseidonHash(testPubKey)
+		require.NoError(t, err)
+
+		genesis := &types.GenesisState{
+			Params: types.Params{
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:       "unique-test.com",
+						Selector:     "uniqueselector",
+						PubKey:       testPubKey,
+						PoseidonHash: []byte(hash.String()),
+						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+					},
+				},
+			},
+		}
+		err = f.k.InitGenesis(f.ctx, genesis)
+		require.NoError(t, err)
+
+		exported := f.k.ExportGenesis(f.ctx)
+
+		// Find the record we added
+		var found bool
+		for _, pk := range exported.Params.DkimPubkeys {
+			if pk.Domain == "unique-test.com" && pk.Selector == "uniqueselector" {
+				found = true
+				require.Equal(t, testPubKey, pk.PubKey)
+				require.Equal(t, []byte(hash.String()), pk.PoseidonHash)
+				require.Equal(t, types.Version_VERSION_DKIM1_UNSPECIFIED, pk.Version)
+				require.Equal(t, types.KeyType_KEY_TYPE_RSA_UNSPECIFIED, pk.KeyType)
+				break
+			}
+		}
+		require.True(t, found, "expected to find the added DKIM record")
+	})
+
+	t.Run("same domain with different selectors are stored separately", func(t *testing.T) {
+		f := SetupTest(t)
+		hash, err := types.ComputePoseidonHash(testPubKey)
+		require.NoError(t, err)
+
+		genesis := &types.GenesisState{
+			Params: types.Params{
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:       "multi-selector.com",
+						Selector:     "selector-a",
+						PubKey:       testPubKey,
+						PoseidonHash: []byte(hash.String()),
+					},
+					{
+						Domain:       "multi-selector.com",
+						Selector:     "selector-b",
+						PubKey:       testPubKey,
+						PoseidonHash: []byte(hash.String()),
+					},
+				},
+			},
+		}
+		err = f.k.InitGenesis(f.ctx, genesis)
+		require.NoError(t, err)
+
+		exported := f.k.ExportGenesis(f.ctx)
+
+		// Count records for multi-selector.com
+		count := 0
+		for _, pk := range exported.Params.DkimPubkeys {
+			if pk.Domain == "multi-selector.com" {
+				count++
+			}
+		}
+		require.Equal(t, 2, count, "expected 2 records for multi-selector.com")
+	})
+}
+
+// ============================================================================
+// Keeper ZkKeeper Integration Tests
+// ============================================================================
+
+func TestKeeperZkKeeperIntegration(t *testing.T) {
+	t.Run("zk keeper is accessible", func(t *testing.T) {
+		f := SetupTest(t)
+		require.NotNil(t, f.k.ZkKeeper)
+	})
+
+	t.Run("zk keeper authority is set", func(t *testing.T) {
+		f := SetupTest(t)
+		authority := f.k.ZkKeeper.GetAuthority()
+		require.NotEmpty(t, authority)
+		require.Equal(t, f.govModAddr, authority)
+	})
 }

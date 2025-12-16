@@ -222,7 +222,7 @@ $ %s q zk verify-proof ./proofs/email.json --vkey-name email_auth --public-input
 			}
 
 			// Parse public inputs (comma-separated)
-			publicInputs := parsePublicInputs(publicInputsStr)
+			publicInputs := ParsePublicInputs(publicInputsStr)
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.ProofVerify(context.Background(), &types.QueryVerifyRequest{
@@ -247,8 +247,8 @@ $ %s q zk verify-proof ./proofs/email.json --vkey-name email_auth --public-input
 	return cmd
 }
 
-// parsePublicInputs parses a comma-separated string into a slice of strings
-func parsePublicInputs(input string) []string {
+// ParsePublicInputs parses a comma-separated string into a slice of strings
+func ParsePublicInputs(input string) []string {
 	if input == "" {
 		return []string{}
 	}

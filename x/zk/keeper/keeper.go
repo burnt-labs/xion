@@ -109,8 +109,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 			}
 		}
 	}
-
-	k.logger.Info("initialized zk module genesis state", "vkeys_count", len(gs.Vkeys))
 }
 
 // ExportGenesis returns the module's exported genesis state.
@@ -193,7 +191,6 @@ func (k Keeper) AddVKey(ctx context.Context, authority string, name string, keyB
 		return 0, err
 	}
 
-	k.logger.Info("added verification key", "id", id, "name", name, "authority", authority)
 	return id, nil
 }
 
@@ -275,7 +272,6 @@ func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, k
 		return err
 	}
 
-	k.logger.Info("updated verification key", "id", id, "name", name, "authority", authority)
 	return nil
 }
 
@@ -305,7 +301,6 @@ func (k Keeper) RemoveVKey(ctx context.Context, authority string, name string) e
 		return err
 	}
 
-	k.logger.Info("removed verification key", "id", id, "name", name, "authority", authority)
 	return nil
 }
 

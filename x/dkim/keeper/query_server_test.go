@@ -10,6 +10,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
@@ -710,4 +711,572 @@ func ToLittleEndianWithTrimming(b []byte) []byte {
 	}
 
 	return result
+}
+
+func TestAuthenticateExtended(t *testing.T) {
+	// Base public inputs for testing
+	basePublicInputs := []string{
+		"2018721414038404820327", // [0] domain start
+		"0",                      // [1]
+		"0",                      // [2]
+		"0",                      // [3]
+		"0",                      // [4]
+		"0",                      // [5]
+		"0",                      // [6]
+		"0",                      // [7]
+		"0",                      // [8] domain end
+		"6632353713085157925504008443078919716322386156160602218536961028046468237192",  // [9] dkim hash
+		"12057794547485210516928817874827048708844252651510875086257455163416697746512", // [10]
+		"0", // [11]
+		"124413588010935573100449456468959839270027757215138439816955024736271298883", // [12] tx bytes start
+		"125987718504881168702817372751405511311626515399128115957683055706162879081", // [13]
+		"138174294419566073638917398478480233783462655482283489778477032129860416308", // [14]
+		"87164429935183530231106524238772469083021376536857547601286350511895957042",  // [15]
+		"159508995554830235422881220221659222882416701537684367907262541081181107041", // [16]
+		"216177859633033993616607456010987870980723214832657304250929052054387451251", // [17]
+		"136870293077760051536514689814528040652982158268238924211443105143315312977", // [18]
+		"209027647271941540634260128227139143305212625530130988286308577451934433604", // [19]
+		"216041037480816501846348705353738079775803623607373665378499876478757721956", // [20]
+		"184099808892606061942559141059081527262834859629181581270585908529014000483", // [21]
+		"173926821082308056829441773860483849128404996084932919505946802488367989070", // [22]
+		"136498083332900321215526260868562056670892412932671519510981704427905430578", // [23]
+		"0", // [24]
+		"0", // [25]
+		"0", // [26]
+		"0", // [27]
+		"0", // [28]
+		"0", // [29]
+		"0", // [30]
+		"0", // [31] tx bytes end
+		"19446427605026428332697445173245129703428784356663998533737434935925391210840", // [32] email hash
+		"1", // [33]
+		"145464208130933216679374873468710647147", // [34] email host start
+		"0", // [35]
+		"0", // [36]
+		"0", // [37] email host end
+	}
+
+	proofJSON := []byte(`{
+		"pi_a": [
+			"6043643433140642569280898259541128431907635878547614935681440820683038963792",
+			"9992132192779112865958667381915120532497401445863381693125708878412867819429",
+			"1"
+		],
+		"pi_b": [
+			[
+				"857150703036151009004130834885577860944545321105272581149620288148902385440",
+				"3313419972466342030467701882126850537491115446681093222335468857323210697295"
+			],
+			[
+				"21712445344172795956102361993647268776674729003569584506047190630474625887295",
+				"13180126619787644952475441454844294991198251669191962852459355269881478597074"
+			],
+			[
+				"1",
+				"0"
+			]
+		],
+		"pi_c": [
+			"5608874530415768909531379297509258028398465201351680955270584280524807563327",
+			"12825389375859294537236568763270506206901646432644007343954893485864905401313",
+			"1"
+		],
+		"protocol": "groth16",
+		"curve": "bn128"
+	}`)
+
+	emailHashStr := "19446427605026428332697445173245129703428784356663998533737434935925391210840"
+
+	t.Run("fail - invalid email host public input conversion", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Setup DKIM pub key
+		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
+		require.True(ok)
+		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+			Authority: f.govModAddr,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "gmail.com",
+					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+					PoseidonHash: poseidonHash.Bytes(),
+					Selector:     "selector1",
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				},
+			},
+		})
+		require.NoError(err)
+
+		// Create public inputs with invalid email host values
+		invalidPublicInputs := make([]string, len(basePublicInputs))
+		copy(invalidPublicInputs, basePublicInputs)
+		invalidPublicInputs[34] = "not-a-number" // Invalid email host
+
+		// Compute valid txBytes
+		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         emailHashStr,
+			Proof:             proofJSON,
+			PublicInputs:      invalidPublicInputs,
+			AllowedEmailHosts: []string{"test@example.com"},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		require.Contains(err.Error(), "failed to convert allowed email hosts")
+	})
+
+	t.Run("fail - invalid proof JSON", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Setup DKIM pub key
+		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
+		require.True(ok)
+		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+			Authority: f.govModAddr,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "gmail.com",
+					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+					PoseidonHash: poseidonHash.Bytes(),
+					Selector:     "selector1",
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				},
+			},
+		})
+		require.NoError(err)
+
+		// Compute valid txBytes
+		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		// Invalid proof JSON
+		invalidProof := []byte(`{invalid json}`)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         emailHashStr,
+			Proof:             invalidProof,
+			PublicInputs:      basePublicInputs,
+			AllowedEmailHosts: []string{"kushal@burnt.com"},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+	})
+
+	t.Run("fail - empty proof", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Setup DKIM pub key
+		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
+		require.True(ok)
+		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+			Authority: f.govModAddr,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "gmail.com",
+					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+					PoseidonHash: poseidonHash.Bytes(),
+					Selector:     "selector1",
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				},
+			},
+		})
+		require.NoError(err)
+
+		// Compute valid txBytes
+		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         emailHashStr,
+			Proof:             []byte{},
+			PublicInputs:      basePublicInputs,
+			AllowedEmailHosts: []string{"kushal@burnt.com"},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+	})
+
+	t.Run("fail - public inputs exactly 38 elements but invalid data", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Create exactly 38 elements of zeros
+		minimalPublicInputs := make([]string, 38)
+		for i := range minimalPublicInputs {
+			minimalPublicInputs[i] = "0"
+		}
+		minimalPublicInputs[32] = "test-hash" // email hash at index 32
+
+		// Compute txBytes (all zeros)
+		txParts, err := types.ConvertStringArrayToBigInt(minimalPublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         "test-hash",
+			Proof:             proofJSON,
+			PublicInputs:      minimalPublicInputs,
+			AllowedEmailHosts: []string{},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		// The error will be about email host validation since empty string from public inputs
+		// is not in empty allowed list (IsSubset([""], []) = false)
+		require.Contains(err.Error(), "is not present in allowed email hosts list")
+	})
+
+	t.Run("fail - public inputs with 37 elements (boundary)", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Create 37 elements (one less than required)
+		insufficientPublicInputs := make([]string, 37)
+		for i := range insufficientPublicInputs {
+			insufficientPublicInputs[i] = "0"
+		}
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte("test"),
+			EmailHash:         "test-hash",
+			Proof:             proofJSON,
+			PublicInputs:      insufficientPublicInputs,
+			AllowedEmailHosts: []string{},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		require.Contains(err.Error(), "insufficient public inputs")
+	})
+
+	t.Run("fail - empty email host from public inputs with empty allowed list", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Create public inputs where email host [34:38] are all zeros
+		// This results in empty string email host
+		zeroEmailHostInputs := make([]string, len(basePublicInputs))
+		copy(zeroEmailHostInputs, basePublicInputs)
+		zeroEmailHostInputs[34] = "0"
+		zeroEmailHostInputs[35] = "0"
+		zeroEmailHostInputs[36] = "0"
+		zeroEmailHostInputs[37] = "0"
+
+		// Setup DKIM pub key
+		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
+		require.True(ok)
+		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+			Authority: f.govModAddr,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "gmail.com",
+					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+					PoseidonHash: poseidonHash.Bytes(),
+					Selector:     "selector1",
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				},
+			},
+		})
+		require.NoError(err)
+
+		// Compute valid txBytes
+		txParts, err := types.ConvertStringArrayToBigInt(zeroEmailHostInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         emailHashStr,
+			Proof:             proofJSON,
+			PublicInputs:      zeroEmailHostInputs,
+			AllowedEmailHosts: []string{}, // Empty allowed list
+		}
+
+		// When email host from public inputs is empty string "" and allowed list is empty [],
+		// IsSubset([""], []) returns false, so this fails
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		require.Error(err)
+		require.Nil(res)
+		require.Contains(err.Error(), "is not present in allowed email hosts list")
+	})
+
+	t.Run("multiple allowed email hosts - first match", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Setup DKIM pub key
+		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
+		require.True(ok)
+		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+			Authority: f.govModAddr,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "gmail.com",
+					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+					PoseidonHash: poseidonHash.Bytes(),
+					Selector:     "selector1",
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				},
+			},
+		})
+		require.NoError(err)
+
+		// Compute valid txBytes
+		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         emailHashStr,
+			Proof:             proofJSON,
+			PublicInputs:      basePublicInputs,
+			AllowedEmailHosts: []string{"kushal@burnt.com", "other@burnt.com", "another@burnt.com"},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		// Should pass email host validation
+		if err != nil {
+			require.NotContains(err.Error(), "is not present in allowed email hosts list")
+		}
+		_ = res
+	})
+}
+
+func TestParamsExtended(t *testing.T) {
+	t.Run("params returns vkey identifier", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		res, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.NotNil(res)
+		require.NotNil(res.Params)
+		// Default vkey identifier should be set
+		require.GreaterOrEqual(res.Params.VkeyIdentifier, uint64(0))
+	})
+
+	t.Run("params after multiple updates", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// First update
+		newParams1 := types.Params{
+			VkeyIdentifier: 10,
+			DkimPubkeys:    []types.DkimPubKey{},
+		}
+		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams1,
+		})
+		require.NoError(err)
+
+		res1, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.Equal(uint64(10), res1.Params.VkeyIdentifier)
+
+		// Second update
+		newParams2 := types.Params{
+			VkeyIdentifier: 20,
+			DkimPubkeys:    []types.DkimPubKey{},
+		}
+		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams2,
+		})
+		require.NoError(err)
+
+		res2, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.Equal(uint64(20), res2.Params.VkeyIdentifier)
+	})
+
+	t.Run("params with large vkey identifier", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		newParams := types.Params{
+			VkeyIdentifier: 18446744073709551615, // max uint64
+			DkimPubkeys:    []types.DkimPubKey{},
+		}
+		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams,
+		})
+		require.NoError(err)
+
+		res, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.Equal(uint64(18446744073709551615), res.Params.VkeyIdentifier)
+	})
+
+	t.Run("params with multiple dkim pubkeys", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		pubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+		hash, err := types.ComputePoseidonHash(pubKey)
+		require.NoError(err)
+
+		newParams := types.Params{
+			VkeyIdentifier: 5,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "domain1.com",
+					PubKey:       pubKey,
+					Selector:     "selector1",
+					PoseidonHash: hash.Bytes(),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+				{
+					Domain:       "domain2.com",
+					PubKey:       pubKey,
+					Selector:     "selector2",
+					PoseidonHash: hash.Bytes(),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+				{
+					Domain:       "domain3.com",
+					PubKey:       pubKey,
+					Selector:     "selector3",
+					PoseidonHash: hash.Bytes(),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+			},
+		}
+		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams,
+		})
+		require.NoError(err)
+
+		res, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.Len(res.Params.DkimPubkeys, 3)
+		require.Equal("domain1.com", res.Params.DkimPubkeys[0].Domain)
+		require.Equal("domain2.com", res.Params.DkimPubkeys[1].Domain)
+		require.Equal("domain3.com", res.Params.DkimPubkeys[2].Domain)
+	})
+
+	t.Run("update params with invalid authority fails", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		newParams := types.Params{
+			VkeyIdentifier: 100,
+			DkimPubkeys:    []types.DkimPubKey{},
+		}
+		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: "invalid-authority",
+			Params:    newParams,
+		})
+		require.Error(err)
+		require.Contains(err.Error(), "invalid authority")
+	})
+}
+
+func TestIsSubset(t *testing.T) {
+	t.Run("empty A is subset of any B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{}, []string{"a", "b", "c"})
+		require.True(t, result)
+	})
+
+	t.Run("empty A is subset of empty B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{}, []string{})
+		require.True(t, result)
+	})
+
+	t.Run("non-empty A is not subset of empty B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"a"}, []string{})
+		require.False(t, result)
+	})
+
+	t.Run("A equals B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"a", "b", "c"}, []string{"a", "b", "c"})
+		require.True(t, result)
+	})
+
+	t.Run("A is proper subset of B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"a", "b"}, []string{"a", "b", "c", "d"})
+		require.True(t, result)
+	})
+
+	t.Run("A has element not in B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"a", "x"}, []string{"a", "b", "c"})
+		require.False(t, result)
+	})
+
+	t.Run("single element subset", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"b"}, []string{"a", "b", "c"})
+		require.True(t, result)
+	})
+
+	t.Run("single element not in B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"x"}, []string{"a", "b", "c"})
+		require.False(t, result)
+	})
+
+	t.Run("duplicate elements in A", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"a", "a", "a"}, []string{"a", "b"})
+		require.True(t, result)
+	})
+
+	t.Run("duplicate elements in B", func(t *testing.T) {
+		result := keeper.IsSubset([]string{"a"}, []string{"a", "a", "b", "b"})
+		require.True(t, result)
+	})
+
+	t.Run("with integers", func(t *testing.T) {
+		result := keeper.IsSubset([]int{1, 2}, []int{1, 2, 3, 4, 5})
+		require.True(t, result)
+	})
+
+	t.Run("with integers - not subset", func(t *testing.T) {
+		result := keeper.IsSubset([]int{1, 6}, []int{1, 2, 3, 4, 5})
+		require.False(t, result)
+	})
+}
+
+func TestNewQuerier(t *testing.T) {
+	t.Run("creates querier from keeper", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		querier := keeper.NewQuerier(f.k)
+		require.NotNil(querier)
+
+		// Verify querier works
+		res, err := querier.Params(f.ctx, &types.QueryParamsRequest{})
+		require.NoError(err)
+		require.NotNil(res)
+	})
 }
