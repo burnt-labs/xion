@@ -32,6 +32,9 @@ service Query {
   rpc HasVKey(QueryHasVKeyRequest) returns (QueryHasVKeyResponse) {
     option (google.api.http).get = "/burnt/xion/zk/v1/vkeys/exists/{name}";
   }
+  rpc NextVKeyID(QueryNextVKeyIDRequest) returns (QueryNextVKeyIDResponse) {
+    option (google.api.http).get = "/burnt/xion/zk/v1/vkeys/next-id";
+  }
 }
 
 // SnarkJsProof represents a ZK-SNARK proof in SnarkJS format.
@@ -135,6 +138,5 @@ message QueryNextVKeyIDRequest {}
 
 // QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC method
 message QueryNextVKeyIDResponse {
-  // next_id is the next available verification key ID
   uint64 next_id = 1;
 }

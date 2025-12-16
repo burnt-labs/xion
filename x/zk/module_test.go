@@ -177,7 +177,6 @@ func TestAppModuleBasic_GetTxCmd(t *testing.T) {
 	require.Equal(t, types.ModuleName, cmd.Use)
 }
 
-/*
 func TestAppModuleBasic_GetQueryCmd(t *testing.T) {
 	basic := zkmodule.AppModuleBasic{}
 
@@ -185,7 +184,6 @@ func TestAppModuleBasic_GetQueryCmd(t *testing.T) {
 	require.NotNil(t, cmd)
 	require.Equal(t, types.ModuleName, cmd.Use)
 }
-*/
 
 func TestAppModule_RegisterInvariants(t *testing.T) {
 	appModule, _ := setupModule(t)
@@ -230,4 +228,22 @@ func TestAppModule_AutoCLIOptions(t *testing.T) {
 	// Verify the structure has expected fields
 	// require.NotNil(t, opts.Query)
 	// require.NotNil(t, opts.Tx)
+}
+
+func TestAppModule_IsOnePerModuleType(t *testing.T) {
+	appModule, _ := setupModule(t)
+
+	// IsOnePerModuleType is a marker method that should not panic
+	require.NotPanics(t, func() {
+		appModule.IsOnePerModuleType()
+	})
+}
+
+func TestAppModule_IsAppModule(t *testing.T) {
+	appModule, _ := setupModule(t)
+
+	// IsAppModule is a marker method that should not panic
+	require.NotPanics(t, func() {
+		appModule.IsAppModule()
+	})
 }

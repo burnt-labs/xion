@@ -59,10 +59,8 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	}
 	verified, err := q.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
 	if err != nil {
-		fmt.Printf("we have passed verifications with errors??: %s\n", err.Error())
 		return nil, err
 	}
-	fmt.Println("we have passed verifications with no errors")
 	return &types.ProofVerifyResponse{Verified: verified}, nil
 }
 

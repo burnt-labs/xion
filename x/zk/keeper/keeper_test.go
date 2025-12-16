@@ -179,6 +179,357 @@ func TestKeeperLogger(t *testing.T) {
 	require.NotNil(t, logger)
 }
 
+func TestGetAuthority(t *testing.T) {
+	f := SetupTest(t)
+
+	authority := f.k.GetAuthority()
+	require.NotEmpty(t, authority)
+	require.Equal(t, f.govModAddr, authority)
+}
+
+func TestGetCodec(t *testing.T) {
+	f := SetupTest(t)
+
+	codec := f.k.GetCodec()
+	require.NotNil(t, codec)
+}
+
+// ============================================================================
+// Genesis Tests
+// ============================================================================
+
+func TestInitGenesis(t *testing.T) {
+	t.Run("empty genesis state", func(t *testing.T) {
+		f := SetupTest(t)
+
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{},
+		}
+
+		// Should not panic
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify no vkeys exist
+		vkeys, err := f.k.ListVKeys(f.ctx)
+		require.NoError(t, err)
+		require.Empty(t, vkeys)
+	})
+
+	t.Run("genesis with single vkey", func(t *testing.T) {
+		f := SetupTest(t)
+
+		vkeyBytes := createTestVKeyBytes("test_key")
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 1,
+					Vkey: types.VKey{
+						Name:        "test_key",
+						Description: "Test verification key",
+						KeyBytes:    vkeyBytes,
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify vkey exists
+		vkey, err := f.k.GetVKeyByID(f.ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, "test_key", vkey.Name)
+		require.Equal(t, "Test verification key", vkey.Description)
+
+		// Verify name index works
+		vkeyByName, err := f.k.GetVKeyByName(f.ctx, "test_key")
+		require.NoError(t, err)
+		require.Equal(t, vkey.Name, vkeyByName.Name)
+	})
+
+	t.Run("genesis with multiple vkeys", func(t *testing.T) {
+		f := SetupTest(t)
+
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 1,
+					Vkey: types.VKey{
+						Name:        "key1",
+						Description: "First key",
+						KeyBytes:    createTestVKeyBytes("key1"),
+					},
+				},
+				{
+					Id: 2,
+					Vkey: types.VKey{
+						Name:        "key2",
+						Description: "Second key",
+						KeyBytes:    createTestVKeyBytes("key2"),
+					},
+				},
+				{
+					Id: 5,
+					Vkey: types.VKey{
+						Name:        "key5",
+						Description: "Fifth key (gap in IDs)",
+						KeyBytes:    createTestVKeyBytes("key5"),
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify all vkeys exist
+		vkeys, err := f.k.ListVKeys(f.ctx)
+		require.NoError(t, err)
+		require.Len(t, vkeys, 3)
+
+		// Verify each key by ID
+		vkey1, err := f.k.GetVKeyByID(f.ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, "key1", vkey1.Name)
+
+		vkey2, err := f.k.GetVKeyByID(f.ctx, 2)
+		require.NoError(t, err)
+		require.Equal(t, "key2", vkey2.Name)
+
+		vkey5, err := f.k.GetVKeyByID(f.ctx, 5)
+		require.NoError(t, err)
+		require.Equal(t, "key5", vkey5.Name)
+
+		// Verify sequence is set correctly (should be 6, one after highest ID)
+		nextID, err := f.k.NextVKeyID.Peek(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(6), nextID)
+	})
+
+	t.Run("genesis preserves sequence after highest ID", func(t *testing.T) {
+		f := SetupTest(t)
+
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 100,
+					Vkey: types.VKey{
+						Name:        "high_id_key",
+						Description: "Key with high ID",
+						KeyBytes:    createTestVKeyBytes("high_id_key"),
+					},
+				},
+			},
+		}
+
+		f.k.InitGenesis(f.ctx, gs)
+
+		// Verify sequence is set to 101
+		nextID, err := f.k.NextVKeyID.Peek(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(101), nextID)
+
+		// Add a new key and verify it gets ID 101
+		newVKeyBytes := createTestVKeyBytes("new_key")
+		newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key", newVKeyBytes, "New key")
+		require.NoError(t, err)
+		require.Equal(t, uint64(101), newID)
+	})
+}
+
+func TestExportGenesis(t *testing.T) {
+	t.Run("export empty genesis", func(t *testing.T) {
+		f := SetupTest(t)
+
+		gs := f.k.ExportGenesis(f.ctx)
+		require.NotNil(t, gs)
+		require.Empty(t, gs.Vkeys)
+	})
+
+	t.Run("export genesis with vkeys", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add some vkeys
+		vkey1Bytes := createTestVKeyBytes("key1")
+		id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key")
+		require.NoError(t, err)
+
+		vkey2Bytes := createTestVKeyBytes("key2")
+		id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key")
+		require.NoError(t, err)
+
+		// Export genesis
+		gs := f.k.ExportGenesis(f.ctx)
+		require.NotNil(t, gs)
+		require.Len(t, gs.Vkeys, 2)
+
+		// Verify exported vkeys contain correct data
+		exportedIDs := make(map[uint64]types.VKey)
+		for _, vkeyWithID := range gs.Vkeys {
+			exportedIDs[vkeyWithID.Id] = vkeyWithID.Vkey
+		}
+
+		require.Contains(t, exportedIDs, id1)
+		require.Equal(t, "key1", exportedIDs[id1].Name)
+		require.Equal(t, "First key", exportedIDs[id1].Description)
+
+		require.Contains(t, exportedIDs, id2)
+		require.Equal(t, "key2", exportedIDs[id2].Name)
+		require.Equal(t, "Second key", exportedIDs[id2].Description)
+	})
+
+	t.Run("export then import genesis roundtrip", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add vkeys
+		vkey1Bytes := createTestVKeyBytes("key1")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key")
+		require.NoError(t, err)
+
+		vkey2Bytes := createTestVKeyBytes("key2")
+		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key")
+		require.NoError(t, err)
+
+		// Export genesis
+		exportedGS := f.k.ExportGenesis(f.ctx)
+
+		// Create new fixture and import
+		f2 := SetupTest(t)
+		f2.k.InitGenesis(f2.ctx, exportedGS)
+
+		// Verify imported state matches
+		vkeys, err := f2.k.ListVKeys(f2.ctx)
+		require.NoError(t, err)
+		require.Len(t, vkeys, 2)
+
+		// Verify by name
+		key1, err := f2.k.GetVKeyByName(f2.ctx, "key1")
+		require.NoError(t, err)
+		require.Equal(t, "First key", key1.Description)
+
+		key2, err := f2.k.GetVKeyByName(f2.ctx, "key2")
+		require.NoError(t, err)
+		require.Equal(t, "Second key", key2.Description)
+	})
+}
+
+// ============================================================================
+// IterateVKeys Tests
+// ============================================================================
+
+func TestIterateVKeys(t *testing.T) {
+	t.Run("iterate empty store", func(t *testing.T) {
+		f := SetupTest(t)
+
+		count := 0
+		err := f.k.IterateVKeys(f.ctx, func(id uint64, vkey types.VKey) (bool, error) {
+			count++
+			return false, nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+
+	t.Run("iterate all vkeys", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add multiple vkeys
+		for i := 0; i < 5; i++ {
+			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+			require.NoError(t, err)
+		}
+
+		// Iterate and collect
+		var collectedVKeys []types.VKey
+		var collectedIDs []uint64
+		err := f.k.IterateVKeys(f.ctx, func(id uint64, vkey types.VKey) (bool, error) {
+			collectedIDs = append(collectedIDs, id)
+			collectedVKeys = append(collectedVKeys, vkey)
+			return false, nil
+		})
+		require.NoError(t, err)
+		require.Len(t, collectedVKeys, 5)
+		require.Len(t, collectedIDs, 5)
+
+		// Verify all keys were collected
+		names := make(map[string]bool)
+		for _, vkey := range collectedVKeys {
+			names[vkey.Name] = true
+		}
+		for i := 0; i < 5; i++ {
+			require.True(t, names[fmt.Sprintf("key%d", i)])
+		}
+	})
+
+	t.Run("iterate with early stop", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add multiple vkeys
+		for i := 0; i < 10; i++ {
+			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+			require.NoError(t, err)
+		}
+
+		// Iterate but stop after 3
+		count := 0
+		err := f.k.IterateVKeys(f.ctx, func(id uint64, vkey types.VKey) (bool, error) {
+			count++
+			if count >= 3 {
+				return true, nil // Stop iteration
+			}
+			return false, nil
+		})
+		require.NoError(t, err)
+		require.Equal(t, 3, count)
+	})
+
+	t.Run("iterate with error in callback", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add a vkey
+		vkeyBytes := createTestVKeyBytes("key1")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1")
+		require.NoError(t, err)
+
+		// Iterate with error
+		expectedErr := fmt.Errorf("test error")
+		err = f.k.IterateVKeys(f.ctx, func(id uint64, vkey types.VKey) (bool, error) {
+			return false, expectedErr
+		})
+		require.Error(t, err)
+		require.Equal(t, expectedErr, err)
+	})
+
+	t.Run("iterate collects IDs correctly", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add vkeys and track their IDs
+		expectedIDs := make(map[uint64]string)
+		for i := 0; i < 3; i++ {
+			name := fmt.Sprintf("key%d", i)
+			vkeyBytes := createTestVKeyBytes(name)
+			id, err := f.k.AddVKey(f.ctx, f.govModAddr, name, vkeyBytes, fmt.Sprintf("Key %d", i))
+			require.NoError(t, err)
+			expectedIDs[id] = name
+		}
+
+		// Iterate and verify IDs match names
+		err := f.k.IterateVKeys(f.ctx, func(id uint64, vkey types.VKey) (bool, error) {
+			expectedName, ok := expectedIDs[id]
+			require.True(t, ok, "unexpected ID: %d", id)
+			require.Equal(t, expectedName, vkey.Name)
+			return false, nil
+		})
+		require.NoError(t, err)
+	})
+}
+
 // ============================================================================
 // VKey CRUD Tests
 // ============================================================================
@@ -373,6 +724,29 @@ func TestGetCircomVKeyByName(t *testing.T) {
 	require.Equal(t, "groth16", circomVKey.Protocol)
 	require.Equal(t, "bn128", circomVKey.Curve)
 	require.Equal(t, 38, circomVKey.NPublic)
+}
+
+func TestGetCircomVKeyByID(t *testing.T) {
+	f := SetupTest(t)
+
+	// Add test vkey
+	vkeyBytes := createTestVKeyBytes("test_key")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	require.NoError(t, err)
+
+	t.Run("successfully get circom vkey by ID", func(t *testing.T) {
+		circomVKey, err := f.k.GetCircomVKeyByID(f.ctx, id)
+		require.NoError(t, err)
+		require.NotNil(t, circomVKey)
+		require.Equal(t, "groth16", circomVKey.Protocol)
+		require.Equal(t, "bn128", circomVKey.Curve)
+	})
+
+	t.Run("fail to get non-existent circom vkey by ID", func(t *testing.T) {
+		_, err := f.k.GetCircomVKeyByID(f.ctx, 9999)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+	})
 }
 
 func TestHasVKey(t *testing.T) {

@@ -1,5 +1,4 @@
 // keeper/query_server_test.go
-
 package keeper_test
 
 import (
@@ -912,4 +911,192 @@ func TestQueryHasVKey(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestQueryNextVKeyID(t *testing.T) {
+	f := SetupTest(t)
+
+	t.Run("query next vkey id on empty store", func(t *testing.T) {
+		resp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		// Initial sequence value after setup (SetupTest calls NextVKeyID.Next once)
+		require.GreaterOrEqual(t, resp.NextId, uint64(1))
+	})
+
+	t.Run("next id increments after adding vkey", func(t *testing.T) {
+		// Get initial next ID
+		initialResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		initialNextID := initialResp.NextId
+
+		// Add a vkey
+		vkeyBytes := createTestVKeyBytes("key1")
+		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1")
+		require.NoError(t, err)
+
+		// Check next ID has incremented
+		resp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		require.Equal(t, initialNextID+1, resp.NextId)
+	})
+
+	t.Run("next id increments correctly after multiple additions", func(t *testing.T) {
+		// Get current next ID
+		beforeResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		beforeNextID := beforeResp.NextId
+
+		// Add multiple vkeys
+		numToAdd := 4
+		for i := 0; i < numToAdd; i++ {
+			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("multi_key%d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("multi_key%d", i), vkeyBytes, fmt.Sprintf("Multi Key %d", i))
+			require.NoError(t, err)
+		}
+
+		// Get next ID after adding vkeys
+		afterResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		require.Equal(t, beforeNextID+uint64(numToAdd), afterResp.NextId)
+	})
+
+	t.Run("query does not consume sequence (peek behavior)", func(t *testing.T) {
+		// Query next ID multiple times
+		resp1, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+
+		resp2, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+
+		resp3, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+
+		// All responses should be the same (query doesn't consume the sequence)
+		require.Equal(t, resp1.NextId, resp2.NextId)
+		require.Equal(t, resp2.NextId, resp3.NextId)
+	})
+
+	t.Run("next id unchanged after vkey removal", func(t *testing.T) {
+		// Add a vkey to remove
+		vkeyBytes := createTestVKeyBytes("to_remove")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "to_remove", vkeyBytes, "To Remove")
+		require.NoError(t, err)
+
+		// Get next ID before removal
+		beforeResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		beforeNextID := beforeResp.NextId
+
+		// Remove the vkey
+		err = f.k.RemoveVKey(f.ctx, f.govModAddr, "to_remove")
+		require.NoError(t, err)
+
+		// Next ID should remain unchanged after removal
+		afterResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		require.Equal(t, beforeNextID, afterResp.NextId)
+	})
+
+	t.Run("nil request returns error", func(t *testing.T) {
+		resp, err := f.queryServer.NextVKeyID(f.ctx, nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "empty request")
+		require.Nil(t, resp)
+	})
+}
+
+func TestQueryNextVKeyIDPredictability(t *testing.T) {
+	f := SetupTest(t)
+
+	// Test that NextVKeyID correctly predicts the ID that will be assigned
+	for i := 0; i < 5; i++ {
+		// Get predicted next ID
+		predResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		predictedID := predResp.NextId
+
+		// Add vkey and get actual ID
+		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("predict_key%d", i))
+		actualID, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("predict_key%d", i), vkeyBytes, fmt.Sprintf("Predict Key %d", i))
+		require.NoError(t, err)
+
+		// Verify prediction was correct
+		require.Equal(t, predictedID, actualID, "NextVKeyID should correctly predict the ID for the next vkey")
+	}
+}
+
+func TestQueryNextVKeyIDAfterGenesis(t *testing.T) {
+	f := SetupTest(t)
+
+	// Initialize genesis with vkeys that have high IDs
+	gs := &types.GenesisState{
+		Vkeys: []types.VKeyWithID{
+			{
+				Id: 50,
+				Vkey: types.VKey{
+					Name:        "genesis_key_50",
+					Description: "Genesis key with ID 50",
+					KeyBytes:    createTestVKeyBytes("genesis_key_50"),
+				},
+			},
+			{
+				Id: 100,
+				Vkey: types.VKey{
+					Name:        "genesis_key_100",
+					Description: "Genesis key with ID 100",
+					KeyBytes:    createTestVKeyBytes("genesis_key_100"),
+				},
+			},
+		},
+	}
+
+	f.k.InitGenesis(f.ctx, gs)
+
+	// Query next ID - should be 101 (one after highest genesis ID)
+	resp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+	require.NoError(t, err)
+	require.Equal(t, uint64(101), resp.NextId)
+
+	// Add a new key and verify it gets ID 101
+	vkeyBytes := createTestVKeyBytes("new_key_after_genesis")
+	newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key_after_genesis", vkeyBytes, "New key after genesis")
+	require.NoError(t, err)
+	require.Equal(t, uint64(101), newID)
+
+	// Next ID should now be 102
+	resp, err = f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+	require.NoError(t, err)
+	require.Equal(t, uint64(102), resp.NextId)
+}
+
+func TestQueryNextVKeyIDSequential(t *testing.T) {
+	f := SetupTest(t)
+
+	// Get initial next ID
+	initialResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+	require.NoError(t, err)
+	startID := initialResp.NextId
+
+	// Add vkeys and verify IDs are sequential
+	numVKeys := 10
+	for i := 0; i < numVKeys; i++ {
+		expectedID := startID + uint64(i)
+
+		// Verify NextVKeyID returns expected ID
+		resp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+		require.NoError(t, err)
+		require.Equal(t, expectedID, resp.NextId)
+
+		// Add vkey
+		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("seq_key%d", i))
+		actualID, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("seq_key%d", i), vkeyBytes, fmt.Sprintf("Seq Key %d", i))
+		require.NoError(t, err)
+		require.Equal(t, expectedID, actualID)
+	}
+
+	// Final next ID should be startID + numVKeys
+	finalResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
+	require.NoError(t, err)
+	require.Equal(t, startID+uint64(numVKeys), finalResp.NextId)
 }
