@@ -17,6 +17,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSendQueryIbcDenomTWAP{}, "feeabs/SendQueryIbcDenomTWAP", nil)
 	cdc.RegisterConcrete(&MsgSwapCrossChain{}, "feeabs/SwapCrossChain", nil)
 	cdc.RegisterConcrete(&MsgAddHostZone{}, "feeabs/AddHostZone", nil)
+	cdc.RegisterConcrete(&MsgUpdateHostZone{}, "feeabs/UpdateHostZone", nil)
 	cdc.RegisterConcrete(&MsgRemoveHostZone{}, "feeabs/RemoveHostZone", nil)
 	cdc.RegisterConcrete(&AddHostZoneProposal{}, "feeabs/AddHostZoneProposal", nil)
 	cdc.RegisterConcrete(&DeleteHostZoneProposal{}, "feeabs/DeleteHostZoneProposal", nil)
@@ -31,6 +32,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgFundFeeAbsModuleAccount{},
 		&MsgUpdateParams{},
 		&MsgAddHostZone{},
+		&MsgUpdateHostZone{},
 		&MsgRemoveHostZone{},
 	)
 
@@ -55,6 +57,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgSwapCrossChain", &MsgSwapCrossChain{})
 		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgFundFeeAbsModuleAccount", &MsgFundFeeAbsModuleAccount{})
 		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgAddHostZone", &MsgAddHostZone{})
+		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgUpdateHostZone", &MsgUpdateHostZone{})
 		customReg.RegisterCustomTypeURL((*sdk.Msg)(nil), "/feeabstraction.feeabs.v1beta1.MsgRemoveHostZone", &MsgRemoveHostZone{})
 		customReg.RegisterCustomTypeURL((*v1beta1types.Content)(nil), "/feeabstraction.feeabs.v1beta1.AddHostZoneProposal", &AddHostZoneProposal{})
 		customReg.RegisterCustomTypeURL((*v1beta1types.Content)(nil), "/feeabstraction.feeabs.v1beta1.DeleteHostZoneProposal", &DeleteHostZoneProposal{})
