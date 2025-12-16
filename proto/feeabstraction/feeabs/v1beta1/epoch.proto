@@ -1,5 +1,5 @@
 syntax = "proto3";
-package xion.feeabs.v1beta1;
+package feeabstraction.feeabs.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";

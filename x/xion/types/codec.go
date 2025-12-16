@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
-	feeabstypes "github.com/burnt-labs/xion/x/feeabs/types"
 	xionMintTypes "github.com/burnt-labs/xion/x/mint/types"
 )
 
@@ -45,9 +44,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&ContractsAllowance{},
 		&MultiAnyAllowance{},
 	)
-
-	// Register feeabs interfaces for reading historical proposals
-	feeabstypes.RegisterInterfaces(registry)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
