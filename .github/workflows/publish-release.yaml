@@ -28,3 +28,7 @@ jobs:
     name: Trigger Homebrew
     uses: burnt-labs/xion/.github/workflows/trigger-homebrew.yaml@workflows/main
     secrets: inherit
+  trigger-chain-registry:
+    name: Trigger Chain Registry
+    uses: burnt-labs/xion/.github/workflows/trigger-chain-registry.yaml@workflows/main
+    secrets: inherit
