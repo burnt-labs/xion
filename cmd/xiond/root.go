@@ -43,6 +43,7 @@ import (
 
 	"github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/app/params"
+	v25_upgrade "github.com/burnt-labs/xion/app/v25_upgrade"
 	indexercli "github.com/burnt-labs/xion/indexer/client/cli"
 )
 
@@ -169,6 +170,9 @@ func initRootCmd(rootCmd *cobra.Command,
 	rootCmd.AddCommand(indexercli.Indexer(newApp, app.DefaultNodeHome))
 	// add rosetta
 	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
+	// add v25 contract debugging and analysis commands
+	rootCmd.AddCommand(v25_upgrade.AnalyzeContractsCmd())
+	rootCmd.AddCommand(v25_upgrade.V25DryRunCmd())
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {

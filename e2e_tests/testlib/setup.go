@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/testreporter"
+	"github.com/cosmos/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 
 	xionapp "github.com/burnt-labs/xion/app"
@@ -115,6 +116,14 @@ func XionLocalChainSpec(t *testing.T, numVals int, numFn int) *interchaintest.Ch
 	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(DefaultGenesisKVMods)
 	chainSpec.ChainConfig.AdditionalStartArgs = []string{
 		"--consensus.timeout_commit=1s",
+	}
+	// Enable indexer for testing
+	chainSpec.ChainConfig.ConfigFileOverrides = map[string]any{
+		"config/app.toml": testutil.Toml{
+			"indexer": testutil.Toml{
+				"enabled": true,
+			},
+		},
 	}
 	return chainSpec
 }

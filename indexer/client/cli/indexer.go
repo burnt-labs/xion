@@ -37,7 +37,7 @@ func Indexer(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return nil
+			return cmd.Help()
 		},
 	}
 

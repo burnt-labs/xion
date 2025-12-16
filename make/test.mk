@@ -2,7 +2,7 @@
 
 SIMAPP = ./app
 BINDIR ?= $(GOPATH)/bin
-export XION_IMAGE = xiond:local
+export XION_IMAGE ?= xiond:local
 
 # Target to ensure Docker image exists (only runs once when needed)
 .ensure-docker-image:
@@ -129,36 +129,8 @@ test-app-upgrade-ibc:
 test-app-upgrade-network:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetwork
 
-test-v24-upgrade-full-flow:
-	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_FullUpgradeFlow
-
-test-v24-upgrade-performance:
-	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradePerformance
-
-test-v24-upgrade-idempotency:
-	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeIdempotency
-
-test-v24-upgrade-analysis:
-	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeAnalysis
-
-test-v24-upgrade-corrupted-data:
-	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeWithCorruptedData
-
-test-v24-upgrade-timeout:
-	@cd ./app/v24_upgrade && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v -run TestE2E_UpgradeContextTimeout
-
-test-v24-upgrade-schema-detection:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestV24Upgrade_SchemaDetection
-
-# Run all v24 upgrade e2e tests
-test-v24-upgrade-all: \
-	test-v24-upgrade-full-flow \
-	test-v24-upgrade-performance \
-	test-v24-upgrade-idempotency \
-	test-v24-upgrade-analysis \
-	test-v24-upgrade-corrupted-data \
-	test-v24-upgrade-timeout \
-	test-v24-upgrade-schema-detection
+# v24 upgrade tests removed - v24 migration was flawed and has been replaced by v25
+# TODO: Add v25 upgrade tests once migrator is implemented
 
 # DKIM Module Tests
 test-dkim-governance:
@@ -414,10 +386,6 @@ test-sim-deterministic: runsim
         test-app-treasury-contract test-app-treasury-grants test-app-treasury-multi \
         test-app-update-treasury-configs test-app-update-treasury-configs-aa \
         test-app-update-treasury-params test-app-upgrade-ibc test-app-upgrade-network \
-        test-v24-upgrade-full-flow test-v24-upgrade-performance \
-        test-v24-upgrade-idempotency test-v24-upgrade-analysis \
-        test-v24-upgrade-corrupted-data test-v24-upgrade-timeout \
-        test-v24-upgrade-schema-detection test-v24-upgrade-all \
         test-dkim-governance test-dkim-key-revocation test-dkim-module \
         test-dkim-zk-email test-dkim-zk-proof \
         test-indexer-authz-create test-indexer-authz-multiple test-indexer-authz-revoke \
@@ -506,26 +474,6 @@ help-test:
 	@echo "    test-app-update-treasury-params     Test treasury parameter updates"
 	@echo "    test-app-upgrade-ibc                Test IBC upgrade"
 	@echo "    test-app-upgrade-network            Test network upgrade"
-	@echo ""
-	@echo "  V24 Upgrade E2E Tests:"
-	@echo "    test-v24-upgrade-full-flow          Test v24 complete upgrade flow"
-	@echo "    test-v24-upgrade-performance        Test v24 performance with 100 contracts"
-	@echo "    test-v24-upgrade-idempotency        Test v24 idempotent behavior"
-	@echo "    test-v24-upgrade-analysis           Test v24 dry-run analysis"
-	@echo "    test-v24-upgrade-corrupted-data     Test v24 edge case handling"
-	@echo "    test-v24-upgrade-timeout            Test v24 timeout handling"
-	@echo "    test-v24-upgrade-schema-detection   Test v24 schema detection logic"
-	@echo "    test-v24-upgrade-all                Run all v24 upgrade tests"
-	@echo ""
-	@echo "  V24 Upgrade E2E Tests:"
-	@echo "    test-app-v24-upgrade-full-flow          Test v24 complete upgrade flow"
-	@echo "    test-app-v24-upgrade-performance        Test v24 performance with 100 contracts"
-	@echo "    test-app-v24-upgrade-idempotency        Test v24 idempotent behavior"
-	@echo "    test-app-v24-upgrade-analysis           Test v24 dry-run analysis"
-	@echo "    test-app-v24-upgrade-corrupted-data     Test v24 edge case handling"
-	@echo "    test-app-v24-upgrade-timeout            Test v24 timeout handling"
-	@echo "    test-app-v24-upgrade-schema-detection   Test v24 schema detection logic"
-	@echo "    test-app-v24-upgrade-all                Run all v24 upgrade tests"
 	@echo ""
 	@echo "  DKIM Module Individual Tests:"
 	@echo "    test-dkim-governance                Test governance-only key registration"
