@@ -116,7 +116,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{}`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
@@ -139,7 +139,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file with invalid content
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "invalid_vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`not valid json`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`not valid json`), 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
@@ -154,7 +154,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		// Create an empty vkey file
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "empty_vkey.json")
-		err := os.WriteFile(vkeyFile, []byte{}, 0600)
+		err := os.WriteFile(vkeyFile, []byte{}, 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
@@ -179,12 +179,12 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		// Create a file and make it unreadable
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "unreadable_vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{}`), 0000)
+		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o000)
 		require.NoError(t, err)
 
 		// Restore permissions after test
 		defer func() {
-			err := os.Chmod(vkeyFile, 0600)
+			err := os.Chmod(vkeyFile, 0o600)
 			require.NoError(t, err)
 		}()
 
@@ -266,7 +266,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{}`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
@@ -289,7 +289,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file with invalid content
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "invalid_vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`not valid json`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`not valid json`), 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
@@ -304,7 +304,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create an empty vkey file
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "empty_vkey.json")
-		err := os.WriteFile(vkeyFile, []byte{}, 0600)
+		err := os.WriteFile(vkeyFile, []byte{}, 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
@@ -319,7 +319,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create a vkey file with valid JSON but missing required fields
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "incomplete_vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{"some": "data"}`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`{"some": "data"}`), 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
@@ -334,7 +334,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{}`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		// Name with special characters
@@ -350,7 +350,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{}`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, ""})
@@ -364,7 +364,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{}`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		// Very long description
@@ -384,7 +384,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		// Create a temporary vkey file in current directory
 		tmpDir := t.TempDir()
 		vkeyFile := filepath.Join(tmpDir, "relative_vkey.json")
-		err := os.WriteFile(vkeyFile, []byte(`{"invalid": true}`), 0600)
+		err := os.WriteFile(vkeyFile, []byte(`{"invalid": true}`), 0o600)
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "description"})

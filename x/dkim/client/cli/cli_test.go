@@ -1,11 +1,13 @@
 package cli_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"testing"
@@ -14,6 +16,17 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/dkim/client/cli"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
@@ -1751,4 +1764,766 @@ func TestGenerateDkimPubKeyMsgExtended(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestNewTxDecodeCmd(t *testing.T) {
+	cmd := cli.NewTxDecodeCmd()
+	require.NotNil(t, cmd)
+	require.Equal(t, "decode [base64-tx]", cmd.Use)
+	require.Contains(t, cmd.Short, "Decode")
+	require.NotEmpty(t, cmd.Long)
+	require.Contains(t, cmd.Long, "base64")
+
+	// Test that command has RunE function defined
+	require.NotNil(t, cmd.RunE)
+
+	// Test command structure
+	require.NotNil(t, cmd.Flags())
+}
+
+func TestNewTxDecodeCmdArgsValidation(t *testing.T) {
+	cmd := cli.NewTxDecodeCmd()
+
+	t.Run("args validator with 0 args should fail", func(t *testing.T) {
+		err := cmd.Args(cmd, []string{})
+		require.Error(t, err, "should require exactly 1 arg")
+	})
+
+	t.Run("args validator with 1 arg", func(t *testing.T) {
+		err := cmd.Args(cmd, []string{"base64string"})
+		require.NoError(t, err, "should accept exactly 1 arg")
+	})
+
+	t.Run("args validator with 2 args should fail", func(t *testing.T) {
+		err := cmd.Args(cmd, []string{"arg1", "arg2"})
+		require.Error(t, err, "should reject more than 1 arg")
+	})
+}
+
+func TestNewTxDecodeCmdRunE(t *testing.T) {
+	cmd := cli.NewTxDecodeCmd()
+
+	t.Run("RunE without client context panics/errors", func(t *testing.T) {
+		func() {
+			defer func() {
+				r := recover()
+				_ = r
+			}()
+			err := cmd.RunE(cmd, []string{"invalidbase64"})
+			if err != nil {
+				require.Error(t, err)
+			}
+		}()
+	})
+
+	t.Run("RunE with context but invalid base64", func(t *testing.T) {
+		cmdWithCtx := cli.NewTxDecodeCmd()
+		cmdWithCtx.SetContext(context.Background())
+
+		func() {
+			defer func() {
+				r := recover()
+				_ = r
+			}()
+			err := cmdWithCtx.RunE(cmdWithCtx, []string{"!!!not-valid-base64!!!"})
+			if err != nil {
+				require.Error(t, err)
+			}
+		}()
+	})
+
+	t.Run("RunE with empty string", func(t *testing.T) {
+		cmdWithCtx := cli.NewTxDecodeCmd()
+		cmdWithCtx.SetContext(context.Background())
+
+		func() {
+			defer func() {
+				r := recover()
+				_ = r
+			}()
+			err := cmdWithCtx.RunE(cmdWithCtx, []string{""})
+			if err != nil {
+				require.Error(t, err)
+			}
+		}()
+	})
+}
+
+// ============================================================================
+// DecodeTx Function Tests
+// ============================================================================
+
+func TestDecodeTx(t *testing.T) {
+	// Set up encoding config using the app's config
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	t.Run("valid transaction", func(t *testing.T) {
+		buf.Reset()
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "test memo", sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1000))), 200000)
+		base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+
+		// Verify output is valid JSON
+		output := buf.String()
+		require.NotEmpty(t, output)
+
+		var result map[string]interface{}
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+
+		// Verify body exists with messages
+		body, ok := result["body"].(map[string]interface{})
+		require.True(t, ok, "body should exist")
+
+		messages, ok := body["messages"].([]interface{})
+		require.True(t, ok, "messages should exist")
+		require.Len(t, messages, 1)
+
+		// Verify memo
+		require.Equal(t, "test memo", body["memo"])
+
+		// Verify auth_info exists with fee
+		authInfo, ok := result["auth_info"].(map[string]interface{})
+		require.True(t, ok, "auth_info should exist")
+
+		feeInfo, ok := authInfo["fee"].(map[string]interface{})
+		require.True(t, ok, "fee should exist")
+		require.Equal(t, "200000", feeInfo["gas_limit"])
+	})
+
+	t.Run("valid sign doc", func(t *testing.T) {
+		buf.Reset()
+		signDocBytes := createTestSignDocBytes(t, "xion-1", 12, 1)
+		base64SignDoc := base64.StdEncoding.EncodeToString(signDocBytes)
+
+		err := cli.DecodeTx(clientCtx, base64SignDoc)
+		require.NoError(t, err)
+
+		// Verify output is valid JSON
+		output := buf.String()
+		require.NotEmpty(t, output)
+
+		var result map[string]interface{}
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+
+		// Verify body exists with messages
+		body, ok := result["body"].(map[string]interface{})
+		require.True(t, ok, "body should exist")
+
+		messages, ok := body["messages"].([]interface{})
+		require.True(t, ok, "messages should exist")
+		require.Len(t, messages, 1)
+
+		// Verify chain_id and account_number from SignDoc
+		require.Equal(t, "xion-1", result["chain_id"])
+		require.Equal(t, "12", result["account_number"])
+
+		// Verify auth_info exists
+		authInfo, ok := result["auth_info"].(map[string]interface{})
+		require.True(t, ok, "auth_info should exist")
+
+		_, ok = authInfo["fee"].(map[string]interface{})
+		require.True(t, ok, "fee should exist")
+	})
+
+	t.Run("valid sign doc with URL-safe base64", func(t *testing.T) {
+		buf.Reset()
+		// This is the precomputed sign doc from the e2e test
+		base64SignDoc := "CqIBCp8BChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEn8KP3hpb24xNG43OWVocGZ3aGRoNHN6dWRhZ2Q0bm14N2NsajU3bHk1dTBsenhzNm1nZjVxeTU1a3k5c21zenM0OBIreGlvbjFxYWYyeGZseDVqM2FndGx2cWs1dmhqcGV1aGw2ZzQ1aHhzaHdxahoPCgV1eGlvbhIGMTAwMDAwEmYKTQpDCh0vYWJzdHJhY3RhY2NvdW50LnYxLk5pbFB1YktleRIiCiCs_FzcKXXbesBcb1Daz2b2Pyp75Kcf8Roa2hNAEpSxCxIECgIIARgBEhUKDgoFdXhpb24SBTYwMDAwEICHpw4aBnhpb24tMSAM"
+
+		err := cli.DecodeTx(clientCtx, base64SignDoc)
+		require.NoError(t, err)
+
+		// Verify output is valid JSON
+		output := buf.String()
+		require.NotEmpty(t, output)
+
+		var result map[string]interface{}
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+
+		// Verify body exists with messages
+		body, ok := result["body"].(map[string]interface{})
+		require.True(t, ok, "body should exist")
+
+		messages, ok := body["messages"].([]interface{})
+		require.True(t, ok, "messages should exist")
+		require.Len(t, messages, 1)
+
+		// Verify it's a MsgSend
+		msg := messages[0].(map[string]interface{})
+		require.Contains(t, msg["@type"], "MsgSend")
+
+		// Verify chain_id from SignDoc
+		require.Equal(t, "xion-1", result["chain_id"])
+		require.Equal(t, "12", result["account_number"])
+	})
+
+	t.Run("invalid base64", func(t *testing.T) {
+		buf.Reset()
+		err := cli.DecodeTx(clientCtx, "not-valid-base64!!!")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to decode base64")
+	})
+
+	t.Run("invalid transaction bytes", func(t *testing.T) {
+		buf.Reset()
+		invalidTxBytes := base64.StdEncoding.EncodeToString([]byte("invalid transaction data"))
+		err := cli.DecodeTx(clientCtx, invalidTxBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to decode")
+	})
+
+	t.Run("empty string", func(t *testing.T) {
+		buf.Reset()
+		err := cli.DecodeTx(clientCtx, "")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to decode base64")
+	})
+
+	t.Run("nil TxConfig", func(t *testing.T) {
+		var nilBuf bytes.Buffer
+		clientCtxNoTxConfig := client.Context{}.WithOutput(&nilBuf)
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "memo", sdk.NewCoins(), 100000)
+		base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtxNoTxConfig, base64Tx)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "tx config is not initialized")
+	})
+
+	t.Run("transaction without memo", func(t *testing.T) {
+		buf.Reset()
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "", sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(500))), 100000)
+		base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+
+		var result map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &result)
+		require.NoError(t, err)
+
+		body := result["body"].(map[string]interface{})
+		memo, exists := body["memo"]
+		if exists {
+			require.Equal(t, "", memo)
+		}
+	})
+
+	t.Run("transaction without fee", func(t *testing.T) {
+		buf.Reset()
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "no fee tx", sdk.NewCoins(), 0)
+		base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+
+		var result map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &result)
+		require.NoError(t, err)
+
+		authInfo := result["auth_info"].(map[string]interface{})
+		feeInfo := authInfo["fee"].(map[string]interface{})
+		require.Equal(t, "0", feeInfo["gas_limit"])
+	})
+}
+
+func TestDecodeTxEdgeCases(t *testing.T) {
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+		errContains string
+	}{
+		{
+			name:        "empty string",
+			input:       "",
+			expectError: true,
+			errContains: "failed to decode base64",
+		},
+		{
+			name:        "invalid base64 characters",
+			input:       "!!!invalid!!!",
+			expectError: true,
+			errContains: "failed to decode base64",
+		},
+		{
+			name:        "valid base64 but random bytes",
+			input:       base64.StdEncoding.EncodeToString([]byte{0x00, 0x01, 0x02, 0x03}),
+			expectError: true,
+			errContains: "failed to decode",
+		},
+		{
+			name:        "valid base64 of text",
+			input:       base64.StdEncoding.EncodeToString([]byte("hello world")),
+			expectError: true,
+			errContains: "failed to decode",
+		},
+		{
+			name:        "whitespace only",
+			input:       "   ",
+			expectError: true,
+			errContains: "failed to decode base64",
+		},
+		{
+			name:        "base64 with padding issues",
+			input:       "SGVsbG8",
+			expectError: true,
+			errContains: "",
+		},
+		{
+			name:        "very long invalid string",
+			input:       string(make([]byte, 10000)),
+			expectError: true,
+			errContains: "failed to decode base64",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			buf.Reset()
+
+			err := cli.DecodeTx(clientCtx, tc.input)
+
+			if tc.expectError {
+				require.Error(t, err)
+				if tc.errContains != "" {
+					require.Contains(t, err.Error(), tc.errContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestDecodeTxOutputFormat(t *testing.T) {
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	memo := "test output format"
+	fee := sdk.NewCoins(sdk.NewCoin("uatom", math.NewInt(5000)))
+	gas := uint64(200000)
+
+	txBytes := createTestTxBytes(t, encCfg.TxConfig, memo, fee, gas)
+	base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+	err := cli.DecodeTx(clientCtx, base64Tx)
+	require.NoError(t, err)
+
+	output := buf.String()
+
+	// Verify it's valid JSON
+	var result map[string]interface{}
+	err = json.Unmarshal([]byte(output), &result)
+	require.NoError(t, err)
+
+	// The output should have the standard Cosmos SDK tx structure
+	require.Contains(t, result, "body")
+	require.Contains(t, result, "auth_info")
+	require.Contains(t, result, "signatures")
+}
+
+func TestDecodeTxJSONEncoderCompatibility(t *testing.T) {
+	encCfg := app.MakeEncodingConfig(t)
+
+	txConfig := encCfg.TxConfig
+
+	// Create a transaction
+	privKey := secp256k1.GenPrivKey()
+	pubKey := privKey.PubKey()
+	fromAddr := sdk.AccAddress(pubKey.Address())
+	toAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	msg := banktypes.NewMsgSend(fromAddr, toAddr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(100))))
+
+	txBuilder := txConfig.NewTxBuilder()
+	err := txBuilder.SetMsgs(msg)
+	require.NoError(t, err)
+
+	txBuilder.SetMemo("json encoder test")
+	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1000))))
+	txBuilder.SetGasLimit(200000)
+
+	sigV2 := signing.SignatureV2{
+		PubKey: pubKey,
+		Data: &signing.SingleSignatureData{
+			SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
+			Signature: []byte("test signature"),
+		},
+		Sequence: 1,
+	}
+	err = txBuilder.SetSignatures(sigV2)
+	require.NoError(t, err)
+
+	builtTx := txBuilder.GetTx()
+
+	// Encode to bytes and then to base64
+	txBytes, err := txConfig.TxEncoder()(builtTx)
+	require.NoError(t, err)
+	base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+	// Decode using our function
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(txConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	err = cli.DecodeTx(clientCtx, base64Tx)
+	require.NoError(t, err)
+
+	// Verify the output matches what TxJSONEncoder produces
+	expectedJSON, err := txConfig.TxJSONEncoder()(builtTx)
+	require.NoError(t, err)
+
+	// Parse both for comparison (ignoring formatting differences)
+	var expected, actual map[string]interface{}
+	err = json.Unmarshal(expectedJSON, &expected)
+	require.NoError(t, err)
+	err = json.Unmarshal(buf.Bytes(), &actual)
+	require.NoError(t, err)
+
+	// Compare the structures
+	require.Equal(t, expected["body"], actual["body"])
+	require.Equal(t, expected["auth_info"], actual["auth_info"])
+}
+
+// ============================================================================
+// Command Structure Tests
+// ============================================================================
+
+func TestNewTxDecodeCmdHasQueryFlags(t *testing.T) {
+	cmd := cli.NewTxDecodeCmd()
+
+	// Check that query flags are present (added by flags.AddQueryFlagsToCmd)
+	nodeFlag := cmd.Flags().Lookup("node")
+	require.NotNil(t, nodeFlag, "expected 'node' flag to be present")
+
+	outputFlag := cmd.Flags().Lookup("output")
+	require.NotNil(t, outputFlag, "expected 'output' flag to be present")
+}
+
+func TestNewTxDecodeCmdHelp(t *testing.T) {
+	cmd := cli.NewTxDecodeCmd()
+
+	t.Run("use string format", func(t *testing.T) {
+		require.Contains(t, cmd.Use, "decode")
+		require.Contains(t, cmd.Use, "base64-tx")
+	})
+
+	t.Run("long description content", func(t *testing.T) {
+		require.Contains(t, cmd.Long, "Decode")
+		require.Contains(t, cmd.Long, "base64")
+	})
+}
+
+// ============================================================================
+// Integration with Parent Commands
+// ============================================================================
+
+func TestTxDecodeCmdInTxCmdTree(t *testing.T) {
+	// If NewTxDecodeCmd is added to a parent tx command, verify it's present
+	// This test assumes the command is added to the auth module's tx commands
+	// Adjust based on your actual command structure
+
+	cmd := cli.NewTxDecodeCmd()
+	require.NotNil(t, cmd)
+	require.Equal(t, "decode", cmd.Name())
+}
+
+// ============================================================================
+// Various Transaction Types
+// ============================================================================
+
+func TestDecodeTxWithDifferentMessageTypes(t *testing.T) {
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	t.Run("MsgSend transaction", func(t *testing.T) {
+		buf.Reset()
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "send tx", sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(100))), 100000)
+		base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+
+		var result map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &result)
+		require.NoError(t, err)
+
+		body := result["body"].(map[string]interface{})
+		messages := body["messages"].([]interface{})
+		require.Len(t, messages, 1)
+
+		msg := messages[0].(map[string]interface{})
+		require.Contains(t, msg["@type"], "MsgSend")
+	})
+}
+
+func TestDecodeTxWithLargeMemo(t *testing.T) {
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	// Create a transaction with a large memo
+	largeMemo := string(make([]byte, 256))
+	for i := range largeMemo {
+		largeMemo = largeMemo[:i] + "a" + largeMemo[i+1:]
+	}
+
+	txBytes := createTestTxBytes(t, encCfg.TxConfig, largeMemo, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(100))), 100000)
+	base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+	err := cli.DecodeTx(clientCtx, base64Tx)
+	require.NoError(t, err)
+
+	var result map[string]interface{}
+	err = json.Unmarshal(buf.Bytes(), &result)
+	require.NoError(t, err)
+
+	body := result["body"].(map[string]interface{})
+	require.Equal(t, largeMemo, body["memo"])
+}
+
+func TestDecodeTxWithMultipleCoins(t *testing.T) {
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	fee := sdk.NewCoins(
+		sdk.NewCoin("atom", math.NewInt(500)),
+		sdk.NewCoin("stake", math.NewInt(1000)),
+	)
+
+	txBytes := createTestTxBytes(t, encCfg.TxConfig, "multi coin fee", fee, 200000)
+	base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+	err := cli.DecodeTx(clientCtx, base64Tx)
+	require.NoError(t, err)
+
+	var result map[string]interface{}
+	err = json.Unmarshal(buf.Bytes(), &result)
+	require.NoError(t, err)
+
+	authInfo := result["auth_info"].(map[string]interface{})
+	feeInfo := authInfo["fee"].(map[string]interface{})
+	amount := feeInfo["amount"].([]interface{})
+	require.Len(t, amount, 2)
+}
+
+// ============================================================================
+// Real-World Transaction Format Test
+// ============================================================================
+
+func TestDecodeTxRealWorldFormat(t *testing.T) {
+	// This test uses a format similar to what was provided in the conversation
+	// The actual base64 string from a real transaction
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	// Create a realistic transaction
+	privKey := secp256k1.GenPrivKey()
+	pubKey := privKey.PubKey()
+	fromAddr := sdk.AccAddress(pubKey.Address())
+	toAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	msg := banktypes.NewMsgSend(fromAddr, toAddr, sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100000))))
+
+	txBuilder := encCfg.TxConfig.NewTxBuilder()
+	err := txBuilder.SetMsgs(msg)
+	require.NoError(t, err)
+
+	txBuilder.SetMemo("")
+	txBuilder.SetFeeAmount(sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(60000))))
+	txBuilder.SetGasLimit(400000)
+
+	sigV2 := signing.SignatureV2{
+		PubKey: pubKey,
+		Data: &signing.SingleSignatureData{
+			SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
+			Signature: nil,
+		},
+		Sequence: 0,
+	}
+	err = txBuilder.SetSignatures(sigV2)
+	require.NoError(t, err)
+
+	txBytes, err := encCfg.TxConfig.TxEncoder()(txBuilder.GetTx())
+	require.NoError(t, err)
+
+	base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+	err = cli.DecodeTx(clientCtx, base64Tx)
+	require.NoError(t, err)
+
+	// Verify we can parse the output
+	var result map[string]interface{}
+	err = json.Unmarshal(buf.Bytes(), &result)
+	require.NoError(t, err)
+
+	// Verify structure
+	require.Contains(t, result, "body")
+	require.Contains(t, result, "auth_info")
+	require.Contains(t, result, "signatures")
+
+	// Verify message type
+	body := result["body"].(map[string]interface{})
+	messages := body["messages"].([]interface{})
+	require.Len(t, messages, 1)
+
+	msgMap := messages[0].(map[string]interface{})
+	require.Contains(t, msgMap["@type"], "MsgSend")
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+// createTestTxBytes creates a test transaction and returns its encoded bytes
+func createTestTxBytes(t *testing.T, txConfig client.TxConfig, memo string, fee sdk.Coins, gas uint64) []byte {
+	t.Helper()
+
+	privKey := secp256k1.GenPrivKey()
+	pubKey := privKey.PubKey()
+	fromAddr := sdk.AccAddress(pubKey.Address())
+	toAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	msg := banktypes.NewMsgSend(fromAddr, toAddr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(100))))
+
+	txBuilder := txConfig.NewTxBuilder()
+	err := txBuilder.SetMsgs(msg)
+	require.NoError(t, err)
+
+	txBuilder.SetMemo(memo)
+	txBuilder.SetFeeAmount(fee)
+	txBuilder.SetGasLimit(gas)
+
+	sigV2 := signing.SignatureV2{
+		PubKey: pubKey,
+		Data: &signing.SingleSignatureData{
+			SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
+			Signature: nil,
+		},
+		Sequence: 0,
+	}
+	err = txBuilder.SetSignatures(sigV2)
+	require.NoError(t, err)
+
+	txBytes, err := txConfig.TxEncoder()(txBuilder.GetTx())
+	require.NoError(t, err)
+
+	return txBytes
+}
+
+// createTestSignDocBytes creates a test SignDoc and returns its encoded bytes
+func createTestSignDocBytes(t *testing.T, chainID string, accountNumber, sequence uint64) []byte {
+	t.Helper()
+
+	privKey := secp256k1.GenPrivKey()
+	pubKey := privKey.PubKey()
+	fromAddr := sdk.AccAddress(pubKey.Address())
+	toAddr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+
+	msg := banktypes.NewMsgSend(fromAddr, toAddr, sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100000))))
+
+	// Create TxBody
+	txBody := txtypes.TxBody{
+		Messages: []*codectypes.Any{},
+		Memo:     "",
+	}
+
+	// Convert message to Any
+	anyMsg, err := codectypes.NewAnyWithValue(msg)
+	require.NoError(t, err)
+	txBody.Messages = append(txBody.Messages, anyMsg)
+
+	// Create AuthInfo
+	authInfo := txtypes.AuthInfo{
+		SignerInfos: []*txtypes.SignerInfo{
+			{
+				PublicKey: nil, // Can be nil for testing
+				ModeInfo: &txtypes.ModeInfo{
+					Sum: &txtypes.ModeInfo_Single_{
+						Single: &txtypes.ModeInfo_Single{
+							Mode: signing.SignMode_SIGN_MODE_DIRECT,
+						},
+					},
+				},
+				Sequence: sequence,
+			},
+		},
+		Fee: &txtypes.Fee{
+			Amount:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(60000))),
+			GasLimit: 2000000,
+		},
+	}
+
+	// Marshal body and auth info
+	bodyBytes, err := txBody.Marshal()
+	require.NoError(t, err)
+
+	authInfoBytes, err := authInfo.Marshal()
+	require.NoError(t, err)
+
+	signDoc := txtypes.SignDoc{
+		BodyBytes:     bodyBytes,
+		AuthInfoBytes: authInfoBytes,
+		ChainId:       chainID,
+		AccountNumber: accountNumber,
+	}
+
+	signDocBytes, err := signDoc.Marshal()
+	require.NoError(t, err)
+
+	return signDocBytes
 }

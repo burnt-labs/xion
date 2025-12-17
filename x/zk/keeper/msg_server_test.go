@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/burnt-labs/xion/x/zk/keeper"
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/burnt-labs/xion/x/zk/keeper"
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 

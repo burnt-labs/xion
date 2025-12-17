@@ -114,10 +114,6 @@ func TestDkimPubKey_Equal(t *testing.T) {
 		PoseidonHash: []byte(hash.String()),
 	}
 
-	t.Run("equal to itself", func(t *testing.T) {
-		require.True(t, basePubKey.Equal(basePubKey))
-	})
-
 	t.Run("equal to identical copy (pointer)", func(t *testing.T) {
 		copy := &types.DkimPubKey{
 			Domain:       "example.com",

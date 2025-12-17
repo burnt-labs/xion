@@ -310,7 +310,7 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 		// Create a temporary proof file
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0o600)
 		require.NoError(t, err)
 
 		// Set flags
@@ -343,7 +343,7 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 		// Create a temporary proof file
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0o600)
 		require.NoError(t, err)
 
 		// Set public-inputs but not vkey-name or vkey-id
@@ -361,7 +361,7 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 		// Create a temporary proof file
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0o600)
 		require.NoError(t, err)
 
 		// Set vkey-name but not public-inputs
@@ -379,7 +379,7 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 		// Create a temporary proof file
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{"pi_a": ["1", "2", "1"]}`), 0o600)
 		require.NoError(t, err)
 
 		// Set vkey-id and public-inputs (should fail on client context, not validation)
@@ -406,7 +406,7 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 			"protocol": "groth16",
 			"curve": "bn128"
 		}`
-		err := os.WriteFile(proofFile, []byte(proofContent), 0600)
+		err := os.WriteFile(proofFile, []byte(proofContent), 0o600)
 		require.NoError(t, err)
 
 		// Set all required flags
@@ -426,7 +426,7 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 		// Create a temporary proof file
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		// Test with spaces in public inputs
@@ -445,7 +445,7 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 		// Create an empty proof file
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "empty.json")
-		err := os.WriteFile(proofFile, []byte{}, 0600)
+		err := os.WriteFile(proofFile, []byte{}, 0o600)
 		require.NoError(t, err)
 
 		require.NoError(t, cmd.Flags().Set("vkey-name", "test"))
@@ -637,7 +637,7 @@ func TestVerifyProofFlagInteractions(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		// vkey-id defaults to 0, and vkey-name is empty
@@ -654,7 +654,7 @@ func TestVerifyProofFlagInteractions(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		require.NoError(t, cmd.Flags().Set("vkey-id", "5"))
@@ -672,7 +672,7 @@ func TestVerifyProofFlagInteractions(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		proofFile := filepath.Join(tmpDir, "proof.json")
-		err := os.WriteFile(proofFile, []byte(`{}`), 0600)
+		err := os.WriteFile(proofFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
 		require.NoError(t, cmd.Flags().Set("vkey-name", "test"))
