@@ -143,6 +143,9 @@ func (am AppModule) QuerierRoute() string {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
+
+	// Note: No migrations registered for version 0->1 since this is a new module.
+	// InitGenesis handles initial state setup. Future migrations (1->2, etc.) would be registered here.
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the

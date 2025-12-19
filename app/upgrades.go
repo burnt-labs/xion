@@ -11,10 +11,11 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	v24_upgrade "github.com/burnt-labs/xion/app/v25_upgrade"
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
-const UpgradeName = "v25"
+const UpgradeName = "v26"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -36,7 +37,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
-		Added:   []string{},
+		Added:   []string{dkimtypes.StoreKey, zktypes.StoreKey},
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
 	}
@@ -58,23 +59,20 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
 
+	// Initialize new zk module
+	zkGenesis := zktypes.DefaultGenesisState()
+	app.ZkKeeper.InitGenesis(sdkCtx, zkGenesis)
+
+	// Initialize new dkim module
+	dkimGenesis := dkimtypes.DefaultGenesis()
+	if err := app.DkimKeeper.InitGenesis(sdkCtx, dkimGenesis); err != nil {
+		return nil, err
+	}
+
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 	if err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %s", err))
-	}
-
-	// V25 Contract Migration: Fix corrupted contracts that cannot unmarshal
-	sdkCtx.Logger().Info("v24 upgrade - running contract migration")
-
-	wasmStoreKey := app.GetKey("wasm")
-	if wasmStoreKey == nil {
-		panic("wasm store key not found")
-	}
-
-	migrateErr := v24_upgrade.MigrateContracts(sdkCtx, wasmStoreKey)
-	if migrateErr != nil {
-		panic(fmt.Sprintf("v24 contract migration failed: %s", migrateErr))
 	}
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
