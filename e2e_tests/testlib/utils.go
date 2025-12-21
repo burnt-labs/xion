@@ -979,7 +979,7 @@ func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string
 
 // Constants for chain upgrade testing
 const (
-	HaltHeightDelta    = int64(20) // will propose upgrade this many blocks in the future (must exceed voting_period of 10s)
+	HaltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future (must exceed voting_period of 10s)
 	BlocksAfterUpgrade = uint64(10)
 	Authority          = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )

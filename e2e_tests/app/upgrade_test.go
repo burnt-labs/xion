@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/stretchr/testify/require"
 )
@@ -44,6 +45,7 @@ func TestAppUpgradeNetwork(t *testing.T) {
 			UIDGID:     "1025:1025",
 		},
 	}
+	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
 
 	// Build chain starting with the "from" image
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)
