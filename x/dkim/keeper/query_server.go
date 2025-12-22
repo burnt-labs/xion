@@ -3,15 +3,12 @@ package keeper
 import (
 	"bytes"
 	"context"
-	"fmt"
-	stdmath "math"
 	"math/big"
 
 	"github.com/vocdoni/circom2gnark/parser"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
-	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -48,6 +45,7 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 
 // DkimPubKeys implements types.QueryServer
 func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysRequest) (*types.QueryDkimPubKeysResponse, error) {
+	// Direct lookup when both domain and selector are provided
 	if msg.Domain != "" && msg.Selector != "" {
 		key := collections.Join(msg.Domain, msg.Selector)
 		dkimPubKey, err := k.Keeper.DkimPubKeys.Get(ctx, key)
@@ -67,6 +65,27 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 		}, nil
 	}
 
+	// Parse pagination parameters
+	limit := uint64(100)
+	offset := uint64(0)
+	useKeyBasedPagination := false
+	countTotal := false
+	var paginationKey []byte
+
+	if msg.Pagination != nil {
+		if msg.Pagination.Limit != 0 {
+			limit = msg.Pagination.Limit
+		}
+		if len(msg.Pagination.Key) > 0 {
+			useKeyBasedPagination = true
+			paginationKey = msg.Pagination.Key
+		} else if msg.Pagination.Offset != 0 {
+			offset = msg.Pagination.Offset
+		}
+		countTotal = msg.Pagination.CountTotal
+	}
+
+	// Set up the iterator range
 	var ranger collections.Ranger[collections.Pair[string, string]]
 	if msg.Domain != "" {
 		ranger = collections.NewPrefixedPairRange[string, string](msg.Domain)
@@ -78,14 +97,65 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	}
 	defer iter.Close()
 
-	var allPubKeys []*types.DkimPubKey
+	keyCodec := k.Keeper.DkimPubKeys.KeyCodec()
+
+	// For key-based pagination, fast-forward to the starting key
+	if useKeyBasedPagination && len(paginationKey) > 0 {
+		for ; iter.Valid(); iter.Next() {
+			fullKey, err := iter.Key()
+			if err != nil {
+				return nil, err
+			}
+			buf := make([]byte, 256)
+			n, err := keyCodec.EncodeNonTerminal(buf, fullKey)
+			if err != nil {
+				return nil, err
+			}
+			// Start from the first key >= pagination key
+			if bytes.Compare(buf[:n], paginationKey) >= 0 {
+				break
+			}
+		}
+	}
+
+	// Collect results
+	var results []*types.DkimPubKey
+	var lastKey collections.Pair[string, string]
+	var hasLastKey bool
+	skipped := uint64(0)
+	collected := uint64(0)
+	totalMatching := uint64(0)
+
 	for ; iter.Valid(); iter.Next() {
 		dkimPubKey, err := iter.Value()
 		if err != nil {
 			return nil, err
 		}
 
+		// Apply PoseidonHash filter if specified
 		if len(msg.PoseidonHash) > 0 && !bytes.Equal(dkimPubKey.PoseidonHash, msg.PoseidonHash) {
+			continue
+		}
+
+		totalMatching++
+
+		// For offset-based pagination (without key), skip first 'offset' matching records
+		if !useKeyBasedPagination && skipped < offset {
+			skipped++
+			continue
+		}
+
+		// Check if we've collected enough
+		if collected >= limit {
+			// We have one more record, so there's a next page
+			if !hasLastKey {
+				lastKey, _ = iter.Key()
+				hasLastKey = true
+			}
+			// Continue iterating to count total if needed (for offset-based pagination or CountTotal)
+			if !countTotal && useKeyBasedPagination {
+				break
+			}
 			continue
 		}
 
@@ -97,62 +167,28 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			Version:      types.Version(dkimPubKey.Version),
 			KeyType:      types.KeyType(dkimPubKey.KeyType),
 		}
-		allPubKeys = append(allPubKeys, &pubKey)
+		results = append(results, &pubKey)
+		collected++
 	}
 
-	// Pagination
-	offset, limit := uint64(0), uint64(100)
-	if msg.Pagination != nil {
-		if msg.Pagination.Offset != 0 {
-			offset = msg.Pagination.Offset
+	// Generate NextKey if there are more results
+	var nextKey []byte
+	if hasLastKey {
+		buf := make([]byte, 256)
+		n, err := keyCodec.EncodeNonTerminal(buf, lastKey)
+		if err != nil {
+			return nil, err
 		}
-		if msg.Pagination.Limit != 0 {
-			limit = msg.Pagination.Limit
-		} else {
-			limit = 100
-		}
+		nextKey = buf[:n]
 	}
-
-	allPubKeysLen := uint64(len(allPubKeys))
-
-	// Safe conversion: check if offset is within bounds
-	if offset >= allPubKeysLen {
-		return &types.QueryDkimPubKeysResponse{
-			DkimPubKeys: []*types.DkimPubKey{},
-			Pagination: &query.PageResponse{
-				NextKey: nil,
-				Total:   allPubKeysLen,
-			},
-		}, nil
-	}
-
-	// Safe addition: check for overflow and bounds
-	endOffset := math.NewUint(offset).Add(math.NewUint(limit))
-	var end uint64
-	if endOffset.GT(math.NewUint(allPubKeysLen)) {
-		end = allPubKeysLen
-	} else {
-		end = endOffset.Uint64()
-	}
-
-	// Safe conversion to int for slicing - validate against math.MaxInt to prevent overflow
-	if offset > uint64(stdmath.MaxInt) || end > uint64(stdmath.MaxInt) {
-		return nil, fmt.Errorf("pagination offset or end exceeds maximum int value")
-	}
-	offsetInt := int(offset)
-	endInt := int(end)
-	paginatedPubKeys := allPubKeys[offsetInt:endInt]
-
-	// TODO: Implement key-based pagination for nextKey when needed
-	nextKey := []byte(nil)
 
 	pageRes := &query.PageResponse{
 		NextKey: nextKey,
-		Total:   allPubKeysLen,
+		Total:   totalMatching,
 	}
 
 	return &types.QueryDkimPubKeysResponse{
-		DkimPubKeys: paginatedPubKeys,
+		DkimPubKeys: results,
 		Pagination:  pageRes,
 	}, nil
 }
@@ -281,59 +317,3 @@ func IsSubset[T comparable](a, b []T) bool {
 	}
 	return true
 }
-
-// func convertPageRequest(request *query.PageRequest) *queryv1beta1.PageRequest {
-// 	if request != nil {
-// 		pageRequest := queryv1beta1.PageRequest{}
-// 		pageRequest.CountTotal = request.CountTotal
-// 		pageRequest.Key = request.Key
-// 		pageRequest.Offset = request.Offset
-// 		pageRequest.Limit = request.Limit
-// 		pageRequest.Reverse = request.Reverse
-// 		return &pageRequest
-// 	}
-// 	return nil
-// }
-
-// func convertPageResponse(response *queryv1beta1.PageResponse) *query.PageResponse {
-// 	if response != nil {
-// 		pageResponse := query.PageResponse{}
-// 		pageResponse.NextKey = response.NextKey
-// 		pageResponse.Total = response.Total
-// 		return &pageResponse
-// 	}
-// 	return nil
-// }
-
-// func consumeIteratorResults(iterator collections.Iterator[collections.Pair[string, string], apiv1.DkimPubKey], domain string, poseidonHash []byte) ([]*types.DkimPubKey, error) {
-// 	defer iterator.Close()
-
-// 	var output []*types.DkimPubKey
-// 	for ; iterator.Valid(); iterator.Next() {
-// 		dkimPubKey, err := iterator.Value()
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		match := true
-// 		if domain != "" && dkimPubKey.Domain != domain {
-// 			match = false
-// 		}
-// 		if len(poseidonHash) > 0 && !bytes.Equal(dkimPubKey.PoseidonHash, poseidonHash) {
-// 			match = false
-// 		}
-
-// 		if match {
-// 			output = append(output, &types.DkimPubKey{
-// 				Domain:       dkimPubKey.Domain,
-// 				PubKey:       dkimPubKey.PubKey,
-// 				Selector:     dkimPubKey.Selector,
-// 				PoseidonHash: dkimPubKey.PoseidonHash,
-// 				Version:      types.Version(dkimPubKey.Version),
-// 				KeyType:      types.KeyType(dkimPubKey.KeyType),
-// 			})
-// 		}
-// 	}
-
-// 	return output, nil
-// }
