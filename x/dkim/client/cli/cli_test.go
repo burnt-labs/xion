@@ -273,9 +273,20 @@ func TestGenerateDkimPubKeyMsg(t *testing.T) {
 		require.NotNil(t, err, "Expected an error from DNS lookup, key parsing, or hash computation")
 	})
 
-	// Note: We cannot reliably test the success case without mocking DNS lookups
-	// or relying on external DNS infrastructure which makes tests flaky.
-	// The success path is covered by integration tests or manual testing.
+	t.Run("with real domain and valid selector (google)", func(t *testing.T) {
+		// Test with Google's well-known DKIM selector
+		// This tests the success path including Poseidon hash computation
+		dkimPubKey, err := cli.GenerateDkimPubKeyMsg("google.com", "20230601")
+		if err != nil {
+			// Skip if DNS is not available or key format changed
+			t.Skipf("Skipping real DNS test: %v", err)
+		}
+		require.NotNil(t, dkimPubKey)
+		require.Equal(t, "google.com", dkimPubKey.Domain)
+		require.Equal(t, "20230601", dkimPubKey.Selector)
+		require.NotEmpty(t, dkimPubKey.PubKey)
+		require.NotEmpty(t, dkimPubKey.PoseidonHash)
+	})
 }
 
 func TestMsgRevokeDkimPubKey(t *testing.T) {
@@ -2815,4 +2826,132 @@ func createTestSignDocBytes(t *testing.T, chainID string, accountNumber, sequenc
 	require.NoError(t, err)
 
 	return signDocBytes
+}
+
+// ============================================================================
+// Additional Coverage Tests
+// ============================================================================
+
+func TestDecodeTxRawBase64WithoutPadding(t *testing.T) {
+	// Test base64 decoding without padding (RawStdEncoding fallback)
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	t.Run("valid tx with raw base64 no padding", func(t *testing.T) {
+		buf.Reset()
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "test memo", sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1000))), 200000)
+
+		// Use RawStdEncoding (no padding)
+		base64Tx := base64.RawStdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+
+		// Verify output is valid JSON
+		output := buf.String()
+		require.NotEmpty(t, output)
+
+		var result map[string]interface{}
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+	})
+
+	t.Run("valid sign doc with raw base64 no padding", func(t *testing.T) {
+		buf.Reset()
+		signDocBytes := createTestSignDocBytes(t, "xion-test", 5, 0)
+
+		// Use RawStdEncoding (no padding)
+		base64SignDoc := base64.RawStdEncoding.EncodeToString(signDocBytes)
+
+		err := cli.DecodeTx(clientCtx, base64SignDoc)
+		require.NoError(t, err)
+
+		// Verify output is valid JSON
+		output := buf.String()
+		require.NotEmpty(t, output)
+
+		var result map[string]interface{}
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+
+		// Verify chain_id
+		require.Equal(t, "xion-test", result["chain_id"])
+	})
+}
+
+func TestDecodeTxURLSafeBase64Variants(t *testing.T) {
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	t.Run("URL-safe base64 with raw encoding", func(t *testing.T) {
+		buf.Reset()
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "test", sdk.NewCoins(), 100000)
+
+		// Use RawURLEncoding (URL-safe, no padding)
+		base64Tx := base64.RawURLEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+	})
+}
+
+func TestPrintPrettyJSONFallback(t *testing.T) {
+	// Test the printPrettyJSON function's fallback behavior
+	// We can't directly test private functions, but we can test through DecodeTx
+	// with edge cases that might trigger fallback paths
+
+	encCfg := app.MakeEncodingConfig(t)
+
+	var buf bytes.Buffer
+	clientCtx := client.Context{}.
+		WithCodec(encCfg.Codec).
+		WithTxConfig(encCfg.TxConfig).
+		WithInterfaceRegistry(encCfg.InterfaceRegistry).
+		WithOutput(&buf)
+
+	t.Run("transaction with special characters in memo", func(t *testing.T) {
+		buf.Reset()
+		// Use special characters that might cause JSON edge cases
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "test memo with \"quotes\" and \\backslashes\\", sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(100))), 100000)
+		base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+
+		// Verify output is valid JSON
+		output := buf.String()
+		require.NotEmpty(t, output)
+
+		var result map[string]interface{}
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+	})
+
+	t.Run("transaction with unicode in memo", func(t *testing.T) {
+		buf.Reset()
+		txBytes := createTestTxBytes(t, encCfg.TxConfig, "test 🎉 emoji memo 日本語", sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(100))), 100000)
+		base64Tx := base64.StdEncoding.EncodeToString(txBytes)
+
+		err := cli.DecodeTx(clientCtx, base64Tx)
+		require.NoError(t, err)
+
+		output := buf.String()
+		require.NotEmpty(t, output)
+
+		var result map[string]interface{}
+		err = json.Unmarshal([]byte(output), &result)
+		require.NoError(t, err)
+	})
 }
