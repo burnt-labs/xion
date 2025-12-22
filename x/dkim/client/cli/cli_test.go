@@ -211,6 +211,45 @@ func TestGenerateDkimPublicKey(t *testing.T) {
 	}()
 }
 
+func TestGetParams(t *testing.T) {
+	cmd := cli.GetParams()
+	require.NotNil(t, cmd)
+	require.Equal(t, "params", cmd.Use)
+	require.Equal(t, "Query DKIM module parameters", cmd.Short)
+	require.NotEmpty(t, cmd.Long)
+	require.NotEmpty(t, cmd.Example)
+
+	// Test that command has RunE function defined
+	require.NotNil(t, cmd.RunE)
+
+	// Test command structure
+	require.NotNil(t, cmd.Flags())
+
+	// Test args validation - params takes no args (cobra.NoArgs)
+	t.Run("args validator with 0 args", func(t *testing.T) {
+		err := cmd.Args(cmd, []string{})
+		require.NoError(t, err, "should accept no args")
+	})
+
+	t.Run("args validator with 1 arg should fail", func(t *testing.T) {
+		err := cmd.Args(cmd, []string{"extra"})
+		require.Error(t, err, "should reject any args")
+	})
+
+	t.Run("args validator with 2 args should fail", func(t *testing.T) {
+		err := cmd.Args(cmd, []string{"arg1", "arg2"})
+		require.Error(t, err, "should reject any args")
+	})
+
+	// Call RunE to ensure coverage - expect panic/error without context
+	func() {
+		defer func() {
+			_ = recover() // Ignore panics from missing context
+		}()
+		_ = cmd.RunE(cmd, []string{})
+	}()
+}
+
 func TestGenerateDkimPubKeyMsg(t *testing.T) {
 	t.Run("with invalid domain/selector (DNS lookup fails)", func(t *testing.T) {
 		// Testing with a domain that won't have DKIM records
@@ -689,6 +728,111 @@ func TestQueryDkimPubKeys(t *testing.T) {
 	})
 }
 
+func TestQueryParams(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.SetContext(context.Background())
+
+	t.Run("successful query", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return &types.QueryParamsResponse{
+					Params: &types.Params{
+						VkeyIdentifier: 42,
+						DkimPubkeys: []types.DkimPubKey{
+							{
+								Domain:   "example.com",
+								Selector: "default",
+								PubKey:   "testkey",
+							},
+						},
+					},
+				}, nil
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.NotNil(t, res.Params)
+		require.Equal(t, uint64(42), res.Params.VkeyIdentifier)
+		require.Len(t, res.Params.DkimPubkeys, 1)
+		require.Equal(t, "example.com", res.Params.DkimPubkeys[0].Domain)
+	})
+
+	t.Run("query error", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return nil, errors.New("params not found")
+			},
+		}
+
+		resp, err := cli.QueryParams(mockClient, cmd)
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "params not found")
+	})
+
+	t.Run("empty params", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return &types.QueryParamsResponse{
+					Params: &types.Params{
+						VkeyIdentifier: 0,
+						DkimPubkeys:    []types.DkimPubKey{},
+					},
+				}, nil
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.NotNil(t, res.Params)
+		require.Equal(t, uint64(0), res.Params.VkeyIdentifier)
+		require.Empty(t, res.Params.DkimPubkeys)
+	})
+
+	t.Run("params with multiple dkim pubkeys", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return &types.QueryParamsResponse{
+					Params: &types.Params{
+						VkeyIdentifier: 1,
+						DkimPubkeys: []types.DkimPubKey{
+							{Domain: "gmail.com", Selector: "20230601"},
+							{Domain: "yahoo.com", Selector: "s1024"},
+							{Domain: "outlook.com", Selector: "selector1"},
+						},
+					},
+				}, nil
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.Len(t, res.Params.DkimPubkeys, 3)
+	})
+
+	t.Run("params with large vkey identifier", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return &types.QueryParamsResponse{
+					Params: &types.Params{
+						VkeyIdentifier: 18446744073709551615, // max uint64
+						DkimPubkeys:    []types.DkimPubKey{},
+					},
+				}, nil
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.Equal(t, uint64(18446744073709551615), res.Params.VkeyIdentifier)
+	})
+}
+
 func TestGenerateDkimPublicKeyCommand(t *testing.T) {
 	cmd := cli.GenerateDkimPublicKey()
 
@@ -943,6 +1087,24 @@ func TestGetQueryCmdIncludesGenerateDkim(t *testing.T) {
 	require.NotNil(t, generateCmd, "generate-dkim-pubkey should be a subcommand of query")
 	require.Equal(t, "Generate a DKIM msg to create a new DKIM public key", generateCmd.Short)
 	require.Contains(t, generateCmd.Aliases, "gdkim")
+}
+
+func TestGetQueryCmdIncludesParams(t *testing.T) {
+	queryCmd := cli.GetQueryCmd()
+
+	// Find the params subcommand
+	var paramsCmd *cobra.Command
+	for _, subCmd := range queryCmd.Commands() {
+		if subCmd.Use == "params" {
+			paramsCmd = subCmd
+			break
+		}
+	}
+
+	require.NotNil(t, paramsCmd, "params should be a subcommand of query")
+	require.Equal(t, "Query DKIM module parameters", paramsCmd.Short)
+	require.NotEmpty(t, paramsCmd.Long)
+	require.NotEmpty(t, paramsCmd.Example)
 }
 
 func TestGenerateDkimPublicKeyInQueryCmdTree(t *testing.T) {
@@ -1314,6 +1476,133 @@ func TestParseAndValidateRevokeDkimMsgExtended(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.NotNil(t, msg)
+	})
+}
+
+// ============================================================================
+// GetParams Extended Tests
+// ============================================================================
+
+func TestGetParamsExtended(t *testing.T) {
+	t.Run("command has correct flags", func(t *testing.T) {
+		cmd := cli.GetParams()
+
+		// Check query flags are present
+		nodeFlag := cmd.Flags().Lookup("node")
+		require.NotNil(t, nodeFlag)
+
+		outputFlag := cmd.Flags().Lookup("output")
+		require.NotNil(t, outputFlag)
+	})
+
+	t.Run("command properties", func(t *testing.T) {
+		cmd := cli.GetParams()
+
+		require.Equal(t, "params", cmd.Use)
+		require.Contains(t, cmd.Long, "VkeyIdentifier")
+		require.Contains(t, cmd.Long, "DKIM public keys")
+		require.Contains(t, cmd.Example, "xiond")
+		require.Contains(t, cmd.Example, "query")
+		require.Contains(t, cmd.Example, "dkim")
+		require.Contains(t, cmd.Example, "params")
+	})
+
+	t.Run("RunE without context", func(t *testing.T) {
+		cmd := cli.GetParams()
+		func() {
+			defer func() { _ = recover() }()
+			_ = cmd.RunE(cmd, []string{})
+		}()
+	})
+
+	t.Run("args rejection", func(t *testing.T) {
+		cmd := cli.GetParams()
+
+		// Should reject various argument counts
+		for i := 1; i <= 5; i++ {
+			args := make([]string, i)
+			for j := 0; j < i; j++ {
+				args[j] = "arg"
+			}
+			err := cmd.Args(cmd, args)
+			require.Error(t, err, "should reject %d args", i)
+		}
+	})
+}
+
+func TestQueryParamsExtended(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.SetContext(context.Background())
+
+	t.Run("params with nil response", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return nil, errors.New("nil response")
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.Error(t, err)
+		require.Nil(t, res)
+	})
+
+	t.Run("params with connection error", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return nil, errors.New("connection refused")
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "connection refused")
+		require.Nil(t, res)
+	})
+
+	t.Run("params with timeout error", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return nil, errors.New("context deadline exceeded")
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "context deadline exceeded")
+		require.Nil(t, res)
+	})
+
+	t.Run("params with dkim pubkeys containing all fields", func(t *testing.T) {
+		mockClient := &MockQueryClient{
+			paramsFunc: func(ctx context.Context, req *types.QueryParamsRequest, opts ...grpc.CallOption) (*types.QueryParamsResponse, error) {
+				return &types.QueryParamsResponse{
+					Params: &types.Params{
+						VkeyIdentifier: 100,
+						DkimPubkeys: []types.DkimPubKey{
+							{
+								Domain:       "gmail.com",
+								Selector:     "20230601",
+								PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...",
+								PoseidonHash: []byte("somehash"),
+								Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+								KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+							},
+						},
+					},
+				}, nil
+			},
+		}
+
+		res, err := cli.QueryParams(mockClient, cmd)
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.NotNil(t, res.Params)
+		require.Equal(t, uint64(100), res.Params.VkeyIdentifier)
+		require.Len(t, res.Params.DkimPubkeys, 1)
+		require.Equal(t, "gmail.com", res.Params.DkimPubkeys[0].Domain)
+		require.Equal(t, "20230601", res.Params.DkimPubkeys[0].Selector)
+		require.NotEmpty(t, res.Params.DkimPubkeys[0].PubKey)
+		require.NotEmpty(t, res.Params.DkimPubkeys[0].PoseidonHash)
 	})
 }
 

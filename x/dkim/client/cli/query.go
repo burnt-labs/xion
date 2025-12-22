@@ -169,6 +169,12 @@ func GenerateDkimPublicKey() *cobra.Command {
 	return cmd
 }
 
+// QueryParams is a helper function that queries the DKIM module parameters.
+// This function is extracted for testability.
+func QueryParams(queryClient types.QueryClient, cmd *cobra.Command) (*types.QueryParamsResponse, error) {
+	return queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+}
+
 // GetParams returns the command to query DKIM module parameters.
 func GetParams() *cobra.Command {
 	cmd := &cobra.Command{
@@ -184,7 +190,7 @@ func GetParams() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			res, err := QueryParams(queryClient, cmd)
 			if err != nil {
 				return err
 			}
