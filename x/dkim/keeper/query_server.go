@@ -164,7 +164,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 
 	if req.EmailHash != req.PublicInputs[32] {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s\n", req.EmailHash, req.PublicInputs[32])
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s", req.EmailHash, req.PublicInputs[32])
 	}
 
 	// Verify tx_bytes match public inputs [12:32]
@@ -204,7 +204,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, err
 	}
 	if len(res.DkimPubKeys) == 0 {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain %s and poseidon hash %s", dkimDomainPInput, dkimHashPInputBig.String())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain and poseidon hash")
 	}
 
 	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[34:38])

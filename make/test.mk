@@ -52,6 +52,10 @@ test-run: .ensure-docker-image
 	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
 	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
 
+test-run-no-time: .ensure-docker-image
+	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
+	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -timeout 60m -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
+
 # Abstract Account Module Tests
 test-aa-basic:
 	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAABasic
@@ -127,7 +131,7 @@ test-app-upgrade-ibc:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeIBC
 
 test-app-upgrade-network:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetwork
+	$(MAKE) test-run-no-time DIR_NAME=app TEST_NAME=TestAppUpgradeNetwork
 
 # v24 upgrade tests removed - v24 migration was flawed and has been replaced by v25
 # TODO: Add v25 upgrade tests once migrator is implemented

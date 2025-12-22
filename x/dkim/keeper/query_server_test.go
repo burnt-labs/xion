@@ -73,7 +73,7 @@ func TestQueryDkimPubKey(t *testing.T) {
 				require.ErrorIs(err, tc.errType)
 			} else if tc.result != nil {
 				require.NoError(err)
-				require.EqualValues(tc.result, res) // NOTE: we seem to be getting different msgs
+				require.EqualValues(tc.result, res)
 			}
 		})
 	}

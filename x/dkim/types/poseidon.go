@@ -91,7 +91,8 @@ func ConvertBigIntArrayToString(arr []*big.Int) (string, error) {
 		fieldBytes := fieldElem.SetBigInt(field).Bytes()
 		allBytes = append(allBytes, ToLittleEndianWithLeadingZerosTrimming(fieldBytes[:])...)
 	}
-	return string(allBytes), nil
+	// Trim trailing null bytes that may result from field element padding
+	return string(bytes.TrimRight(allBytes, "\x00")), nil
 }
 
 // this function converts a byte slice to little-endian format and trims leading zeros

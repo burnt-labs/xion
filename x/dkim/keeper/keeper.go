@@ -81,6 +81,9 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 	if err := data.Validate(); err != nil {
 		return err
 	}
+	if err := k.Params.Set(ctx, data.Params); err != nil {
+		return err
+	}
 	for _, dkimPubKey := range data.Params.DkimPubkeys {
 		pk := apiv1.DkimPubKey{
 			Domain:       dkimPubKey.Domain,

@@ -9,8 +9,6 @@ import (
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
-// !NOTE: Must enable in module.go (disabled in favor of autocli.go)
-
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -19,7 +17,7 @@ func GetQueryCmd() *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	queryCmd.AddCommand(GetDkimPublicKey(), GetDkimPublicKeys(), GenerateDkimPublicKey())
+	queryCmd.AddCommand(GetDkimPublicKey(), GetDkimPublicKeys(), GenerateDkimPublicKey(), GetParams())
 	return queryCmd
 }
 
@@ -165,6 +163,33 @@ func GenerateDkimPublicKey() *cobra.Command {
 			}
 
 			return clientCtx.PrintProto(dkimPubKey)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetParams returns the command to query DKIM module parameters.
+func GetParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "params",
+		Short:   "Query DKIM module parameters",
+		Long:    "Query the current DKIM module parameters including VkeyIdentifier and default DKIM public keys.",
+		Example: "xiond query dkim params",
+		Args:    cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
