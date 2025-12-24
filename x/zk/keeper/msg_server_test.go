@@ -54,18 +54,17 @@ func TestMsgServer_AddVKey(t *testing.T) {
 		require.True(t, found, "AddVKey event not found")
 	})
 
-	t.Run("fail with invalid authority", func(t *testing.T) {
+	t.Run("successfully add with non-governance authority", func(t *testing.T) {
 		msg := &types.MsgAddVKey{
 			Authority:   f.addrs[0].String(),
-			Name:        "unauthorized_vkey",
-			VkeyBytes:   createTestVKeyBytes("unauthorized_vkey"),
-			Description: "Unauthorized",
+			Name:        "user_vkey",
+			VkeyBytes:   createTestVKeyBytes("user_vkey"),
+			Description: "User added key",
 		}
 
 		resp, err := f.msgServer.AddVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid authority")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
 	})
 
 	t.Run("fail with empty name", func(t *testing.T) {
@@ -220,18 +219,17 @@ func TestMsgServer_UpdateVKey(t *testing.T) {
 		require.True(t, found, "UpdateVKey event not found")
 	})
 
-	t.Run("fail with invalid authority", func(t *testing.T) {
+	t.Run("successfully update with non-governance authority", func(t *testing.T) {
 		msg := &types.MsgUpdateVKey{
 			Authority:   f.addrs[0].String(),
 			Name:        "update_test",
 			VkeyBytes:   createTestVKeyBytes("update_test"),
-			Description: "Unauthorized update",
+			Description: "User update",
 		}
 
 		resp, err := f.msgServer.UpdateVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid authority")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
 	})
 
 	t.Run("fail with non-existent vkey", func(t *testing.T) {
@@ -328,18 +326,6 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 	_, err = f.msgServer.AddVKey(f.ctx, addMsg2)
 	require.NoError(t, err)
 
-	t.Run("fail with invalid authority", func(t *testing.T) {
-		msg := &types.MsgRemoveVKey{
-			Authority: f.addrs[0].String(),
-			Name:      "remove_test",
-		}
-
-		resp, err := f.msgServer.RemoveVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid authority")
-	})
-
 	t.Run("successfully remove vkey", func(t *testing.T) {
 		// Reset event manager for this test
 		ctx := f.ctx.WithEventManager(sdk.NewEventManager())
@@ -377,6 +363,17 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 			}
 		}
 		require.True(t, found, "RemoveVKey event not found")
+	})
+
+	t.Run("successfully remove with non-governance authority", func(t *testing.T) {
+		msg := &types.MsgRemoveVKey{
+			Authority: f.addrs[0].String(),
+			Name:      "keep_test",
+		}
+
+		resp, err := f.msgServer.RemoveVKey(f.ctx, msg)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
 	})
 
 	t.Run("fail with non-existent vkey", func(t *testing.T) {

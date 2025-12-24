@@ -39,7 +39,7 @@ func GetCmdAddVKey() *cobra.Command {
 		Short: "Add a new verification key",
 		Long: `Add a new verification key to the blockchain.
 The vkey-json-file should contain the JSON-encoded verification key from SnarkJS.
-Only the governance module can add verification keys.`,
+Any account can add verification keys.`,
 		Args: cobra.ExactArgs(3),
 		Example: fmt.Sprintf(
 			`$ %s tx zk add-vkey email_auth ./vkey.json "Email authentication circuit" --from mykey
@@ -92,7 +92,7 @@ func GetCmdUpdateVKey() *cobra.Command {
 		Short: "Update an existing verification key",
 		Long: `Update an existing verification key on the blockchain.
 The vkey-json-file should contain the JSON-encoded verification key from SnarkJS.
-Only the governance module can update verification keys.`,
+Any account can update verification keys.`,
 		Args: cobra.ExactArgs(3),
 		Example: fmt.Sprintf(
 			`$ %s tx zk update-vkey email_auth ./new_vkey.json "Updated email authentication circuit" --from mykey
@@ -144,7 +144,7 @@ func GetCmdRemoveVKey() *cobra.Command {
 		Use:   "remove-vkey [name]",
 		Short: "Remove a verification key",
 		Long: `Remove a verification key from the blockchain.
-Only the governance module can remove verification keys.`,
+Any account can remove verification keys.`,
 		Args: cobra.ExactArgs(1),
 		Example: fmt.Sprintf(
 			`$ %s tx zk remove-vkey email_auth --from mykey

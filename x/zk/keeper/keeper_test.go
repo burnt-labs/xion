@@ -563,6 +563,14 @@ func TestAddVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name:        "successfully add with non-governance authority",
+			authority:   f.addrs[0].String(),
+			vkeyName:    "user_added",
+			vkeyBytes:   createTestVKeyBytes("user_added"),
+			description: "Added by user account",
+			expectError: false,
+		},
+		{
 			name:        "fail to add duplicate vkey name",
 			authority:   f.govModAddr,
 			vkeyName:    "email_auth",
@@ -570,15 +578,6 @@ func TestAddVKey(t *testing.T) {
 			description: "Duplicate",
 			expectError: true,
 			errorMsg:    "already exists",
-		},
-		{
-			name:        "fail to add with incorrect authority",
-			authority:   f.addrs[0].String(),
-			vkeyName:    "unauthorized",
-			vkeyBytes:   createTestVKeyBytes("unauthorized"),
-			description: "Unauthorized",
-			expectError: true,
-			errorMsg:    "invalid authority",
 		},
 		{
 			name:        "fail to add with empty vkey bytes",
@@ -809,13 +808,12 @@ func TestUpdateVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "fail to update with incorrect authority",
+			name:        "successfully update with non-governance authority",
 			authority:   f.addrs[0].String(),
 			vkeyName:    "email_auth",
 			newBytes:    createTestVKeyBytes("email_auth"),
-			description: "Unauthorized",
-			expectError: true,
-			errorMsg:    "invalid authority",
+			description: "User updated description",
+			expectError: false,
 		},
 		{
 			name:        "fail to update non-existent vkey",
@@ -876,16 +874,15 @@ func TestRemoveVKey(t *testing.T) {
 		errorMsg    string
 	}{
 		{
-			name:        "fail to remove with incorrect authority",
-			authority:   f.addrs[0].String(),
-			vkeyName:    "key1",
-			expectError: true,
-			errorMsg:    "invalid authority",
-		},
-		{
 			name:        "successfully remove vkey",
 			authority:   f.govModAddr,
 			vkeyName:    "key1",
+			expectError: false,
+		},
+		{
+			name:        "successfully remove with non-governance authority",
+			authority:   f.addrs[0].String(),
+			vkeyName:    "key2",
 			expectError: false,
 		},
 		{
