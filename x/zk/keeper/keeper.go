@@ -212,11 +212,6 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 // AddVKey adds a new verification key to the store
 // keyBytes should be the raw JSON from SnarkJS
 func (k Keeper) AddVKey(ctx context.Context, authority string, name string, keyBytes []byte, description string) (uint64, error) {
-	// Check authority
-	// if authority != k.authority {
-	// 	return 0, errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", k.authority, authority)
-	// }
-
 	// Check if name already exists
 	has, err := k.VKeyNameIndex.Has(ctx, name)
 	if err != nil {
@@ -309,11 +304,6 @@ func (k Keeper) GetCircomVKeyByID(ctx context.Context, id uint64) (*parser.Circo
 
 // UpdateVKey updates an existing verification key
 func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, keyBytes []byte, description string) error {
-	// Check authority
-	if authority != k.authority {
-		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", k.authority, authority)
-	}
-
 	// Get existing ID
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
@@ -348,11 +338,6 @@ func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, k
 
 // RemoveVKey removes a verification key by name
 func (k Keeper) RemoveVKey(ctx context.Context, authority string, name string) error {
-	// Check authority
-	if authority != k.authority {
-		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", k.authority, authority)
-	}
-
 	// Get the ID from the name index
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
