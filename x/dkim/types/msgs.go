@@ -16,6 +16,7 @@ var (
 	_ sdk.Msg = &MsgAddDkimPubKeys{}
 	_ sdk.Msg = &MsgRemoveDkimPubKey{}
 	_ sdk.Msg = &MsgRevokeDkimPubKey{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // NewMsgAddDkimPubKey creates new instance of MsgAddDkimPubKey
@@ -131,4 +132,19 @@ func (msg *MsgRevokeDkimPubKey) ValidateBasic() error {
 		}
 	}
 	return nil
+}
+
+// ValidateBasic does a sanity check on the provided data.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errors.Wrap(err, "invalid authority address")
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{addr}
 }

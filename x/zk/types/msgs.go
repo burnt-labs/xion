@@ -10,6 +10,7 @@ var (
 	_ sdk.Msg = &MsgAddVKey{}
 	_ sdk.Msg = &MsgUpdateVKey{}
 	_ sdk.Msg = &MsgRemoveVKey{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // types/msgs.go
@@ -68,4 +69,19 @@ func (m *MsgRemoveVKey) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// ValidateBasic performs basic validation on MsgUpdateParams.
+func (m *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+		return fmt.Errorf("invalid authority address: %w", err)
+	}
+
+	return m.Params.Validate()
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(m.Authority)
+	return []sdk.AccAddress{addr}
 }

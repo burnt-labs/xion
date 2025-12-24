@@ -1,8 +1,13 @@
 package types
 
 import (
+	"encoding/base64"
 	"encoding/json"
+
+	errorsmod "cosmossdk.io/errors"
 )
+
+const DefaultMaxPubKeySizeBytes uint64 = 1024
 
 // DefaultParams returns default module parameters.
 func DefaultParams() Params {
@@ -23,6 +28,7 @@ func DefaultParams() Params {
 			PubKey:       dkimPubkey,
 			PoseidonHash: gPubKeyHash.Bytes(), // []byte(gPubKeyHash)
 		}},
+		MaxPubkeySizeBytes: DefaultMaxPubKeySizeBytes,
 	}
 }
 
@@ -38,10 +44,30 @@ func (p Params) String() string {
 
 // Validate does the sanity check on the params.
 func (p Params) Validate() error {
+	if p.MaxPubkeySizeBytes == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "max_pubkey_size_bytes must be positive")
+	}
+
 	for _, pubkey := range p.DkimPubkeys {
 		if err := pubkey.Validate(); err != nil {
 			return err
 		}
+		if err := ValidatePubKeySize(pubkey.PubKey, p.MaxPubkeySizeBytes); err != nil {
+			return err
+		}
 	}
+	return nil
+}
+
+func ValidatePubKeySize(pubKey string, maxSize uint64) error {
+	raw, err := base64.StdEncoding.DecodeString(pubKey)
+	if err != nil {
+		return errorsmod.Wrap(ErrInvalidPubKey, err.Error())
+	}
+
+	if uint64(len(raw)) > maxSize {
+		return errorsmod.Wrapf(ErrPubKeyTooLarge, "decoded key size %d exceeds max %d", len(raw), maxSize)
+	}
+
 	return nil
 }

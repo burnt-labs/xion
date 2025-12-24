@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"encoding/base64"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,7 @@ func TestDefaultParams(t *testing.T) {
 	require.Equal(t, uint64(1), params.VkeyIdentifier)
 	require.NotEmpty(t, params.DkimPubkeys)
 	require.Len(t, params.DkimPubkeys, 1)
+	require.Equal(t, types.DefaultMaxPubKeySizeBytes, params.MaxPubkeySizeBytes)
 
 	// Verify default DKIM pubkey
 	defaultPubkey := params.DkimPubkeys[0]
@@ -86,15 +88,16 @@ func TestParams_Validate(t *testing.T) {
 	})
 
 	t.Run("empty params are valid", func(t *testing.T) {
-		params := types.Params{}
+		params := types.Params{MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes}
 		err := params.Validate()
 		require.NoError(t, err)
 	})
 
 	t.Run("params with nil dkim pubkeys are valid", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
-			DkimPubkeys:    nil,
+			VkeyIdentifier:     1,
+			DkimPubkeys:        nil,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 		}
 		err := params.Validate()
 		require.NoError(t, err)
@@ -102,8 +105,9 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("params with empty dkim pubkeys slice are valid", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
-			DkimPubkeys:    []types.DkimPubKey{},
+			VkeyIdentifier:     1,
+			DkimPubkeys:        []types.DkimPubKey{},
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 		}
 		err := params.Validate()
 		require.NoError(t, err)
@@ -111,7 +115,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("params with valid dkim pubkey", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -129,7 +134,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("params with multiple valid dkim pubkeys", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -153,7 +159,8 @@ func TestParams_Validate(t *testing.T) {
 	// Empty domain passes url.Parse validation
 	t.Run("params with empty domain is valid (url.Parse is lenient)", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "",
@@ -170,7 +177,8 @@ func TestParams_Validate(t *testing.T) {
 	// Selector is not validated by DkimPubKey.Validate()
 	t.Run("params with empty selector is valid (not validated)", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -186,7 +194,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("params with invalid base64 pubkey should fail", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -200,9 +209,31 @@ func TestParams_Validate(t *testing.T) {
 		require.Error(t, err)
 	})
 
+	t.Run("params with oversized pubkey should fail", func(t *testing.T) {
+		tooLarge := make([]byte, types.DefaultMaxPubKeySizeBytes+1)
+		for i := range tooLarge {
+			tooLarge[i] = 'A'
+		}
+		params := types.Params{
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "example.com",
+					Selector:     "selector1",
+					PubKey:       base64.StdEncoding.EncodeToString(tooLarge),
+					PoseidonHash: hash.Bytes(),
+				},
+			},
+		}
+		err := params.Validate()
+		require.ErrorIs(t, err, types.ErrPubKeyTooLarge)
+	})
+
 	t.Run("params with empty pubkey should fail", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -220,7 +251,8 @@ func TestParams_Validate(t *testing.T) {
 	// PoseidonHash is not validated by DkimPubKey.Validate()
 	t.Run("params with empty poseidon hash is valid (not validated)", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -236,7 +268,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("params with nil poseidon hash is valid (not validated)", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -252,7 +285,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("first invalid pubkey causes validation to fail", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -274,7 +308,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("second invalid pubkey causes validation to fail", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "valid.com",
@@ -296,7 +331,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("params with zero vkey identifier is valid", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 0,
+			VkeyIdentifier:     0,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "example.com",
@@ -312,7 +348,8 @@ func TestParams_Validate(t *testing.T) {
 
 	t.Run("params with special characters in domain is valid", func(t *testing.T) {
 		params := types.Params{
-			VkeyIdentifier: 1,
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "https://example.com:8080/path?query=1",

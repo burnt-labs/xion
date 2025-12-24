@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package xion.zk.v1;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/zk/types";
+
+// Params defines the zk module parameters.
+message Params {
+  option (amino.name) = "zk/params";
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // max_vkey_size_bytes caps the size of a verification key JSON payload.
+  uint64 max_vkey_size_bytes = 1;
+
+  // upload_chunk_size defines the byte-size of each gas tier.
+  uint64 upload_chunk_size = 2;
+
+  // upload_chunk_gas defines the gas cost per upload chunk.
+  uint64 upload_chunk_gas = 3;
+}

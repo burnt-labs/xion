@@ -293,7 +293,7 @@ func (k Querier) ProofVerify(c context.Context, req *types.QueryAuthenticateRequ
 func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	p, err := k.Keeper.Params.Get(ctx)
+	p, err := k.Keeper.GetParams(ctx)
 	if err != nil {
 		return nil, err
 	}
