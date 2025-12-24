@@ -4,6 +4,7 @@ package xion.zk.v1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "xion/zk/v1/params.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/zk/types";
 
@@ -34,6 +35,11 @@ service Query {
   }
   rpc NextVKeyID(QueryNextVKeyIDRequest) returns (QueryNextVKeyIDResponse) {
     option (google.api.http).get = "/burnt/xion/zk/v1/vkeys/next-id";
+  }
+
+  // Params returns zk module parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/burnt/xion/zk/v1/params";
   }
 }
 
@@ -139,4 +145,13 @@ message QueryNextVKeyIDRequest {}
 // QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC method
 message QueryNextVKeyIDResponse {
   uint64 next_id = 1;
+}
+
+// QueryParamsRequest is the request type for the Query/Params RPC method
+message QueryParamsRequest {}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method
+message QueryParamsResponse {
+  // params is the current zk module parameters
+  Params params = 1 [(gogoproto.nullable) = false];
 }

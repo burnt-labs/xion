@@ -322,6 +322,9 @@ test-xion-min-fee-multi-message-sequential:
 test-xion-min-fee-bypass-message-types:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeBypassMessageTypes
 
+test-xion-zk-params-and-vkey-uploads:
+	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKParamsAndVKeyUploads
+
 # Grouped test targets for new MinFee coverage
 test-xion-min-fee-coverage-all: \
 	test-xion-min-fee-multi-denom-advanced \

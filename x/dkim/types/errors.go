@@ -18,4 +18,6 @@ var (
 	ErrInvalidVersion = errorsmod.Register(ModuleName, 1106, "invalid version: only DKIM1 is supported")
 	ErrInvalidPubKey  = errorsmod.Register(ModuleName, 1107, "invalid public key")
 	ErrNotRSAKey      = errorsmod.Register(ModuleName, 1108, "public key is not an RSA key")
+	ErrInvalidParams  = errorsmod.Register(ModuleName, 1109, "invalid params")
+	ErrPubKeyTooLarge = errorsmod.Register(ModuleName, 1110, "dkim public key exceeds maximum size")
 )

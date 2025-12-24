@@ -23,4 +23,7 @@ message Params {
   uint64 vkey_identifier = 1;
 
   repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
+
+  // max_pubkey_size_bytes caps the allowed DKIM public key size (base64 decoded).
+  uint64 max_pubkey_size_bytes = 3;
 }
