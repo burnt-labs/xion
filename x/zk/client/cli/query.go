@@ -31,6 +31,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryVKeys(),
 		GetCmdQueryHasVKey(),
 		GetCmdQueryVerifyProof(),
+		GetCmdQueryParams(),
 	)
 
 	return cmd
@@ -242,6 +243,30 @@ $ %s q zk verify-proof ./proofs/email.json --vkey-name email_auth --public-input
 	cmd.Flags().String("vkey-name", "", "Name of the verification key to use")
 	cmd.Flags().Uint64("vkey-id", 0, "ID of the verification key to use")
 	cmd.Flags().String("public-inputs", "", "Comma-separated list of public inputs")
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Short: "Query zk module parameters",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
 
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd

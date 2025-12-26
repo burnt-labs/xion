@@ -60,13 +60,21 @@ func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPub
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
 
+	params, err := ms.k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	// Validate all DKIM public keys before saving
 	for _, dkimKey := range msg.DkimPubkeys {
 		if err := ValidateDkimPubKey(dkimKey); err != nil {
 			return nil, err
 		}
+		if err := types.ValidatePubKeySize(dkimKey.PubKey, params.MaxPubkeySizeBytes); err != nil {
+			return nil, err
+		}
 	}
-	_, err := SaveDkimPubKeys(ctx, msg.DkimPubkeys, &ms.k)
+	_, err = SaveDkimPubKeys(ctx, msg.DkimPubkeys, &ms.k)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +152,7 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
 
-	return nil, ms.k.Params.Set(ctx, msg.Params)
+	return nil, ms.k.SetParams(ctx, msg.Params)
 }
 
 // ValidateDkimPubKey validates a DKIM public key entry
