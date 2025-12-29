@@ -25,7 +25,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	interchaintest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/testutil"
@@ -979,19 +978,30 @@ func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string
 
 // Constants for chain upgrade testing
 const (
-	HaltHeightDelta    = int64(20) // will propose upgrade this many blocks in the future (must exceed voting_period of 10s)
+	HaltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future (must exceed voting_period of 10s)
 	BlocksAfterUpgrade = uint64(10)
 	Authority          = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
 
-// CosmosChainUpgradeTest performs a chain software upgrade test
+// CosmosChainUpgradeTest performs a chain software upgrade test.
+// Uses the first validator to submit the upgrade proposal, avoiding creation of
+// a new user account which would shift account numbers and break ZK proof verification.
 func CosmosChainUpgradeTest(t *testing.T, xion *cosmos.CosmosChain, upgradeContainerRepo, upgradeVersion string, upgradeName string) {
 	ctx := t.Context()
 	chain, client := xion, xion.GetNode().DockerClient
 
-	fundAmount := math.NewInt(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, chain)
-	chainUser := users[0]
+	// Use validator 0 to submit the upgrade proposal instead of creating a new user.
+	// This avoids creating an extra account which would shift account numbers and
+	// break ZKEmail tests that depend on deterministic account ordering.
+	// Validators in interchaintest have genesis-funded accounts with sufficient balance.
+	// The validator key is named "validator" by default in interchaintest.
+	validatorNode := chain.Validators[0]
+	validatorKeyName := "validator"
+
+	// Get the validator's address for the proposal
+	validatorAddr, err := validatorNode.KeyBech32(ctx, validatorKeyName, "acc")
+	require.NoError(t, err, "failed to get validator address")
+	t.Logf("Using validator %s for upgrade proposal", validatorAddr)
 
 	height, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
@@ -1009,24 +1019,18 @@ func CosmosChainUpgradeTest(t *testing.T, xion *cosmos.CosmosChain, upgradeConta
 		Plan:      plan,
 	}
 
-	address, err := chain.GetAddress(ctx, chainUser.KeyName())
-	require.NoError(t, err)
-
-	addrString, err := sdk.Bech32ifyAddressBytes(chain.Config().Bech32Prefix, address)
-	require.NoError(t, err)
-
 	proposal, err := chain.BuildProposal(
 		[]cosmos.ProtoMessage{&upgrade},
 		"Chain Upgrade 1",
 		"First chain software upgrade",
 		"",
 		"500000000"+chain.Config().Denom, // greater than min deposit
-		addrString,
+		validatorAddr,
 		false,
 	)
 	require.NoError(t, err)
 
-	_, err = chain.SubmitProposal(ctx, chainUser.KeyName(), proposal)
+	_, err = chain.SubmitProposal(ctx, validatorKeyName, proposal)
 	require.NoError(t, err)
 
 	prop, err := chain.GovQueryProposal(ctx, 1)
