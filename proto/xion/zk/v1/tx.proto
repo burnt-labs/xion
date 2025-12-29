@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package xion.zk.v1;
+option go_package = "github.com/burnt-labs/xion/x/zk/types";
+
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "amino/amino.proto";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // AddVKey adds a new verification key
+  rpc AddVKey(MsgAddVKey) returns (MsgAddVKeyResponse);
+
+  // UpdateVKey updates an existing verification key
+  rpc UpdateVKey(MsgUpdateVKey) returns (MsgUpdateVKeyResponse);
+
+  // RemoveVKey removes a verification key
+  rpc RemoveVKey(MsgRemoveVKey) returns (MsgRemoveVKeyResponse);
+}
+
+// MsgAddVKey is the message for adding a verification key
+message MsgAddVKey {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "zk/MsgAddVKey";
+
+  // authority is the address that controls the module (governance)
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // name is the unique identifier for this verification key
+  string name = 2;
+
+  // description provides context about this verification key
+  string description = 3;
+
+  // vkey_json is the JSON representation of the verification key
+  bytes vkey_bytes = 4;
+}
+
+// MsgAddVKeyResponse is the response for MsgAddVKey
+message MsgAddVKeyResponse {
+  // id is the unique numeric identifier assigned to the vkey
+  uint64 id = 1;
+}
+
+// MsgUpdateVKey is the message for updating a verification key
+message MsgUpdateVKey {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "zk/MsgUpdateVKey";
+
+  // authority is the address that controls the module (governance)
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // name is the identifier of the verification key to update
+  string name = 2;
+
+  // description provides updated context
+  string description = 3;
+
+  // vkey_json is the new JSON representation of the verification key
+  bytes vkey_bytes = 4;
+}
+
+// MsgUpdateVKeyResponse is the response for MsgUpdateVKey
+message MsgUpdateVKeyResponse {}
+
+// MsgRemoveVKey is the message for removing a verification key
+message MsgRemoveVKey {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "zk/MsgRemoveVKey";
+
+  // authority is the address that controls the module (governance)
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // name is the identifier of the verification key to remove
+  string name = 2;
+}
+
+// MsgRemoveVKeyResponse is the response for MsgRemoveVKey
+message MsgRemoveVKeyResponse {}
