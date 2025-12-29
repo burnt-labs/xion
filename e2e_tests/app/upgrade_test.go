@@ -94,4 +94,43 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	// It uses a validator to submit the proposal, avoiding creation of a new user account
 	// which would shift account numbers and break ZK proof verification.
 	testlib.CosmosChainUpgradeTest(t, xion, xionToRepo, xionToVersion, upgradeName)
+
+	// Run post-upgrade feature validations
+	// Create a proposal tracker starting at 2 (since upgrade used proposal 1)
+	proposalTracker := testlib.NewProposalTracker(2)
+	ctx := t.Context()
+
+	// Run ZKEmail authenticator assertions
+	// NOTE: ZKEmail now seeds its own DKIM record using the proposal tracker
+	// User is nil so it will create the "zkemail-test" user with DeployerMnemonic,
+	// ensuring the AA contract address matches the pre-generated ZK proofs.
+	t.Run("PostUpgrade_ZKEmail", func(t *testing.T) {
+		testlib.RunZKEmailAuthenticatorAssertions(t, testlib.ZKEmailAssertionConfig{
+			Chain:           xion,
+			Ctx:             ctx,
+			User:            nil, // Will use DeployerMnemonic for pre-generated proofs
+			ProposalTracker: proposalTracker,
+		})
+	})
+	// Run DKIM module assertions
+	t.Run("PostUpgrade_DKIM_Module", func(t *testing.T) {
+		testlib.RunDKIMModuleAssertions(t, testlib.DKIMAssertionConfig{
+			Chain:           xion,
+			Ctx:             ctx,
+			User:            nil, // Will create and fund a new user
+			ProposalTracker: proposalTracker,
+			TestData:        testlib.DefaultDKIMTestData(),
+		})
+	})
+
+	// Run DKIM governance assertions
+	t.Run("PostUpgrade_DKIM_Governance", func(t *testing.T) {
+		testlib.RunDKIMGovernanceAssertions(t, testlib.DKIMAssertionConfig{
+			Chain:           xion,
+			Ctx:             ctx,
+			User:            nil, // Will create and fund a new user
+			ProposalTracker: proposalTracker,
+			TestData:        testlib.DefaultDKIMTestData(),
+		})
+	})
 }
