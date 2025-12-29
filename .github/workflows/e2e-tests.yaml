@@ -60,7 +60,7 @@ jobs:
           - { dir: "app", type: "AppUpdateTreasuryConfigsAA" }
           - { dir: "app", type: "AppUpdateTreasuryParams" }
           # - {dir: "app", type: "AppUpgradeIBC"}
-          # - {dir: "app", type: "AppUpgradeNetwork"}
+          - { dir: "app", type: "AppUpgradeNetwork" }
           # DKIM Module Tests
           # - {dir: "dkim", type: "DKIMGovernance"}
           # - {dir: "dkim", type: "DKIMKeyRevocation"}
