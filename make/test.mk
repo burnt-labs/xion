@@ -131,10 +131,10 @@ test-app-upgrade-ibc:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeIBC
 
 test-app-upgrade-network:
-	$(MAKE) test-run-no-time DIR_NAME=app TEST_NAME=TestAppUpgradeNetwork
+	$(MAKE) test-run DIR_NAME=app TEST_NAME='^TestAppUpgradeNetwork$$'
 
-# v24 upgrade tests removed - v24 migration was flawed and has been replaced by v25
-# TODO: Add v25 upgrade tests once migrator is implemented
+test-app-upgrade-network-with-features:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetworkWithFeatures
 
 # DKIM Module Tests
 test-dkim-governance:
@@ -363,12 +363,6 @@ test-xion-min-fee-all: \
 	test-xion-min-fee-zero \
 	test-xion-min-fee-coverage-all \
 	test-xion-min-fee-critical-all
-
-test-integration-dkim-module: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestDKIMModule
-	
-test-integration-zkemail-abstract-account: compile-integration-tests
-	$(MAKE) run-integration-test TEST_NAME=TestZKEmailAuthenticator
 
 # Simulation tests
 test-sim-import-export: runsim

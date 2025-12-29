@@ -141,17 +141,24 @@ func XionEncodingConfig(t *testing.T) *moduletestutil.TestEncodingConfig {
 	}
 }
 
+// GetXionImage returns the xion docker image to use for tests.
+// If XION_IMAGE env var is set, it returns that value.
+// Otherwise, returns the latest released image from GHCR.
 func GetXionImage() (string, error) {
 	imageTag, found := os.LookupEnv("XION_IMAGE")
 	if found {
 		return imageTag, nil
 	}
-	// Default to local build or public image
+	// Default to latest release from GHCR
 	// In CI, XION_IMAGE is set by GitHub Actions
-	// For local testing, use the heighliner image
-	return "ghcr.io/burnt-labs/xion/heighliner:v22", nil
+	parts, err := GetLatestReleaseImageComponents()
+	if err != nil {
+		return "", err
+	}
+	return parts[0] + ":" + parts[1], nil
 }
 
+// GetXionImageTagComponents returns the repository and version components of the xion image.
 func GetXionImageTagComponents() ([]string, error) {
 	imageTag, err := GetXionImage()
 	if err != nil {
@@ -179,9 +186,9 @@ func XionChainSpec(numVals int, numFn int) *interchaintest.ChainSpec {
 			NoHostMount:    false,
 			Images: []ibc.DockerImage{
 				{
-					Repository: "ghcr.io/burnt-labs/xion/heighliner/xion",
+					Repository: "ghcr.io/burnt-labs/xion/xion",
 					Version:    "latest",
-					UIDGID:     "1025:1025",
+					UIDGID:     "1000:1000",
 				},
 			},
 		},
