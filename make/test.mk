@@ -127,7 +127,10 @@ test-app-upgrade-ibc:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeIBC
 
 test-app-upgrade-network:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetwork
+	$(MAKE) test-run DIR_NAME=app TEST_NAME='^TestAppUpgradeNetwork$$'
+
+test-app-upgrade-network-with-features:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetworkWithFeatures
 
 # v24 upgrade tests removed - v24 migration was flawed and has been replaced by v25
 # TODO: Add v25 upgrade tests once migrator is implemented

@@ -10,11 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
-	v24_upgrade "github.com/burnt-labs/xion/app/v25_upgrade"
 )
 
-const UpgradeName = "v25"
+const UpgradeName = "v26"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -62,19 +60,6 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 	if err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %s", err))
-	}
-
-	// V25 Contract Migration: Fix corrupted contracts that cannot unmarshal
-	sdkCtx.Logger().Info("v24 upgrade - running contract migration")
-
-	wasmStoreKey := app.GetKey("wasm")
-	if wasmStoreKey == nil {
-		panic("wasm store key not found")
-	}
-
-	migrateErr := v24_upgrade.MigrateContracts(sdkCtx, wasmStoreKey)
-	if migrateErr != nil {
-		panic(fmt.Sprintf("v24 contract migration failed: %s", migrateErr))
 	}
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
