@@ -63,7 +63,7 @@ jobs:
           - "AppUpdateTreasuryConfigsAA"
           - "AppUpdateTreasuryParams"
           # - "AppUpgradeIBC"
-          # - "AppUpgradeNetwork"
+          - "AppUpgradeNetwork"
           # DKIM Module Tests
           # - "DKIMGovernance"
           # - "DKIMKeyRevocation"
