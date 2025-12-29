@@ -10,6 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
 const UpgradeName = "v26"
@@ -34,7 +37,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
-		Added:   []string{},
+		Added:   []string{dkimtypes.StoreKey, zktypes.StoreKey},
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
 	}
@@ -55,6 +58,16 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
+
+	// Initialize new zk module
+	zkGenesis := zktypes.DefaultGenesisState()
+	app.ZkKeeper.InitGenesis(sdkCtx, zkGenesis)
+
+	// Initialize new dkim module
+	dkimGenesis := dkimtypes.DefaultGenesis()
+	if err := app.DkimKeeper.InitGenesis(sdkCtx, dkimGenesis); err != nil {
+		return nil, err
+	}
 
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)

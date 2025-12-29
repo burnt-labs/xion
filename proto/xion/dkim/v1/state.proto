@@ -1,0 +1,31 @@
+syntax = "proto3";
+package xion.dkim.v1;
+
+option go_package = "github.com/burnt-labs/xion/x/dkim/types";
+
+// DkimPubKey represents a DKIM public key with associated metadata.
+message DkimPubKey {
+  // domain defines the email domain associated with this DKIM key.
+  string domain = 1;
+  // pub_key defines the base64 encoded public key.
+  string pub_key = 2;
+  // poseidon_hash defines the Poseidon hash of the public key.
+  bytes poseidon_hash = 3;
+  // selector defines the DKIM selector for this key.
+  string selector = 4;
+  // version defines the DKIM version.
+  Version version = 5;
+  // key_type defines the cryptographic key type.
+  KeyType key_type = 6;
+}
+
+// Version defines the supported DKIM versions.
+enum Version {
+  // VERSION_DKIM1_UNSPECIFIED represents DKIM version 1 (unspecified default).
+  VERSION_DKIM1_UNSPECIFIED = 0;
+}
+// KeyType defines the supported cryptographic key types for DKIM.
+enum KeyType {
+  // KEY_TYPE_RSA_UNSPECIFIED represents RSA key type (unspecified default).
+  KEY_TYPE_RSA_UNSPECIFIED = 0;
+}

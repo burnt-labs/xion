@@ -1,0 +1,26 @@
+syntax = "proto3";
+package xion.dkim.v1;
+
+import "gogoproto/gogo.proto";
+import "amino/amino.proto";
+import "xion/dkim/v1/state.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/dkim/types";
+
+// GenesisState defines the module genesis state
+message GenesisState {
+  // Params defines all the parameters of the module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+// Params defines the set of module parameters.
+message Params {
+  option (amino.name) = "dkim/params";
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // vkey defines the verification key used by the module.
+  uint64 vkey_identifier = 1;
+
+  repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
+}

@@ -52,6 +52,10 @@ test-run: .ensure-docker-image
 	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
 	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
 
+test-run-no-time: .ensure-docker-image
+	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
+	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -timeout 60m -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
+
 # Abstract Account Module Tests
 test-aa-basic:
 	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAABasic
@@ -132,9 +136,6 @@ test-app-upgrade-network:
 test-app-upgrade-network-with-features:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetworkWithFeatures
 
-# v24 upgrade tests removed - v24 migration was flawed and has been replaced by v25
-# TODO: Add v25 upgrade tests once migrator is implemented
-
 # DKIM Module Tests
 test-dkim-governance:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMGovernance
@@ -149,7 +150,7 @@ test-dkim-zk-email:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail
 
 test-dkim-zk-proof:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKProof
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestZKEmailAuthenticator
 
 # Indexer Module Tests
 test-indexer-authz-create:
