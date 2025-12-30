@@ -110,8 +110,7 @@ func XionLocalChainSpec(t *testing.T, numVals int, numFn int) *interchaintest.Ch
 		{
 			Repository: imageTagComponents[0],
 			Version:    imageTagComponents[1],
-			// Match the heighliner images default user to avoid volume permission issues.
-			UIDGID: "1025:1025",
+			UIDGID:     "1000:1000",
 		},
 	}
 	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(DefaultGenesisKVMods)
