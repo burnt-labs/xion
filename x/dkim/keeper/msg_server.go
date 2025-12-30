@@ -66,13 +66,8 @@ func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPub
 	}
 
 	// Validate all DKIM public keys before saving
-	for _, dkimKey := range msg.DkimPubkeys {
-		if err := ValidateDkimPubKey(dkimKey); err != nil {
-			return nil, err
-		}
-		if err := types.ValidatePubKeySize(dkimKey.PubKey, params.MaxPubkeySizeBytes); err != nil {
-			return nil, err
-		}
+	if err := ValidateDkimPubKeys(msg.DkimPubkeys, params); err != nil {
+		return nil, err
 	}
 	_, err = SaveDkimPubKeys(ctx, msg.DkimPubkeys, &ms.k)
 	if err != nil {
@@ -153,6 +148,18 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 	}
 
 	return nil, ms.k.SetParams(ctx, msg.Params)
+}
+
+func ValidateDkimPubKeys(dkimKeys []types.DkimPubKey, params types.Params) error {
+	for _, dkimKey := range dkimKeys {
+		if err := ValidateDkimPubKey(dkimKey); err != nil {
+			return err
+		}
+		if err := types.ValidatePubKeySize(dkimKey.PubKey, params.MaxPubkeySizeBytes); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ValidateDkimPubKey validates a DKIM public key entry

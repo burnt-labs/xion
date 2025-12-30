@@ -21,6 +21,8 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
+	dkimante "github.com/burnt-labs/xion/x/dkim/ante"
+	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
 	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 )
 
@@ -36,6 +38,7 @@ type HandlerOptions struct {
 	StakingKeeper         *stakingkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
 	CircuitKeeper         *circuitkeeper.Keeper
+	DKIMKeeper            *dkimkeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -102,6 +105,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+		dkimante.NewDKIMDecorator(options.DKIMKeeper),
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
