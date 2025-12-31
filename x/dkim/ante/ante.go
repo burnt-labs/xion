@@ -31,6 +31,11 @@ func (d DKIMDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, nex
 	for _, msg := range tx.GetMsgs() {
 		switch msg := msg.(type) {
 		case *types.MsgAddDkimPubKeys:
+			for _, pk := range msg.DkimPubkeys {
+				if err := dkimkeeper.ConsumeDkimPubKeyGas(ctx, params, pk.PubKey); err != nil {
+					return ctx, errors.Wrap(err, "invalid dkim public keys")
+				}
+			}
 			if err := dkimkeeper.ValidateDkimPubKeys(msg.DkimPubkeys, params); err != nil {
 				return ctx, errors.Wrap(err, "invalid dkim public keys")
 			}

@@ -365,6 +365,16 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 		require.True(t, found, "RemoveVKey event not found")
 	})
 
+	t.Run("verify other vkeys not affected", func(t *testing.T) {
+		has, err := f.k.HasVKey(f.ctx, "keep_test")
+		require.NoError(t, err)
+		require.True(t, has)
+
+		vkey, err := f.k.GetVKeyByName(f.ctx, "keep_test")
+		require.NoError(t, err)
+		require.Equal(t, "To be kept", vkey.Description)
+	})
+
 	t.Run("successfully remove with non-governance authority", func(t *testing.T) {
 		msg := &types.MsgRemoveVKey{
 			Authority: f.addrs[0].String(),
@@ -398,17 +408,6 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "not found")
-	})
-
-	t.Run("verify other vkeys not affected", func(t *testing.T) {
-		// Verify keep_test still exists
-		has, err := f.k.HasVKey(f.ctx, "keep_test")
-		require.NoError(t, err)
-		require.True(t, has)
-
-		vkey, err := f.k.GetVKeyByName(f.ctx, "keep_test")
-		require.NoError(t, err)
-		require.Equal(t, "To be kept", vkey.Description)
 	})
 }
 

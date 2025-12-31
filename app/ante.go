@@ -24,6 +24,8 @@ import (
 	dkimante "github.com/burnt-labs/xion/x/dkim/ante"
 	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
 	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
+	zkante "github.com/burnt-labs/xion/x/zk/ante"
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -39,6 +41,7 @@ type HandlerOptions struct {
 	AbstractAccountKeeper aakeeper.Keeper
 	CircuitKeeper         *circuitkeeper.Keeper
 	DKIMKeeper            *dkimkeeper.Keeper
+	ZKKeeper              *zkkeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -65,6 +68,12 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	}
 	if options.CircuitKeeper == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "circuit keeper is required for ante builder")
+	}
+	if options.ZKKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "zk keeper is required for ante builder")
+	}
+	if options.DKIMKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "dkim keeper is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
@@ -105,6 +114,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+		zkante.NewZKDecorator(options.ZKKeeper),
 		dkimante.NewDKIMDecorator(options.DKIMKeeper),
 	}
 

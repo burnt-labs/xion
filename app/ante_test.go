@@ -37,6 +37,8 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
 			StakingKeeper:         app.StakingKeeper,
 			CircuitKeeper:         &app.CircuitKeeper,
+			ZKKeeper:              &app.ZkKeeper,
+			DKIMKeeper:            &app.DkimKeeper,
 		}
 	}
 
@@ -126,6 +128,26 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, handler)
 		require.Contains(t, err.Error(), "circuit keeper is required for ante builder")
+	})
+
+	t.Run("nil zk keeper", func(t *testing.T) {
+		opts := baseOptions()
+		opts.ZKKeeper = nil
+
+		handler, err := NewAnteHandler(opts)
+		require.Error(t, err)
+		require.Nil(t, handler)
+		require.Contains(t, err.Error(), "zk keeper is required for ante builder")
+	})
+
+	t.Run("nil dkim keeper", func(t *testing.T) {
+		opts := baseOptions()
+		opts.DKIMKeeper = nil
+
+		handler, err := NewAnteHandler(opts)
+		require.Error(t, err)
+		require.Nil(t, handler)
+		require.Contains(t, err.Error(), "dkim keeper is required for ante builder")
 	})
 
 	// Test 9: Success case - valid configuration

@@ -1145,7 +1145,7 @@ func TestValidateRSAPubKey(t *testing.T) {
 	t.Run("invalid base64 returns error", func(t *testing.T) {
 		err := keeper.ValidateRSAPubKey("not-valid-base64!@#$%")
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to decode base64")
+		require.ErrorIs(t, err, types.ErrInvalidPubKey)
 	})
 
 	t.Run("empty string returns error", func(t *testing.T) {
@@ -1186,11 +1186,8 @@ func TestValidateRSAPubKey(t *testing.T) {
 		// This test verifies the function handles this case
 		keyWithNewline := validPubKey2048[:10] + "\n" + validPubKey2048[10:]
 		err := keeper.ValidateRSAPubKey(keyWithNewline)
-		// The decoder may or may not accept newlines depending on implementation
-		// If it accepts them, the key parsing will likely fail
-		// If it rejects them, base64 decode fails
-		// Either way, we just ensure no panic occurs
-		_ = err
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrInvalidPubKey)
 	})
 
 	t.Run("PKCS1 format key", func(t *testing.T) {

@@ -1155,6 +1155,8 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, nodeConfig wasmtype
 			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
 			StakingKeeper:         app.StakingKeeper,
 			CircuitKeeper:         &app.CircuitKeeper,
+			ZKKeeper:              &app.ZkKeeper,
+			DKIMKeeper:            &app.DkimKeeper,
 		},
 	)
 	if err != nil {

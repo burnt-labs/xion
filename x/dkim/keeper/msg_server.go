@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"strings"
 
@@ -152,10 +151,16 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 
 func ValidateDkimPubKeys(dkimKeys []types.DkimPubKey, params types.Params) error {
 	for _, dkimKey := range dkimKeys {
-		if err := ValidateDkimPubKey(dkimKey); err != nil {
+		if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
 			return err
 		}
-		if err := types.ValidatePubKeySize(dkimKey.PubKey, params.MaxPubkeySizeBytes); err != nil {
+
+		pubKeyBytes, err := types.DecodePubKeyWithLimit(dkimKey.PubKey, params.MaxPubkeySizeBytes)
+		if err != nil {
+			return err
+		}
+
+		if err := validateRSAPubKeyBytes(pubKeyBytes); err != nil {
 			return err
 		}
 	}
@@ -164,32 +169,42 @@ func ValidateDkimPubKeys(dkimKeys []types.DkimPubKey, params types.Params) error
 
 // ValidateDkimPubKey validates a DKIM public key entry
 func ValidateDkimPubKey(dkimKey types.DkimPubKey) error {
-	// Validate KeyType
+	if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
+		return err
+	}
+
+	// Validate PubKey is valid base64-encoded RSA public key
+	pubKeyBytes, err := types.DecodePubKey(dkimKey.PubKey)
+	if err != nil {
+		return err
+	}
+
+	return validateRSAPubKeyBytes(pubKeyBytes)
+}
+
+// ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
+func ValidateRSAPubKey(pubKeyStr string) error {
+	pubKeyBytes, err := types.DecodePubKey(pubKeyStr)
+	if err != nil {
+		return err
+	}
+
+	return validateRSAPubKeyBytes(pubKeyBytes)
+}
+
+func validateDkimPubKeyMetadata(dkimKey types.DkimPubKey) error {
 	if dkimKey.KeyType != types.KeyType_KEY_TYPE_RSA_UNSPECIFIED {
 		return types.ErrInvalidKeyType
 	}
 
-	// Validate Version
 	if dkimKey.Version != types.Version_VERSION_DKIM1_UNSPECIFIED {
 		return types.ErrInvalidVersion
-	}
-
-	// Validate PubKey is valid base64-encoded RSA public key
-	if err := ValidateRSAPubKey(dkimKey.PubKey); err != nil {
-		return err
 	}
 
 	return nil
 }
 
-// ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
-func ValidateRSAPubKey(pubKeyStr string) error {
-	// Decode base64
-	pubKeyBytes, err := base64.StdEncoding.DecodeString(pubKeyStr)
-	if err != nil {
-		return errors.Wrapf(types.ErrInvalidPubKey, "failed to decode base64: %s", err)
-	}
-
+func validateRSAPubKeyBytes(pubKeyBytes []byte) error {
 	// Try PKIX/SPKI format first (standard format for DKIM public keys)
 	pub, err := x509.ParsePKIXPublicKey(pubKeyBytes)
 	if err == nil {

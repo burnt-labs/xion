@@ -209,6 +209,24 @@ func TestParams_Validate(t *testing.T) {
 		require.Error(t, err)
 	})
 
+	t.Run("params with whitespace in pubkey should fail", func(t *testing.T) {
+		params := types.Params{
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "example.com",
+					Selector:     "selector1",
+					PubKey:       validPubKey + "\n",
+					PoseidonHash: hash.Bytes(),
+				},
+			},
+		}
+		err := params.Validate()
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrInvalidPubKey)
+	})
+
 	t.Run("params with oversized pubkey should fail", func(t *testing.T) {
 		tooLarge := make([]byte, types.DefaultMaxPubKeySizeBytes+1)
 		for i := range tooLarge {
@@ -222,6 +240,23 @@ func TestParams_Validate(t *testing.T) {
 					Domain:       "example.com",
 					Selector:     "selector1",
 					PubKey:       base64.StdEncoding.EncodeToString(tooLarge),
+					PoseidonHash: hash.Bytes(),
+				},
+			},
+		}
+		err := params.Validate()
+		require.ErrorIs(t, err, types.ErrPubKeyTooLarge)
+	})
+
+	t.Run("encoded length exceeding limit fails fast", func(t *testing.T) {
+		params := types.Params{
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: 1,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "example.com",
+					Selector:     "selector1",
+					PubKey:       validPubKey,
 					PoseidonHash: hash.Bytes(),
 				},
 			},

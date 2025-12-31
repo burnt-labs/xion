@@ -2,6 +2,7 @@
 package types_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -81,7 +82,7 @@ func createValidVKeyBytes() []byte {
 	}
 
 	bytes, _ := json.Marshal(vkeyJSON)
-	return bytes
+	return []byte(base64.StdEncoding.EncodeToString(bytes))
 }
 
 func TestDefaultGenesisState(t *testing.T) {

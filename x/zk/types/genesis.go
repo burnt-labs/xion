@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 )
@@ -60,13 +61,13 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("vkey '%s' at index %d has empty key_bytes", vkeyWithID.Vkey.Name, i)
 		}
 
-		if uint64(len(vkeyWithID.Vkey.KeyBytes)) > params.MaxVkeySizeBytes {
-			return fmt.Errorf("vkey '%s' at index %d exceeds maximum size of %d bytes", vkeyWithID.Vkey.Name, i, params.MaxVkeySizeBytes)
+		decoded, err := DecodeAndValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes)
+		if err != nil {
+			return fmt.Errorf("vkey '%s' at index %d has invalid key_bytes: %w", vkeyWithID.Vkey.Name, i, err)
 		}
 
-		// Validate the key bytes
-		if err := ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes); err != nil {
-			return fmt.Errorf("vkey '%s' at index %d has invalid key_bytes: %w", vkeyWithID.Vkey.Name, i, err)
+		if uint64(len(decoded)) > params.MaxVkeySizeBytes {
+			return fmt.Errorf("vkey '%s' at index %d exceeds maximum size of %d bytes", vkeyWithID.Vkey.Name, i, params.MaxVkeySizeBytes)
 		}
 	}
 
@@ -356,5 +357,5 @@ func createDefaultVKeyBytes() []byte {
 	}
 
 	bytes, _ := json.Marshal(vkeyJSON)
-	return bytes
+	return []byte(base64.StdEncoding.EncodeToString(bytes))
 }

@@ -2,28 +2,95 @@
 package types
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/vocdoni/circom2gnark/parser"
 )
 
-// ValidateVKeyBytes validates that the bytes can be unmarshaled into a CircomVerificationKey
-// and that it contains all required parameters for a valid groth16 verification key.
-// It validates both affine and projective form representations.
+// ValidateVKeyBytes enforces base64 encoding, decodes, and validates the resulting verification key.
 func ValidateVKeyBytes(data []byte) error {
-	if len(data) == 0 {
-		return fmt.Errorf("empty vkey data")
+	_, err := DecodeAndValidateVKeyBytes(data, DefaultMaxVKeySizeBytes)
+	return err
+}
+
+// DecodeAndValidateVKeyBytes decodes base64 vkey bytes, enforces size/whitespace limits,
+// and validates the resulting verification key JSON.
+func DecodeAndValidateVKeyBytes(data []byte, maxDecodedSize uint64) ([]byte, error) {
+	decoded, err := NormalizeVKeyBytes(data, maxDecodedSize)
+	if err != nil {
+		return nil, err
 	}
 
 	// Validate by attempting to unmarshal
-	vk, err := parser.UnmarshalCircomVerificationKeyJSON(data)
+	vk, err := parser.UnmarshalCircomVerificationKeyJSON(decoded)
 	if err != nil {
-		return fmt.Errorf("invalid verification key JSON: %w", err)
+		return nil, fmt.Errorf("invalid verification key JSON: %w", err)
 	}
 
 	// Validate the unmarshaled verification key
-	return validateCircomVerificationKey(vk)
+	if err := validateCircomVerificationKey(vk); err != nil {
+		return nil, err
+	}
+
+	return decoded, nil
+}
+
+// NormalizeVKeyBytes decodes base64-encoded vkey bytes after size/whitespace checks.
+func NormalizeVKeyBytes(data []byte, maxDecodedSize uint64) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, fmt.Errorf("empty vkey data")
+	}
+
+	return decodeBase64VKeyBytes(data, maxDecodedSize)
+}
+
+func decodeBase64VKeyBytes(data []byte, maxDecodedSize uint64) ([]byte, error) {
+	if err := rejectBase64VKeyWhitespace(data); err != nil {
+		return nil, err
+	}
+
+	maxEncodedLen, err := maxBase64EncodedLen(maxDecodedSize)
+	if err != nil {
+		return nil, err
+	}
+
+	if maxDecodedSize > 0 && len(data) > maxEncodedLen {
+		return nil, errorsmod.Wrapf(ErrVKeyTooLarge, "encoded vkey length %d exceeds max %d", len(data), maxEncodedLen)
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(string(data))
+	if err != nil {
+		return nil, errorsmod.Wrap(ErrInvalidVKey, err.Error())
+	}
+
+	if maxDecodedSize > 0 && uint64(len(decoded)) > maxDecodedSize {
+		return nil, errorsmod.Wrapf(ErrVKeyTooLarge, "decoded vkey size %d exceeds max %d", len(decoded), maxDecodedSize)
+	}
+
+	return decoded, nil
+}
+
+func rejectBase64VKeyWhitespace(data []byte) error {
+	for _, b := range data {
+		switch b {
+		case ' ', '\n', '\r', '\t':
+			return errorsmod.Wrap(ErrInvalidVKey, "base64 vkey contains whitespace")
+		}
+	}
+
+	return nil
+}
+
+func maxBase64EncodedLen(maxDecodedSize uint64) (int, error) {
+	if maxDecodedSize > math.MaxInt {
+		return 0, errorsmod.Wrapf(ErrVKeyTooLarge, "max_vkey_size_bytes %d exceeds supported range", maxDecodedSize)
+	}
+
+	return base64.StdEncoding.EncodedLen(int(maxDecodedSize)), nil
 }
 
 // validateCircomVerificationKey validates the structure and fields of a CircomVerificationKey
@@ -118,13 +185,13 @@ func MarshalVKey(vk *parser.CircomVerificationKey) ([]byte, error) {
 
 // NewVKeyFromBytes creates a VKey from raw JSON bytes with validation
 func NewVKeyFromBytes(keyBytes []byte, name, description string) (*VKey, error) {
-	// Validate the bytes
-	if err := ValidateVKeyBytes(keyBytes); err != nil {
+	decoded, err := DecodeAndValidateVKeyBytes(keyBytes, DefaultMaxVKeySizeBytes)
+	if err != nil {
 		return nil, err
 	}
 
 	return &VKey{
-		KeyBytes:    keyBytes,
+		KeyBytes:    decoded,
 		Name:        name,
 		Description: description,
 	}, nil

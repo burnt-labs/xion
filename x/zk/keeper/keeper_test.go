@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -159,7 +160,7 @@ func createTestVKeyBytes(_ string) []byte {
 	}
 
 	bytes, _ := json.Marshal(vkeyJSON)
-	return bytes
+	return []byte(base64.StdEncoding.EncodeToString(bytes))
 }
 
 // loadVKeyFromJSON loads a vkey from a JSON file
@@ -1246,16 +1247,16 @@ func TestValidateVKeyBytes(t *testing.T) {
 		},
 		{
 			name:        "invalid json",
-			data:        []byte("not json"),
+			data:        []byte(base64.StdEncoding.EncodeToString([]byte("not json"))),
 			expectError: true,
 			errorMsg:    "invalid verification key JSON",
 		},
 		{
 			name: "missing required fields",
-			data: []byte(`{
+			data: []byte(base64.StdEncoding.EncodeToString([]byte(`{
 				"protocol": "groth16",
 				"curve": "bn128"
-			}`),
+			}`))),
 			expectError: true,
 			errorMsg:    "invalid nPublic: 0 (must be greater than 0)",
 		},

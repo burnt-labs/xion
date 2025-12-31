@@ -1,13 +1,18 @@
 package types
 
 import (
-	"encoding/base64"
 	"encoding/json"
 
 	errorsmod "cosmossdk.io/errors"
 )
 
-const DefaultMaxPubKeySizeBytes uint64 = 1024
+const (
+	DefaultMaxPubKeySizeBytes uint64 = 1024
+	// DefaultUploadChunkSize defines the default tier size (bytes) used to scale gas for pubkey uploads.
+	DefaultUploadChunkSize uint64 = 20
+	// DefaultUploadChunkGas defines the default gas cost per upload chunk.
+	DefaultUploadChunkGas uint64 = 10_000
+)
 
 // DefaultParams returns default module parameters.
 func DefaultParams() Params {
@@ -60,14 +65,24 @@ func (p Params) Validate() error {
 }
 
 func ValidatePubKeySize(pubKey string, maxSize uint64) error {
-	raw, err := base64.StdEncoding.DecodeString(pubKey)
-	if err != nil {
-		return errorsmod.Wrap(ErrInvalidPubKey, err.Error())
+	_, err := DecodePubKeyWithLimit(pubKey, maxSize)
+	return err
+}
+
+// GasCostForSize returns the gas cost for storing a payload of the given size.
+func (p Params) GasCostForSize(size uint64) (uint64, error) {
+	if err := p.Validate(); err != nil {
+		return 0, err
 	}
 
-	if uint64(len(raw)) > maxSize {
-		return errorsmod.Wrapf(ErrPubKeyTooLarge, "decoded key size %d exceeds max %d", len(raw), maxSize)
+	if size == 0 {
+		return 0, errorsmod.Wrap(ErrInvalidPubKey, "pubkey cannot be empty")
 	}
 
-	return nil
+	if size > p.MaxPubkeySizeBytes {
+		return 0, errorsmod.Wrapf(ErrPubKeyTooLarge, "size %d > max %d", size, p.MaxPubkeySizeBytes)
+	}
+
+	chunks := (size + DefaultUploadChunkSize - 1) / DefaultUploadChunkSize
+	return chunks * DefaultUploadChunkGas, nil
 }
