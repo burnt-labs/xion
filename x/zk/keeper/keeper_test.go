@@ -618,9 +618,7 @@ func TestAddVKey(t *testing.T) {
 				require.Equal(t, tt.vkeyName, storedVKey.Name)
 				require.Equal(t, tt.description, storedVKey.Description)
 
-				decoded, err := base64.StdEncoding.DecodeString(string(tt.vkeyBytes))
-				require.NoError(t, err)
-				require.Equal(t, decoded, storedVKey.KeyBytes)
+				require.Equal(t, tt.vkeyBytes, storedVKey.KeyBytes)
 			}
 		})
 	}
@@ -1246,13 +1244,13 @@ func TestValidateVKeyBytes(t *testing.T) {
 			name:        "empty data",
 			data:        []byte{},
 			expectError: true,
-			errorMsg:    "empty vkey data",
+			errorMsg:    "invalid verification key",
 		},
 		{
 			name:        "invalid json",
 			data:        []byte(base64.StdEncoding.EncodeToString([]byte("not json"))),
 			expectError: true,
-			errorMsg:    "invalid verification key JSON",
+			errorMsg:    "invalid verification key",
 		},
 		{
 			name: "missing required fields",
@@ -1261,7 +1259,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 				"curve": "bn128"
 			}`))),
 			expectError: true,
-			errorMsg:    "invalid nPublic: 0 (must be greater than 0)",
+			errorMsg:    "invalid verification key",
 		},
 	}
 

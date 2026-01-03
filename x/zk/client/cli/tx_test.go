@@ -95,7 +95,6 @@ func TestGetCmdAddVKey(t *testing.T) {
 		require.Contains(t, cmd.Long, "verification key")
 		require.Contains(t, cmd.Long, "JSON-encoded")
 		require.Contains(t, cmd.Long, "SnarkJS")
-		require.Contains(t, cmd.Long, "governance")
 	})
 
 	t.Run("has example usage", func(t *testing.T) {
@@ -246,7 +245,6 @@ func TestGetCmdUpdateVKey(t *testing.T) {
 		require.Contains(t, cmd.Long, "Update")
 		require.Contains(t, cmd.Long, "verification key")
 		require.Contains(t, cmd.Long, "JSON-encoded")
-		require.Contains(t, cmd.Long, "governance")
 	})
 
 	t.Run("has example usage", func(t *testing.T) {

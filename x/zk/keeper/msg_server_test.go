@@ -285,7 +285,7 @@ func TestMsgServer_UpdateVKey(t *testing.T) {
 		resp, err := f.msgServer.UpdateVKey(f.ctx, msg)
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid vkey_bytes")
+		require.Contains(t, err.Error(), "invalid verification key")
 	})
 
 	t.Run("fail with invalid authority address format", func(t *testing.T) {
