@@ -160,14 +160,14 @@ func createTestVKeyBytes(_ string) []byte {
 	}
 
 	bytes, _ := json.Marshal(vkeyJSON)
-	return []byte(base64.StdEncoding.EncodeToString(bytes))
+	return bytes
 }
 
 // loadVKeyFromJSON loads a vkey from a JSON file
 func loadVKeyFromJSON(t *testing.T, filepath string) []byte {
 	data, err := os.ReadFile(filepath)
 	require.NoError(t, err)
-	return []byte(base64.StdEncoding.EncodeToString(data))
+	return data
 }
 
 // ============================================================================

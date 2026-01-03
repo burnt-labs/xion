@@ -146,6 +146,10 @@ func (ms msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams
 		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", ms.k.authority, msg.Authority)
 	}
 
+	if msg.Params.MaxPubkeySizeBytes == 0 {
+		msg.Params.MaxPubkeySizeBytes = types.DefaultMaxPubKeySizeBytes
+	}
+
 	if err := msg.Params.Validate(); err != nil {
 		return nil, errors.Wrap(types.ErrInvalidParams, err.Error())
 	}

@@ -2,9 +2,7 @@
 package types_test
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -82,7 +80,7 @@ func createValidVKeyBytes() []byte {
 	}
 
 	bytes, _ := json.Marshal(vkeyJSON)
-	return []byte(base64.StdEncoding.EncodeToString(bytes))
+	return bytes
 }
 
 func TestDefaultGenesisState(t *testing.T) {
@@ -118,7 +116,6 @@ func TestNewGenesisState(t *testing.T) {
 
 func TestGenesisStateValidate(t *testing.T) {
 	validVKeyBytes := createValidVKeyBytes()
-	fmt.Println(string(validVKeyBytes))
 
 	tests := []struct {
 		name        string

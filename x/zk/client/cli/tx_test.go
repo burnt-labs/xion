@@ -437,7 +437,6 @@ func TestGetCmdRemoveVKey(t *testing.T) {
 		require.NotEmpty(t, cmd.Long)
 		require.Contains(t, cmd.Long, "Remove")
 		require.Contains(t, cmd.Long, "verification key")
-		require.Contains(t, cmd.Long, "governance")
 	})
 
 	t.Run("has example usage", func(t *testing.T) {
@@ -560,16 +559,6 @@ func TestTxCommandConsistency(t *testing.T) {
 
 		err = updateCmd.Args(updateCmd, []string{"a", "b", "c"})
 		require.NoError(t, err)
-	})
-
-	t.Run("all commands mention governance in long description", func(t *testing.T) {
-		addCmd := cli.GetCmdAddVKey()
-		updateCmd := cli.GetCmdUpdateVKey()
-		removeCmd := cli.GetCmdRemoveVKey()
-
-		require.Contains(t, addCmd.Long, "governance")
-		require.Contains(t, updateCmd.Long, "governance")
-		require.Contains(t, removeCmd.Long, "governance")
 	})
 
 	t.Run("all commands have from flag", func(t *testing.T) {

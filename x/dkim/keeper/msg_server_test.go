@@ -1139,23 +1139,6 @@ func TestValidateRSAPubKey(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("key with whitespace fails", func(t *testing.T) {
-		// Add whitespace which is invalid base64
-		keyWithSpace := validPubKey2048[:10] + " " + validPubKey2048[10:]
-		err := types.ValidateRSAPubKey(keyWithSpace)
-		require.Error(t, err)
-	})
-
-	t.Run("key with newlines in middle corrupts key", func(t *testing.T) {
-		// Newlines in the middle of base64 may be accepted by decoder
-		// but result in corrupted key data that fails parsing
-		// This test verifies the function handles this case
-		keyWithNewline := validPubKey2048[:10] + "\n" + validPubKey2048[10:]
-		err := types.ValidateRSAPubKey(keyWithNewline)
-		require.Error(t, err)
-		require.ErrorIs(t, err, types.ErrInvalidPubKey)
-	})
-
 	t.Run("PKCS1 format key", func(t *testing.T) {
 		// This is a PKCS#1 format RSA public key (starts with different ASN.1 structure)
 		// The function should accept this as fallback

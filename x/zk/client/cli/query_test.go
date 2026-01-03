@@ -24,7 +24,7 @@ func TestGetQueryCmd(t *testing.T) {
 		subcommands := cmd.Commands()
 
 		// Should have 5 subcommands
-		require.Len(t, subcommands, 5)
+		require.Len(t, subcommands, 6)
 
 		// Verify subcommand names
 		names := make(map[string]bool)

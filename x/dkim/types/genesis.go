@@ -24,6 +24,9 @@ func (gs GenesisState) Validate() error {
 	if err := params.Validate(); err != nil {
 		return err
 	}
+	if err := ValidateDkimPubKeys(gs.DkimPubkeys, params); err != nil {
+		return err
+	}
 	return nil
 }
 
