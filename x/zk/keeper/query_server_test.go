@@ -2,7 +2,6 @@
 package keeper_test
 
 import (
-	"encoding/base64"
 	"fmt"
 	"testing"
 
@@ -366,8 +365,7 @@ func TestQueryProofVerify(t *testing.T) {
 			["19", "20", "1"]
 		]
 	}`)
-	invalidVKeyBytes := []byte(base64.StdEncoding.EncodeToString(invalidVKey))
-	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKeyBytes, "Invalid circuit for testing")
+	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKey, "Invalid circuit for testing")
 	require.NoError(t, err)
 
 	testCases := []struct {
