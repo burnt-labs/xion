@@ -50,9 +50,13 @@ func TestZKParamsAndVKeyUploads(t *testing.T) {
 	require.Equal(t, types.DefaultUploadChunkSize, initialParams.UploadChunkSize)
 	require.Equal(t, types.DefaultUploadChunkGas, initialParams.UploadChunkGas)
 
+	// Prepare verification keys with different sizes based on the same valid JSON.
+	baseVKey := readTestVKey(t)
+	baseSize := uint64(len(baseVKey))
+	// update params with enough room for base key
 	// Update params to a tighter limit to exercise size checks and gas scaling.
 	updatedParams := types.Params{
-		MaxVkeySizeBytes: 16000,
+		MaxVkeySizeBytes: baseSize + 5000,
 		UploadChunkSize:  1000,
 		UploadChunkGas:   50000,
 	}
@@ -69,19 +73,11 @@ func TestZKParamsAndVKeyUploads(t *testing.T) {
 	require.Equal(t, updatedParams.UploadChunkSize, currentParams.UploadChunkSize)
 	require.Equal(t, updatedParams.UploadChunkGas, currentParams.UploadChunkGas)
 
-	// Prepare verification keys with different sizes based on the same valid JSON.
-	baseVKey := readTestVKey(t)
-	baseSize := uint64(len(baseVKey))
-	require.Less(t, baseSize, updatedParams.MaxVkeySizeBytes)
+	paddedSmall := append(baseVKey, bytes.Repeat([]byte(" "), 2000)...)
+	require.Less(t, uint64(len(paddedSmall)), currentParams.MaxVkeySizeBytes)
 
-	paddedSmall := append([]byte{}, baseVKey...)
-	paddedSmall = append(paddedSmall, bytes.Repeat([]byte(" "), 2000)...)
-	paddedSmallSize := uint64(len(paddedSmall))
-	require.Less(t, paddedSmallSize, updatedParams.MaxVkeySizeBytes)
-
-	paddedTooLarge := append([]byte{}, baseVKey...)
-	paddedTooLarge = append(paddedTooLarge, bytes.Repeat([]byte(" "), 6000)...)
-	require.Greater(t, uint64(len(paddedTooLarge)), updatedParams.MaxVkeySizeBytes)
+	paddedTooLarge := append(baseVKey, bytes.Repeat([]byte(" "), 6000)...)
+	require.Greater(t, uint64(len(paddedTooLarge)), currentParams.MaxVkeySizeBytes)
 
 	// Upload a small key as a normal transaction and record gas used.
 	gasSmall, err := addVKeyTx(t, ctx, xion, chainUser.KeyName(), "zk-small", "small vkey", baseVKey)
@@ -93,7 +89,7 @@ func TestZKParamsAndVKeyUploads(t *testing.T) {
 
 	// Gas delta should at least match the additional chunk gas introduced by the larger payload.
 	chunksSmall := (baseSize + updatedParams.UploadChunkSize - 1) / updatedParams.UploadChunkSize
-	chunksLarge := (paddedSmallSize + updatedParams.UploadChunkSize - 1) / updatedParams.UploadChunkSize
+	chunksLarge := (uint64(len(paddedSmall)) + updatedParams.UploadChunkSize - 1) / updatedParams.UploadChunkSize
 	expectedExtra := (chunksLarge - chunksSmall) * updatedParams.UploadChunkGas
 	require.Greater(t, gasLarge, gasSmall)
 	require.GreaterOrEqual(t, gasLarge-gasSmall, expectedExtra)

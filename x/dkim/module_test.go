@@ -323,18 +323,18 @@ func TestAppModule_InitGenesis(t *testing.T) {
 		require.NoError(t, err)
 
 		customGenesis := types.GenesisState{
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "test.com",
+					Selector:     "selector1",
+					PubKey:       validPubKey,
+					PoseidonHash: hash.Bytes(),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+			},
 			Params: types.Params{
 				VkeyIdentifier: 42,
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "test.com",
-						Selector:     "selector1",
-						PubKey:       validPubKey,
-						PoseidonHash: hash.Bytes(),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
-				},
 			},
 		}
 
@@ -369,9 +369,9 @@ func TestAppModule_InitGenesis(t *testing.T) {
 		appModule := dkimmodule.NewAppModule(encCfg.Codec, k)
 
 		emptyGenesis := types.GenesisState{
+			DkimPubkeys:    []types.DkimPubKey{},
 			Params: types.Params{
 				VkeyIdentifier: 1,
-				DkimPubkeys:    []types.DkimPubKey{},
 			},
 		}
 
@@ -440,18 +440,18 @@ func TestAppModule_ExportGenesis(t *testing.T) {
 		require.NoError(t, err)
 
 		customGenesis := types.GenesisState{
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "export-test.com",
+					Selector:     "exportsel",
+					PubKey:       validPubKey,
+					PoseidonHash: hash.Bytes(),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+			},
 			Params: types.Params{
 				VkeyIdentifier: 99,
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "export-test.com",
-						Selector:     "exportsel",
-						PubKey:       validPubKey,
-						PoseidonHash: hash.Bytes(),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
-				},
 			},
 		}
 
@@ -489,9 +489,9 @@ func TestAppModule_ExportGenesis(t *testing.T) {
 		appModule := dkimmodule.NewAppModule(encCfg.Codec, k)
 
 		emptyGenesis := types.GenesisState{
+			DkimPubkeys:    []types.DkimPubKey{},
 			Params: types.Params{
 				VkeyIdentifier: 0,
-				DkimPubkeys:    []types.DkimPubKey{},
 			},
 		}
 

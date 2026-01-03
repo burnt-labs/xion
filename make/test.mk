@@ -146,9 +146,8 @@ test-dkim-key-revocation:
 test-dkim-module:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMModule
 
-test-integration-dkim-pubkey-max-size:
+test-dkim-pubkey-max-size:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMPubKeyMaxSize
-
 
 test-dkim-zk-email:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail

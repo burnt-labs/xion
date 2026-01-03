@@ -2,6 +2,7 @@
 package keeper_test
 
 import (
+	"encoding/base64"
 	"fmt"
 	"testing"
 
@@ -81,7 +82,7 @@ var publicInputs = []string{
 }
 
 // Define the vkey here to be used in the test
-var vkeyData = []byte(`{
+var vkeyJSON = []byte(`{
     "protocol": "groth16",
     "curve": "bn128",
     "nPublic": 34,
@@ -338,8 +339,10 @@ var vkeyData = []byte(`{
             "8779231572110654158986828194215557939293838391946454691845714237981588017427",
             "1"
         ]
-    ]
+	]
 }`)
+
+var vkeyData = []byte(base64.StdEncoding.EncodeToString(vkeyJSON))
 
 func TestQueryProofVerify(t *testing.T) {
 	f := SetupTest(t)
@@ -349,7 +352,7 @@ func TestQueryProofVerify(t *testing.T) {
 	require.NoError(t, err)
 
 	// Add an invalid vkey for error testing
-	invalidVKeyBytes := []byte(`{
+	invalidVKey := []byte(`{
 		"protocol": "groth16",
 		"curve": "bn128",
 		"nPublic": 2,
@@ -363,6 +366,7 @@ func TestQueryProofVerify(t *testing.T) {
 			["19", "20", "1"]
 		]
 	}`)
+	invalidVKeyBytes := []byte(base64.StdEncoding.EncodeToString(invalidVKey))
 	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKeyBytes, "Invalid circuit for testing")
 	require.NoError(t, err)
 
@@ -507,7 +511,7 @@ func TestQueryProofVerifyWithStoredVKey(t *testing.T) {
 	storedVKey, err := f.k.GetVKeyByName(f.ctx, "email_auth")
 	require.NoError(t, err)
 	require.Equal(t, "email_auth", storedVKey.Name)
-	require.Equal(t, vkeyData, storedVKey.KeyBytes)
+	require.Equal(t, vkeyJSON, storedVKey.KeyBytes)
 
 	// 3. Verify we can retrieve it as CircomVerificationKey
 	circomVKey, err := f.k.GetCircomVKeyByName(f.ctx, "email_auth")

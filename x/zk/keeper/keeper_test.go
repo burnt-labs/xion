@@ -167,7 +167,7 @@ func createTestVKeyBytes(_ string) []byte {
 func loadVKeyFromJSON(t *testing.T, filepath string) []byte {
 	data, err := os.ReadFile(filepath)
 	require.NoError(t, err)
-	return data
+	return []byte(base64.StdEncoding.EncodeToString(data))
 }
 
 // ============================================================================
@@ -617,7 +617,10 @@ func TestAddVKey(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, tt.vkeyName, storedVKey.Name)
 				require.Equal(t, tt.description, storedVKey.Description)
-				require.Equal(t, tt.vkeyBytes, storedVKey.KeyBytes)
+
+				decoded, err := base64.StdEncoding.DecodeString(string(tt.vkeyBytes))
+				require.NoError(t, err)
+				require.Equal(t, decoded, storedVKey.KeyBytes)
 			}
 		})
 	}
@@ -1264,7 +1267,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := types.ValidateVKeyBytes(tt.data)
+			err := types.ValidateVKeyBytes(tt.data, 0)
 
 			if tt.expectError {
 				require.Error(t, err)

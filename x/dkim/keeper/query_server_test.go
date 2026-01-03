@@ -275,25 +275,12 @@ func TestParams(t *testing.T) {
 	t.Run("returns updated params after UpdateParams", func(t *testing.T) {
 		const PubKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
 
-		hash, err := types.ComputePoseidonHash(PubKey)
-		require.NoError(err)
-
 		newParams := types.Params{
 			VkeyIdentifier: 42,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "updated.com",
-					PubKey:       PubKey,
-					Selector:     "selector1",
-					PoseidonHash: hash.Bytes(),
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-				},
-			},
 		}
 
 		// Update params
-		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams,
 		})
@@ -305,14 +292,11 @@ func TestParams(t *testing.T) {
 		require.NotNil(res)
 		require.NotNil(res.Params)
 		require.Equal(uint64(42), res.Params.VkeyIdentifier)
-		require.Len(res.Params.DkimPubkeys, 1)
-		require.Equal("updated.com", res.Params.DkimPubkeys[0].Domain)
 	})
 
 	t.Run("returns params with empty dkim pubkeys", func(t *testing.T) {
 		newParams := types.Params{
 			VkeyIdentifier: 99,
-			DkimPubkeys:    []types.DkimPubKey{},
 		}
 
 		// Update params
@@ -328,7 +312,6 @@ func TestParams(t *testing.T) {
 		require.NotNil(res)
 		require.NotNil(res.Params)
 		require.Equal(uint64(99), res.Params.VkeyIdentifier)
-		require.Empty(res.Params.DkimPubkeys)
 	})
 }
 
@@ -1089,7 +1072,6 @@ func TestParamsExtended(t *testing.T) {
 		// First update
 		newParams1 := types.Params{
 			VkeyIdentifier: 10,
-			DkimPubkeys:    []types.DkimPubKey{},
 		}
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
@@ -1104,7 +1086,6 @@ func TestParamsExtended(t *testing.T) {
 		// Second update
 		newParams2 := types.Params{
 			VkeyIdentifier: 20,
-			DkimPubkeys:    []types.DkimPubKey{},
 		}
 		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
@@ -1123,7 +1104,6 @@ func TestParamsExtended(t *testing.T) {
 
 		newParams := types.Params{
 			VkeyIdentifier: 18446744073709551615, // max uint64
-			DkimPubkeys:    []types.DkimPubKey{},
 		}
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
@@ -1140,51 +1120,14 @@ func TestParamsExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		pubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
-		hash, err := types.ComputePoseidonHash(pubKey)
-		require.NoError(err)
-
 		newParams := types.Params{
 			VkeyIdentifier: 5,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "domain1.com",
-					PubKey:       pubKey,
-					Selector:     "selector1",
-					PoseidonHash: hash.Bytes(),
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-				},
-				{
-					Domain:       "domain2.com",
-					PubKey:       pubKey,
-					Selector:     "selector2",
-					PoseidonHash: hash.Bytes(),
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-				},
-				{
-					Domain:       "domain3.com",
-					PubKey:       pubKey,
-					Selector:     "selector3",
-					PoseidonHash: hash.Bytes(),
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-				},
-			},
 		}
-		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams,
 		})
 		require.NoError(err)
-
-		res, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
-		require.NoError(err)
-		require.Len(res.Params.DkimPubkeys, 3)
-		require.Equal("domain1.com", res.Params.DkimPubkeys[0].Domain)
-		require.Equal("domain2.com", res.Params.DkimPubkeys[1].Domain)
-		require.Equal("domain3.com", res.Params.DkimPubkeys[2].Domain)
 	})
 
 	t.Run("update params with invalid authority fails", func(t *testing.T) {
@@ -1193,7 +1136,6 @@ func TestParamsExtended(t *testing.T) {
 
 		newParams := types.Params{
 			VkeyIdentifier: 100,
-			DkimPubkeys:    []types.DkimPubKey{},
 		}
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: "invalid-authority",

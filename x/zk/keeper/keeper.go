@@ -106,11 +106,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 
 	// Import all vkeys
 	for _, vkeyWithID := range gs.Vkeys {
-		normalizedKeyBytes, err := types.NormalizeVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes)
-		if err != nil {
+		if err := types.ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes); err != nil {
 			panic(err)
 		}
-		vkeyWithID.Vkey.KeyBytes = normalizedKeyBytes
+		vkeyWithID.Vkey.KeyBytes = vkeyWithID.Vkey.KeyBytes
 
 		// Set the vkey
 		if err := k.VKeys.Set(ctx, vkeyWithID.Id, vkeyWithID.Vkey); err != nil {
@@ -191,9 +190,9 @@ func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
 	return k.Params.Set(ctx, params)
 }
 
-func (k Keeper) ensureVKeySize(ctx context.Context, params types.Params, size int) error {
-	_, err := params.GasCostForSize(uint64(size))
-	return err
+func (k Keeper) ensureVKeySize(ctx sdk.Context, params types.Params, size int) (uint64, error) {
+	gasCost, err := params.GasCostForSize(uint64(size))
+	return gasCost, err
 }
 
 func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *parser.CircomVerificationKey, inputs *[]string) (bool, error) {
@@ -206,7 +205,7 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 
 // AddVKey adds a new verification key to the store
 // keyBytes should be the raw JSON from SnarkJS
-func (k Keeper) AddVKey(ctx context.Context, authority string, name string, keyBytes []byte, description string) (uint64, error) {
+func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) (uint64, error) {
 	// Check if name already exists
 	has, err := k.VKeyNameIndex.Has(ctx, name)
 	if err != nil {
@@ -221,12 +220,14 @@ func (k Keeper) AddVKey(ctx context.Context, authority string, name string, keyB
 		return 0, err
 	}
 
-	decodedKeyBytes, err := types.DecodeAndValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes)
+	gasCost, err := k.ensureVKeySize(ctx, params, len(keyBytes))
 	if err != nil {
 		return 0, err
 	}
+	// charge gas for vkey size
+	ctx.GasMeter().ConsumeGas(gasCost, "zk/AddVKey: vkey size cost")
 
-	if err := k.ensureVKeySize(ctx, params, len(decodedKeyBytes)); err != nil {
+	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
 		return 0, err
 	}
 
@@ -238,7 +239,7 @@ func (k Keeper) AddVKey(ctx context.Context, authority string, name string, keyB
 
 	// Create VKey
 	vkey := &types.VKey{
-		KeyBytes:    decodedKeyBytes,
+		KeyBytes:    keyBytes,
 		Name:        name,
 		Description: description,
 	}
@@ -303,7 +304,7 @@ func (k Keeper) GetCircomVKeyByID(ctx context.Context, id uint64) (*parser.Circo
 }
 
 // UpdateVKey updates an existing verification key
-func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, keyBytes []byte, description string) error {
+func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) error {
 	// Get existing ID
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
@@ -318,18 +319,20 @@ func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, k
 		return err
 	}
 
-	decodedKeyBytes, err := types.DecodeAndValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes)
+	gasCost, err := k.ensureVKeySize(ctx, params, len(keyBytes))
 	if err != nil {
 		return err
 	}
+	// charge gas for vkey size
+	ctx.GasMeter().ConsumeGas(gasCost, "zk/UpdateVKey: vkey size cost")
 
-	if err := k.ensureVKeySize(ctx, params, len(decodedKeyBytes)); err != nil {
+	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
 		return err
 	}
 
 	// Update vkey
 	updatedVKey := types.VKey{
-		KeyBytes:    decodedKeyBytes,
+		KeyBytes:    keyBytes,
 		Name:        name,
 		Description: description,
 	}

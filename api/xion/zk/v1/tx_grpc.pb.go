@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Msg_AddVKey_FullMethodName    = "/xion.zk.v1.Msg/AddVKey"
-	Msg_UpdateVKey_FullMethodName = "/xion.zk.v1.Msg/UpdateVKey"
-	Msg_RemoveVKey_FullMethodName = "/xion.zk.v1.Msg/RemoveVKey"
+	Msg_AddVKey_FullMethodName      = "/xion.zk.v1.Msg/AddVKey"
+	Msg_UpdateVKey_FullMethodName   = "/xion.zk.v1.Msg/UpdateVKey"
+	Msg_RemoveVKey_FullMethodName   = "/xion.zk.v1.Msg/RemoveVKey"
+	Msg_UpdateParams_FullMethodName = "/xion.zk.v1.Msg/UpdateParams"
 )
 
 // MsgClient is the client API for Msg service.
@@ -36,6 +37,8 @@ type MsgClient interface {
 	UpdateVKey(ctx context.Context, in *MsgUpdateVKey, opts ...grpc.CallOption) (*MsgUpdateVKeyResponse, error)
 	// RemoveVKey removes a verification key
 	RemoveVKey(ctx context.Context, in *MsgRemoveVKey, opts ...grpc.CallOption) (*MsgRemoveVKeyResponse, error)
+	// UpdateParams updates zk module parameters via governance.
+	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 }
 
 type msgClient struct {
@@ -76,6 +79,16 @@ func (c *msgClient) RemoveVKey(ctx context.Context, in *MsgRemoveVKey, opts ...g
 	return out, nil
 }
 
+func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MsgUpdateParamsResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateParams_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility.
@@ -88,6 +101,8 @@ type MsgServer interface {
 	UpdateVKey(context.Context, *MsgUpdateVKey) (*MsgUpdateVKeyResponse, error)
 	// RemoveVKey removes a verification key
 	RemoveVKey(context.Context, *MsgRemoveVKey) (*MsgRemoveVKeyResponse, error)
+	// UpdateParams updates zk module parameters via governance.
+	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -106,6 +121,9 @@ func (UnimplementedMsgServer) UpdateVKey(context.Context, *MsgUpdateVKey) (*MsgU
 }
 func (UnimplementedMsgServer) RemoveVKey(context.Context, *MsgRemoveVKey) (*MsgRemoveVKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveVKey not implemented")
+}
+func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 func (UnimplementedMsgServer) testEmbeddedByValue()             {}
@@ -182,6 +200,24 @@ func _Msg_RemoveVKey_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateParams_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateParams(ctx, req.(*MsgUpdateParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +236,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveVKey",
 			Handler:    _Msg_RemoveVKey_Handler,
+		},
+		{
+			MethodName: "UpdateParams",
+			Handler:    _Msg_UpdateParams_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

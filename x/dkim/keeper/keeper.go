@@ -91,7 +91,7 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}
-	for _, dkimPubKey := range params.DkimPubkeys {
+	for _, dkimPubKey := range data.DkimPubkeys {
 		pk := apiv1.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
@@ -136,9 +136,9 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	if err != nil {
 		panic(err)
 	}
-	params.DkimPubkeys = dkimPubKeys
 
 	return &types.GenesisState{
+		DkimPubkeys: dkimPubKeys,
 		Params: params,
 	}
 }

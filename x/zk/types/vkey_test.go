@@ -16,13 +16,13 @@ var validVKeyBase64 = base64.StdEncoding.EncodeToString(validVKeyJSON)
 
 func TestValidateVKeyBytes(t *testing.T) {
 	t.Run("valid base64 vkey bytes", func(t *testing.T) {
-		err := types.ValidateVKeyBytes([]byte(validVKeyBase64))
+		err := types.ValidateVKeyBytes([]byte(validVKeyBase64), types.DefaultMaxVKeySizeBytes)
 		require.NoError(t, err)
 	})
 
 	t.Run("base64 vkey bytes with whitespace rejected", func(t *testing.T) {
 		encoded := base64.StdEncoding.EncodeToString(validVKeyJSON) + "\n"
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "whitespace")
 	})
@@ -30,26 +30,26 @@ func TestValidateVKeyBytes(t *testing.T) {
 	t.Run("base64 vkey bytes too large", func(t *testing.T) {
 		tooLarge := make([]byte, int(types.DefaultMaxVKeySizeBytes)+1)
 		encoded := base64.StdEncoding.EncodeToString(tooLarge)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrVKeyTooLarge)
 	})
 
 	t.Run("empty vkey bytes", func(t *testing.T) {
-		err := types.ValidateVKeyBytes([]byte{})
+		err := types.ValidateVKeyBytes([]byte{}, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "empty vkey data")
 	})
 
 	t.Run("nil vkey bytes", func(t *testing.T) {
-		err := types.ValidateVKeyBytes(nil)
+		err := types.ValidateVKeyBytes(nil, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "empty vkey data")
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
 		encoded := base64.StdEncoding.EncodeToString([]byte("{invalid json"))
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid verification key JSON")
 	})
@@ -67,7 +67,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unsupported protocol")
 	})
@@ -85,7 +85,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid nPublic")
 	})
@@ -103,7 +103,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid nPublic")
 	})
@@ -121,7 +121,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkAlpha1")
 	})
@@ -139,7 +139,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkBeta2")
 	})
@@ -157,7 +157,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes )
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkBeta2")
 	})
@@ -175,7 +175,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkGamma2")
 	})
@@ -193,7 +193,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkGamma2")
 	})
@@ -211,7 +211,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkDelta2")
 	})
@@ -229,7 +229,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkDelta2")
 	})
@@ -247,7 +247,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid IC length")
 	})
@@ -265,7 +265,7 @@ func TestValidateVKeyBytes(t *testing.T) {
 		}
 		data, _ := json.Marshal(vkey)
 		encoded := base64.StdEncoding.EncodeToString(data)
-		err := types.ValidateVKeyBytes([]byte(encoded))
+		err := types.ValidateVKeyBytes([]byte(encoded), types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid IC")
 	})

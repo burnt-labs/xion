@@ -1,13 +1,9 @@
 package integration_tests
 
 import (
-	"bytes"
-	"encoding/base64"
-	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/icza/dyno"
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
@@ -88,19 +84,21 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "dkim-max-size", math.NewInt(10_000_000_000), xion)
 	chainUser := users[0]
 
-	// Fetch current max pubkey size from params.
-	paramsResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "params")
-	require.NoError(t, err)
-	paramsVal, err := dyno.Get(paramsResp, "params")
-	require.NoError(t, err)
-	maxSizeStr, err := dyno.GetString(paramsVal, "max_pubkey_size_bytes")
-	require.NoError(t, err)
-	maxSize, err := strconv.ParseUint(maxSizeStr, 10, 64)
-	require.NoError(t, err)
-
 	// Craft an oversized base64 key (decoded length = maxSize + 1).
-	rawOversized := bytes.Repeat([]byte{0x42}, int(maxSize+1))
-	oversizedPubKey := base64.StdEncoding.EncodeToString(rawOversized)
+	basePubKey := []byte("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB")
+	basePubKeySize := uint64(len(basePubKey))
+	// set maxSize param to half the basePubKeySize to ensure our key is oversized
+	updatedParams := dkimTypes.Params{
+		VkeyIdentifier:     uint64(1),
+		MaxPubkeySizeBytes: basePubKeySize - 1,
+	}
+	updateParamsMsg := &dkimTypes.MsgUpdateParams{
+		Authority: testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName),
+		Params:    updatedParams,
+	}
+	proposalID := proposalTracker.NextID()
+	err := testlib.SubmitAndPassProposal(t, ctx, xion, chainUser, []cosmos.ProtoMessage{updateParamsMsg}, "Update DKIM Params", "Set max pubkey size smaller to trigger oversize", "", proposalID)
+	require.NoError(t, err)
 
 	govModAddress := testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName)
 	oversizedMsg := &dkimTypes.MsgAddDkimPubKeys{
@@ -108,7 +106,7 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 		DkimPubkeys: []dkimTypes.DkimPubKey{{
 			Domain:       "oversize.example.com",
 			Selector:     "too-big",
-			PubKey:       oversizedPubKey,
+			PubKey:       string(basePubKey),
 			PoseidonHash: []byte("hash"),
 		}},
 	}
@@ -126,7 +124,7 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 	require.NoError(t, err)
 
 	// Submit proposal (should go into voting), then vote yes and confirm it fails execution.
-	proposalID := proposalTracker.NextID()
+	proposalID = proposalTracker.NextID()
 	submitHash, err := xion.SubmitProposal(ctx, chainUser.KeyName(), proposal)
 	require.NoError(t, err)
 	t.Logf("Submitted oversized DKIM proposal tx: %v", submitHash)

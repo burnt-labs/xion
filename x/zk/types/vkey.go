@@ -2,95 +2,35 @@
 package types
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"math"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/vocdoni/circom2gnark/parser"
 )
 
-// ValidateVKeyBytes enforces base64 encoding, decodes, and validates the resulting verification key.
-func ValidateVKeyBytes(data []byte) error {
-	_, err := DecodeAndValidateVKeyBytes(data, DefaultMaxVKeySizeBytes)
-	return err
-}
-
-// DecodeAndValidateVKeyBytes decodes base64 vkey bytes, enforces size/whitespace limits,
-// and validates the resulting verification key JSON.
-func DecodeAndValidateVKeyBytes(data []byte, maxDecodedSize uint64) ([]byte, error) {
-	decoded, err := NormalizeVKeyBytes(data, maxDecodedSize)
-	if err != nil {
-		return nil, err
+func ValidateVKeyByteSize(data []byte, maxSizeBytes uint64) error {
+	if maxSizeBytes > 0 && uint64(len(data)) > maxSizeBytes {
+		return errorsmod.Wrapf(ErrVKeyTooLarge, "vkey size %d exceeds max %d", len(data), maxSizeBytes)
 	}
-
+	return nil
+}
+// ValidateVKeyBytes enforces that the vkey bytes represent a valid CircomVerificationKey JSON structure.
+func ValidateVKeyBytes(data []byte, maxDecodedSize uint64) error {
+	if err := ValidateVKeyByteSize(data, maxDecodedSize); err != nil {
+		return err
+	}
 	// Validate by attempting to unmarshal
-	vk, err := parser.UnmarshalCircomVerificationKeyJSON(decoded)
+	vk, err := parser.UnmarshalCircomVerificationKeyJSON(data)
 	if err != nil {
-		return nil, fmt.Errorf("invalid verification key JSON: %w", err)
+		return errorsmod.Wrapf(ErrInvalidVKey, "failed to unmarshal vkey bytes as circom vkey: %v", err)
 	}
 
 	// Validate the unmarshaled verification key
 	if err := validateCircomVerificationKey(vk); err != nil {
-		return nil, err
+		return errorsmod.Wrapf(ErrInvalidVKey, "invalid circom verification key: %v", err)
 	}
-
-	return decoded, nil
-}
-
-// NormalizeVKeyBytes decodes base64-encoded vkey bytes after size/whitespace checks.
-func NormalizeVKeyBytes(data []byte, maxDecodedSize uint64) ([]byte, error) {
-	if len(data) == 0 {
-		return nil, fmt.Errorf("empty vkey data")
-	}
-
-	return decodeBase64VKeyBytes(data, maxDecodedSize)
-}
-
-func decodeBase64VKeyBytes(data []byte, maxDecodedSize uint64) ([]byte, error) {
-	if err := rejectBase64VKeyWhitespace(data); err != nil {
-		return nil, err
-	}
-
-	maxEncodedLen, err := maxBase64EncodedLen(maxDecodedSize)
-	if err != nil {
-		return nil, err
-	}
-
-	if maxDecodedSize > 0 && len(data) > maxEncodedLen {
-		return nil, errorsmod.Wrapf(ErrVKeyTooLarge, "encoded vkey length %d exceeds max %d", len(data), maxEncodedLen)
-	}
-
-	decoded, err := base64.StdEncoding.DecodeString(string(data))
-	if err != nil {
-		return nil, errorsmod.Wrap(ErrInvalidVKey, err.Error())
-	}
-
-	if maxDecodedSize > 0 && uint64(len(decoded)) > maxDecodedSize {
-		return nil, errorsmod.Wrapf(ErrVKeyTooLarge, "decoded vkey size %d exceeds max %d", len(decoded), maxDecodedSize)
-	}
-
-	return decoded, nil
-}
-
-func rejectBase64VKeyWhitespace(data []byte) error {
-	for _, b := range data {
-		switch b {
-		case ' ', '\n', '\r', '\t':
-			return errorsmod.Wrap(ErrInvalidVKey, "base64 vkey contains whitespace")
-		}
-	}
-
 	return nil
-}
-
-func maxBase64EncodedLen(maxDecodedSize uint64) (int, error) {
-	if maxDecodedSize > math.MaxInt {
-		return 0, errorsmod.Wrapf(ErrVKeyTooLarge, "max_vkey_size_bytes %d exceeds supported range", maxDecodedSize)
-	}
-
-	return base64.StdEncoding.EncodedLen(int(maxDecodedSize)), nil
 }
 
 // validateCircomVerificationKey validates the structure and fields of a CircomVerificationKey
@@ -185,13 +125,12 @@ func MarshalVKey(vk *parser.CircomVerificationKey) ([]byte, error) {
 
 // NewVKeyFromBytes creates a VKey from raw JSON bytes with validation
 func NewVKeyFromBytes(keyBytes []byte, name, description string) (*VKey, error) {
-	decoded, err := DecodeAndValidateVKeyBytes(keyBytes, DefaultMaxVKeySizeBytes)
-	if err != nil {
+	if err := ValidateVKeyBytes(keyBytes, 0); err != nil {
 		return nil, err
 	}
 
 	return &VKey{
-		KeyBytes:    decoded,
+		KeyBytes:    keyBytes,
 		Name:        name,
 		Description: description,
 	}, nil

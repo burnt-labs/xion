@@ -29,7 +29,7 @@ func (m *MsgAddVKey) ValidateBasic() error {
 	}
 
 	// Validate using the parser library
-	if err := ValidateVKeyBytes(m.VkeyBytes); err != nil {
+	if err := ValidateVKeyBytes(m.VkeyBytes, 0); err != nil {
 		return fmt.Errorf("invalid vkey_bytes: %w", err)
 	}
 
@@ -49,12 +49,6 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 	if len(m.VkeyBytes) == 0 {
 		return fmt.Errorf("vkey_bytes cannot be empty")
 	}
-
-	// Validate using the parser library
-	if err := ValidateVKeyBytes(m.VkeyBytes); err != nil {
-		return fmt.Errorf("invalid vkey_bytes: %w", err)
-	}
-
 	return nil
 }
 

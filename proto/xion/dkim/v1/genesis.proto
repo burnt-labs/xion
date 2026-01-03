@@ -11,6 +11,8 @@ option go_package = "github.com/burnt-labs/xion/x/dkim/types";
 message GenesisState {
   // Params defines all the parameters of the module.
   Params params = 1 [ (gogoproto.nullable) = false ];
+
+  repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
 }
 
 // Params defines the set of module parameters.
@@ -22,8 +24,6 @@ message Params {
   // vkey defines the verification key used by the module.
   uint64 vkey_identifier = 1;
 
-  repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
-
   // max_pubkey_size_bytes caps the allowed DKIM public key size (base64 decoded).
-  uint64 max_pubkey_size_bytes = 3;
+  uint64 max_pubkey_size_bytes = 2;
 }

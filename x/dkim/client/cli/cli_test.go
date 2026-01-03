@@ -749,13 +749,6 @@ func TestQueryParams(t *testing.T) {
 				return &types.QueryParamsResponse{
 					Params: &types.Params{
 						VkeyIdentifier: 42,
-						DkimPubkeys: []types.DkimPubKey{
-							{
-								Domain:   "example.com",
-								Selector: "default",
-								PubKey:   "testkey",
-							},
-						},
 					},
 				}, nil
 			},
@@ -766,8 +759,6 @@ func TestQueryParams(t *testing.T) {
 		require.NotNil(t, res)
 		require.NotNil(t, res.Params)
 		require.Equal(t, uint64(42), res.Params.VkeyIdentifier)
-		require.Len(t, res.Params.DkimPubkeys, 1)
-		require.Equal(t, "example.com", res.Params.DkimPubkeys[0].Domain)
 	})
 
 	t.Run("query error", func(t *testing.T) {
@@ -789,7 +780,6 @@ func TestQueryParams(t *testing.T) {
 				return &types.QueryParamsResponse{
 					Params: &types.Params{
 						VkeyIdentifier: 0,
-						DkimPubkeys:    []types.DkimPubKey{},
 					},
 				}, nil
 			},
@@ -800,7 +790,6 @@ func TestQueryParams(t *testing.T) {
 		require.NotNil(t, res)
 		require.NotNil(t, res.Params)
 		require.Equal(t, uint64(0), res.Params.VkeyIdentifier)
-		require.Empty(t, res.Params.DkimPubkeys)
 	})
 
 	t.Run("params with multiple dkim pubkeys", func(t *testing.T) {
@@ -809,11 +798,6 @@ func TestQueryParams(t *testing.T) {
 				return &types.QueryParamsResponse{
 					Params: &types.Params{
 						VkeyIdentifier: 1,
-						DkimPubkeys: []types.DkimPubKey{
-							{Domain: "gmail.com", Selector: "20230601"},
-							{Domain: "yahoo.com", Selector: "s1024"},
-							{Domain: "outlook.com", Selector: "selector1"},
-						},
 					},
 				}, nil
 			},
@@ -822,7 +806,6 @@ func TestQueryParams(t *testing.T) {
 		res, err := cli.QueryParams(mockClient, cmd)
 		require.NoError(t, err)
 		require.NotNil(t, res)
-		require.Len(t, res.Params.DkimPubkeys, 3)
 	})
 
 	t.Run("params with large vkey identifier", func(t *testing.T) {
@@ -831,7 +814,6 @@ func TestQueryParams(t *testing.T) {
 				return &types.QueryParamsResponse{
 					Params: &types.Params{
 						VkeyIdentifier: 18446744073709551615, // max uint64
-						DkimPubkeys:    []types.DkimPubKey{},
 					},
 				}, nil
 			},
@@ -1589,16 +1571,6 @@ func TestQueryParamsExtended(t *testing.T) {
 				return &types.QueryParamsResponse{
 					Params: &types.Params{
 						VkeyIdentifier: 100,
-						DkimPubkeys: []types.DkimPubKey{
-							{
-								Domain:       "gmail.com",
-								Selector:     "20230601",
-								PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...",
-								PoseidonHash: []byte("somehash"),
-								Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-								KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-							},
-						},
 					},
 				}, nil
 			},
@@ -1609,11 +1581,6 @@ func TestQueryParamsExtended(t *testing.T) {
 		require.NotNil(t, res)
 		require.NotNil(t, res.Params)
 		require.Equal(t, uint64(100), res.Params.VkeyIdentifier)
-		require.Len(t, res.Params.DkimPubkeys, 1)
-		require.Equal(t, "gmail.com", res.Params.DkimPubkeys[0].Domain)
-		require.Equal(t, "20230601", res.Params.DkimPubkeys[0].Selector)
-		require.NotEmpty(t, res.Params.DkimPubkeys[0].PubKey)
-		require.NotEmpty(t, res.Params.DkimPubkeys[0].PoseidonHash)
 	})
 }
 
