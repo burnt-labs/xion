@@ -215,6 +215,55 @@ func TestMsgRemoveVKey_ValidateBasic(t *testing.T) {
 	})
 }
 
+func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
+	validAuthority := getValidAuthority()
+
+	t.Run("valid message", func(t *testing.T) {
+		msg := &types.MsgUpdateParams{
+			Authority: validAuthority,
+			Params:    types.DefaultParams(),
+		}
+		err := msg.ValidateBasic()
+		require.NoError(t, err)
+	})
+
+	t.Run("invalid authority address", func(t *testing.T) {
+		msg := &types.MsgUpdateParams{
+			Authority: "bad-authority",
+			Params:    types.DefaultParams(),
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid authority address")
+	})
+
+	t.Run("invalid params", func(t *testing.T) {
+		msg := &types.MsgUpdateParams{
+			Authority: validAuthority,
+			Params: types.Params{
+				MaxVkeySizeBytes: 0,
+				UploadChunkSize:  1,
+				UploadChunkGas:   1,
+			},
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "max_vkey_size_bytes must be positive")
+	})
+}
+
+func TestMsgUpdateParams_GetSigners(t *testing.T) {
+	authority := getValidAuthority()
+	msg := &types.MsgUpdateParams{
+		Authority: authority,
+		Params:    types.DefaultParams(),
+	}
+
+	signers := msg.GetSigners()
+	require.Len(t, signers, 1)
+	require.Equal(t, authority, signers[0].String())
+}
+
 func TestMsgTypes_ImplementSdkMsg(t *testing.T) {
 	t.Run("MsgAddVKey implements sdk.Msg", func(t *testing.T) {
 		var _ sdk.Msg = &types.MsgAddVKey{}

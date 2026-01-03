@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -46,4 +47,12 @@ func TestGasCostForSize(t *testing.T) {
 
 	_, err = params.GasCostForSize(params.MaxVkeySizeBytes + 1)
 	require.ErrorIs(t, err, types.ErrVKeyTooLarge)
+}
+
+func TestParamsString(t *testing.T) {
+	params := types.NewParams(42, 7, 9000)
+
+	expected, err := json.Marshal(params)
+	require.NoError(t, err)
+	require.Equal(t, string(expected), params.String())
 }

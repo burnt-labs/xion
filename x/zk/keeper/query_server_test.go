@@ -1102,3 +1102,19 @@ func TestQueryNextVKeyIDSequential(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, startID+uint64(numVKeys), finalResp.NextId)
 }
+
+func TestQueryParams(t *testing.T) {
+	f := SetupTest(t)
+
+	customParams := types.Params{
+		MaxVkeySizeBytes: 1024,
+		UploadChunkSize:  32,
+		UploadChunkGas:   500,
+	}
+	err := f.k.Params.Set(f.ctx, customParams)
+	require.NoError(t, err)
+
+	resp, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+	require.NoError(t, err)
+	require.Equal(t, customParams, resp.Params)
+}

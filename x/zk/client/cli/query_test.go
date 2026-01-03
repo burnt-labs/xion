@@ -23,7 +23,7 @@ func TestGetQueryCmd(t *testing.T) {
 		cmd := cli.GetQueryCmd()
 		subcommands := cmd.Commands()
 
-		// Should have 5 subcommands
+		// Should have 6 subcommands
 		require.Len(t, subcommands, 6)
 
 		// Verify subcommand names
@@ -37,6 +37,7 @@ func TestGetQueryCmd(t *testing.T) {
 		require.True(t, names["vkeys"])
 		require.True(t, names["has-vkey [name]"])
 		require.True(t, names["verify-proof [proof-file]"])
+		require.True(t, names["params"])
 	})
 
 	t.Run("short description is set", func(t *testing.T) {
@@ -216,6 +217,35 @@ func TestGetCmdQueryHasVKey(t *testing.T) {
 		require.NotEmpty(t, cmd.Example)
 		require.Contains(t, cmd.Example, "email_auth")
 		require.Contains(t, cmd.Example, "rollup_circuit")
+	})
+}
+
+// ============================================================================
+// GetCmdQueryParams Tests
+// ============================================================================
+
+func TestGetCmdQueryParams(t *testing.T) {
+	t.Run("returns valid command", func(t *testing.T) {
+		cmd := cli.GetCmdQueryParams()
+		require.NotNil(t, cmd)
+		require.Equal(t, "params", cmd.Use)
+		require.Contains(t, cmd.Short, "parameters")
+	})
+
+	t.Run("has query flags", func(t *testing.T) {
+		cmd := cli.GetCmdQueryParams()
+		flags := cmd.Flags()
+		require.NotNil(t, flags)
+
+		nodeFlag := flags.Lookup("node")
+		require.NotNil(t, nodeFlag)
+	})
+
+	t.Run("RunE fails without client context", func(t *testing.T) {
+		cmd := cli.GetCmdQueryParams()
+
+		err := cmd.Execute()
+		require.Error(t, err)
 	})
 }
 
