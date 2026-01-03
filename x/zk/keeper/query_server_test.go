@@ -342,7 +342,7 @@ var vkeyJSON = []byte(`{
 	]
 }`)
 
-var vkeyData = []byte(base64.StdEncoding.EncodeToString(vkeyJSON))
+var vkeyData = vkeyJSON
 
 func TestQueryProofVerify(t *testing.T) {
 	f := SetupTest(t)
