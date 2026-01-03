@@ -411,6 +411,61 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 	})
 }
 
+func TestMsgServer_UpdateParams(t *testing.T) {
+	t.Run("updates params with matching authority", func(t *testing.T) {
+		f := SetupTest(t)
+
+		newParams := types.Params{
+			MaxVkeySizeBytes: 512,
+			UploadChunkSize:  16,
+			UploadChunkGas:   2_000,
+		}
+
+		resp, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+
+		stored, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, newParams, stored)
+	})
+
+	t.Run("rejects mismatched authority", func(t *testing.T) {
+		f := SetupTest(t)
+
+		resp, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.addrs[0].String(),
+			Params:    types.DefaultParams(),
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.ErrorIs(t, err, types.ErrInvalidAuthority)
+	})
+
+	t.Run("rejects invalid params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		resp, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params: types.Params{
+				MaxVkeySizeBytes: 0,
+				UploadChunkSize:  1,
+				UploadChunkGas:   1,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+		// Params remain unchanged when validation fails.
+		current, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, types.DefaultParams(), current)
+	})
+}
+
 func TestMsgServer_FullLifecycle(t *testing.T) {
 	f := SetupTest(t)
 
