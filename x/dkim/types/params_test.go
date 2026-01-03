@@ -37,7 +37,6 @@ func TestParams_String(t *testing.T) {
 }
 
 func TestParams_Validate(t *testing.T) {
-
 	t.Run("default params are valid", func(t *testing.T) {
 		params := types.DefaultParams()
 		err := params.Validate()

@@ -139,7 +139,7 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 
 	return &types.GenesisState{
 		DkimPubkeys: dkimPubKeys,
-		Params: params,
+		Params:      params,
 	}
 }
 

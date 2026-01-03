@@ -369,7 +369,7 @@ func TestAppModule_InitGenesis(t *testing.T) {
 		appModule := dkimmodule.NewAppModule(encCfg.Codec, k)
 
 		emptyGenesis := types.GenesisState{
-			DkimPubkeys:    []types.DkimPubKey{},
+			DkimPubkeys: []types.DkimPubKey{},
 			Params: types.Params{
 				VkeyIdentifier: 1,
 			},
@@ -489,7 +489,7 @@ func TestAppModule_ExportGenesis(t *testing.T) {
 		appModule := dkimmodule.NewAppModule(encCfg.Codec, k)
 
 		emptyGenesis := types.GenesisState{
-			DkimPubkeys:    []types.DkimPubKey{},
+			DkimPubkeys: []types.DkimPubKey{},
 			Params: types.Params{
 				VkeyIdentifier: 0,
 			},

@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	"cosmossdk.io/errors"
-	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkError "github.com/cosmos/cosmos-sdk/types/errors"
@@ -50,7 +49,7 @@ func (msg *MsgAddDkimPubKeys) ValidateBasic() error {
 	}
 	for _, dkimPubKey := range msg.DkimPubkeys {
 		if err := ValidateDkimPubKey(dkimPubKey); err != nil {
-			return errorsmod.Wrapf(ErrInvalidPubKey, "error validating pubkeys: %v", err)
+			return errors.Wrapf(ErrInvalidPubKey, "error validating pubkeys: %v", err)
 		}
 	}
 	return nil

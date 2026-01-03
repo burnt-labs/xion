@@ -109,7 +109,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 		if err := types.ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes); err != nil {
 			panic(err)
 		}
-		vkeyWithID.Vkey.KeyBytes = vkeyWithID.Vkey.KeyBytes
 
 		// Set the vkey
 		if err := k.VKeys.Set(ctx, vkeyWithID.Id, vkeyWithID.Vkey); err != nil {
@@ -190,7 +189,7 @@ func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
 	return k.Params.Set(ctx, params)
 }
 
-func (k Keeper) ensureVKeySize(ctx sdk.Context, params types.Params, size int) (uint64, error) {
+func (k Keeper) ensureVKeySize(params types.Params, size int) (uint64, error) {
 	gasCost, err := params.GasCostForSize(uint64(size))
 	return gasCost, err
 }
@@ -220,7 +219,7 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 		return 0, err
 	}
 
-	gasCost, err := k.ensureVKeySize(ctx, params, len(keyBytes))
+	gasCost, err := k.ensureVKeySize(params, len(keyBytes))
 	if err != nil {
 		return 0, err
 	}
@@ -319,7 +318,7 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 		return err
 	}
 
-	gasCost, err := k.ensureVKeySize(ctx, params, len(keyBytes))
+	gasCost, err := k.ensureVKeySize(params, len(keyBytes))
 	if err != nil {
 		return err
 	}

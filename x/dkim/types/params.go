@@ -15,7 +15,7 @@ func DefaultParams() Params {
 	vkeyIdentifier := uint64(1)
 
 	return Params{
-		VkeyIdentifier: vkeyIdentifier,
+		VkeyIdentifier:     vkeyIdentifier,
 		MaxPubkeySizeBytes: DefaultMaxPubKeySizeBytes,
 	}
 }
