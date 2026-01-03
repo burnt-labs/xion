@@ -50,7 +50,6 @@ func (m *MockQueryClient) Params(ctx context.Context, req *types.QueryParamsRequ
 	return &types.QueryParamsResponse{
 		Params: &types.Params{
 			VkeyIdentifier: 1,
-			DkimPubkeys:    []types.DkimPubKey{},
 		},
 	}, nil
 }

@@ -6,24 +6,33 @@ import (
 	"fmt"
 
 	"github.com/vocdoni/circom2gnark/parser"
+
+	errorsmod "cosmossdk.io/errors"
 )
 
-// ValidateVKeyBytes validates that the bytes can be unmarshaled into a CircomVerificationKey
-// and that it contains all required parameters for a valid groth16 verification key.
-// It validates both affine and projective form representations.
-func ValidateVKeyBytes(data []byte) error {
-	if len(data) == 0 {
-		return fmt.Errorf("empty vkey data")
+func ValidateVKeyByteSize(data []byte, maxSizeBytes uint64) error {
+	if maxSizeBytes > 0 && uint64(len(data)) > maxSizeBytes {
+		return errorsmod.Wrapf(ErrVKeyTooLarge, "vkey size %d exceeds max %d", len(data), maxSizeBytes)
 	}
+	return nil
+}
 
+// ValidateVKeyBytes enforces that the vkey bytes represent a valid CircomVerificationKey JSON structure.
+func ValidateVKeyBytes(data []byte, maxDecodedSize uint64) error {
+	if err := ValidateVKeyByteSize(data, maxDecodedSize); err != nil {
+		return err
+	}
 	// Validate by attempting to unmarshal
 	vk, err := parser.UnmarshalCircomVerificationKeyJSON(data)
 	if err != nil {
-		return fmt.Errorf("invalid verification key JSON: %w", err)
+		return errorsmod.Wrapf(ErrInvalidVKey, "failed to unmarshal vkey bytes as circom vkey: %v", err)
 	}
 
 	// Validate the unmarshaled verification key
-	return validateCircomVerificationKey(vk)
+	if err := validateCircomVerificationKey(vk); err != nil {
+		return errorsmod.Wrapf(ErrInvalidVKey, "invalid circom verification key: %v", err)
+	}
+	return nil
 }
 
 // validateCircomVerificationKey validates the structure and fields of a CircomVerificationKey
@@ -118,8 +127,7 @@ func MarshalVKey(vk *parser.CircomVerificationKey) ([]byte, error) {
 
 // NewVKeyFromBytes creates a VKey from raw JSON bytes with validation
 func NewVKeyFromBytes(keyBytes []byte, name, description string) (*VKey, error) {
-	// Validate the bytes
-	if err := ValidateVKeyBytes(keyBytes); err != nil {
+	if err := ValidateVKeyBytes(keyBytes, 0); err != nil {
 		return nil, err
 	}
 

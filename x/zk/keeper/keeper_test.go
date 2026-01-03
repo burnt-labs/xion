@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -563,6 +564,14 @@ func TestAddVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name:        "successfully add with non-governance authority",
+			authority:   f.addrs[0].String(),
+			vkeyName:    "user_added",
+			vkeyBytes:   createTestVKeyBytes("user_added"),
+			description: "Added by user account",
+			expectError: false,
+		},
+		{
 			name:        "fail to add duplicate vkey name",
 			authority:   f.govModAddr,
 			vkeyName:    "email_auth",
@@ -570,15 +579,6 @@ func TestAddVKey(t *testing.T) {
 			description: "Duplicate",
 			expectError: true,
 			errorMsg:    "already exists",
-		},
-		{
-			name:        "fail to add with incorrect authority",
-			authority:   f.addrs[0].String(),
-			vkeyName:    "unauthorized",
-			vkeyBytes:   createTestVKeyBytes("unauthorized"),
-			description: "Unauthorized",
-			expectError: true,
-			errorMsg:    "invalid authority",
 		},
 		{
 			name:        "fail to add with empty vkey bytes",
@@ -617,6 +617,7 @@ func TestAddVKey(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, tt.vkeyName, storedVKey.Name)
 				require.Equal(t, tt.description, storedVKey.Description)
+
 				require.Equal(t, tt.vkeyBytes, storedVKey.KeyBytes)
 			}
 		})
@@ -809,13 +810,12 @@ func TestUpdateVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "fail to update with incorrect authority",
+			name:        "successfully update with non-governance authority",
 			authority:   f.addrs[0].String(),
 			vkeyName:    "email_auth",
 			newBytes:    createTestVKeyBytes("email_auth"),
-			description: "Unauthorized",
-			expectError: true,
-			errorMsg:    "invalid authority",
+			description: "User updated description",
+			expectError: false,
 		},
 		{
 			name:        "fail to update non-existent vkey",
@@ -876,16 +876,15 @@ func TestRemoveVKey(t *testing.T) {
 		errorMsg    string
 	}{
 		{
-			name:        "fail to remove with incorrect authority",
-			authority:   f.addrs[0].String(),
-			vkeyName:    "key1",
-			expectError: true,
-			errorMsg:    "invalid authority",
-		},
-		{
 			name:        "successfully remove vkey",
 			authority:   f.govModAddr,
 			vkeyName:    "key1",
+			expectError: false,
+		},
+		{
+			name:        "successfully remove with non-governance authority",
+			authority:   f.addrs[0].String(),
+			vkeyName:    "key2",
 			expectError: false,
 		},
 		{
@@ -1245,28 +1244,28 @@ func TestValidateVKeyBytes(t *testing.T) {
 			name:        "empty data",
 			data:        []byte{},
 			expectError: true,
-			errorMsg:    "empty vkey data",
+			errorMsg:    "invalid verification key",
 		},
 		{
 			name:        "invalid json",
-			data:        []byte("not json"),
+			data:        []byte(base64.StdEncoding.EncodeToString([]byte("not json"))),
 			expectError: true,
-			errorMsg:    "invalid verification key JSON",
+			errorMsg:    "invalid verification key",
 		},
 		{
 			name: "missing required fields",
-			data: []byte(`{
+			data: []byte(base64.StdEncoding.EncodeToString([]byte(`{
 				"protocol": "groth16",
 				"curve": "bn128"
-			}`),
+			}`))),
 			expectError: true,
-			errorMsg:    "invalid nPublic: 0 (must be greater than 0)",
+			errorMsg:    "invalid verification key",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := types.ValidateVKeyBytes(tt.data)
+			err := types.ValidateVKeyBytes(tt.data, 0)
 
 			if tt.expectError {
 				require.Error(t, err)

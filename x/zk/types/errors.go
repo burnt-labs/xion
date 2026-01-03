@@ -15,4 +15,6 @@ var (
 	ErrInvalidVKey         = errorsmod.Register(ModuleName, 1105, "invalid verification key")
 	ErrIncreaseSequenceID  = errorsmod.Register(ModuleName, 1106, "error increasing sequence ID")
 	ErrInvalidRequest      = errorsmod.Register(ModuleName, 1107, "invalid request")
+	ErrVKeyTooLarge        = errorsmod.Register(ModuleName, 1108, "verification key exceeds maximum size")
+	ErrInvalidParams       = errorsmod.Register(ModuleName, 1109, "invalid zk module parameters")
 )
