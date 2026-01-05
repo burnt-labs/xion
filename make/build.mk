@@ -23,7 +23,7 @@ GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
 GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
 GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
-XION_IMAGE ?= xiond:local
+XION_IMAGE ?= local/xiond:local
 
 # Build tags processing
 build_tags = netgo
@@ -123,7 +123,7 @@ build-docker:
 build-docker-arm64 build-docker-amd64:
 	$(MAKE) build-docker \
 		GOARCH=$(if $(findstring arm64,$@),arm64,amd64) \
-		XION_IMAGE="xiond:$(GOARCH)"
+		XION_IMAGE="local/xiond:$(GOARCH)"
 
 build-heighliner build-heighliner-amd64 build-heighliner-arm64:
 	$(MAKE) build-docker \

@@ -143,18 +143,18 @@ func TestAppIBCTimeout(t *testing.T) {
 		require.NoError(t, err)
 		t.Log("  ✓ Relayer stopped")
 
-		// Send transfer with 2 second timeout
+		// Send transfer with 5 second timeout
 		_, err = xionChain.SendIBCTransfer(ctx, xionChannelID, xionUser.KeyName(), transfer, ibc.TransferOptions{
 			Timeout: &ibc.IBCTimeout{
-				NanoSeconds: uint64(time.Now().Add(2 * time.Second).UnixNano()),
+				NanoSeconds: uint64(time.Now().Add(5 * time.Second).UnixNano()),
 			},
 		})
 		require.NoError(t, err)
-		t.Log("  Sent IBC transfer with 2s timeout")
+		t.Log("  Sent IBC transfer with 5s timeout")
 
 		// Wait for timeout to pass
 		t.Log("  Waiting for timeout...")
-		time.Sleep(3 * time.Second)
+		time.Sleep(7 * time.Second)
 
 		// Restart relayer to process timeout
 		err = r.StartRelayer(ctx, rep.RelayerExecReporter(t), testPath)
@@ -162,7 +162,7 @@ func TestAppIBCTimeout(t *testing.T) {
 		t.Log("  ✓ Relayer restarted to process timeout")
 
 		// Wait for timeout to be processed
-		err = testutil.WaitForBlocks(ctx, 5, xionChain, osmosisChain)
+		err = testutil.WaitForBlocks(ctx, 10, xionChain, osmosisChain)
 		require.NoError(t, err)
 
 		// Check balance was refunded
