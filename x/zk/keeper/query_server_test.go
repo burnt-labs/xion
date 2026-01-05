@@ -81,7 +81,7 @@ var publicInputs = []string{
 }
 
 // Define the vkey here to be used in the test
-var vkeyData = []byte(`{
+var vkeyJSON = []byte(`{
     "protocol": "groth16",
     "curve": "bn128",
     "nPublic": 34,
@@ -338,8 +338,10 @@ var vkeyData = []byte(`{
             "8779231572110654158986828194215557939293838391946454691845714237981588017427",
             "1"
         ]
-    ]
+	]
 }`)
+
+var vkeyData = vkeyJSON
 
 func TestQueryProofVerify(t *testing.T) {
 	f := SetupTest(t)
@@ -349,7 +351,7 @@ func TestQueryProofVerify(t *testing.T) {
 	require.NoError(t, err)
 
 	// Add an invalid vkey for error testing
-	invalidVKeyBytes := []byte(`{
+	invalidVKey := []byte(`{
 		"protocol": "groth16",
 		"curve": "bn128",
 		"nPublic": 2,
@@ -363,7 +365,7 @@ func TestQueryProofVerify(t *testing.T) {
 			["19", "20", "1"]
 		]
 	}`)
-	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKeyBytes, "Invalid circuit for testing")
+	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKey, "Invalid circuit for testing")
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -507,7 +509,7 @@ func TestQueryProofVerifyWithStoredVKey(t *testing.T) {
 	storedVKey, err := f.k.GetVKeyByName(f.ctx, "email_auth")
 	require.NoError(t, err)
 	require.Equal(t, "email_auth", storedVKey.Name)
-	require.Equal(t, vkeyData, storedVKey.KeyBytes)
+	require.Equal(t, vkeyJSON, storedVKey.KeyBytes)
 
 	// 3. Verify we can retrieve it as CircomVerificationKey
 	circomVKey, err := f.k.GetCircomVKeyByName(f.ctx, "email_auth")
@@ -1099,4 +1101,20 @@ func TestQueryNextVKeyIDSequential(t *testing.T) {
 	finalResp, err := f.queryServer.NextVKeyID(f.ctx, &types.QueryNextVKeyIDRequest{})
 	require.NoError(t, err)
 	require.Equal(t, startID+uint64(numVKeys), finalResp.NextId)
+}
+
+func TestQueryParams(t *testing.T) {
+	f := SetupTest(t)
+
+	customParams := types.Params{
+		MaxVkeySizeBytes: 1024,
+		UploadChunkSize:  32,
+		UploadChunkGas:   500,
+	}
+	err := f.k.Params.Set(f.ctx, customParams)
+	require.NoError(t, err)
+
+	resp, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
+	require.NoError(t, err)
+	require.Equal(t, customParams, resp.Params)
 }

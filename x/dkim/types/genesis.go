@@ -17,7 +17,14 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	if err := gs.Params.Validate(); err != nil {
+	params := gs.Params
+	if params.MaxPubkeySizeBytes == 0 {
+		params.MaxPubkeySizeBytes = DefaultMaxPubKeySizeBytes
+	}
+	if err := params.Validate(); err != nil {
+		return err
+	}
+	if err := ValidateDkimPubKeys(gs.DkimPubkeys, params); err != nil {
 		return err
 	}
 	return nil

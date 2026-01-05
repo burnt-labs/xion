@@ -26,48 +26,45 @@ func TestGenesis(t *testing.T) {
 		{
 			name: "success, with dkim records",
 			request: &types.GenesisState{
-				Params: types.Params{
-					DkimPubkeys: []types.DkimPubKey{
-						{
-							Domain:       "x.com",
-							Selector:     "test",
-							PubKey:       testPubKey,
-							PoseidonHash: []byte(hash.String()),
-						},
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:       "x.com",
+						Selector:     "test",
+						PubKey:       testPubKey,
+						PoseidonHash: []byte(hash.String()),
 					},
 				},
+				Params: types.Params{},
 			},
 			err: false,
 		},
 		{
 			name: "fail, invalid dkim record",
 			request: &types.GenesisState{
-				Params: types.Params{
-					DkimPubkeys: []types.DkimPubKey{
-						{
-							Domain:       "x.com",
-							Selector:     "test",
-							PubKey:       "invalid",
-							PoseidonHash: hash.Bytes(),
-						},
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:       "x.com",
+						Selector:     "test",
+						PubKey:       "invalid",
+						PoseidonHash: hash.Bytes(),
 					},
 				},
+				Params: types.Params{},
 			},
 			err: true,
 		},
 		{
 			name: "fail, invalid data",
 			request: &types.GenesisState{
-				Params: types.Params{
-					DkimPubkeys: []types.DkimPubKey{
-						{
-							Domain:       "x.com",
-							PubKey:       "test!@#", // invalid base64 characters
-							Selector:     "test",
-							PoseidonHash: []byte("test"),
-						},
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:       "x.com",
+						PubKey:       "test!@#", // invalid base64 characters
+						Selector:     "test",
+						PoseidonHash: []byte("test"),
 					},
 				},
+				Params: types.Params{},
 			},
 			err: true,
 		},
@@ -116,34 +113,33 @@ func TestInitGenesisExtended(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "init-test1.com",
-						Selector:     "selector1",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
-					{
-						Domain:       "init-test2.com",
-						Selector:     "selector2",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
-					{
-						Domain:       "init-test3.com",
-						Selector:     "selector3",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "init-test1.com",
+					Selector:     "selector1",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+				{
+					Domain:       "init-test2.com",
+					Selector:     "selector2",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+				},
+				{
+					Domain:       "init-test3.com",
+					Selector:     "selector3",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -151,31 +147,30 @@ func TestInitGenesisExtended(t *testing.T) {
 
 		// Verify all records were stored by finding them
 		exported := f.k.ExportGenesis(f.ctx)
-		require.NotNil(t, findDkimRecord(exported.Params.DkimPubkeys, "init-test1.com", "selector1"))
-		require.NotNil(t, findDkimRecord(exported.Params.DkimPubkeys, "init-test2.com", "selector2"))
-		require.NotNil(t, findDkimRecord(exported.Params.DkimPubkeys, "init-test3.com", "selector3"))
+		require.NotNil(t, findDkimRecord(exported.DkimPubkeys, "init-test1.com", "selector1"))
+		require.NotNil(t, findDkimRecord(exported.DkimPubkeys, "init-test2.com", "selector2"))
+		require.NotNil(t, findDkimRecord(exported.DkimPubkeys, "init-test3.com", "selector3"))
 	})
 
 	t.Run("init with same domain different selectors", func(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "multi-selector-test.com",
-						Selector:     "selector1",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-					{
-						Domain:       "multi-selector-test.com",
-						Selector:     "selector2",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "multi-selector-test.com",
+					Selector:     "selector1",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+				},
+				{
+					Domain:       "multi-selector-test.com",
+					Selector:     "selector2",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -183,7 +178,7 @@ func TestInitGenesisExtended(t *testing.T) {
 
 		// Verify both records were stored (different selectors)
 		exported := f.k.ExportGenesis(f.ctx)
-		count := countRecordsByDomain(exported.Params.DkimPubkeys, "multi-selector-test.com")
+		count := countRecordsByDomain(exported.DkimPubkeys, "multi-selector-test.com")
 		require.Equal(t, 2, count)
 	})
 
@@ -200,25 +195,24 @@ func TestInitGenesisExtended(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "version-test.com",
-						Selector:     "selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "version-test.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
 		require.NoError(t, err)
 
 		exported := f.k.ExportGenesis(f.ctx)
-		record := findDkimRecord(exported.Params.DkimPubkeys, "version-test.com", "selector")
+		record := findDkimRecord(exported.DkimPubkeys, "version-test.com", "selector")
 		require.NotNil(t, record)
 		require.Equal(t, types.Version_VERSION_DKIM1_UNSPECIFIED, record.Version)
 		require.Equal(t, types.KeyType_KEY_TYPE_RSA_UNSPECIFIED, record.KeyType)
@@ -229,44 +223,42 @@ func TestInitGenesisExtended(t *testing.T) {
 
 		// First init
 		genesis1 := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "overwrite-test.com",
-						Selector:     "selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte("hash1"),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "overwrite-test.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte("hash1"),
 				},
 			},
+			Params: types.Params{},
 		}
 		err := f.k.InitGenesis(f.ctx, genesis1)
 		require.NoError(t, err)
 
 		// Second init with same domain/selector but different hash
 		genesis2 := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "overwrite-test.com",
-						Selector:     "selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte("hash2"),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "overwrite-test.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte("hash2"),
 				},
 			},
+			Params: types.Params{},
 		}
 		err = f.k.InitGenesis(f.ctx, genesis2)
 		require.NoError(t, err)
 
 		// Verify record was overwritten
 		exported := f.k.ExportGenesis(f.ctx)
-		record := findDkimRecord(exported.Params.DkimPubkeys, "overwrite-test.com", "selector")
+		record := findDkimRecord(exported.DkimPubkeys, "overwrite-test.com", "selector")
 		require.NotNil(t, record)
 		require.Equal(t, []byte("hash2"), record.PoseidonHash)
 
 		// Count should be 1 for this domain
-		count := countRecordsByDomain(exported.Params.DkimPubkeys, "overwrite-test.com")
+		count := countRecordsByDomain(exported.DkimPubkeys, "overwrite-test.com")
 		require.Equal(t, 1, count)
 	})
 }
@@ -287,16 +279,15 @@ func TestExportGenesisExtended(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "export-test.com",
-						Selector:     "selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "export-test.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -306,7 +297,7 @@ func TestExportGenesisExtended(t *testing.T) {
 		require.NotNil(t, exported)
 
 		// Find the record we added
-		record := findDkimRecord(exported.Params.DkimPubkeys, "export-test.com", "selector")
+		record := findDkimRecord(exported.DkimPubkeys, "export-test.com", "selector")
 		require.NotNil(t, record)
 		require.Equal(t, testPubKey, record.PubKey)
 	})
@@ -315,28 +306,27 @@ func TestExportGenesisExtended(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "export-multi1.com",
-						Selector:     "selector1",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-					{
-						Domain:       "export-multi2.com",
-						Selector:     "selector2",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-					{
-						Domain:       "export-multi3.com",
-						Selector:     "selector3",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "export-multi1.com",
+					Selector:     "selector1",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+				},
+				{
+					Domain:       "export-multi2.com",
+					Selector:     "selector2",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+				},
+				{
+					Domain:       "export-multi3.com",
+					Selector:     "selector3",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -346,27 +336,26 @@ func TestExportGenesisExtended(t *testing.T) {
 		require.NotNil(t, exported)
 
 		// Verify all domains are present
-		require.NotNil(t, findDkimRecord(exported.Params.DkimPubkeys, "export-multi1.com", "selector1"))
-		require.NotNil(t, findDkimRecord(exported.Params.DkimPubkeys, "export-multi2.com", "selector2"))
-		require.NotNil(t, findDkimRecord(exported.Params.DkimPubkeys, "export-multi3.com", "selector3"))
+		require.NotNil(t, findDkimRecord(exported.DkimPubkeys, "export-multi1.com", "selector1"))
+		require.NotNil(t, findDkimRecord(exported.DkimPubkeys, "export-multi2.com", "selector2"))
+		require.NotNil(t, findDkimRecord(exported.DkimPubkeys, "export-multi3.com", "selector3"))
 	})
 
 	t.Run("export preserves all fields", func(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "preserve-fields.com",
-						Selector:     "selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "preserve-fields.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -375,7 +364,7 @@ func TestExportGenesisExtended(t *testing.T) {
 		exported := f.k.ExportGenesis(f.ctx)
 		require.NotNil(t, exported)
 
-		pk := findDkimRecord(exported.Params.DkimPubkeys, "preserve-fields.com", "selector")
+		pk := findDkimRecord(exported.DkimPubkeys, "preserve-fields.com", "selector")
 		require.NotNil(t, pk)
 		require.Equal(t, "preserve-fields.com", pk.Domain)
 		require.Equal(t, "selector", pk.Selector)
@@ -398,18 +387,17 @@ func TestGenesisValidation(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "validation-test.com",
-						Selector:     "dkim1",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "validation-test.com",
+					Selector:     "dkim1",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -420,16 +408,15 @@ func TestGenesisValidation(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "invalid-pk.com",
-						Selector:     "selector",
-						PubKey:       "not-valid-base64!@#$%",
-						PoseidonHash: []byte(hash.String()),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "invalid-pk.com",
+					Selector:     "selector",
+					PubKey:       "not-valid-base64!@#$%",
+					PoseidonHash: []byte(hash.String()),
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -440,22 +427,21 @@ func TestGenesisValidation(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "valid.com",
-						Selector:     "selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-					{
-						Domain:       "invalid.com",
-						Selector:     "selector",
-						PubKey:       "invalid!@#",
-						PoseidonHash: []byte(hash.String()),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "valid.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
+				},
+				{
+					Domain:       "invalid.com",
+					Selector:     "selector",
+					PubKey:       "invalid!@#",
+					PoseidonHash: []byte(hash.String()),
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -466,16 +452,15 @@ func TestGenesisValidation(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "special-selector.com",
-						Selector:     "dkim-2023_selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "special-selector.com",
+					Selector:     "dkim-2023_selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -483,7 +468,7 @@ func TestGenesisValidation(t *testing.T) {
 
 		// Verify it was stored
 		exported := f.k.ExportGenesis(f.ctx)
-		record := findDkimRecord(exported.Params.DkimPubkeys, "special-selector.com", "dkim-2023_selector")
+		record := findDkimRecord(exported.DkimPubkeys, "special-selector.com", "dkim-2023_selector")
 		require.NotNil(t, record)
 	})
 
@@ -491,16 +476,15 @@ func TestGenesisValidation(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "mail.subdomain.example.com",
-						Selector:     "selector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "mail.subdomain.example.com",
+					Selector:     "selector",
+					PubKey:       testPubKey,
+					PoseidonHash: []byte(hash.String()),
 				},
 			},
+			Params: types.Params{},
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -508,7 +492,7 @@ func TestGenesisValidation(t *testing.T) {
 
 		// Verify it was stored
 		exported := f.k.ExportGenesis(f.ctx)
-		record := findDkimRecord(exported.Params.DkimPubkeys, "mail.subdomain.example.com", "selector")
+		record := findDkimRecord(exported.DkimPubkeys, "mail.subdomain.example.com", "selector")
 		require.NotNil(t, record)
 	})
 }

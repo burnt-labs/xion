@@ -183,3 +183,14 @@ func (q Querier) NextVKeyID(goCtx context.Context, req *types.QueryNextVKeyIDReq
 		NextId: nextID,
 	}, nil
 }
+
+func (q Querier) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	params, err := q.GetParams(goCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryParamsResponse{
+		Params: params,
+	}, nil
+}

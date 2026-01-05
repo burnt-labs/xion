@@ -146,11 +146,17 @@ test-dkim-key-revocation:
 test-dkim-module:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMModule
 
+test-dkim-pubkey-max-size:
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMPubKeyMaxSize
+
 test-dkim-zk-email:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail
 
 test-dkim-zk-proof:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestZKEmailAuthenticator
+
+test-dkim-zk-params-and-vkey-uploads:
+	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKParamsAndVKeyUploads
 
 # Indexer Module Tests
 test-indexer-authz-create:

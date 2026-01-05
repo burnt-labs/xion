@@ -16,6 +16,7 @@ var (
 	_ sdk.Msg = &MsgAddDkimPubKeys{}
 	_ sdk.Msg = &MsgRemoveDkimPubKey{}
 	_ sdk.Msg = &MsgRevokeDkimPubKey{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // NewMsgAddDkimPubKey creates new instance of MsgAddDkimPubKey
@@ -47,8 +48,8 @@ func (msg *MsgAddDkimPubKeys) ValidateBasic() error {
 		return errors.Wrap(err, "invalid authority address")
 	}
 	for _, dkimPubKey := range msg.DkimPubkeys {
-		if err := dkimPubKey.Validate(); err != nil {
-			return err
+		if err := ValidateDkimPubKey(dkimPubKey); err != nil {
+			return errors.Wrapf(ErrInvalidPubKey, "error validating pubkeys: %v", err)
 		}
 	}
 	return nil
@@ -130,5 +131,94 @@ func (msg *MsgRevokeDkimPubKey) ValidateBasic() error {
 			return nil
 		}
 	}
+	return nil
+}
+
+// ValidateBasic does a sanity check on the provided data.
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return errors.Wrap(err, "invalid authority address")
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{addr}
+}
+
+func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
+	for _, dkimKey := range dkimKeys {
+		if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
+			return err
+		}
+
+		pubKeyBytes, err := DecodePubKeyWithLimit(dkimKey.PubKey, params.MaxPubkeySizeBytes)
+		if err != nil {
+			return err
+		}
+
+		if err := validateRSAPubKeyBytes(pubKeyBytes); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ValidateDkimPubKey validates a DKIM public key entry
+func ValidateDkimPubKey(dkimKey DkimPubKey) error {
+	if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
+		return err
+	}
+
+	// Validate PubKey is valid base64-encoded RSA public key
+	pubKeyBytes, err := DecodePubKey(dkimKey.PubKey)
+	if err != nil {
+		return err
+	}
+
+	return validateRSAPubKeyBytes(pubKeyBytes)
+}
+
+// ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
+func ValidateRSAPubKey(pubKeyStr string) error {
+	pubKeyBytes, err := DecodePubKey(pubKeyStr)
+	if err != nil {
+		return err
+	}
+
+	return validateRSAPubKeyBytes(pubKeyBytes)
+}
+
+func validateDkimPubKeyMetadata(dkimKey DkimPubKey) error {
+	if dkimKey.KeyType != KeyType_KEY_TYPE_RSA_UNSPECIFIED {
+		return ErrInvalidKeyType
+	}
+
+	if dkimKey.Version != Version_VERSION_DKIM1_UNSPECIFIED {
+		return ErrInvalidVersion
+	}
+
+	return nil
+}
+
+func validateRSAPubKeyBytes(pubKeyBytes []byte) error {
+	// Try PKIX/SPKI format first (standard format for DKIM public keys)
+	pub, err := x509.ParsePKIXPublicKey(pubKeyBytes)
+	if err == nil {
+		if _, ok := pub.(*rsa.PublicKey); !ok {
+			return ErrNotRSAKey
+		}
+		return nil
+	}
+
+	// Fall back to PKCS#1 format
+	_, err = x509.ParsePKCS1PublicKey(pubKeyBytes)
+	if err != nil {
+		return errors.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
+	}
+
 	return nil
 }
