@@ -47,7 +47,7 @@ jobs:
           - "AAWebAuthn"
           # App Module Tests
           - "AppGovernance"
-          # - "AppIBCTimeout"
+          - "AppIBCTimeout"
           # - "AppIBCTransfer"
           - "AppMintInflationHighFees"
           - "AppMintInflationLowFees"
@@ -64,12 +64,14 @@ jobs:
           - "AppUpdateTreasuryParams"
           # - "AppUpgradeIBC"
           - "AppUpgradeNetwork"
+          - "AppUpgradeNetworkWithFeatures"
           # DKIM Module Tests
-          # - "DKIMGovernance"
-          # - "DKIMKeyRevocation"
-          # - "DKIMModule"
-          # - "DKIMZKEmail"
-          # - "DKIMZKProof"
+          - "DKIMGovernance"
+          - "DKIMKeyRevocation"
+          - "DKIMModule"
+          - "DKIMPubKeyMaxSize"
+          - "DKIMZKEmail"
+          - "DKIMZKProof"
           # Indexer Module Tests
           - "IndexerAuthzCreate"
           - "IndexerAuthzMultiple"
@@ -93,7 +95,7 @@ jobs:
           - "GenesisExportImport"
           - "XionIndexerAuthz"
           - "XionIndexerFeeGrant"
-          - "XionIndexerNonConsensusCritical"
+          - "IndexerNonConsensusCritical"
           # Xion Module Tests - Original
           - "XionMinFeeBypass"
           - "XionMinFeeDefault"
@@ -131,6 +133,8 @@ jobs:
           - "XionMinFeeMultiMessageErrorPaths"
           - "XionMinFeeMultiMessageSequential"
           - "XionMinFeeBypassMessageTypes"
+          # ZK Module Tests
+          - "ZKParamsAndVKeyUploads"
 
     steps:
       - name: checkout

@@ -28,7 +28,7 @@ test-race:
 	@version=$(version) go test -mod=readonly -race -tags='ledger test_ledger_mock' -ldflags="-w" ./...
 
 test-e2e-all: .ensure-docker-image
-	@cd ./e2e_tests && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" ./abstract-account/... ./app/... ./dkim/... ./indexer/... ./jwk/... ./xion/...
+	@cd ./e2e_tests && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" ./abstract-account/... ./app/... ./dkim/... ./indexer/... ./jwk/... ./xion/... ./zk/...
 
 test-aa-all: .ensure-docker-image
 	@cd ./e2e_tests/abstract-account && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
@@ -48,13 +48,12 @@ test-xion-all: .ensure-docker-image
 test-indexer-all: .ensure-docker-image
 	@cd ./e2e_tests/indexer && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
+test-zk-all: .ensure-docker-image
+	@cd ./e2e_tests/zk && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
+
 test-run: .ensure-docker-image
 	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
 	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
-
-test-run-no-time: .ensure-docker-image
-	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
-	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -timeout 60m -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
 
 # Abstract Account Module Tests
 test-aa-basic:
@@ -385,7 +384,7 @@ test-sim-deterministic: runsim
 
 .PHONY: test test-all test-unit test-race benchmark \
         test-run test-e2e-all \
-        test-aa-all test-app-all test-dkim-all test-jwk-all test-xion-all test-indexer-all \
+        test-aa-all test-app-all test-dkim-all test-jwk-all test-xion-all test-indexer-all test-zk-all \
         test-aa-basic test-aa-client-event test-aa-jwt-cli \
         test-aa-multi-auth test-aa-panic \
         test-aa-single-migration test-aa-webauthn \
@@ -396,8 +395,10 @@ test-sim-deterministic: runsim
         test-app-treasury-contract test-app-treasury-grants test-app-treasury-multi \
         test-app-update-treasury-configs test-app-update-treasury-configs-aa \
         test-app-update-treasury-params test-app-upgrade-ibc test-app-upgrade-network \
+        test-app-upgrade-network-with-features \
         test-dkim-governance test-dkim-key-revocation test-dkim-module \
-        test-dkim-zk-email test-dkim-zk-proof \
+        test-dkim-pubkey-max-size test-dkim-zk-email test-dkim-zk-proof \
+        test-dkim-zk-params-and-vkey-uploads \
         test-indexer-authz-create test-indexer-authz-multiple test-indexer-authz-revoke \
         test-indexer-feegrant-create test-indexer-feegrant-multiple \
         test-indexer-feegrant-periodic test-indexer-feegrant-revoke \
@@ -455,6 +456,7 @@ help-test:
 	@echo "  test-indexer-all           Run all Indexer module tests"
 	@echo "  test-jwk-all               Run all JWK module tests"
 	@echo "  test-xion-all              Run all Xion module tests"
+	@echo "  test-zk-all                Run all ZK module tests"
 	@echo ""
 	@echo "  Abstract Account Module Individual Tests:"
 	@echo "    test-aa-basic                       Test Xion abstract account"
@@ -484,13 +486,16 @@ help-test:
 	@echo "    test-app-update-treasury-params     Test treasury parameter updates"
 	@echo "    test-app-upgrade-ibc                Test IBC upgrade"
 	@echo "    test-app-upgrade-network            Test network upgrade"
+	@echo "    test-app-upgrade-network-with-features Test network upgrade with features"
 	@echo ""
 	@echo "  DKIM Module Individual Tests:"
 	@echo "    test-dkim-governance                Test governance-only key registration"
 	@echo "    test-dkim-key-revocation            Test key revocation"
 	@echo "    test-dkim-module                    Test DKIM module functionality"
+	@echo "    test-dkim-pubkey-max-size           Test public key maximum size validation"
 	@echo "    test-dkim-zk-email                  Test ZK email authenticator"
 	@echo "    test-dkim-zk-proof                  Test ZK proof validation"
+	@echo "    test-dkim-zk-params-and-vkey-uploads Test ZK params and vkey uploads"
 	@echo ""
 	@echo "  Indexer Module Individual Tests:"
 	@echo "    test-indexer-authz-create           Test authz grant indexing"
@@ -527,6 +532,9 @@ help-test:
 	@echo "    test-xion-platform-fee-bypass       Test platform fee bypass prevention"
 	@echo "    test-xion-platform-min-codec-bug    Test platform minimum codec bug fix"
 	@echo "    test-xion-platform-min-direct       Test platform minimum direct transaction"
+	@echo ""
+	@echo "  ZK Module Individual Tests:"
+	@echo "    test-dkim-zk-params-and-vkey-uploads Test ZK params and vkey uploads"
 	@echo ""
 	@echo "Simulation tests:"
 	@echo "  test-sim                   Run simulation tests"
