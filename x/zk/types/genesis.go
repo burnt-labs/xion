@@ -6,9 +6,10 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(vkeys []VKeyWithID) *GenesisState {
+func NewGenesisState(vkeys []VKeyWithID, params Params) *GenesisState {
 	return &GenesisState{
-		Vkeys: vkeys,
+		Vkeys:  vkeys,
+		Params: params,
 	}
 }
 
@@ -16,13 +17,23 @@ func NewGenesisState(vkeys []VKeyWithID) *GenesisState {
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Vkeys: []VKeyWithID{
-			{Id: uint64(1), Vkey: VKey{KeyBytes: createDefaultVKeyBytes(), Name: " Zk Email", Description: "ZK email Vkey for AA + ZK email"}},
+			{Id: uint64(1), Vkey: VKey{KeyBytes: createDefaultVKeyBytes(), Name: "Zk Email", Description: "ZK email Vkey for AA + ZK email"}},
 		},
+		Params: DefaultParams(),
 	}
 }
 
 // Validate performs basic genesis state validation
 func (gs GenesisState) Validate() error {
+	params := gs.Params
+	if params == (Params{}) {
+		params = DefaultParams()
+	}
+
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
 	// Check for duplicate vkey IDs
 	seenIDs := make(map[uint64]bool)
 	seenNames := make(map[string]bool)
@@ -49,8 +60,7 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("vkey '%s' at index %d has empty key_bytes", vkeyWithID.Vkey.Name, i)
 		}
 
-		// Validate the key bytes
-		if err := ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes); err != nil {
+		if err := ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes); err != nil {
 			return fmt.Errorf("vkey '%s' at index %d has invalid key_bytes: %w", vkeyWithID.Vkey.Name, i, err)
 		}
 	}
@@ -340,6 +350,9 @@ func createDefaultVKeyBytes() []byte {
 		},
 	}
 
-	bytes, _ := json.Marshal(vkeyJSON)
+	bytes, err := json.Marshal(vkeyJSON)
+	if err != nil {
+		panic(err)
+	}
 	return bytes
 }

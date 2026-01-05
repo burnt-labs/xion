@@ -54,18 +54,17 @@ func TestMsgServer_AddVKey(t *testing.T) {
 		require.True(t, found, "AddVKey event not found")
 	})
 
-	t.Run("fail with invalid authority", func(t *testing.T) {
+	t.Run("successfully add with non-governance authority", func(t *testing.T) {
 		msg := &types.MsgAddVKey{
 			Authority:   f.addrs[0].String(),
-			Name:        "unauthorized_vkey",
-			VkeyBytes:   createTestVKeyBytes("unauthorized_vkey"),
-			Description: "Unauthorized",
+			Name:        "user_vkey",
+			VkeyBytes:   createTestVKeyBytes("user_vkey"),
+			Description: "User added key",
 		}
 
 		resp, err := f.msgServer.AddVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid authority")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
 	})
 
 	t.Run("fail with empty name", func(t *testing.T) {
@@ -220,18 +219,17 @@ func TestMsgServer_UpdateVKey(t *testing.T) {
 		require.True(t, found, "UpdateVKey event not found")
 	})
 
-	t.Run("fail with invalid authority", func(t *testing.T) {
+	t.Run("successfully update with non-governance authority", func(t *testing.T) {
 		msg := &types.MsgUpdateVKey{
 			Authority:   f.addrs[0].String(),
 			Name:        "update_test",
 			VkeyBytes:   createTestVKeyBytes("update_test"),
-			Description: "Unauthorized update",
+			Description: "User update",
 		}
 
 		resp, err := f.msgServer.UpdateVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid authority")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
 	})
 
 	t.Run("fail with non-existent vkey", func(t *testing.T) {
@@ -287,7 +285,7 @@ func TestMsgServer_UpdateVKey(t *testing.T) {
 		resp, err := f.msgServer.UpdateVKey(f.ctx, msg)
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid vkey_bytes")
+		require.Contains(t, err.Error(), "invalid verification key")
 	})
 
 	t.Run("fail with invalid authority address format", func(t *testing.T) {
@@ -328,18 +326,6 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 	_, err = f.msgServer.AddVKey(f.ctx, addMsg2)
 	require.NoError(t, err)
 
-	t.Run("fail with invalid authority", func(t *testing.T) {
-		msg := &types.MsgRemoveVKey{
-			Authority: f.addrs[0].String(),
-			Name:      "remove_test",
-		}
-
-		resp, err := f.msgServer.RemoveVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid authority")
-	})
-
 	t.Run("successfully remove vkey", func(t *testing.T) {
 		// Reset event manager for this test
 		ctx := f.ctx.WithEventManager(sdk.NewEventManager())
@@ -379,6 +365,27 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 		require.True(t, found, "RemoveVKey event not found")
 	})
 
+	t.Run("verify other vkeys not affected", func(t *testing.T) {
+		has, err := f.k.HasVKey(f.ctx, "keep_test")
+		require.NoError(t, err)
+		require.True(t, has)
+
+		vkey, err := f.k.GetVKeyByName(f.ctx, "keep_test")
+		require.NoError(t, err)
+		require.Equal(t, "To be kept", vkey.Description)
+	})
+
+	t.Run("successfully remove with non-governance authority", func(t *testing.T) {
+		msg := &types.MsgRemoveVKey{
+			Authority: f.addrs[0].String(),
+			Name:      "keep_test",
+		}
+
+		resp, err := f.msgServer.RemoveVKey(f.ctx, msg)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+	})
+
 	t.Run("fail with non-existent vkey", func(t *testing.T) {
 		msg := &types.MsgRemoveVKey{
 			Authority: f.govModAddr,
@@ -402,16 +409,60 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 		require.Nil(t, resp)
 		require.Contains(t, err.Error(), "not found")
 	})
+}
 
-	t.Run("verify other vkeys not affected", func(t *testing.T) {
-		// Verify keep_test still exists
-		has, err := f.k.HasVKey(f.ctx, "keep_test")
-		require.NoError(t, err)
-		require.True(t, has)
+func TestMsgServer_UpdateParams(t *testing.T) {
+	t.Run("updates params with matching authority", func(t *testing.T) {
+		f := SetupTest(t)
 
-		vkey, err := f.k.GetVKeyByName(f.ctx, "keep_test")
+		newParams := types.Params{
+			MaxVkeySizeBytes: 512,
+			UploadChunkSize:  16,
+			UploadChunkGas:   2_000,
+		}
+
+		resp, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params:    newParams,
+		})
 		require.NoError(t, err)
-		require.Equal(t, "To be kept", vkey.Description)
+		require.NotNil(t, resp)
+
+		stored, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, newParams, stored)
+	})
+
+	t.Run("rejects mismatched authority", func(t *testing.T) {
+		f := SetupTest(t)
+
+		resp, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.addrs[0].String(),
+			Params:    types.DefaultParams(),
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.ErrorIs(t, err, types.ErrInvalidAuthority)
+	})
+
+	t.Run("rejects invalid params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		resp, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
+			Authority: f.govModAddr,
+			Params: types.Params{
+				MaxVkeySizeBytes: 0,
+				UploadChunkSize:  1,
+				UploadChunkGas:   1,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+
+		// Params remain unchanged when validation fails.
+		current, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, types.DefaultParams(), current)
 	})
 }
 

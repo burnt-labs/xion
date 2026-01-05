@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/errors"
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -81,10 +82,16 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 	if err := data.Validate(); err != nil {
 		return err
 	}
-	if err := k.Params.Set(ctx, data.Params); err != nil {
+
+	params := data.Params
+	if params.MaxPubkeySizeBytes == 0 {
+		params.MaxPubkeySizeBytes = types.DefaultMaxPubKeySizeBytes
+	}
+
+	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}
-	for _, dkimPubKey := range data.Params.DkimPubkeys {
+	for _, dkimPubKey := range data.DkimPubkeys {
 		pk := apiv1.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
@@ -125,7 +132,39 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	}
 	// this line is used by starport scaffolding # genesis/module/export
 
-	return &types.GenesisState{
-		Params: types.Params{DkimPubkeys: dkimPubKeys},
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
 	}
+
+	return &types.GenesisState{
+		DkimPubkeys: dkimPubKeys,
+		Params:      params,
+	}
+}
+
+// GetParams returns the module parameters or defaults when unset.
+func (k Keeper) GetParams(ctx context.Context) (types.Params, error) {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return types.DefaultParams(), nil
+		}
+		return types.Params{}, err
+	}
+
+	return params, nil
+}
+
+// SetParams validates and stores the module parameters.
+func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
+	if params.MaxPubkeySizeBytes == 0 {
+		params.MaxPubkeySizeBytes = types.DefaultMaxPubKeySizeBytes
+	}
+
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	return k.Params.Set(ctx, params)
 }
