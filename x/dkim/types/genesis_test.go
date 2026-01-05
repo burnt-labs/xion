@@ -84,3 +84,35 @@ func TestDefaultGenesis(t *testing.T) {
 func TestDefaultIndex(t *testing.T) {
 	require.Equal(t, uint64(1), types.DefaultIndex)
 }
+
+func TestDkimPubKeyEqual(t *testing.T) {
+	base := &types.DkimPubKey{
+		Domain:       "example.com",
+		PubKey:       "pub",
+		PoseidonHash: []byte{1, 2, 3},
+		Selector:     "selector",
+		Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+	}
+
+	t.Run("matches struct value", func(t *testing.T) {
+		copy := *base
+		require.True(t, base.Equal(copy))
+	})
+
+	t.Run("different field", func(t *testing.T) {
+		other := *base
+		other.Domain = "other.com"
+		require.False(t, base.Equal(other))
+	})
+
+	t.Run("nil comparisons", func(t *testing.T) {
+		var nilKey *types.DkimPubKey
+		require.True(t, nilKey.Equal(nil))
+		require.False(t, nilKey.Equal(base))
+	})
+
+	t.Run("wrong type", func(t *testing.T) {
+		require.False(t, base.Equal("not-a-dkim-key"))
+	})
+}

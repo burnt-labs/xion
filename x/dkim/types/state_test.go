@@ -22,3 +22,23 @@ func TestComputePoseidonHash(t *testing.T) {
 	require.Equal(t, xPubkeyHash.String(), "1983664618407009423875829639306275185491946247764487749439145140682408188330")
 	require.Equal(t, gPubkeyHash.String(), "6632353713085157925504008443078919716322386156160602218536961028046468237192")
 }
+
+func TestDkimPubKeyValidate(t *testing.T) {
+	valid := &types.DkimPubKey{
+		Domain: "https://example.com",
+		PubKey: "Zm9v",
+	}
+	require.NoError(t, valid.Validate())
+
+	invalidDomain := *valid
+	invalidDomain.Domain = "ht tp://bad"
+	err := invalidDomain.Validate()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "dkim url key parsing failed")
+
+	invalidPubKey := *valid
+	invalidPubKey.PubKey = "***"
+	err = invalidPubKey.Validate()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "dkim public key decoding failed")
+}
