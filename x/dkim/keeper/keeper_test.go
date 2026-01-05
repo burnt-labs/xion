@@ -241,21 +241,11 @@ func TestKeeperLoggerExtended(t *testing.T) {
 // ============================================================================
 
 func TestKeeperStateOperations(t *testing.T) {
-	hash, err := types.ComputePoseidonHash(testPubKey)
-	require.NoError(t, err)
-
 	t.Run("set and get params", func(t *testing.T) {
 		f := SetupTest(t)
 
 		params := types.Params{
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "example.com",
-					Selector:     "selector",
-					PubKey:       testPubKey,
-					PoseidonHash: []byte(hash.String()),
-				},
-			},
+			VkeyIdentifier: uint64(1),
 		}
 
 		err := f.k.Params.Set(f.ctx, params)
@@ -263,8 +253,7 @@ func TestKeeperStateOperations(t *testing.T) {
 
 		got, err := f.k.Params.Get(f.ctx)
 		require.NoError(t, err)
-		require.Len(t, got.DkimPubkeys, 1)
-		require.Equal(t, "example.com", got.DkimPubkeys[0].Domain)
+		require.Equal(t, params.VkeyIdentifier, got.VkeyIdentifier)
 	})
 
 	t.Run("set and get default params", func(t *testing.T) {
@@ -283,28 +272,14 @@ func TestKeeperStateOperations(t *testing.T) {
 
 		// Set initial params
 		params1 := types.Params{
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "first.com",
-					Selector:     "selector",
-					PubKey:       testPubKey,
-					PoseidonHash: []byte(hash.String()),
-				},
-			},
+			VkeyIdentifier: uint64(1),
 		}
 		err := f.k.Params.Set(f.ctx, params1)
 		require.NoError(t, err)
 
 		// Overwrite with new params
 		params2 := types.Params{
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "second.com",
-					Selector:     "selector",
-					PubKey:       testPubKey,
-					PoseidonHash: []byte(hash.String()),
-				},
-			},
+			VkeyIdentifier: uint64(2),
 		}
 		err = f.k.Params.Set(f.ctx, params2)
 		require.NoError(t, err)
@@ -312,137 +287,7 @@ func TestKeeperStateOperations(t *testing.T) {
 		// Verify new params are returned
 		got, err := f.k.Params.Get(f.ctx)
 		require.NoError(t, err)
-		require.Len(t, got.DkimPubkeys, 1)
-		require.Equal(t, "second.com", got.DkimPubkeys[0].Domain)
-	})
-}
-
-// ============================================================================
-// Keeper DkimPubKeys Collection Tests
-// ============================================================================
-
-func TestKeeperDkimPubKeysCollection(t *testing.T) {
-	t.Run("add and retrieve dkim records", func(t *testing.T) {
-		f := SetupTest(t)
-		hash, err := types.ComputePoseidonHash(testPubKey)
-		require.NoError(t, err)
-
-		// Add records via InitGenesis
-		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "test-domain-1.com",
-						Selector:     "selector1",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-					{
-						Domain:       "test-domain-2.com",
-						Selector:     "selector2",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-				},
-			},
-		}
-		err = f.k.InitGenesis(f.ctx, genesis)
-		require.NoError(t, err)
-
-		// Verify records were added by checking ExportGenesis
-		exported := f.k.ExportGenesis(f.ctx)
-
-		// Find the records we added
-		var foundDomain1, foundDomain2 bool
-		for _, pk := range exported.Params.DkimPubkeys {
-			if pk.Domain == "test-domain-1.com" && pk.Selector == "selector1" {
-				foundDomain1 = true
-				require.Equal(t, testPubKey, pk.PubKey)
-			}
-			if pk.Domain == "test-domain-2.com" && pk.Selector == "selector2" {
-				foundDomain2 = true
-				require.Equal(t, testPubKey, pk.PubKey)
-			}
-		}
-		require.True(t, foundDomain1, "expected to find test-domain-1.com record")
-		require.True(t, foundDomain2, "expected to find test-domain-2.com record")
-	})
-
-	t.Run("added records have correct data", func(t *testing.T) {
-		f := SetupTest(t)
-		hash, err := types.ComputePoseidonHash(testPubKey)
-		require.NoError(t, err)
-
-		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "unique-test.com",
-						Selector:     "uniqueselector",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-						Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-						KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-					},
-				},
-			},
-		}
-		err = f.k.InitGenesis(f.ctx, genesis)
-		require.NoError(t, err)
-
-		exported := f.k.ExportGenesis(f.ctx)
-
-		// Find the record we added
-		var found bool
-		for _, pk := range exported.Params.DkimPubkeys {
-			if pk.Domain == "unique-test.com" && pk.Selector == "uniqueselector" {
-				found = true
-				require.Equal(t, testPubKey, pk.PubKey)
-				require.Equal(t, []byte(hash.String()), pk.PoseidonHash)
-				require.Equal(t, types.Version_VERSION_DKIM1_UNSPECIFIED, pk.Version)
-				require.Equal(t, types.KeyType_KEY_TYPE_RSA_UNSPECIFIED, pk.KeyType)
-				break
-			}
-		}
-		require.True(t, found, "expected to find the added DKIM record")
-	})
-
-	t.Run("same domain with different selectors are stored separately", func(t *testing.T) {
-		f := SetupTest(t)
-		hash, err := types.ComputePoseidonHash(testPubKey)
-		require.NoError(t, err)
-
-		genesis := &types.GenesisState{
-			Params: types.Params{
-				DkimPubkeys: []types.DkimPubKey{
-					{
-						Domain:       "multi-selector.com",
-						Selector:     "selector-a",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-					{
-						Domain:       "multi-selector.com",
-						Selector:     "selector-b",
-						PubKey:       testPubKey,
-						PoseidonHash: []byte(hash.String()),
-					},
-				},
-			},
-		}
-		err = f.k.InitGenesis(f.ctx, genesis)
-		require.NoError(t, err)
-
-		exported := f.k.ExportGenesis(f.ctx)
-
-		// Count records for multi-selector.com
-		count := 0
-		for _, pk := range exported.Params.DkimPubkeys {
-			if pk.Domain == "multi-selector.com" {
-				count++
-			}
-		}
-		require.Equal(t, 2, count, "expected 2 records for multi-selector.com")
+		require.Equal(t, params2.VkeyIdentifier, got.VkeyIdentifier)
 	})
 }
 

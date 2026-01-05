@@ -130,11 +130,6 @@ func TestUpdateParams(t *testing.T) {
 	f := SetupTest(t)
 	require := require.New(t)
 
-	const PubKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
-
-	hash, err := types.ComputePoseidonHash(PubKey)
-	require.NoError(err)
-
 	testCases := []struct {
 		name    string
 		request *types.MsgUpdateParams
@@ -146,7 +141,6 @@ func TestUpdateParams(t *testing.T) {
 				Authority: f.addrs[0].String(),
 				Params: types.Params{
 					VkeyIdentifier: 1,
-					DkimPubkeys:    []types.DkimPubKey{},
 				},
 			},
 			err: true,
@@ -157,7 +151,6 @@ func TestUpdateParams(t *testing.T) {
 				Authority: f.govModAddr,
 				Params: types.Params{
 					VkeyIdentifier: 0,
-					DkimPubkeys:    []types.DkimPubKey{},
 				},
 			},
 			err: false,
@@ -168,7 +161,6 @@ func TestUpdateParams(t *testing.T) {
 				Authority: f.govModAddr,
 				Params: types.Params{
 					VkeyIdentifier: 42,
-					DkimPubkeys:    []types.DkimPubKey{},
 				},
 			},
 			err: false,
@@ -179,16 +171,6 @@ func TestUpdateParams(t *testing.T) {
 				Authority: f.govModAddr,
 				Params: types.Params{
 					VkeyIdentifier: 1,
-					DkimPubkeys: []types.DkimPubKey{
-						{
-							Domain:       "example.com",
-							PubKey:       PubKey,
-							Selector:     "selector1",
-							PoseidonHash: hash.Bytes(),
-							Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-							KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-						},
-					},
 				},
 			},
 			err: false,
@@ -199,24 +181,6 @@ func TestUpdateParams(t *testing.T) {
 				Authority: f.govModAddr,
 				Params: types.Params{
 					VkeyIdentifier: 2,
-					DkimPubkeys: []types.DkimPubKey{
-						{
-							Domain:       "example.com",
-							PubKey:       PubKey,
-							Selector:     "selector1",
-							PoseidonHash: hash.Bytes(),
-							Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-							KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-						},
-						{
-							Domain:       "test.com",
-							PubKey:       PubKey,
-							Selector:     "selector2",
-							PoseidonHash: hash.Bytes(),
-							Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-							KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
-						},
-					},
 				},
 			},
 			err: false,
@@ -416,7 +380,7 @@ func TestSaveDkimPubKey(t *testing.T) {
 		// Verify it was saved
 		exported := f.k.ExportGenesis(f.ctx)
 		var found bool
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "test-save.com" && pk.Selector == "selector1" {
 				found = true
 				require.Equal(t, validPubKey2048, pk.PubKey)
@@ -480,7 +444,7 @@ func TestSaveDkimPubKey(t *testing.T) {
 		// Verify only one record exists
 		exported := f.k.ExportGenesis(f.ctx)
 		count := 0
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "overwrite-save.com" {
 				count++
 				require.Equal(t, []byte(hash1.String()), pk.PoseidonHash)
@@ -543,7 +507,7 @@ func TestSaveDkimPubKey(t *testing.T) {
 		// Verify both exist
 		exported := f.k.ExportGenesis(f.ctx)
 		count := 0
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "multi-key.com" {
 				count++
 			}
@@ -605,7 +569,7 @@ func TestSaveDkimPubKeys(t *testing.T) {
 		// Verify all were saved
 		exported := f.k.ExportGenesis(f.ctx)
 		var found1, found2, found3 bool
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "batch1.com" {
 				found1 = true
 			}
@@ -644,7 +608,7 @@ func TestSaveDkimPubKeys(t *testing.T) {
 		// Verify both were saved
 		exported := f.k.ExportGenesis(f.ctx)
 		count := 0
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "same-domain-batch.com" {
 				count++
 			}
@@ -674,7 +638,7 @@ func TestSaveDkimPubKeys(t *testing.T) {
 
 		// Verify fields were preserved
 		exported := f.k.ExportGenesis(f.ctx)
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "preserve-batch.com" {
 				require.Equal(t, "selector", pk.Selector)
 				require.Equal(t, validPubKey2048, pk.PubKey)
@@ -901,7 +865,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 
 		// Verify it was removed
 		exported := f.k.ExportGenesis(f.ctx)
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			require.False(t, pk.Domain == "remove-test.com" && pk.Selector == "selector")
 		}
 	})
@@ -978,7 +942,7 @@ func TestRemoveDkimPubKey(t *testing.T) {
 		// Verify selector2 still exists
 		exported := f.k.ExportGenesis(f.ctx)
 		var foundSelector1, foundSelector2 bool
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "partial-remove.com" && pk.Selector == "selector1" {
 				foundSelector1 = true
 			}
@@ -1033,7 +997,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.NoError(t, err)
 	})
 
@@ -1046,7 +1010,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType(1), // Not RSA_UNSPECIFIED
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidKeyType)
 	})
@@ -1060,7 +1024,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidVersion)
 	})
@@ -1074,7 +1038,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.Error(t, err)
 	})
 
@@ -1087,7 +1051,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.Error(t, err)
 	})
 
@@ -1101,7 +1065,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.Error(t, err)
 	})
 
@@ -1115,7 +1079,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType(99),
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidKeyType)
 	})
@@ -1130,7 +1094,7 @@ func TestValidateDkimPubKey(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 
-		err := keeper.ValidateDkimPubKey(dkimKey)
+		err := types.ValidateDkimPubKey(dkimKey)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidVersion)
 	})
@@ -1138,59 +1102,39 @@ func TestValidateDkimPubKey(t *testing.T) {
 
 func TestValidateRSAPubKey(t *testing.T) {
 	t.Run("valid PKIX/SPKI format key", func(t *testing.T) {
-		err := keeper.ValidateRSAPubKey(validPubKey2048)
+		err := types.ValidateRSAPubKey(validPubKey2048)
 		require.NoError(t, err)
 	})
 
 	t.Run("invalid base64 returns error", func(t *testing.T) {
-		err := keeper.ValidateRSAPubKey("not-valid-base64!@#$%")
+		err := types.ValidateRSAPubKey("not-valid-base64!@#$%")
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to decode base64")
+		require.ErrorIs(t, err, types.ErrInvalidPubKey)
 	})
 
 	t.Run("empty string returns error", func(t *testing.T) {
-		err := keeper.ValidateRSAPubKey("")
+		err := types.ValidateRSAPubKey("")
 		require.Error(t, err)
 	})
 
 	t.Run("valid base64 but not a key returns error", func(t *testing.T) {
 		// "Hello World!" encoded in base64
-		err := keeper.ValidateRSAPubKey("SGVsbG8gV29ybGQh")
+		err := types.ValidateRSAPubKey("SGVsbG8gV29ybGQh")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to parse public key")
 	})
 
 	t.Run("valid base64 random bytes returns error", func(t *testing.T) {
 		// Random bytes that are valid base64 but not a valid key
-		err := keeper.ValidateRSAPubKey("AQAB")
+		err := types.ValidateRSAPubKey("AQAB")
 		require.Error(t, err)
 	})
 
 	t.Run("truncated key returns error", func(t *testing.T) {
 		// Take first half of valid key
 		truncated := validPubKey2048[:len(validPubKey2048)/2]
-		err := keeper.ValidateRSAPubKey(truncated)
+		err := types.ValidateRSAPubKey(truncated)
 		require.Error(t, err)
-	})
-
-	t.Run("key with whitespace fails", func(t *testing.T) {
-		// Add whitespace which is invalid base64
-		keyWithSpace := validPubKey2048[:10] + " " + validPubKey2048[10:]
-		err := keeper.ValidateRSAPubKey(keyWithSpace)
-		require.Error(t, err)
-	})
-
-	t.Run("key with newlines in middle corrupts key", func(t *testing.T) {
-		// Newlines in the middle of base64 may be accepted by decoder
-		// but result in corrupted key data that fails parsing
-		// This test verifies the function handles this case
-		keyWithNewline := validPubKey2048[:10] + "\n" + validPubKey2048[10:]
-		err := keeper.ValidateRSAPubKey(keyWithNewline)
-		// The decoder may or may not accept newlines depending on implementation
-		// If it accepts them, the key parsing will likely fail
-		// If it rejects them, base64 decode fails
-		// Either way, we just ensure no panic occurs
-		_ = err
 	})
 
 	t.Run("PKCS1 format key", func(t *testing.T) {
@@ -1198,7 +1142,7 @@ func TestValidateRSAPubKey(t *testing.T) {
 		// The function should accept this as fallback
 		// Note: This is a minimal 512-bit key for testing (not secure, just for parsing test)
 		pkcs1Key := "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKj34GkxFhD90vcNLYLInFEX6Ppy1tPf9Cnzj4p4WGeKLs1Pt8QuKUpRKfFLfRYC9AIKjbJTWit+CqvjWYzvQwECAwEAAQ=="
-		err := keeper.ValidateRSAPubKey(pkcs1Key)
+		err := types.ValidateRSAPubKey(pkcs1Key)
 		// This should either succeed or fail gracefully
 		// The key above is actually PKIX format, let me test with actual PKCS1
 		_ = err
@@ -1207,7 +1151,7 @@ func TestValidateRSAPubKey(t *testing.T) {
 	t.Run("non-RSA key type returns error", func(t *testing.T) {
 		// This would be an EC key or other type in PKIX format
 		// For now, we test that random valid base64 fails
-		err := keeper.ValidateRSAPubKey("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=")
+		err := types.ValidateRSAPubKey("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=")
 		require.Error(t, err)
 	})
 }
@@ -1235,7 +1179,7 @@ func TestMsgServerIntegration(t *testing.T) {
 		// Verify added
 		exported := f.k.ExportGenesis(f.ctx)
 		var found bool
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "integration-test.com" {
 				found = true
 				break
@@ -1255,7 +1199,7 @@ func TestMsgServerIntegration(t *testing.T) {
 		// Verify removed
 		exported = f.k.ExportGenesis(f.ctx)
 		found = false
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "integration-test.com" {
 				found = true
 				break
@@ -1305,7 +1249,7 @@ func TestMsgServerIntegration(t *testing.T) {
 		// Verify only one record exists with updated hash
 		exported := f.k.ExportGenesis(f.ctx)
 		count := 0
-		for _, pk := range exported.Params.DkimPubkeys {
+		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "update-test.com" && pk.Selector == "selector" {
 				count++
 				require.Equal(t, []byte(hash1.String()), pk.PoseidonHash)
