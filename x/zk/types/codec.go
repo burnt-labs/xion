@@ -13,6 +13,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgAddVKey{}, "zk/MsgAddVKey", nil)
 	cdc.RegisterConcrete(&MsgUpdateVKey{}, "zk/MsgUpdateVKey", nil)
 	cdc.RegisterConcrete(&MsgRemoveVKey{}, "zk/MsgRemoveVKey", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "zk/MsgUpdateParams", nil)
 }
 
 // RegisterInterfaces registers the x/zk interfaces types with the interface registry
@@ -22,6 +23,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgAddVKey{},
 		&MsgUpdateVKey{},
 		&MsgRemoveVKey{},
+		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

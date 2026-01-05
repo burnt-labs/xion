@@ -3,7 +3,6 @@ package types_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -108,7 +107,7 @@ func TestNewGenesisState(t *testing.T) {
 		},
 	}
 
-	gs := types.NewGenesisState(vkeys)
+	gs := types.NewGenesisState(vkeys, types.DefaultParams())
 	require.NotNil(t, gs)
 	require.Len(t, gs.Vkeys, 1)
 	require.Equal(t, vkeys[0].Id, gs.Vkeys[0].Id)
@@ -117,7 +116,6 @@ func TestNewGenesisState(t *testing.T) {
 
 func TestGenesisStateValidate(t *testing.T) {
 	validVKeyBytes := createValidVKeyBytes()
-	fmt.Println(string(validVKeyBytes))
 
 	tests := []struct {
 		name        string

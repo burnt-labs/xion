@@ -28,6 +28,7 @@ type Keeper struct {
 	VKeys         collections.Map[uint64, types.VKey]
 	NextVKeyID    collections.Sequence
 	VKeyNameIndex collections.Map[string, uint64]
+	Params        collections.Item[types.Params]
 
 	authority string
 }
@@ -66,6 +67,12 @@ func NewKeeper(
 			types.VkeyNameIndexPrefix, "vkey_name_index",
 			collections.StringKey,
 			collections.Uint64Value),
+		Params: collections.NewItem(
+			sb,
+			types.ParamsKey,
+			"params",
+			codec.CollValue[types.Params](cdc),
+		),
 		authority: authority,
 	}
 
@@ -85,8 +92,24 @@ func (k Keeper) Logger() log.Logger {
 
 // InitGenesis initializes the module's state from a genesis state.
 func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
+	params := gs.Params
+	if params == (types.Params{}) {
+		params = types.DefaultParams()
+	}
+	if err := params.Validate(); err != nil {
+		panic(err)
+	}
+
+	if err := k.SetParams(ctx, params); err != nil {
+		panic(err)
+	}
+
 	// Import all vkeys
 	for _, vkeyWithID := range gs.Vkeys {
+		if err := types.ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes); err != nil {
+			panic(err)
+		}
+
 		// Set the vkey
 		if err := k.VKeys.Set(ctx, vkeyWithID.Id, vkeyWithID.Vkey); err != nil {
 			panic(err)
@@ -118,6 +141,11 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	// Convert to VKeyWithID format
 	vkeysWithID := make([]types.VKeyWithID, 0, len(vkeys))
 	for _, vkey := range vkeys {
@@ -134,8 +162,36 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	}
 
 	return &types.GenesisState{
-		Vkeys: vkeysWithID,
+		Vkeys:  vkeysWithID,
+		Params: params,
 	}
+}
+
+// GetParams returns the current zk module parameters, defaulting when unset.
+func (k Keeper) GetParams(ctx context.Context) (types.Params, error) {
+	params, err := k.Params.Get(ctx)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return types.DefaultParams(), nil
+		}
+		return types.Params{}, err
+	}
+
+	return params, nil
+}
+
+// SetParams validates and persists zk module parameters.
+func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	return k.Params.Set(ctx, params)
+}
+
+func (k Keeper) ensureVKeySize(params types.Params, size int) (uint64, error) {
+	gasCost, err := params.GasCostForSize(uint64(size))
+	return gasCost, err
 }
 
 func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *parser.CircomVerificationKey, inputs *[]string) (bool, error) {
@@ -148,12 +204,7 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 
 // AddVKey adds a new verification key to the store
 // keyBytes should be the raw JSON from SnarkJS
-func (k Keeper) AddVKey(ctx context.Context, authority string, name string, keyBytes []byte, description string) (uint64, error) {
-	// Check authority
-	if authority != k.authority {
-		return 0, errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", k.authority, authority)
-	}
-
+func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) (uint64, error) {
 	// Check if name already exists
 	has, err := k.VKeyNameIndex.Has(ctx, name)
 	if err != nil {
@@ -163,9 +214,20 @@ func (k Keeper) AddVKey(ctx context.Context, authority string, name string, keyB
 		return 0, errors.Wrapf(types.ErrVKeyExists, "verification key with name '%s' already exists", name)
 	}
 
-	// Validate the key bytes
-	if err := types.ValidateVKeyBytes(keyBytes); err != nil {
-		return 0, errors.Wrap(types.ErrInvalidVKey, err.Error())
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	gasCost, err := k.ensureVKeySize(params, len(keyBytes))
+	if err != nil {
+		return 0, err
+	}
+	// charge gas for vkey size
+	ctx.GasMeter().ConsumeGas(gasCost, "zk/AddVKey: vkey size cost")
+
+	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
+		return 0, err
 	}
 
 	// Generate new ID
@@ -241,12 +303,7 @@ func (k Keeper) GetCircomVKeyByID(ctx context.Context, id uint64) (*parser.Circo
 }
 
 // UpdateVKey updates an existing verification key
-func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, keyBytes []byte, description string) error {
-	// Check authority
-	if authority != k.authority {
-		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", k.authority, authority)
-	}
-
+func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) error {
 	// Get existing ID
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
@@ -256,9 +313,20 @@ func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, k
 		return err
 	}
 
-	// Validate the new key bytes
-	if err := types.ValidateVKeyBytes(keyBytes); err != nil {
-		return errors.Wrap(types.ErrInvalidVKey, err.Error())
+	params, err := k.GetParams(ctx)
+	if err != nil {
+		return err
+	}
+
+	gasCost, err := k.ensureVKeySize(params, len(keyBytes))
+	if err != nil {
+		return err
+	}
+	// charge gas for vkey size
+	ctx.GasMeter().ConsumeGas(gasCost, "zk/UpdateVKey: vkey size cost")
+
+	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
+		return err
 	}
 
 	// Update vkey
@@ -277,11 +345,6 @@ func (k Keeper) UpdateVKey(ctx context.Context, authority string, name string, k
 
 // RemoveVKey removes a verification key by name
 func (k Keeper) RemoveVKey(ctx context.Context, authority string, name string) error {
-	// Check authority
-	if authority != k.authority {
-		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", k.authority, authority)
-	}
-
 	// Get the ID from the name index
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
