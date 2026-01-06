@@ -465,6 +465,7 @@ func TxCommandOverrideGas(t *testing.T, tn *cosmos.ChainNode, keyName, gas strin
 		"--gas-adjustment", fmt.Sprint(tn.Chain.Config().GasAdjustment),
 		"--gas", "auto",
 		"--keyring-backend", keyring.BackendTest,
+		"--chain-id", tn.Chain.Config().ChainID,
 		"--output", "json",
 		"-y",
 	)...)
