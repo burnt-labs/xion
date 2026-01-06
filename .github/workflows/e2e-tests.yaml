@@ -67,6 +67,8 @@ jobs:
             dir_name: "indexer"
           # - test_type: "IBC"
           #   dir_name: "ibc"
+          - test_type: "IBCMinFeeMultiDenom"
+            dir_name: "ibc"
           - test_type: "JWK"
             dir_name: "jwk"
           - test_type: "XionMinFee"

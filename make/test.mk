@@ -78,11 +78,11 @@ test-aa-webauthn:
 test-app-governance:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppGovernance
 
-test-app-ibc-timeout:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppIBCTimeout
+test-ibc-timeout:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCTimeout
 
-test-app-ibc-transfer:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppIBCTransfer
+test-ibc-transfer:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCTransfer
 
 test-app-mint-inflation-high-fees:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppMintInflationHighFees
@@ -120,8 +120,8 @@ test-app-update-treasury-configs-aa:
 test-app-update-treasury-params:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpdateTreasuryParams
 
-test-app-upgrade-ibc:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeIBC
+test-ibc-upgrade:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCUpgrade
 
 test-app-upgrade-network:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME='^TestAppUpgradeNetwork$$$$'
@@ -139,10 +139,11 @@ test-dkim-module:
 test-dkim-pubkey-max-size:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMPubKeyMaxSize
 
-test-dkim-zk-proof:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestZKEmailAuthenticator
+# ZK Module Tests
+test-zk-email-authenticator:
+	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKEmailAuthenticator
 
-test-dkim-zk-params-and-vkey-uploads:
+test-zk-params-and-vkey-uploads:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKParamsAndVKeyUploads
 
 # JWK Module Tests
@@ -177,8 +178,8 @@ test-jwk-transaction-hash:
 	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKTransactionHash
 
 # Xion Module Tests
-test-xion-genesis-export-import:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestGenesisExportImport
+test-app-genesis-export-import:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestGenesisExportImport
 
 test-xion-indexer-authz:
 	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthz
@@ -198,8 +199,8 @@ test-xion-min-fee-default:
 test-xion-min-fee-multi-denom:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenom
 
-test-xion-min-fee-multi-denom-ibc:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenomIBC
+test-ibc-min-fee-multi-denom:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCMinFeeMultiDenom
 
 test-xion-min-fee-zero:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeZero
@@ -488,7 +489,7 @@ help-test:
 	@echo "    test-xion-min-fee-bypass            Test minimum fee bypass prevention"
 	@echo "    test-xion-min-fee-default           Test minimum fee default"
 	@echo "    test-xion-min-fee-multi-denom       Test multi-denom min global fee"
-	@echo "    test-xion-min-fee-multi-denom-ibc   Test multi-denom min global fee IBC"
+	@echo "    test-ibc-min-fee-multi-denom   Test multi-denom min global fee IBC"
 	@echo "    test-xion-min-fee-zero              Test minimum fee zero"
 	@echo "    test-xion-platform-fee              Test platform fee collection"
 	@echo "    test-xion-platform-fee-bypass       Test platform fee bypass prevention"
