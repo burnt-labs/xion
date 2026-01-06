@@ -12,10 +12,6 @@ import (
 )
 
 func TestAppUpgradeNetwork(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
 	t.Parallel()
 
 	// Get the "from" image (latest released version from GitHub releases)
@@ -55,10 +51,6 @@ func TestAppUpgradeNetwork(t *testing.T) {
 // TestAppUpgradeNetworkWithFeatures tests the upgrade and validates new features post-upgrade.
 // This is the comprehensive upgrade test that validates DKIM and ZKEmail features after upgrading.
 func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping in short mode")
-	}
-
 	t.Parallel()
 
 	// Set bech32 prefix before creating encoding config
@@ -106,36 +98,31 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	// Run post-upgrade feature validations
 	// Create a proposal tracker starting at 2 (since upgrade used proposal 1)
 	proposalTracker := testlib.NewProposalTracker(2)
+	ctx := t.Context()
 
-	// CRITICAL: Create a fresh encoding config for post-upgrade assertions
-	// The chain binary was upgraded to v26, but the interchaintest chain object still has
-	// the old v25 encoding config. We pass this fresh config to assertions that need to
-	// submit proposals with new v26 module messages (DKIM, ZK).
+	// Create a fresh encoding config for post-upgrade assertions
 	postUpgradeEncodingConfig := testlib.XionEncodingConfig(t)
 
 	// Run ZKEmail authenticator assertions
 	// NOTE: ZKEmail now seeds its own DKIM record using the proposal tracker
 	// User is nil so it will create the "zkemail-test" user with DeployerMnemonic,
 	// ensuring the AA contract address matches the pre-generated ZK proofs.
-	// NOTE: Each subtest must use its own t.Context() to avoid context cancellation issues
 	t.Run("PostUpgrade_ZKEmail", func(t *testing.T) {
 		testlib.RunZKEmailAuthenticatorAssertions(t, testlib.ZKEmailAssertionConfig{
 			Chain:           xion,
-			Ctx:             t.Context(), // Use subtest's own context
-			User:            nil,         // Will use DeployerMnemonic for pre-generated proofs
+			Ctx:             ctx,
+			User:            nil, // Will use DeployerMnemonic for pre-generated proofs
 			ProposalTracker: proposalTracker,
-			EncodingConfig:  postUpgradeEncodingConfig, // Fresh v26 encoding config
 		})
 	})
 	// Run DKIM module assertions
 	t.Run("PostUpgrade_DKIM_Module", func(t *testing.T) {
 		testlib.RunDKIMModuleAssertions(t, testlib.DKIMAssertionConfig{
 			Chain:           xion,
-			Ctx:             t.Context(), // Use subtest's own context
-			User:            nil,         // Will create and fund a new user
+			Ctx:             ctx,
+			User:            nil, // Will create and fund a new user
 			ProposalTracker: proposalTracker,
 			TestData:        testlib.DefaultDKIMTestData(),
-			EncodingConfig:  postUpgradeEncodingConfig, // Fresh v26 encoding config
 		})
 	})
 
@@ -143,11 +130,10 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	t.Run("PostUpgrade_DKIM_Governance", func(t *testing.T) {
 		testlib.RunDKIMGovernanceAssertions(t, testlib.DKIMAssertionConfig{
 			Chain:           xion,
-			Ctx:             t.Context(), // Use subtest's own context
-			User:            nil,         // Will create and fund a new user
+			Ctx:             ctx,
+			User:            nil, // Will create and fund a new user
 			ProposalTracker: proposalTracker,
 			TestData:        testlib.DefaultDKIMTestData(),
-			EncodingConfig:  postUpgradeEncodingConfig, // Fresh v26 encoding config
 		})
 	})
 }
