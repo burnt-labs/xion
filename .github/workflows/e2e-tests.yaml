@@ -159,12 +159,13 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           docker load < "docker-${{ matrix.os }}-${{ matrix.arch }}.tar"
-          # Tag the local image with local/ prefix for upgrade tests
-          docker tag xion:${{ matrix.os }}-${{ matrix.arch }} local/xion:${{ matrix.os }}-${{ matrix.arch }}
+          # Also tag the local image with GHCR path for upgrade tests
+          # This allows interchaintest's UpgradeVersion to find it without pulling from registry
+          docker tag xion:${{ matrix.os }}-${{ matrix.arch }} ghcr.io/burnt-labs/xion/xion:${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Run e2e test
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
+          XION_IMAGE: xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
           make test-run TEST_NAME=Test${{ matrix.test_type }}

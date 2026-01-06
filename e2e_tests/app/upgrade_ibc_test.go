@@ -44,11 +44,16 @@ func TestAppUpgradeIBC(t *testing.T) {
 	xionVersionFrom := xionFromImageParts[1]
 
 	// Get the "to" image (local image) which is where we want to upgrade to
+	// For upgrade tests, we use the GHCR repository because interchaintest's UpgradeVersion
+	// doesn't update c.cfg.Images[0].Repository, only the version. When pullImages runs,
+	// it uses c.cfg.Images[0] which has the original GHCR repository.
+	// In CI, the local image is also tagged with the GHCR path for this purpose.
 	xionToImageParts, err := testlib.GetXionImageTagComponents()
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(xionToImageParts), 2, "xionToImage should have repository:tag format")
 
-	xionImageTo := xionToImageParts[0]
+	// Use GHCR repository for upgrade (matches how the image is tagged in CI)
+	xionImageTo := testlib.GHCRRepository
 	xionVersionTo := xionToImageParts[1]
 
 	// Use "recent" as upgrade name for local builds, otherwise use version-based name

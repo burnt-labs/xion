@@ -20,11 +20,16 @@ func TestAppUpgradeNetwork(t *testing.T) {
 	require.Len(t, xionFromImageParts, 2, "xionFromImage should have [repository, version] format")
 
 	// Get the "to" image (from XION_IMAGE env var) which is where we want to upgrade to
+	// For upgrade tests, we use the GHCR repository because interchaintest's UpgradeVersion
+	// doesn't update c.cfg.Images[0].Repository, only the version. When pullImages runs,
+	// it uses c.cfg.Images[0] which has the original GHCR repository.
+	// In CI, the local image is also tagged with the GHCR path for this purpose.
 	xionToImageParts, err := testlib.GetXionImageTagComponents()
 	require.NoError(t, err)
 	require.Len(t, xionToImageParts, 2, "xionToImage should have [repository, version] format")
 
-	xionToRepo := xionToImageParts[0]
+	// Use GHCR repository for upgrade (matches how the image is tagged in CI)
+	xionToRepo := testlib.GHCRRepository
 	xionToVersion := xionToImageParts[1]
 
 	// Use the app's UpgradeName constant to ensure consistency with the upgrade handler
@@ -63,11 +68,16 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	require.Len(t, xionFromImageParts, 2, "xionFromImage should have [repository, version] format")
 
 	// Get the "to" image (from XION_IMAGE env var) which is where we want to upgrade to
+	// For upgrade tests, we use the GHCR repository because interchaintest's UpgradeVersion
+	// doesn't update c.cfg.Images[0].Repository, only the version. When pullImages runs,
+	// it uses c.cfg.Images[0] which has the original GHCR repository.
+	// In CI, the local image is also tagged with the GHCR path for this purpose.
 	xionToImageParts, err := testlib.GetXionImageTagComponents()
 	require.NoError(t, err)
 	require.Len(t, xionToImageParts, 2, "xionToImage should have [repository, version] format")
 
-	xionToRepo := xionToImageParts[0]
+	// Use GHCR repository for upgrade (matches how the image is tagged in CI)
+	xionToRepo := testlib.GHCRRepository
 	xionToVersion := xionToImageParts[1]
 
 	// Use the app's UpgradeName constant to ensure consistency with the upgrade handler
