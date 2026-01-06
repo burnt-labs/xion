@@ -98,6 +98,11 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}
+	for _, revoked := range data.RevokedPubkeys {
+		if err := k.RevokedKeys.Set(ctx, revoked, true); err != nil {
+			return err
+		}
+	}
 	for _, dkimPubKey := range data.DkimPubkeys {
 		pk := types.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
@@ -135,8 +140,8 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 			PubKey:       kv.Value.PubKey,
 			PoseidonHash: kv.Value.PoseidonHash,
 			Selector:     kv.Value.Selector,
-			Version:      types.Version(kv.Value.Version),
-			KeyType:      types.KeyType(kv.Value.KeyType),
+			Version:      kv.Value.Version,
+			KeyType:      kv.Value.KeyType,
 		})
 	}
 	// this line is used by starport scaffolding # genesis/module/export
@@ -146,9 +151,24 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	var revokedPubKeys []string
+	revokedIter, err := k.RevokedKeys.Iterate(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	defer revokedIter.Close()
+	for ; revokedIter.Valid(); revokedIter.Next() {
+		key, err := revokedIter.Key()
+		if err != nil {
+			continue
+		}
+		revokedPubKeys = append(revokedPubKeys, key)
+	}
+
 	return &types.GenesisState{
-		DkimPubkeys: dkimPubKeys,
-		Params:      params,
+		DkimPubkeys:    dkimPubKeys,
+		Params:         params,
+		RevokedPubkeys: revokedPubKeys,
 	}
 }
 
