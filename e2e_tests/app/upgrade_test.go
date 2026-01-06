@@ -100,9 +100,6 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	proposalTracker := testlib.NewProposalTracker(2)
 	ctx := t.Context()
 
-	// Create a fresh encoding config for post-upgrade assertions
-	postUpgradeEncodingConfig := testlib.XionEncodingConfig(t)
-
 	// Run ZKEmail authenticator assertions
 	// NOTE: ZKEmail now seeds its own DKIM record using the proposal tracker
 	// User is nil so it will create the "zkemail-test" user with DeployerMnemonic,
