@@ -203,13 +203,13 @@ test-xion-genesis-export-import:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestGenesisExportImport
 
 test-xion-indexer-authz:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionIndexerAuthz
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthz
 
 test-xion-indexer-feegrant:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionIndexerFeeGrant
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrant
 
-test-xion-indexer-non-consensus-critical:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestIndexerNonConsensusCritical
+test-indexer-non-consensus-critical:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerNonConsensusCritical
 
 test-xion-min-fee-bypass:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeBypass
@@ -395,7 +395,7 @@ test-sim-deterministic: runsim
         test-jwk-malformed-tokens test-jwk-missing-claims test-jwk-multiple-audiences \
         test-jwk-transaction-hash \
         test-xion-genesis-export-import test-xion-indexer-authz test-xion-indexer-feegrant \
-        test-xion-indexer-non-consensus-critical \
+        test-indexer-non-consensus-critical \
         test-xion-min-fee-bypass test-xion-min-fee-default test-xion-min-fee-multi-denom \
         test-xion-min-fee-multi-denom-ibc test-xion-min-fee-zero test-xion-platform-fee \
         test-xion-platform-fee-bypass test-xion-platform-min-codec-bug \
@@ -489,6 +489,7 @@ help-test:
 	@echo "    test-indexer-feegrant-multiple      Test multiple feegrant allowances"
 	@echo "    test-indexer-feegrant-periodic      Test periodic allowance types"
 	@echo "    test-indexer-feegrant-revoke        Test feegrant allowance revocation"
+	@echo "    test-indexer-non-consensus-critical Test indexer non-consensus-critical operation"
 	@echo ""
 	@echo "  JWK Module Individual Tests:"
 	@echo "    test-jwk-algorithm-confusion        Test algorithm confusion prevention"
@@ -506,7 +507,6 @@ help-test:
 	@echo "    test-xion-genesis-export-import         Test genesis export and import cycle"
 	@echo "    test-xion-indexer-authz                 Test authz grant indexing (includes robustness tests)"
 	@echo "    test-xion-indexer-feegrant              Test fee grant indexing (includes robustness tests)"
-	@echo "    test-xion-indexer-non-consensus-critical Test indexer non-consensus-critical operation"
 	@echo "    test-xion-min-fee-bypass            Test minimum fee bypass prevention"
 	@echo "    test-xion-min-fee-default           Test minimum fee default"
 	@echo "    test-xion-min-fee-multi-denom       Test multi-denom min global fee"

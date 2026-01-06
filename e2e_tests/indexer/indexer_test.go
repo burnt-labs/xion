@@ -1,4 +1,4 @@
-package e2e_xion
+package e2e_indexer
 
 import (
 	"context"
@@ -483,8 +483,6 @@ func TestXionIndexerFeeGrant(t *testing.T) {
 	})
 }
 
-// TestIndexerNonConsensusCritical verifies that indexer errors don't halt the node
-// This test confirms that StopNodeOnErr is configured to false
 func TestIndexerNonConsensusCritical(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
@@ -529,7 +527,7 @@ func TestIndexerNonConsensusCritical(t *testing.T) {
 		// Verify we can still query the chain height
 		height, err := xion.Height(ctx)
 		require.NoError(t, err, "should be able to get chain height")
-		require.Greater(t, height, uint64(0), "chain height should be greater than 0")
+		require.Greater(t, height, int64(0), "chain height should be greater than 0")
 
 		// Verify we can still execute transactions
 		_, err = node.ExecTx(ctx,
