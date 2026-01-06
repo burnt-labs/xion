@@ -7,7 +7,6 @@ import (
 	"cosmossdk.io/math"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
@@ -45,10 +44,9 @@ func DefaultDKIMTestData() DKIMTestData {
 type DKIMAssertionConfig struct {
 	Chain           *cosmos.CosmosChain
 	Ctx             context.Context
-	User            ibc.Wallet                        // Optional: if nil, will create and fund a new user
-	ProposalTracker *ProposalTracker                  // Required: tracks proposal IDs
+	User            ibc.Wallet       // Optional: if nil, will create and fund a new user
+	ProposalTracker *ProposalTracker // Required: tracks proposal IDs
 	TestData        DKIMTestData
-	EncodingConfig  *moduletestutil.TestEncodingConfig // Optional: if provided, will be used for proposal encoding (needed post-upgrade)
 }
 
 // RunDKIMModuleAssertions seeds DKIM records via governance and validates queries.
@@ -106,18 +104,10 @@ func RunDKIMModuleAssertions(t *testing.T, cfg DKIMAssertionConfig) {
 
 	// Submit proposal to seed DKIM records
 	proposalID := cfg.ProposalTracker.NextID()
-	// Use custom encoding if provided (needed post-upgrade), otherwise use standard submission
-	if cfg.EncodingConfig != nil {
-		err = SubmitAndPassProposalWithEncoding(t, ctx, xion, chainUser,
-			[]cosmos.ProtoMessage{createDkimMsg},
-			"Seed DKIM records", "Seed DKIM records", "Seed DKIM records",
-			proposalID, cfg.EncodingConfig)
-	} else {
-		err = SubmitAndPassProposal(t, ctx, xion, chainUser,
-			[]cosmos.ProtoMessage{createDkimMsg},
-			"Seed DKIM records", "Seed DKIM records", "Seed DKIM records",
-			proposalID)
-	}
+	err = SubmitAndPassProposal(t, ctx, xion, chainUser,
+		[]cosmos.ProtoMessage{createDkimMsg},
+		"Seed DKIM records", "Seed DKIM records", "Seed DKIM records",
+		proposalID)
 	require.NoError(t, err)
 
 	// Verify queries work
@@ -190,18 +180,10 @@ func RunDKIMGovernanceAssertions(t *testing.T, cfg DKIMAssertionConfig) {
 
 	// Submit proposal to add
 	addProposalID := cfg.ProposalTracker.NextID()
-	// Use custom encoding if provided (needed post-upgrade), otherwise use standard submission
-	if cfg.EncodingConfig != nil {
-		err = SubmitAndPassProposalWithEncoding(t, ctx, xion, chainUser,
-			[]cosmos.ProtoMessage{createDkimMsg},
-			"Add test DKIM record", "Add test DKIM record", "Add test DKIM record",
-			addProposalID, cfg.EncodingConfig)
-	} else {
-		err = SubmitAndPassProposal(t, ctx, xion, chainUser,
-			[]cosmos.ProtoMessage{createDkimMsg},
-			"Add test DKIM record", "Add test DKIM record", "Add test DKIM record",
-			addProposalID)
-	}
+	err = SubmitAndPassProposal(t, ctx, xion, chainUser,
+		[]cosmos.ProtoMessage{createDkimMsg},
+		"Add test DKIM record", "Add test DKIM record", "Add test DKIM record",
+		addProposalID)
 	require.NoError(t, err)
 
 	// Verify record was added
@@ -217,18 +199,10 @@ func RunDKIMGovernanceAssertions(t *testing.T, cfg DKIMAssertionConfig) {
 	}
 
 	removeProposalID := cfg.ProposalTracker.NextID()
-	// Use custom encoding if provided (needed post-upgrade), otherwise use standard submission
-	if cfg.EncodingConfig != nil {
-		err = SubmitAndPassProposalWithEncoding(t, ctx, xion, chainUser,
-			[]cosmos.ProtoMessage{deleteDkimMsg},
-			"Remove test DKIM record", "Remove test DKIM record", "Remove test DKIM record",
-			removeProposalID, cfg.EncodingConfig)
-	} else {
-		err = SubmitAndPassProposal(t, ctx, xion, chainUser,
-			[]cosmos.ProtoMessage{deleteDkimMsg},
-			"Remove test DKIM record", "Remove test DKIM record", "Remove test DKIM record",
-			removeProposalID)
-	}
+	err = SubmitAndPassProposal(t, ctx, xion, chainUser,
+		[]cosmos.ProtoMessage{deleteDkimMsg},
+		"Remove test DKIM record", "Remove test DKIM record", "Remove test DKIM record",
+		removeProposalID)
 	require.NoError(t, err)
 
 	// Verify record was removed

@@ -19,7 +19,6 @@ import (
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -55,9 +54,8 @@ type ZKEmailContractQuery struct {
 type ZKEmailAssertionConfig struct {
 	Chain           *cosmos.CosmosChain
 	Ctx             context.Context
-	User            ibc.Wallet                        // Optional: if nil, will create and fund a new user with DeployerMnemonic
-	ProposalTracker *ProposalTracker                  // Required: tracks proposal IDs for DKIM seeding
-	EncodingConfig  *moduletestutil.TestEncodingConfig // Optional: if provided, will be used for proposal encoding (needed post-upgrade)
+	User            ibc.Wallet       // Optional: if nil, will create and fund a new user with DeployerMnemonic
+	ProposalTracker *ProposalTracker // Required: tracks proposal IDs for DKIM seeding
 }
 
 // ZKEmailTestDataPaths contains paths to test data files.
@@ -136,18 +134,10 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	require.NoError(t, createDkimMsg.ValidateBasic())
 
 	dkimProposalID := cfg.ProposalTracker.NextID()
-	// Use custom encoding if provided (needed post-upgrade), otherwise use standard submission
-	if cfg.EncodingConfig != nil {
-		err = SubmitAndPassProposalWithEncoding(t, ctx, xion, xionUser,
-			[]cosmos.ProtoMessage{createDkimMsg},
-			"Seed DKIM for ZKEmail", "Seed DKIM record for ZKEmail authentication", "Seed DKIM for ZKEmail",
-			dkimProposalID, cfg.EncodingConfig)
-	} else {
-		err = SubmitAndPassProposal(t, ctx, xion, xionUser,
-			[]cosmos.ProtoMessage{createDkimMsg},
-			"Seed DKIM for ZKEmail", "Seed DKIM record for ZKEmail authentication", "Seed DKIM for ZKEmail",
-			dkimProposalID)
-	}
+	err = SubmitAndPassProposal(t, ctx, xion, xionUser,
+		[]cosmos.ProtoMessage{createDkimMsg},
+		"Seed DKIM for ZKEmail", "Seed DKIM record for ZKEmail authentication", "Seed DKIM for ZKEmail",
+		dkimProposalID)
 	require.NoError(t, err)
 	t.Log("DKIM record seeded successfully")
 
