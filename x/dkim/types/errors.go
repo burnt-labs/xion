@@ -20,4 +20,5 @@ var (
 	ErrNotRSAKey      = errorsmod.Register(ModuleName, 1108, "public key is not an RSA key")
 	ErrInvalidParams  = errorsmod.Register(ModuleName, 1109, "invalid params")
 	ErrPubKeyTooLarge = errorsmod.Register(ModuleName, 1110, "dkim public key exceeds maximum size")
+	ErrInvalidatedKey = errorsmod.Register(ModuleName, 1111, "dkim public key has been revoked")
 )

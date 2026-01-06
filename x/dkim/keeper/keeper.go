@@ -12,7 +12,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
 	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 )
@@ -24,7 +23,8 @@ type Keeper struct {
 
 	// state management
 	Schema      collections.Schema
-	DkimPubKeys collections.Map[collections.Pair[string, string], apiv1.DkimPubKey]
+	DkimPubKeys collections.Map[collections.Pair[string, string], types.DkimPubKey]
+	RevokedKeys collections.Map[string, bool]
 	Params      collections.Item[types.Params]
 	ZkKeeper    zkkeeper.Keeper
 
@@ -55,7 +55,14 @@ func NewKeeper(
 			types.DkimPrefix,
 			"dkim_pubkeys",
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
-			codec.CollValue[apiv1.DkimPubKey](cdc),
+			codec.CollValue[types.DkimPubKey](cdc),
+		),
+		RevokedKeys: collections.NewMap(
+			sb,
+			types.DkimRevokedPrefix,
+			"dkim_revoked_pubkeys",
+			collections.StringKey,
+			collections.BoolValue,
 		),
 		Params:    collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		authority: authority,
@@ -92,11 +99,13 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		return err
 	}
 	for _, dkimPubKey := range data.DkimPubkeys {
-		pk := apiv1.DkimPubKey{
+		pk := types.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
+			Version:      dkimPubKey.Version,
+			KeyType:      dkimPubKey.KeyType,
 		}
 		key := collections.Join(pk.Domain, pk.Selector)
 		//nolint:govet // copylocks: unavoidable when storing protobuf messages in collections.Map
