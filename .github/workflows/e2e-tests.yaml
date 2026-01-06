@@ -37,100 +37,25 @@ jobs:
           - amd64
           # - arm64
         test_type:
-          # Abstract Account Module Tests
-          - "AABasic"
-          - "AAClientEvent"
-          - "AAJWTCLI"
-          - "AAMultiAuth"
-          - "AAPanic"
-          - "AAWebAuthn"
-          # App Module Tests
+          - "AA" # AABasic, AAClientEvent, AAJWTCLI, AAMultiAuth, AAPanic, AAWebAuthn
           - "AppGovernance"
-          # - "AppIBCTimeout"
-          # - "AppIBCTransfer"
-          - "AppMintInflationHighFees"
-          - "AppMintInflationLowFees"
-          - "AppMintInflationNoFees"
-          - "AppMintNoInflationNoFees"
+          # - "AppIBC"              # AppIBCTimeout, AppIBCTransfer (disabled)
+          - "AppMint" # AppMintInflationHighFees, AppMintInflationLowFees, AppMintInflationNoFees, AppMintNoInflationNoFees
           - "AppSendPlatformFee"
           - "AppSimulate"
           - "AppTokenFactory"
-          - "AppTreasuryContract"
-          - "AppTreasuryMulti"
-          - "AppUpdateTreasuryConfigs"
-          - "AppUpdateTreasuryConfigsAA"
-          - "AppUpdateTreasuryParams"
-          # - "AppUpgradeIBC"
-          - "AppUpgradeNetwork$"
-          # - "AppUpgradeNetworkWithFeatures"
-          # DKIM Module Tests
-          - "DKIMGovernance"
-          - "DKIMModule"
-          - "DKIMPubKeyMaxSize"
-          # Indexer Module Tests
-          - "IndexerAuthzCreate"
-          - "IndexerAuthzMultiple"
-          - "IndexerAuthzRevoke"
-          - "IndexerFeeGrantCreate"
-          - "IndexerFeeGrantMultiple"
-          - "IndexerFeeGrantPeriodic"
-          - "IndexerFeeGrantRevoke"
-          # JWK Module Tests
-          - "JWKAlgorithmConfusion"
-          - "JWKAudienceMismatch"
-          - "JWKExpiredToken"
-          - "JWKInvalidSignature"
-          - "JWKJWTAA"
-          - "JWKKeyRotation"
-          - "JWKMalformedTokens"
-          - "JWKMissingClaims"
-          - "JWKMultipleAudiences"
-          - "JWKTransactionHash"
-          # Xion Module Tests - Genesis and Indexer
+          - "AppTreasury" # AppTreasuryContract, AppTreasuryMulti
+          - "AppUpdateTreasury" # AppUpdateTreasuryConfigs, AppUpdateTreasuryConfigsAA, AppUpdateTreasuryParams
+          - "AppUpgradeNetwork$" # Only AppUpgradeNetwork, not AppUpgradeNetworkWithFeatures
+          - "DKIM" # DKIMGovernance, DKIMModule, DKIMPubKeyMaxSize
           - "GenesisExportImport"
-          - "XionIndexerAuthz"
-          - "XionIndexerFeeGrant"
+          - "IndexerAuthz" # IndexerAuthz, IndexerAuthzCreate, IndexerAuthzMultiple, IndexerAuthzRevoke
+          - "IndexerFeeGrant" # IndexerFeeGrant, IndexerFeeGrantCreate, IndexerFeeGrantMultiple, IndexerFeeGrantPeriodic, IndexerFeeGrantRevoke
           - "IndexerNonConsensusCritical"
-          # Xion Module Tests - Original
-          - "XionMinFeeBypass"
-          - "XionMinFeeDefault"
-          - "XionMinFeeMultiDenom"
-          - "XionMinFeeMultiDenomIBC"
-          - "XionMinFeeZero"
-          - "XionPlatformFee"
-          - "XionPlatformFeeBypass"
-          - "XionPlatformMinCodecBug"
-          - "XionPlatformMinDirect"
-          # Xion Module Tests - Coverage Tests
-          - "XionMinFeeMultiDenomAdvanced"
-          - "XionMinFeeExtremeValues"
-          - "XionMinFeeConcurrentTransactions"
-          - "XionMinFeeSequenceHandling"
-          - "XionPlatformMinimumWithFees"
-          - "XionPlatformMinimumCodecValidation"
-          - "XionPlatformMinimumBypassInteraction"
-          - "XionMinFeeErrorMessages"
-          - "XionMinFeeInsufficientBalance"
-          - "XionMinFeeEdgeCaseScenarios"
-          - "XionMinFeeMemPoolBehavior"
-          # Xion Module Tests - Critical Security Tests
-          - "XionMinFeeGasCapBoundaries"
-          - "XionMinFeeGasCapWithFees"
-          - "XionMinFeeGasCapMultipleMessages"
-          - "XionMinFeeWithFeeGrant"
-          - "XionMinFeeFeeGrantAllowanceTypes"
-          - "XionMinFeeFeeGrantExpiration"
-          - "XionMinFeeMultipleFeeGrants"
-          - "XionMinFeeMultiMessageMixedTypes"
-          - "XionMinFeeMultiMessageSameType"
-          - "XionMinFeeMultiMessageGasAccounting"
-          - "XionMinFeeMultiMessageWithFeeGrant"
-          - "XionMinFeeMultiMessageErrorPaths"
-          - "XionMinFeeMultiMessageSequential"
-          - "XionMinFeeBypassMessageTypes"
-          # ZK Module Tests
-          - "ZKEmailAuthenticator"
-          - "ZKParamsAndVKeyUploads"
+          - "JWK" # All JWK* tests
+          - "XionMinFee" # All XionMinFee* tests
+          - "XionPlatform" # All XionPlatform* tests
+          - "ZK" # ZKEmailAuthenticator, ZKParamsAndVKeyUploads
 
     steps:
       - name: checkout

@@ -145,28 +145,6 @@ test-dkim-zk-proof:
 test-dkim-zk-params-and-vkey-uploads:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKParamsAndVKeyUploads
 
-# Indexer Module Tests
-test-indexer-authz-create:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzCreate
-
-test-indexer-authz-multiple:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzMultiple
-
-test-indexer-authz-revoke:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzRevoke
-
-test-indexer-feegrant-create:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantCreate
-
-test-indexer-feegrant-multiple:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantMultiple
-
-test-indexer-feegrant-periodic:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantPeriodic
-
-test-indexer-feegrant-revoke:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantRevoke
-
 # JWK Module Tests
 test-jwk-algorithm-confusion:
 	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKAlgorithmConfusion
