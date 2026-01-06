@@ -254,9 +254,11 @@ func TestIBCMinFeeMultiDenom(t *testing.T) {
 
 // formatJSON formats the IBC denom for the governance proposal
 func formatJSON(ibcDenom string) (json.RawMessage, error) {
+	// Note: Cosmos SDK requires denominations to be sorted lexicographically
+	// IBC denoms (ibc/...) come before native denoms (uxion) alphabetically
 	value := []map[string]string{
-		{"denom": "uxion", "amount": "0.025"},
 		{"denom": ibcDenom, "amount": "0.024"},
+		{"denom": "uxion", "amount": "0.025"},
 	}
 	return json.Marshal(value)
 }
