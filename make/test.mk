@@ -53,7 +53,7 @@ test-zk-all: .ensure-docker-image
 
 test-run: .ensure-docker-image
 	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
-	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
+	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -timeout 10m -run "$(TEST_NAME)" ./...
 
 # Abstract Account Module Tests
 test-aa-basic:
@@ -70,9 +70,6 @@ test-aa-multi-auth:
 
 test-aa-panic:
 	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAPanic
-
-test-aa-single-migration:
-	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAASingleMigration
 
 test-aa-webauthn:
 	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAWebAuthn
@@ -111,9 +108,6 @@ test-app-token-factory:
 test-app-treasury-contract:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryContract
 
-test-app-treasury-grants:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryContract
-
 test-app-treasury-multi:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryMulti
 
@@ -130,7 +124,7 @@ test-app-upgrade-ibc:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeIBC
 
 test-app-upgrade-network:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME='^TestAppUpgradeNetwork$$'
+	$(MAKE) test-run DIR_NAME=app TEST_NAME='^TestAppUpgradeNetwork$$$$'
 
 test-app-upgrade-network-with-features:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetworkWithFeatures
@@ -139,17 +133,11 @@ test-app-upgrade-network-with-features:
 test-dkim-governance:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMGovernance
 
-test-dkim-key-revocation:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMKeyRevocation
-
 test-dkim-module:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMModule
 
 test-dkim-pubkey-max-size:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMPubKeyMaxSize
-
-test-dkim-zk-email:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail
 
 test-dkim-zk-proof:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestZKEmailAuthenticator
@@ -387,17 +375,17 @@ test-sim-deterministic: runsim
         test-aa-all test-app-all test-dkim-all test-jwk-all test-xion-all test-indexer-all test-zk-all \
         test-aa-basic test-aa-client-event test-aa-jwt-cli \
         test-aa-multi-auth test-aa-panic \
-        test-aa-single-migration test-aa-webauthn \
+        test-aa-webauthn \
         test-app-governance test-app-ibc-timeout test-app-ibc-transfer \
         test-app-mint-inflation-high-fees test-app-mint-inflation-low-fees \
         test-app-mint-inflation-no-fees test-app-mint-no-inflation-no-fees \
         test-app-send-platform-fee test-app-simulate test-app-token-factory \
-        test-app-treasury-contract test-app-treasury-grants test-app-treasury-multi \
+        test-app-treasury-contract test-app-treasury-multi \
         test-app-update-treasury-configs test-app-update-treasury-configs-aa \
         test-app-update-treasury-params test-app-upgrade-ibc test-app-upgrade-network \
         test-app-upgrade-network-with-features \
-        test-dkim-governance test-dkim-key-revocation test-dkim-module \
-        test-dkim-pubkey-max-size test-dkim-zk-email test-dkim-zk-proof \
+        test-dkim-governance test-dkim-module \
+        test-dkim-pubkey-max-size test-dkim-zk-proof \
         test-dkim-zk-params-and-vkey-uploads \
         test-indexer-authz-create test-indexer-authz-multiple test-indexer-authz-revoke \
         test-indexer-feegrant-create test-indexer-feegrant-multiple \
@@ -464,7 +452,6 @@ help-test:
 	@echo "    test-aa-jwt-cli                     Test JWT abstract account CLI"
 	@echo "    test-aa-multi-auth                  Test multiple authenticators"
 	@echo "    test-aa-panic                       Test panic handling"
-	@echo "    test-aa-single-migration            Test single account migration"
 	@echo "    test-aa-webauthn                    Test WebAuthn abstract account"
 	@echo ""
 	@echo "  App Module Individual Tests:"
@@ -479,7 +466,6 @@ help-test:
 	@echo "    test-app-simulate                   Test simulation"
 	@echo "    test-app-token-factory              Test token factory"
 	@echo "    test-app-treasury-contract          Test treasury contract"
-	@echo "    test-app-treasury-grants            Test treasury grants"
 	@echo "    test-app-treasury-multi             Test treasury multi-signature"
 	@echo "    test-app-update-treasury-configs    Test treasury config updates"
 	@echo "    test-app-update-treasury-configs-aa Test treasury config updates with AA"
@@ -490,10 +476,8 @@ help-test:
 	@echo ""
 	@echo "  DKIM Module Individual Tests:"
 	@echo "    test-dkim-governance                Test governance-only key registration"
-	@echo "    test-dkim-key-revocation            Test key revocation"
 	@echo "    test-dkim-module                    Test DKIM module functionality"
 	@echo "    test-dkim-pubkey-max-size           Test public key maximum size validation"
-	@echo "    test-dkim-zk-email                  Test ZK email authenticator"
 	@echo "    test-dkim-zk-proof                  Test ZK proof validation"
 	@echo "    test-dkim-zk-params-and-vkey-uploads Test ZK params and vkey uploads"
 	@echo ""

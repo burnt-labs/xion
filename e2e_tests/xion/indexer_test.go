@@ -494,7 +494,8 @@ func TestIndexerNonConsensusCritical(t *testing.T) {
 	t.Log("======================================================")
 	t.Log("Testing that indexer errors don't affect consensus")
 
-	t.Parallel()
+	// NOTE: Not using t.Parallel() here to avoid Docker network conflicts
+	// Multiple parallel tests can cause "network not found" errors during cleanup
 	ctx := context.Background()
 
 	chainSpec := testlib.XionLocalChainSpec(t, 1, 0)

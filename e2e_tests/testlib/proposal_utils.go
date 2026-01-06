@@ -2,13 +2,17 @@ package testlib
 
 import (
 	"context"
+	"encoding/json"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	ibctestutil "github.com/cosmos/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,6 +97,102 @@ func SubmitAndPassProposal(
 	// Wait for proposal execution
 	height, err = chain.Height(ctx)
 	require.NoError(t, err, "error fetching height after proposal passed")
-	err = testutil.WaitForBlocks(ctx, int(height+4), chain)
+	err = ibctestutil.WaitForBlocks(ctx, int(height+4), chain)
+	return err
+}
+
+// SubmitAndPassProposalWithEncoding submits a governance proposal using a custom encoding config.
+// This is necessary after chain upgrades when the chain object's encoding config is stale.
+// It manually marshals messages using the provided encoding config before submission.
+func SubmitAndPassProposalWithEncoding(
+	t *testing.T,
+	ctx context.Context,
+	chain *cosmos.CosmosChain,
+	proposer ibc.Wallet,
+	proposalMsgs []cosmos.ProtoMessage,
+	title, summary, metadata string,
+	proposalID uint64,
+	encodingConfig *moduletestutil.TestEncodingConfig,
+) error {
+	// Get codec from the encoding config interface registry
+	cdc := codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
+
+	// Marshal each message using the fresh encoding config
+	messages := make([]json.RawMessage, len(proposalMsgs))
+	for i, msg := range proposalMsgs {
+		msgBytes, err := cdc.MarshalInterfaceJSON(msg)
+		require.NoError(t, err, "failed to marshal proposal message %d", i)
+		messages[i] = msgBytes
+	}
+
+	// Build proposal using TxProposalv1 format with manually encoded messages
+	prop := cosmos.TxProposalv1{
+		Messages: messages,
+		Metadata: metadata,
+		Deposit:  "500000000" + chain.Config().Denom,
+		Title:    title,
+		Summary:  summary,
+	}
+
+	height, err := chain.Height(ctx)
+	require.NoError(t, err, "error fetching height before submit proposal")
+
+	txResp, err := chain.SubmitProposal(ctx, proposer.KeyName(), prop)
+	require.NoError(t, err, "failed to submit proposal")
+
+	// Parse proposal ID from response
+	parsedProposalID, err := strconv.ParseUint(txResp.ProposalID, 10, 64)
+	require.NoError(t, err, "failed to parse proposal ID")
+	require.Equal(t, proposalID, parsedProposalID, "proposal ID mismatch")
+
+	// Wait for proposal to enter voting period
+	require.Eventuallyf(t, func() bool {
+		proposalInfo, err := chain.GovQueryProposal(ctx, proposalID)
+		if err != nil {
+			return false
+		}
+		if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+			return true
+		}
+		t.Logf("Waiting for proposal %d to enter voting status VOTING, current status: %s", proposalID, proposalInfo.Status)
+		return false
+	}, time.Second*15, time.Second, "failed to reach status VOTING after 15s")
+
+	// Vote yes from all validators
+	err = chain.VoteOnProposalAllValidators(ctx, proposalID, cosmos.ProposalVoteYes)
+	require.NoError(t, err, "failed to submit votes")
+
+	// Wait for voting period to complete
+	// Voting period is 10s in genesis, which is approximately 20 blocks at ~500ms/block
+	// We need to wait for the period to end before the proposal can transition to PASSED
+	currentHeight, err := chain.Height(ctx)
+	require.NoError(t, err, "error fetching height after voting")
+	err = ibctestutil.WaitForBlocks(ctx, int(currentHeight)+20, chain)
+	require.NoError(t, err, "error waiting for voting period to complete")
+
+	// Wait for proposal to pass
+	// After the voting period ends, the proposal should transition to PASSED quickly
+	require.Eventuallyf(t, func() bool {
+		proposalInfo, err := chain.GovQueryProposal(ctx, proposalID)
+		if err != nil {
+			return false
+		}
+		if proposalInfo.Status == govv1beta1.StatusPassed {
+			return true
+		}
+		t.Logf("Waiting for proposal %d to enter voting status PASSED, current status: %s", proposalID, proposalInfo.Status)
+		return false
+	}, time.Second*10, time.Second, "failed to reach status PASSED after 10s")
+
+	afterVoteHeight, err := chain.Height(ctx)
+	require.NoError(t, err, "error fetching height after voting on proposal")
+
+	_, err = cosmos.PollForProposalStatus(ctx, chain, height, afterVoteHeight, proposalID, govv1beta1.StatusPassed)
+	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
+
+	// Wait for proposal execution
+	height, err = chain.Height(ctx)
+	require.NoError(t, err, "error fetching height after proposal passed")
+	err = ibctestutil.WaitForBlocks(ctx, int(height+4), chain)
 	return err
 }
