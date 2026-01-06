@@ -35,7 +35,6 @@ jobs:
           - linux
         arch:
           - amd64
-          # - arm64
         include:
           - test_type: "AA"
             dir_name: "abstract-account"
