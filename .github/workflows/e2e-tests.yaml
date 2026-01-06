@@ -36,26 +36,45 @@ jobs:
         arch:
           - amd64
           # - arm64
-        test_type:
-          - "AA" # AABasic, AAClientEvent, AAJWTCLI, AAMultiAuth, AAPanic, AAWebAuthn
-          - "AppGovernance"
-          # - "AppIBC"              # AppIBCTimeout, AppIBCTransfer (disabled)
-          - "AppMint" # AppMintInflationHighFees, AppMintInflationLowFees, AppMintInflationNoFees, AppMintNoInflationNoFees
-          - "AppSendPlatformFee"
-          - "AppSimulate"
-          - "AppTokenFactory"
-          - "AppTreasury" # AppTreasuryContract, AppTreasuryMulti
-          - "AppUpdateTreasury" # AppUpdateTreasuryConfigs, AppUpdateTreasuryConfigsAA, AppUpdateTreasuryParams
-          - "AppUpgradeNetwork$" # Only AppUpgradeNetwork, not AppUpgradeNetworkWithFeatures
-          - "DKIM" # DKIMGovernance, DKIMModule, DKIMPubKeyMaxSize
-          - "GenesisExportImport"
-          - "IndexerAuthz" # IndexerAuthz, IndexerAuthzCreate, IndexerAuthzMultiple, IndexerAuthzRevoke
-          - "IndexerFeeGrant" # IndexerFeeGrant, IndexerFeeGrantCreate, IndexerFeeGrantMultiple, IndexerFeeGrantPeriodic, IndexerFeeGrantRevoke
-          - "IndexerNonConsensusCritical"
-          - "JWK" # All JWK* tests
-          - "XionMinFee" # All XionMinFee* tests
-          - "XionPlatform" # All XionPlatform* tests
-          - "ZK" # ZKEmailAuthenticator, ZKParamsAndVKeyUploads
+        include:
+          - test_type: "AA"
+            dir_name: "abstract-account"
+          - test_type: "AppGenesisExportImport"
+            dir_name: "app"
+          - test_type: "AppGovernance"
+            dir_name: "app"
+          - test_type: "AppMint"
+            dir_name: "app"
+          - test_type: "AppSendPlatformFee"
+            dir_name: "app"
+          - test_type: "AppSimulate"
+            dir_name: "app"
+          - test_type: "AppTokenFactory"
+            dir_name: "app"
+          - test_type: "AppTreasury"
+            dir_name: "app"
+          - test_type: "AppUpdateTreasury"
+            dir_name: "app"
+          - test_type: "AppUpgradeNetwork$"
+            dir_name: "app"
+          - test_type: "DKIM"
+            dir_name: "dkim"
+          - test_type: "IndexerAuthz"
+            dir_name: "indexer"
+          - test_type: "IndexerFeeGrant"
+            dir_name: "indexer"
+          - test_type: "IndexerNonConsensusCritical"
+            dir_name: "indexer"
+          # - test_type: "IBC"
+          #   dir_name: "ibc"
+          - test_type: "JWK"
+            dir_name: "jwk"
+          - test_type: "XionMinFee"
+            dir_name: "xion"
+          - test_type: "XionPlatform"
+            dir_name: "xion"
+          - test_type: "ZK"
+            dir_name: "zk"
 
     steps:
       - name: checkout
@@ -89,4 +108,4 @@ jobs:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
-          make test-run TEST_NAME=Test${{ matrix.test_type }}
+          make test-run TEST_NAME=Test${{ matrix.test_type }} DIR_NAME=${{ matrix.dir_name }} DIRECTORY="./..."

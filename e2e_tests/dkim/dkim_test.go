@@ -1,4 +1,4 @@
-package integration_tests
+package e2e_dkim
 
 import (
 	"testing"
