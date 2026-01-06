@@ -1,17 +1,21 @@
 package integration_tests
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
 	"cosmossdk.io/math"
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	"github.com/burnt-labs/xion/x/dkim/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
 )
 
@@ -99,7 +103,9 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 	proposalID := proposalTracker.NextID()
 	err := testlib.SubmitAndPassProposal(t, ctx, xion, chainUser, []cosmos.ProtoMessage{updateParamsMsg}, "Update DKIM Params", "Set max pubkey size smaller to trigger oversize", "", proposalID)
 	require.NoError(t, err)
-
+	// make sure params were updated
+	paramsRes := queryDkimParams(t, ctx, xion)
+	require.Equal(t, updatedParams.MaxPubkeySizeBytes, paramsRes.MaxPubkeySizeBytes)
 	govModAddress := testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName)
 	oversizedMsg := &dkimTypes.MsgAddDkimPubKeys{
 		Authority: govModAddress,
@@ -143,4 +149,21 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 	failedProp, err := cosmos.PollForProposalStatus(ctx, xion, startHeight, startHeight+15, proposalID, govv1beta1.StatusFailed)
 	require.NoError(t, err, "proposal should fail due to oversized pubkey")
 	require.Equal(t, proposalID, failedProp.ProposalId, "polled proposal mismatch")
+}
+
+func queryDkimParams(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain) types.Params {
+	resp, err := testlib.ExecQuery(t, ctx, chain.GetNode(), "dkim", "params")
+	require.NoError(t, err)
+
+	paramsVal, err := dyno.Get(resp, "params")
+	require.NoError(t, err)
+
+	maxKeySize, err := dyno.GetString(paramsVal, "max_pubkey_size_bytes")
+	require.NoError(t, err)
+	maxSize, err := strconv.ParseUint(maxKeySize, 10, 64)
+	require.NoError(t, err)
+
+	return types.Params{
+		MaxPubkeySizeBytes: maxSize,
+	}
 }

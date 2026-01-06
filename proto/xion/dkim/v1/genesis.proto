@@ -12,7 +12,10 @@ message GenesisState {
   // Params defines all the parameters of the module.
   Params params = 1 [ (gogoproto.nullable) = false ];
 
+  // dkim_pubkeys stores the list of active DKIM public keys.
   repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
+  // revoked_pubkeys stores the list of revoked DKIM public keys.
+  repeated string revoked_pubkeys = 3;
 }
 
 // Params defines the set of module parameters.
