@@ -363,7 +363,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	require.NoError(t, err)
 
 	// Broadcast transaction and verify it succeeded
-	txHash, err := ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--output", "json")
+	txHash, err = ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--output", "json")
 	require.NoError(t, err, "ZK email transaction broadcast failed")
 	require.NotEmpty(t, txHash, "Expected non-empty transaction hash")
 
