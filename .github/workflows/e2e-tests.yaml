@@ -31,51 +31,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - linux
-        arch:
-          - amd64
-        include:
-          - test_type: "AA"
-            dir_name: "abstract-account"
-          - test_type: "AppGenesisExportImport"
-            dir_name: "app"
-          - test_type: "AppGovernance"
-            dir_name: "app"
-          - test_type: "AppMint"
-            dir_name: "app"
-          - test_type: "AppSendPlatformFee"
-            dir_name: "app"
-          - test_type: "AppSimulate"
-            dir_name: "app"
-          - test_type: "AppTokenFactory"
-            dir_name: "app"
-          - test_type: "AppTreasury"
-            dir_name: "app"
-          - test_type: "AppUpdateTreasury"
-            dir_name: "app"
-          - test_type: "AppUpgradeNetwork$"
-            dir_name: "app"
-          - test_type: "DKIM"
-            dir_name: "dkim"
-          - test_type: "IndexerAuthz"
-            dir_name: "indexer"
-          - test_type: "IndexerFeeGrant"
-            dir_name: "indexer"
-          - test_type: "IndexerNonConsensusCritical"
-            dir_name: "indexer"
-          # - test_type: "IBC"
-          #   dir_name: "ibc"
-          - test_type: "IBCMinFeeMultiDenom"
-            dir_name: "ibc"
-          - test_type: "JWK"
-            dir_name: "jwk"
-          - test_type: "XionMinFee"
-            dir_name: "xion"
-          - test_type: "XionPlatform"
-            dir_name: "xion"
-          - test_type: "ZK"
-            dir_name: "zk"
+        os: [linux]
+        arch: [amd64]
+        test:
+          - {dir: "abstract-account", type: "AA"}
+          - {dir: "app", type: "AppGenesisExportImport"}
+          - {dir: "app", type: "AppGovernance"}
+          - {dir: "app", type: "AppMint"}
+          - {dir: "app", type: "AppSendPlatformFee"}
+          - {dir: "app", type: "AppSimulate"}
+          - {dir: "app", type: "AppTokenFactory"}
+          - {dir: "app", type: "AppTreasury"}
+          - {dir: "app", type: "AppUpdateTreasury"}
+          - {dir: "app", type: "AppUpgradeNetwork$"}
+          - {dir: "dkim", type: "DKIM"}
+          - {dir: "indexer", type: "IndexerAuthz"}
+          - {dir: "indexer", type: "IndexerFeeGrant"}
+          - {dir: "indexer", type: "IndexerNonConsensusCritical"}
+          # - {dir: "ibc", type: "IBC"}
+          - {dir: "ibc", type: "IBCMinFeeMultiDenom"}
+          - {dir: "jwk", type: "JWK"}
+          - {dir: "xion", type: "XionMinFee"}
+          - {dir: "xion", type: "XionPlatform"}
+          - {dir: "zk", type: "ZK"}
 
     steps:
       - name: checkout
@@ -109,4 +87,4 @@ jobs:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
-          make test-run TEST_NAME=Test${{ matrix.test_type }} DIR_NAME=${{ matrix.dir_name }} DIRECTORY="./..."
+          make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }} DIRECTORY="./..."
