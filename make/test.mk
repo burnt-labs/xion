@@ -28,7 +28,7 @@ test-race:
 	@version=$(version) go test -mod=readonly -race -tags='ledger test_ledger_mock' -ldflags="-w" ./...
 
 test-e2e-all: .ensure-docker-image
-	@cd ./e2e_tests && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" ./abstract-account/... ./app/... ./dkim/... ./indexer/... ./jwk/... ./xion/...
+	@cd ./e2e_tests && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" ./abstract-account/... ./app/... ./dkim/... ./indexer/... ./jwk/... ./xion/... ./zk/...
 
 test-aa-all: .ensure-docker-image
 	@cd ./e2e_tests/abstract-account && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
@@ -48,13 +48,12 @@ test-xion-all: .ensure-docker-image
 test-indexer-all: .ensure-docker-image
 	@cd ./e2e_tests/indexer && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
 
+test-zk-all: .ensure-docker-image
+	@cd ./e2e_tests/zk && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -v ./...
+
 test-run: .ensure-docker-image
 	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
-	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
-
-test-run-no-time: .ensure-docker-image
-	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
-	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -timeout 60m -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
+	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -timeout 10m -run "$(TEST_NAME)" ./...
 
 # Abstract Account Module Tests
 test-aa-basic:
@@ -72,9 +71,6 @@ test-aa-multi-auth:
 test-aa-panic:
 	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAPanic
 
-test-aa-single-migration:
-	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAASingleMigration
-
 test-aa-webauthn:
 	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAAWebAuthn
 
@@ -82,11 +78,11 @@ test-aa-webauthn:
 test-app-governance:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppGovernance
 
-test-app-ibc-timeout:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppIBCTimeout
+test-ibc-timeout:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCTimeout
 
-test-app-ibc-transfer:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppIBCTransfer
+test-ibc-transfer:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCTransfer
 
 test-app-mint-inflation-high-fees:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppMintInflationHighFees
@@ -112,9 +108,6 @@ test-app-token-factory:
 test-app-treasury-contract:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryContract
 
-test-app-treasury-grants:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryContract
-
 test-app-treasury-multi:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppTreasuryMulti
 
@@ -127,11 +120,11 @@ test-app-update-treasury-configs-aa:
 test-app-update-treasury-params:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpdateTreasuryParams
 
-test-app-upgrade-ibc:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeIBC
+test-ibc-upgrade:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCUpgrade
 
 test-app-upgrade-network:
-	$(MAKE) test-run DIR_NAME=app TEST_NAME='^TestAppUpgradeNetwork$$'
+	$(MAKE) test-run DIR_NAME=app TEST_NAME='^TestAppUpgradeNetwork$$$$'
 
 test-app-upgrade-network-with-features:
 	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestAppUpgradeNetworkWithFeatures
@@ -140,48 +133,18 @@ test-app-upgrade-network-with-features:
 test-dkim-governance:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMGovernance
 
-test-dkim-key-revocation:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMKeyRevocation
-
 test-dkim-module:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMModule
 
 test-dkim-pubkey-max-size:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMPubKeyMaxSize
 
-test-dkim-pubkey-revoked:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMRevokedKeyCannotBeReadded
+# ZK Module Tests
+test-zk-email-authenticator:
+	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKEmailAuthenticator
 
-test-dkim-zk-email:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMZKEmail
-
-test-dkim-zk-proof:
-	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestZKEmailAuthenticator
-
-test-dkim-zk-params-and-vkey-uploads:
+test-zk-params-and-vkey-uploads:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKParamsAndVKeyUploads
-
-# Indexer Module Tests
-test-indexer-authz-create:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzCreate
-
-test-indexer-authz-multiple:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzMultiple
-
-test-indexer-authz-revoke:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthzRevoke
-
-test-indexer-feegrant-create:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantCreate
-
-test-indexer-feegrant-multiple:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantMultiple
-
-test-indexer-feegrant-periodic:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantPeriodic
-
-test-indexer-feegrant-revoke:
-	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrantRevoke
 
 # JWK Module Tests
 test-jwk-algorithm-confusion:
@@ -215,17 +178,17 @@ test-jwk-transaction-hash:
 	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKTransactionHash
 
 # Xion Module Tests
-test-xion-genesis-export-import:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestGenesisExportImport
+test-app-genesis-export-import:
+	$(MAKE) test-run DIR_NAME=app TEST_NAME=TestGenesisExportImport
 
 test-xion-indexer-authz:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionIndexerAuthz
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerAuthz
 
 test-xion-indexer-feegrant:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionIndexerFeeGrant
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerFeeGrant
 
-test-xion-indexer-non-consensus-critical:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestIndexerNonConsensusCritical
+test-indexer-non-consensus-critical:
+	$(MAKE) test-run DIR_NAME=indexer TEST_NAME=TestIndexerNonConsensusCritical
 
 test-xion-min-fee-bypass:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeBypass
@@ -236,8 +199,8 @@ test-xion-min-fee-default:
 test-xion-min-fee-multi-denom:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenom
 
-test-xion-min-fee-multi-denom-ibc:
-	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenomIBC
+test-ibc-min-fee-multi-denom:
+	$(MAKE) test-run DIR_NAME=ibc TEST_NAME=TestIBCMinFeeMultiDenom
 
 test-xion-min-fee-zero:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeZero
@@ -388,19 +351,21 @@ test-sim-deterministic: runsim
 
 .PHONY: test test-all test-unit test-race benchmark \
         test-run test-e2e-all \
-        test-aa-all test-app-all test-dkim-all test-jwk-all test-xion-all test-indexer-all \
+        test-aa-all test-app-all test-dkim-all test-jwk-all test-xion-all test-indexer-all test-zk-all \
         test-aa-basic test-aa-client-event test-aa-jwt-cli \
         test-aa-multi-auth test-aa-panic \
-        test-aa-single-migration test-aa-webauthn \
+        test-aa-webauthn \
         test-app-governance test-app-ibc-timeout test-app-ibc-transfer \
         test-app-mint-inflation-high-fees test-app-mint-inflation-low-fees \
         test-app-mint-inflation-no-fees test-app-mint-no-inflation-no-fees \
         test-app-send-platform-fee test-app-simulate test-app-token-factory \
-        test-app-treasury-contract test-app-treasury-grants test-app-treasury-multi \
+        test-app-treasury-contract test-app-treasury-multi \
         test-app-update-treasury-configs test-app-update-treasury-configs-aa \
         test-app-update-treasury-params test-app-upgrade-ibc test-app-upgrade-network \
-        test-dkim-governance test-dkim-key-revocation test-dkim-module \
-        test-dkim-zk-email test-dkim-zk-proof \
+        test-app-upgrade-network-with-features \
+        test-dkim-governance test-dkim-module \
+        test-dkim-pubkey-max-size test-dkim-zk-proof \
+        test-dkim-zk-params-and-vkey-uploads \
         test-indexer-authz-create test-indexer-authz-multiple test-indexer-authz-revoke \
         test-indexer-feegrant-create test-indexer-feegrant-multiple \
         test-indexer-feegrant-periodic test-indexer-feegrant-revoke \
@@ -409,7 +374,7 @@ test-sim-deterministic: runsim
         test-jwk-malformed-tokens test-jwk-missing-claims test-jwk-multiple-audiences \
         test-jwk-transaction-hash \
         test-xion-genesis-export-import test-xion-indexer-authz test-xion-indexer-feegrant \
-        test-xion-indexer-non-consensus-critical \
+        test-indexer-non-consensus-critical \
         test-xion-min-fee-bypass test-xion-min-fee-default test-xion-min-fee-multi-denom \
         test-xion-min-fee-multi-denom-ibc test-xion-min-fee-zero test-xion-platform-fee \
         test-xion-platform-fee-bypass test-xion-platform-min-codec-bug \
@@ -458,6 +423,7 @@ help-test:
 	@echo "  test-indexer-all           Run all Indexer module tests"
 	@echo "  test-jwk-all               Run all JWK module tests"
 	@echo "  test-xion-all              Run all Xion module tests"
+	@echo "  test-zk-all                Run all ZK module tests"
 	@echo ""
 	@echo "  Abstract Account Module Individual Tests:"
 	@echo "    test-aa-basic                       Test Xion abstract account"
@@ -465,7 +431,6 @@ help-test:
 	@echo "    test-aa-jwt-cli                     Test JWT abstract account CLI"
 	@echo "    test-aa-multi-auth                  Test multiple authenticators"
 	@echo "    test-aa-panic                       Test panic handling"
-	@echo "    test-aa-single-migration            Test single account migration"
 	@echo "    test-aa-webauthn                    Test WebAuthn abstract account"
 	@echo ""
 	@echo "  App Module Individual Tests:"
@@ -480,20 +445,20 @@ help-test:
 	@echo "    test-app-simulate                   Test simulation"
 	@echo "    test-app-token-factory              Test token factory"
 	@echo "    test-app-treasury-contract          Test treasury contract"
-	@echo "    test-app-treasury-grants            Test treasury grants"
 	@echo "    test-app-treasury-multi             Test treasury multi-signature"
 	@echo "    test-app-update-treasury-configs    Test treasury config updates"
 	@echo "    test-app-update-treasury-configs-aa Test treasury config updates with AA"
 	@echo "    test-app-update-treasury-params     Test treasury parameter updates"
 	@echo "    test-app-upgrade-ibc                Test IBC upgrade"
 	@echo "    test-app-upgrade-network            Test network upgrade"
+	@echo "    test-app-upgrade-network-with-features Test network upgrade with features"
 	@echo ""
 	@echo "  DKIM Module Individual Tests:"
 	@echo "    test-dkim-governance                Test governance-only key registration"
-	@echo "    test-dkim-key-revocation            Test key revocation"
 	@echo "    test-dkim-module                    Test DKIM module functionality"
-	@echo "    test-dkim-zk-email                  Test ZK email authenticator"
+	@echo "    test-dkim-pubkey-max-size           Test public key maximum size validation"
 	@echo "    test-dkim-zk-proof                  Test ZK proof validation"
+	@echo "    test-dkim-zk-params-and-vkey-uploads Test ZK params and vkey uploads"
 	@echo ""
 	@echo "  Indexer Module Individual Tests:"
 	@echo "    test-indexer-authz-create           Test authz grant indexing"
@@ -503,6 +468,7 @@ help-test:
 	@echo "    test-indexer-feegrant-multiple      Test multiple feegrant allowances"
 	@echo "    test-indexer-feegrant-periodic      Test periodic allowance types"
 	@echo "    test-indexer-feegrant-revoke        Test feegrant allowance revocation"
+	@echo "    test-indexer-non-consensus-critical Test indexer non-consensus-critical operation"
 	@echo ""
 	@echo "  JWK Module Individual Tests:"
 	@echo "    test-jwk-algorithm-confusion        Test algorithm confusion prevention"
@@ -520,16 +486,18 @@ help-test:
 	@echo "    test-xion-genesis-export-import         Test genesis export and import cycle"
 	@echo "    test-xion-indexer-authz                 Test authz grant indexing (includes robustness tests)"
 	@echo "    test-xion-indexer-feegrant              Test fee grant indexing (includes robustness tests)"
-	@echo "    test-xion-indexer-non-consensus-critical Test indexer non-consensus-critical operation"
 	@echo "    test-xion-min-fee-bypass            Test minimum fee bypass prevention"
 	@echo "    test-xion-min-fee-default           Test minimum fee default"
 	@echo "    test-xion-min-fee-multi-denom       Test multi-denom min global fee"
-	@echo "    test-xion-min-fee-multi-denom-ibc   Test multi-denom min global fee IBC"
+	@echo "    test-ibc-min-fee-multi-denom   Test multi-denom min global fee IBC"
 	@echo "    test-xion-min-fee-zero              Test minimum fee zero"
 	@echo "    test-xion-platform-fee              Test platform fee collection"
 	@echo "    test-xion-platform-fee-bypass       Test platform fee bypass prevention"
 	@echo "    test-xion-platform-min-codec-bug    Test platform minimum codec bug fix"
 	@echo "    test-xion-platform-min-direct       Test platform minimum direct transaction"
+	@echo ""
+	@echo "  ZK Module Individual Tests:"
+	@echo "    test-dkim-zk-params-and-vkey-uploads Test ZK params and vkey uploads"
 	@echo ""
 	@echo "Simulation tests:"
 	@echo "  test-sim                   Run simulation tests"
