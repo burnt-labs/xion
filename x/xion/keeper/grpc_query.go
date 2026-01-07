@@ -76,6 +76,10 @@ func (k Keeper) WebAuthNVerifyAuthenticate(ctx context.Context, request *types.Q
 		return nil, errorsmod.Wrapf(types.ErrWebAuthDataTooLarge,
 			"data size %d exceeds maximum %d bytes", len(request.Data), types.MaxWebAuthDataSize)
 	}
+	if len(request.Credential) > types.MaxWebAuthDataSize {
+		return nil, errorsmod.Wrapf(types.ErrWebAuthDataTooLarge,
+			"credential size %d exceeds maximum %d bytes", len(request.Credential), types.MaxWebAuthDataSize)
+	}
 
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	// Recover from panics to prevent DoS attacks with malformed WebAuthn data
