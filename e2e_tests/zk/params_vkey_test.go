@@ -1,4 +1,4 @@
-package integration_tests
+package e2e_zk
 
 import (
 	"bytes"
