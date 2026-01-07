@@ -3,7 +3,7 @@
 
 [run]
 # Coverage threshold percentage (can be overridden via COVERAGE_THRESHOLD env var)
-threshold = 70
+threshold = 80
 
 [exclude]
 # Patterns to ignore in low coverage reporting

@@ -331,7 +331,7 @@ func TestValidateRSAPubKey(t *testing.T) {
 
 func generateRSAPubKeyEncodings(t *testing.T) (string, string) {
 	t.Helper()
-	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
 	pkixBytes, err := x509.MarshalPKIXPublicKey(&key.PublicKey)

@@ -1,4 +1,4 @@
-package e2e_xion
+package e2e_aa
 
 import (
 	"crypto/sha256"
