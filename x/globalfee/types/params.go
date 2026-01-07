@@ -26,6 +26,7 @@ var (
 	// see DefaultZeroGlobalFee method in xion/x/globalfee/ante/fee.go.
 	DefaultMinGasPrices = sdk.DecCoins{}
 
+	// DefaultBypassMinFeeMsgTypes can skip min gas fees (xion msgs charge platform fees instead).
 	DefaultBypassMinFeeMsgTypes = []string{
 		sdk.MsgTypeURL(&xiontypes.MsgSend{}),
 		sdk.MsgTypeURL(&xiontypes.MsgMultiSend{}),
