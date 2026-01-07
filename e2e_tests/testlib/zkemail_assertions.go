@@ -384,7 +384,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	_, err = ExecBroadcast(t, ctx, xion.GetNode(), jsonTx)
 	require.NoError(t, err)
 
-	err = testutil.WaitForBlocks(ctx, 2, xion)
+	err = testutil.WaitForBlocks(ctx, 5, xion)
 	require.NoError(t, err)
 
 	// Verify recipient received funds
