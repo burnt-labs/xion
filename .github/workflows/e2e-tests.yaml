@@ -31,106 +31,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - linux
-        arch:
-          - amd64
-          # - arm64
-        test_type:
-          # Abstract Account Module Tests
-          - "AABasic"
-          - "AAClientEvent"
-          - "AAJWTCLI"
-          - "AAMultiAuth"
-          - "AAPanic"
-          - "AASingleMigration"
-          - "AAWebAuthn"
-          # App Module Tests
-          - "AppGovernance"
-          # - "AppIBCTimeout"
-          # - "AppIBCTransfer"
-          - "AppMintInflationHighFees"
-          - "AppMintInflationLowFees"
-          - "AppMintInflationNoFees"
-          - "AppMintNoInflationNoFees"
-          - "AppSendPlatformFee"
-          - "AppSimulate"
-          - "AppTokenFactory"
-          - "AppTreasuryContract"
-          - "AppTreasuryGrants"
-          - "AppTreasuryMulti"
-          - "AppUpdateTreasuryConfigs"
-          - "AppUpdateTreasuryConfigsAA"
-          - "AppUpdateTreasuryParams"
-          # - "AppUpgradeIBC"
-          - "AppUpgradeNetwork"
-          # DKIM Module Tests
-          # - "DKIMGovernance"
-          # - "DKIMKeyRevocation"
-          # - "DKIMModule"
-          # - "DKIMZKEmail"
-          # - "DKIMZKProof"
-          # Indexer Module Tests
-          - "IndexerAuthzCreate"
-          - "IndexerAuthzMultiple"
-          - "IndexerAuthzRevoke"
-          - "IndexerFeeGrantCreate"
-          - "IndexerFeeGrantMultiple"
-          - "IndexerFeeGrantPeriodic"
-          - "IndexerFeeGrantRevoke"
-          # JWK Module Tests
-          - "JWKAlgorithmConfusion"
-          - "JWKAudienceMismatch"
-          - "JWKExpiredToken"
-          - "JWKInvalidSignature"
-          - "JWKJWTAA"
-          - "JWKKeyRotation"
-          - "JWKMalformedTokens"
-          - "JWKMissingClaims"
-          - "JWKMultipleAudiences"
-          - "JWKTransactionHash"
-          # Xion Module Tests - Genesis and Indexer
-          - "GenesisExportImport"
-          - "XionIndexerAuthz"
-          - "XionIndexerFeeGrant"
-          - "XionIndexerNonConsensusCritical"
-          # Xion Module Tests - Original
-          - "XionMinFeeBypass"
-          - "XionMinFeeDefault"
-          - "XionMinFeeMultiDenom"
-          - "XionMinFeeMultiDenomIBC"
-          - "XionMinFeeZero"
-          - "XionPlatformFee"
-          - "XionPlatformFeeBypass"
-          - "XionPlatformMinCodecBug"
-          - "XionPlatformMinDirect"
-          # Xion Module Tests - Coverage Tests
-          - "XionMinFeeMultiDenomAdvanced"
-          - "XionMinFeeExtremeValues"
-          - "XionMinFeeConcurrentTransactions"
-          - "XionMinFeeSequenceHandling"
-          - "XionPlatformMinimumWithFees"
-          - "XionPlatformMinimumCodecValidation"
-          - "XionPlatformMinimumBypassInteraction"
-          - "XionMinFeeErrorMessages"
-          - "XionMinFeeInsufficientBalance"
-          - "XionMinFeeEdgeCaseScenarios"
-          - "XionMinFeeMemPoolBehavior"
-          # Xion Module Tests - Critical Security Tests
-          - "XionMinFeeGasCapBoundaries"
-          - "XionMinFeeGasCapWithFees"
-          - "XionMinFeeGasCapMultipleMessages"
-          - "XionMinFeeWithFeeGrant"
-          - "XionMinFeeFeeGrantAllowanceTypes"
-          - "XionMinFeeFeeGrantExpiration"
-          - "XionMinFeeMultipleFeeGrants"
-          - "XionMinFeeMultiMessageMixedTypes"
-          - "XionMinFeeMultiMessageSameType"
-          - "XionMinFeeMultiMessageGasAccounting"
-          - "XionMinFeeMultiMessageWithFeeGrant"
-          - "XionMinFeeMultiMessageErrorPaths"
-          - "XionMinFeeMultiMessageSequential"
-          - "XionMinFeeBypassMessageTypes"
+        os: [linux]
+        arch: [amd64]
+        test:
+          - {dir: "abstract-account", type: "AA"}
+          - {dir: "app", type: "AppGenesisExportImport"}
+          - {dir: "app", type: "AppGovernance"}
+          - {dir: "app", type: "AppMint"}
+          - {dir: "app", type: "AppSendPlatformFee"}
+          - {dir: "app", type: "AppSimulate"}
+          - {dir: "app", type: "AppTokenFactory"}
+          - {dir: "app", type: "AppTreasury"}
+          - {dir: "app", type: "AppUpdateTreasury"}
+          - {dir: "app", type: "AppUpgradeNetwork$"}
+          - {dir: "dkim", type: "DKIM"}
+          - {dir: "indexer", type: "IndexerAuthz"}
+          - {dir: "indexer", type: "IndexerFeeGrant"}
+          - {dir: "indexer", type: "IndexerNonConsensusCritical"}
+          # - {dir: "ibc", type: "IBC"}
+          - {dir: "ibc", type: "IBCMinFeeMultiDenom"}
+          - {dir: "jwk", type: "JWK"}
+          - {dir: "xion", type: "XionMinFee"}
+          - {dir: "xion", type: "XionPlatform"}
+          - {dir: "zk", type: "ZK"}
 
     steps:
       - name: checkout
@@ -155,10 +78,13 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           docker load < "docker-${{ matrix.os }}-${{ matrix.arch }}.tar"
+          # Also tag the local image with GHCR path for upgrade tests
+          # This allows interchaintest's UpgradeVersion to find it without pulling from registry
+          docker tag xion:${{ matrix.os }}-${{ matrix.arch }} local/xion:${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Run e2e test
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: xion:${{ matrix.os }}-${{ matrix.arch }}
+          XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
-          make test-run TEST_NAME=Test${{ matrix.test_type }}
+          make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }} DIRECTORY="./..."
