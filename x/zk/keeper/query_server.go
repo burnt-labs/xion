@@ -122,9 +122,9 @@ func (q Querier) VKeys(goCtx context.Context, req *types.QueryVKeysRequest) (*ty
 		goCtx,
 		q.Keeper.VKeys,
 		req.Pagination,
-		func(id uint64, vkey types.VKey) (types.VKeyWithID, error) {
+		func(key collections.Pair[string, uint64], vkey types.VKey) (types.VKeyWithID, error) {
 			return types.VKeyWithID{
-				Id:   id,
+				Id:   key.K2(),
 				Vkey: vkey,
 			}, nil
 		},

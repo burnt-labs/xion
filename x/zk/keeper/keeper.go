@@ -24,11 +24,12 @@ type Keeper struct {
 	logger log.Logger
 
 	// state management
-	Schema        collections.Schema
-	VKeys         collections.Map[uint64, types.VKey]
-	NextVKeyID    collections.Sequence
-	VKeyNameIndex collections.Map[string, uint64]
-	Params        collections.Item[types.Params]
+	Schema             collections.Schema
+	VKeys              collections.Map[collections.Pair[string, uint64], types.VKey]
+	NextVKeyID         collections.Sequence
+	VKeyNameIndex      collections.Map[string, uint64]
+	VKeyAuthorityIndex collections.Map[uint64, string]
+	Params             collections.Item[types.Params]
 
 	authority string
 }
@@ -55,7 +56,7 @@ func NewKeeper(
 			sb,
 			types.VKeyPrefix,
 			"vkeys",
-			collections.Uint64Key,
+			collections.PairKeyCodec(collections.StringKey, collections.Uint64Key),
 			codec.CollValue[types.VKey](cdc)),
 
 		NextVKeyID: collections.NewSequence(
@@ -67,6 +68,13 @@ func NewKeeper(
 			types.VkeyNameIndexPrefix, "vkey_name_index",
 			collections.StringKey,
 			collections.Uint64Value),
+		VKeyAuthorityIndex: collections.NewMap(
+			sb,
+			types.VkeyAuthorityIndexPrefix,
+			"vkey_authority_index",
+			collections.Uint64Key,
+			collections.StringValue,
+		),
 		Params: collections.NewItem(
 			sb,
 			types.ParamsKey,
@@ -110,13 +118,19 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 			panic(err)
 		}
 
+		authority := k.authority
+
 		// Set the vkey
-		if err := k.VKeys.Set(ctx, vkeyWithID.Id, vkeyWithID.Vkey); err != nil {
+		if err := k.VKeys.Set(ctx, collections.Join(authority, vkeyWithID.Id), vkeyWithID.Vkey); err != nil {
 			panic(err)
 		}
 
 		// Set the name index
 		if err := k.VKeyNameIndex.Set(ctx, vkeyWithID.Vkey.Name, vkeyWithID.Id); err != nil {
+			panic(err)
+		}
+
+		if err := k.VKeyAuthorityIndex.Set(ctx, vkeyWithID.Id, authority); err != nil {
 			panic(err)
 		}
 
@@ -244,7 +258,7 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 	}
 
 	// Store vkey
-	if err := k.VKeys.Set(ctx, id, *vkey); err != nil {
+	if err := k.VKeys.Set(ctx, collections.Join(authority, id), *vkey); err != nil {
 		return 0, err
 	}
 
@@ -253,12 +267,23 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 		return 0, err
 	}
 
+	if err := k.VKeyAuthorityIndex.Set(ctx, id, authority); err != nil {
+		return 0, err
+	}
+
 	return id, nil
 }
 
 // GetVKeyByID retrieves a verification key by its numeric ID
 func (k Keeper) GetVKeyByID(ctx context.Context, id uint64) (types.VKey, error) {
-	vkey, err := k.VKeys.Get(ctx, id)
+	authority, err := k.VKeyAuthorityIndex.Get(ctx, id)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return types.VKey{}, errors.Wrapf(types.ErrVKeyNotFound, "verification key with ID %d not found", id)
+		}
+		return types.VKey{}, err
+	}
+	vkey, err := k.VKeys.Get(ctx, collections.Join(authority, id))
 	if err != nil {
 		if errors.IsOf(err, collections.ErrNotFound) {
 			return types.VKey{}, errors.Wrapf(types.ErrVKeyNotFound, "verification key with ID %d not found", id)
@@ -313,6 +338,18 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 		return err
 	}
 
+	storedAuthority, err := k.VKeyAuthorityIndex.Get(ctx, id)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return errors.Wrapf(types.ErrVKeyNotFound, "verification key '%s' not found", name)
+		}
+		return err
+	}
+
+	if storedAuthority != authority {
+		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", storedAuthority, authority)
+	}
+
 	params, err := k.GetParams(ctx)
 	if err != nil {
 		return err
@@ -336,7 +373,7 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 		Description: description,
 	}
 
-	if err := k.VKeys.Set(ctx, id, updatedVKey); err != nil {
+	if err := k.VKeys.Set(ctx, collections.Join(storedAuthority, id), updatedVKey); err != nil {
 		return err
 	}
 
@@ -354,13 +391,29 @@ func (k Keeper) RemoveVKey(ctx context.Context, authority string, name string) e
 		return err
 	}
 
+	storedAuthority, err := k.VKeyAuthorityIndex.Get(ctx, id)
+	if err != nil {
+		if errors.IsOf(err, collections.ErrNotFound) {
+			return errors.Wrapf(types.ErrVKeyNotFound, "verification key '%s' not found", name)
+		}
+		return err
+	}
+
+	if storedAuthority != authority {
+		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", storedAuthority, authority)
+	}
+
 	// Remove from primary storage
-	if err := k.VKeys.Remove(ctx, id); err != nil {
+	if err := k.VKeys.Remove(ctx, collections.Join(storedAuthority, id)); err != nil {
 		return err
 	}
 
 	// Remove from name index
 	if err := k.VKeyNameIndex.Remove(ctx, name); err != nil {
+		return err
+	}
+
+	if err := k.VKeyAuthorityIndex.Remove(ctx, id); err != nil {
 		return err
 	}
 
@@ -371,7 +424,7 @@ func (k Keeper) RemoveVKey(ctx context.Context, authority string, name string) e
 func (k Keeper) ListVKeys(ctx context.Context) ([]types.VKey, error) {
 	var vkeys []types.VKey
 
-	err := k.VKeys.Walk(ctx, nil, func(id uint64, vkey types.VKey) (bool, error) {
+	err := k.VKeys.Walk(ctx, nil, func(_ collections.Pair[string, uint64], vkey types.VKey) (bool, error) {
 		vkeys = append(vkeys, vkey)
 		return false, nil
 	})
@@ -388,7 +441,9 @@ func (k Keeper) HasVKey(ctx context.Context, name string) (bool, error) {
 // IterateVKeys iterates over all verification keys with a callback
 // This is a read operation - no authority check needed
 func (k Keeper) IterateVKeys(ctx context.Context, cb func(id uint64, vkey types.VKey) (stop bool, err error)) error {
-	return k.VKeys.Walk(ctx, nil, cb)
+	return k.VKeys.Walk(ctx, nil, func(key collections.Pair[string, uint64], vkey types.VKey) (bool, error) {
+		return cb(key.K2(), vkey)
+	})
 }
 
 // GetAuthority returns the module's authority address
