@@ -1,4 +1,4 @@
-package integration_tests
+package e2e_dkim
 
 import (
 	"testing"
@@ -84,13 +84,16 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 	users := interchaintest.GetAndFundTestUsers(t, ctx, "dkim-max-size", math.NewInt(10_000_000_000), xion)
 	chainUser := users[0]
 
-	// Craft an oversized base64 key (decoded length = maxSize + 1).
+	// Craft an oversized base64 key.
+	// The MaxPubkeySizeBytes param checks the DECODED size, not the encoded base64 length.
+	// Base64 encoding adds ~33% overhead, so decoded size = encoded_length * 3/4
 	basePubKey := []byte("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB")
-	basePubKeySize := uint64(len(basePubKey))
-	// set maxSize param to half the basePubKeySize to ensure our key is oversized
+	// Calculate the decoded size (base64 encoded length * 3/4)
+	decodedSize := uint64(len(basePubKey) * 3 / 4)
+	// Set maxSize param to be smaller than the decoded size to ensure our key is oversized
 	updatedParams := dkimTypes.Params{
 		VkeyIdentifier:     uint64(1),
-		MaxPubkeySizeBytes: basePubKeySize - 1,
+		MaxPubkeySizeBytes: decodedSize - 1,
 	}
 	updateParamsMsg := &dkimTypes.MsgUpdateParams{
 		Authority: testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName),
