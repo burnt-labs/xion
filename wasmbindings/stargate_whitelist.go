@@ -29,8 +29,9 @@ import (
 // CONTRACT: since results of queries go into blocks, queries being added here should always be
 // deterministic or can cause non-determinism in the state machine.
 //
-// The query can be multi-thread, so we have to use
-// thread safe sync.Map.
+// The whitelist stores factory functions that return new proto.Message instances
+// to ensure thread-safety. Each query gets its own instance to avoid race conditions
+// when concurrent queries unmarshal into the same object.
 var stargateWhitelist sync.Map
 
 // Note: When adding a migration here, we should also add it to the Async ICQ params in the upgrade.
@@ -40,71 +41,76 @@ func init() {
 	// cosmos-sdk queries
 
 	// auth
-	setWhitelistedQuery("/cosmos.auth.v1beta1.Query/Account", &authtypes.QueryAccountResponse{})
-	setWhitelistedQuery("/cosmos.auth.v1beta1.Query/Params", &authtypes.QueryParamsResponse{})
-	setWhitelistedQuery("/cosmos.auth.v1beta1.Query/ModuleAccounts", &authtypes.QueryModuleAccountsResponse{})
+	setWhitelistedQuery("/cosmos.auth.v1beta1.Query/Account", func() proto.Message { return &authtypes.QueryAccountResponse{} })
+	setWhitelistedQuery("/cosmos.auth.v1beta1.Query/Params", func() proto.Message { return &authtypes.QueryParamsResponse{} })
+	setWhitelistedQuery("/cosmos.auth.v1beta1.Query/ModuleAccounts", func() proto.Message { return &authtypes.QueryModuleAccountsResponse{} })
 
 	// authz
-	setWhitelistedQuery("/cosmos.authz.v1beta1.Query/Grants", &authztypes.QueryGrantsResponse{})
+	setWhitelistedQuery("/cosmos.authz.v1beta1.Query/Grants", func() proto.Message { return &authztypes.QueryGrantsResponse{} })
 
 	// bank
-	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/Balance", &banktypes.QueryBalanceResponse{})
-	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/DenomMetadata", &banktypes.QueryDenomMetadataResponse{})
-	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/DenomsMetadata", &banktypes.QueryDenomsMetadataResponse{})
-	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/Params", &banktypes.QueryParamsResponse{})
-	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/SupplyOf", &banktypes.QuerySupplyOfResponse{})
+	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/Balance", func() proto.Message { return &banktypes.QueryBalanceResponse{} })
+	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/DenomMetadata", func() proto.Message { return &banktypes.QueryDenomMetadataResponse{} })
+	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/DenomsMetadata", func() proto.Message { return &banktypes.QueryDenomsMetadataResponse{} })
+	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/Params", func() proto.Message { return &banktypes.QueryParamsResponse{} })
+	setWhitelistedQuery("/cosmos.bank.v1beta1.Query/SupplyOf", func() proto.Message { return &banktypes.QuerySupplyOfResponse{} })
 
 	// distribution
-	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/Params", &distributiontypes.QueryParamsResponse{})
-	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/DelegatorWithdrawAddress", &distributiontypes.QueryDelegatorWithdrawAddressResponse{})
-	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/ValidatorCommission", &distributiontypes.QueryValidatorCommissionResponse{})
+	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/Params", func() proto.Message { return &distributiontypes.QueryParamsResponse{} })
+	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/DelegatorWithdrawAddress", func() proto.Message { return &distributiontypes.QueryDelegatorWithdrawAddressResponse{} })
+	setWhitelistedQuery("/cosmos.distribution.v1beta1.Query/ValidatorCommission", func() proto.Message { return &distributiontypes.QueryValidatorCommissionResponse{} })
 
 	// feegrant
-	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/Allowance", &feegranttypes.QueryAllowanceResponse{})
-	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/AllowancesByGranter", &feegranttypes.QueryAllowancesByGranterResponse{})
+	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/Allowance", func() proto.Message { return &feegranttypes.QueryAllowanceResponse{} })
+	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/AllowancesByGranter", func() proto.Message { return &feegranttypes.QueryAllowancesByGranterResponse{} })
 
 	// gov
-	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Deposit", &govtypesv1.QueryDepositResponse{})
-	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Params", &govtypesv1.QueryParamsResponse{})
-	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Vote", &govtypesv1.QueryVoteResponse{})
+	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Deposit", func() proto.Message { return &govtypesv1.QueryDepositResponse{} })
+	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Params", func() proto.Message { return &govtypesv1.QueryParamsResponse{} })
+	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Vote", func() proto.Message { return &govtypesv1.QueryVoteResponse{} })
 
 	// slashing
-	setWhitelistedQuery("/cosmos.slashing.v1beta1.Query/Params", &slashingtypes.QueryParamsResponse{})
-	setWhitelistedQuery("/cosmos.slashing.v1beta1.Query/SigningInfo", &slashingtypes.QuerySigningInfoResponse{})
+	setWhitelistedQuery("/cosmos.slashing.v1beta1.Query/Params", func() proto.Message { return &slashingtypes.QueryParamsResponse{} })
+	setWhitelistedQuery("/cosmos.slashing.v1beta1.Query/SigningInfo", func() proto.Message { return &slashingtypes.QuerySigningInfoResponse{} })
 
 	// staking
-	setWhitelistedQuery("/cosmos.staking.v1beta1.Query/Delegation", &stakingtypes.QueryDelegationResponse{})
-	setWhitelistedQuery("/cosmos.staking.v1beta1.Query/Params", &stakingtypes.QueryParamsResponse{})
-	setWhitelistedQuery("/cosmos.staking.v1beta1.Query/Validator", &stakingtypes.QueryValidatorResponse{})
+	setWhitelistedQuery("/cosmos.staking.v1beta1.Query/Delegation", func() proto.Message { return &stakingtypes.QueryDelegationResponse{} })
+	setWhitelistedQuery("/cosmos.staking.v1beta1.Query/Params", func() proto.Message { return &stakingtypes.QueryParamsResponse{} })
+	setWhitelistedQuery("/cosmos.staking.v1beta1.Query/Validator", func() proto.Message { return &stakingtypes.QueryValidatorResponse{} })
 
 	// xion queries
-	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyRegister", &xiontypes.QueryWebAuthNVerifyRegisterResponse{})
-	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyAuthenticate", &xiontypes.QueryWebAuthNVerifyAuthenticateResponse{})
-	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", &jwktypes.QueryAllAudienceResponse{})
-	setWhitelistedQuery("/xion.jwk.v1.Query/Audience", &jwktypes.QueryGetAudienceResponse{})
-	setWhitelistedQuery("/xion.jwk.v1.Query/Params", &jwktypes.QueryParamsResponse{})
-	setWhitelistedQuery("/xion.jwk.v1.Query/ValidateJWT", &jwktypes.QueryValidateJWTResponse{})
-	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKeys", &dkimtypes.QueryDkimPubKeysResponse{})
-	setWhitelistedQuery("/xion.dkim.v1.Query/Params", &dkimtypes.QueryParamsResponse{})
-	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKey", &dkimtypes.QueryDkimPubKeyResponse{})
-	setWhitelistedQuery("/xion.dkim.v1.Query/Authenticate", &dkimtypes.AuthenticateResponse{})
-	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerify", &zktypes.ProofVerifyResponse{})
+	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyRegister", func() proto.Message { return &xiontypes.QueryWebAuthNVerifyRegisterResponse{} })
+	setWhitelistedQuery("/xion.v1.Query/WebAuthNVerifyAuthenticate", func() proto.Message { return &xiontypes.QueryWebAuthNVerifyAuthenticateResponse{} })
+	setWhitelistedQuery("/xion.jwk.v1.Query/AudienceAll", func() proto.Message { return &jwktypes.QueryAllAudienceResponse{} })
+	setWhitelistedQuery("/xion.jwk.v1.Query/Audience", func() proto.Message { return &jwktypes.QueryGetAudienceResponse{} })
+	setWhitelistedQuery("/xion.jwk.v1.Query/Params", func() proto.Message { return &jwktypes.QueryParamsResponse{} })
+	setWhitelistedQuery("/xion.jwk.v1.Query/ValidateJWT", func() proto.Message { return &jwktypes.QueryValidateJWTResponse{} })
+	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKeys", func() proto.Message { return &dkimtypes.QueryDkimPubKeysResponse{} })
+	setWhitelistedQuery("/xion.dkim.v1.Query/Params", func() proto.Message { return &dkimtypes.QueryParamsResponse{} })
+	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKey", func() proto.Message { return &dkimtypes.QueryDkimPubKeyResponse{} })
+	setWhitelistedQuery("/xion.dkim.v1.Query/Authenticate", func() proto.Message { return &dkimtypes.AuthenticateResponse{} })
+	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerify", func() proto.Message { return &zktypes.ProofVerifyResponse{} })
 }
 
-// GetWhitelistedQuery returns the whitelisted query at the provided path.
+// ProtoMessageFactory is a function that creates a new proto.Message instance.
+// This ensures thread-safety by giving each caller their own instance.
+type ProtoMessageFactory func() proto.Message
+
+// GetWhitelistedQuery returns a new proto.Message instance for the whitelisted query at the provided path.
 // If the query does not exist, or it was set up wrong by the chain, this returns an error.
+// Each call returns a fresh instance to ensure thread-safety.
 func GetWhitelistedQuery(queryPath string) (proto.Message, error) {
-	protoResponseAny, isWhitelisted := stargateWhitelist.Load(queryPath)
+	factoryAny, isWhitelisted := stargateWhitelist.Load(queryPath)
 	if !isWhitelisted {
 		return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("'%s' path is not allowed from the contract", queryPath)}
 	}
-	protoResponseType, ok := protoResponseAny.(proto.Message)
+	factory, ok := factoryAny.(ProtoMessageFactory)
 	if !ok {
 		return nil, wasmvmtypes.Unknown{}
 	}
-	return protoResponseType, nil
+	return factory(), nil
 }
 
-func setWhitelistedQuery(queryPath string, protoType proto.Message) {
-	stargateWhitelist.Store(queryPath, protoType)
+func setWhitelistedQuery(queryPath string, factory ProtoMessageFactory) {
+	stargateWhitelist.Store(queryPath, factory)
 }
