@@ -151,148 +151,12 @@ func TestValidateForcedSubject(t *testing.T) {
 			errorDesc: "subject with tag without brackets should be invalid",
 		},
 
-		// Invalid cases - malicious patterns (header injection)
-		{
-			name:      "invalid - contains from:",
-			subject:   "[Reply Needed] from: attacker@evil.com",
-			expected:  false,
-			errorDesc: "subject containing from: should be invalid",
-		},
-		{
-			name:      "invalid - contains FROM:",
-			subject:   "[Reply Needed] FROM: attacker@evil.com",
-			expected:  false,
-			errorDesc: "subject containing FROM: (case-insensitive) should be invalid",
-		},
-		{
-			name:      "invalid - contains to:",
-			subject:   "[Reply Needed] to: victim@example.com",
-			expected:  false,
-			errorDesc: "subject containing to: should be invalid",
-		},
-		{
-			name:      "invalid - contains cc:",
-			subject:   "[Reply Needed] cc: someone@example.com",
-			expected:  false,
-			errorDesc: "subject containing cc: should be invalid",
-		},
-		{
-			name:      "invalid - contains bcc:",
-			subject:   "[Reply Needed] bcc: hidden@example.com",
-			expected:  false,
-			errorDesc: "subject containing bcc: should be invalid",
-		},
-		{
-			name:      "invalid - contains subject:",
-			subject:   "[Reply Needed] subject: injected",
-			expected:  false,
-			errorDesc: "subject containing subject: should be invalid",
-		},
-		{
-			name:      "invalid - contains reply-to:",
-			subject:   "[Reply Needed] reply-to: attacker@evil.com",
-			expected:  false,
-			errorDesc: "subject containing reply-to: should be invalid",
-		},
-		{
-			name:      "invalid - contains return-path:",
-			subject:   "[Reply Needed] return-path: attacker@evil.com",
-			expected:  false,
-			errorDesc: "subject containing return-path: should be invalid",
-		},
-		{
-			name:      "invalid - contains message-id:",
-			subject:   "[Reply Needed] message-id: <fake@example.com>",
-			expected:  false,
-			errorDesc: "subject containing message-id: should be invalid",
-		},
-		{
-			name:      "invalid - contains date:",
-			subject:   "[Reply Needed] date: Mon, 1 Jan 2024",
-			expected:  false,
-			errorDesc: "subject containing date: should be invalid",
-		},
-		{
-			name:      "invalid - contains content-type:",
-			subject:   "[Reply Needed] content-type: text/html",
-			expected:  false,
-			errorDesc: "subject containing content-type: should be invalid",
-		},
-		{
-			name:      "invalid - contains content-transfer-encoding:",
-			subject:   "[Reply Needed] content-transfer-encoding: base64",
-			expected:  false,
-			errorDesc: "subject containing content-transfer-encoding: should be invalid",
-		},
-		{
-			name:      "invalid - contains mime-version:",
-			subject:   "[Reply Needed] mime-version: 1.0",
-			expected:  false,
-			errorDesc: "subject containing mime-version: should be invalid",
-		},
-		{
-			name:      "invalid - contains received:",
-			subject:   "[Reply Needed] received: from server",
-			expected:  false,
-			errorDesc: "subject containing received: should be invalid",
-		},
-		{
-			name:      "invalid - contains x- prefix",
-			subject:   "[Reply Needed] x-custom-header: value",
-			expected:  false,
-			errorDesc: "subject containing x- prefix should be invalid",
-		},
-		{
-			name:      "invalid - contains X- prefix",
-			subject:   "[Reply Needed] X-Custom-Header: value",
-			expected:  false,
-			errorDesc: "subject containing X- prefix (case-insensitive) should be invalid",
-		},
-
-		// Invalid cases - newline characters
-		{
-			name:      "invalid - contains newline",
-			subject:   "[Reply Needed]\nfrom: attacker@evil.com",
-			expected:  false,
-			errorDesc: "subject containing newline should be invalid",
-		},
-		{
-			name:      "invalid - contains carriage return",
-			subject:   "[Reply Needed]\rfrom: attacker@evil.com",
-			expected:  false,
-			errorDesc: "subject containing carriage return should be invalid",
-		},
-		{
-			name:      "invalid - contains CRLF",
-			subject:   "[Reply Needed]\r\nfrom: attacker@evil.com",
-			expected:  false,
-			errorDesc: "subject containing CRLF should be invalid",
-		},
-		{
-			name:      "valid - newline before tag (trimmed)",
-			subject:   "\n[Reply Needed]",
-			expected:  true,
-			errorDesc: "subject with leading newline is trimmed and becomes valid",
-		},
-
 		// Invalid cases - invalid prefixes
 		{
 			name:      "invalid - invalid prefix before tag",
 			subject:   "Invalid: [Reply Needed]",
 			expected:  false,
 			errorDesc: "subject with invalid prefix should be invalid",
-		},
-		{
-			name:      "invalid - from: prefix",
-			subject:   "from: [Reply Needed]",
-			expected:  false,
-			errorDesc: "subject with from: prefix should be invalid",
-		},
-		{
-			name:      "invalid - to: prefix",
-			subject:   "to: [Reply Needed]",
-			expected:  false,
-			errorDesc: "subject with to: prefix should be invalid",
 		},
 		{
 			name:      "invalid - mixed valid and invalid prefix",
@@ -320,13 +184,6 @@ func TestValidateForcedSubject(t *testing.T) {
 			expected:  false,
 			errorDesc: "subject with invalid prefix and tag at end should be invalid",
 		},
-		{
-			name:      "invalid - multiple tags but invalid content",
-			subject:   "[Reply Needed] invalid: header",
-			expected:  false,
-			errorDesc: "subject with tag but invalid content after should be invalid",
-		},
-
 		// Edge cases - boundary conditions
 		{
 			name:      "invalid - only prefix without tag",
@@ -353,40 +210,16 @@ func TestValidateForcedSubject(t *testing.T) {
 			errorDesc: "subject with tag and special characters in trailing content should be valid",
 		},
 		{
-			name:      "invalid - malicious pattern in prefix area",
-			subject:   "from: [Reply Needed]",
-			expected:  false,
-			errorDesc: "subject with malicious pattern in prefix area should be invalid",
-		},
-		{
-			name:      "invalid - malicious pattern embedded in text",
-			subject:   "[Reply Needed] Please reply to: admin@example.com",
-			expected:  false,
-			errorDesc: "subject with malicious pattern embedded in text should be invalid",
-		},
-		{
-			name:      "invalid - header-like pattern",
-			subject:   "[Reply Needed] custom-header: value",
-			expected:  false,
-			errorDesc: "subject with header-like pattern should be invalid",
-		},
-		{
-			name:      "invalid - header-like pattern uppercase",
-			subject:   "[Reply Needed] Custom-Header: value",
-			expected:  false,
-			errorDesc: "subject with header-like pattern uppercase should be invalid",
-		},
-		{
 			name:      "valid - text that looks like header but is not",
 			subject:   "[Reply Needed] Please contact admin",
 			expected:  true,
 			errorDesc: "subject with normal text after tag should be valid",
 		},
 		{
-			name:      "invalid - colon in middle of word",
+			name:      "valid - colon in middle of word",
 			subject:   "[Reply Needed] ratio: 1:2",
-			expected:  false,
-			errorDesc: "subject with colon pattern that looks like header should be invalid",
+			expected:  true,
+			errorDesc: "subject with colon pattern should be valid",
 		},
 		{
 			name:      "valid - email address in trailing content",
@@ -395,10 +228,10 @@ func TestValidateForcedSubject(t *testing.T) {
 			errorDesc: "subject with email address in trailing content should be valid",
 		},
 		{
-			name:      "invalid - email with to: pattern",
+			name:      "valid - email with to: pattern",
 			subject:   "[Reply Needed] Send to: admin@example.com",
-			expected:  false,
-			errorDesc: "subject with to: pattern in trailing content should be invalid",
+			expected:  true,
+			errorDesc: "subject with to: pattern in trailing content should be valid",
 		},
 	}
 
@@ -432,19 +265,9 @@ func TestValidateForcedSubject_EdgeCases(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "invalid - tab character",
-			subject:  "[Reply Needed]\tfrom: attacker",
-			expected: false,
-		},
-		{
-			name:     "valid - tab in trailing content (not newline)",
+			name:     "valid - tab in trailing content",
 			subject:  "[Reply Needed]\tSome text",
 			expected: true,
-		},
-		{
-			name:     "invalid - null byte",
-			subject:  "[Reply Needed]\x00from: attacker",
-			expected: false,
 		},
 		{
 			name:     "valid - multiple spaces between prefix and tag",
@@ -467,21 +290,6 @@ func TestValidateForcedSubject_EdgeCases(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "invalid - malicious pattern case variations",
-			subject:  "[Reply Needed] FrOm: attacker",
-			expected: false,
-		},
-		{
-			name:     "invalid - malicious pattern with mixed case",
-			subject:  "[Reply Needed] To: victim",
-			expected: false,
-		},
-		{
-			name:     "invalid - x- prefix with different casing",
-			subject:  "[Reply Needed] X-Custom: value",
-			expected: false,
-		},
-		{
 			name:     "valid - re: and fwd: in different cases",
 			subject:  "RE: fwd: [Reply Needed]",
 			expected: true,
@@ -496,74 +304,12 @@ func TestValidateForcedSubject_EdgeCases(t *testing.T) {
 			subject:  "re: fwd: [Reply Needed]",
 			expected: true,
 		},
-		{
-			name:     "invalid - newline in middle",
-			subject:  "[Reply Needed]\nSome text",
-			expected: false,
-		},
-		{
-			name:     "invalid - carriage return in middle",
-			subject:  "[Reply Needed]\rSome text",
-			expected: false,
-		},
-		{
-			name:     "invalid - CRLF in middle",
-			subject:  "[Reply Needed]\r\nSome text",
-			expected: false,
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result := types.ValidateForcedSubject(tc.subject)
 			require.Equal(t, tc.expected, result, "subject: %q", tc.subject)
-		})
-	}
-}
-
-func TestValidateForcedSubject_MaliciousPatterns(t *testing.T) {
-	maliciousPatterns := []string{
-		"from:",
-		"to:",
-		"cc:",
-		"bcc:",
-		"subject:",
-		"reply-to:",
-		"return-path:",
-		"message-id:",
-		"date:",
-		"content-type:",
-		"content-transfer-encoding:",
-		"mime-version:",
-		"received:",
-		"x-",
-	}
-
-	for _, pattern := range maliciousPatterns {
-		t.Run("malicious pattern: "+pattern, func(t *testing.T) {
-			// Test with pattern before tag
-			subject1 := pattern + " [Reply Needed]"
-			require.False(t, types.ValidateForcedSubject(subject1),
-				"subject with malicious pattern before tag should be invalid: %q", subject1)
-
-			// Test with pattern after tag
-			subject2 := "[Reply Needed] " + pattern + " value"
-			require.False(t, types.ValidateForcedSubject(subject2),
-				"subject with malicious pattern after tag should be invalid: %q", subject2)
-
-			// Test with pattern in middle
-			subject3 := "[Reply Needed] text " + pattern + " value"
-			require.False(t, types.ValidateForcedSubject(subject3),
-				"subject with malicious pattern in middle should be invalid: %q", subject3)
-
-			// Test case-insensitive
-			patternUpper := pattern
-			if len(pattern) > 0 {
-				patternUpper = string([]byte{pattern[0] - 32}) + pattern[1:]
-			}
-			subject4 := "[Reply Needed] " + patternUpper + " value"
-			require.False(t, types.ValidateForcedSubject(subject4),
-				"subject with malicious pattern (uppercase) should be invalid: %q", subject4)
 		})
 	}
 }

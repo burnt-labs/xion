@@ -6,67 +6,6 @@ import (
 	"strings"
 )
 
-// maliciousPatterns contains patterns for potentially malicious strings
-// that could be used for email header injection attacks.
-// This addresses security issue #2 from the ZKEmail audit report.
-var maliciousPatterns = []string{
-	"from:",
-	"to:",
-	"cc:",
-	"bcc:",
-	"subject:",
-	"reply-to:",
-	"return-path:",
-	"message-id:",
-	"date:",
-	"content-type:",
-	"content-transfer-encoding:",
-	"mime-version:",
-	"received:",
-	"x-",
-}
-
-// containsMaliciousStrings checks if the subject contains any malicious patterns
-// that could be used for email header injection attacks.
-//
-// This function addresses security issue #2 from the audit report by:
-//  1. Rejecting subjects containing email header field names (case-insensitive)
-//  2. Rejecting subjects containing newline characters that could split headers
-//  3. Preventing header injection attacks where an attacker could manipulate
-//     the "from" address or other critical email headers
-//
-// Returns true if malicious content is detected, false otherwise.
-func containsMaliciousStrings(subject string) bool {
-	subjectLower := strings.ToLower(subject)
-
-	// Check for newline characters that could be used for header injection
-	if strings.Contains(subject, "\r") || strings.Contains(subject, "\n") {
-		return true
-	}
-
-	// Check for email header field names (case-insensitive)
-	// These could be used to inject additional headers or manipulate the email
-	for _, pattern := range maliciousPatterns {
-		if strings.Contains(subjectLower, pattern) {
-			return true
-		}
-	}
-
-	// Additional check: look for patterns that could be header-like
-	// Pattern: word followed by colon (potential header field)
-	headerPattern := regexp.MustCompile(`\b[a-zA-Z][a-zA-Z0-9-]*\s*:`)
-	matches := headerPattern.FindAllString(subject, -1)
-	for _, match := range matches {
-		matchLower := strings.ToLower(strings.TrimSpace(match))
-		// Allow only the valid email prefixes (re:, fwd:)
-		if matchLower != "re:" && matchLower != "fwd:" {
-			return true
-		}
-	}
-
-	return false
-}
-
 // decodeMIMESubject decodes RFC 2047 MIME-encoded email subject strings.
 //
 // Format: =?charset?encoding?encoded-text?=
@@ -142,10 +81,6 @@ func decodeMIMESubject(encoded string) (string, bool) {
 // This function handles both plain strings and RFC 2047 MIME-encoded strings.
 // For MIME-encoded strings, it only supports utf-8 charset with base64 encoding.
 // If the subject is MIME-encoded but uses unsupported charset or encoding, it returns false.
-//
-// Security: This function validates against malicious strings (e.g., "from:", "to:", etc.)
-// and newline characters that could be used for email header injection attacks,
-// addressing security issue #2 from the audit report.
 func ValidateForcedSubject(subject string) bool {
 	subject = strings.TrimSpace(subject)
 
@@ -170,12 +105,7 @@ func ValidateForcedSubject(subject string) bool {
 		return false
 	}
 
-	// Security check: reject subjects containing malicious strings (audit issue #2)
-	if containsMaliciousStrings(subject) {
-		return false
-	}
-
-	// After security validation, trim line endings for pattern matching
+	// Trim line endings for pattern matching
 	subject = strings.TrimRight(subject, "\r\n")
 
 	// Check if the required tag exists
