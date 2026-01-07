@@ -1,6 +1,8 @@
 package types
 
 import (
+	"math"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -64,6 +66,11 @@ func validateTimeOffset(i interface{}) error {
 
 	if v == 0 {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "time offset must be positive")
+	}
+
+	// Reject values that would overflow when converted to int64 (used in JWT clock).
+	if v > uint64(math.MaxInt64) {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "time offset exceeds max int64")
 	}
 
 	return nil
