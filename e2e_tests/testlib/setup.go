@@ -23,6 +23,13 @@ import (
 	xionapp "github.com/burnt-labs/xion/app"
 )
 
+func init() {
+	// Set the bech32 prefix for all tests that import testlib
+	// This must be done before any app initialization
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccount("xion", "xionpub")
+}
+
 type TestData struct {
 	xionChain *cosmos.CosmosChain
 	ctx       context.Context

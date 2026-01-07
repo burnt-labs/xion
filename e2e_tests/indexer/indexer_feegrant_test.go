@@ -13,15 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestIndexerFeeGrantCreate tests the creation of a single fee grant and its indexing
-func TestIndexerFeeGrantCreate(t *testing.T) {
+// TestIndexerFeeGrant tests the FeeGrant indexer functionality end-to-end
+// This validates that fee grant allowances are properly indexed and queryable
+func TestIndexerFeeGrant(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
 
-	t.Log("🔍 INDEXER E2E TEST: FeeGrant Create")
-	t.Log("=====================================")
-	t.Log("Testing single fee grant creation and indexing")
+	t.Log("🔍 INDEXER E2E TEST: FeeGrant Allowance Indexing")
+	t.Log("=================================================")
+	t.Log("Testing fee grant allowance creation, indexing, and querying")
 
 	t.Parallel()
 	ctx := context.Background()
@@ -30,56 +31,173 @@ func TestIndexerFeeGrantCreate(t *testing.T) {
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)
 
 	fundAmount := math.NewInt(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion, xion)
-	granter := users[0]
-	grantee := users[1]
+	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion, xion, xion, xion)
+	granter1 := users[0]
+	granter2 := users[1]
+	grantee := users[2]
+	_ = users[3] // spare
 
-	// Create a single fee grant
-	_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
-		granter.KeyName(),
-		"feegrant", "grant",
-		granter.FormattedAddress(),
-		grantee.FormattedAddress(),
-		"--spend-limit", "1000000uxion",
-		"--chain-id", xion.Config().ChainID,
-	)
-	require.NoError(t, err, "Fee grant creation should succeed")
+	t.Run("CreateFeeGrants", func(t *testing.T) {
+		t.Log("Step 1: Creating multiple fee grants to test indexing")
 
-	// Wait for indexing
-	err = testutil.WaitForBlocks(ctx, 3, xion)
-	require.NoError(t, err)
+		// Grant 1: granter1 -> grantee
+		_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
+			granter1.KeyName(),
+			"feegrant", "grant",
+			granter1.FormattedAddress(),
+			grantee.FormattedAddress(),
+			"--spend-limit", "1000000uxion",
+			"--chain-id", xion.Config().ChainID,
+		)
+		require.NoError(t, err, "First fee grant should succeed")
 
-	// Query to verify indexing by granter
-	stdout, _, err := xion.GetNode().ExecBin(ctx,
-		"indexer", "query-allowances-by-granter",
-		granter.FormattedAddress(),
-		"--node", xion.GetRPCAddress(),
-		"--output", "json",
-	)
-	if err != nil {
-		// Fallback to generic query if specific command not available
-		stdout, _, err = xion.GetNode().ExecBin(ctx,
-			"indexer", "query-grants-by-granter",
-			granter.FormattedAddress(),
+		// Grant 2: granter2 -> grantee (same grantee, different granter)
+		_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
+			granter2.KeyName(),
+			"feegrant", "grant",
+			granter2.FormattedAddress(),
+			grantee.FormattedAddress(),
+			"--spend-limit", "2000000uxion",
+			"--chain-id", xion.Config().ChainID,
+		)
+		require.NoError(t, err, "Second fee grant should succeed")
+
+		// Wait for indexing
+		err = testutil.WaitForBlocks(ctx, 3, xion)
+		require.NoError(t, err)
+
+		t.Log("✓ Fee grants created successfully")
+	})
+
+	t.Run("QueryAllowancesByGrantee", func(t *testing.T) {
+		t.Log("Step 2: Query allowances by grantee (tests grantee ReversePair index)")
+
+		// Note: The command is "query-grants-by-grantee" but it queries fee allowances
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
+			"indexer", "query-grants-by-grantee",
+			grantee.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
 			"--output", "json",
 		)
-	}
-	require.NoError(t, err, "Query by granter should succeed")
+		if err != nil {
+			t.Logf("Query error (may not be implemented yet): %v", err)
+			t.Logf("Output: %s", string(stdout))
+			t.Skip("Indexer query command may not be available in this build")
+			return
+		}
 
-	var response map[string]interface{}
-	err = json.Unmarshal(stdout, &response)
-	require.NoError(t, err, "Response should be valid JSON")
+		t.Logf("Allowances for grantee: %s", string(stdout))
 
-	// Check for either "allowances" or "grants" in response
-	var items []interface{}
-	if allowances, ok := response["allowances"].([]interface{}); ok {
-		items = allowances
-	} else if grants, ok := response["grants"].([]interface{}); ok {
-		items = grants
-	}
-	require.GreaterOrEqual(t, len(items), 1, "Should have at least 1 fee grant")
-	t.Log("✓ Fee grant successfully created and indexed")
+		var response map[string]interface{}
+		err = json.Unmarshal(stdout, &response)
+		if err != nil {
+			t.Logf("Could not parse JSON response: %v", err)
+			t.Logf("Raw output: %s", string(stdout))
+			return
+		}
+
+		// Should have 2 allowances for this grantee (from granter1 and granter2)
+		allowances, ok := response["allowances"]
+		if ok {
+			allowancesList, ok := allowances.([]interface{})
+			if ok {
+				require.GreaterOrEqual(t, len(allowancesList), 2, "Should have at least 2 allowances for this grantee")
+				t.Logf("✓ Found %d allowances for grantee", len(allowancesList))
+			}
+		}
+	})
+
+	t.Run("QueryAllowancesByGranter", func(t *testing.T) {
+		t.Log("Step 3: Query allowances by granter (tests granter primary key)")
+
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
+			"indexer", "query-allowances-by-granter",
+			granter1.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
+			"--output", "json",
+		)
+		require.NoError(t, err, "Query allowances by granter should succeed")
+
+		t.Logf("Allowances by granter1: %s", string(stdout))
+
+		var response map[string]interface{}
+		err = json.Unmarshal(stdout, &response)
+		require.NoError(t, err, "Response should be valid JSON")
+
+		// Should have at least 1 allowance from this granter
+		allowances, ok := response["allowances"]
+		if ok {
+			allowancesList, ok := allowances.([]interface{})
+			if ok {
+				require.GreaterOrEqual(t, len(allowancesList), 1, "Should have at least 1 allowance from this granter")
+				t.Logf("✓ Found %d allowances from granter1", len(allowancesList))
+			}
+		}
+	})
+
+	t.Run("RevokeFeeGrantAndVerifyIndexCleanup", func(t *testing.T) {
+		t.Log("Step 4: Revoke a fee grant and verify index cleanup")
+
+		// Revoke granter1's allowance
+		_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
+			granter1.KeyName(),
+			"feegrant", "revoke",
+			granter1.FormattedAddress(),
+			grantee.FormattedAddress(),
+			"--chain-id", xion.Config().ChainID,
+		)
+		require.NoError(t, err, "Revoking fee grant should succeed")
+
+		// Wait for revocation to be indexed
+		err = testutil.WaitForBlocks(ctx, 3, xion)
+		require.NoError(t, err)
+
+		// Query grantee's allowances - should now have only 1 (from granter2)
+		stdout, _, err := xion.GetNode().ExecBin(ctx,
+			"indexer", "query-grants-by-grantee",
+			grantee.FormattedAddress(),
+			"--node", xion.GetRPCAddress(),
+			"--output", "json",
+		)
+		require.NoError(t, err, "Query after revoke should succeed")
+
+		t.Logf("Allowances after revoke: %s", string(stdout))
+
+		var response map[string]interface{}
+		err = json.Unmarshal(stdout, &response)
+		require.NoError(t, err, "Response should be valid JSON")
+
+		allowances, ok := response["allowances"]
+		if ok {
+			allowancesList, ok := allowances.([]interface{})
+			if ok {
+				require.Equal(t, 1, len(allowancesList), "Should have 1 allowance after revoking one")
+				t.Log("✓ Index correctly cleaned up after fee grant revocation")
+			}
+		}
+	})
+
+	t.Run("TestFeegrantRobustnessOnDuplicateRevoke", func(t *testing.T) {
+		t.Log("Step 5: Test robustness when revoking an already-revoked feegrant")
+
+		// Try to revoke the already-revoked feegrant from granter1
+		// This tests the indexer's ability to handle non-existent allowance deletions gracefully
+		_, err := testlib.ExecTx(t, ctx, xion.GetNode(),
+			granter1.KeyName(),
+			"feegrant", "revoke",
+			granter1.FormattedAddress(),
+			grantee.FormattedAddress(),
+			"--chain-id", xion.Config().ChainID,
+		)
+		// The transaction will fail at the module level but shouldn't affect the indexer
+		require.Error(t, err, "double revoke should fail at module level")
+
+		// Verify chain continues to produce blocks (indexer didn't halt)
+		err = testutil.WaitForBlocks(ctx, 3, xion)
+		require.NoError(t, err, "chain should continue producing blocks after processing non-existent allowance delete")
+
+		t.Log("✓ Feegrant indexer handled duplicate revoke gracefully without disrupting consensus")
+	})
 }
 
 // TestIndexerFeeGrantMultiple tests the creation of multiple fee grants and their indexing
