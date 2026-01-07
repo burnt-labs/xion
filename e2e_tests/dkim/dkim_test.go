@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"strconv"
 	"strings"
@@ -112,7 +111,7 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 		Params:    updatedParams,
 	}
 	proposalID := proposalTracker.NextID()
-	err = testlib.SubmitAndPassProposal(t, ctx, xion, chainUser, []cosmos.ProtoMessage{updateParamsMsg}, "Update DKIM Params", "Set max pubkey size smaller to trigger oversize", "", proposalID)
+	err := testlib.SubmitAndPassProposal(t, ctx, xion, chainUser, []cosmos.ProtoMessage{updateParamsMsg}, "Update DKIM Params", "Set max pubkey size smaller to trigger oversize", "", proposalID)
 	require.NoError(t, err)
 	// make sure params were updated
 	paramsRes := queryDkimParams(t, ctx, xion)
@@ -123,7 +122,7 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 		DkimPubkeys: []dkimTypes.DkimPubKey{{
 			Domain:       "oversize.example.com",
 			Selector:     "too-big",
-			PubKey:       basePubKey,
+			PubKey:       string(basePubKey),
 			PoseidonHash: []byte("hash"),
 		}},
 	}
