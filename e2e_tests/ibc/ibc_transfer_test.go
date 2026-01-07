@@ -1,4 +1,4 @@
-package e2e_app
+package e2e_ibc
 
 import (
 	"testing"
@@ -26,7 +26,7 @@ import (
 // - Prevent unauthorized token minting
 // - Handle packet timeouts correctly
 // - Verify source chain authenticity
-func TestAppIBCTransfer(t *testing.T) {
+func TestIBCTransfer(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
