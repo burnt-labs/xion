@@ -243,7 +243,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain and poseidon hash")
 	}
 
-	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[34:38])
+	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[34:42])
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to big int: %s", err.Error())
 	}
@@ -261,6 +261,21 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	// Check if the email host from public inputs is present in the allowedEmailHosts list
 	if !IsSubset([]string{emailHostFromPublicInputsString}, req.AllowedEmailHosts) {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email host from public inputs %s is not present in allowed email hosts list: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
+	}
+
+	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[43:51])
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convertemail subject to big int: %s", err.Error())
+	}
+
+	emailSubjectFromPublicInputsString, err := types.ConvertBigIntArrayToString(emailSubjectFromPublicInputs)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert email subject to string: %s", err.Error())
+	}
+
+	// Validate email subject for security and format compliance
+	if !types.ValidateForcedSubject(emailSubjectFromPublicInputsString) {
+		return nil, errors.Wrapf(types.ErrInvalidEmailSubject, "email subject validation failed: %s", emailSubjectFromPublicInputsString)
 	}
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
