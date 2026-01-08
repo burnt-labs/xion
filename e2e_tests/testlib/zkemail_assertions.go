@@ -111,19 +111,29 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	govModAddress := GetModuleAddress(t, xion, ctx, govModule.ModuleName)
 
 	// The poseidon hash from publicInputs[9] in the ZK proof
-	poseidonHashStr := "6632353713085157925504008443078919716322386156160602218536961028046468237192"
-	poseidonHash := new(big.Int)
-	poseidonHash.SetString(poseidonHashStr, 10)
+	gmailPoseidonHashStr := "6632353713085157925504008443078919716322386156160602218536961028046468237192"
+	gmailPoseidonHashInt := new(big.Int)
+	gmailPoseidonHashInt.SetString(gmailPoseidonHashStr, 10)
+	icloudPoseidonHashStr := "20739234269106695800684585604154242365519276934929568271517631027216377681264"
+	icloudPoseidonHashInt := new(big.Int)
+	icloudPoseidonHashInt.SetString(icloudPoseidonHashStr, 10)
 
 	// Standard test DKIM public key (same as used in DKIM tests)
-	dkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+	gmailDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+	icloudDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1ZEfbkf4TbO2TDZI67WhJ6G8Dwk3SJyAbBlE/QKdyXFZB4HfEU7AcuZBzcXSJFE03DlmyOkUAmaaR8yFlwooHyaKRLIaT3epGlL5YGowyfItLly2k0Jj0IOICRxWrB378b7qMeimE8KlH1UNaVpRTTi0XIYjIKAOpTlBmkM9a/3Rl4NWy8pLYApXD+WCkYxPcxoAAgaN8osqGTCJ5r+VHFU7Wm9xqq3MZmnfo0bzInF4UajCKjJAQa+HNuh95DWIYP/wV77/PxkEakOtzkbJMlFJiK/hMJ+HQUvTbtKW2s+t4uDK8DI16Rotsn6e0hS8xuXPmVte9ZzplD0fQgm2qwIDAQAB"
 
 	dkimRecords := []dkimTypes.DkimPubKey{
 		{
 			Domain:       "gmail.com",
 			Selector:     "selector1",
-			PubKey:       dkimPubKey,
-			PoseidonHash: poseidonHash.Bytes(),
+			PubKey:       gmailDkimPubKey,
+			PoseidonHash: gmailPoseidonHashInt.Bytes(),
+		},
+		{
+			Domain:       "icloud.com",
+			Selector:     "1a1hai",
+			PubKey:       icloudDkimPubKey,
+			PoseidonHash: icloudPoseidonHashInt.Bytes(),
 		},
 	}
 
@@ -142,13 +152,22 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	t.Log("DKIM record seeded successfully")
 
 	// Verify DKIM record was added correctly
-	dkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "gmail.com", "selector1")
+	gmailDkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "gmail.com", "selector1")
 	require.NoError(t, err, "DKIM record query failed")
-	dkimPubKeyResult, ok := dkimRecord["dkim_pub_key"].(map[string]interface{})
+	gmailDkimPubKeyResult, ok := gmailDkimRecord["dkim_pub_key"].(map[string]interface{})
 	require.True(t, ok, "dkim_pub_key should be a map")
-	require.Equal(t, dkimPubKey, dkimPubKeyResult["pub_key"].(string), "DKIM pubkey should match")
-	require.Equal(t, "gmail.com", dkimPubKeyResult["domain"].(string), "DKIM domain should be gmail.com")
-	require.Equal(t, "selector1", dkimPubKeyResult["selector"].(string), "DKIM selector should be selector1")
+	require.Equal(t, gmailDkimPubKey, gmailDkimPubKeyResult["pub_key"].(string), "DKIM pubkey should match")
+	require.Equal(t, "gmail.com", gmailDkimPubKeyResult["domain"].(string), "DKIM domain should be gmail.com")
+	require.Equal(t, "selector1", gmailDkimPubKeyResult["selector"].(string), "DKIM selector should be selector1")
+
+	icloudDkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "icloud.com", "1a1hai")
+	require.NoError(t, err, "DKIM record query failed")
+	icloudDkimPubKeyResult, ok := icloudDkimRecord["dkim_pub_key"].(map[string]interface{})
+	require.True(t, ok, "dkim_pub_key should be a map")
+	require.Equal(t, icloudDkimPubKey, icloudDkimPubKeyResult["pub_key"].(string), "DKIM pubkey should match")
+	require.Equal(t, "icloud.com", icloudDkimPubKeyResult["domain"].(string), "DKIM domain should be icloud.com")
+	require.Equal(t, "1a1hai", icloudDkimPubKeyResult["selector"].(string), "DKIM selector should be 1a1hai")
+
 	t.Log("DKIM record verified successfully")
 
 	// Store Abstract Account Contract
@@ -367,7 +386,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	require.NoError(t, err, "ZK email transaction broadcast failed")
 	require.NotEmpty(t, txHash, "Expected non-empty transaction hash")
 
-	err = testutil.WaitForBlocks(ctx, 2, xion)
+	err = testutil.WaitForBlocks(ctx, 5, xion)
 	require.NoError(t, err)
 
 	// Verify recipient received funds
