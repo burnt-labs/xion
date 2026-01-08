@@ -27,6 +27,6 @@ jobs:
     secrets: inherit
   trigger-homebrew:
     name: Trigger Homebrew
-    if: github.event.action == 'released'
+    if: github.event.action == 'published'
     uses: burnt-labs/xion/.github/workflows/trigger-homebrew.yaml@workflows/main
     secrets: inherit
