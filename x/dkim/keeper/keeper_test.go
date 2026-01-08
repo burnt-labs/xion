@@ -21,7 +21,6 @@ import (
 	module "github.com/burnt-labs/xion/x/dkim"
 	"github.com/burnt-labs/xion/x/dkim/keeper"
 	"github.com/burnt-labs/xion/x/dkim/types"
-	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
@@ -34,8 +33,8 @@ type TestFixture struct {
 	ctx         sdk.Context
 	k           keeper.Keeper
 	zkeeper     zkkeeper.Keeper
-	msgServer   dkimTypes.MsgServer
-	queryServer dkimTypes.QueryServer
+	msgServer   types.MsgServer
+	queryServer types.QueryServer
 	appModule   *module.AppModule
 
 	addrs      []sdk.AccAddress

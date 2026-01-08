@@ -70,7 +70,6 @@ func (gs GenesisState) Validate() error {
 
 // createValidVKeyBytes creates valid verification key bytes for testing
 func createDefaultVKeyBytes() []byte {
-
 	vkeyJSON := map[string]interface{}{
 		"protocol": "groth16",
 		"curve":    "bn128",
