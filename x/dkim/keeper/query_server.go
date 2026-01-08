@@ -195,7 +195,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 
 func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
 	var verified bool
-	if len(req.PublicInputs) < 38 {
+	if len(req.PublicInputs) < 52 {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 38 elements for email hosts, got %d", len(req.PublicInputs))
 	}
 

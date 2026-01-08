@@ -97,6 +97,8 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
+			Version:      apiv1.Version(dkimPubKey.Version),
+			KeyType:      apiv1.KeyType(dkimPubKey.KeyType),
 		}
 		key := collections.Join(pk.Domain, pk.Selector)
 		//nolint:govet // copylocks: unavoidable when storing protobuf messages in collections.Map
