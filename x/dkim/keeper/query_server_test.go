@@ -243,7 +243,7 @@ func TestProofVerify(t *testing.T) {
 			TxBytes:           []byte("some-tx-bytes"),
 			EmailHash:         "19446427605026428332697445173245129703428784356663998533737434935925391210840",
 			Proof:             []byte(`{"pi_a": ["1", "2", "1"], "pi_b": [["1", "2"], ["3", "4"], ["1", "0"]], "pi_c": ["1", "2", "1"], "protocol": "groth16", "curve": "bn128"}`),
-			PublicInputs:      make([]string, 38),
+			PublicInputs:      make([]string, 52),
 			AllowedEmailHosts: []string{"test@example.com"},
 		}
 
@@ -340,7 +340,7 @@ func TestAuthenticate(t *testing.T) {
 		"0",
 		"0",
 		"6632353713085157925504008443078919716322386156160602218536961028046468237192",
-		"12057794547485210516928817874827048708844252651510875086257455163416697746512",
+		"13185378954442671764132716722680892126541180309281711451779967792194013187332",
 		"0",
 		"124413588010935573100449456468959839270027757215138439816955024736271298883",
 		"125987718504881168702817372751405511311626515399128115957683055706162879081",
@@ -362,9 +362,23 @@ func TestAuthenticate(t *testing.T) {
 		"0",
 		"0",
 		"0",
-		"19446427605026428332697445173245129703428784356663998533737434935925391210840",
+		"3000556394959043010014733515040203427156458323284671772123625840161334499532",
 		"1",
 		"145464208130933216679374873468710647147",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"180980592328871182281563474567090989367752380861661653173671556731952063826",
+		"175265870350771638945491578423233386960064756860306078150084022460882973289",
+		"112994317117614493862539312",
+		"0",
+		"0",
+		"0",
 		"0",
 		"0",
 		"0",
@@ -389,36 +403,36 @@ func TestAuthenticate(t *testing.T) {
 
 	// Common proof JSON
 	proofJSON := []byte(`{
-    "pi_a": [
-      "6043643433140642569280898259541128431907635878547614935681440820683038963792",
-      "9992132192779112865958667381915120532497401445863381693125708878412867819429",
-      "1"
-    ],
-    "pi_b": [
-      [
-        "857150703036151009004130834885577860944545321105272581149620288148902385440",
-        "3313419972466342030467701882126850537491115446681093222335468857323210697295"
-      ],
-      [
-        "21712445344172795956102361993647268776674729003569584506047190630474625887295",
-        "13180126619787644952475441454844294991198251669191962852459355269881478597074"
-      ],
-      [
-        "1",
-        "0"
-      ]
-    ],
-    "pi_c": [
-      "5608874530415768909531379297509258028398465201351680955270584280524807563327",
-      "12825389375859294537236568763270506206901646432644007343954893485864905401313",
-      "1"
-    ],
-    "protocol": "groth16",
-    "curve": "bn128"
+		"pi_a": [
+			"5944437716121039530762625376628032680849046097927020609695209588719894188243",
+			"15094002769215624870186764528984725808996604084528046254003333009805933658554",
+			"1"
+		],
+		"pi_b": [
+			[
+				"11598083160473577226526878990283964831145721095389575367950280122502890447797",
+				"14529469746311110352678726920583600119026340613211681015261396064225322174788"
+			],
+			[
+				"19761328430734755310670224609386128430264722951502273207101955623336691605782",
+				"12500326971227292003488161967372728627656522046132340490811691801399360223213"
+			],
+			[
+				"1",
+				"0"
+			]
+		],
+		"pi_c": [
+			"6578635487431859423834603914562173998011417661191656065435538317687874390535",
+			"2220324679577398770071235716942201306057806867497816712474653950694527471270",
+			"1"
+		],
+		"protocol": "groth16",
+		"curve": "bn128"
 }`)
 
 	// Common email hash
-	emailHashStr := "19446427605026428332697445173245129703428784356663998533737434935925391210840"
+	emailHashStr := "3000556394959043010014733515040203427156458323284671772123625840161334499532"
 
 	// Common tx bytes
 	txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
@@ -563,7 +577,7 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 
 	t.Run("fail - invalid tx bytes public input conversion", func(t *testing.T) {
 		// Create public inputs with invalid tx bytes values (indices 12-32)
-		invalidPublicInputs := make([]string, 38)
+		invalidPublicInputs := make([]string, 52)
 		for i := range invalidPublicInputs {
 			invalidPublicInputs[i] = "0"
 		}
@@ -588,7 +602,7 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 		// Create public inputs where tx bytes are valid but dkim domain is invalid
 		// We need tx bytes [12:32] to be valid AND match the provided txBytes
 		// Then dkim domain [0:9] should be invalid
-		invalidPublicInputs := make([]string, 38)
+		invalidPublicInputs := make([]string, 52)
 		for i := range invalidPublicInputs {
 			invalidPublicInputs[i] = "0"
 		}
@@ -617,7 +631,7 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 
 	t.Run("fail - invalid dkim hash public input", func(t *testing.T) {
 		// Create public inputs where tx bytes and dkim domain are valid but dkim hash is invalid
-		invalidPublicInputs := make([]string, 38)
+		invalidPublicInputs := make([]string, 52)
 		for i := range invalidPublicInputs {
 			invalidPublicInputs[i] = "0"
 		}
@@ -646,7 +660,7 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 
 	t.Run("fail - no dkim pubkey found for domain and hash", func(t *testing.T) {
 		// Create valid public inputs but with a domain/hash that doesn't exist
-		validPublicInputs := make([]string, 38)
+		validPublicInputs := make([]string, 52)
 		for i := range validPublicInputs {
 			validPublicInputs[i] = "0"
 		}
@@ -707,7 +721,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		"0",                      // [7]
 		"0",                      // [8] domain end
 		"6632353713085157925504008443078919716322386156160602218536961028046468237192",  // [9] dkim hash
-		"12057794547485210516928817874827048708844252651510875086257455163416697746512", // [10]
+		"13185378954442671764132716722680892126541180309281711451779967792194013187332", // [10]
 		"0", // [11]
 		"124413588010935573100449456468959839270027757215138439816955024736271298883", // [12] tx bytes start
 		"125987718504881168702817372751405511311626515399128115957683055706162879081", // [13]
@@ -729,28 +743,42 @@ func TestAuthenticateExtended(t *testing.T) {
 		"0", // [29]
 		"0", // [30]
 		"0", // [31] tx bytes end
-		"19446427605026428332697445173245129703428784356663998533737434935925391210840", // [32] email hash
+		"3000556394959043010014733515040203427156458323284671772123625840161334499532", // [32] email hash
 		"1", // [33]
 		"145464208130933216679374873468710647147", // [34] email host start
 		"0", // [35]
 		"0", // [36]
-		"0", // [37] email host end
+		"0", // [37]
+		"0", // [38]
+		"0", // [39]
+		"0", // [40]
+		"0", // [41]
+		"0", // [42] email host end
+		"180980592328871182281563474567090989367752380861661653173671556731952063826", // [43] email subject start
+		"175265870350771638945491578423233386960064756860306078150084022460882973289", // [44]
+		"112994317117614493862539312", // [45]
+		"0",                           // [46]
+		"0",                           // [47]
+		"0",                           // [48]
+		"0",                           // [49]
+		"0",                           // [50]
+		"0",                           // [51] email subject end
 	}
 
 	proofJSON := []byte(`{
 		"pi_a": [
-			"6043643433140642569280898259541128431907635878547614935681440820683038963792",
-			"9992132192779112865958667381915120532497401445863381693125708878412867819429",
+			"5944437716121039530762625376628032680849046097927020609695209588719894188243",
+			"15094002769215624870186764528984725808996604084528046254003333009805933658554",
 			"1"
 		],
 		"pi_b": [
 			[
-				"857150703036151009004130834885577860944545321105272581149620288148902385440",
-				"3313419972466342030467701882126850537491115446681093222335468857323210697295"
+				"11598083160473577226526878990283964831145721095389575367950280122502890447797",
+				"14529469746311110352678726920583600119026340613211681015261396064225322174788"
 			],
 			[
-				"21712445344172795956102361993647268776674729003569584506047190630474625887295",
-				"13180126619787644952475441454844294991198251669191962852459355269881478597074"
+				"19761328430734755310670224609386128430264722951502273207101955623336691605782",
+				"12500326971227292003488161967372728627656522046132340490811691801399360223213"
 			],
 			[
 				"1",
@@ -758,15 +786,15 @@ func TestAuthenticateExtended(t *testing.T) {
 			]
 		],
 		"pi_c": [
-			"5608874530415768909531379297509258028398465201351680955270584280524807563327",
-			"12825389375859294537236568763270506206901646432644007343954893485864905401313",
+			"6578635487431859423834603914562173998011417661191656065435538317687874390535",
+			"2220324679577398770071235716942201306057806867497816712474653950694527471270",
 			"1"
 		],
 		"protocol": "groth16",
 		"curve": "bn128"
 	}`)
 
-	emailHashStr := "19446427605026428332697445173245129703428784356663998533737434935925391210840"
+	emailHashStr := "3000556394959043010014733515040203427156458323284671772123625840161334499532"
 
 	t.Run("fail - invalid email host public input conversion", func(t *testing.T) {
 		f := SetupTest(t)
@@ -897,12 +925,12 @@ func TestAuthenticateExtended(t *testing.T) {
 		require.Nil(res)
 	})
 
-	t.Run("fail - public inputs exactly 38 elements but invalid data", func(t *testing.T) {
+	t.Run("fail - public inputs exactly 52 elements but invalid data", func(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		// Create exactly 38 elements of zeros
-		minimalPublicInputs := make([]string, 38)
+		// Create exactly 52 elements of zeros
+		minimalPublicInputs := make([]string, 52)
 		for i := range minimalPublicInputs {
 			minimalPublicInputs[i] = "0"
 		}
@@ -958,7 +986,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		// Create public inputs where email host [34:38] are all zeros
+		// Create public inputs where email host [34:42] are all zeros
 		// This results in empty string email host
 		zeroEmailHostInputs := make([]string, len(basePublicInputs))
 		copy(zeroEmailHostInputs, basePublicInputs)
@@ -966,6 +994,10 @@ func TestAuthenticateExtended(t *testing.T) {
 		zeroEmailHostInputs[35] = "0"
 		zeroEmailHostInputs[36] = "0"
 		zeroEmailHostInputs[37] = "0"
+		zeroEmailHostInputs[38] = "0"
+		zeroEmailHostInputs[39] = "0"
+		zeroEmailHostInputs[40] = "0"
+		zeroEmailHostInputs[41] = "0"
 
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
