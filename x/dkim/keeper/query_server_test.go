@@ -986,7 +986,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		// Create public inputs where email host [34:42] are all zeros
+		// Create public inputs where email host [34:43] are all zeros
 		// This results in empty string email host
 		zeroEmailHostInputs := make([]string, len(basePublicInputs))
 		copy(zeroEmailHostInputs, basePublicInputs)
@@ -998,6 +998,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		zeroEmailHostInputs[39] = "0"
 		zeroEmailHostInputs[40] = "0"
 		zeroEmailHostInputs[41] = "0"
+		zeroEmailHostInputs[42] = "0"
 
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
