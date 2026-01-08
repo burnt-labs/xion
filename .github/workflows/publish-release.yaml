@@ -4,7 +4,7 @@ on:
   workflow_call: # is called from the create-release workflow
   workflow_dispatch: # manual trigger
   release: # triggered by release event
-    types: [released]
+    types: [released, prereleased]
     # Notice:
     # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
     # - "published" type is happening when the release is marked as "latest"
@@ -22,9 +22,11 @@ jobs:
     secrets: inherit
   trigger-assets:
     name: Trigger Assets
+    if: github.event.action == 'released'
     uses: burnt-labs/xion/.github/workflows/trigger-assets.yaml@workflows/main
     secrets: inherit
   trigger-homebrew:
     name: Trigger Homebrew
+    if: github.event.action == 'released'
     uses: burnt-labs/xion/.github/workflows/trigger-homebrew.yaml@workflows/main
     secrets: inherit
