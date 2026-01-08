@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -1078,6 +1079,193 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Should pass email host validation
 		if err != nil {
 			require.NotContains(err.Error(), "is not present in allowed email hosts list")
+		}
+		_ = res
+	})
+
+	t.Run("success - all email host and subject elements filled", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Create public inputs with all 9 elements filled for email host [34:43]
+		// and all 9 elements filled for email subject [43:52]
+		// This tests the edge condition where the full range is utilized
+		fullPublicInputs := make([]string, len(basePublicInputs))
+		copy(fullPublicInputs, basePublicInputs)
+
+		// Fill all email host elements [34:43] with non-zero values
+		// These represent a long email address that spans all 9 field elements
+		fullPublicInputs[34] = "145464208130933216679374873468710647147" // existing value
+		fullPublicInputs[35] = "123456789012345678901234567890123456789" // additional data
+		fullPublicInputs[36] = "234567890123456789012345678901234567890" // additional data
+		fullPublicInputs[37] = "345678901234567890123456789012345678901" // additional data
+		fullPublicInputs[38] = "456789012345678901234567890123456789012" // additional data
+		fullPublicInputs[39] = "567890123456789012345678901234567890123" // additional data
+		fullPublicInputs[40] = "678901234567890123456789012345678901234" // additional data
+		fullPublicInputs[41] = "789012345678901234567890123456789012345" // additional data
+		fullPublicInputs[42] = "890123456789012345678901234567890123456" // last element of email host
+
+		// Fill all email subject elements [43:52] with non-zero values
+		// These represent a long subject that spans all 9 field elements
+		fullPublicInputs[43] = "180980592328871182281563474567090989367752380861661653173671556731952063826" // existing
+		fullPublicInputs[44] = "175265870350771638945491578423233386960064756860306078150084022460882973289" // existing
+		fullPublicInputs[45] = "112994317117614493862539312"                                                 // existing
+		fullPublicInputs[46] = "111222333444555666777888999000111222333"                                     // additional data
+		fullPublicInputs[47] = "222333444555666777888999000111222333444"                                     // additional data
+		fullPublicInputs[48] = "333444555666777888999000111222333444555"                                     // additional data
+		fullPublicInputs[49] = "444555666777888999000111222333444555666"                                     // additional data
+		fullPublicInputs[50] = "555666777888999000111222333444555666777"                                     // additional data
+		fullPublicInputs[51] = "666777888999000111222333444555666777888"                                     // last element of subject
+
+		// Setup DKIM pub key
+		poseidonHash, ok := new(big.Int).SetString(fullPublicInputs[9], 10)
+		require.True(ok)
+		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+			Authority: f.govModAddr,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "gmail.com",
+					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+					PoseidonHash: poseidonHash.Bytes(),
+					Selector:     "selector1",
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				},
+			},
+		})
+		require.NoError(err)
+
+		// Compute valid txBytes from public inputs
+		txParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		// Convert email host from public inputs to get the expected email host string
+		emailHostParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[34:43])
+		require.NoError(err)
+		emailHostStr, err := types.ConvertBigIntArrayToString(emailHostParts)
+		require.NoError(err)
+
+		// Verify email host conversion worked with all elements
+		require.NotEmpty(emailHostStr, "email host string should not be empty when all elements are filled")
+
+		// Validate that email host starts with expected prefix
+		require.True(strings.HasPrefix(emailHostStr, "kushal@burnt"), "email host should start with 'kushal@burnt'")
+
+		// Convert email subject from public inputs to verify it works
+		emailSubjectParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[43:52])
+		require.NoError(err)
+		emailSubjectStr, err := types.ConvertBigIntArrayToString(emailSubjectParts)
+		require.NoError(err)
+
+		// Verify email subject conversion worked with all elements
+		require.NotEmpty(emailSubjectStr, "email subject string should not be empty when all elements are filled")
+
+		// Validate that email subject starts with expected prefix
+		require.True(strings.HasPrefix(emailSubjectStr, "Re: [Reply Needed]"), "email subject should start with 'Re: [Reply Needed]'")
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         emailHashStr,
+			Proof:             proofJSON,
+			PublicInputs:      fullPublicInputs,
+			AllowedEmailHosts: []string{emailHostStr}, // Use the exact email host from public inputs
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		// The request should pass email host and subject validation
+		// It may fail on proof verification since we're using synthetic data,
+		// but it should NOT fail on email host/subject parsing or validation
+		if err != nil {
+			require.NotContains(err.Error(), "failed to convert allowed email hosts to big int")
+			require.NotContains(err.Error(), "failed to convert allowed email hosts to string")
+			require.NotContains(err.Error(), "is not present in allowed email hosts list")
+			require.NotContains(err.Error(), "failed to convertemail subject to big int")
+			require.NotContains(err.Error(), "failed to convert email subject to string")
+		}
+		_ = res
+	})
+
+	t.Run("success - all command data elements filled [12:32]", func(t *testing.T) {
+		f := SetupTest(t)
+		require := require.New(t)
+
+		// Create public inputs with all 20 elements filled for command/tx data [12:32]
+		// This tests the edge condition where the full range of tx bytes is utilized
+		fullPublicInputs := make([]string, len(basePublicInputs))
+		copy(fullPublicInputs, basePublicInputs)
+
+		// Fill all command/tx data elements [12:32] with non-zero values
+		// These represent a long transaction that spans all 20 field elements
+		fullPublicInputs[12] = "124413588010935573100449456468959839270027757215138439816955024736271298883"
+		fullPublicInputs[13] = "125987718504881168702817372751405511311626515399128115957683055706162879081"
+		fullPublicInputs[14] = "138174294419566073638917398478480233783462655482283489778477032129860416308"
+		fullPublicInputs[15] = "87164429935183530231106524238772469083021376536857547601286350511895957042"
+		fullPublicInputs[16] = "159508995554830235422881220221659222882416701537684367907262541081181107041"
+		fullPublicInputs[17] = "216177859633033993616607456010987870980723214832657304250929052054387451251"
+		fullPublicInputs[18] = "136870293077760051536514689814528040652982158268238924211443105143315312977"
+		fullPublicInputs[19] = "209027647271941540634260128227139143305212625530130988286308577451934433604"
+		fullPublicInputs[20] = "216041037480816501846348705353738079775803623607373665378499876478757721956"
+		fullPublicInputs[21] = "184099808892606061942559141059081527262834859629181581270585908529014000483"
+		fullPublicInputs[22] = "173926821082308056829441773860483849128404996084932919505946802488367989070"
+		fullPublicInputs[23] = "136498083332900321215526260868562056670892412932671519510981704427905430578"
+		fullPublicInputs[24] = "111222333444555666777888999000111222333444555666777888999000111222333444555"
+		fullPublicInputs[25] = "222333444555666777888999000111222333444555666777888999000111222333444555666"
+		fullPublicInputs[26] = "333444555666777888999000111222333444555666777888999000111222333444555666777"
+		fullPublicInputs[27] = "444555666777888999000111222333444555666777888999000111222333444555666777888"
+		fullPublicInputs[28] = "555666777888999000111222333444555666777888999000111222333444555666777888999"
+		fullPublicInputs[29] = "666777888999000111222333444555666777888999000111222333444555666777888999000"
+		fullPublicInputs[30] = "777888999000111222333444555666777888999000111222333444555666777888999000111"
+		fullPublicInputs[31] = "888999000111222333444555666777888999000111222333444555666777888999000111222"
+
+		// Setup DKIM pub key
+		poseidonHash, ok := new(big.Int).SetString(fullPublicInputs[9], 10)
+		require.True(ok)
+		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
+			Authority: f.govModAddr,
+			DkimPubkeys: []types.DkimPubKey{
+				{
+					Domain:       "gmail.com",
+					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+					PoseidonHash: poseidonHash.Bytes(),
+					Selector:     "selector1",
+					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				},
+			},
+		})
+		require.NoError(err)
+
+		// Convert command/tx data from public inputs [12:32]
+		txParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[12:32])
+		require.NoError(err)
+		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
+		require.NoError(err)
+
+		// Verify tx bytes conversion worked with all 20 elements filled
+		require.NotEmpty(txBytesStr, "tx bytes string should not be empty when all elements are filled")
+
+		// Convert email host from public inputs
+		emailHostParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[34:43])
+		require.NoError(err)
+		emailHostStr, err := types.ConvertBigIntArrayToString(emailHostParts)
+		require.NoError(err)
+
+		req := &types.QueryAuthenticateRequest{
+			TxBytes:           []byte(txBytesStr),
+			EmailHash:         emailHashStr,
+			Proof:             proofJSON,
+			PublicInputs:      fullPublicInputs,
+			AllowedEmailHosts: []string{emailHostStr},
+		}
+
+		res, err := f.queryServer.Authenticate(f.ctx, req)
+		// The request should pass tx bytes validation
+		// It may fail on proof verification since we're using synthetic data,
+		// but it should NOT fail on tx bytes parsing or validation
+		if err != nil {
+			require.NotContains(err.Error(), "failed to convert tx bytes public inputs to big int")
+			require.NotContains(err.Error(), "failed to convert tx bytes public inputs to string")
+			require.NotContains(err.Error(), "tx bytes do not match public inputs")
 		}
 		_ = res
 	})
