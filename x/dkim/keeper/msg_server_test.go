@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"strings"
 	"testing"
@@ -411,6 +412,68 @@ func TestAddDkimPubKeyFailsAfterRevoke(t *testing.T) {
 			{
 				Domain:       domain,
 				PubKey:       pubKey,
+				Selector:     "dkim-2",
+				PoseidonHash: []byte(hash.String()),
+				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+			},
+		},
+	}
+	_, err = f.msgServer.AddDkimPubKeys(f.ctx, addMsg2)
+	require.ErrorIs(t, err, types.ErrInvalidatedKey)
+}
+
+func TestAddDkimPubKeyFailsAfterRevokeDifferentEncoding(t *testing.T) {
+	f := SetupTest(t)
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	pkixBytes, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	require.NoError(t, err)
+	pkixKey := base64.StdEncoding.EncodeToString(pkixBytes)
+
+	hash, err := types.ComputePoseidonHash(pkixKey)
+	require.NoError(t, err)
+
+	privKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	})
+
+	domain := "revoked-encoding.com"
+
+	addMsg := &types.MsgAddDkimPubKeys{
+		Authority: f.govModAddr,
+		DkimPubkeys: []types.DkimPubKey{
+			{
+				Domain:       domain,
+				PubKey:       pkixKey,
+				Selector:     "dkim-1",
+				PoseidonHash: []byte(hash.String()),
+				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+			},
+		},
+	}
+	_, err = f.msgServer.AddDkimPubKeys(f.ctx, addMsg)
+	require.NoError(t, err)
+
+	_, err = f.msgServer.RevokeDkimPubKey(f.ctx, &types.MsgRevokeDkimPubKey{
+		Signer:  string(f.addrs[0]),
+		Domain:  domain,
+		PrivKey: privKeyPEM,
+	})
+	require.NoError(t, err)
+
+	pkcs1Bytes := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
+	pkcs1Key := base64.StdEncoding.EncodeToString(pkcs1Bytes)
+	addMsg2 := &types.MsgAddDkimPubKeys{
+		Authority: f.govModAddr,
+		DkimPubkeys: []types.DkimPubKey{
+			{
+				Domain:       domain,
+				PubKey:       pkcs1Key,
 				Selector:     "dkim-2",
 				PoseidonHash: []byte(hash.String()),
 				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
