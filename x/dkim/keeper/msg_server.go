@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"strings"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -95,25 +94,21 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
 			return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to parse private key")
 		} else {
-			privateKey = key.(*rsa.PrivateKey)
+			rsaKey, ok := key.(*rsa.PrivateKey)
+			if !ok {
+				return nil, errors.Wrap(types.ErrParsingPrivKey, "key is not an RSA private key")
+			}
+			privateKey = rsaKey
 		}
 	} else {
 		privateKey = key
 	}
 
-	publicKey := privateKey.PublicKey
-	// Marshal the public key to PKCS1 DER format
-	pubKeyDER := x509.MarshalPKCS1PublicKey(&publicKey)
-
-	// Encode the public key in PEM format
-	pubKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PUBLIC KEY",
-		Bytes: pubKeyDER,
-	})
-	// remove the PEM header and footer from the public key
-	after, _ := strings.CutPrefix(string(pubKeyPEM), "-----BEGIN RSA PUBLIC KEY-----\n")
-	pubKey, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
-	pubKey = strings.ReplaceAll(pubKey, "\n", "")
+	publicKey := &privateKey.PublicKey
+	canonicalKey, err := types.CanonicalizeRSAPublicKey(publicKey)
+	if err != nil {
+		return nil, err
+	}
 
 	iter, err := ms.k.DkimPubKeys.Iterate(ctx, nil)
 	if err != nil {
@@ -125,13 +120,28 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	if err != nil {
 		return nil, err
 	}
+	revoked := false
 	for i := range kvs {
-		if kvs[i].Value.Domain == msg.Domain && kvs[i].Value.PubKey == pubKey {
+		if kvs[i].Value.Domain != msg.Domain {
+			continue
+		}
+		pubKeyBytes, err := types.DecodePubKey(kvs[i].Value.PubKey)
+		if err != nil {
+			return nil, err
+		}
+		storedKey, err := types.ParseRSAPublicKey(pubKeyBytes)
+		if err != nil {
+			return nil, err
+		}
+		if storedKey.E == publicKey.E && storedKey.N.Cmp(publicKey.N) == 0 {
 			if err := ms.k.DkimPubKeys.Remove(ctx, kvs[i].Key); err != nil {
 				return nil, err
 			}
-			if err := ms.k.RevokedKeys.Set(ctx, pubKey, true); err != nil {
-				return nil, err
+			if !revoked {
+				if err := ms.k.RevokedKeys.Set(ctx, canonicalKey, true); err != nil {
+					return nil, err
+				}
+				revoked = true
 			}
 		}
 	}
