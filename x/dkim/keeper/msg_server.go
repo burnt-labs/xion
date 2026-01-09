@@ -101,7 +101,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	}
 
 	publicKey := &privateKey.PublicKey
-	pkixKey, pkcs1Key, err := types.CanonicalizeRSAPublicKey(publicKey)
+	canonicalKey, err := types.CanonicalizeRSAPublicKey(publicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -134,13 +134,8 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 				return nil, err
 			}
 			if !revoked {
-				if err := ms.k.RevokedKeys.Set(ctx, pkixKey, true); err != nil {
+				if err := ms.k.RevokedKeys.Set(ctx, canonicalKey, true); err != nil {
 					return nil, err
-				}
-				if pkcs1Key != pkixKey {
-					if err := ms.k.RevokedKeys.Set(ctx, pkcs1Key, true); err != nil {
-						return nil, err
-					}
 				}
 				revoked = true
 			}

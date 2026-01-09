@@ -2,7 +2,9 @@ package types
 
 import (
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/base64"
 
 	"cosmossdk.io/errors"
@@ -27,14 +29,13 @@ func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
-// CanonicalizeRSAPublicKey returns base64-encoded PKIX and PKCS#1 encodings.
-func CanonicalizeRSAPublicKey(pubKey *rsa.PublicKey) (string, string, error) {
-	pkixDER, err := x509.MarshalPKIXPublicKey(pubKey)
+// CanonicalizeRSAPublicKey returns a base64-encoded hash of the ASN.1 DER schema.
+func CanonicalizeRSAPublicKey(pubKey *rsa.PublicKey) (string, error) {
+	keyBz, err := asn1.Marshal(*pubKey)
 	if err != nil {
-		return "", "", errors.Wrapf(ErrInvalidPubKey, "failed to marshal public key: %s", err)
+		return "", errors.Wrapf(ErrInvalidPubKey, "failed to marshal public key: %s", err)
 	}
+	keyHashBz := sha256.Sum256(keyBz)
 
-	pkcs1DER := x509.MarshalPKCS1PublicKey(pubKey)
-
-	return base64.StdEncoding.EncodeToString(pkixDER), base64.StdEncoding.EncodeToString(pkcs1DER), nil
+	return base64.StdEncoding.EncodeToString(keyHashBz[:]), nil
 }

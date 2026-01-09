@@ -178,25 +178,13 @@ func ValidateDkimPubKeysWithRevocation(
 		}
 
 		if isRevoked != nil {
-			pkixKey, pkcs1Key, err := CanonicalizeRSAPublicKey(rsaPubKey)
+			canonicalKey, err := CanonicalizeRSAPublicKey(rsaPubKey)
 			if err != nil {
 				return err
 			}
-			revoked, err := isRevoked(ctx, pkixKey)
+			revoked, err := isRevoked(ctx, canonicalKey)
 			if err != nil {
 				return err
-			}
-			if !revoked && pkcs1Key != pkixKey {
-				revoked, err = isRevoked(ctx, pkcs1Key)
-				if err != nil {
-					return err
-				}
-			}
-			if !revoked && dkimKey.PubKey != pkixKey && dkimKey.PubKey != pkcs1Key {
-				revoked, err = isRevoked(ctx, dkimKey.PubKey)
-				if err != nil {
-					return err
-				}
 			}
 			if revoked {
 				return errors.Wrapf(ErrInvalidatedKey, "dkim public key for domain %s and selector %s has been revoked", dkimKey.Domain, dkimKey.Selector)
