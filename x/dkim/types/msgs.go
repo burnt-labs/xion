@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -127,7 +128,9 @@ func (msg *MsgRevokeDkimPubKey) ValidateBasic() error {
 		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
 			return errors.Wrap(ErrParsingPrivKey, "failed to parse private key")
 		} else {
-			_ = key.(*rsa.PrivateKey)
+			if _, ok := key.(*rsa.PrivateKey); !ok {
+				return errors.Wrap(ErrParsingPrivKey, "key is not an RSA private key")
+			}
 			return nil
 		}
 	}
@@ -150,6 +153,17 @@ func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 }
 
 func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
+	return ValidateDkimPubKeysWithRevocation(context.Background(), dkimKeys, params, nil)
+}
+
+// ValidateDkimPubKeysWithRevocation validates DKIM keys and optionally checks a revocation lookup.
+// isRevoked should return true if the provided pubkey has been revoked.
+func ValidateDkimPubKeysWithRevocation(
+	ctx context.Context,
+	dkimKeys []DkimPubKey,
+	params Params,
+	isRevoked func(context.Context, string) (bool, error),
+) error {
 	for _, dkimKey := range dkimKeys {
 		if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
 			return err
@@ -162,6 +176,16 @@ func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
 
 		if err := validateRSAPubKeyBytes(pubKeyBytes); err != nil {
 			return err
+		}
+
+		if isRevoked != nil {
+			revoked, err := isRevoked(ctx, dkimKey.PubKey)
+			if err != nil {
+				return err
+			}
+			if revoked {
+				return errors.Wrapf(ErrInvalidatedKey, "dkim public key for domain %s and selector %s has been revoked", dkimKey.Domain, dkimKey.Selector)
+			}
 		}
 	}
 	return nil

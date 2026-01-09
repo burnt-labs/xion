@@ -12,7 +12,6 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	dkimv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
 
@@ -28,17 +27,9 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 func SaveDkimPubKey(ctx context.Context, dkimKey types.DkimPubKey, k *Keeper) (bool, error) {
-	pk := dkimv1.DkimPubKey{
-		Domain:       dkimKey.Domain,
-		PubKey:       dkimKey.PubKey,
-		Selector:     dkimKey.Selector,
-		PoseidonHash: dkimKey.PoseidonHash,
-		Version:      dkimv1.Version(dkimKey.Version),
-		KeyType:      dkimv1.KeyType(dkimKey.KeyType),
-	}
-	key := collections.Join(pk.Domain, pk.Selector)
+	key := collections.Join(dkimKey.Domain, dkimKey.Selector)
 	//nolint:govet // copylocks: unavoidable when storing protobuf messages in collections.Map
-	if err := k.DkimPubKeys.Set(ctx, key, pk); err != nil {
+	if err := k.DkimPubKeys.Set(ctx, key, dkimKey); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -65,9 +56,12 @@ func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPub
 	}
 
 	// Validate all DKIM public keys before saving
-	if err := types.ValidateDkimPubKeys(msg.DkimPubkeys, params); err != nil {
+	if err := types.ValidateDkimPubKeysWithRevocation(ctx, msg.DkimPubkeys, params, func(c context.Context, pubKey string) (bool, error) {
+		return ms.k.RevokedKeys.Has(c, pubKey)
+	}); err != nil {
 		return nil, err
 	}
+
 	_, err = SaveDkimPubKeys(ctx, msg.DkimPubkeys, &ms.k)
 	if err != nil {
 		return nil, err
@@ -101,7 +95,11 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
 			return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to parse private key")
 		} else {
-			privateKey = key.(*rsa.PrivateKey)
+			rsaKey, ok := key.(*rsa.PrivateKey)
+			if !ok {
+				return nil, errors.Wrap(types.ErrParsingPrivKey, "key is not an RSA private key")
+			}
+			privateKey = rsaKey
 		}
 	} else {
 		privateKey = key
@@ -126,6 +124,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		return nil, err
 	}
 	defer iter.Close()
+
 	kvs, err := iter.KeyValues()
 	if err != nil {
 		return nil, err
@@ -133,6 +132,9 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	for i := range kvs {
 		if kvs[i].Value.Domain == msg.Domain && kvs[i].Value.PubKey == pubKey {
 			if err := ms.k.DkimPubKeys.Remove(ctx, kvs[i].Key); err != nil {
+				return nil, err
+			}
+			if err := ms.k.RevokedKeys.Set(ctx, pubKey, true); err != nil {
 				return nil, err
 			}
 		}

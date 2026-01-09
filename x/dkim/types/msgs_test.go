@@ -221,6 +221,31 @@ func TestMsgRevokeDkimPubKey(t *testing.T) {
 		err = msg.ValidateBasic()
 		require.NoError(t, err)
 	})
+
+	t.Run("ValidateBasic - rejects non-RSA PKCS8 key", func(t *testing.T) {
+		// Generate an ECDSA private key (not RSA)
+		ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+
+		// Marshal to PKCS8 format
+		pkcs8Bytes, err := x509.MarshalPKCS8PrivateKey(ecdsaKey)
+		require.NoError(t, err)
+
+		// Encode as PEM
+		pkcs8PEM := pem.EncodeToMemory(&pem.Block{
+			Type:  "PRIVATE KEY",
+			Bytes: pkcs8Bytes,
+		})
+
+		msg := &types.MsgRevokeDkimPubKey{
+			Signer:  validAddress,
+			Domain:  "https://example.com",
+			PrivKey: pkcs8PEM,
+		}
+		err = msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "key is not an RSA private key")
+	})
 }
 
 func TestMsgUpdateParams(t *testing.T) {
