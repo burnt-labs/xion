@@ -170,8 +170,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
-			Version:      dkimPubKey.Version,
-			KeyType:      dkimPubKey.KeyType,
+			Version:      types.Version(dkimPubKey.Version),
+			KeyType:      types.KeyType(dkimPubKey.KeyType),
 		}
 		results = append(results, &pubKey)
 		collected++
