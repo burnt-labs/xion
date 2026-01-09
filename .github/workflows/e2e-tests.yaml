@@ -44,14 +44,27 @@ jobs:
           - {dir: "app", type: "AppTreasury"}
           - {dir: "app", type: "AppUpdateTreasury"}
           - {dir: "app", type: "AppUpgradeNetwork$"}
-          - {dir: "dkim", type: "DKIM"}
+          - {dir: "dkim", type: "DKIMModule"}
+          - {dir: "dkim", type: "DKIMGovernance"}
+          - {dir: "dkim", type: "DKIMPubKeyMaxSize"}
+          - {dir: "dkim", type: "DKIMRevokedKeyCannotBeReadded"}
           - {dir: "indexer", type: "IndexerAuthz"}
           - {dir: "indexer", type: "IndexerFeeGrant"}
           - {dir: "indexer", type: "IndexerNonConsensusCritical"}
           # - {dir: "ibc", type: "IBC"}
           - {dir: "ibc", type: "IBCMinFeeMultiDenom"}
           - {dir: "jwk", type: "JWK"}
-          - {dir: "xion", type: "XionMinFee"}
+          - {dir: "xion", type: "XionMinFeeDefault"}
+          - {dir: "xion", type: "XionMinFeeZero"}
+          - {dir: "xion", type: "XionMinFeeMultiDenom"}
+          - {dir: "xion", type: "XionMinFeeBypass"}
+          - {dir: "xion", type: "XionMinFeeConcurrent"}
+          - {dir: "xion", type: "XionMinFeeError"}
+          - {dir: "xion", type: "XionMinFeeExtreme"}
+          - {dir: "xion", type: "XionMinFeeFeeGrant"}
+          - {dir: "xion", type: "XionMinFeeGasCap"}
+          - {dir: "xion", type: "XionMinFeeMemPool"}
+          - {dir: "xion", type: "XionMinFeeMultiMessage"}
           - {dir: "xion", type: "XionPlatform"}
           - {dir: "zk", type: "ZK"}
 
@@ -87,4 +100,4 @@ jobs:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
-          make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }} DIRECTORY="./..."
+          make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }}
