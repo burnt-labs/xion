@@ -27,6 +27,15 @@ func (gs GenesisState) Validate() error {
 	if err := ValidateDkimPubKeys(gs.DkimPubkeys, params); err != nil {
 		return err
 	}
+	for _, revoked := range gs.RevokedPubkeys {
+		pubKeyBytes, err := DecodePubKeyWithLimit(revoked, params.MaxPubkeySizeBytes)
+		if err != nil {
+			return err
+		}
+		if err := validateRSAPubKeyBytes(pubKeyBytes); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
