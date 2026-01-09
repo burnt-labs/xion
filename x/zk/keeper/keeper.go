@@ -110,18 +110,13 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 			panic(err)
 		}
 
-		vkey := vkeyWithID.Vkey
-		if vkey.Authority == "" {
-			vkey.Authority = k.authority
-		}
-
 		// Set the vkey
-		if err := k.VKeys.Set(ctx, vkeyWithID.Id, vkey); err != nil {
+		if err := k.VKeys.Set(ctx, vkeyWithID.Id, vkeyWithID.Vkey); err != nil {
 			panic(err)
 		}
 
 		// Set the name index
-		if err := k.VKeyNameIndex.Set(ctx, vkey.Name, vkeyWithID.Id); err != nil {
+		if err := k.VKeyNameIndex.Set(ctx, vkeyWithID.Vkey.Name, vkeyWithID.Id); err != nil {
 			panic(err)
 		}
 
@@ -246,7 +241,6 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 		KeyBytes:    keyBytes,
 		Name:        name,
 		Description: description,
-		Authority:   authority,
 	}
 
 	// Store vkey
@@ -319,23 +313,6 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 		return err
 	}
 
-	storedVKey, err := k.VKeys.Get(ctx, id)
-	if err != nil {
-		if errors.IsOf(err, collections.ErrNotFound) {
-			return errors.Wrapf(types.ErrVKeyNotFound, "verification key '%s' not found", name)
-		}
-		return err
-	}
-
-	storedAuthority := storedVKey.Authority
-	if storedAuthority == "" {
-		storedAuthority = k.authority
-	}
-
-	if storedAuthority != authority {
-		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", storedAuthority, authority)
-	}
-
 	params, err := k.GetParams(ctx)
 	if err != nil {
 		return err
@@ -357,7 +334,6 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 		KeyBytes:    keyBytes,
 		Name:        name,
 		Description: description,
-		Authority:   storedAuthority,
 	}
 
 	if err := k.VKeys.Set(ctx, id, updatedVKey); err != nil {
@@ -376,23 +352,6 @@ func (k Keeper) RemoveVKey(ctx context.Context, authority string, name string) e
 			return errors.Wrapf(types.ErrVKeyNotFound, "verification key '%s' not found", name)
 		}
 		return err
-	}
-
-	storedVKey, err := k.VKeys.Get(ctx, id)
-	if err != nil {
-		if errors.IsOf(err, collections.ErrNotFound) {
-			return errors.Wrapf(types.ErrVKeyNotFound, "verification key '%s' not found", name)
-		}
-		return err
-	}
-
-	storedAuthority := storedVKey.Authority
-	if storedAuthority == "" {
-		storedAuthority = k.authority
-	}
-
-	if storedAuthority != authority {
-		return errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", storedAuthority, authority)
 	}
 
 	// Remove from primary storage

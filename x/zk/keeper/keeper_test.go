@@ -789,12 +789,7 @@ func TestUpdateVKey(t *testing.T) {
 
 	// Add initial vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description")
-	require.NoError(t, err)
-
-	// Add user-owned vkey
-	userVkeyBytes := createTestVKeyBytes("user_auth")
-	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_auth", userVkeyBytes, "User description")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description")
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -815,21 +810,12 @@ func TestUpdateVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "successfully update with uploader authority",
-			authority:   f.addrs[0].String(),
-			vkeyName:    "user_auth",
-			newBytes:    createTestVKeyBytes("user_auth"),
-			description: "User updated description",
-			expectError: false,
-		},
-		{
-			name:        "fail with mismatched authority",
+			name:        "successfully update with non-governance authority",
 			authority:   f.addrs[0].String(),
 			vkeyName:    "email_auth",
 			newBytes:    createTestVKeyBytes("email_auth"),
 			description: "User updated description",
-			expectError: true,
-			errorMsg:    "invalid authority",
+			expectError: false,
 		},
 		{
 			name:        "fail to update non-existent vkey",
@@ -862,7 +848,7 @@ func TestUpdateVKey(t *testing.T) {
 				require.NoError(t, err)
 
 				// Verify the update
-				updated, err := f.k.GetVKeyByName(f.ctx, tt.vkeyName)
+				updated, err := f.k.GetVKeyByID(f.ctx, id)
 				require.NoError(t, err)
 				require.Equal(t, tt.description, updated.Description)
 			}
@@ -882,10 +868,6 @@ func TestRemoveVKey(t *testing.T) {
 	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
 	require.NoError(t, err)
 
-	userKeyBytes := createTestVKeyBytes("user_key")
-	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_key", userKeyBytes, "User key")
-	require.NoError(t, err)
-
 	tests := []struct {
 		name        string
 		authority   string
@@ -900,17 +882,10 @@ func TestRemoveVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "successfully remove with uploader authority",
-			authority:   f.addrs[0].String(),
-			vkeyName:    "user_key",
-			expectError: false,
-		},
-		{
-			name:        "fail with mismatched authority",
+			name:        "successfully remove with non-governance authority",
 			authority:   f.addrs[0].String(),
 			vkeyName:    "key2",
-			expectError: true,
-			errorMsg:    "invalid authority",
+			expectError: false,
 		},
 		{
 			name:        "fail to remove non-existent vkey",

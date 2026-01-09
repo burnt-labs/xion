@@ -53,27 +53,17 @@ func SetupTest(t *testing.T) *TestFixture {
 	f.govModAddr = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	f.addrs = simtestutil.CreateIncrementalAccounts(3)
 
-	dkimKey := storetypes.NewKVStoreKey(types.ModuleName)
-	zkKey := storetypes.NewKVStoreKey(zktypes.ModuleName)
-	tkey := storetypes.NewTransientStoreKey("transient_test")
-	f.ctx = testutil.DefaultContextWithKeys(
-		map[string]*storetypes.KVStoreKey{
-			types.ModuleName:   dkimKey,
-			zktypes.ModuleName: zkKey,
-		},
-		map[string]*storetypes.TransientStoreKey{
-			"transient_test": tkey,
-		},
-		map[string]*storetypes.MemoryStoreKey{},
-	)
-	storeService := runtime.NewKVStoreService(dkimKey)
-	zkStoreService := runtime.NewKVStoreService(zkKey)
+	key := storetypes.NewKVStoreKey(types.ModuleName)
+	storeService := runtime.NewKVStoreService(key)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+	f.ctx = testCtx.Ctx
 
 	// Register SDK modules.
 	registerBaseSDKModules(f, encCfg, storeService, logger, require)
 
 	// Setup Keeper.
-	f.zkeeper = zkkeeper.NewKeeper(encCfg.Codec, zkStoreService, logger, f.govModAddr)
+	f.zkeeper = zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, f.govModAddr)
 	// Initialize zk keeper with default genesis state to get the vkey with ID 1
 	defaultZkGenesis := zktypes.DefaultGenesisState()
 	f.zkeeper.InitGenesis(f.ctx, defaultZkGenesis)

@@ -51,7 +51,17 @@ jobs:
           # - {dir: "ibc", type: "IBC"}
           - {dir: "ibc", type: "IBCMinFeeMultiDenom"}
           - {dir: "jwk", type: "JWK"}
-          - {dir: "xion", type: "XionMinFee"}
+          - {dir: "xion", type: "XionMinFeeDefault"}
+          - {dir: "xion", type: "XionMinFeeZero"}
+          - {dir: "xion", type: "XionMinFeeMultiDenom"}
+          - {dir: "xion", type: "XionMinFeeBypass"}
+          - {dir: "xion", type: "XionMinFeeConcurrent"}
+          - {dir: "xion", type: "XionMinFeeError"}
+          - {dir: "xion", type: "XionMinFeeExtreme"}
+          - {dir: "xion", type: "XionMinFeeFeeGrant"}
+          - {dir: "xion", type: "XionMinFeeGasCap"}
+          - {dir: "xion", type: "XionMinFeeMemPool"}
+          - {dir: "xion", type: "XionMinFeeMultiMessage"}
           - {dir: "xion", type: "XionPlatform"}
           - {dir: "zk", type: "ZK"}
 

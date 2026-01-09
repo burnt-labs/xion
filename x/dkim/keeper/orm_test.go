@@ -82,5 +82,5 @@ func TestORMMultipleInsert(t *testing.T) {
 	defer iter.Close()
 	kvs, err := iter.KeyValues()
 	require.NoError(t, err)
-	require.EqualValues(t, count, len(kvs))
+	require.EqualValues(t, count+1, len(kvs))
 }

@@ -219,29 +219,7 @@ func TestMsgServer_UpdateVKey(t *testing.T) {
 		require.True(t, found, "UpdateVKey event not found")
 	})
 
-	t.Run("successfully update with uploader authority", func(t *testing.T) {
-		addMsg := &types.MsgAddVKey{
-			Authority:   f.addrs[0].String(),
-			Name:        "user_update_test",
-			VkeyBytes:   createTestVKeyBytes("user_update_test"),
-			Description: "User owned",
-		}
-		_, err := f.msgServer.AddVKey(f.ctx, addMsg)
-		require.NoError(t, err)
-
-		msg := &types.MsgUpdateVKey{
-			Authority:   f.addrs[0].String(),
-			Name:        "user_update_test",
-			VkeyBytes:   createTestVKeyBytes("user_update_test"),
-			Description: "User update",
-		}
-
-		resp, err := f.msgServer.UpdateVKey(f.ctx, msg)
-		require.NoError(t, err)
-		require.NotNil(t, resp)
-	})
-
-	t.Run("fail with mismatched authority", func(t *testing.T) {
+	t.Run("successfully update with non-governance authority", func(t *testing.T) {
 		msg := &types.MsgUpdateVKey{
 			Authority:   f.addrs[0].String(),
 			Name:        "update_test",
@@ -250,9 +228,8 @@ func TestMsgServer_UpdateVKey(t *testing.T) {
 		}
 
 		resp, err := f.msgServer.UpdateVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.ErrorIs(t, err, types.ErrInvalidAuthority)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
 	})
 
 	t.Run("fail with non-existent vkey", func(t *testing.T) {
@@ -398,36 +375,15 @@ func TestMsgServer_RemoveVKey(t *testing.T) {
 		require.Equal(t, "To be kept", vkey.Description)
 	})
 
-	t.Run("successfully remove with uploader authority", func(t *testing.T) {
-		addMsg := &types.MsgAddVKey{
-			Authority:   f.addrs[0].String(),
-			Name:        "user_remove_test",
-			VkeyBytes:   createTestVKeyBytes("user_remove_test"),
-			Description: "User owned",
-		}
-		_, err := f.msgServer.AddVKey(f.ctx, addMsg)
-		require.NoError(t, err)
-
-		msg := &types.MsgRemoveVKey{
-			Authority: f.addrs[0].String(),
-			Name:      "user_remove_test",
-		}
-
-		resp, err := f.msgServer.RemoveVKey(f.ctx, msg)
-		require.NoError(t, err)
-		require.NotNil(t, resp)
-	})
-
-	t.Run("fail with mismatched authority", func(t *testing.T) {
+	t.Run("successfully remove with non-governance authority", func(t *testing.T) {
 		msg := &types.MsgRemoveVKey{
 			Authority: f.addrs[0].String(),
 			Name:      "keep_test",
 		}
 
 		resp, err := f.msgServer.RemoveVKey(f.ctx, msg)
-		require.Error(t, err)
-		require.Nil(t, resp)
-		require.ErrorIs(t, err, types.ErrInvalidAuthority)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
 	})
 
 	t.Run("fail with non-existent vkey", func(t *testing.T) {
