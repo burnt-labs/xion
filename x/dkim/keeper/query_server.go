@@ -18,6 +18,9 @@ import (
 
 var _ types.QueryServer = Querier{}
 
+// MaxPaginationLimit is the maximum number of results that can be returned in a single query
+const MaxPaginationLimit = 1000
+
 type Querier struct {
 	Keeper
 }
@@ -38,8 +41,8 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 		PubKey:       dkimPubKey.PubKey,
 		Selector:     dkimPubKey.Selector,
 		PoseidonHash: dkimPubKey.PoseidonHash,
-		Version:      types.Version(dkimPubKey.Version),
-		KeyType:      types.KeyType(dkimPubKey.KeyType),
+		Version:      dkimPubKey.Version,
+		KeyType:      dkimPubKey.KeyType,
 	}}, nil
 }
 
@@ -58,8 +61,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 				PubKey:       dkimPubKey.PubKey,
 				Selector:     dkimPubKey.Selector,
 				PoseidonHash: dkimPubKey.PoseidonHash,
-				Version:      types.Version(dkimPubKey.Version),
-				KeyType:      types.KeyType(dkimPubKey.KeyType),
+				Version:      dkimPubKey.Version,
+				KeyType:      dkimPubKey.KeyType,
 			}},
 			Pagination: nil,
 		}, nil
@@ -75,6 +78,9 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	if msg.Pagination != nil {
 		if msg.Pagination.Limit != 0 {
 			limit = msg.Pagination.Limit
+			if limit > MaxPaginationLimit {
+				limit = MaxPaginationLimit
+			}
 		}
 		if len(msg.Pagination.Key) > 0 {
 			useKeyBasedPagination = true
@@ -164,8 +170,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
-			Version:      types.Version(dkimPubKey.Version),
-			KeyType:      types.KeyType(dkimPubKey.KeyType),
+			Version:      dkimPubKey.Version,
+			KeyType:      dkimPubKey.KeyType,
 		}
 		results = append(results, &pubKey)
 		collected++
@@ -299,10 +305,6 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 
 	return &types.AuthenticateResponse{Verified: verified}, nil
-}
-
-func (k Querier) ProofVerify(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
-	return &types.AuthenticateResponse{Verified: false}, nil
 }
 
 func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
