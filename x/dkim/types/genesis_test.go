@@ -54,6 +54,57 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 			valid: true,
 		},
+		{
+			desc: "genesis state with zero MaxPubkeySizeBytes gets default",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					MaxPubkeySizeBytes: 0,
+					VkeyIdentifier:     1,
+				},
+			},
+			valid: true,
+		},
+		{
+			desc: "genesis state with invalid dkim pubkeys validates params error",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					MaxPubkeySizeBytes: 0,
+					VkeyIdentifier:     0,
+				},
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:   "test.com",
+						Selector: "sel",
+						PubKey:   "validRSAPubKey",
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "genesis state with invalid dkim pubkey",
+			genState: &types.GenesisState{
+				Params: types.DefaultParams(),
+				DkimPubkeys: []types.DkimPubKey{
+					{
+						Domain:   "test.com",
+						Selector: "selector",
+						PubKey:   "invalid_base64",
+						Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
+						KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "genesis state with invalid revoked pubkey",
+			genState: &types.GenesisState{
+				Params:          types.DefaultParams(),
+				RevokedPubkeys: []string{"invalid_base64"},
+			},
+			valid: false,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
