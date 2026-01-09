@@ -150,7 +150,7 @@ func TestKeeperSetParams(t *testing.T) {
 		// Directly set invalid params to bypass the SetParams default logic
 		err := f.k.Params.Set(f.ctx, invalidParams)
 		require.NoError(t, err)
-		
+
 		// Now validate should fail
 		err = invalidParams.Validate()
 		require.Error(t, err)

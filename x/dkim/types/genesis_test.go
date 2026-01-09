@@ -100,7 +100,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "genesis state with invalid revoked pubkey",
 			genState: &types.GenesisState{
-				Params:          types.DefaultParams(),
+				Params:         types.DefaultParams(),
 				RevokedPubkeys: []string{"invalid_base64"},
 			},
 			valid: false,
