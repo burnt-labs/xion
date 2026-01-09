@@ -22,7 +22,6 @@ const (
 	Query_DkimPubKey_FullMethodName   = "/xion.dkim.v1.Query/DkimPubKey"
 	Query_DkimPubKeys_FullMethodName  = "/xion.dkim.v1.Query/DkimPubKeys"
 	Query_Authenticate_FullMethodName = "/xion.dkim.v1.Query/Authenticate"
-	Query_ProofVerify_FullMethodName  = "/xion.dkim.v1.Query/ProofVerify"
 	Query_Params_FullMethodName       = "/xion.dkim.v1.Query/Params"
 )
 
@@ -38,8 +37,6 @@ type QueryClient interface {
 	DkimPubKeys(ctx context.Context, in *QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*QueryDkimPubKeysResponse, error)
 	// Authenticate verifies a zk proof for email authentication.
 	Authenticate(ctx context.Context, in *QueryAuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
-	// ProofVerify verifies a zk proof for email authentication.
-	ProofVerify(ctx context.Context, in *QueryAuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	// Params queries all parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 }
@@ -82,16 +79,6 @@ func (c *queryClient) Authenticate(ctx context.Context, in *QueryAuthenticateReq
 	return out, nil
 }
 
-func (c *queryClient) ProofVerify(ctx context.Context, in *QueryAuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthenticateResponse)
-	err := c.cc.Invoke(ctx, Query_ProofVerify_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryParamsResponse)
@@ -114,8 +101,6 @@ type QueryServer interface {
 	DkimPubKeys(context.Context, *QueryDkimPubKeysRequest) (*QueryDkimPubKeysResponse, error)
 	// Authenticate verifies a zk proof for email authentication.
 	Authenticate(context.Context, *QueryAuthenticateRequest) (*AuthenticateResponse, error)
-	// ProofVerify verifies a zk proof for email authentication.
-	ProofVerify(context.Context, *QueryAuthenticateRequest) (*AuthenticateResponse, error)
 	// Params queries all parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	mustEmbedUnimplementedQueryServer()
@@ -136,9 +121,6 @@ func (UnimplementedQueryServer) DkimPubKeys(context.Context, *QueryDkimPubKeysRe
 }
 func (UnimplementedQueryServer) Authenticate(context.Context, *QueryAuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
-}
-func (UnimplementedQueryServer) ProofVerify(context.Context, *QueryAuthenticateRequest) (*AuthenticateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
 }
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
@@ -218,24 +200,6 @@ func _Query_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_ProofVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAuthenticateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).ProofVerify(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_ProofVerify_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ProofVerify(ctx, req.(*QueryAuthenticateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryParamsRequest)
 	if err := dec(in); err != nil {
@@ -272,10 +236,6 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Authenticate",
 			Handler:    _Query_Authenticate_Handler,
-		},
-		{
-			MethodName: "ProofVerify",
-			Handler:    _Query_ProofVerify_Handler,
 		},
 		{
 			MethodName: "Params",
