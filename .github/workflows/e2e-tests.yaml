@@ -44,7 +44,10 @@ jobs:
           - {dir: "app", type: "AppTreasury"}
           - {dir: "app", type: "AppUpdateTreasury"}
           - {dir: "app", type: "AppUpgradeNetwork$"}
-          - {dir: "dkim", type: "DKIM"}
+          - {dir: "dkim", type: "DKIMModule"}
+          - {dir: "dkim", type: "DKIMGovernance"}
+          - {dir: "dkim", type: "DKIMPubKeyMaxSize"}
+          - {dir: "dkim", type: "DKIMRevokedKeyCannotBeReadded"}
           - {dir: "indexer", type: "IndexerAuthz"}
           - {dir: "indexer", type: "IndexerFeeGrant"}
           - {dir: "indexer", type: "IndexerNonConsensusCritical"}
