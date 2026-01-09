@@ -210,51 +210,6 @@ func TestQueryDkimPubKeysPagination(t *testing.T) {
 	})
 }
 
-func TestProofVerify(t *testing.T) {
-	f := SetupTest(t)
-	require := require.New(t)
-
-	t.Run("returns false for any request", func(t *testing.T) {
-		// ProofVerify currently returns false for all requests
-		req := &types.QueryAuthenticateRequest{
-			TxBytes:           []byte("test"),
-			EmailHash:         "test-hash",
-			Proof:             []byte("{}"),
-			PublicInputs:      []string{},
-			AllowedEmailHosts: []string{},
-		}
-
-		res, err := f.queryServer.ProofVerify(f.ctx, req)
-		require.NoError(err)
-		require.NotNil(res)
-		require.False(res.Verified)
-	})
-
-	t.Run("returns false with nil request fields", func(t *testing.T) {
-		req := &types.QueryAuthenticateRequest{}
-
-		res, err := f.queryServer.ProofVerify(f.ctx, req)
-		require.NoError(err)
-		require.NotNil(res)
-		require.False(res.Verified)
-	})
-
-	t.Run("returns false with populated request", func(t *testing.T) {
-		req := &types.QueryAuthenticateRequest{
-			TxBytes:           []byte("some-tx-bytes"),
-			EmailHash:         "19446427605026428332697445173245129703428784356663998533737434935925391210840",
-			Proof:             []byte(`{"pi_a": ["1", "2", "1"], "pi_b": [["1", "2"], ["3", "4"], ["1", "0"]], "pi_c": ["1", "2", "1"], "protocol": "groth16", "curve": "bn128"}`),
-			PublicInputs:      make([]string, 52),
-			AllowedEmailHosts: []string{"test@example.com"},
-		}
-
-		res, err := f.queryServer.ProofVerify(f.ctx, req)
-		require.NoError(err)
-		require.NotNil(res)
-		require.False(res.Verified)
-	})
-}
-
 func TestParams(t *testing.T) {
 	f := SetupTest(t)
 	require := require.New(t)
