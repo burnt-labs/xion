@@ -466,12 +466,14 @@ func TestAddDkimPubKeyFailsAfterRevokeDifferentEncoding(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	pkcs1Bytes := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
+	pkcs1Key := base64.StdEncoding.EncodeToString(pkcs1Bytes)
 	addMsg2 := &types.MsgAddDkimPubKeys{
 		Authority: f.govModAddr,
 		DkimPubkeys: []types.DkimPubKey{
 			{
 				Domain:       domain,
-				PubKey:       pkixKey,
+				PubKey:       pkcs1Key,
 				Selector:     "dkim-2",
 				PoseidonHash: []byte(hash.String()),
 				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
