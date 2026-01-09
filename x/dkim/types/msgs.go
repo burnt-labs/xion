@@ -128,7 +128,9 @@ func (msg *MsgRevokeDkimPubKey) ValidateBasic() error {
 		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
 			return errors.Wrap(ErrParsingPrivKey, "failed to parse private key")
 		} else {
-			_ = key.(*rsa.PrivateKey)
+			if _, ok := key.(*rsa.PrivateKey); !ok {
+				return errors.Wrap(ErrParsingPrivKey, "key is not an RSA private key")
+			}
 			return nil
 		}
 	}

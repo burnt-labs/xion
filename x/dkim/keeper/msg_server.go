@@ -94,7 +94,11 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		if key, err := x509.ParsePKCS8PrivateKey(d.Bytes); err != nil {
 			return nil, errors.Wrap(types.ErrParsingPrivKey, "failed to parse private key")
 		} else {
-			privateKey = key.(*rsa.PrivateKey)
+			rsaKey, ok := key.(*rsa.PrivateKey)
+			if !ok {
+				return nil, errors.Wrap(types.ErrParsingPrivKey, "key is not an RSA private key")
+			}
+			privateKey = rsaKey
 		}
 	} else {
 		privateKey = key
