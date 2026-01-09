@@ -25,11 +25,6 @@ service Query {
     option (google.api.http).get = "/dkim/v1/auth";
   }
 
-  // ProofVerify verifies a zk proof for email authentication.
-  rpc ProofVerify(QueryAuthenticateRequest) returns (AuthenticateResponse) {
-    option (google.api.http).get = "/dkim/v1/dkim_verify";
-  }
-
   // Params queries all parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dkim/v1/params";
