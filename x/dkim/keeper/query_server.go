@@ -38,8 +38,8 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 		PubKey:       dkimPubKey.PubKey,
 		Selector:     dkimPubKey.Selector,
 		PoseidonHash: dkimPubKey.PoseidonHash,
-		Version:      types.Version(dkimPubKey.Version),
-		KeyType:      types.KeyType(dkimPubKey.KeyType),
+		Version:      dkimPubKey.Version,
+		KeyType:      dkimPubKey.KeyType,
 	}}, nil
 }
 
@@ -58,8 +58,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 				PubKey:       dkimPubKey.PubKey,
 				Selector:     dkimPubKey.Selector,
 				PoseidonHash: dkimPubKey.PoseidonHash,
-				Version:      types.Version(dkimPubKey.Version),
-				KeyType:      types.KeyType(dkimPubKey.KeyType),
+				Version:      dkimPubKey.Version,
+				KeyType:      dkimPubKey.KeyType,
 			}},
 			Pagination: nil,
 		}, nil
@@ -164,8 +164,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
-			Version:      types.Version(dkimPubKey.Version),
-			KeyType:      types.KeyType(dkimPubKey.KeyType),
+			Version:      dkimPubKey.Version,
+			KeyType:      dkimPubKey.KeyType,
 		}
 		results = append(results, &pubKey)
 		collected++
@@ -243,7 +243,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain and poseidon hash")
 	}
 
-	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[34:42])
+	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[34:43])
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to big int: %s", err.Error())
 	}
@@ -263,7 +263,7 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email host from public inputs %s is not present in allowed email hosts list: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
 	}
 
-	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[43:51])
+	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[43:52])
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convertemail subject to big int: %s", err.Error())
 	}
