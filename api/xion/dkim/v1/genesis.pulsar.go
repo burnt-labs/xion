@@ -1183,7 +1183,8 @@ type GenesisState struct {
 	unknownFields protoimpl.UnknownFields
 
 	// Params defines all the parameters of the module.
-	Params      *Params       `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	Params *Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	// dkim_pubkeys stores the list of active DKIM public keys.
 	DkimPubkeys []*DkimPubKey `protobuf:"bytes,2,rep,name=dkim_pubkeys,json=dkimPubkeys,proto3" json:"dkim_pubkeys,omitempty"`
 	// revoked_pubkeys stores the list of revoked DKIM public keys.
 	RevokedPubkeys []string `protobuf:"bytes,3,rep,name=revoked_pubkeys,json=revokedPubkeys,proto3" json:"revoked_pubkeys,omitempty"`
