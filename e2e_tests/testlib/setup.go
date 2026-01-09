@@ -49,6 +49,10 @@ var (
 		// Mint module - inflation parameters
 		cosmos.NewGenesisKV("app_state.mint.params.blocks_per_year", "13892511"),
 		cosmos.NewGenesisKV("app_state.mint.params.mint_denom", "uxion"),
+		cosmos.NewGenesisKV("app_state.mint.params.inflation_rate_change", "0.130000000000000000"),
+		cosmos.NewGenesisKV("app_state.mint.params.inflation_max", "0.200000000000000000"),
+		cosmos.NewGenesisKV("app_state.mint.params.inflation_min", "0.070000000000000000"),
+		cosmos.NewGenesisKV("app_state.mint.params.goal_bonded", "0.670000000000000000"),
 
 		// Abstract account module
 		cosmos.NewGenesisKV("app_state.abstractaccount.params.allowed_code_ids", []int64{1}),

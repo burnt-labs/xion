@@ -87,4 +87,4 @@ jobs:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
-          make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }} DIRECTORY="./..."
+          make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }}
