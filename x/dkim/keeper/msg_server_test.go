@@ -358,6 +358,70 @@ func TestRevokeDkimPubKey(t *testing.T) {
 	}
 }
 
+func TestAddDkimPubKeyFailsAfterRevoke(t *testing.T) {
+	f := SetupTest(t)
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	pubKeyDER := x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)
+	pubKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pubKeyDER,
+	})
+	after, _ := strings.CutPrefix(string(pubKeyPEM), "-----BEGIN RSA PUBLIC KEY-----\n")
+	pubKey, _ := strings.CutSuffix(after, "\n-----END RSA PUBLIC KEY-----\n")
+	pubKey = strings.ReplaceAll(pubKey, "\n", "")
+	hash, err := types.ComputePoseidonHash(pubKey)
+	require.NoError(t, err)
+
+	privKeyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	})
+
+	domain := "revoked.com"
+
+	addMsg := &types.MsgAddDkimPubKeys{
+		Authority: f.govModAddr,
+		DkimPubkeys: []types.DkimPubKey{
+			{
+				Domain:       domain,
+				PubKey:       pubKey,
+				Selector:     "dkim-1",
+				PoseidonHash: []byte(hash.String()),
+				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+			},
+		},
+	}
+	_, err = f.msgServer.AddDkimPubKeys(f.ctx, addMsg)
+	require.NoError(t, err)
+
+	_, err = f.msgServer.RevokeDkimPubKey(f.ctx, &types.MsgRevokeDkimPubKey{
+		Signer:  string(f.addrs[0]),
+		Domain:  domain,
+		PrivKey: privKeyPEM,
+	})
+	require.NoError(t, err)
+
+	addMsg2 := &types.MsgAddDkimPubKeys{
+		Authority: f.govModAddr,
+		DkimPubkeys: []types.DkimPubKey{
+			{
+				Domain:       domain,
+				PubKey:       pubKey,
+				Selector:     "dkim-2",
+				PoseidonHash: []byte(hash.String()),
+				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+			},
+		},
+	}
+	_, err = f.msgServer.AddDkimPubKeys(f.ctx, addMsg2)
+	require.ErrorIs(t, err, types.ErrInvalidatedKey)
+}
+
 func TestSaveDkimPubKey(t *testing.T) {
 	t.Run("save valid dkim pub key", func(t *testing.T) {
 		f := SetupTest(t)

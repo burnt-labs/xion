@@ -38,8 +38,8 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 		PubKey:       dkimPubKey.PubKey,
 		Selector:     dkimPubKey.Selector,
 		PoseidonHash: dkimPubKey.PoseidonHash,
-		Version:      types.Version(dkimPubKey.Version),
-		KeyType:      types.KeyType(dkimPubKey.KeyType),
+		Version:      dkimPubKey.Version,
+		KeyType:      dkimPubKey.KeyType,
 	}}, nil
 }
 
@@ -58,8 +58,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 				PubKey:       dkimPubKey.PubKey,
 				Selector:     dkimPubKey.Selector,
 				PoseidonHash: dkimPubKey.PoseidonHash,
-				Version:      types.Version(dkimPubKey.Version),
-				KeyType:      types.KeyType(dkimPubKey.KeyType),
+				Version:      dkimPubKey.Version,
+				KeyType:      dkimPubKey.KeyType,
 			}},
 			Pagination: nil,
 		}, nil
@@ -164,8 +164,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
-			Version:      types.Version(dkimPubKey.Version),
-			KeyType:      types.KeyType(dkimPubKey.KeyType),
+			Version:      dkimPubKey.Version,
+			KeyType:      dkimPubKey.KeyType,
 		}
 		results = append(results, &pubKey)
 		collected++

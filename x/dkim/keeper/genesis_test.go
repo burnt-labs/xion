@@ -24,6 +24,14 @@ func TestGenesis(t *testing.T) {
 			err:     false,
 		},
 		{
+			name: "success, with revoked pubkey",
+			request: &types.GenesisState{
+				RevokedPubkeys: []string{testPubKey},
+				Params:         types.Params{},
+			},
+			err: false,
+		},
+		{
 			name: "success, with dkim records",
 			request: &types.GenesisState{
 				DkimPubkeys: []types.DkimPubKey{
@@ -65,6 +73,14 @@ func TestGenesis(t *testing.T) {
 					},
 				},
 				Params: types.Params{},
+			},
+			err: true,
+		},
+		{
+			name: "fail, invalid revoked pubkey",
+			request: &types.GenesisState{
+				RevokedPubkeys: []string{"not-base64"},
+				Params:         types.Params{},
 			},
 			err: true,
 		},
@@ -182,6 +198,22 @@ func TestInitGenesisExtended(t *testing.T) {
 		require.Equal(t, 2, count)
 	})
 
+	t.Run("init with revoked pubkeys stored", func(t *testing.T) {
+		f := SetupTest(t)
+
+		genesis := &types.GenesisState{
+			RevokedPubkeys: []string{testPubKey},
+			Params:         types.Params{},
+		}
+
+		err := f.k.InitGenesis(f.ctx, genesis)
+		require.NoError(t, err)
+
+		has, err := f.k.RevokedKeys.Has(f.ctx, testPubKey)
+		require.NoError(t, err)
+		require.True(t, has)
+	})
+
 	t.Run("init with nil genesis state panics", func(t *testing.T) {
 		f := SetupTest(t)
 
@@ -279,6 +311,7 @@ func TestExportGenesisExtended(t *testing.T) {
 		f := SetupTest(t)
 
 		genesis := &types.GenesisState{
+			RevokedPubkeys: []string{testPubKey},
 			DkimPubkeys: []types.DkimPubKey{
 				{
 					Domain:       "export-test.com",
@@ -300,6 +333,7 @@ func TestExportGenesisExtended(t *testing.T) {
 		record := findDkimRecord(exported.DkimPubkeys, "export-test.com", "selector")
 		require.NotNil(t, record)
 		require.Equal(t, testPubKey, record.PubKey)
+		require.Contains(t, exported.RevokedPubkeys, testPubKey)
 	})
 
 	t.Run("export genesis with multiple records", func(t *testing.T) {

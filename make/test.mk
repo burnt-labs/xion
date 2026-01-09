@@ -139,6 +139,9 @@ test-dkim-module:
 test-dkim-pubkey-max-size:
 	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMPubKeyMaxSize
 
+test-dkim-pubkey-revoked:
+	$(MAKE) test-run DIR_NAME=dkim TEST_NAME=TestDKIMRevokedKeyCannotBeReadded
+
 # ZK Module Tests
 test-zk-email-authenticator:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKEmailAuthenticator
