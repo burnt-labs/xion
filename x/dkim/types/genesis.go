@@ -32,7 +32,7 @@ func (gs GenesisState) Validate() error {
 		if err != nil {
 			return err
 		}
-		if err := validateRSAPubKeyBytes(pubKeyBytes); err != nil {
+		if _, err := ParseRSAPublicKey(pubKeyBytes); err != nil {
 			return err
 		}
 	}

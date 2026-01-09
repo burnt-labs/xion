@@ -172,12 +172,17 @@ func ValidateDkimPubKeysWithRevocation(
 			return err
 		}
 
-		if err := validateRSAPubKeyBytes(pubKeyBytes); err != nil {
+		rsaPubKey, err := ParseRSAPublicKey(pubKeyBytes)
+		if err != nil {
 			return err
 		}
 
 		if isRevoked != nil {
-			revoked, err := isRevoked(ctx, dkimKey.PubKey)
+			canonicalKey, err := CanonicalizeRSAPublicKey(rsaPubKey)
+			if err != nil {
+				return err
+			}
+			revoked, err := isRevoked(ctx, canonicalKey)
 			if err != nil {
 				return err
 			}
@@ -201,7 +206,8 @@ func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 		return err
 	}
 
-	return validateRSAPubKeyBytes(pubKeyBytes)
+	_, err = ParseRSAPublicKey(pubKeyBytes)
+	return err
 }
 
 // ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
@@ -211,7 +217,8 @@ func ValidateRSAPubKey(pubKeyStr string) error {
 		return err
 	}
 
-	return validateRSAPubKeyBytes(pubKeyBytes)
+	_, err = ParseRSAPublicKey(pubKeyBytes)
+	return err
 }
 
 func validateDkimPubKeyMetadata(dkimKey DkimPubKey) error {
@@ -221,25 +228,6 @@ func validateDkimPubKeyMetadata(dkimKey DkimPubKey) error {
 
 	if dkimKey.Version != Version_VERSION_DKIM1_UNSPECIFIED {
 		return ErrInvalidVersion
-	}
-
-	return nil
-}
-
-func validateRSAPubKeyBytes(pubKeyBytes []byte) error {
-	// Try PKIX/SPKI format first (standard format for DKIM public keys)
-	pub, err := x509.ParsePKIXPublicKey(pubKeyBytes)
-	if err == nil {
-		if _, ok := pub.(*rsa.PublicKey); !ok {
-			return ErrNotRSAKey
-		}
-		return nil
-	}
-
-	// Fall back to PKCS#1 format
-	_, err = x509.ParsePKCS1PublicKey(pubKeyBytes)
-	if err != nil {
-		return errors.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
 	}
 
 	return nil
