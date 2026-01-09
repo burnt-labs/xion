@@ -25,11 +25,6 @@ service Query {
     option (google.api.http).get = "/dkim/v1/auth";
   }
 
-  // ProofVerify verifies a zk proof for email authentication.
-  rpc ProofVerify(QueryAuthenticateRequest) returns (AuthenticateResponse) {
-    option (google.api.http).get = "/dkim/v1/dkim_verify";
-  }
-
   // Params queries all parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dkim/v1/params";
@@ -74,11 +69,17 @@ message QueryDkimPubKeysResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 3;
 }
 
+// QueryAuthenticateRequest defines the request structure for proof verification.
 message QueryAuthenticateRequest {
+  // tx_bytes defines the serialized transaction bytes.
   bytes tx_bytes = 1;
+  // email_hash defines the hash of the email being authenticated.
   string email_hash = 2;
+  // proof defines the zk proof bytes.
   bytes proof = 3;
+  // public_inputs defines the public inputs for the zk proof.
   repeated string public_inputs = 4;
+  // allowed_email_hosts defines the list of allowed email hosts.
   repeated string allowed_email_hosts = 5;
 }
 // AuthenticateResponse defines the response structure for proof verification.

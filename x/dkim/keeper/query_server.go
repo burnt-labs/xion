@@ -73,7 +73,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	var paginationKey []byte
 
 	if msg.Pagination != nil {
-		if msg.Pagination.Limit != 0 {
+		if msg.Pagination.Limit != 0 && msg.Pagination.Limit < limit {
 			limit = msg.Pagination.Limit
 		}
 		if len(msg.Pagination.Key) > 0 {
@@ -299,10 +299,6 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 
 	return &types.AuthenticateResponse{Verified: verified}, nil
-}
-
-func (k Querier) ProofVerify(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
-	return &types.AuthenticateResponse{Verified: false}, nil
 }
 
 func (k Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
