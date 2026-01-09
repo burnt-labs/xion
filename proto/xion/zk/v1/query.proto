@@ -70,6 +70,8 @@ message VKey {
   string name = 2;
   string description = 3;
   string circuit_hash = 4;
+  // authority is the uploader of the verification key.
+  string authority = 5;
 }
 
 
