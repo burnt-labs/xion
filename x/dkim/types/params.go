@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	DefaultMaxPubKeySizeBytes uint64 = 1024
+	DefaultMaxPubKeySizeBytes uint64 = 512
 )
 
 // DefaultParams returns default module parameters.
