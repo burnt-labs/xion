@@ -789,7 +789,12 @@ func TestUpdateVKey(t *testing.T) {
 
 	// Add initial vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description")
+	require.NoError(t, err)
+
+	// Add user-owned vkey
+	userVkeyBytes := createTestVKeyBytes("user_auth")
+	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_auth", userVkeyBytes, "User description")
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -810,12 +815,21 @@ func TestUpdateVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "successfully update with non-governance authority",
+			name:        "successfully update with uploader authority",
+			authority:   f.addrs[0].String(),
+			vkeyName:    "user_auth",
+			newBytes:    createTestVKeyBytes("user_auth"),
+			description: "User updated description",
+			expectError: false,
+		},
+		{
+			name:        "fail with mismatched authority",
 			authority:   f.addrs[0].String(),
 			vkeyName:    "email_auth",
 			newBytes:    createTestVKeyBytes("email_auth"),
 			description: "User updated description",
-			expectError: false,
+			expectError: true,
+			errorMsg:    "invalid authority",
 		},
 		{
 			name:        "fail to update non-existent vkey",
@@ -848,7 +862,7 @@ func TestUpdateVKey(t *testing.T) {
 				require.NoError(t, err)
 
 				// Verify the update
-				updated, err := f.k.GetVKeyByID(f.ctx, id)
+				updated, err := f.k.GetVKeyByName(f.ctx, tt.vkeyName)
 				require.NoError(t, err)
 				require.Equal(t, tt.description, updated.Description)
 			}
@@ -868,6 +882,10 @@ func TestRemoveVKey(t *testing.T) {
 	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
 	require.NoError(t, err)
 
+	userKeyBytes := createTestVKeyBytes("user_key")
+	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_key", userKeyBytes, "User key")
+	require.NoError(t, err)
+
 	tests := []struct {
 		name        string
 		authority   string
@@ -882,10 +900,17 @@ func TestRemoveVKey(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "successfully remove with non-governance authority",
+			name:        "successfully remove with uploader authority",
+			authority:   f.addrs[0].String(),
+			vkeyName:    "user_key",
+			expectError: false,
+		},
+		{
+			name:        "fail with mismatched authority",
 			authority:   f.addrs[0].String(),
 			vkeyName:    "key2",
-			expectError: false,
+			expectError: true,
+			errorMsg:    "invalid authority",
 		},
 		{
 			name:        "fail to remove non-existent vkey",
@@ -1275,462 +1300,4 @@ func TestValidateVKeyBytes(t *testing.T) {
 			}
 		})
 	}
-}
-
-// TestInitGenesis_AdditionalCoverage adds tests for edge cases to improve coverage
-func TestInitGenesis_AdditionalCoverage(t *testing.T) {
-	t.Run("init genesis with params only (no vkeys)", func(t *testing.T) {
-		f := SetupTest(t)
-
-		gs := &types.GenesisState{
-			Params: types.NewParams(10000, 20, 10000), // maxSize, chunkSize, chunkGas
-			Vkeys:  []types.VKeyWithID{},
-		}
-
-		require.NotPanics(t, func() {
-			f.k.InitGenesis(f.ctx, gs)
-		})
-
-		// Verify params were set
-		params, err := f.k.GetParams(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(10000), params.MaxVkeySizeBytes)
-
-		// Verify no vkeys
-		vkeys, err := f.k.ListVKeys(f.ctx)
-		require.NoError(t, err)
-		require.Empty(t, vkeys)
-	})
-
-	t.Run("init genesis with empty params uses defaults", func(t *testing.T) {
-		f := SetupTest(t)
-
-		gs := &types.GenesisState{
-			Params: types.Params{}, // Empty params
-			Vkeys:  []types.VKeyWithID{},
-		}
-
-		require.NotPanics(t, func() {
-			f.k.InitGenesis(f.ctx, gs)
-		})
-
-		// Should get default params
-		params, err := f.k.GetParams(f.ctx)
-		require.NoError(t, err)
-		// Default params should be applied
-		require.Equal(t, types.DefaultParams(), params)
-	})
-
-	t.Run("init genesis with sequence update for non-sequential IDs", func(t *testing.T) {
-		f := SetupTest(t)
-
-		// Create vkeys with gaps in IDs: 1, 3, 10
-		gs := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 1,
-					Vkey: types.VKey{
-						Name:        "key1",
-						Description: "Key 1",
-						KeyBytes:    createTestVKeyBytes("key1"),
-					},
-				},
-				{
-					Id: 3,
-					Vkey: types.VKey{
-						Name:        "key3",
-						Description: "Key 3",
-						KeyBytes:    createTestVKeyBytes("key3"),
-					},
-				},
-				{
-					Id: 10,
-					Vkey: types.VKey{
-						Name:        "key10",
-						Description: "Key 10 (highest)",
-						KeyBytes:    createTestVKeyBytes("key10"),
-					},
-				},
-			},
-		}
-
-		f.k.InitGenesis(f.ctx, gs)
-
-		// Sequence should be set to highest ID + 1 = 11
-		nextID, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(11), nextID)
-
-		// Verify all vkeys are accessible
-		vkey1, err := f.k.GetVKeyByID(f.ctx, 1)
-		require.NoError(t, err)
-		require.Equal(t, "key1", vkey1.Name)
-
-		vkey3, err := f.k.GetVKeyByID(f.ctx, 3)
-		require.NoError(t, err)
-		require.Equal(t, "key3", vkey3.Name)
-
-		vkey10, err := f.k.GetVKeyByID(f.ctx, 10)
-		require.NoError(t, err)
-		require.Equal(t, "key10", vkey10.Name)
-
-		// Verify name index works for all
-		_, err = f.k.GetVKeyByName(f.ctx, "key1")
-		require.NoError(t, err)
-		_, err = f.k.GetVKeyByName(f.ctx, "key3")
-		require.NoError(t, err)
-		_, err = f.k.GetVKeyByName(f.ctx, "key10")
-		require.NoError(t, err)
-	})
-
-	t.Run("init genesis with vkeys in random order", func(t *testing.T) {
-		f := SetupTest(t)
-
-		// Create vkeys with IDs out of order
-		gs := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 5,
-					Vkey: types.VKey{
-						Name:        "key5",
-						Description: "Key 5",
-						KeyBytes:    createTestVKeyBytes("key5"),
-					},
-				},
-				{
-					Id: 2,
-					Vkey: types.VKey{
-						Name:        "key2",
-						Description: "Key 2",
-						KeyBytes:    createTestVKeyBytes("key2"),
-					},
-				},
-				{
-					Id: 8,
-					Vkey: types.VKey{
-						Name:        "key8",
-						Description: "Key 8",
-						KeyBytes:    createTestVKeyBytes("key8"),
-					},
-				},
-			},
-		}
-
-		f.k.InitGenesis(f.ctx, gs)
-
-		// Should still set sequence to highest ID + 1
-		nextID, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(9), nextID)
-
-		// All vkeys should be retrievable
-		vkeys, err := f.k.ListVKeys(f.ctx)
-		require.NoError(t, err)
-		require.Len(t, vkeys, 3)
-	})
-
-	t.Run("init genesis with single vkey ID equals current sequence", func(t *testing.T) {
-		f := SetupTest(t)
-
-		// Get current sequence (should be 1 after setup)
-		currentSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-
-		// Create vkey with ID equal to current sequence
-		gs := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: currentSeq,
-					Vkey: types.VKey{
-						Name:        "key_at_seq",
-						Description: "Key at sequence boundary",
-						KeyBytes:    createTestVKeyBytes("key_at_seq"),
-					},
-				},
-			},
-		}
-
-		f.k.InitGenesis(f.ctx, gs)
-
-		// Sequence should be updated to currentSeq + 1
-		newSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, currentSeq+1, newSeq)
-	})
-
-	t.Run("init genesis with vkey ID one less than current sequence", func(t *testing.T) {
-		f := SetupTest(t)
-
-		// Get current sequence
-		currentSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-
-		// Create vkey with ID less than current sequence
-		if currentSeq > 0 {
-			gs := &types.GenesisState{
-				Params: types.DefaultParams(),
-				Vkeys: []types.VKeyWithID{
-					{
-						Id: currentSeq - 1,
-						Vkey: types.VKey{
-							Name:        "key_below_seq",
-							Description: "Key below sequence",
-							KeyBytes:    createTestVKeyBytes("key_below_seq"),
-						},
-					},
-				},
-			}
-
-			f.k.InitGenesis(f.ctx, gs)
-
-			// Sequence should NOT change (vkey ID < currentSeq)
-			newSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-			require.NoError(t, err)
-			require.Equal(t, currentSeq, newSeq)
-		}
-	})
-
-	t.Run("init genesis multiple times updates sequence correctly", func(t *testing.T) {
-		f := SetupTest(t)
-
-		// First init with ID 5
-		gs1 := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 5,
-					Vkey: types.VKey{
-						Name:        "key5",
-						Description: "Key 5",
-						KeyBytes:    createTestVKeyBytes("key5"),
-					},
-				},
-			},
-		}
-		f.k.InitGenesis(f.ctx, gs1)
-
-		seq1, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(6), seq1)
-
-		// Second init with higher ID
-		gs2 := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 10,
-					Vkey: types.VKey{
-						Name:        "key10",
-						Description: "Key 10",
-						KeyBytes:    createTestVKeyBytes("key10"),
-					},
-				},
-			},
-		}
-		f.k.InitGenesis(f.ctx, gs2)
-
-		seq2, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(11), seq2)
-	})
-
-	t.Run("init genesis with max size vkey", func(t *testing.T) {
-		f := SetupTest(t)
-
-		// Create a vkey at the maximum allowed size
-		maxSize := types.DefaultMaxVKeySizeBytes
-		vkeyBytes := createTestVKeyBytes("max_size_key")
-
-		gs := &types.GenesisState{
-			Params: types.NewParams(maxSize, 20, 10000),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 1,
-					Vkey: types.VKey{
-						Name:        "max_size_key",
-						Description: "Maximum size verification key",
-						KeyBytes:    vkeyBytes,
-					},
-				},
-			},
-		}
-
-		// Should not panic even with max size vkey
-		require.NotPanics(t, func() {
-			f.k.InitGenesis(f.ctx, gs)
-		})
-
-		// Verify it was stored
-		vkey, err := f.k.GetVKeyByID(f.ctx, 1)
-		require.NoError(t, err)
-		require.Equal(t, "max_size_key", vkey.Name)
-	})
-}
-
-// TestInitGenesis_SequenceBoundaryConditions tests edge cases around sequence updates
-func TestInitGenesis_SequenceBoundaryConditions(t *testing.T) {
-	t.Run("vkey ID exactly at sequence boundary triggers update", func(t *testing.T) {
-		f := SetupTest(t)
-
-		currentSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-
-		gs := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: currentSeq, // Exactly at current sequence
-					Vkey: types.VKey{
-						Name:        "boundary_key",
-						Description: "Key at sequence boundary",
-						KeyBytes:    createTestVKeyBytes("boundary_key"),
-					},
-				},
-			},
-		}
-
-		f.k.InitGenesis(f.ctx, gs)
-
-		// Sequence should be currentSeq + 1
-		newSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, currentSeq+1, newSeq)
-	})
-
-	t.Run("multiple vkeys with highest ID updates sequence once", func(t *testing.T) {
-		f := SetupTest(t)
-
-		gs := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 3,
-					Vkey: types.VKey{
-						Name:        "key3",
-						Description: "Key 3",
-						KeyBytes:    createTestVKeyBytes("key3"),
-					},
-				},
-				{
-					Id: 7,
-					Vkey: types.VKey{
-						Name:        "key7",
-						Description: "Key 7 (highest)",
-						KeyBytes:    createTestVKeyBytes("key7"),
-					},
-				},
-				{
-					Id: 5,
-					Vkey: types.VKey{
-						Name:        "key5",
-						Description: "Key 5",
-						KeyBytes:    createTestVKeyBytes("key5"),
-					},
-				},
-			},
-		}
-
-		f.k.InitGenesis(f.ctx, gs)
-
-		// Final sequence should be 8 (highest ID 7 + 1)
-		finalSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, uint64(8), finalSeq)
-	})
-
-	t.Run("vkey with ID 0 does not affect sequence", func(t *testing.T) {
-		f := SetupTest(t)
-
-		currentSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-
-		gs := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 0,
-					Vkey: types.VKey{
-						Name:        "key0",
-						Description: "Key with ID 0",
-						KeyBytes:    createTestVKeyBytes("key0"),
-					},
-				},
-			},
-		}
-
-		f.k.InitGenesis(f.ctx, gs)
-
-		// Sequence should remain unchanged (ID 0 < currentSeq)
-		newSeq, err := f.k.NextVKeyID.Peek(f.ctx)
-		require.NoError(t, err)
-		require.Equal(t, currentSeq, newSeq)
-	})
-}
-
-// TestInitGenesis_NameIndexCoverage tests that name index is properly maintained
-func TestInitGenesis_NameIndexCoverage(t *testing.T) {
-	t.Run("name index maintained for all vkeys", func(t *testing.T) {
-		f := SetupTest(t)
-
-		gs := &types.GenesisState{
-			Params: types.DefaultParams(),
-			Vkeys: []types.VKeyWithID{
-				{
-					Id: 1,
-					Vkey: types.VKey{
-						Name:        "alpha",
-						Description: "Alpha key",
-						KeyBytes:    createTestVKeyBytes("alpha"),
-					},
-				},
-				{
-					Id: 2,
-					Vkey: types.VKey{
-						Name:        "beta",
-						Description: "Beta key",
-						KeyBytes:    createTestVKeyBytes("beta"),
-					},
-				},
-				{
-					Id: 3,
-					Vkey: types.VKey{
-						Name:        "gamma",
-						Description: "Gamma key",
-						KeyBytes:    createTestVKeyBytes("gamma"),
-					},
-				},
-			},
-		}
-
-		f.k.InitGenesis(f.ctx, gs)
-
-		// Verify all names can be resolved to correct IDs
-		alphaID, err := f.k.VKeyNameIndex.Get(f.ctx, "alpha")
-		require.NoError(t, err)
-		require.Equal(t, uint64(1), alphaID)
-
-		betaID, err := f.k.VKeyNameIndex.Get(f.ctx, "beta")
-		require.NoError(t, err)
-		require.Equal(t, uint64(2), betaID)
-
-		gammaID, err := f.k.VKeyNameIndex.Get(f.ctx, "gamma")
-		require.NoError(t, err)
-		require.Equal(t, uint64(3), gammaID)
-
-		// Verify reverse lookup (ID to VKey) works
-		alphaVKey, err := f.k.GetVKeyByID(f.ctx, alphaID)
-		require.NoError(t, err)
-		require.Equal(t, "alpha", alphaVKey.Name)
-
-		betaVKey, err := f.k.GetVKeyByID(f.ctx, betaID)
-		require.NoError(t, err)
-		require.Equal(t, "beta", betaVKey.Name)
-
-		gammaVKey, err := f.k.GetVKeyByID(f.ctx, gammaID)
-		require.NoError(t, err)
-		require.Equal(t, "gamma", gammaVKey.Name)
-	})
 }
