@@ -12,7 +12,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	apiv1 "github.com/burnt-labs/xion/api/xion/dkim/v1"
 	"github.com/burnt-labs/xion/x/dkim/types"
 	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 )
@@ -24,7 +23,8 @@ type Keeper struct {
 
 	// state management
 	Schema      collections.Schema
-	DkimPubKeys collections.Map[collections.Pair[string, string], apiv1.DkimPubKey]
+	DkimPubKeys collections.Map[collections.Pair[string, string], types.DkimPubKey]
+	RevokedKeys collections.Map[string, bool]
 	Params      collections.Item[types.Params]
 	ZkKeeper    zkkeeper.Keeper
 
@@ -55,7 +55,14 @@ func NewKeeper(
 			types.DkimPrefix,
 			"dkim_pubkeys",
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
-			codec.CollValue[apiv1.DkimPubKey](cdc),
+			codec.CollValue[types.DkimPubKey](cdc),
+		),
+		RevokedKeys: collections.NewMap(
+			sb,
+			types.DkimRevokedPrefix,
+			"dkim_revoked_pubkeys",
+			collections.StringKey,
+			collections.BoolValue,
 		),
 		Params:    collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc)),
 		authority: authority,
@@ -91,12 +98,19 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}
+	for _, revoked := range data.RevokedPubkeys {
+		if err := k.RevokedKeys.Set(ctx, revoked, true); err != nil {
+			return err
+		}
+	}
 	for _, dkimPubKey := range data.DkimPubkeys {
-		pk := apiv1.DkimPubKey{
+		pk := types.DkimPubKey{
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
 			PoseidonHash: dkimPubKey.PoseidonHash,
+			Version:      dkimPubKey.Version,
+			KeyType:      dkimPubKey.KeyType,
 		}
 		key := collections.Join(pk.Domain, pk.Selector)
 		//nolint:govet // copylocks: unavoidable when storing protobuf messages in collections.Map
@@ -126,8 +140,8 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 			PubKey:       kv.Value.PubKey,
 			PoseidonHash: kv.Value.PoseidonHash,
 			Selector:     kv.Value.Selector,
-			Version:      types.Version(kv.Value.Version),
-			KeyType:      types.KeyType(kv.Value.KeyType),
+			Version:      kv.Value.Version,
+			KeyType:      kv.Value.KeyType,
 		})
 	}
 	// this line is used by starport scaffolding # genesis/module/export
@@ -137,9 +151,24 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	var revokedPubKeys []string
+	revokedIter, err := k.RevokedKeys.Iterate(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+	defer revokedIter.Close()
+	for ; revokedIter.Valid(); revokedIter.Next() {
+		key, err := revokedIter.Key()
+		if err != nil {
+			continue
+		}
+		revokedPubKeys = append(revokedPubKeys, key)
+	}
+
 	return &types.GenesisState{
-		DkimPubkeys: dkimPubKeys,
-		Params:      params,
+		DkimPubkeys:    dkimPubKeys,
+		Params:         params,
+		RevokedPubkeys: revokedPubKeys,
 	}
 }
 
