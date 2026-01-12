@@ -17,12 +17,20 @@ concurrency: # With concurrency control: Only the latest workflow run executes, 
   cancel-in-progress: true
 
 jobs:
+  # Types
   trigger-types:
     name: Trigger Types
     uses: burnt-labs/xion/.github/workflows/trigger-types.yaml@workflows/main
     secrets: inherit
+  # Homebrew
+  trigger-homebrew:
+    name: Trigger Homebrew
+    if: github.event.action == 'published'
+    uses: burnt-labs/xion/.github/workflows/trigger-homebrew.yaml@workflows/main
+    secrets: inherit
+  # Assets (Mainnet/Testnet)
   trigger-assets-mainnet:
-    name: Trigger Assets (Mainnet)
+    name: Trigger Assets (Mainnet) [latest]
     # Only triggers for "latest" releases
     if: github.event.action == 'published'
     uses: burnt-labs/xion/.github/workflows/trigger-assets-mainnet.yaml@workflows/main
@@ -32,9 +40,4 @@ jobs:
     # Triggers for any non-prerelease
     if: github.event.action == 'released' 
     uses: burnt-labs/xion/.github/workflows/trigger-assets-testnet.yaml@workflows/main
-    secrets: inherit
-  trigger-homebrew:
-    name: Trigger Homebrew
-    if: github.event.action == 'published'
-    uses: burnt-labs/xion/.github/workflows/trigger-homebrew.yaml@workflows/main
     secrets: inherit
