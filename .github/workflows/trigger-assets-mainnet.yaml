@@ -1,19 +1,19 @@
-name: Trigger Assets
+name: Trigger Assets (Mainnet)
 
 on:
-  workflow_call: # is called from the create-release workflow
+  workflow_call: # is called from publish-release workflow
   workflow_dispatch: # manual trigger
 
 jobs:
-  trigger-assets:
+  trigger-assets-mainnet:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger xion-assets workflow
+      - name: Trigger xion-assets mainnet workflow
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.REPO_DISPATCH_TOKEN }}
           repository: burnt-labs/xion-assets
-          event-type: xion-assets-release-trigger # NOTICE: must match the trigger in xion-assets workflow
+          event-type: xion-assets-mainnet-release-trigger # NOTICE: must match the trigger in xion-assets workflow
           client-payload: |
             {
               "tag_name": "${{ github.event.release.tag_name }}",

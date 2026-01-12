@@ -21,10 +21,17 @@ jobs:
     name: Trigger Types
     uses: burnt-labs/xion/.github/workflows/trigger-types.yaml@workflows/main
     secrets: inherit
-  trigger-assets:
-    name: Trigger Assets
-    if: github.event.action == 'released'
-    uses: burnt-labs/xion/.github/workflows/trigger-assets.yaml@workflows/main
+  trigger-assets-mainnet:
+    name: Trigger Assets (Mainnet)
+    # Only triggers for "latest" releases
+    if: github.event.action == 'published'
+    uses: burnt-labs/xion/.github/workflows/trigger-assets-mainnet.yaml@workflows/main
+    secrets: inherit
+  trigger-assets-testnet:
+    name: Trigger Assets (Testnet)
+    # Triggers for any non-prerelease
+    if: github.event.action == 'released' 
+    uses: burnt-labs/xion/.github/workflows/trigger-assets-testnet.yaml@workflows/main
     secrets: inherit
   trigger-homebrew:
     name: Trigger Homebrew
