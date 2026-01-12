@@ -14,11 +14,8 @@ jobs:
           token: ${{ secrets.REPO_DISPATCH_TOKEN }}
           repository: burnt-labs/homebrew-xion
           event-type: homebrew-release-trigger # NOTICE: must match the trigger in homebrew-xion workflow
-          # -client-payload logic description-
-          # Checks if it's a pre-release: github.event.release.prerelease == true - if the release is marked as a pre-release, it sets release_type to 'prerelease'
-          # If not a pre-release, checks for latest release: github.event.release.prerelease == false && github.event.release.draft == false && github.event.release.make_latest == 'true' - ensures it's not a pre-release, not a draft, and is marked as the latest release
-          # Sets latest tag: If all the above conditions are true, it sets release_type to 'latest'
-          # Fallback to published: If none of the above conditions are met, it sets release_type to 'published'
+          # NOTE: This workflow is only called when github.event.action == 'published' (release marked as latest)
+          # See publish-release.yaml for the filtering condition
           client-payload: |
             {
               "tag_name": "${{ github.event.release.tag_name }}",

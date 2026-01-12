@@ -4,29 +4,40 @@ on:
   workflow_call: # is called from the create-release workflow
   workflow_dispatch: # manual trigger
   release: # triggered by release event
-    types: [released, prereleased]
+    types: [published, released, prereleased]
     # Notice:
     # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
     # - "published" type is happening when the release is marked as "latest"
     # - "released" type is happening when a release was published, or a pre-release was changed to a release.
-    # - "prereleased" type is happening when a release was created and identified as a pre-release. A pre-release is a release that is not ready for production and may be unstable.
+    # - "prereleased" type is happening when a release was created and identified as a pre-release. 
+    # -    A pre-release is a release that is not ready for production and may be unstable.
 
 concurrency: # With concurrency control: Only the latest workflow run executes, previous runs get cancelled
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Types
   trigger-types:
     name: Trigger Types
     uses: burnt-labs/xion/.github/workflows/trigger-types.yaml@workflows/main
     secrets: inherit
-  trigger-assets:
-    name: Trigger Assets
-    if: github.event.action == 'released'
-    uses: burnt-labs/xion/.github/workflows/trigger-assets.yaml@workflows/main
-    secrets: inherit
+  # Homebrew
   trigger-homebrew:
     name: Trigger Homebrew
-    if: github.event.action == 'released'
+    if: github.event.action == 'published'
     uses: burnt-labs/xion/.github/workflows/trigger-homebrew.yaml@workflows/main
+    secrets: inherit
+  # Assets (Mainnet/Testnet)
+  trigger-assets-mainnet:
+    name: Trigger Assets (Mainnet) [latest]
+    # Only triggers for "latest" releases
+    if: github.event.action == 'published'
+    uses: burnt-labs/xion/.github/workflows/trigger-assets-mainnet.yaml@workflows/main
+    secrets: inherit
+  trigger-assets-testnet:
+    name: Trigger Assets (Testnet)
+    # Triggers for any non-prerelease
+    if: github.event.action == 'released' 
+    uses: burnt-labs/xion/.github/workflows/trigger-assets-testnet.yaml@workflows/main
     secrets: inherit
