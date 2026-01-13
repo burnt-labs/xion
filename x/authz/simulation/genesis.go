@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/burnt-labs/xion/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 )

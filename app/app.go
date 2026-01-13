@@ -110,9 +110,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
+	"github.com/burnt-labs/xion/x/authz"
+	authzkeeper "github.com/burnt-labs/xion/x/authz/keeper"
+	authzmodule "github.com/burnt-labs/xion/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -724,6 +724,9 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		wasmOpts...,
 	)
+
+	// Set WasmKeeper on AuthzKeeper for stateful authorization queries
+	app.AuthzKeeper = app.AuthzKeeper.SetWasmKeeper(&app.WasmKeeper)
 
 	// Create fee enabled wasm ibc Stack
 	// var wasmStackIBCHandler porttypes.IBCModule

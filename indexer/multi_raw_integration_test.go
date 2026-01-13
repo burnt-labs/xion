@@ -10,7 +10,7 @@ import (
 	"cosmossdk.io/collections"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/burnt-labs/xion/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

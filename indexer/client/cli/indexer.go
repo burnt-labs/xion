@@ -18,7 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/burnt-labs/xion/x/authz"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"

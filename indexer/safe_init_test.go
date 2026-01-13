@@ -20,7 +20,7 @@ import (
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/burnt-labs/xion/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

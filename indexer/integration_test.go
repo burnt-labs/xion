@@ -16,7 +16,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/burnt-labs/xion/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	xionapp "github.com/burnt-labs/xion/app"

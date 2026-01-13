@@ -14,7 +14,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
+	authz "github.com/burnt-labs/xion/x/authz"
 
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
 )

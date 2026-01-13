@@ -2,7 +2,7 @@ package authz
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	"github.com/burnt-labs/xion/x/authz/keeper"
 )
 
 // BeginBlocker is called at the beginning of every block

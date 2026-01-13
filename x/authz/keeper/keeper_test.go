@@ -19,10 +19,10 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
-	authztestutil "github.com/cosmos/cosmos-sdk/x/authz/testutil"
+	"github.com/burnt-labs/xion/x/authz"
+	authzkeeper "github.com/burnt-labs/xion/x/authz/keeper"
+	authzmodule "github.com/burnt-labs/xion/x/authz/module"
+	authztestutil "github.com/burnt-labs/xion/x/authz/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

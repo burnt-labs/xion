@@ -11,7 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
+	authz "github.com/burnt-labs/xion/x/authz"
 )
 
 var (
