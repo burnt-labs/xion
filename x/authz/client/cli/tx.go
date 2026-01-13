@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/burnt-labs/xion/x/authz"
+	xionauthztypes "github.com/burnt-labs/xion/x/authz/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
@@ -29,6 +31,7 @@ const (
 	FlagAllowedValidators = "allowed-validators"
 	FlagDenyValidators    = "deny-validators"
 	FlagAllowList         = "allow-list"
+	FlagCodeIds           = "code-ids"
 	delegate              = "delegate"
 	redelegate            = "redelegate"
 	unbond                = "unbond"
@@ -57,7 +60,7 @@ func GetTxCmd(ac address.Codec) *cobra.Command {
 // NewCmdGrantAuthorization returns a CLI command handler for creating a MsgGrant transaction.
 func NewCmdGrantAuthorization(ac address.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "grant <grantee> <authorization_type=\"send\"|\"generic\"|\"delegate\"|\"unbond\"|\"redelegate\"> --from <granter>",
+		Use:   "grant <grantee> <authorization_type=\"send\"|\"generic\"|\"delegate\"|\"unbond\"|\"redelegate\"|\"code-execution\"> --from <granter>",
 		Short: "Grant authorization to an address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`create a new grant authorization to an address to execute a transaction on your behalf:
@@ -189,6 +192,23 @@ Examples:
 					return err
 				}
 
+			case "code-execution":
+				codeIdsStr, err := cmd.Flags().GetString(FlagCodeIds)
+				if err != nil {
+					return err
+				}
+
+				if codeIdsStr == "" {
+					return fmt.Errorf("--code-ids flag is required for code-execution authorization")
+				}
+
+				codeIds, err := parseCodeIds(codeIdsStr)
+				if err != nil {
+					return err
+				}
+
+				authorization = xionauthztypes.NewCodeExecutionAuthorization(codeIds)
+
 			default:
 				return fmt.Errorf("invalid authorization type, %s", args[1])
 			}
@@ -213,6 +233,7 @@ Examples:
 	cmd.Flags().StringSlice(FlagDenyValidators, []string{}, "Deny validators addresses separated by ,")
 	cmd.Flags().StringSlice(FlagAllowList, []string{}, "Allowed addresses grantee is allowed to send funds separated by ,")
 	cmd.Flags().Int64(FlagExpiration, 0, "Expire time as Unix timestamp. Set zero (0) for no expiry. Default is 0.")
+	cmd.Flags().String(FlagCodeIds, "", "Comma-separated list of code IDs allowed for contract execution (e.g., 1,2,3)")
 	return cmd
 }
 
@@ -325,4 +346,30 @@ func bech32toAccAddresses(accAddrs []string, ac address.Codec) ([]sdk.AccAddress
 		addrs[i] = accAddr
 	}
 	return addrs, nil
+}
+
+// parseCodeIds parses a comma-separated list of code IDs.
+func parseCodeIds(codeIdsStr string) ([]uint64, error) {
+	parts := strings.Split(codeIdsStr, ",")
+	codeIds := make([]uint64, 0, len(parts))
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		codeId, err := strconv.ParseUint(part, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid code ID %q: %w", part, err)
+		}
+
+		codeIds = append(codeIds, codeId)
+	}
+
+	if len(codeIds) == 0 {
+		return nil, fmt.Errorf("at least one code ID is required")
+	}
+
+	return codeIds, nil
 }
