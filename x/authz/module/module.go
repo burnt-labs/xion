@@ -18,6 +18,7 @@ import (
 	"github.com/burnt-labs/xion/x/authz"
 	"github.com/burnt-labs/xion/x/authz/keeper"
 	"github.com/burnt-labs/xion/x/authz/simulation"
+	xionauthztypes "github.com/burnt-labs/xion/x/authz/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -65,11 +66,13 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 // RegisterLegacyAminoCodec registers the authz module's types for the given codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	authz.RegisterLegacyAminoCodec(cdc)
+	xionauthztypes.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers the authz module's interface types
 func (AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	authz.RegisterInterfaces(registry)
+	xionauthztypes.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the authz

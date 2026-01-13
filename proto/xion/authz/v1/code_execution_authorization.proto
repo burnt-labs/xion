@@ -1,0 +1,22 @@
+syntax = "proto3";
+package xion.authz.v1;
+
+import "amino/amino.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/authz/types";
+
+// CodeExecutionAuthorization allows a grantee to execute contracts on behalf
+// of the granter, but only for contracts instantiated from specific code IDs.
+//
+// When a MsgExecuteContract is executed via authz, this authorization queries
+// the target contract's info and verifies its code_id is in the allowed list.
+message CodeExecutionAuthorization {
+  option (amino.name)                        = "xion/CodeExecutionAuthorization";
+  option (cosmos_proto.implements_interface) = "cosmos.authz.v1beta1.Authorization";
+
+  // allowed_code_ids is the list of code IDs that the grantee is authorized
+  // to execute contracts from.
+  repeated uint64 allowed_code_ids = 1;
+}
