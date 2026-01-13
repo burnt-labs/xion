@@ -1,0 +1,102 @@
+syntax = "proto3";
+package xion.dkim.v1;
+
+import "cosmos/msg/v1/msg.proto";
+import "xion/dkim/v1/genesis.proto";
+import "xion/dkim/v1/state.proto";
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/dkim/types";
+
+// Msg defines the Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // AddDkimPubKey defines a message to add DKIM public keys.
+  rpc AddDkimPubKeys(MsgAddDkimPubKeys) returns (MsgAddDkimPubKeysResponse);
+
+  // RemoveDkimPubKey defines a message to remove a DKIM public key via
+  // governance
+  rpc RemoveDkimPubKey(MsgRemoveDkimPubKey)
+      returns (MsgRemoveDkimPubKeyResponse);
+
+  // RevokeDkimPubKey defines a message to remove a DKIM public key without
+  // governance, by submitting the compromised privkey
+  rpc RevokeDkimPubKey(MsgRevokeDkimPubKey)
+      returns (MsgRevokeDkimPubKeyResponse);
+
+  // UpdateParams defines a governance operation for updating the parameters.
+  //
+  // Since: cosmos-sdk 0.47
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+//
+// Since: cosmos-sdk 0.47
+message MsgUpdateParamsResponse {}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+//
+// Since: cosmos-sdk 0.47
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // params defines the parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [ (gogoproto.nullable) = false ];
+}
+
+// MsgAddDkimPubKey is the Msg/AddDkimPubKey request type.
+message MsgAddDkimPubKeys {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // dkim_pubkeys defines the DKIM public keys to add.
+  repeated DkimPubKey dkim_pubkeys = 2 [ (gogoproto.nullable) = false ];
+}
+
+// MsgAddDkimPubKeyResponse defines the response structure for executing a
+// MsgAddDkimPubKey message.
+message MsgAddDkimPubKeysResponse {}
+
+// MsgRemoveDkimPubKey is the Msg/RemoveDkimPubKey request type.
+message MsgRemoveDkimPubKey {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // selector defines the DKIM selector to remove.
+  string selector = 2;
+  // domain defines the domain for the DKIM key to remove.
+  string domain = 3;
+}
+
+// MsgRemoveDkimPubKeyResponse defines the response structure for executing a
+// MsgRemoveDkimPubKey message.
+message MsgRemoveDkimPubKeyResponse {}
+
+// MsgRevokeDkimPubKey is the Msg/RevokeDkimPubKey request type.
+message MsgRevokeDkimPubKey {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  // signer defines the address of the signer revoking the key.
+  string signer = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // domain defines the domain for the DKIM key to revoke.
+  string domain = 2;
+  // priv_key defines the private key used to prove ownership for revocation.
+  bytes priv_key = 3;
+}
+
+// MsgRevokeDkimPubKeyResponse defines the response structure for executing a
+// MsgRevokeDkimPubKey message.
+message MsgRevokeDkimPubKeyResponse {}
