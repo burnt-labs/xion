@@ -15,13 +15,13 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/burnt-labs/xion/x/authz"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
 // TODO: Revisit this once we have propoer gas fee framework.
@@ -35,7 +35,16 @@ type Keeper struct {
 	router       baseapp.MessageRouter
 	authKeeper   authz.AccountKeeper
 	bankKeeper   authz.BankKeeper
+
+	// WasmKeeper for stateful authorization queries
+	wasmKeeper authz.WasmKeeper
+
+	// Configuration for query gas limits in stateful authorizations
+	maxQueryGas uint64
 }
+
+// DefaultMaxQueryGas is the default gas limit for QueryRouter operations.
+const DefaultMaxQueryGas = uint64(50000)
 
 // NewKeeper constructs a message authorization Keeper
 func NewKeeper(storeService corestoretypes.KVStoreService, cdc codec.Codec, router baseapp.MessageRouter, ak authz.AccountKeeper) Keeper {
@@ -44,6 +53,7 @@ func NewKeeper(storeService corestoretypes.KVStoreService, cdc codec.Codec, rout
 		cdc:          cdc,
 		router:       router,
 		authKeeper:   ak,
+		maxQueryGas:  DefaultMaxQueryGas,
 	}
 }
 
@@ -51,6 +61,18 @@ func NewKeeper(storeService corestoretypes.KVStoreService, cdc codec.Codec, rout
 // DO NOT USE.
 func (k Keeper) SetBankKeeper(bk authz.BankKeeper) Keeper {
 	k.bankKeeper = bk
+	return k
+}
+
+// SetWasmKeeper sets the wasm keeper for stateful authorization queries.
+func (k Keeper) SetWasmKeeper(wk authz.WasmKeeper) Keeper {
+	k.wasmKeeper = wk
+	return k
+}
+
+// SetMaxQueryGas sets the maximum gas available for QueryRouter operations.
+func (k Keeper) SetMaxQueryGas(gas uint64) Keeper {
+	k.maxQueryGas = gas
 	return k
 }
 
@@ -138,7 +160,21 @@ func (k Keeper) DispatchActions(ctx context.Context, grantee sdk.AccAddress, msg
 				return nil, err
 			}
 
-			resp, err := authorization.Accept(sdkCtx, msg)
+			var resp authz.AcceptResponse
+
+			// Check for StatefulAuthorization interface first
+			if statefulAuth, ok := authorization.(authz.StatefulAuthorization); ok {
+				// Create QueryRouter with gas limits for stateful authorization
+				queryRouter := NewQueryRouter(
+					sdkCtx,
+					k.wasmKeeper,
+					k.maxQueryGas,
+				)
+				resp, err = statefulAuth.AcceptWithQuery(sdkCtx, msg, queryRouter)
+			} else {
+				// Standard stateless Accept for cosmos-sdk authorizations
+				resp, err = authorization.Accept(sdkCtx, msg)
+			}
 			if err != nil {
 				return nil, err
 			}

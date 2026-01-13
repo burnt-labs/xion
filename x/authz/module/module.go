@@ -15,6 +15,9 @@ import (
 	"cosmossdk.io/depinject"
 	"cosmossdk.io/errors"
 
+	"github.com/burnt-labs/xion/x/authz"
+	"github.com/burnt-labs/xion/x/authz/keeper"
+	"github.com/burnt-labs/xion/x/authz/simulation"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,10 +26,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/cosmos/cosmos-sdk/x/authz/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	"github.com/cosmos/cosmos-sdk/x/authz/simulation"
 )
 
 var (
@@ -167,6 +167,8 @@ type ModuleInputs struct {
 	Registry         cdctypes.InterfaceRegistry
 	MsgServiceRouter baseapp.MessageRouter
 	StoreService     store.KVStoreService
+
+	WasmKeeper authz.WasmKeeper `optional:"true"`
 }
 
 type ModuleOutputs struct {
@@ -178,8 +180,14 @@ type ModuleOutputs struct {
 
 func ProvideModule(in ModuleInputs) ModuleOutputs {
 	k := keeper.NewKeeper(in.StoreService, in.Cdc, in.MsgServiceRouter, in.AccountKeeper)
+	k = k.SetBankKeeper(in.BankKeeper)
+
+	if in.WasmKeeper != nil {
+		k = k.SetWasmKeeper(in.WasmKeeper)
+	}
+
 	m := NewAppModule(in.Cdc, k, in.AccountKeeper, in.BankKeeper, in.Registry)
-	return ModuleOutputs{AuthzKeeper: k.SetBankKeeper(in.BankKeeper) /* depinject ux improvement */, Module: m}
+	return ModuleOutputs{AuthzKeeper: k, Module: m}
 }
 
 // ____________________________________________________________________________

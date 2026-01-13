@@ -14,7 +14,8 @@ import (
 	reflect "reflect"
 
 	address "cosmossdk.io/core/address"
-	types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/CosmWasm/wasmd/x/wasm/types"
+	types0 "github.com/cosmos/cosmos-sdk/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -57,10 +58,10 @@ func (mr *MockAccountKeeperMockRecorder) AddressCodec() *gomock.Call {
 }
 
 // GetAccount mocks base method.
-func (m *MockAccountKeeper) GetAccount(ctx context.Context, addr types.AccAddress) types.AccountI {
+func (m *MockAccountKeeper) GetAccount(ctx context.Context, addr types0.AccAddress) types0.AccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccount", ctx, addr)
-	ret0, _ := ret[0].(types.AccountI)
+	ret0, _ := ret[0].(types0.AccountI)
 	return ret0
 }
 
@@ -71,10 +72,10 @@ func (mr *MockAccountKeeperMockRecorder) GetAccount(ctx, addr any) *gomock.Call 
 }
 
 // NewAccountWithAddress mocks base method.
-func (m *MockAccountKeeper) NewAccountWithAddress(ctx context.Context, addr types.AccAddress) types.AccountI {
+func (m *MockAccountKeeper) NewAccountWithAddress(ctx context.Context, addr types0.AccAddress) types0.AccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewAccountWithAddress", ctx, addr)
-	ret0, _ := ret[0].(types.AccountI)
+	ret0, _ := ret[0].(types0.AccountI)
 	return ret0
 }
 
@@ -85,7 +86,7 @@ func (mr *MockAccountKeeperMockRecorder) NewAccountWithAddress(ctx, addr any) *g
 }
 
 // SetAccount mocks base method.
-func (m *MockAccountKeeper) SetAccount(ctx context.Context, acc types.AccountI) {
+func (m *MockAccountKeeper) SetAccount(ctx context.Context, acc types0.AccountI) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetAccount", ctx, acc)
 }
@@ -121,7 +122,7 @@ func (m *MockBankKeeper) EXPECT() *MockBankKeeperMockRecorder {
 }
 
 // BlockedAddr mocks base method.
-func (m *MockBankKeeper) BlockedAddr(addr types.AccAddress) bool {
+func (m *MockBankKeeper) BlockedAddr(addr types0.AccAddress) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockedAddr", addr)
 	ret0, _ := ret[0].(bool)
@@ -135,7 +136,7 @@ func (mr *MockBankKeeperMockRecorder) BlockedAddr(addr any) *gomock.Call {
 }
 
 // IsSendEnabledCoins mocks base method.
-func (m *MockBankKeeper) IsSendEnabledCoins(ctx context.Context, coins ...types.Coin) error {
+func (m *MockBankKeeper) IsSendEnabledCoins(ctx context.Context, coins ...types0.Coin) error {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx}
 	for _, a := range coins {
@@ -154,10 +155,10 @@ func (mr *MockBankKeeperMockRecorder) IsSendEnabledCoins(ctx any, coins ...any) 
 }
 
 // SpendableCoins mocks base method.
-func (m *MockBankKeeper) SpendableCoins(ctx context.Context, addr types.AccAddress) types.Coins {
+func (m *MockBankKeeper) SpendableCoins(ctx context.Context, addr types0.AccAddress) types0.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SpendableCoins", ctx, addr)
-	ret0, _ := ret[0].(types.Coins)
+	ret0, _ := ret[0].(types0.Coins)
 	return ret0
 }
 
@@ -165,4 +166,57 @@ func (m *MockBankKeeper) SpendableCoins(ctx context.Context, addr types.AccAddre
 func (mr *MockBankKeeperMockRecorder) SpendableCoins(ctx, addr any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoins", reflect.TypeOf((*MockBankKeeper)(nil).SpendableCoins), ctx, addr)
+}
+
+// MockWasmKeeper is a mock of WasmKeeper interface.
+type MockWasmKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockWasmKeeperMockRecorder
+	isgomock struct{}
+}
+
+// MockWasmKeeperMockRecorder is the mock recorder for MockWasmKeeper.
+type MockWasmKeeperMockRecorder struct {
+	mock *MockWasmKeeper
+}
+
+// NewMockWasmKeeper creates a new mock instance.
+func NewMockWasmKeeper(ctrl *gomock.Controller) *MockWasmKeeper {
+	mock := &MockWasmKeeper{ctrl: ctrl}
+	mock.recorder = &MockWasmKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockWasmKeeper) EXPECT() *MockWasmKeeperMockRecorder {
+	return m.recorder
+}
+
+// GetContractInfo mocks base method.
+func (m *MockWasmKeeper) GetContractInfo(ctx context.Context, contractAddr types0.AccAddress) *types.ContractInfo {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContractInfo", ctx, contractAddr)
+	ret0, _ := ret[0].(*types.ContractInfo)
+	return ret0
+}
+
+// GetContractInfo indicates an expected call of GetContractInfo.
+func (mr *MockWasmKeeperMockRecorder) GetContractInfo(ctx, contractAddr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractInfo", reflect.TypeOf((*MockWasmKeeper)(nil).GetContractInfo), ctx, contractAddr)
+}
+
+// QuerySmart mocks base method.
+func (m *MockWasmKeeper) QuerySmart(ctx context.Context, contractAddr types0.AccAddress, req []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "QuerySmart", ctx, contractAddr, req)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// QuerySmart indicates an expected call of QuerySmart.
+func (mr *MockWasmKeeperMockRecorder) QuerySmart(ctx, contractAddr, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QuerySmart", reflect.TypeOf((*MockWasmKeeper)(nil).QuerySmart), ctx, contractAddr, req)
 }
