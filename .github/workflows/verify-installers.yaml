@@ -31,7 +31,7 @@ jobs:
 
       - name: Install xiond
         run: |
-          sudo apt install -y xiond=$( echo ${{ github.ref_name }} | sed 's/^v//')
+          sudo apt install -y xiond=$( echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-/~/')
 
       - name: Verify xiond installation
         run: |
@@ -61,7 +61,7 @@ jobs:
 
       - name: Install xiond
         run: |
-          yum install xiond-$( echo ${{ github.ref_name }} | sed 's/^v//')-1 -y
+          yum install xiond-$( echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-/~/')-1 -y
 
       - name: Verify xiond installation
         run: |
@@ -91,7 +91,7 @@ jobs:
 
       - name: Install xiond
         run: |
-          apk update && apk add xiond=$( echo ${{ github.ref_name }} | sed 's/^v//')
+          apk update && apk add xiond=$( echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-/_/')
 
       - name: Verify xiond installation
         run: |
