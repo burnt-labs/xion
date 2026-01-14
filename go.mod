@@ -12,6 +12,7 @@ replace (
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft-sec-tachyon v0.38.21-0.20260113214209-9ac677707f85
 
 	// ibc-go fork with wasmvm3 suppor3
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0-xion.1
