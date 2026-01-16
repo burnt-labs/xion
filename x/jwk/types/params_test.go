@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -148,6 +149,16 @@ func TestValidateTimeOffset(t *testing.T) {
 		{
 			name:      "nil input",
 			input:     nil,
+			expectErr: true,
+		},
+		{
+			name:      "max int64 is valid",
+			input:     uint64(math.MaxInt64),
+			expectErr: false,
+		},
+		{
+			name:      "exceeds max int64",
+			input:     uint64(math.MaxInt64) + 1,
 			expectErr: true,
 		},
 	}

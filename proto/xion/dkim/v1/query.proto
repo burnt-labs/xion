@@ -1,0 +1,99 @@
+syntax = "proto3";
+package xion.dkim.v1;
+
+import "google/api/annotations.proto";
+import "xion/dkim/v1/genesis.proto";
+import "xion/dkim/v1/state.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/dkim/types";
+
+// Query provides defines the gRPC querier service.
+service Query {
+  // DkimPubKey queries the DKIM public key for a given selector and domain.
+  rpc DkimPubKey(QueryDkimPubKeyRequest) returns (QueryDkimPubKeyResponse) {
+    option (google.api.http).get = "/dkim/v1/dkim_pubkey";
+  }
+
+  // DkimPubKeys queries the DKIM public keys for a given selectors and domains.
+  rpc DkimPubKeys(QueryDkimPubKeysRequest) returns (QueryDkimPubKeysResponse) {
+    option (google.api.http).get = "/dkim/v1/dkim_pubkeys";
+  }
+
+  // Authenticate verifies a zk proof for email authentication.
+  rpc Authenticate(QueryAuthenticateRequest) returns (AuthenticateResponse) {
+    option (google.api.http).get = "/dkim/v1/auth";
+  }
+
+  // Params queries all parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dkim/v1/params";
+  }
+}
+
+// QueryDkimPubKeyRequest is the request type for the Query/DkimPubKey RPC
+// method.
+message QueryDkimPubKeyRequest {
+  // selector defines the DKIM selector to query.
+  string selector = 1;
+  // domain defines the domain to query.
+  string domain = 2;
+}
+
+// QueryDkimPubKeyResponse is the response type for the Query/DkimPubKey RPC
+// method.
+message QueryDkimPubKeyResponse {
+  // dkim_pub_key defines the DKIM public key.
+  DkimPubKey dkim_pub_key = 1;
+}
+
+// QueryDkimPubKeysRequest is the request type for the Query/DkimPubKeys RPC
+// method. All fields are optional, and will filter down results.
+message QueryDkimPubKeysRequest {
+  // selector defines the DKIM selector to filter by.
+  string selector = 1;
+  // domain defines the domain to filter by.
+  string domain = 2;
+  // poseidon_hash defines the Poseidon hash to filter by.
+  bytes poseidon_hash = 3;
+  // pagination defines the pagination parameters.
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
+}
+
+// QueryDkimPubKeysResponse is the response type for the Query/DkimPubKeys RPC
+// method.
+message QueryDkimPubKeysResponse {
+  // dkim_pub_keys defines the list of DKIM public keys.
+  repeated DkimPubKey dkim_pub_keys = 1;
+  // pagination defines the pagination response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
+}
+
+// QueryAuthenticateRequest defines the request structure for proof
+// verification.
+message QueryAuthenticateRequest {
+  // tx_bytes defines the serialized transaction bytes.
+  bytes tx_bytes = 1;
+  // email_hash defines the hash of the email being authenticated.
+  string email_hash = 2;
+  // proof defines the zk proof bytes.
+  bytes proof = 3;
+  // public_inputs defines the public inputs for the zk proof.
+  repeated string public_inputs = 4;
+  // allowed_email_hosts defines the list of allowed email hosts.
+  repeated string allowed_email_hosts = 5;
+}
+// AuthenticateResponse defines the response structure for proof verification.
+message AuthenticateResponse {
+  // verified indicates whether the proof verification was successful.
+  bool verified = 1;
+}
+
+// QueryParamsRequest is the request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params defines the parameters of the module.
+  Params params = 1;
+}
