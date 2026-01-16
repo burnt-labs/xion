@@ -262,7 +262,8 @@ func (m *QueryDkimPubKeysResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-// QueryAuthenticateRequest defines the request structure for proof verification.
+// QueryAuthenticateRequest defines the request structure for proof
+// verification.
 type QueryAuthenticateRequest struct {
 	// tx_bytes defines the serialized transaction bytes.
 	TxBytes []byte `protobuf:"bytes,1,opt,name=tx_bytes,json=txBytes,proto3" json:"tx_bytes,omitempty"`
