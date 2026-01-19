@@ -8219,15 +8219,20 @@ func (x *SnarkJsProof) GetPiC() [][]byte {
 	return nil
 }
 
+// QueryVerifyRequest defines the request structure for proof verification.
 type QueryVerifyRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Proof        []byte   `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
+	// proof is the serialized ZK proof bytes.
+	Proof []byte `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
+	// public_inputs are the public inputs for the ZK circuit.
 	PublicInputs []string `protobuf:"bytes,2,rep,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
-	VkeyName     string   `protobuf:"bytes,3,opt,name=vkey_name,json=vkeyName,proto3" json:"vkey_name,omitempty"`
-	VkeyId       uint64   `protobuf:"varint,4,opt,name=vkey_id,json=vkeyId,proto3" json:"vkey_id,omitempty"`
+	// vkey_name is the name of the verification key to use.
+	VkeyName string `protobuf:"bytes,3,opt,name=vkey_name,json=vkeyName,proto3" json:"vkey_name,omitempty"`
+	// vkey_id is the unique identifier of the verification key to use.
+	VkeyId uint64 `protobuf:"varint,4,opt,name=vkey_id,json=vkeyId,proto3" json:"vkey_id,omitempty"`
 }
 
 func (x *QueryVerifyRequest) Reset() {
@@ -8315,14 +8320,19 @@ func (x *ProofVerifyResponse) GetVerified() bool {
 	return false
 }
 
+// VKey represents a verification key for ZK proof verification.
 type VKey struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	KeyBytes    []byte `protobuf:"bytes,1,opt,name=key_bytes,json=keyBytes,proto3" json:"key_bytes,omitempty"`
-	Name        string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// key_bytes is the serialized verification key data.
+	KeyBytes []byte `protobuf:"bytes,1,opt,name=key_bytes,json=keyBytes,proto3" json:"key_bytes,omitempty"`
+	// name is the unique name identifier for the verification key.
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// description provides a human-readable description of the verification key.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// circuit_hash is the hash of the circuit this key verifies.
 	CircuitHash string `protobuf:"bytes,4,opt,name=circuit_hash,json=circuitHash,proto3" json:"circuit_hash,omitempty"`
 	// authority is the uploader of the verification key.
 	Authority string `protobuf:"bytes,5,opt,name=authority,proto3" json:"authority,omitempty"`
@@ -8457,7 +8467,8 @@ func (x *QueryVKeyResponse) GetVkey() *VKey {
 	return nil
 }
 
-// QueryVKeyByNameRequest is the request type for the Query/VKeyByName RPC method
+// QueryVKeyByNameRequest is the request type for the Query/VKeyByName RPC
+// method
 type QueryVKeyByNameRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -8494,7 +8505,8 @@ func (x *QueryVKeyByNameRequest) GetName() string {
 	return ""
 }
 
-// QueryVKeyByNameResponse is the response type for the Query/VKeyByName RPC method
+// QueryVKeyByNameResponse is the response type for the Query/VKeyByName RPC
+// method
 type QueryVKeyByNameResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -8752,7 +8764,8 @@ func (x *QueryHasVKeyResponse) GetId() uint64 {
 	return 0
 }
 
-// QueryNextVKeyIDRequest is the request type for the Query/NextVKeyID RPC method
+// QueryNextVKeyIDRequest is the request type for the Query/NextVKeyID RPC
+// method
 type QueryNextVKeyIDRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -8779,12 +8792,14 @@ func (*QueryNextVKeyIDRequest) Descriptor() ([]byte, []int) {
 	return file_xion_zk_v1_query_proto_rawDescGZIP(), []int{13}
 }
 
-// QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC method
+// QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC
+// method
 type QueryNextVKeyIDResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// next_id is the next available verification key identifier.
 	NextId uint64 `protobuf:"varint,1,opt,name=next_id,json=nextId,proto3" json:"next_id,omitempty"`
 }
 

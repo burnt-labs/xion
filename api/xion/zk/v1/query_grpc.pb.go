@@ -44,6 +44,7 @@ type QueryClient interface {
 	VKeys(ctx context.Context, in *QueryVKeysRequest, opts ...grpc.CallOption) (*QueryVKeysResponse, error)
 	// HasVKey checks if a verification key exists by name
 	HasVKey(ctx context.Context, in *QueryHasVKeyRequest, opts ...grpc.CallOption) (*QueryHasVKeyResponse, error)
+	// NextVKeyID queries the next available verification key ID
 	NextVKeyID(ctx context.Context, in *QueryNextVKeyIDRequest, opts ...grpc.CallOption) (*QueryNextVKeyIDResponse, error)
 	// Params returns zk module parameters.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
@@ -143,6 +144,7 @@ type QueryServer interface {
 	VKeys(context.Context, *QueryVKeysRequest) (*QueryVKeysResponse, error)
 	// HasVKey checks if a verification key exists by name
 	HasVKey(context.Context, *QueryHasVKeyRequest) (*QueryHasVKeyResponse, error)
+	// NextVKeyID queries the next available verification key ID
 	NextVKeyID(context.Context, *QueryNextVKeyIDRequest) (*QueryNextVKeyIDResponse, error)
 	// Params returns zk module parameters.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
