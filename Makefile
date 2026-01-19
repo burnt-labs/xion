@@ -9,6 +9,7 @@ include make/test.mk
 include make/coverage.mk
 include make/proto.mk
 include make/lint.mk
+include make/barretenberg.mk
 
 # The below include contains the tools and runsim targets.
 include contrib/devtools/Makefile
@@ -62,6 +63,7 @@ help:
 	@$(MAKE) --no-print-directory help-coverage-brief
 	@$(MAKE) --no-print-directory help-proto-brief
 	@$(MAKE) --no-print-directory help-lint-brief
+	@$(MAKE) --no-print-directory help-barretenberg-brief
 	@echo "  clean                      Clean build artifacts"
 	@echo ""
 	@echo "Use 'make help-full' for complete list of targets"
@@ -75,6 +77,7 @@ help-full:
 	@$(MAKE) --no-print-directory help-coverage
 	@$(MAKE) --no-print-directory help-proto
 	@$(MAKE) --no-print-directory help-lint
+	@$(MAKE) --no-print-directory help-barretenberg
 	@echo "Development targets:"
 	@echo "  go-mod-cache               Download go modules to cache"
 	@echo "  draw-deps                  Generate dependency graph"
