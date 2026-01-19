@@ -4,13 +4,13 @@ on:
   workflow_call: # is called from the create-release workflow
   workflow_dispatch: # manual trigger
   release: # triggered by release event
-    types: [published, released, prereleased]
+    types: [published, released]
     # Notice:
     # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
     # - "published" type is happening when the release is marked as "latest"
     # - "released" type is happening when a release was published, or a pre-release was changed to a release.
-    # - "prereleased" type is happening when a release was created and identified as a pre-release. 
-    # -    A pre-release is a release that is not ready for production and may be unstable.
+    # Pre-release events are handled separately in prerelease.yaml
+    # TODO : Extract released into its own workflow when it accumulates more triggers.
 
 concurrency: # With concurrency control: Only the latest workflow run executes, previous runs get cancelled
   group: ${{ github.workflow }}-${{ github.ref }}

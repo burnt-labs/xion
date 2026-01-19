@@ -1,0 +1,21 @@
+name: Pre-Release
+
+on:
+  workflow_dispatch: # manual trigger
+  release:
+    types: [prereleased]
+    # Notice:
+    # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
+    # - "prereleased" type fires when a release is created and identified as a pre-release.
+    #    A pre-release is a release that is not ready for production and may be unstable.
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Types - publish RC packages
+  trigger-types:
+    name: Trigger Types (RC)
+    uses: burnt-labs/xion/.github/workflows/trigger-types.yaml@workflows/main
+    secrets: inherit

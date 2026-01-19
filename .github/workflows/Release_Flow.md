@@ -27,21 +27,30 @@ GitHub provides three relevant release event types:
 ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                       xion repository                                          │
 │                                                                                               │
-│  GitHub Release Event (prereleased / released / published)                                    │
-│                                         │                                                     │
-│                                         ▼                                                     │
-│                            publish-release.yaml                                               │
-│                                         │                                                     │
-│         ┌───────────────┬───────────────┼───────────────┬───────────────┐                    │
-│         ▼               ▼               ▼               ▼               ▼                    │
-│  trigger-types    trigger-homebrew   trigger-assets-mainnet   trigger-assets-testnet         │
-│  (all events)     (published only)   (published only)         (released only)                │
-│         │               │               │                       │                            │
-└─────────┼───────────────┼───────────────┼───────────────────────┼────────────────────────────┘
-          │               │               │                       │
-          │ repo_dispatch │ repo_dispatch │ repo_dispatch         │ repo_dispatch
-          │               │               │                       │
-          ▼               ▼               ▼                       ▼
+│  GitHub Release Event                                                                         │
+│         │                                                                                     │
+│         ├── prereleased ──────────────► prerelease.yaml                                       │
+│         │                                      │                                              │
+│         │                                      ▼                                              │
+│         │                               trigger-types                                         │
+│         │                               (RC packages)                                         │
+│         │                                      │                                              │
+│         │                                      │ repo_dispatch                                │
+│         │                                      ▼                                              │
+│         │                               xion-types (RC)                                       │
+│         │                                                                                     │
+│         └── released / published ─────► publish-release.yaml                                  │
+│                                                │                                              │
+│         ┌──────────────────┬──────────────────┼──────────────────┬──────────────────┐        │
+│         ▼                  ▼                  ▼                  ▼                  │        │
+│  trigger-types      trigger-homebrew   trigger-assets-mainnet   trigger-assets-testnet       │
+│  (released/published) (published only)   (published only)         (released only)            │
+│         │                  │                  │                       │                      │
+└─────────┼──────────────────┼──────────────────┼───────────────────────┼──────────────────────┘
+          │                  │                  │                       │
+          │ repo_dispatch    │ repo_dispatch    │ repo_dispatch         │ repo_dispatch
+          │                  │                  │                       │
+          ▼                  ▼                  ▼                       ▼
 ┌──────────────────┐ ┌──────────────┐ ┌─────────────────────────────────────────┐
 │  xion-types      │ │ homebrew-xion│ │              xion-assets                 │
 │                  │ │              │ │                                          │
@@ -68,7 +77,7 @@ User creates pre-release on GitHub
 GitHub fires: prereleased event
         │
         ▼
-publish-release.yaml triggers
+prerelease.yaml triggers
         │
         ▼
 trigger-types.yaml sends:
@@ -318,7 +327,9 @@ v1.0.0       →  published    →  Stable package published (marked latest)
 
 | Workflow | Triggers On | Purpose |
 |----------|-------------|---------|
-| `trigger-types.yaml` | All release events | Publish type packages |
+| `prerelease.yaml` | `prereleased` only | Handles pre-release events, triggers RC package publishing |
+| `publish-release.yaml` | `published`, `released` | Handles stable release events |
+| `trigger-types.yaml` | Called by both workflows | Publish type packages |
 | `trigger-assets-mainnet.yaml` | `published` only | Update mainnet chain registry (latest releases) |
 | `trigger-assets-testnet.yaml` | `released` only | Update testnet chain registry (any non-prerelease) |
 | `trigger-homebrew.yaml` | `published` only | Update Homebrew formula |
@@ -326,7 +337,8 @@ v1.0.0       →  published    →  Stable package published (marked latest)
 ## Configuration Files
 
 ### xion repository
-- `xion/.github/workflows/publish-release.yaml` - Main release workflow
+- `xion/.github/workflows/prerelease.yaml` - Pre-release workflow (handles `prereleased` events)
+- `xion/.github/workflows/publish-release.yaml` - Main release workflow (handles `published`, `released` events)
 - `xion/.github/workflows/trigger-types.yaml` - Dispatches to xion-types
 - `xion/.github/workflows/trigger-homebrew.yaml` - Dispatches to homebrew-xion
 - `xion/.github/workflows/trigger-assets-mainnet.yaml` - Dispatches to xion-assets (mainnet, latest only)
