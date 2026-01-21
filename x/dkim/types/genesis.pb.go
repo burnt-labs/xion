@@ -92,7 +92,8 @@ func (m *GenesisState) GetRevokedPubkeys() []string {
 type Params struct {
 	// vkey defines the verification key used by the module.
 	VkeyIdentifier uint64 `protobuf:"varint,1,opt,name=vkey_identifier,json=vkeyIdentifier,proto3" json:"vkey_identifier,omitempty"`
-	// max_pubkey_size_bytes caps the allowed DKIM public key size (base64 decoded).
+	// max_pubkey_size_bytes caps the allowed DKIM public key size (base64
+	// decoded).
 	MaxPubkeySizeBytes uint64 `protobuf:"varint,2,opt,name=max_pubkey_size_bytes,json=maxPubkeySizeBytes,proto3" json:"max_pubkey_size_bytes,omitempty"`
 }
 
