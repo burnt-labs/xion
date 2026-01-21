@@ -14,7 +14,7 @@ service Query {
   rpc ProofVerify(QueryVerifyRequest) returns (ProofVerifyResponse) {
     option (google.api.http).get = "/zk/v1/verify";
   }
-    // VKey queries a verification key by ID
+  // VKey queries a verification key by ID
   rpc VKey(QueryVKeyRequest) returns (QueryVKeyResponse) {
     option (google.api.http).get = "/burnt/xion/zk/v1/vkeys/{id}";
   }
@@ -33,6 +33,8 @@ service Query {
   rpc HasVKey(QueryHasVKeyRequest) returns (QueryHasVKeyResponse) {
     option (google.api.http).get = "/burnt/xion/zk/v1/vkeys/exists/{name}";
   }
+
+  // NextVKeyID queries the next available verification key ID
   rpc NextVKeyID(QueryNextVKeyIDRequest) returns (QueryNextVKeyIDResponse) {
     option (google.api.http).get = "/burnt/xion/zk/v1/vkeys/next-id";
   }
@@ -53,10 +55,15 @@ message SnarkJsProof {
   repeated bytes pi_c = 3;
 }
 
+// QueryVerifyRequest defines the request structure for proof verification.
 message QueryVerifyRequest {
+  // proof is the serialized ZK proof bytes.
   bytes proof = 1;
+  // public_inputs are the public inputs for the ZK circuit.
   repeated string public_inputs = 2;
+  // vkey_name is the name of the verification key to use.
   string vkey_name = 3;
+  // vkey_id is the unique identifier of the verification key to use.
   uint64 vkey_id = 4;
 }
 // ProofVerifyResponse defines the response structure for proof verification.
@@ -65,15 +72,19 @@ message ProofVerifyResponse {
   bool verified = 1;
 }
 
+// VKey represents a verification key for ZK proof verification.
 message VKey {
+  // key_bytes is the serialized verification key data.
   bytes key_bytes = 1;
+  // name is the unique name identifier for the verification key.
   string name = 2;
+  // description provides a human-readable description of the verification key.
   string description = 3;
+  // circuit_hash is the hash of the circuit this key verifies.
   string circuit_hash = 4;
   // authority is the uploader of the verification key.
   string authority = 5;
 }
-
 
 // QueryVKeyRequest is the request type for the Query/VKey RPC method
 message QueryVKeyRequest {
@@ -84,20 +95,22 @@ message QueryVKeyRequest {
 // QueryVKeyResponse is the response type for the Query/VKey RPC method
 message QueryVKeyResponse {
   // vkey is the verification key
-  VKey vkey = 1 [(gogoproto.nullable) = false];
+  VKey vkey = 1 [ (gogoproto.nullable) = false ];
 }
 
-// QueryVKeyByNameRequest is the request type for the Query/VKeyByName RPC method
+// QueryVKeyByNameRequest is the request type for the Query/VKeyByName RPC
+// method
 message QueryVKeyByNameRequest {
   // name is the unique name of the verification key
   string name = 1;
 }
 
-// QueryVKeyByNameResponse is the response type for the Query/VKeyByName RPC method
+// QueryVKeyByNameResponse is the response type for the Query/VKeyByName RPC
+// method
 message QueryVKeyByNameResponse {
   // vkey is the verification key
-  VKey vkey = 1 [(gogoproto.nullable) = false];
-  
+  VKey vkey = 1 [ (gogoproto.nullable) = false ];
+
   // id is the numeric identifier of the verification key
   uint64 id = 2;
 }
@@ -111,8 +124,8 @@ message QueryVKeysRequest {
 // QueryVKeysResponse is the response type for the Query/VKeys RPC method
 message QueryVKeysResponse {
   // vkeys is the list of all verification keys with their IDs
-  repeated VKeyWithID vkeys = 1 [(gogoproto.nullable) = false];
-  
+  repeated VKeyWithID vkeys = 1 [ (gogoproto.nullable) = false ];
+
   // pagination defines the pagination in the response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -121,9 +134,9 @@ message QueryVKeysResponse {
 message VKeyWithID {
   // id is the unique identifier
   uint64 id = 1;
-  
+
   // vkey is the verification key
-  VKey vkey = 2 [(gogoproto.nullable) = false];
+  VKey vkey = 2 [ (gogoproto.nullable) = false ];
 }
 
 // QueryHasVKeyRequest is the request type for the Query/HasVKey RPC method
@@ -136,16 +149,19 @@ message QueryHasVKeyRequest {
 message QueryHasVKeyResponse {
   // exists indicates whether the verification key exists
   bool exists = 1;
-  
+
   // id is the numeric identifier if the key exists (0 if not found)
   uint64 id = 2;
 }
 
-// QueryNextVKeyIDRequest is the request type for the Query/NextVKeyID RPC method
+// QueryNextVKeyIDRequest is the request type for the Query/NextVKeyID RPC
+// method
 message QueryNextVKeyIDRequest {}
 
-// QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC method
+// QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC
+// method
 message QueryNextVKeyIDResponse {
+  // next_id is the next available verification key identifier.
   uint64 next_id = 1;
 }
 
@@ -155,5 +171,5 @@ message QueryParamsRequest {}
 // QueryParamsResponse is the response type for the Query/Params RPC method
 message QueryParamsResponse {
   // params is the current zk module parameters
-  Params params = 1 [(gogoproto.nullable) = false];
+  Params params = 1 [ (gogoproto.nullable) = false ];
 }
