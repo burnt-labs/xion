@@ -1,13 +1,16 @@
 package xauthz
 
 import (
-	"github.com/burnt-labs/xion/x/xauthz/types"
+	"github.com/spf13/cobra"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/types/module"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
+
+	"github.com/burnt-labs/xion/x/xauthz/client/cli"
+	"github.com/burnt-labs/xion/x/xauthz/types"
 )
 
 const ConsensusVersion = 1
@@ -54,4 +57,9 @@ func (AppModuleBasic) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the xauthz module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *gwruntime.ServeMux) {
+}
+
+// GetTxCmd returns the root tx command for the xauthz module.
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
 }
