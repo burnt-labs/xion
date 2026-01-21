@@ -14,6 +14,9 @@ type Provider struct {
 }
 
 func NewProvider(wasmkeeper *wasmkeeper.Keeper) *Provider {
+	if wasmkeeper == nil {
+		panic("must provide wasmkeeper")
+	}
 	return &Provider{
 		wasmkeeper: wasmkeeper,
 	}
