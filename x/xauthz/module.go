@@ -1,13 +1,13 @@
 package xauthz
 
 import (
+	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/burnt-labs/xion/x/xauthz/client/cli"
 	"github.com/burnt-labs/xion/x/xauthz/types"
@@ -21,8 +21,7 @@ var (
 )
 
 // AppModuleBasic defines the basic application module used by the xauthz(xion authz)  module.
-type AppModuleBasic struct {
-}
+type AppModuleBasic struct{}
 
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
@@ -36,6 +35,7 @@ type AppModule struct {
 func NewAppModule() AppModule {
 	return AppModule{}
 }
+
 func (AppModule) IsOnePerModuleType() {
 	_ = AppModule{}
 }

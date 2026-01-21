@@ -4,13 +4,12 @@ import (
 	"context"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
-var (
-	_ authz.Accepter = &AuthzAccepter{}
-)
+var _ authz.Accepter = &AuthzAccepter{}
 
 type AuthzAccepter struct {
 	qp QueryProvider
