@@ -159,6 +159,9 @@ import (
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	"github.com/burnt-labs/xion/x/xauthz"
+	xauthzquery "github.com/burnt-labs/xion/x/xauthz/query"
+	xauthztypes "github.com/burnt-labs/xion/x/xauthz/types"
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
@@ -787,6 +790,9 @@ func NewWasmApp(
 		app.AbstractAccountKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	// set xion authz custom accepter
+	accepter := xauthztypes.NewAccepter(xauthzquery.NewProvider(&app.WasmKeeper))
+	app.AuthzKeeper = app.AuthzKeeper.WithAccepter(accepter)
 
 	// Set legacy router for backwards compatibility with gov v1beta1
 	app.GovKeeper.SetLegacyRouter(govRouter)
@@ -899,6 +905,7 @@ func NewWasmApp(
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 		zk.NewAppModule(appCodec, app.ZkKeeper),
 		dkim.NewAppModule(appCodec, app.DkimKeeper),
+		xauthz.NewAppModule(),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -949,6 +956,7 @@ func NewWasmApp(
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 		dkimtypes.ModuleName,
+		xauthztypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -973,6 +981,7 @@ func NewWasmApp(
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 		dkimtypes.ModuleName,
+		xauthztypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -1007,6 +1016,7 @@ func NewWasmApp(
 		packetforwardtypes.ModuleName,
 		zktypes.ModuleName,
 		dkimtypes.ModuleName,
+		xauthztypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
