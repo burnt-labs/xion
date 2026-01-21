@@ -316,4 +316,4 @@ require (
 	rsc.io/qr v0.2.0 // indirect
 )
 
-replace github.com/cosmos/cosmos-sdk => ../cosmos-sdk/
+replace github.com/cosmos/cosmos-sdk => github.com/burnt-labs/cosmos-sdk v0.50.10-0.20260113212454-33e7f8b92f16

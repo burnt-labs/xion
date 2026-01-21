@@ -220,6 +220,9 @@ test-xion-platform-min-codec-bug:
 test-xion-platform-min-direct:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionPlatformMinDirect
 
+test-xion-code-execution-authorization:
+	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestCodeExecutionAuthorizationComprehensive
+
 # New comprehensive MinFee tests (functional tests only)
 test-xion-min-fee-multi-denom-advanced:
 	$(MAKE) test-run DIR_NAME=xion TEST_NAME=TestXionMinFeeMultiDenomAdvanced
@@ -355,6 +358,7 @@ test-sim-deterministic: runsim
 .PHONY: test test-all test-unit test-race benchmark \
         test-run test-e2e-all \
         test-aa-all test-app-all test-dkim-all test-jwk-all test-xion-all test-indexer-all test-zk-all \
+        test-xion-code-execution-authorization \
         test-aa-basic test-aa-client-event test-aa-jwt-cli \
         test-aa-multi-auth test-aa-panic \
         test-aa-webauthn \
@@ -498,6 +502,7 @@ help-test:
 	@echo "    test-xion-platform-fee-bypass       Test platform fee bypass prevention"
 	@echo "    test-xion-platform-min-codec-bug    Test platform minimum codec bug fix"
 	@echo "    test-xion-platform-min-direct       Test platform minimum direct transaction"
+	@echo "    test-xion-code-execution-authorization Test CodeExecutionAuthorization via xauthz module"
 	@echo ""
 	@echo "  ZK Module Individual Tests:"
 	@echo "    test-dkim-zk-params-and-vkey-uploads Test ZK params and vkey uploads"

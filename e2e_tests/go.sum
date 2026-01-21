@@ -218,6 +218,8 @@ github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
 github.com/burnt-labs/abstract-account v0.1.3 h1:LucZzlPGlChu8qBbFIySi3DD3K/oLgrMhomxefOPJRI=
 github.com/burnt-labs/abstract-account v0.1.3/go.mod h1:2V5yhfxfCeIv4E0q6agH/spIpmGiv1DPTUHQ5RK153c=
+github.com/burnt-labs/cosmos-sdk v0.50.10-0.20260113212454-33e7f8b92f16 h1:51L6gs13ROGh99ewulZumDv0JdWr8PU5NOz3PW5/FYs=
+github.com/burnt-labs/cosmos-sdk v0.50.10-0.20260113212454-33e7f8b92f16/go.mod h1:nJVTsbIXX4r7xX/B97McBBtNG6He8N4DIzMQG0HKrNY=
 github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0-xion.1 h1:spzcqKHGhqkCB1UCZLmMjwkRxbYnD8/62ZzMHP5flBo=
 github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0-xion.1/go.mod h1:TGSD3/2yfkgB4KWxK9pLE+Sssxf5ffOs5wfFK1JMeBM=
 github.com/burnt-labs/tokenfactory v0.53.4-xion.2 h1:c55X9mQSPj7WfVDixPBBRZDmsyOOT9uXvMBimvotDzw=
@@ -286,8 +288,8 @@ github.com/cockroachdb/redact v1.1.6/go.mod h1:BVNblN9mBWFyMyqK1k3AAiSxhvhfK2oOZ
 github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb h1:3bCgBvB8PbJVMX1ouCcSIxvsqKPYM7gs72o0zC76n9g=
 github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb/go.mod h1:7nc4anLGjupUW/PeY5qiNYsdNXj7zopG+eqsS7To5IQ=
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
-github.com/cometbft/cometbft v0.38.19 h1:vNdtCkvhuwUlrcLPAyigV7lQpmmo+tAq8CsB8gZjEYw=
-github.com/cometbft/cometbft v0.38.19/go.mod h1:UCu8dlHqvkAsmAFmWDRWNZJPlu6ya2fTWZlDrWsivwo=
+github.com/cometbft/cometbft v0.38.20 h1:i9v9rvh3Z4CZvGSWrByAOpiqNq5WLkat3r/tE/B49RU=
+github.com/cometbft/cometbft v0.38.20/go.mod h1:UCu8dlHqvkAsmAFmWDRWNZJPlu6ya2fTWZlDrWsivwo=
 github.com/cometbft/cometbft-db v1.0.4 h1:cezb8yx/ZWcF124wqUtAFjAuDksS1y1yXedvtprUFxs=
 github.com/cometbft/cometbft-db v1.0.4/go.mod h1:M+BtHAGU2XLrpUxo3Nn1nOCcnVCiLM9yx5OuT0u5SCA=
 github.com/consensys/gnark v0.14.0 h1:RG+8WxRanFSFBSlmCDRJnYMYYKpH3Ncs5SMzg24B5HQ=
@@ -312,8 +314,6 @@ github.com/cosmos/cosmos-db v1.1.3 h1:7QNT77+vkefostcKkhrzDK9uoIEryzFrU9eoMeaQOP
 github.com/cosmos/cosmos-db v1.1.3/go.mod h1:kN+wGsnwUJZYn8Sy5Q2O0vCYA99MJllkKASbs6Unb9U=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
-github.com/cosmos/cosmos-sdk v0.53.4 h1:kPF6vY68+/xi1/VebSZGpoxQqA52qkhUzqkrgeBn3Mg=
-github.com/cosmos/cosmos-sdk v0.53.4/go.mod h1:7U3+WHZtI44dEOnU46+lDzBb2tFh1QlMvi8Z5JugopI=
 github.com/cosmos/evm v0.5.0 h1:hidSvxgse/vQK3H8w3pMBfA7OMpFkfl8XcTXAfcSzYM=
 github.com/cosmos/evm v0.5.0/go.mod h1:Etp0JwqiWb8QfA7fZ4N7/KCnP5M8BdcM/Gzhk3llkWw=
 github.com/cosmos/go-bip39 v1.0.0 h1:pcomnQdrdH22njcAatO0yWojsUnCO3y2tNoV1cb6hHY=
@@ -339,8 +339,8 @@ github.com/cosmos/interchaintest/v10 v10.0.1 h1:yMjGtoAE/sD1HWar3mf6BZAIjjTIBX8+
 github.com/cosmos/interchaintest/v10 v10.0.1/go.mod h1:HfUoEjGBYIqJp/PZDlYqQfAo2aKYCJvvhriBRHUt7/k=
 github.com/cosmos/keyring v1.2.0 h1:8C1lBP9xhImmIabyXW4c3vFjjLiBdGCmfLUfeZlV1Yo=
 github.com/cosmos/keyring v1.2.0/go.mod h1:fc+wB5KTk9wQ9sDx0kFXB3A0MaeGHM9AwRStKOQ5vOA=
-github.com/cosmos/ledger-cosmos-go v0.16.0 h1:YKlWPG9NnGZIEUb2bEfZ6zhON1CHlNTg0QKRRGcNEd0=
-github.com/cosmos/ledger-cosmos-go v0.16.0/go.mod h1:WrM2xEa8koYoH2DgeIuZXNarF7FGuZl3mrIOnp3Dp0o=
+github.com/cosmos/ledger-cosmos-go v1.0.0 h1:jNKW89nPf0vR0EkjHG8Zz16h6p3zqwYEOxlHArwgYtw=
+github.com/cosmos/ledger-cosmos-go v1.0.0/go.mod h1:mGaw2wDOf+Z6SfRJsMGxU9DIrBa4du0MAiPlpPhLAOE=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=
 github.com/cpuguy83/go-md2man/v2 v2.0.6 h1:XJtiaUW6dEEqVuZiMTn1ldk455QWwEIsMIJlo5vtkx0=
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
