@@ -186,7 +186,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	// Extract emailSalt from publicInputs
 	publicInputs, ok := zkAuthData["publicInputs"].([]interface{})
 	require.True(t, ok, "publicInputs should be an array")
-	emailSalt, ok := publicInputs[32].(string)
+	emailSalt, ok := publicInputs[68].(string)
 	require.True(t, ok, "emailSalt should be a string")
 
 	zkAuthJSONBytes, err := json.Marshal(zkAuthData)
@@ -194,7 +194,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	b64signature := base64.StdEncoding.EncodeToString(zkAuthJSONBytes)
 
 	// Create allowed email hosts
-	allowedEmailHosts := []string{"kushal@burnt.com", "jose@burnt.com", "jane@burnt.com"}
+	allowedEmailHosts := []string{"kushal@burnt.com", "zk@zk.burnt.com", "jane@burnt.com"}
 	allowedEmailHostsJSON, err := json.Marshal(allowedEmailHosts)
 	require.NoError(t, err)
 
