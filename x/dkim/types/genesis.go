@@ -1,7 +1,5 @@
 package types
 
-import bytes "bytes"
-
 // d line is used by starport scaffolding # genesis/types/import
 
 // DefaultIndex is the default global index
@@ -73,8 +71,6 @@ func (d *DkimPubKey) Equal(v interface{}) bool {
 	if d.KeyType != v1.KeyType {
 		return false
 	}
-	if !bytes.Equal(d.PoseidonHash, v1.PoseidonHash) {
-		return false
-	}
+	// Note: PoseidonHash is not compared as it's now derived dynamically from PubKey
 	return true
 }
