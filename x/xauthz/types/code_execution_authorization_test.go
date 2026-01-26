@@ -75,6 +75,13 @@ func TestCodeExecutionAuthorization_ValidateBasic(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "allowed_code_ids cannot be empty")
 	})
+
+	t.Run("invalid with zero code ID", func(t *testing.T) {
+		auth := types.NewCodeExecutionAuthorization([]uint64{0})
+		err := auth.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "code ID cannot be zero")
+	})
 }
 
 func TestCodeExecutionAuthorization_Accept(t *testing.T) {

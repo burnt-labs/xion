@@ -36,13 +36,9 @@ func NewAppModule() AppModule {
 	return AppModule{}
 }
 
-func (AppModule) IsOnePerModuleType() {
-	_ = AppModule{}
-}
+func (AppModule) IsOnePerModuleType() {}
 
-func (AppModule) IsAppModule() {
-	_ = AppModule{}
-}
+func (AppModule) IsAppModule() {}
 
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)

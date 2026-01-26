@@ -30,6 +30,11 @@ func (a CodeExecutionAuthorization) ValidateBasic() error {
 	if len(a.AllowedCodeIds) == 0 {
 		return fmt.Errorf("allowed_code_ids cannot be empty")
 	}
+	for i, codeID := range a.AllowedCodeIds {
+		if codeID == 0 {
+			return fmt.Errorf("allowed_code_ids[%d]: code ID cannot be zero", i)
+		}
+	}
 	return nil
 }
 

@@ -45,8 +45,12 @@ func GrantCodeExecutionCmd() *cobra.Command {
 		Long: `Grant authorization to an address to execute contracts on your behalf,
 limited to contracts instantiated from the specified code IDs.
 
-Example:
+Examples:
+  # Grant with expiration (Unix timestamp)
   $ xiond tx xauthz grant <grantee_addr> 1,2,3 --expiration 1893456000 --from mykey
+
+  # Grant without expiration (never expires)
+  $ xiond tx xauthz grant <grantee_addr> 1,2,3 --from mykey
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -85,7 +89,7 @@ Example:
 		SilenceUsage: true,
 	}
 
-	cmd.Flags().Int64(flagExpiration, 0, "Unix timestamp for grant expiration (required)")
+	cmd.Flags().Int64(flagExpiration, 0, "Unix timestamp for grant expiration (optional, 0 for no expiration)")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
