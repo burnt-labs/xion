@@ -180,7 +180,7 @@ require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
-	github.com/gogo/protobuf v1.3.3 // indirect
+	github.com/gogo/protobuf v1.3.3
 	github.com/gogo/status v1.1.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang/snappy v1.0.0 // indirect
