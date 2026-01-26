@@ -16,16 +16,33 @@ const (
 	GasCostPerQuery = uint64(1000)
 )
 
-type Provider struct {
-	wasmkeeper *wasmkeeper.Keeper
+// WasmQuerier is the interface for querying wasm contract info.
+type WasmQuerier interface {
+	GetContractInfo(ctx context.Context, contractAddress sdk.AccAddress) *wasmtypes.ContractInfo
 }
 
+type Provider struct {
+	wasmQuerier WasmQuerier
+}
+
+// NewProvider creates a new Provider with the given wasm keeper.
 func NewProvider(wasmkeeper *wasmkeeper.Keeper) *Provider {
 	if wasmkeeper == nil {
 		panic("must provide wasmkeeper")
 	}
 	return &Provider{
-		wasmkeeper: wasmkeeper,
+		wasmQuerier: wasmkeeper,
+	}
+}
+
+// NewProviderWithWasmQuerier creates a new Provider with a custom wasm querier.
+// This is useful for testing with mock implementations.
+func NewProviderWithWasmQuerier(wasmQuerier WasmQuerier) *Provider {
+	if wasmQuerier == nil {
+		panic("must provide wasmQuerier")
+	}
+	return &Provider{
+		wasmQuerier: wasmQuerier,
 	}
 }
 
@@ -38,7 +55,7 @@ func (p *Provider) QueryContractInfo(ctx context.Context, contract string) (*was
 		return nil, err
 	}
 
-	contractInfo := p.wasmkeeper.GetContractInfo(ctx, addr)
+	contractInfo := p.wasmQuerier.GetContractInfo(ctx, addr)
 	if contractInfo == nil {
 		return nil, fmt.Errorf("empty contract information")
 	}
