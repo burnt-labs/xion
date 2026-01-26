@@ -41,18 +41,29 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc: "valid genesis state",
+			desc: "valid genesis state with default params",
 			genState: &types.GenesisState{
-				Params: types.Params{VkeyIdentifier: uint64(1)},
+				Params: types.DefaultParams(),
 			},
 			valid: true,
 		},
 		{
-			desc: "genesis state with empty params",
+			desc: "valid genesis state with custom vkey identifier",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					VkeyIdentifier:     uint64(42),
+					MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
+					PublicInputIndices: types.DefaultPublicInputIndices(),
+				},
+			},
+			valid: true,
+		},
+		{
+			desc: "invalid genesis state with empty params",
 			genState: &types.GenesisState{
 				Params: types.Params{},
 			},
-			valid: true,
+			valid: false, // Empty params will have zero min_length which is invalid
 		},
 	}
 	for _, tc := range tests {

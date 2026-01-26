@@ -140,50 +140,52 @@ func TestUpdateParams(t *testing.T) {
 			name: "fail; invalid authority",
 			request: &types.MsgUpdateParams{
 				Authority: f.addrs[0].String(),
-				Params: types.Params{
-					VkeyIdentifier: 1,
-				},
+				Params:    types.DefaultParams(),
 			},
 			err: true,
 		},
 		{
-			name: "success; update with empty params",
+			name: "success; update with default params",
 			request: &types.MsgUpdateParams{
 				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 0,
-				},
+				Params:    types.DefaultParams(),
 			},
 			err: false,
 		},
 		{
 			name: "success; update vkey identifier",
-			request: &types.MsgUpdateParams{
-				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 42,
-				},
-			},
+			request: func() *types.MsgUpdateParams {
+				p := types.DefaultParams()
+				p.VkeyIdentifier = 42
+				return &types.MsgUpdateParams{
+					Authority: f.govModAddr,
+					Params:    p,
+				}
+			}(),
 			err: false,
 		},
 		{
 			name: "success; update with dkim pubkeys",
-			request: &types.MsgUpdateParams{
-				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 1,
-				},
-			},
+			request: func() *types.MsgUpdateParams {
+				p := types.DefaultParams()
+				p.VkeyIdentifier = 1
+				return &types.MsgUpdateParams{
+					Authority: f.govModAddr,
+					Params:    p,
+				}
+			}(),
 			err: false,
 		},
 		{
 			name: "success; update with multiple dkim pubkeys",
-			request: &types.MsgUpdateParams{
-				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 2,
-				},
-			},
+			request: func() *types.MsgUpdateParams {
+				p := types.DefaultParams()
+				p.VkeyIdentifier = 2
+				return &types.MsgUpdateParams{
+					Authority: f.govModAddr,
+					Params:    p,
+				}
+			}(),
 			err: false,
 		},
 	}
