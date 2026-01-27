@@ -18,13 +18,13 @@ concurrency: # With concurrency control: Only the latest workflow run executes, 
 jobs:
   trigger-types:
     name: Trigger Types
-    uses: burnt-labs/xion/.github/workflows/trigger-types.yaml@workflows/main
+    uses: ./.github/workflows/trigger-types.yaml
     secrets: inherit
   trigger-assets:
     name: Trigger Assets
-    uses: burnt-labs/xion/.github/workflows/trigger-assets.yaml@workflows/main
+    uses: ./.github/workflows/trigger-assets.yaml
     secrets: inherit
   trigger-homebrew:
     name: Trigger Homebrew
-    uses: burnt-labs/xion/.github/workflows/trigger-homebrew.yaml@workflows/main
+    uses: ./.github/workflows/trigger-homebrew.yaml
     secrets: inherit
