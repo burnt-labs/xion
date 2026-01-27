@@ -1,5 +1,7 @@
 package types
 
+import "bytes"
+
 // d line is used by starport scaffolding # genesis/types/import
 
 // DefaultIndex is the default global index
@@ -8,8 +10,9 @@ const DefaultIndex uint64 = 1
 // DefaultDkimPubKeys returns the default DKIM public keys for major email providers.
 // These records are included in the default genesis state so they're available
 // immediately when the chain initializes without requiring a governance proposal.
+// Each record includes a pre-computed PoseidonHash of the public key.
 func DefaultDkimPubKeys() []DkimPubKey {
-	return []DkimPubKey{
+	records := []DkimPubKey{
 		{
 			Domain:   "gmail.com",
 			Selector: "20230601",
@@ -53,6 +56,17 @@ func DefaultDkimPubKeys() []DkimPubKey {
 			KeyType:  KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		},
 	}
+
+	// Pre-compute PoseidonHash for each record
+	for i := range records {
+		hash, err := ComputePoseidonHash(records[i].PubKey)
+		if err != nil {
+			panic("failed to compute poseidon hash for default DKIM record " + records[i].Domain + ": " + err.Error())
+		}
+		records[i].PoseidonHash = hash.Bytes()
+	}
+
+	return records
 }
 
 func DefaultGenesis() *GenesisState {
@@ -122,6 +136,8 @@ func (d *DkimPubKey) Equal(v interface{}) bool {
 	if d.KeyType != v1.KeyType {
 		return false
 	}
-	// Note: PoseidonHash is not compared as it's now derived dynamically from PubKey
+	if !bytes.Equal(d.PoseidonHash, v1.PoseidonHash) {
+		return false
+	}
 	return true
 }

@@ -34,19 +34,11 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 		return nil, err
 	}
 
-	// Use stored hash if available (for backwards compatibility), otherwise compute dynamically
-	poseidonHash := dkimPubKey.PoseidonHash
-	if len(poseidonHash) == 0 {
-		if hash, err := types.ComputePoseidonHash(dkimPubKey.PubKey); err == nil {
-			poseidonHash = hash.Bytes()
-		}
-	}
-
 	return &types.QueryDkimPubKeyResponse{DkimPubKey: &types.DkimPubKey{
 		Domain:       dkimPubKey.Domain,
 		PubKey:       dkimPubKey.PubKey,
 		Selector:     dkimPubKey.Selector,
-		PoseidonHash: poseidonHash,
+		PoseidonHash: dkimPubKey.PoseidonHash,
 		Version:      dkimPubKey.Version,
 		KeyType:      dkimPubKey.KeyType,
 	}}, nil
@@ -62,20 +54,12 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			return nil, err
 		}
 
-		// Use stored hash if available (for backwards compatibility), otherwise compute dynamically
-		poseidonHash := dkimPubKey.PoseidonHash
-		if len(poseidonHash) == 0 {
-			if hash, err := types.ComputePoseidonHash(dkimPubKey.PubKey); err == nil {
-				poseidonHash = hash.Bytes()
-			}
-		}
-
 		return &types.QueryDkimPubKeysResponse{
 			DkimPubKeys: []*types.DkimPubKey{{
 				Domain:       dkimPubKey.Domain,
 				PubKey:       dkimPubKey.PubKey,
 				Selector:     dkimPubKey.Selector,
-				PoseidonHash: poseidonHash,
+				PoseidonHash: dkimPubKey.PoseidonHash,
 				Version:      dkimPubKey.Version,
 				KeyType:      dkimPubKey.KeyType,
 			}},
@@ -150,16 +134,8 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			return nil, err
 		}
 
-		// Use stored hash if available (for backwards compatibility), otherwise compute dynamically
-		poseidonHash := dkimPubKey.PoseidonHash
-		if len(poseidonHash) == 0 {
-			if hash, err := types.ComputePoseidonHash(dkimPubKey.PubKey); err == nil {
-				poseidonHash = hash.Bytes()
-			}
-		}
-
 		// Apply PoseidonHash filter if specified
-		if len(msg.PoseidonHash) > 0 && !bytes.Equal(poseidonHash, msg.PoseidonHash) {
+		if len(msg.PoseidonHash) > 0 && !bytes.Equal(dkimPubKey.PoseidonHash, msg.PoseidonHash) {
 			continue
 		}
 
@@ -189,7 +165,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			Domain:       dkimPubKey.Domain,
 			PubKey:       dkimPubKey.PubKey,
 			Selector:     dkimPubKey.Selector,
-			PoseidonHash: poseidonHash,
+			PoseidonHash: dkimPubKey.PoseidonHash,
 			Version:      dkimPubKey.Version,
 			KeyType:      dkimPubKey.KeyType,
 		}

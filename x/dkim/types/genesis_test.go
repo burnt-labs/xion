@@ -20,7 +20,7 @@ func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyT
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
 			Domain:       domain,
 			PubKey:       pubKey,
-			PoseidonHash: []byte(hash.String()),
+			PoseidonHash: hash.Bytes(),
 			Selector:     selector,
 			Version:      version,
 			KeyType:      keyType,
@@ -121,6 +121,7 @@ func TestDefaultDkimPubKeys(t *testing.T) {
 		require.NotEmpty(t, record.PubKey, "public key should not be empty for domain %s", record.Domain)
 		require.Equal(t, types.Version_VERSION_DKIM1_UNSPECIFIED, record.Version, "version should be DKIM1 for domain %s", record.Domain)
 		require.Equal(t, types.KeyType_KEY_TYPE_RSA_UNSPECIFIED, record.KeyType, "key type should be RSA for domain %s", record.Domain)
+		require.NotEmpty(t, record.PoseidonHash, "poseidon hash should not be empty for domain %s", record.Domain)
 	}
 }
 
@@ -132,13 +133,18 @@ func TestDefaultDkimPubKeysValidation(t *testing.T) {
 	err := types.ValidateDkimPubKeys(dkimPubKeys, params)
 	require.NoError(t, err, "default DKIM public keys should pass validation")
 
-	// Verify each public key can be decoded and parsed
+	// Verify each public key can be decoded and parsed, and poseidon hash matches
 	for _, record := range dkimPubKeys {
 		pubKeyBytes, err := types.DecodePubKeyWithLimit(record.PubKey, params.MaxPubkeySizeBytes)
 		require.NoError(t, err, "public key for %s should be decodable", record.Domain)
 
 		_, err = types.ParseRSAPublicKey(pubKeyBytes)
 		require.NoError(t, err, "public key for %s should be parseable as RSA", record.Domain)
+
+		// Verify poseidon hash matches computed value
+		hash, err := types.ComputePoseidonHash(record.PubKey)
+		require.NoError(t, err, "poseidon hash for %s should be computable", record.Domain)
+		require.Equal(t, hash.Bytes(), record.PoseidonHash, "poseidon hash mismatch for domain %s", record.Domain)
 	}
 }
 
