@@ -28,7 +28,3 @@ jobs:
     name: Trigger Homebrew
     uses: ./.github/workflows/trigger-homebrew.yaml
     secrets: inherit
-  trigger-chain-registry:
-    name: Trigger Chain Registry
-    uses: ./.github/workflows/trigger-chain-registry.yaml
-    secrets: inherit
