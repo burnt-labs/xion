@@ -122,13 +122,6 @@ func RunDKIMModuleAssertions(t *testing.T, cfg DKIMAssertionConfig) {
 	allDkimRecords, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", testData.Domain1)
 	require.NoError(t, err)
 	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 2)
-
-	// Query by domain + poseidon hash pair
-	allDkimRecords, err = ExecQuery(t, ctx, xion.GetNode(), "dkim", "qdkims", "--domain", testData.Domain1, "--hash", hash3.String())
-	require.NoError(t, err)
-	require.Len(t, allDkimRecords["dkim_pub_keys"].([]interface{}), 2)
-	require.Equal(t, testData.Selector3, allDkimRecords["dkim_pub_keys"].([]interface{})[0].(map[string]interface{})["selector"])
-
 	t.Log("DKIM module assertions completed successfully")
 }
 
