@@ -20,7 +20,7 @@ func CreateNDkimPubKey(domain string, pubKey string, version types.Version, keyT
 		dkimPubKeys = append(dkimPubKeys, types.DkimPubKey{
 			Domain:       domain,
 			PubKey:       pubKey,
-			PoseidonHash: []byte(hash.String()),
+			PoseidonHash: hash.Bytes(),
 			Selector:     selector,
 			Version:      version,
 			KeyType:      keyType,
@@ -41,18 +41,29 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc: "valid genesis state",
+			desc: "valid genesis state with default params",
 			genState: &types.GenesisState{
-				Params: types.Params{VkeyIdentifier: uint64(1)},
+				Params: types.DefaultParams(),
 			},
 			valid: true,
 		},
 		{
-			desc: "genesis state with empty params",
+			desc: "valid genesis state with custom vkey identifier",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					VkeyIdentifier:     uint64(42),
+					MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
+					PublicInputIndices: types.DefaultPublicInputIndices(),
+				},
+			},
+			valid: true,
+		},
+		{
+			desc: "invalid genesis state with empty params",
 			genState: &types.GenesisState{
 				Params: types.Params{},
 			},
-			valid: true,
+			valid: false, // Empty params will have zero min_length which is invalid
 		},
 	}
 	for _, tc := range tests {
@@ -79,6 +90,62 @@ func TestDefaultGenesis(t *testing.T) {
 	// Check default params
 	defaultParams := types.DefaultParams()
 	require.Equal(t, defaultParams, genesis.Params)
+
+	// Check default DKIM pubkeys are included
+	require.NotEmpty(t, genesis.DkimPubkeys, "default genesis should include DKIM pubkeys")
+	defaultDkimPubKeys := types.DefaultDkimPubKeys()
+	require.Equal(t, len(defaultDkimPubKeys), len(genesis.DkimPubkeys), "default genesis should have all default DKIM pubkeys")
+}
+
+func TestDefaultDkimPubKeys(t *testing.T) {
+	dkimPubKeys := types.DefaultDkimPubKeys()
+	require.NotEmpty(t, dkimPubKeys)
+
+	// Expected domains and selectors
+	expectedRecords := map[string]string{
+		"gmail.com":    "20230601",
+		"icloud.com":   "1a1hai",
+		"outlook.com":  "selector1",
+		"proton.me":    "ck677gxvmnehzmitcrhii5zb3q.protonmail",
+		"yahoo.com":    "s1024",
+		"fastmail.com": "fm2",
+	}
+
+	require.Equal(t, len(expectedRecords), len(dkimPubKeys), "should have exactly %d default DKIM records", len(expectedRecords))
+
+	// Verify each expected record is present
+	for _, record := range dkimPubKeys {
+		expectedSelector, exists := expectedRecords[record.Domain]
+		require.True(t, exists, "unexpected domain in default DKIM records: %s", record.Domain)
+		require.Equal(t, expectedSelector, record.Selector, "selector mismatch for domain %s", record.Domain)
+		require.NotEmpty(t, record.PubKey, "public key should not be empty for domain %s", record.Domain)
+		require.Equal(t, types.Version_VERSION_DKIM1_UNSPECIFIED, record.Version, "version should be DKIM1 for domain %s", record.Domain)
+		require.Equal(t, types.KeyType_KEY_TYPE_RSA_UNSPECIFIED, record.KeyType, "key type should be RSA for domain %s", record.Domain)
+		require.NotEmpty(t, record.PoseidonHash, "poseidon hash should not be empty for domain %s", record.Domain)
+	}
+}
+
+func TestDefaultDkimPubKeysValidation(t *testing.T) {
+	// Verify that all default DKIM public keys pass validation
+	dkimPubKeys := types.DefaultDkimPubKeys()
+	params := types.DefaultParams()
+
+	err := types.ValidateDkimPubKeys(dkimPubKeys, params)
+	require.NoError(t, err, "default DKIM public keys should pass validation")
+
+	// Verify each public key can be decoded and parsed, and poseidon hash matches
+	for _, record := range dkimPubKeys {
+		pubKeyBytes, err := types.DecodePubKeyWithLimit(record.PubKey, params.MaxPubkeySizeBytes)
+		require.NoError(t, err, "public key for %s should be decodable", record.Domain)
+
+		_, err = types.ParseRSAPublicKey(pubKeyBytes)
+		require.NoError(t, err, "public key for %s should be parseable as RSA", record.Domain)
+
+		// Verify poseidon hash matches computed value
+		hash, err := types.ComputePoseidonHash(record.PubKey)
+		require.NoError(t, err, "poseidon hash for %s should be computable", record.Domain)
+		require.Equal(t, hash.Bytes(), record.PoseidonHash, "poseidon hash mismatch for domain %s", record.Domain)
+	}
 }
 
 func TestDefaultIndex(t *testing.T) {

@@ -33,6 +33,7 @@ func (k Querier) DkimPubKey(ctx context.Context, msg *types.QueryDkimPubKeyReque
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.QueryDkimPubKeyResponse{DkimPubKey: &types.DkimPubKey{
 		Domain:       dkimPubKey.Domain,
 		PubKey:       dkimPubKey.PubKey,
@@ -52,6 +53,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 		if err != nil {
 			return nil, err
 		}
+
 		return &types.QueryDkimPubKeysResponse{
 			DkimPubKeys: []*types.DkimPubKey{{
 				Domain:       dkimPubKey.Domain,
@@ -195,40 +197,48 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 
 func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateRequest) (*types.AuthenticateResponse, error) {
 	var verified bool
-	if len(req.PublicInputs) < 88 {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "insufficient public inputs, need at least 88 elements for email hosts, got %d", len(req.PublicInputs))
-	}
 
-	if req.EmailHash != req.PublicInputs[68] {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email hash does not match public input, got %s, expected %s", req.EmailHash, req.PublicInputs[32])
-	}
-
-	// Verify tx_bytes match public inputs [12:32]
-	txPartsFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[12:68])
+	// Fetch params at start to get public input indices
+	params, err := k.Keeper.Params.Get(c)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert tx bytes public inputs to big int: %s", err.Error())
+		return nil, err
+	}
+	indices := params.PublicInputIndices
+
+	if uint64(len(req.PublicInputs)) < indices.MinLength {
+		return nil, errors.Wrapf(types.ErrNotEnoughPublicInputs, "insufficient public inputs, need at least %d elements, got %d", indices.MinLength, len(req.PublicInputs))
+	}
+
+	if req.EmailHash != req.PublicInputs[indices.EmailHashIndex] {
+		return nil, errors.Wrapf(types.ErrEmailHashMismatch, "email hash does not match public input, got %s, expected %s", req.EmailHash, req.PublicInputs[indices.EmailHashIndex])
+	}
+
+	// Verify tx_bytes match public inputs
+	txPartsFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.TxBytesRange.Start:indices.TxBytesRange.End])
+	if err != nil {
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert tx to bigint"), "failed to convert tx bytes public inputs to big int: %s", err.Error())
 	}
 	txBytesFromPublicInputs, err := types.ConvertBigIntArrayToString(txPartsFromPublicInputs)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert tx bytes public inputs to string: %s", err.Error())
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert tx parts to big int"), "failed to convert tx bytes public inputs to string: %s", err.Error())
 	}
 	if !bytes.Equal(req.TxBytes, []byte(txBytesFromPublicInputs)) {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "tx bytes do not match public inputs [12:32]")
+		return nil, errors.Wrapf(types.ErrTxBytesMismatch, "tx bytes do not match public inputs [%d:%d]", indices.TxBytesRange.Start, indices.TxBytesRange.End)
 	}
 
-	dkimDomainPInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[0:9])
+	dkimDomainPInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.DkimDomainRange.Start:indices.DkimDomainRange.End])
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs: %s", err.Error())
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert domain to big int"), "failed to convert dkim domain public inputs: %s", err.Error())
 	}
 	dkimDomainPInput, err := types.ConvertBigIntArrayToString(dkimDomainPInputBz)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs to string: %s", err.Error())
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert domain bigint to string"), "failed to convert dkim domain public inputs to string: %s", err.Error())
 	}
 
-	dkimHashPInput := req.PublicInputs[9]
+	dkimHashPInput := req.PublicInputs[indices.DkimHashIndex]
 	dkimHashPInputBig, ok := new(big.Int).SetString(dkimHashPInput, 10)
 	if !ok {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse dkim hash public input")
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot parse dkim hash"), "failed to parse dkim hash public input")
 	}
 
 	res, err := k.DkimPubKeys(c, &types.QueryDkimPubKeysRequest{
@@ -240,37 +250,37 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, err
 	}
 	if len(res.DkimPubKeys) == 0 {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "no dkim pubkey found for domain and poseidon hash")
+		return nil, errors.Wrapf(types.ErrNoDkimPubKey, "no dkim pubkey found for domain and poseidon hash")
 	}
 
-	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[70:79])
+	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.EmailHostRange.Start:indices.EmailHostRange.End])
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to big int: %s", err.Error())
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert email host to bigint"), "failed to convert allowed email hosts to big int: %s", err.Error())
 	}
 
 	emailHostFromPublicInputsString, err := types.ConvertBigIntArrayToString(emailHostFromPublicInputs)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to string: %s", err.Error())
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert email host bigint to string"), "failed to convert allowed email hosts to string: %s", err.Error())
 	}
 
 	// If public inputs have email hosts but allowedEmailHosts is empty, return error
 	if emailHostFromPublicInputsString != "" && len(req.AllowedEmailHosts) == 0 {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email host from public inputs %s is not present in allowed email hosts list", emailHostFromPublicInputsString)
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s is not present in allowed email hosts list", emailHostFromPublicInputsString)
 	}
 
 	// Check if the email host from public inputs is present in the allowedEmailHosts list
 	if !IsSubset([]string{emailHostFromPublicInputsString}, req.AllowedEmailHosts) {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "email host from public inputs %s is not present in allowed email hosts list: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s is not present in allowed email hosts list: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
 	}
 
-	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[79:88])
+	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.EmailSubjectRange.Start:indices.EmailSubjectRange.End])
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convertemail subject to big int: %s", err.Error())
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert subject to big int"), "failed to convert email subject to big int: %s", err.Error())
 	}
 
 	emailSubjectFromPublicInputsString, err := types.ConvertBigIntArrayToString(emailSubjectFromPublicInputs)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert email subject to string: %s", err.Error())
+		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert subject bigint to string"), "failed to convert email subject to string: %s", err.Error())
 	}
 
 	// Validate email subject for security and format compliance
@@ -279,11 +289,6 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
-	if err != nil {
-		return nil, err
-	}
-
-	params, err := k.Keeper.Params.Get(c)
 	if err != nil {
 		return nil, err
 	}

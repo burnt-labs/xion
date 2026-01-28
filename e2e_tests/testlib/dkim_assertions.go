@@ -86,13 +86,13 @@ func RunDKIMModuleAssertions(t *testing.T, cfg DKIMAssertionConfig) {
 			Domain:       testData.Domain1,
 			Selector:     testData.Selector1,
 			PubKey:       testData.PubKey1,
-			PoseidonHash: []byte(hash1.String()),
+			PoseidonHash: hash1.Bytes(),
 		},
 		{
 			Domain:       testData.Domain1,
 			Selector:     testData.Selector3,
 			PubKey:       testData.PubKey3,
-			PoseidonHash: []byte(hash3.String()),
+			PoseidonHash: hash3.Bytes(),
 		},
 	}
 
@@ -168,7 +168,7 @@ func RunDKIMGovernanceAssertions(t *testing.T, cfg DKIMAssertionConfig) {
 			Domain:       testDomain,
 			Selector:     testSelector,
 			PubKey:       testData.PubKey1,
-			PoseidonHash: []byte(hash.String()),
+			PoseidonHash: hash.Bytes(),
 		},
 	}
 
