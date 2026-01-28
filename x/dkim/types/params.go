@@ -10,15 +10,15 @@ const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
 
 	// Default public input indices for the Authenticate query
-	DefaultMinPublicInputsLength uint64 = 88
-	DefaultEmailHashIndex        uint64 = 68
-	DefaultDkimDomainRangeStart  uint64 = 0
-	DefaultDkimDomainRangeEnd    uint64 = 9
-	DefaultDkimHashIndex         uint64 = 9
-	DefaultTxBytesRangeStart     uint64 = 12
-	DefaultTxBytesRangeEnd       uint64 = 68
-	DefaultEmailHostRangeStart   uint64 = 70
-	DefaultEmailHostRangeEnd     uint64 = 79
+	DefaultMinPublicInputsLength  uint64 = 88
+	DefaultEmailHashIndex         uint64 = 68
+	DefaultDkimDomainRangeStart   uint64 = 0
+	DefaultDkimDomainRangeEnd     uint64 = 9
+	DefaultDkimHashIndex          uint64 = 9
+	DefaultTxBytesRangeStart      uint64 = 12
+	DefaultTxBytesRangeEnd        uint64 = 68
+	DefaultEmailHostRangeStart    uint64 = 70
+	DefaultEmailHostRangeEnd      uint64 = 79
 	DefaultEmailSubjectRangeStart uint64 = 79
 	DefaultEmailSubjectRangeEnd   uint64 = 88
 )
