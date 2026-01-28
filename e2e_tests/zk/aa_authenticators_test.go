@@ -2,6 +2,7 @@ package e2e_zk
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -82,7 +83,6 @@ func TestZKAddAuthenticators(t *testing.T) {
 
 	zkSignature := loadZKSignature(t, "Secp256K1")
 	secpKey := secp256k1.GenPrivKeyFromSecret(make([]byte, 32))
-	t.Logf("Secp256K1 private key: %s", base64.StdEncoding.EncodeToString(secpKey.Bytes()))
 	secpSig, err := secpKey.Sign([]byte(aaContractAddr))
 	require.NoError(t, err)
 	secpAuth := map[string]any{
@@ -93,13 +93,13 @@ func TestZKAddAuthenticators(t *testing.T) {
 	addAuthenticatorWithZK(t, ctx, xion, aaContractAddr, zkAuthIndex, zkSignature, buildAddAuthMsg("Secp256K1", secpAuth))
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
-	t.Logf("Secp256K1 authenticator added attempted")
 	assertAuthenticatorPresent(t, ctx, xion, aaContractAddr, 3, "Secp256K1")
-	t.Logf("Secp256K1 authenticator added successfully")
 
 	zkSignature = loadZKSignature(t, "Ed25519")
 	edKey := ed25519.GenPrivKeyFromSecret(make([]byte, 32))
-	edSig, err := edKey.Sign([]byte(aaContractAddr))
+	// sha 256 hash of aaContractAddr
+	aaContractAddrHash := sha256.Sum256([]byte(aaContractAddr))
+	edSig, err := edKey.Sign(aaContractAddrHash[:])
 	require.NoError(t, err)
 	edAuth := map[string]any{
 		"id":        uint8(4),
@@ -109,21 +109,7 @@ func TestZKAddAuthenticators(t *testing.T) {
 	addAuthenticatorWithZK(t, ctx, xion, aaContractAddr, zkAuthIndex, zkSignature, buildAddAuthMsg("Ed25519", edAuth))
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
-	t.Logf("Ed25519 authenticator added attempted")
 	assertAuthenticatorPresent(t, ctx, xion, aaContractAddr, 4, "Ed25519")
-	t.Logf("Ed25519 authenticator added successfully")
-
-	// zkSignature = loadZKSignature(t, "Passkey")
-	// passkeyCred := testlib.CreateWebAuthNAttestationCred(t, base64url.Encode([]byte(aaContractAddr)))
-	// passkeyAuth := map[string]any{
-	// 	"id":         uint8(5),
-	// 	"url":        "https://xion-dapp-example-git-feat-faceid-burntfinance.vercel.app",
-	// 	"credential": passkeyCred,
-	// }
-	// addAuthenticatorWithZK(t, ctx, xion, aaContractAddr, zkAuthIndex, zkSignature, buildAddAuthMsg("Passkey", passkeyAuth))
-	// err = testutil.WaitForBlocks(ctx, 2, xion)
-	// require.NoError(t, err)
-	// assertAuthenticatorPresent(t, ctx, xion, aaContractAddr, 5, "Passkey")
 }
 
 func seedDKIMRecords(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, proposer ibc.Wallet, proposalTracker *testlib.ProposalTracker) {
@@ -229,15 +215,10 @@ func addZKEmailAuthenticator(t *testing.T, ctx context.Context, xion *cosmos.Cos
 		"-y",
 	}
 
-	txHash, err := testlib.ExecTx(t, ctx, xion.GetNode(), keyName, cmd...)
+	_, err = testlib.ExecTx(t, ctx, xion.GetNode(), keyName, cmd...)
 	require.NoError(t, err)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
-	// Verify authenticator was added
-	txDetails, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
-	require.NoError(t, err)
-	t.Logf("add zk auth tx %s:", txDetails)
-	t.Logf("ZK auth Successfully added")
 }
 
 func loadZKSignature(t *testing.T, auth string) testlib.ZKEmailSignature {
@@ -266,7 +247,6 @@ func buildAddAuthMsg(authType string, details map[string]any) []byte {
 }
 
 func addAuthenticatorWithZK(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, aaContractAddr string, authIndex uint8, zkSignature testlib.ZKEmailSignature, executeMsg []byte) {
-	t.Logf("Adding authenticator with ZK: %d", authIndex)
 	msgExec := &wasmtypes.MsgExecuteContract{
 		Sender:   aaContractAddr,
 		Contract: aaContractAddr,
@@ -279,7 +259,6 @@ func addAuthenticatorWithZK(t *testing.T, ctx context.Context, xion *cosmos.Cosm
 	txBuilder := xion.Config().EncodingConfig.TxConfig.NewTxBuilder()
 	err := txBuilder.SetMsgs(msgExec)
 	require.NoError(t, err)
-	t.Logf("addAuthMethod SetMsgs: %s", err)
 
 	txBuilder.SetFeeAmount(sdk.Coins{{Denom: xion.Config().Denom, Amount: math.NewInt(100000)}})
 	txBuilder.SetGasLimit(800000)
@@ -347,10 +326,11 @@ func addAuthenticatorWithZK(t *testing.T, ctx context.Context, xion *cosmos.Cosm
 	jsonTx, err := xion.Config().EncodingConfig.TxConfig.TxJSONEncoder()(txBuilder.GetTx())
 	require.NoError(t, err)
 
-	t.Logf("jsonTx: %s", jsonTx)
-	_, err = testlib.ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--output", "json")
+	txHash, err := testlib.ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--output", "json")
 	require.NoError(t, err)
-	t.Logf("Broadcast successful")
+	// query the tx by hash
+	_, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	require.NoError(t, err)
 }
 
 func fetchAAAccount(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, aaContractAddr string) aatypes.AbstractAccount {
@@ -375,20 +355,18 @@ func fetchAAAccount(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain,
 }
 
 func assertAuthenticatorPresent(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, aaContractAddr string, id uint8, expectedKey string) {
+	// query the authenticator by ID
 	queryMsg := fmt.Sprintf(`{"authenticator_by_i_d":{"id":%d}}`, id)
 	resp, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, queryMsg)
 	require.NoError(t, err)
-	t.Logf("Authenticator by ID response: %s", resp)
 
 	data64, ok := resp["data"].(string)
 	require.True(t, ok)
 	decoded, err := base64.StdEncoding.DecodeString(data64)
 	require.NoError(t, err)
-	t.Logf("Decoded authenticator: %s", decoded)
 
 	var authResp map[string]any
 	err = json.Unmarshal(decoded, &authResp)
 	require.NoError(t, err)
 	require.Contains(t, authResp, expectedKey)
-	t.Logf("Authenticator %s present", expectedKey)
 }

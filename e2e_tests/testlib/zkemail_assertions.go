@@ -186,7 +186,8 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	// Extract emailSalt from publicInputs
 	publicInputs, ok := zkAuthData["publicInputs"].([]interface{})
 	require.True(t, ok, "publicInputs should be an array")
-	emailSalt, ok := publicInputs[68].(string)
+	emailHashIndex := dkimTypes.DefaultParams().PublicInputIndices.EmailHashIndex
+	emailSalt, ok := publicInputs[int(emailHashIndex)].(string)
 	require.True(t, ok, "emailSalt should be a string")
 
 	zkAuthJSONBytes, err := json.Marshal(zkAuthData)
