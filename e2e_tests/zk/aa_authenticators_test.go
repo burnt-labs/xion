@@ -122,21 +122,19 @@ func seedDKIMRecords(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain
 	icloudPoseidonHashInt := new(big.Int)
 	icloudPoseidonHashInt.SetString(icloudPoseidonHashStr, 10)
 
-	gmailDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+	gmailDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
 	icloudDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1ZEfbkf4TbO2TDZI67WhJ6G8Dwk3SJyAbBlE/QKdyXFZB4HfEU7AcuZBzcXSJFE03DlmyOkUAmaaR8yFlwooHyaKRLIaT3epGlL5YGowyfItLly2k0Jj0IOICRxWrB378b7qMeimE8KlH1UNaVpRTTi0XIYjIKAOpTlBmkM9a/3Rl4NWy8pLYApXD+WCkYxPcxoAAgaN8osqGTCJ5r+VHFU7Wm9xqq3MZmnfo0bzInF4UajCKjJAQa+HNuh95DWIYP/wV77/PxkEakOtzkbJMlFJiK/hMJ+HQUvTbtKW2s+t4uDK8DI16Rotsn6e0hS8xuXPmVte9ZzplD0fQgm2qwIDAQAB"
 
 	dkimRecords := []dkimTypes.DkimPubKey{
 		{
-			Domain:       "gmail.com",
-			Selector:     "selector1",
-			PubKey:       gmailDkimPubKey,
-			PoseidonHash: gmailPoseidonHashInt.Bytes(),
+			Domain:   "gmail.com",
+			Selector: "selector1",
+			PubKey:   gmailDkimPubKey,
 		},
 		{
-			Domain:       "icloud.com",
-			Selector:     "1a1hai",
-			PubKey:       icloudDkimPubKey,
-			PoseidonHash: icloudPoseidonHashInt.Bytes(),
+			Domain:   "icloud.com",
+			Selector: "1a1hai",
+			PubKey:   icloudDkimPubKey,
 		},
 	}
 
@@ -151,6 +149,16 @@ func seedDKIMRecords(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain
 		[]cosmos.ProtoMessage{createDkimMsg},
 		"Seed DKIM for ZKEmail", "Seed DKIM record for ZKEmail authentication", "Seed DKIM for ZKEmail", dkimProposalID)
 	require.NoError(t, err)
+	// query dkimpubkey to ensure they were added
+	for _, record := range dkimRecords {
+		poseidonHash, err := dkimTypes.ComputePoseidonHash(record.PubKey)
+		require.NoError(t, err)
+
+		res, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", record.Domain, record.Selector)
+		require.NoError(t, err)
+		t.Logf("dkim record for domain: %s, %v", record.Domain, res)
+		require.Equal(t, base64.StdEncoding.EncodeToString(poseidonHash.Bytes()), res["dkim_pub_key"].(map[string]any)["poseidon_hash"].(string))
+	}
 }
 
 func addZKEmailAuthenticator(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain, keyName, aaContractAddr string) {
@@ -215,10 +223,14 @@ func addZKEmailAuthenticator(t *testing.T, ctx context.Context, xion *cosmos.Cos
 		"-y",
 	}
 
-	_, err = testlib.ExecTx(t, ctx, xion.GetNode(), keyName, cmd...)
+	txHash, err := testlib.ExecTx(t, ctx, xion.GetNode(), keyName, cmd...)
 	require.NoError(t, err)
 	err = testutil.WaitForBlocks(ctx, 2, xion)
 	require.NoError(t, err)
+	// query the txhash
+	txResult, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	require.NoError(t, err)
+	t.Logf("transaction adding authenticator %v", txResult)
 }
 
 func loadZKSignature(t *testing.T, auth string) testlib.ZKEmailSignature {

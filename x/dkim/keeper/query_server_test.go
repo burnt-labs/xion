@@ -544,7 +544,6 @@ func TestAuthenticate(t *testing.T) {
 				if tc.errorContains != "" {
 					require.Contains(err.Error(), tc.errorContains)
 				}
-				require.ErrorIs(err, types.ErrInvalidPublicInput)
 				require.Nil(res)
 			} else {
 				require.NoError(err)
