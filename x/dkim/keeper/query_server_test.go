@@ -229,9 +229,8 @@ func TestParams(t *testing.T) {
 	})
 
 	t.Run("returns updated params after UpdateParams", func(t *testing.T) {
-		newParams := types.Params{
-			VkeyIdentifier: 42,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 42
 
 		// Update params
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
@@ -249,9 +248,8 @@ func TestParams(t *testing.T) {
 	})
 
 	t.Run("returns params with empty dkim pubkeys", func(t *testing.T) {
-		newParams := types.Params{
-			VkeyIdentifier: 99,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 99
 
 		// Update params
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
@@ -379,18 +377,13 @@ func TestAuthenticate(t *testing.T) {
 	// Setup DKIM pub key
 	poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 	require.True(ok)
-	_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-		Authority: f.govModAddr,
-		DkimPubkeys: []types.DkimPubKey{
-			{
-				Domain:       "gmail.com",
-				PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-				PoseidonHash: poseidonHash.Bytes(),
-				Selector:     "selector1",
-				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-			},
-		},
-	})
+	_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+		Domain:       "gmail.com",
+		PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+		PoseidonHash: poseidonHash.Bytes(),
+		Selector:     "selector1",
+		Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+	}, &f.k)
 	require.NoError(err)
 
 	// Common proof JSON
@@ -829,18 +822,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Create public inputs with invalid email host values
@@ -875,18 +863,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
@@ -918,18 +901,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
@@ -969,18 +947,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		require.NoError(err)
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err = f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err = keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 		req := &types.QueryAuthenticateRequest{
 			TxBytes:           []byte(txBytesStr),
@@ -1043,18 +1016,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
@@ -1086,18 +1054,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
@@ -1159,18 +1122,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(fullPublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes from public inputs
@@ -1296,18 +1254,13 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(fullPublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Convert command/tx data from public inputs [12:32]
@@ -1364,9 +1317,8 @@ func TestParamsExtended(t *testing.T) {
 		require := require.New(t)
 
 		// First update
-		newParams1 := types.Params{
-			VkeyIdentifier: 10,
-		}
+		newParams1 := types.DefaultParams()
+		newParams1.VkeyIdentifier = 10
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams1,
@@ -1378,9 +1330,8 @@ func TestParamsExtended(t *testing.T) {
 		require.Equal(uint64(10), res1.Params.VkeyIdentifier)
 
 		// Second update
-		newParams2 := types.Params{
-			VkeyIdentifier: 20,
-		}
+		newParams2 := types.DefaultParams()
+		newParams2.VkeyIdentifier = 20
 		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams2,
@@ -1396,9 +1347,8 @@ func TestParamsExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		newParams := types.Params{
-			VkeyIdentifier: 18446744073709551615, // max uint64
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 18446744073709551615 // max uint64
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams,
@@ -1414,9 +1364,8 @@ func TestParamsExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		newParams := types.Params{
-			VkeyIdentifier: 5,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 5
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams,
@@ -1428,9 +1377,8 @@ func TestParamsExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		newParams := types.Params{
-			VkeyIdentifier: 100,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 100
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: "invalid-authority",
 			Params:    newParams,
