@@ -1,9 +1,6 @@
 package cli
 
 import (
-	"fmt"
-	"math/big"
-
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -79,18 +76,9 @@ func ParseDkimPubKeysFlags(cmd *cobra.Command) (domain, selector, poseidonHash s
 // QueryDkimPubKeys is a helper function that queries multiple DKIM public keys.
 // This function is extracted for testability.
 func QueryDkimPubKeys(queryClient types.QueryClient, cmd *cobra.Command, domain, selector, poseidonHash string) (*types.QueryDkimPubKeysResponse, error) {
-	var hashBytes []byte
-	if poseidonHash != "" {
-		n, ok := new(big.Int).SetString(poseidonHash, 10)
-		if !ok {
-			return nil, fmt.Errorf("invalid poseidon hash: %q is not a valid decimal number", poseidonHash)
-		}
-		hashBytes = n.Bytes()
-	}
 	return queryClient.DkimPubKeys(cmd.Context(), &types.QueryDkimPubKeysRequest{
-		Domain:       domain,
-		Selector:     selector,
-		PoseidonHash: hashBytes,
+		Domain:   domain,
+		Selector: selector,
 	})
 }
 
