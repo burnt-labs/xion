@@ -2,27 +2,17 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
 
-var amino = codec.NewLegacyAmino()
-
-func init() {
-	RegisterLegacyAminoCodec(amino)
-	cryptocodec.RegisterCrypto(amino)
-	sdk.RegisterLegacyAminoCodec(amino)
-}
-
 // RegisterLegacyAminoCodec registers concrete types on the LegacyAmino codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	legacy.RegisterAminoMsg(cdc, &MsgAddDkimPubKeys{}, ModuleName+"/MsgAddDkimPubKeys")
-	legacy.RegisterAminoMsg(cdc, &MsgRemoveDkimPubKey{}, ModuleName+"/MsgRemoveDkimPubKey")
-	legacy.RegisterAminoMsg(cdc, &MsgRevokeDkimPubKey{}, ModuleName+"/MsgRevokeDkimPubKey")
-	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, ModuleName+"/MsgUpdateParams")
+	cdc.RegisterConcrete(&MsgAddDkimPubKeys{}, ModuleName+"/MsgAddDkimPubKey", nil)
+	cdc.RegisterConcrete(&MsgRemoveDkimPubKey{}, ModuleName+"/MsgRemoveDkimPubKey", nil)
+	cdc.RegisterConcrete(&MsgRevokeDkimPubKey{}, ModuleName+"/MsgRevokeDkimPubKey", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, ModuleName+"/MsgUpdateParams", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
