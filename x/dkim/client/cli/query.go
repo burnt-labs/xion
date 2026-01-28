@@ -77,9 +77,8 @@ func ParseDkimPubKeysFlags(cmd *cobra.Command) (domain, selector, poseidonHash s
 // This function is extracted for testability.
 func QueryDkimPubKeys(queryClient types.QueryClient, cmd *cobra.Command, domain, selector, poseidonHash string) (*types.QueryDkimPubKeysResponse, error) {
 	return queryClient.DkimPubKeys(cmd.Context(), &types.QueryDkimPubKeysRequest{
-		Domain:       domain,
-		Selector:     selector,
-		PoseidonHash: []byte(poseidonHash),
+		Domain:   domain,
+		Selector: selector,
 	})
 }
 
@@ -137,7 +136,7 @@ func GenerateDkimPubKeyMsg(domain, selector string) (*types.DkimPubKey, error) {
 		Domain:       domain,
 		PubKey:       pubKey,
 		Selector:     selector,
-		PoseidonHash: []byte(hash.String()),
+		PoseidonHash: hash.Bytes(),
 		Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 		KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 	}, nil

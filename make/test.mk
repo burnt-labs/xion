@@ -149,6 +149,9 @@ test-zk-email-authenticator:
 test-zk-params-and-vkey-uploads:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKParamsAndVKeyUploads
 
+test-zk-add-authenticators:
+	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKAddAuthenticators
+
 # JWK Module Tests
 test-jwk-algorithm-confusion:
 	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKAlgorithmConfusion
