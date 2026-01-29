@@ -15,7 +15,6 @@ func MigrateStore(
 	vkeys collections.Map[uint64, types.VKey],
 ) error {
 	ctx.Logger().Info("Running zk module migration from v1 to v2")
-
 	// update the vkey to the new vkey value
 	defaultVkeys := types.DefaultGenesisState().Vkeys
 	var defaultVkey types.VKey
@@ -30,6 +29,8 @@ func MigrateStore(
 		if err := vkeys.Set(ctx, 1, defaultVkey); err != nil {
 			return err
 		}
+	} else {
+		ctx.Logger().Info("WARNING: default vkey with id 1 not found in DefaultGenesisState; skipping vkey update")
 	}
 
 	ctx.Logger().Info("ZK module migration from v1 to v2 completed successfully")

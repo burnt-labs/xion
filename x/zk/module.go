@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	// ConsensusVersion defines the current x/dkim module consensus version.
+	// ConsensusVersion defines the current x/zk module consensus version.
 	ConsensusVersion = 2
 
 // this line is used by starport scaffolding # simapp/module/const
