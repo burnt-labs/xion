@@ -94,15 +94,15 @@ func (m *SnarkJsProof) GetPiC() [][]byte {
 	return nil
 }
 
-// QueryVerifyRequest defines the request structure for proof verification.
+// QueryVerifyRequest is the request type for the Query/ProofVerify RPC method.
 type QueryVerifyRequest struct {
-	// proof is the serialized ZK proof bytes.
+	// proof is the serialized ZK proof to verify.
 	Proof []byte `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
-	// public_inputs are the public inputs for the ZK circuit.
+	// public_inputs is the list of public inputs for the proof.
 	PublicInputs []string `protobuf:"bytes,2,rep,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
 	// vkey_name is the name of the verification key to use.
 	VkeyName string `protobuf:"bytes,3,opt,name=vkey_name,json=vkeyName,proto3" json:"vkey_name,omitempty"`
-	// vkey_id is the unique identifier of the verification key to use.
+	// vkey_id is the ID of the verification key to use.
 	VkeyId uint64 `protobuf:"varint,4,opt,name=vkey_id,json=vkeyId,proto3" json:"vkey_id,omitempty"`
 }
 
@@ -215,13 +215,13 @@ func (m *ProofVerifyResponse) GetVerified() bool {
 
 // VKey represents a verification key for ZK proof verification.
 type VKey struct {
-	// key_bytes is the serialized verification key data.
+	// key_bytes is the raw bytes of the verification key.
 	KeyBytes []byte `protobuf:"bytes,1,opt,name=key_bytes,json=keyBytes,proto3" json:"key_bytes,omitempty"`
-	// name is the unique name identifier for the verification key.
+	// name is the unique human-readable identifier for this key.
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// description provides a human-readable description of the verification key.
+	// description provides additional context about the verification key.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// circuit_hash is the hash of the circuit this key verifies.
+	// circuit_hash is the hash of the circuit this key is associated with.
 	CircuitHash string `protobuf:"bytes,4,opt,name=circuit_hash,json=circuitHash,proto3" json:"circuit_hash,omitempty"`
 	// authority is the uploader of the verification key.
 	Authority string `protobuf:"bytes,5,opt,name=authority,proto3" json:"authority,omitempty"`
@@ -788,7 +788,7 @@ var xxx_messageInfo_QueryNextVKeyIDRequest proto.InternalMessageInfo
 // QueryNextVKeyIDResponse is the response type for the Query/NextVKeyID RPC
 // method
 type QueryNextVKeyIDResponse struct {
-	// next_id is the next available verification key identifier.
+	// next_id is the next available verification key ID.
 	NextId uint64 `protobuf:"varint,1,opt,name=next_id,json=nextId,proto3" json:"next_id,omitempty"`
 }
 
