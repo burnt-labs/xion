@@ -18,6 +18,11 @@ jobs:
     uses: ./.github/workflows/golangci-lint.yaml
     secrets: inherit
 
+  proto-check:
+    name: Proto Generation Check
+    uses: ./.github/workflows/proto-check.yaml
+    secrets: inherit
+
   update-swagger:
     name: Update Swagger
     uses: ./.github/workflows/update-swagger.yaml

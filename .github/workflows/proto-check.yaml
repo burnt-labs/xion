@@ -1,0 +1,29 @@
+name: Proto Check
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  proto-check:
+    name: Proto Generation Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Set Go Version
+        id: go-version
+        run: echo "version=$(sed -En 's/^go (.*)$/\1/p' go.mod)" >> $GITHUB_OUTPUT
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.go-version.outputs.version }}
+
+      - name: Generate and verify proto files
+        run: make proto-gen-ci

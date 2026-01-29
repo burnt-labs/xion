@@ -83,6 +83,46 @@ proto-check-breaking:
 	@echo "🔍 ========================================"
 	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
 
+# Generate all protobuf files and verify no uncommitted changes (for CI)
+proto-gen-all:
+	@echo "🚀 ========================================"
+	@echo "🚀 GENERATING ALL PROTOBUF FILES"
+	@echo "🚀 ========================================"
+	@$(MAKE) proto-gen
+	@$(MAKE) proto-gen-pulsar
+	@$(MAKE) proto-gen-openapi
+	@echo ""
+	@echo "🔧 ========================================"
+	@echo "🔧 FORMATTING PROTOBUF FILES"
+	@echo "🔧 ========================================"
+	@$(MAKE) proto-format
+	@echo ""
+	@echo "🔍 ========================================"
+	@echo "🔍 LINTING PROTOBUF FILES"
+	@echo "🔍 ========================================"
+	@$(MAKE) proto-lint
+	@echo ""
+	@echo "✅ All protobuf generation complete"
+
+# CI target: generate all protos and fail if there are uncommitted changes
+proto-gen-ci:
+	@echo "🔍 ========================================"
+	@echo "🔍 CI PROTOBUF CHECK"
+	@echo "🔍 ========================================"
+	@$(MAKE) proto-gen-all
+	@echo ""
+	@echo "🔍 Checking for uncommitted changes..."
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		echo "❌ ERROR: Uncommitted changes detected after proto generation!"; \
+		echo ""; \
+		echo "The following files have changed:"; \
+		git status --porcelain; \
+		echo ""; \
+		echo "Please run 'make proto-gen-all' locally and commit the changes."; \
+		exit 1; \
+	fi
+	@echo "✅ No uncommitted changes - proto files are up to date"
+
 # Help targets for proto module
 help-proto-brief:
 	@echo "  proto-gen                  Generate protobuf files"
@@ -95,10 +135,13 @@ help-proto:
 	@echo "  proto-gen-openapi          Generate OpenAPI specs"
 	@echo "  proto-gen-swagger          Generate Swagger specs"
 	@echo "  proto-gen-pulsar           Generate pulsar protobuf files"
+	@echo "  proto-gen-all              Generate all protobuf files (gogo + pulsar + openapi)"
+	@echo "  proto-gen-ci               Generate all and fail if uncommitted changes (for CI)"
 	@echo "  proto-format               Format protobuf files"
 	@echo "  proto-lint                 Lint protobuf files"
 	@echo "  proto-check-breaking       Check for breaking changes"
 	@echo ""
 
 .PHONY: proto-all proto-gen proto-gen-openapi proto-gen-swagger proto-gen-pulsar \
-        proto-format proto-lint proto-check-breaking help-proto help-proto-brief
+        proto-gen-all proto-gen-ci proto-format proto-lint proto-check-breaking \
+        help-proto help-proto-brief
