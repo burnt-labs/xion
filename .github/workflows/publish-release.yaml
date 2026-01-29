@@ -28,3 +28,4 @@ jobs:
     name: Trigger Homebrew
     uses: ./.github/workflows/trigger-homebrew.yaml
     secrets: inherit
+>>>>>>> fix/zk_and_dkim_codecs
