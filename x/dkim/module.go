@@ -33,7 +33,7 @@ const (
 var (
 	_ module.AppModuleBasic    = AppModuleBasic{}
 	_ module.AppModuleGenesis  = AppModule{}
-	_ module.AppModule         = AppModule{}
+	_ module.AppModule         = AppModule{} //nolint:staticcheck // SA1019: Deprecated but required for module.AppModule interface
 	_ autocli.HasAutoCLIConfig = AppModule{}
 )
 

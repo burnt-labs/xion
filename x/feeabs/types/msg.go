@@ -24,7 +24,7 @@ func (m MsgSendQueryIbcDenomTWAP) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes Implements Msg.
 func (m MsgSendQueryIbcDenomTWAP) GetSignBytes() []byte {
-	return sdk.MustSortJSON(legacy.Cdc.MustMarshalJSON(&m))
+	return sdk.MustSortJSON(legacy.Cdc.MustMarshalJSON(&m)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // ValidateBasic does a sanity check on the provided data.
@@ -61,7 +61,7 @@ func (m MsgSwapCrossChain) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes Implements Msg.
 func (m MsgSwapCrossChain) GetSignBytes() []byte {
-	return sdk.MustSortJSON(legacy.Cdc.MustMarshalJSON(&m))
+	return sdk.MustSortJSON(legacy.Cdc.MustMarshalJSON(&m)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // ValidateBasic does a sanity check on the provided data.
@@ -99,7 +99,7 @@ func (m MsgFundFeeAbsModuleAccount) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes Implements Msg.
 func (m MsgFundFeeAbsModuleAccount) GetSignBytes() []byte {
-	return sdk.MustSortJSON(legacy.Cdc.MustMarshalJSON(&m))
+	return sdk.MustSortJSON(legacy.Cdc.MustMarshalJSON(&m)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // ValidateBasic does a sanity check on the provided data.

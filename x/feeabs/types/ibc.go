@@ -84,5 +84,5 @@ func NewInterchainQueryPacketData(data []byte, memo string) InterchainQueryPacke
 
 // GetBytes returns the JSON marshalled interchain query packet data.
 func (p InterchainQueryPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }

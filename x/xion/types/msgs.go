@@ -64,7 +64,7 @@ func (msg MsgSend) ValidateBasic() error {
 
 // GetSignBytes Implements Msg.
 func (msg MsgSend) GetSignBytes() []byte {
-	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // GetSigners Implements Msg.
@@ -106,7 +106,7 @@ func (msg MsgMultiSend) ValidateBasic() error {
 
 // GetSignBytes Implements Msg.
 func (msg MsgMultiSend) GetSignBytes() []byte {
-	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // GetSigners Implements Msg.
@@ -145,7 +145,7 @@ func (msg MsgSetPlatformPercentage) ValidateBasic() error {
 
 // GetSignBytes Implements Msg.
 func (msg MsgSetPlatformPercentage) GetSignBytes() []byte {
-	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // GetSigners Implements Msg.
@@ -197,7 +197,7 @@ func (msg MsgSetPlatformMinimum) ValidateBasic() error {
 
 // GetSignBytes Implements Msg.
 func (msg MsgSetPlatformMinimum) GetSignBytes() []byte {
-	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&msg)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // GetSigners Implements Msg.

@@ -53,7 +53,7 @@ func (msg *MsgCreateAudience) GetSigners() []sdk.AccAddress {
 
 func (msg *MsgCreateAudience) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(bz) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 func (msg *MsgCreateAudience) ValidateBasic() error {
@@ -116,7 +116,7 @@ func (msg *MsgUpdateAudience) GetSigners() []sdk.AccAddress {
 
 func (msg *MsgUpdateAudience) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(bz) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 func (msg *MsgUpdateAudience) ValidateBasic() error {
@@ -178,7 +178,7 @@ func (msg *MsgDeleteAudience) GetSigners() []sdk.AccAddress {
 
 func (msg *MsgDeleteAudience) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(bz) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 func (msg *MsgDeleteAudience) ValidateBasic() error {
@@ -219,7 +219,7 @@ func (msg *MsgCreateAudienceClaim) GetSigners() []sdk.AccAddress {
 
 func (msg *MsgCreateAudienceClaim) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(bz) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 func (msg *MsgCreateAudienceClaim) ValidateBasic() error {
@@ -265,7 +265,7 @@ func (msg *MsgDeleteAudienceClaim) GetSigners() []sdk.AccAddress {
 
 func (msg *MsgDeleteAudienceClaim) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(bz) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 func (msg *MsgDeleteAudienceClaim) ValidateBasic() error {

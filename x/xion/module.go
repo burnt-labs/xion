@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
+	_ module.AppModule      = AppModule{} //nolint:staticcheck // deprecated but still required
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 

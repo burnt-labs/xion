@@ -34,7 +34,7 @@ const (
 var (
 	_ module.AppModuleBasic    = AppModuleBasic{}
 	_ module.AppModuleGenesis  = AppModule{}
-	_ module.AppModule         = AppModule{}
+	_ module.AppModule         = AppModule{} //nolint:staticcheck // deprecated but still required
 	_ autocli.HasAutoCLIConfig = AppModule{}
 	_ appmodule.AppModule      = AppModule{}
 )

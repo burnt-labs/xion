@@ -17,7 +17,7 @@ const ConsensusVersion = 1
 
 var (
 	_ module.AppModuleBasic = AppModuleBasic{}
-	_ module.AppModule      = AppModule{}
+	_ module.AppModule      = AppModule{} //nolint:staticcheck // deprecated but still required
 )
 
 // AppModuleBasic defines the basic application module used by the xauthz(xion authz)  module.

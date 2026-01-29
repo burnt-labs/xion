@@ -10,7 +10,7 @@ var _ sdk.Msg = &MsgUpdateParams{}
 
 // GetSignBytes implements the LegacyMsg interface.
 func (m MsgUpdateParams) GetSignBytes() []byte {
-	return sdk.MustSortJSON(amino.MustMarshalJSON(&m))
+	return sdk.MustSortJSON(amino.MustMarshalJSON(&m)) //nolint:staticcheck // deprecated but required for legacy amino signing
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
