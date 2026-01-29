@@ -31,106 +31,103 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - linux
-        arch:
-          - amd64
-          # - arm64
-        test_type:
+        os: [linux]
+        arch: [amd64]
+        test:
           # Abstract Account Module Tests
-          - "AABasic"
-          - "AAClientEvent"
-          - "AAJWTCLI"
-          - "AAMultiAuth"
-          - "AAPanic"
-          - "AASingleMigration"
-          - "AAWebAuthn"
+          - { dir: "abstract-account", type: "AABasic" }
+          - { dir: "abstract-account", type: "AAClientEvent" }
+          - { dir: "abstract-account", type: "AAJWTCLI" }
+          - { dir: "abstract-account", type: "AAMultiAuth" }
+          - { dir: "abstract-account", type: "AAPanic" }
+          - { dir: "abstract-account", type: "AASingleMigration" }
+          - { dir: "abstract-account", type: "AAWebAuthn" }
           # App Module Tests
-          - "AppGovernance"
-          # - "AppIBCTimeout"
-          # - "AppIBCTransfer"
-          - "AppMintInflationHighFees"
-          - "AppMintInflationLowFees"
-          - "AppMintInflationNoFees"
-          - "AppMintNoInflationNoFees"
-          - "AppSendPlatformFee"
-          - "AppSimulate"
-          - "AppTokenFactory"
-          - "AppTreasuryContract"
-          - "AppTreasuryGrants"
-          - "AppTreasuryMulti"
-          - "AppUpdateTreasuryConfigs"
-          - "AppUpdateTreasuryConfigsAA"
-          - "AppUpdateTreasuryParams"
-          # - "AppUpgradeIBC"
-          # - "AppUpgradeNetwork"
+          - { dir: "app", type: "AppGovernance" }
+          # - {dir: "app", type: "AppIBCTimeout"}
+          # - {dir: "app", type: "AppIBCTransfer"}
+          - { dir: "app", type: "AppMintInflationHighFees" }
+          - { dir: "app", type: "AppMintInflationLowFees" }
+          - { dir: "app", type: "AppMintInflationNoFees" }
+          - { dir: "app", type: "AppMintNoInflationNoFees" }
+          - { dir: "app", type: "AppSendPlatformFee" }
+          - { dir: "app", type: "AppSimulate" }
+          - { dir: "app", type: "AppTokenFactory" }
+          - { dir: "app", type: "AppTreasuryContract" }
+          - { dir: "app", type: "AppTreasuryGrants" }
+          - { dir: "app", type: "AppTreasuryMulti" }
+          - { dir: "app", type: "AppUpdateTreasuryConfigs" }
+          - { dir: "app", type: "AppUpdateTreasuryConfigsAA" }
+          - { dir: "app", type: "AppUpdateTreasuryParams" }
+          # - {dir: "app", type: "AppUpgradeIBC"}
+          # - {dir: "app", type: "AppUpgradeNetwork"}
           # DKIM Module Tests
-          # - "DKIMGovernance"
-          # - "DKIMKeyRevocation"
-          # - "DKIMModule"
-          # - "DKIMZKEmail"
-          # - "DKIMZKProof"
+          # - {dir: "dkim", type: "DKIMGovernance"}
+          # - {dir: "dkim", type: "DKIMKeyRevocation"}
+          # - {dir: "dkim", type: "DKIMModule"}
+          # - {dir: "dkim", type: "DKIMZKEmail"}
+          # - {dir: "dkim", type: "DKIMZKProof"}
           # Indexer Module Tests
-          - "IndexerAuthzCreate"
-          - "IndexerAuthzMultiple"
-          - "IndexerAuthzRevoke"
-          - "IndexerFeeGrantCreate"
-          - "IndexerFeeGrantMultiple"
-          - "IndexerFeeGrantPeriodic"
-          - "IndexerFeeGrantRevoke"
+          - { dir: "indexer", type: "IndexerAuthzCreate" }
+          - { dir: "indexer", type: "IndexerAuthzMultiple" }
+          - { dir: "indexer", type: "IndexerAuthzRevoke" }
+          - { dir: "indexer", type: "IndexerFeeGrantCreate" }
+          - { dir: "indexer", type: "IndexerFeeGrantMultiple" }
+          - { dir: "indexer", type: "IndexerFeeGrantPeriodic" }
+          - { dir: "indexer", type: "IndexerFeeGrantRevoke" }
           # JWK Module Tests
-          - "JWKAlgorithmConfusion"
-          - "JWKAudienceMismatch"
-          - "JWKExpiredToken"
-          - "JWKInvalidSignature"
-          - "JWKJWTAA"
-          - "JWKKeyRotation"
-          - "JWKMalformedTokens"
-          - "JWKMissingClaims"
-          - "JWKMultipleAudiences"
-          - "JWKTransactionHash"
+          - { dir: "jwk", type: "JWKAlgorithmConfusion" }
+          - { dir: "jwk", type: "JWKAudienceMismatch" }
+          - { dir: "jwk", type: "JWKExpiredToken" }
+          - { dir: "jwk", type: "JWKInvalidSignature" }
+          - { dir: "jwk", type: "JWKJWTAA" }
+          - { dir: "jwk", type: "JWKKeyRotation" }
+          - { dir: "jwk", type: "JWKMalformedTokens" }
+          - { dir: "jwk", type: "JWKMissingClaims" }
+          - { dir: "jwk", type: "JWKMultipleAudiences" }
+          - { dir: "jwk", type: "JWKTransactionHash" }
           # Xion Module Tests - Genesis and Indexer
-          - "GenesisExportImport"
-          - "XionIndexerAuthz"
-          - "XionIndexerFeeGrant"
-          - "XionIndexerNonConsensusCritical"
+          - { dir: "xion", type: "GenesisExportImport" }
+          - { dir: "xion", type: "XionIndexerAuthz" }
+          - { dir: "xion", type: "XionIndexerFeeGrant" }
+          - { dir: "xion", type: "XionIndexerNonConsensusCritical" }
           # Xion Module Tests - Original
-          - "XionMinFeeBypass"
-          - "XionMinFeeDefault"
-          - "XionMinFeeMultiDenom"
-          - "XionMinFeeMultiDenomIBC"
-          - "XionMinFeeZero"
-          - "XionPlatformFee"
-          - "XionPlatformFeeBypass"
-          - "XionPlatformMinCodecBug"
-          - "XionPlatformMinDirect"
+          - { dir: "xion", type: "XionMinFeeBypass" }
+          - { dir: "xion", type: "XionMinFeeDefault" }
+          - { dir: "xion", type: "XionMinFeeMultiDenom" }
+          - { dir: "xion", type: "XionMinFeeMultiDenomIBC" }
+          - { dir: "xion", type: "XionMinFeeZero" }
+          - { dir: "xion", type: "XionPlatformFee" }
+          - { dir: "xion", type: "XionPlatformFeeBypass" }
+          - { dir: "xion", type: "XionPlatformMinCodecBug" }
+          - { dir: "xion", type: "XionPlatformMinDirect" }
           # Xion Module Tests - Coverage Tests
-          - "XionMinFeeMultiDenomAdvanced"
-          - "XionMinFeeExtremeValues"
-          - "XionMinFeeConcurrentTransactions"
-          - "XionMinFeeSequenceHandling"
-          - "XionPlatformMinimumWithFees"
-          - "XionPlatformMinimumCodecValidation"
-          - "XionPlatformMinimumBypassInteraction"
-          - "XionMinFeeErrorMessages"
-          - "XionMinFeeInsufficientBalance"
-          - "XionMinFeeEdgeCaseScenarios"
-          - "XionMinFeeMemPoolBehavior"
+          - { dir: "xion", type: "XionMinFeeMultiDenomAdvanced" }
+          - { dir: "xion", type: "XionMinFeeExtremeValues" }
+          - { dir: "xion", type: "XionMinFeeConcurrentTransactions" }
+          - { dir: "xion", type: "XionMinFeeSequenceHandling" }
+          - { dir: "xion", type: "XionPlatformMinimumWithFees" }
+          - { dir: "xion", type: "XionPlatformMinimumCodecValidation" }
+          - { dir: "xion", type: "XionPlatformMinimumBypassInteraction" }
+          - { dir: "xion", type: "XionMinFeeErrorMessages" }
+          - { dir: "xion", type: "XionMinFeeInsufficientBalance" }
+          - { dir: "xion", type: "XionMinFeeEdgeCaseScenarios" }
+          - { dir: "xion", type: "XionMinFeeMemPoolBehavior" }
           # Xion Module Tests - Critical Security Tests
-          - "XionMinFeeGasCapBoundaries"
-          - "XionMinFeeGasCapWithFees"
-          - "XionMinFeeGasCapMultipleMessages"
-          - "XionMinFeeWithFeeGrant"
-          - "XionMinFeeFeeGrantAllowanceTypes"
-          - "XionMinFeeFeeGrantExpiration"
-          - "XionMinFeeMultipleFeeGrants"
-          - "XionMinFeeMultiMessageMixedTypes"
-          - "XionMinFeeMultiMessageSameType"
-          - "XionMinFeeMultiMessageGasAccounting"
-          - "XionMinFeeMultiMessageWithFeeGrant"
-          - "XionMinFeeMultiMessageErrorPaths"
-          - "XionMinFeeMultiMessageSequential"
-          - "XionMinFeeBypassMessageTypes"
+          - { dir: "xion", type: "XionMinFeeGasCapBoundaries" }
+          - { dir: "xion", type: "XionMinFeeGasCapWithFees" }
+          - { dir: "xion", type: "XionMinFeeGasCapMultipleMessages" }
+          - { dir: "xion", type: "XionMinFeeWithFeeGrant" }
+          - { dir: "xion", type: "XionMinFeeFeeGrantAllowanceTypes" }
+          - { dir: "xion", type: "XionMinFeeFeeGrantExpiration" }
+          - { dir: "xion", type: "XionMinFeeMultipleFeeGrants" }
+          - { dir: "xion", type: "XionMinFeeMultiMessageMixedTypes" }
+          - { dir: "xion", type: "XionMinFeeMultiMessageSameType" }
+          - { dir: "xion", type: "XionMinFeeMultiMessageGasAccounting" }
+          - { dir: "xion", type: "XionMinFeeMultiMessageWithFeeGrant" }
+          - { dir: "xion", type: "XionMinFeeMultiMessageErrorPaths" }
+          - { dir: "xion", type: "XionMinFeeMultiMessageSequential" }
+          - { dir: "xion", type: "XionMinFeeBypassMessageTypes" }
 
     steps:
       - name: checkout
@@ -155,10 +152,13 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           docker load < "docker-${{ matrix.os }}-${{ matrix.arch }}.tar"
+          # Also tag the local image with GHCR path for upgrade tests
+          # This allows interchaintest's UpgradeVersion to find it without pulling from registry
+          docker tag xion:${{ matrix.os }}-${{ matrix.arch }} local/xion:${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Run e2e test
         env:
           E2E_SKIP_CLEANUP: true
-          XION_IMAGE: xion:${{ matrix.os }}-${{ matrix.arch }}
+          XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
         run: |
-          make test-run TEST_NAME=Test${{ matrix.test_type }}
+          make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }}
