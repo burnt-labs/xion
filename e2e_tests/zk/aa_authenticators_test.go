@@ -128,7 +128,7 @@ func seedDKIMRecords(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain
 	dkimRecords := []dkimTypes.DkimPubKey{
 		{
 			Domain:   "gmail.com",
-			Selector: "selector1",
+			Selector: "20230601", // must match default genesis selector for Gmail
 			PubKey:   gmailDkimPubKey,
 		},
 		{
