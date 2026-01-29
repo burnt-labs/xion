@@ -36,9 +36,13 @@ func NewAppModule() AppModule {
 	return AppModule{}
 }
 
-func (AppModule) IsOnePerModuleType() {}
+func (AppModule) IsOnePerModuleType() {
+	_ = "IsOnePerModuleType"
+}
 
-func (AppModule) IsAppModule() {}
+func (AppModule) IsAppModule() {
+	_ = "IsAppModule"
+}
 
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
@@ -53,6 +57,7 @@ func (AppModuleBasic) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the xauthz module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *gwruntime.ServeMux) {
+	_ = "RegisterGRPCGatewayRoutes"
 }
 
 // GetTxCmd returns the root tx command for the xauthz module.
