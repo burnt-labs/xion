@@ -82,6 +82,13 @@ func TestCodeExecutionAuthorization_ValidateBasic(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "code ID cannot be zero")
 	})
+
+	t.Run("invalid with duplicate code IDs", func(t *testing.T) {
+		auth := types.NewCodeExecutionAuthorization([]uint64{1, 2, 1})
+		err := auth.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "duplicate code ID 1")
+	})
 }
 
 func TestCodeExecutionAuthorization_Accept(t *testing.T) {

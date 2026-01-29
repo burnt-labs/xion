@@ -115,6 +115,20 @@ func TestAuthzAccepter_Accept(t *testing.T) {
 		require.False(t, resp.Accept)
 	})
 
+	t.Run("returns error when query provider is nil", func(t *testing.T) {
+		accepter := types.NewAccepter(nil)
+
+		auth := types.NewCodeExecutionAuthorization([]uint64{1, 2, 3})
+		msg := &wasmtypes.MsgExecuteContract{
+			Contract: validContract,
+		}
+
+		resp, err := accepter.Accept(context.Background(), msg, auth)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "requires a QueryProvider")
+		require.False(t, resp.Accept)
+	})
+
 	t.Run("returns error from fallback authorization", func(t *testing.T) {
 		mock := &mockQueryProviderForAccepter{}
 		accepter := types.NewAccepter(mock)

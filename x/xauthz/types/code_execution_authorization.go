@@ -30,10 +30,15 @@ func (a CodeExecutionAuthorization) ValidateBasic() error {
 	if len(a.AllowedCodeIds) == 0 {
 		return fmt.Errorf("allowed_code_ids cannot be empty")
 	}
+	seen := make(map[uint64]bool, len(a.AllowedCodeIds))
 	for i, codeID := range a.AllowedCodeIds {
 		if codeID == 0 {
 			return fmt.Errorf("allowed_code_ids[%d]: code ID cannot be zero", i)
 		}
+		if seen[codeID] {
+			return fmt.Errorf("allowed_code_ids[%d]: duplicate code ID %d", i, codeID)
+		}
+		seen[codeID] = true
 	}
 	return nil
 }
@@ -45,13 +50,17 @@ func (a CodeExecutionAuthorization) Accept(ctx context.Context, msg sdk.Msg) (au
 	return authz.AcceptResponse{Accept: false}, fmt.Errorf("CodeExecutionAuthorization requires stateful execution")
 }
 
-// AcceptWith implements StatefulAuthorization.AcceptWith.
+// AcceptWith implements StatefulAccepter.AcceptWith.
 // It checks if the contract being executed is instantiated from an allowed code ID.
 func (a CodeExecutionAuthorization) AcceptWith(
 	ctx context.Context,
 	msg sdk.Msg,
 	qr QueryProvider,
 ) (authz.AcceptResponse, error) {
+	if qr == nil {
+		return authz.AcceptResponse{Accept: false}, fmt.Errorf("CodeExecutionAuthorization requires a QueryProvider")
+	}
+
 	execMsg, ok := msg.(*wasmtypes.MsgExecuteContract)
 	if !ok {
 		return authz.AcceptResponse{Accept: false}, fmt.Errorf("expected MsgExecuteContract, got %T", msg)
