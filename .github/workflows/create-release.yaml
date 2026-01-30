@@ -65,6 +65,7 @@ jobs:
   e2e-tests:
     name: E2E tests
     needs:
+      - unit-tests
       - build-docker
     uses: ./.github/workflows/e2e-tests.yaml
     secrets: inherit
@@ -75,7 +76,6 @@ jobs:
       - build-linux
       - lint
       - update-swagger
-      - unit-tests
       - build-darwin
       - docker-scout
       - e2e-tests
