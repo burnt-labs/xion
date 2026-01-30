@@ -803,6 +803,118 @@ func TestInitGenesis(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uint64(101), newID)
 	})
+
+	t.Run("genesis with custom params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		customParams := types.Params{
+			MaxVkeySizeBytes: 100000,
+			UploadChunkSize:  types.DefaultUploadChunkSize,
+			UploadChunkGas:   types.DefaultUploadChunkGas,
+		}
+		gs := &types.GenesisState{
+			Params: customParams,
+			Vkeys:  []types.VKeyWithID{},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify params were set correctly
+		params, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(100000), params.MaxVkeySizeBytes)
+	})
+
+	t.Run("genesis with vkey authority empty uses keeper authority", func(t *testing.T) {
+		f := SetupTest(t)
+
+		vkeyBytes := createTestVKeyBytes("test_key")
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 1,
+					Vkey: types.VKey{
+						Name:        "test_key",
+						Description: "Test verification key",
+						KeyBytes:    vkeyBytes,
+						Authority:   "", // Empty authority should use keeper's authority
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify vkey has the gov module address as authority
+		vkey, err := f.k.GetVKeyByID(f.ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, f.govModAddr, vkey.Authority)
+	})
+
+	t.Run("genesis with vkey preserves custom authority", func(t *testing.T) {
+		f := SetupTest(t)
+
+		customAuthority := f.addrs[0].String()
+		vkeyBytes := createTestVKeyBytes("test_key")
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 1,
+					Vkey: types.VKey{
+						Name:        "test_key",
+						Description: "Test verification key",
+						KeyBytes:    vkeyBytes,
+						Authority:   customAuthority,
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify vkey has the custom authority
+		vkey, err := f.k.GetVKeyByID(f.ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, customAuthority, vkey.Authority)
+	})
+
+	t.Run("genesis with sequence already higher than vkey IDs", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Pre-increment the sequence several times
+		for i := 0; i < 10; i++ {
+			_, err := f.k.NextVKeyID.Next(f.ctx)
+			require.NoError(t, err)
+		}
+
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 3, // Lower than current sequence
+					Vkey: types.VKey{
+						Name:        "test_key",
+						Description: "Test verification key",
+						KeyBytes:    createTestVKeyBytes("test_key"),
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Sequence should not be reduced
+		nextID, err := f.k.NextVKeyID.Peek(f.ctx)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, nextID, uint64(11)) // Should still be >= 11
+	})
 }
 
 func TestExportGenesis(t *testing.T) {
