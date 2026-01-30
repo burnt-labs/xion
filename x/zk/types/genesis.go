@@ -17,7 +17,7 @@ func NewGenesisState(vkeys []VKeyWithID, params Params) *GenesisState {
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Vkeys: []VKeyWithID{
-			{Id: uint64(1), Vkey: VKey{KeyBytes: createDefaultVKeyBytes(), Name: "Zk Email", Description: "ZK email Vkey for AA + ZK email"}},
+			{Id: uint64(1), Vkey: VKey{KeyBytes: CreateDefaultVKeyBytes(), Name: "Zk Email", Description: "ZK email Vkey for AA + ZK email"}},
 		},
 		Params: DefaultParams(),
 	}
@@ -69,7 +69,7 @@ func (gs GenesisState) Validate() error {
 }
 
 // createValidVKeyBytes creates valid verification key bytes for testing
-func createDefaultVKeyBytes() []byte {
+func CreateDefaultVKeyBytes() []byte {
 	vkeyJSON := map[string]interface{}{
 		"protocol": "groth16",
 		"curve":    "bn128",
