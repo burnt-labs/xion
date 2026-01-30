@@ -7,12 +7,15 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v27"
+const TestnetUpgradeName = "v27-testnet-upgrade"
+const MainnetUpgradeName = "v27-mainnet-upgrade"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -21,13 +24,19 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 	}
 
 	// Set UpgradeHandler to NextUpgradeHandler
-	app.Logger().Info("setting upgrade handler", "name", UpgradeName)
-	app.UpgradeKeeper.SetUpgradeHandler(UpgradeName, app.NextUpgradeHandler)
+	app.Logger().Info("setting upgrade handler", "name", TestnetUpgradeName)
+	app.UpgradeKeeper.SetUpgradeHandler(TestnetUpgradeName, app.NextUpgradeHandler)
+	app.Logger().Info("setting upgrade handler", "name", MainnetUpgradeName)
+	app.UpgradeKeeper.SetUpgradeHandler(MainnetUpgradeName, app.NextUpgradeHandler)
 
 	// Set if we see the correct upgrade name on startup
-	if upgradeInfo.Name == UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == TestnetUpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		app.Logger().Info("upgrade info", "name", upgradeInfo.Name, "height", upgradeInfo.Height)
 		app.SetStoreLoader(app.NextStoreLoader(upgradeInfo))
+	}
+	if upgradeInfo.Name == MainnetUpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		app.Logger().Info("upgrade info", "name", upgradeInfo.Name, "height", upgradeInfo.Height)
+		app.SetStoreLoader(app.NextMainnetV27StoreLoader(upgradeInfo))
 	}
 }
 
@@ -56,6 +65,50 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
 
+	// Run the migrations for all modules
+	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
+	if err != nil {
+		panic(fmt.Sprintf("failed to run migrations: %s", err))
+	}
+
+	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
+	return migrations, err
+}
+
+// NextStoreLoader is the store loader that is called during the upgrade process.
+func (app *WasmApp) NextMainnetV27StoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
+	storeUpgrades := storetypes.StoreUpgrades{
+		Added:   []string{dkimtypes.StoreKey, zktypes.StoreKey},
+		Renamed: []storetypes.StoreRename{},
+		Deleted: []string{},
+	}
+	if len(storeUpgrades.Added) != 0 {
+		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)
+	}
+	if len(storeUpgrades.Renamed) != 0 {
+		app.Logger().Info("upgrade", upgradeInfo.Name, "will rename stores", storeUpgrades.Renamed)
+	}
+	if len(storeUpgrades.Deleted) != 0 {
+		app.Logger().Info("upgrade", upgradeInfo.Name, "will delete stores", storeUpgrades.Deleted)
+	}
+	storeLoader = upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
+	return storeLoader
+}
+
+// NextUpgradeHandler is the upgrade handler that is called during the upgrade process.
+func (app *WasmApp) NextMainnetV27UpgradeHandler(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
+	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
+	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
+
+	// Initialize new zk module
+	zkGenesis := zktypes.DefaultGenesisState()
+	app.ZkKeeper.InitGenesis(sdkCtx, zkGenesis)
+
+	// Initialize new dkim module
+	dkimGenesis := dkimtypes.DefaultGenesis()
+	if err := app.DkimKeeper.InitGenesis(sdkCtx, dkimGenesis); err != nil {
+		return nil, err
+	}
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 	if err != nil {

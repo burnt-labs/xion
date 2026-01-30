@@ -349,7 +349,7 @@ func TestUpgradeFunctions(t *testing.T) {
 
 	// Test NextStoreLoader with different upgrade scenarios
 	upgradeInfoNext := upgradetypes.Plan{
-		Name:   UpgradeName,
+		Name:   MainnetUpgradeName,
 		Height: 200,
 	}
 

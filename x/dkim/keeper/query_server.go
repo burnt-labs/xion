@@ -216,11 +216,11 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	// Verify tx_bytes match public inputs
 	txPartsFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.TxBytesRange.Start:indices.TxBytesRange.End])
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert tx to bigint"), "failed to convert tx bytes public inputs to big int: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert tx bytes public inputs to big int: %s", err.Error())
 	}
 	txBytesFromPublicInputs, err := types.ConvertBigIntArrayToString(txPartsFromPublicInputs)
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert tx parts to big int"), "failed to convert tx bytes public inputs to string: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert tx bytes public inputs to string: %s", err.Error())
 	}
 	if !bytes.Equal(req.TxBytes, []byte(txBytesFromPublicInputs)) {
 		return nil, errors.Wrapf(types.ErrTxBytesMismatch, "tx bytes do not match public inputs [%d:%d]", indices.TxBytesRange.Start, indices.TxBytesRange.End)
@@ -228,17 +228,17 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 
 	dkimDomainPInputBz, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.DkimDomainRange.Start:indices.DkimDomainRange.End])
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert domain to big int"), "failed to convert dkim domain public inputs: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs to big int: %s", err.Error())
 	}
 	dkimDomainPInput, err := types.ConvertBigIntArrayToString(dkimDomainPInputBz)
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert domain bigint to string"), "failed to convert dkim domain public inputs to string: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert dkim domain public inputs to string: %s", err.Error())
 	}
 
 	dkimHashPInput := req.PublicInputs[indices.DkimHashIndex]
 	dkimHashPInputBig, ok := new(big.Int).SetString(dkimHashPInput, 10)
 	if !ok {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot parse dkim hash"), "failed to parse dkim hash public input")
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to parse dkim hash public input: %s", dkimHashPInput)
 	}
 
 	res, err := k.DkimPubKeys(c, &types.QueryDkimPubKeysRequest{
@@ -255,12 +255,12 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 
 	emailHostFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.EmailHostRange.Start:indices.EmailHostRange.End])
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert email host to bigint"), "failed to convert allowed email hosts to big int: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to big int: %s", err.Error())
 	}
 
 	emailHostFromPublicInputsString, err := types.ConvertBigIntArrayToString(emailHostFromPublicInputs)
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert email host bigint to string"), "failed to convert allowed email hosts to string: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert allowed email hosts to string: %s", err.Error())
 	}
 
 	// If public inputs have email hosts but allowedEmailHosts is empty, return error
@@ -275,12 +275,12 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 
 	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.EmailSubjectRange.Start:indices.EmailSubjectRange.End])
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert subject to big int"), "failed to convert email subject to big int: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert email subject to big int: %s", err.Error())
 	}
 
 	emailSubjectFromPublicInputsString, err := types.ConvertBigIntArrayToString(emailSubjectFromPublicInputs)
 	if err != nil {
-		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert subject bigint to string"), "failed to convert email subject to string: %s", err.Error())
+		return nil, errors.Wrapf(types.ErrInvalidPublicInput, "failed to convert email subject to string: %s", err.Error())
 	}
 
 	// Validate email subject for security and format compliance
