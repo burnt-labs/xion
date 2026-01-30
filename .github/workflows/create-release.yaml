@@ -30,11 +30,13 @@ jobs:
 
   build-darwin:
     name: Build Binaries
+    needs: unit-tests
     uses: ./.github/workflows/binaries-darwin.yaml
     secrets: inherit
 
   build-linux:
     name: Build Binaries
+    needs: unit-tests
     uses: ./.github/workflows/binaries-linux.yaml
     secrets: inherit
 
