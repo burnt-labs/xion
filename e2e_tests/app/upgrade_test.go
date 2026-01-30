@@ -85,6 +85,10 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
 	// Set encoding config for proper message serialization (needed for DKIM and ZKEmail assertions)
 	chainSpec.ChainConfig.EncodingConfig = testlib.XionEncodingConfig(t)
+	// Use faster block times to ensure proposals pass within timeout windows
+	chainSpec.ChainConfig.AdditionalStartArgs = []string{
+		"--consensus.timeout_commit=1s",
+	}
 
 	// Build chain starting with the "from" image
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)
