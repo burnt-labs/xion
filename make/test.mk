@@ -55,10 +55,6 @@ test-run: .ensure-docker-image
 	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
 	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -timeout 10m -run "$(TEST_NAME)" ./...
 
-test-run-no-time: .ensure-docker-image
-	@echo "Running test: $(TEST_NAME) in directory: $(DIR_NAME)"
-	@cd ./e2e_tests/$(DIR_NAME) && go test -mod=readonly -timeout 60m -tags='ledger test_ledger_mock' -ldflags="-w" -failfast -v -run $(TEST_NAME) ./...
-
 # Abstract Account Module Tests
 test-aa-basic:
 	$(MAKE) test-run DIR_NAME=abstract-account TEST_NAME=TestAABasic

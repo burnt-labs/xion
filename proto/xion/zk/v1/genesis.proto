@@ -10,8 +10,7 @@ import "gogoproto/gogo.proto";
 // GenesisState defines the zk module's genesis state.
 message GenesisState {
   // vkeys is the list of all verification keys with their IDs
-  repeated VKeyWithID vkeys = 1 [(gogoproto.nullable) = false];
+  repeated VKeyWithID vkeys = 1 [ (gogoproto.nullable) = false ];
   // params defines the module parameters.
-  Params params = 2 [(gogoproto.nullable) = false];
+  Params params = 2 [ (gogoproto.nullable) = false ];
 }
-
