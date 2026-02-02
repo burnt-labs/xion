@@ -27,7 +27,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 	app.Logger().Info("setting upgrade handler", "name", TestnetUpgradeName)
 	app.UpgradeKeeper.SetUpgradeHandler(TestnetUpgradeName, app.NextUpgradeHandler)
 	app.Logger().Info("setting upgrade handler", "name", MainnetUpgradeName)
-	app.UpgradeKeeper.SetUpgradeHandler(MainnetUpgradeName, app.NextUpgradeHandler)
+	app.UpgradeKeeper.SetUpgradeHandler(MainnetUpgradeName, app.NextMainnetV27UpgradeHandler)
 
 	// Set if we see the correct upgrade name on startup
 	if upgradeInfo.Name == TestnetUpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
