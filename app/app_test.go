@@ -321,7 +321,7 @@ func TestUpgradeFunctions(t *testing.T) {
 
 	// Test NextStoreLoader function
 	upgradeInfo := upgradetypes.Plan{
-		Name:   "test-upgrade",
+		Name:   TestnetUpgradeName,
 		Height: 100,
 	}
 
@@ -354,8 +354,14 @@ func TestUpgradeFunctions(t *testing.T) {
 	}
 
 	require.NotPanics(t, func() {
-		storeLoader := gapp.NextStoreLoader(upgradeInfoNext)
+		storeLoader := gapp.NextMainnetV27StoreLoader(upgradeInfoNext)
 		require.NotNil(t, storeLoader)
+	})
+
+	require.NotPanics(t, func() {
+		vm, err := gapp.NextMainnetV27UpgradeHandler(ctx, upgradeInfoNext, currentVM)
+		require.NotNil(t, vm)
+		require.NoError(t, err)
 	})
 
 	// Test with different upgrade name

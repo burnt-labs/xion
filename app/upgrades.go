@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -47,15 +48,7 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
 	}
-	if len(storeUpgrades.Added) != 0 {
-		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)
-	}
-	if len(storeUpgrades.Renamed) != 0 {
-		app.Logger().Info("upgrade", upgradeInfo.Name, "will rename stores", storeUpgrades.Renamed)
-	}
-	if len(storeUpgrades.Deleted) != 0 {
-		app.Logger().Info("upgrade", upgradeInfo.Name, "will delete stores", storeUpgrades.Deleted)
-	}
+	LogStoreUpgrades(app.Logger(), upgradeInfo.Name, storeUpgrades)
 	storeLoader = upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
 	return storeLoader
 }
@@ -75,27 +68,19 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	return migrations, err
 }
 
-// NextStoreLoader is the store loader that is called during the upgrade process.
+// NextStoreMainnetV27StoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextMainnetV27StoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	storeUpgrades := storetypes.StoreUpgrades{
 		Added:   []string{dkimtypes.StoreKey, zktypes.StoreKey},
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
 	}
-	if len(storeUpgrades.Added) != 0 {
-		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)
-	}
-	if len(storeUpgrades.Renamed) != 0 {
-		app.Logger().Info("upgrade", upgradeInfo.Name, "will rename stores", storeUpgrades.Renamed)
-	}
-	if len(storeUpgrades.Deleted) != 0 {
-		app.Logger().Info("upgrade", upgradeInfo.Name, "will delete stores", storeUpgrades.Deleted)
-	}
+	LogStoreUpgrades(app.Logger(), upgradeInfo.Name, storeUpgrades)
 	storeLoader = upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
 	return storeLoader
 }
 
-// NextUpgradeHandler is the upgrade handler that is called during the upgrade process.
+// NextMainnetV27UpgradeHandler is the upgrade handler that is called during the upgrade process.
 func (app *WasmApp) NextMainnetV27UpgradeHandler(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
@@ -117,4 +102,16 @@ func (app *WasmApp) NextMainnetV27UpgradeHandler(ctx context.Context, plan upgra
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
+}
+
+func LogStoreUpgrades(logger log.Logger, upgradeName string, storeUpgrades storetypes.StoreUpgrades) {
+	if len(storeUpgrades.Added) != 0 {
+		logger.Info("upgrade", upgradeName, "will add stores", storeUpgrades.Added)
+	}
+	if len(storeUpgrades.Renamed) != 0 {
+		logger.Info("upgrade", upgradeName, "will rename stores", storeUpgrades.Renamed)
+	}
+	if len(storeUpgrades.Deleted) != 0 {
+		logger.Info("upgrade", upgradeName, "will delete stores", storeUpgrades.Deleted)
+	}
 }
