@@ -152,6 +152,74 @@ func TestDefaultIndex(t *testing.T) {
 	require.Equal(t, uint64(1), types.DefaultIndex)
 }
 
+func TestGenesisStateValidateRevokedPubkeys(t *testing.T) {
+	// Test validation of revoked pubkeys in genesis state
+	validPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+
+	t.Run("valid genesis with revoked pubkey", func(t *testing.T) {
+		gs := &types.GenesisState{
+			Params:         types.DefaultParams(),
+			RevokedPubkeys: []string{validPubKey},
+		}
+		err := gs.Validate()
+		require.NoError(t, err)
+	})
+
+	t.Run("invalid genesis with invalid revoked pubkey - bad base64", func(t *testing.T) {
+		gs := &types.GenesisState{
+			Params:         types.DefaultParams(),
+			RevokedPubkeys: []string{"not-valid-base64!!!"},
+		}
+		err := gs.Validate()
+		require.Error(t, err)
+	})
+
+	t.Run("invalid genesis with invalid revoked pubkey - not RSA", func(t *testing.T) {
+		gs := &types.GenesisState{
+			Params:         types.DefaultParams(),
+			RevokedPubkeys: []string{"dGVzdA=="}, // valid base64 but not an RSA key
+		}
+		err := gs.Validate()
+		require.Error(t, err)
+	})
+
+	t.Run("genesis with empty revoked pubkeys", func(t *testing.T) {
+		gs := &types.GenesisState{
+			Params:         types.DefaultParams(),
+			RevokedPubkeys: []string{},
+		}
+		err := gs.Validate()
+		require.NoError(t, err)
+	})
+
+	t.Run("genesis with MaxPubkeySizeBytes zero uses default", func(t *testing.T) {
+		// When MaxPubkeySizeBytes is 0, the code sets it to default
+		gs := &types.GenesisState{
+			Params: types.Params{
+				VkeyIdentifier:     1,
+				MaxPubkeySizeBytes: 0, // Will be set to default
+				PublicInputIndices: types.DefaultPublicInputIndices(),
+			},
+			RevokedPubkeys: []string{validPubKey},
+		}
+		err := gs.Validate()
+		require.NoError(t, err)
+	})
+
+	t.Run("genesis with revoked pubkey exceeding size limit", func(t *testing.T) {
+		gs := &types.GenesisState{
+			Params: types.Params{
+				VkeyIdentifier:     1,
+				MaxPubkeySizeBytes: 10, // Very small limit
+				PublicInputIndices: types.DefaultPublicInputIndices(),
+			},
+			RevokedPubkeys: []string{validPubKey},
+		}
+		err := gs.Validate()
+		require.Error(t, err)
+	})
+}
+
 func TestDkimPubKeyEqual(t *testing.T) {
 	base := &types.DkimPubKey{
 		Domain:       "example.com",

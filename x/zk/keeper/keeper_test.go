@@ -803,6 +803,118 @@ func TestInitGenesis(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, uint64(101), newID)
 	})
+
+	t.Run("genesis with custom params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		customParams := types.Params{
+			MaxVkeySizeBytes: 100000,
+			UploadChunkSize:  types.DefaultUploadChunkSize,
+			UploadChunkGas:   types.DefaultUploadChunkGas,
+		}
+		gs := &types.GenesisState{
+			Params: customParams,
+			Vkeys:  []types.VKeyWithID{},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify params were set correctly
+		params, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(100000), params.MaxVkeySizeBytes)
+	})
+
+	t.Run("genesis with vkey authority empty uses keeper authority", func(t *testing.T) {
+		f := SetupTest(t)
+
+		vkeyBytes := createTestVKeyBytes("test_key")
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 1,
+					Vkey: types.VKey{
+						Name:        "test_key",
+						Description: "Test verification key",
+						KeyBytes:    vkeyBytes,
+						Authority:   "", // Empty authority should use keeper's authority
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify vkey has the gov module address as authority
+		vkey, err := f.k.GetVKeyByID(f.ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, f.govModAddr, vkey.Authority)
+	})
+
+	t.Run("genesis with vkey preserves custom authority", func(t *testing.T) {
+		f := SetupTest(t)
+
+		customAuthority := f.addrs[0].String()
+		vkeyBytes := createTestVKeyBytes("test_key")
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 1,
+					Vkey: types.VKey{
+						Name:        "test_key",
+						Description: "Test verification key",
+						KeyBytes:    vkeyBytes,
+						Authority:   customAuthority,
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Verify vkey has the custom authority
+		vkey, err := f.k.GetVKeyByID(f.ctx, 1)
+		require.NoError(t, err)
+		require.Equal(t, customAuthority, vkey.Authority)
+	})
+
+	t.Run("genesis with sequence already higher than vkey IDs", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Pre-increment the sequence several times
+		for i := 0; i < 10; i++ {
+			_, err := f.k.NextVKeyID.Next(f.ctx)
+			require.NoError(t, err)
+		}
+
+		gs := &types.GenesisState{
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 3, // Lower than current sequence
+					Vkey: types.VKey{
+						Name:        "test_key",
+						Description: "Test verification key",
+						KeyBytes:    createTestVKeyBytes("test_key"),
+					},
+				},
+			},
+		}
+
+		require.NotPanics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+
+		// Sequence should not be reduced
+		nextID, err := f.k.NextVKeyID.Peek(f.ctx)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, nextID, uint64(11)) // Should still be >= 11
+	})
 }
 
 func TestExportGenesis(t *testing.T) {
@@ -1710,6 +1822,216 @@ func TestLoadActualVKeyFile(t *testing.T) {
 	require.Equal(t, "bn128", circomVKey.Curve)
 	require.Equal(t, 88, circomVKey.NPublic)
 	require.Len(t, circomVKey.IC, 89) // 88 public inputs + 1
+}
+
+// ============================================================================
+// Validation Tests
+// ============================================================================
+
+// ============================================================================
+// Empty Authority Fallback Tests
+// ============================================================================
+
+func TestUpdateVKeyEmptyAuthorityFallback(t *testing.T) {
+	f := SetupTest(t)
+
+	// Manually create a vkey with empty authority by setting it directly in the store
+	vkeyBytes := createTestVKeyBytes("empty_auth_key")
+	vkey := types.VKey{
+		KeyBytes:    vkeyBytes,
+		Name:        "empty_auth_key",
+		Description: "Key with empty authority",
+		Authority:   "", // Empty authority - should fall back to keeper authority
+	}
+
+	// Set vkey directly in store (bypassing AddVKey which sets authority)
+	err := f.k.VKeys.Set(f.ctx, 1, vkey)
+	require.NoError(t, err)
+
+	// Set name index
+	err = f.k.VKeyNameIndex.Set(f.ctx, "empty_auth_key", 1)
+	require.NoError(t, err)
+
+	t.Run("update with keeper authority succeeds", func(t *testing.T) {
+		// Updating with the keeper's authority should work because empty authority
+		// falls back to keeper authority
+		newBytes := createTestVKeyBytes("empty_auth_key")
+		err := f.k.UpdateVKey(f.ctx, f.govModAddr, "empty_auth_key", newBytes, "Updated description")
+		require.NoError(t, err)
+
+		// Verify update
+		updated, err := f.k.GetVKeyByName(f.ctx, "empty_auth_key")
+		require.NoError(t, err)
+		require.Equal(t, "Updated description", updated.Description)
+	})
+
+	t.Run("update with wrong authority fails", func(t *testing.T) {
+		// Reset vkey with empty authority
+		vkey.Description = "Reset"
+		err := f.k.VKeys.Set(f.ctx, 1, vkey)
+		require.NoError(t, err)
+
+		// Updating with a different authority should fail
+		newBytes := createTestVKeyBytes("empty_auth_key")
+		err = f.k.UpdateVKey(f.ctx, f.addrs[0].String(), "empty_auth_key", newBytes, "Should fail")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid authority")
+	})
+}
+
+func TestRemoveVKeyEmptyAuthorityFallback(t *testing.T) {
+	f := SetupTest(t)
+
+	// Manually create a vkey with empty authority by setting it directly in the store
+	vkeyBytes := createTestVKeyBytes("empty_auth_remove")
+	vkey := types.VKey{
+		KeyBytes:    vkeyBytes,
+		Name:        "empty_auth_remove",
+		Description: "Key with empty authority for removal",
+		Authority:   "", // Empty authority - should fall back to keeper authority
+	}
+
+	// Set vkey directly in store (bypassing AddVKey which sets authority)
+	err := f.k.VKeys.Set(f.ctx, 1, vkey)
+	require.NoError(t, err)
+
+	// Set name index
+	err = f.k.VKeyNameIndex.Set(f.ctx, "empty_auth_remove", 1)
+	require.NoError(t, err)
+
+	t.Run("remove with keeper authority succeeds", func(t *testing.T) {
+		// Removing with the keeper's authority should work because empty authority
+		// falls back to keeper authority
+		err := f.k.RemoveVKey(f.ctx, f.govModAddr, "empty_auth_remove")
+		require.NoError(t, err)
+
+		// Verify removal
+		has, err := f.k.HasVKey(f.ctx, "empty_auth_remove")
+		require.NoError(t, err)
+		require.False(t, has)
+	})
+
+	t.Run("remove with wrong authority fails", func(t *testing.T) {
+		// Create another vkey with empty authority
+		vkey2 := types.VKey{
+			KeyBytes:    vkeyBytes,
+			Name:        "empty_auth_remove2",
+			Description: "Second key with empty authority",
+			Authority:   "",
+		}
+		err := f.k.VKeys.Set(f.ctx, 2, vkey2)
+		require.NoError(t, err)
+		err = f.k.VKeyNameIndex.Set(f.ctx, "empty_auth_remove2", 2)
+		require.NoError(t, err)
+
+		// Removing with a different authority should fail
+		err = f.k.RemoveVKey(f.ctx, f.addrs[0].String(), "empty_auth_remove2")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid authority")
+	})
+}
+
+func TestInitGenesisInvalidParams(t *testing.T) {
+	f := SetupTest(t)
+
+	t.Run("genesis with invalid params panics", func(t *testing.T) {
+		// Create params with invalid value (MaxVkeySizeBytes can be 0, so we need to check other validation)
+		// Looking at params.Validate(), it checks UploadChunkSize > 0
+		invalidParams := types.Params{
+			MaxVkeySizeBytes: 100000,
+			UploadChunkSize:  0, // Invalid - must be > 0
+			UploadChunkGas:   types.DefaultUploadChunkGas,
+		}
+		gs := &types.GenesisState{
+			Params: invalidParams,
+			Vkeys:  []types.VKeyWithID{},
+		}
+
+		require.Panics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+	})
+
+	t.Run("genesis with invalid vkey bytes panics", func(t *testing.T) {
+		gs := &types.GenesisState{
+			Params: types.DefaultParams(),
+			Vkeys: []types.VKeyWithID{
+				{
+					Id: 1,
+					Vkey: types.VKey{
+						Name:        "invalid_key",
+						Description: "Invalid key bytes",
+						KeyBytes:    []byte("not valid json"), // Invalid vkey bytes
+					},
+				},
+			},
+		}
+
+		require.Panics(t, func() {
+			f.k.InitGenesis(f.ctx, gs)
+		})
+	})
+}
+
+func TestNewKeeperEmptyAuthority(t *testing.T) {
+	// Test that NewKeeper with empty authority uses default gov module address
+	logger := log.NewTestLogger(t)
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	registerModuleInterfaces(encCfg)
+
+	key := storetypes.NewKVStoreKey(types.ModuleName)
+	storeService := runtime.NewKVStoreService(key)
+	testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+	// Create keeper with empty authority
+	k := keeper.NewKeeper(encCfg.Codec, storeService, logger, "") // Empty authority
+
+	// Should use default gov module address
+	expectedAuthority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	require.Equal(t, expectedAuthority, k.GetAuthority())
+}
+
+func TestAddVKeyExceedsMaxSize(t *testing.T) {
+	f := SetupTest(t)
+
+	// Set params with a small max vkey size
+	params := types.Params{
+		MaxVkeySizeBytes: 100, // Very small limit
+		UploadChunkSize:  types.DefaultUploadChunkSize,
+		UploadChunkGas:   types.DefaultUploadChunkGas,
+	}
+	err := f.k.SetParams(f.ctx, params)
+	require.NoError(t, err)
+
+	// Try to add a vkey that exceeds the max size
+	largeVkeyBytes := createTestVKeyBytes("large_key") // This is larger than 100 bytes
+	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "large_key", largeVkeyBytes, "Large key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "exceeds max")
+}
+
+func TestUpdateVKeyExceedsMaxSize(t *testing.T) {
+	f := SetupTest(t)
+
+	// First add a vkey with default params
+	vkeyBytes := createTestVKeyBytes("test_key")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	require.NoError(t, err)
+
+	// Now set params with a small max vkey size
+	params := types.Params{
+		MaxVkeySizeBytes: 100, // Very small limit
+		UploadChunkSize:  types.DefaultUploadChunkSize,
+		UploadChunkGas:   types.DefaultUploadChunkGas,
+	}
+	err = f.k.SetParams(f.ctx, params)
+	require.NoError(t, err)
+
+	// Try to update the vkey with bytes that exceed the max size
+	largeVkeyBytes := createTestVKeyBytes("test_key") // This is larger than 100 bytes
+	err = f.k.UpdateVKey(f.ctx, f.govModAddr, "test_key", largeVkeyBytes, "Updated key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "exceeds max")
 }
 
 // ============================================================================
