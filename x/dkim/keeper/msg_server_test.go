@@ -140,50 +140,52 @@ func TestUpdateParams(t *testing.T) {
 			name: "fail; invalid authority",
 			request: &types.MsgUpdateParams{
 				Authority: f.addrs[0].String(),
-				Params: types.Params{
-					VkeyIdentifier: 1,
-				},
+				Params:    types.DefaultParams(),
 			},
 			err: true,
 		},
 		{
-			name: "success; update with empty params",
+			name: "success; update with default params",
 			request: &types.MsgUpdateParams{
 				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 0,
-				},
+				Params:    types.DefaultParams(),
 			},
 			err: false,
 		},
 		{
 			name: "success; update vkey identifier",
-			request: &types.MsgUpdateParams{
-				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 42,
-				},
-			},
+			request: func() *types.MsgUpdateParams {
+				p := types.DefaultParams()
+				p.VkeyIdentifier = 42
+				return &types.MsgUpdateParams{
+					Authority: f.govModAddr,
+					Params:    p,
+				}
+			}(),
 			err: false,
 		},
 		{
 			name: "success; update with dkim pubkeys",
-			request: &types.MsgUpdateParams{
-				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 1,
-				},
-			},
+			request: func() *types.MsgUpdateParams {
+				p := types.DefaultParams()
+				p.VkeyIdentifier = 1
+				return &types.MsgUpdateParams{
+					Authority: f.govModAddr,
+					Params:    p,
+				}
+			}(),
 			err: false,
 		},
 		{
 			name: "success; update with multiple dkim pubkeys",
-			request: &types.MsgUpdateParams{
-				Authority: f.govModAddr,
-				Params: types.Params{
-					VkeyIdentifier: 2,
-				},
-			},
+			request: func() *types.MsgUpdateParams {
+				p := types.DefaultParams()
+				p.VkeyIdentifier = 2
+				return &types.MsgUpdateParams{
+					Authority: f.govModAddr,
+					Params:    p,
+				}
+			}(),
 			err: false,
 		},
 	}
@@ -271,25 +273,25 @@ func TestRevokeDkimPubKey(t *testing.T) {
 			Domain:       domain_1,
 			PubKey:       pubKey_1,
 			Selector:     "dkim-202308",
-			PoseidonHash: []byte(hash_1.String()),
+			PoseidonHash: hash_1.Bytes(),
 		},
 		{
 			Domain:       domain_1,
 			PubKey:       pubKey_2,
 			Selector:     "dkim-202310",
-			PoseidonHash: []byte(hash_2.String()),
+			PoseidonHash: hash_2.Bytes(),
 		},
 		{
 			Domain:       domain_2,
 			PubKey:       pubKey_1,
 			Selector:     "dkim-202308",
-			PoseidonHash: []byte(hash_1.String()),
+			PoseidonHash: hash_1.Bytes(),
 		},
 		{
 			Domain:       domain_2,
 			PubKey:       pubKey_2,
 			Selector:     "dkim-202310",
-			PoseidonHash: []byte(hash_2.String()),
+			PoseidonHash: hash_2.Bytes(),
 		},
 	})
 	addDkimKeysMsg.Authority = f.govModAddr
@@ -390,7 +392,7 @@ func TestAddDkimPubKeyFailsAfterRevoke(t *testing.T) {
 				Domain:       domain,
 				PubKey:       pubKey,
 				Selector:     "dkim-1",
-				PoseidonHash: []byte(hash.String()),
+				PoseidonHash: hash.Bytes(),
 				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 			},
@@ -413,7 +415,7 @@ func TestAddDkimPubKeyFailsAfterRevoke(t *testing.T) {
 				Domain:       domain,
 				PubKey:       pubKey,
 				Selector:     "dkim-2",
-				PoseidonHash: []byte(hash.String()),
+				PoseidonHash: hash.Bytes(),
 				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 			},
@@ -450,7 +452,7 @@ func TestAddDkimPubKeyFailsAfterRevokeDifferentEncoding(t *testing.T) {
 				Domain:       domain,
 				PubKey:       pkixKey,
 				Selector:     "dkim-1",
-				PoseidonHash: []byte(hash.String()),
+				PoseidonHash: hash.Bytes(),
 				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 			},
@@ -475,7 +477,7 @@ func TestAddDkimPubKeyFailsAfterRevokeDifferentEncoding(t *testing.T) {
 				Domain:       domain,
 				PubKey:       pkcs1Key,
 				Selector:     "dkim-2",
-				PoseidonHash: []byte(hash.String()),
+				PoseidonHash: hash.Bytes(),
 				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 			},
@@ -495,7 +497,7 @@ func TestSaveDkimPubKey(t *testing.T) {
 			Domain:       "test-save.com",
 			Selector:     "selector1",
 			PubKey:       validPubKey2048,
-			PoseidonHash: []byte(hash.String()),
+			PoseidonHash: hash.Bytes(),
 			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 			KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
@@ -526,7 +528,7 @@ func TestSaveDkimPubKey(t *testing.T) {
 			Domain:       "full-fields.com",
 			Selector:     "dkim-2024",
 			PubKey:       validPubKey2048,
-			PoseidonHash: []byte(hash.String()),
+			PoseidonHash: hash.Bytes(),
 			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 			KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
@@ -559,7 +561,7 @@ func TestSaveDkimPubKey(t *testing.T) {
 			Domain:       "overwrite-save.com",
 			Selector:     "selector1",
 			PubKey:       validPubKey2048,
-			PoseidonHash: []byte(hash1.String()),
+			PoseidonHash: hash1.Bytes(),
 			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 			KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
@@ -574,7 +576,7 @@ func TestSaveDkimPubKey(t *testing.T) {
 		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "overwrite-save.com" {
 				count++
-				require.Equal(t, []byte(hash1.String()), pk.PoseidonHash)
+				require.Equal(t, hash1.Bytes(), pk.PoseidonHash)
 			}
 		}
 		require.Equal(t, 1, count)
@@ -753,7 +755,7 @@ func TestSaveDkimPubKeys(t *testing.T) {
 				Domain:       "preserve-batch.com",
 				Selector:     "selector",
 				PubKey:       validPubKey2048,
-				PoseidonHash: []byte(hash.String()),
+				PoseidonHash: hash.Bytes(),
 				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 				KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 			},
@@ -769,7 +771,7 @@ func TestSaveDkimPubKeys(t *testing.T) {
 			if pk.Domain == "preserve-batch.com" {
 				require.Equal(t, "selector", pk.Selector)
 				require.Equal(t, validPubKey2048, pk.PubKey)
-				require.Equal(t, []byte(hash.String()), pk.PoseidonHash)
+				require.Equal(t, hash.Bytes(), pk.PoseidonHash)
 				break
 			}
 		}
@@ -789,7 +791,7 @@ func TestAddDkimPubKeys(t *testing.T) {
 					Domain:       "add-authority.com",
 					Selector:     "selector",
 					PubKey:       validPubKey2048,
-					PoseidonHash: []byte(hash.String()),
+					PoseidonHash: hash.Bytes(),
 					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
@@ -813,7 +815,7 @@ func TestAddDkimPubKeys(t *testing.T) {
 					Domain:       "invalid-auth.com",
 					Selector:     "selector",
 					PubKey:       validPubKey2048,
-					PoseidonHash: []byte(hash.String()),
+					PoseidonHash: hash.Bytes(),
 					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
@@ -1364,7 +1366,7 @@ func TestMsgServerIntegration(t *testing.T) {
 					Domain:       "update-test.com",
 					Selector:     "selector",
 					PubKey:       validPubKey2048,
-					PoseidonHash: []byte(hash1.String()),
+					PoseidonHash: hash1.Bytes(),
 					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
@@ -1379,7 +1381,7 @@ func TestMsgServerIntegration(t *testing.T) {
 		for _, pk := range exported.DkimPubkeys {
 			if pk.Domain == "update-test.com" && pk.Selector == "selector" {
 				count++
-				require.Equal(t, []byte(hash1.String()), pk.PoseidonHash)
+				require.Equal(t, hash1.Bytes(), pk.PoseidonHash)
 			}
 		}
 		require.Equal(t, 1, count)

@@ -25,7 +25,7 @@ import (
 
 const (
 	// ConsensusVersion defines the current x/dkim module consensus version.
-	ConsensusVersion = 1
+	ConsensusVersion = 2
 
 // this line is used by starport scaffolding # simapp/module/const
 )
@@ -144,8 +144,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
 
-	// Note: No migrations registered for version 0->1 since this is a new module.
-	// InitGenesis handles initial state setup. Future migrations (1->2, etc.) would be registered here.
+	m := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(err)
+	}
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the

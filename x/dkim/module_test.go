@@ -51,7 +51,7 @@ func TestAppModule_Name(t *testing.T) {
 
 func TestAppModule_ConsensusVersion(t *testing.T) {
 	appModule := setupModule(t)
-	require.Equal(t, uint64(1), appModule.ConsensusVersion())
+	require.Equal(t, uint64(2), appModule.ConsensusVersion())
 }
 
 func TestAppModule_DefaultGenesis(t *testing.T) {
@@ -76,10 +76,15 @@ func TestAppModule_ValidateGenesis(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("invalid genesis", func(t *testing.T) {
-		invalidGenesis := []byte(`{"params": null }`)
+	t.Run("invalid genesis with zero min_length fails validation", func(t *testing.T) {
+		// Genesis with null/empty params will have zero values which should fail validation
+		invalidGenesis := []byte(`{"params": {"public_input_indices": {"min_length": 0}} }`)
 		err := appModule.ValidateGenesis(encCfg.Codec, nil, invalidGenesis)
-		require.NoError(t, err)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "min_length must be positive")
+	})
+
+	t.Run("basic module default genesis and codec registration", func(t *testing.T) {
 		encCfg := moduletestutil.MakeTestEncodingConfig()
 		basic := dkimmodule.AppModuleBasic{}
 
@@ -87,7 +92,7 @@ func TestAppModule_ValidateGenesis(t *testing.T) {
 		require.NotNil(t, genesis)
 
 		var genesisState types.GenesisState
-		err = encCfg.Codec.UnmarshalJSON(genesis, &genesisState)
+		err := encCfg.Codec.UnmarshalJSON(genesis, &genesisState)
 		require.NoError(t, err)
 		basic.RegisterLegacyAminoCodec(encCfg.Amino)
 	})

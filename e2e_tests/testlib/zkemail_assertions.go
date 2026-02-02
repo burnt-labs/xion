@@ -119,21 +119,19 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	icloudPoseidonHashInt.SetString(icloudPoseidonHashStr, 10)
 
 	// Standard test DKIM public key (same as used in DKIM tests)
-	gmailDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB"
+	gmailDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAntvSKT1hkqhKe0xcaZ0x+QbouDsJuBfby/S82jxsoC/SodmfmVs2D1KAH3mi1AqdMdU12h2VfETeOJkgGYq5ljd996AJ7ud2SyOLQmlhaNHH7Lx+Mdab8/zDN1SdxPARDgcM7AsRECHwQ15R20FaKUABGu4NTbR2fDKnYwiq5jQyBkLWP+LgGOgfUF4T4HZb2PY2bQtEP6QeqOtcW4rrsH24L7XhD+HSZb1hsitrE0VPbhJzxDwI4JF815XMnSVjZgYUXP8CxI1Y0FONlqtQYgsorZ9apoW1KPQe8brSSlRsi9sXB/tu56LmG7tEDNmrZ5XUwQYUUADBOu7t1niwXwIDAQAB"
 	icloudDkimPubKey := "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1ZEfbkf4TbO2TDZI67WhJ6G8Dwk3SJyAbBlE/QKdyXFZB4HfEU7AcuZBzcXSJFE03DlmyOkUAmaaR8yFlwooHyaKRLIaT3epGlL5YGowyfItLly2k0Jj0IOICRxWrB378b7qMeimE8KlH1UNaVpRTTi0XIYjIKAOpTlBmkM9a/3Rl4NWy8pLYApXD+WCkYxPcxoAAgaN8osqGTCJ5r+VHFU7Wm9xqq3MZmnfo0bzInF4UajCKjJAQa+HNuh95DWIYP/wV77/PxkEakOtzkbJMlFJiK/hMJ+HQUvTbtKW2s+t4uDK8DI16Rotsn6e0hS8xuXPmVte9ZzplD0fQgm2qwIDAQAB"
 
 	dkimRecords := []dkimTypes.DkimPubKey{
 		{
-			Domain:       "gmail.com",
-			Selector:     "selector1",
-			PubKey:       gmailDkimPubKey,
-			PoseidonHash: gmailPoseidonHashInt.Bytes(),
+			Domain:   "gmail.com",
+			Selector: "selector1",
+			PubKey:   gmailDkimPubKey,
 		},
 		{
-			Domain:       "icloud.com",
-			Selector:     "1a1hai",
-			PubKey:       icloudDkimPubKey,
-			PoseidonHash: icloudPoseidonHashInt.Bytes(),
+			Domain:   "icloud.com",
+			Selector: "1a1hai",
+			PubKey:   icloudDkimPubKey,
 		},
 	}
 
@@ -159,6 +157,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	require.Equal(t, gmailDkimPubKey, gmailDkimPubKeyResult["pub_key"].(string), "DKIM pubkey should match")
 	require.Equal(t, "gmail.com", gmailDkimPubKeyResult["domain"].(string), "DKIM domain should be gmail.com")
 	require.Equal(t, "selector1", gmailDkimPubKeyResult["selector"].(string), "DKIM selector should be selector1")
+	require.Equal(t, base64.StdEncoding.EncodeToString(gmailPoseidonHashInt.Bytes()), gmailDkimPubKeyResult["poseidon_hash"].(string), "DKIM poseidon_hash should match")
 
 	icloudDkimRecord, err := ExecQuery(t, ctx, xion.GetNode(), "dkim", "dkim-pubkey", "icloud.com", "1a1hai")
 	require.NoError(t, err, "DKIM record query failed")
@@ -167,6 +166,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	require.Equal(t, icloudDkimPubKey, icloudDkimPubKeyResult["pub_key"].(string), "DKIM pubkey should match")
 	require.Equal(t, "icloud.com", icloudDkimPubKeyResult["domain"].(string), "DKIM domain should be icloud.com")
 	require.Equal(t, "1a1hai", icloudDkimPubKeyResult["selector"].(string), "DKIM selector should be 1a1hai")
+	require.Equal(t, base64.StdEncoding.EncodeToString(icloudPoseidonHashInt.Bytes()), icloudDkimPubKeyResult["poseidon_hash"].(string), "DKIM poseidon_hash should match")
 
 	t.Log("DKIM record verified successfully")
 
@@ -186,7 +186,8 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	// Extract emailSalt from publicInputs
 	publicInputs, ok := zkAuthData["publicInputs"].([]interface{})
 	require.True(t, ok, "publicInputs should be an array")
-	emailSalt, ok := publicInputs[32].(string)
+	emailHashIndex := dkimTypes.DefaultParams().PublicInputIndices.EmailHashIndex
+	emailSalt, ok := publicInputs[int(emailHashIndex)].(string)
 	require.True(t, ok, "emailSalt should be a string")
 
 	zkAuthJSONBytes, err := json.Marshal(zkAuthData)
@@ -194,7 +195,7 @@ func RunZKEmailAuthenticatorAssertions(t *testing.T, cfg ZKEmailAssertionConfig)
 	b64signature := base64.StdEncoding.EncodeToString(zkAuthJSONBytes)
 
 	// Create allowed email hosts
-	allowedEmailHosts := []string{"kushal@burnt.com", "jose@burnt.com", "jane@burnt.com"}
+	allowedEmailHosts := []string{"kushal@burnt.com", "zk@zk.burnt.com", "jane@burnt.com"}
 	allowedEmailHostsJSON, err := json.Marshal(allowedEmailHosts)
 	require.NoError(t, err)
 
