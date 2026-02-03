@@ -58,61 +58,42 @@ func TestAppUpgradeNetwork(t *testing.T) {
 	})
 }
 
-// verifyModulesInitialized checks that all expected modules are properly initialized after upgrade.
-// It dynamically queries the module versions from the upgrade module and verifies critical modules
-// have params that can be queried.
+// verifyModulesInitialized checks that all expected modules are properly initialized after upgrade
+// by querying their params endpoints.
 func verifyModulesInitialized(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain) {
 	t.Log("Verifying all expected modules are initialized after upgrade")
 
-	// Query module versions dynamically from the upgrade module
-	// This returns all registered modules and their consensus versions
-	t.Run("module_versions_registered", func(t *testing.T) {
-		moduleVersions, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "upgrade", "module_versions")
-		require.NoError(t, err, "module versions query should succeed")
-		require.NotNil(t, moduleVersions, "module versions should not be nil")
-
-		// Extract the module_versions array from the response
-		versions, ok := moduleVersions["module_versions"].([]interface{})
-		require.True(t, ok, "module_versions should be an array")
-		require.NotEmpty(t, versions, "should have registered modules")
-
-		// Build a map of registered modules for easy lookup
-		registeredModules := make(map[string]bool)
-		for _, v := range versions {
-			if module, ok := v.(map[string]interface{}); ok {
-				if name, ok := module["name"].(string); ok {
-					registeredModules[name] = true
-					t.Logf("Found registered module: %s", name)
-				}
-			}
-		}
-
-		// Verify critical modules are registered (modules that were added in recent upgrades)
-		criticalModules := []string{"zk", "dkim"}
-		for _, mod := range criticalModules {
-			require.True(t, registeredModules[mod], "critical module %s should be registered", mod)
-		}
-
-		t.Logf("Total registered modules: %d", len(registeredModules))
-	})
-
-	// Modules that expose params queries - we verify these are queryable
-	// This is a subset of modules that have params we can query
-	modulesWithParams := []string{
-		"zk",        // New module added in v26/v27
-		"dkim",      // New module added in v26/v27
-		"bank",      // Core SDK module
-		"staking",   // Core SDK module
-		"gov",       // Core SDK module
-		"mint",      // Xion-specific module
-		"globalfee", // Xion-specific module
-		"jwk",       // Xion-specific module
+	// All modules that expose a params query (verified via `xiond query <module> --help`)
+	// This is the complete list - modules without params queries are excluded
+	modulesWithParams := map[string]string{
+		// Xion-specific modules
+		"abstractaccount": "abstract-account",
+		"globalfee":       "globalfee",
+		"jwk":             "jwk",
+		"tokenfactory":    "tokenfactory",
+		// New modules added in v26/v27 upgrades
+		"zk":   "zk",
+		"dkim": "dkim",
+		// Core Cosmos SDK modules
+		"auth":         "auth",
+		"bank":         "bank",
+		"consensus":    "consensus",
+		"distribution": "distribution",
+		"gov":          "gov",
+		"mint":         "mint",
+		"slashing":     "slashing",
+		"staking":      "staking",
+		// IBC modules
+		"transfer": "ibc-transfer",
+		// CosmWasm
+		"wasm": "wasm",
 	}
 
-	for _, moduleName := range modulesWithParams {
-		// capture range variable
-		t.Run(moduleName+"_params_queryable", func(t *testing.T) {
-			params, err := testlib.ExecQuery(t, ctx, xion.GetNode(), moduleName, "params")
+	for moduleName, queryCmd := range modulesWithParams {
+		moduleName := moduleName
+		queryCmd := queryCmd
+		t.Run(moduleName+"_params", func(t *testing.T) {
+			params, err := testlib.ExecQuery(t, ctx, xion.GetNode(), queryCmd, "params")
 			require.NoError(t, err, "%s module params query should succeed", moduleName)
 			require.NotNil(t, params, "%s module params should not be nil", moduleName)
 		})
