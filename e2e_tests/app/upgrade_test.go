@@ -28,7 +28,7 @@ func TestAppUpgradeNetwork(t *testing.T) {
 	xionToVersion := xionToImageParts[1]
 
 	// Use the app's UpgradeName constant to ensure consistency with the upgrade handler
-	upgradeName := app.TestnetUpgradeName
+	upgradeName := app.UpgradeName
 
 	chainSpec := testlib.XionChainSpec(3, 1)
 	chainSpec.Version = xionFromImageParts[1]
@@ -71,7 +71,7 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	xionToVersion := xionToImageParts[1]
 
 	// Use the app's UpgradeName constant to ensure consistency with the upgrade handler
-	upgradeName := app.TestnetUpgradeName
+	upgradeName := app.UpgradeName
 
 	chainSpec := testlib.XionChainSpec(3, 1)
 	chainSpec.Version = xionFromImageParts[1]
