@@ -8,14 +8,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"cosmossdk.io/math"
-	"github.com/burnt-labs/xion/e2e_tests/testlib"
-	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/testutil"
-	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
 )
 
 func init() {
