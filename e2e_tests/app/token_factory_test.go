@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/burnt-labs/xion/e2e_tests/testlib"
-
-	"cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
 
 	ibctest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/testutil"
-	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/math"
+
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
 )
 
 func TestAppTokenFactory(t *testing.T) {

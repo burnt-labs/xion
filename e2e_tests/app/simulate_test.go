@@ -11,26 +11,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/burnt-labs/xion/e2e_tests/testlib"
-
-	"cosmossdk.io/math"
-	txsigning "cosmossdk.io/x/tx/signing"
-	"google.golang.org/protobuf/types/known/anypb"
-
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
-
-	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/testutil"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/anypb"
+
+	ibctest "github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/testutil"
+
+	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
+	"cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
 )
 
 func TestAppSimulate(t *testing.T) {
