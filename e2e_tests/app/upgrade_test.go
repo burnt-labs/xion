@@ -1,14 +1,18 @@
 package e2e_app
 
 import (
+	"context"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v10/ibc"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/stretchr/testify/require"
 )
 
 func TestAppUpgradeNetwork(t *testing.T) {
@@ -32,20 +36,70 @@ func TestAppUpgradeNetwork(t *testing.T) {
 
 	chainSpec := testlib.XionChainSpec(3, 1)
 	chainSpec.Version = xionFromImageParts[1]
-	chainSpec.ChainConfig.Images = []ibc.DockerImage{
+	chainSpec.Images = []ibc.DockerImage{
 		{
 			Repository: xionFromImageParts[0],
 			Version:    xionFromImageParts[1],
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
+	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
 
 	// Build chain starting with the "from" image
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)
 
 	// Upgrade from released version to the image specified by XION_IMAGE
 	testlib.CosmosChainUpgradeTest(t, xion, xionToRepo, xionToVersion, upgradeName)
+
+	// Post-upgrade validation: verify all expected modules and stores are present
+	ctx := t.Context()
+	t.Run("PostUpgrade_ModuleValidation", func(t *testing.T) {
+		verifyModulesInitialized(t, ctx, xion)
+	})
+}
+
+// verifyModulesInitialized checks that all expected modules are properly initialized after upgrade
+// by querying their params endpoints.
+func verifyModulesInitialized(t *testing.T, ctx context.Context, xion *cosmos.CosmosChain) {
+	t.Log("Verifying all expected modules are initialized after upgrade")
+
+	// All modules that expose a params query (verified via `xiond query <module> --help`)
+	// This is the complete list - modules without params queries are excluded
+	modulesWithParams := map[string]string{
+		// Xion-specific modules
+		"abstractaccount": "abstract-account",
+		"globalfee":       "globalfee",
+		"jwk":             "jwk",
+		"tokenfactory":    "tokenfactory",
+		// New modules added in v26/v27 upgrades
+		"zk":   "zk",
+		"dkim": "dkim",
+		// Core Cosmos SDK modules
+		"auth":         "auth",
+		"bank":         "bank",
+		"consensus":    "consensus",
+		"distribution": "distribution",
+		"gov":          "gov",
+		"mint":         "mint",
+		"slashing":     "slashing",
+		"staking":      "staking",
+		// IBC modules
+		"transfer": "ibc-transfer",
+		// CosmWasm
+		"wasm": "wasm",
+	}
+
+	for moduleName, queryCmd := range modulesWithParams {
+		moduleName := moduleName
+		queryCmd := queryCmd
+		t.Run(moduleName+"_params", func(t *testing.T) {
+			params, err := testlib.ExecQuery(t, ctx, xion.GetNode(), queryCmd, "params")
+			require.NoError(t, err, "%s module params query should succeed", moduleName)
+			require.NotNil(t, params, "%s module params should not be nil", moduleName)
+		})
+	}
+
+	t.Log("All module validations passed")
 }
 
 // TestAppUpgradeNetworkWithFeatures tests the upgrade and validates new features post-upgrade.
@@ -75,16 +129,20 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 
 	chainSpec := testlib.XionChainSpec(3, 1)
 	chainSpec.Version = xionFromImageParts[1]
-	chainSpec.ChainConfig.Images = []ibc.DockerImage{
+	chainSpec.Images = []ibc.DockerImage{
 		{
 			Repository: xionFromImageParts[0],
 			Version:    xionFromImageParts[1],
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
+	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
 	// Set encoding config for proper message serialization (needed for DKIM and ZKEmail assertions)
-	chainSpec.ChainConfig.EncodingConfig = testlib.XionEncodingConfig(t)
+	chainSpec.EncodingConfig = testlib.XionEncodingConfig(t)
+	// Use faster block times to ensure proposals pass within timeout windows
+	chainSpec.AdditionalStartArgs = []string{
+		"--consensus.timeout_commit=1s",
+	}
 
 	// Build chain starting with the "from" image
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)

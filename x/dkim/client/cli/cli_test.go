@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"math/big"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -30,6 +31,13 @@ import (
 	"github.com/burnt-labs/xion/x/dkim/client/cli"
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
+
+// decimalToBytes converts a decimal string to big-endian binary bytes
+// for testing PoseidonHash encoding.
+func decimalToBytes(s string) []byte {
+	n, _ := new(big.Int).SetString(s, 10)
+	return n.Bytes()
+}
 
 func TestGetQueryCmd(t *testing.T) {
 	cmd := cli.GetQueryCmd()
@@ -165,7 +173,7 @@ func TestGetDkimPublicKeys(t *testing.T) {
 	})
 
 	t.Run("with hash flag", func(t *testing.T) {
-		require.NoError(t, cmd.Flags().Set("hash", "somehash"))
+		require.NoError(t, cmd.Flags().Set("hash", "999999"))
 		func() {
 			defer func() {
 				_ = recover() // Ignore panics from missing context
@@ -498,13 +506,13 @@ func TestParseDkimPubKeysFlags(t *testing.T) {
 
 		require.NoError(t, cmd.Flags().Set("domain", "example.com"))
 		require.NoError(t, cmd.Flags().Set("selector", "default"))
-		require.NoError(t, cmd.Flags().Set("hash", "abc123"))
+		require.NoError(t, cmd.Flags().Set("hash", "123456"))
 
 		domain, selector, hash, err := cli.ParseDkimPubKeysFlags(cmd)
 		require.NoError(t, err)
 		require.Equal(t, "example.com", domain)
 		require.Equal(t, "default", selector)
-		require.Equal(t, "abc123", hash)
+		require.Equal(t, "123456", hash)
 	})
 
 	t.Run("no flags set", func(t *testing.T) {
@@ -650,7 +658,6 @@ func TestQueryDkimPubKeys(t *testing.T) {
 			dkimPubKeysFunc: func(ctx context.Context, req *types.QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*types.QueryDkimPubKeysResponse, error) {
 				require.Equal(t, "example.com", req.Domain)
 				require.Equal(t, "default", req.Selector)
-				require.Equal(t, []byte("hash123"), req.PoseidonHash)
 				return &types.QueryDkimPubKeysResponse{
 					DkimPubKeys: []*types.DkimPubKey{
 						{Domain: req.Domain, Selector: req.Selector},
@@ -659,7 +666,7 @@ func TestQueryDkimPubKeys(t *testing.T) {
 			},
 		}
 
-		res, err := cli.QueryDkimPubKeys(mockClient, cmd, "example.com", "default", "hash123")
+		res, err := cli.QueryDkimPubKeys(mockClient, cmd, "example.com", "default", "789012")
 		require.NoError(t, err)
 		require.NotNil(t, res)
 		require.Len(t, res.DkimPubKeys, 1)
@@ -672,7 +679,7 @@ func TestQueryDkimPubKeys(t *testing.T) {
 			dkimPubKeysFunc: func(ctx context.Context, req *types.QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*types.QueryDkimPubKeysResponse, error) {
 				require.Equal(t, "", req.Domain)
 				require.Equal(t, "", req.Selector)
-				require.Equal(t, []byte(""), req.PoseidonHash)
+				require.Empty(t, req.PoseidonHash)
 				return &types.QueryDkimPubKeysResponse{
 					DkimPubKeys: []*types.DkimPubKey{
 						{Domain: "example1.com"},
@@ -701,26 +708,6 @@ func TestQueryDkimPubKeys(t *testing.T) {
 		}
 
 		res, err := cli.QueryDkimPubKeys(mockClient, cmd, "example.com", "dkim1", "")
-		require.NoError(t, err)
-		require.NotNil(t, res)
-		require.Len(t, res.DkimPubKeys, 1)
-	})
-
-	t.Run("with domain and hash", func(t *testing.T) {
-		mockClient := &MockQueryClient{
-			dkimPubKeysFunc: func(ctx context.Context, req *types.QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*types.QueryDkimPubKeysResponse, error) {
-				require.Equal(t, "example.com", req.Domain)
-				require.Equal(t, "", req.Selector)
-				require.Equal(t, []byte("abc123"), req.PoseidonHash)
-				return &types.QueryDkimPubKeysResponse{
-					DkimPubKeys: []*types.DkimPubKey{
-						{Domain: "example.com", PoseidonHash: []byte("abc123")},
-					},
-				}, nil
-			},
-		}
-
-		res, err := cli.QueryDkimPubKeys(mockClient, cmd, "example.com", "", "abc123")
 		require.NoError(t, err)
 		require.NotNil(t, res)
 		require.Len(t, res.DkimPubKeys, 1)
@@ -1692,7 +1679,7 @@ func TestQueryDkimPubKeyExtended(t *testing.T) {
 			Domain:       "example.com",
 			Selector:     "dkim1",
 			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...",
-			PoseidonHash: []byte("hash123"),
+			PoseidonHash: decimalToBytes("789012"),
 			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
 			KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
@@ -1770,10 +1757,10 @@ func TestGetDkimPublicKeysExtended(t *testing.T) {
 			{"no flags", "", "", ""},
 			{"domain only", "example.com", "", ""},
 			{"selector only", "", "dkim1", ""},
-			{"hash only", "", "", "abc123"},
+			{"hash only", "", "", "123456"},
 			{"domain and selector", "example.com", "dkim1", ""},
-			{"domain and hash", "example.com", "", "abc123"},
-			{"all flags", "example.com", "dkim1", "abc123"},
+			{"domain and hash", "example.com", "", "123456"},
+			{"all flags", "example.com", "dkim1", "123456"},
 		}
 
 		for _, fc := range flagCombinations {
@@ -1856,34 +1843,14 @@ func TestQueryDkimPubKeysExtended(t *testing.T) {
 				// Verify filters are passed correctly
 				require.Equal(t, "filtered.com", req.Domain)
 				require.Equal(t, "filtered-selector", req.Selector)
-				require.Equal(t, []byte("filtered-hash"), req.PoseidonHash)
 				return &types.QueryDkimPubKeysResponse{
 					DkimPubKeys: []*types.DkimPubKey{},
 				}, nil
 			},
 		}
 
-		_, err := cli.QueryDkimPubKeys(mockClient, cmd, "filtered.com", "filtered-selector", "filtered-hash")
+		_, err := cli.QueryDkimPubKeys(mockClient, cmd, "filtered.com", "filtered-selector", "555555")
 		require.NoError(t, err)
-	})
-
-	t.Run("query with only hash filter", func(t *testing.T) {
-		mockClient := &MockQueryClient{
-			dkimPubKeysFunc: func(ctx context.Context, req *types.QueryDkimPubKeysRequest, opts ...grpc.CallOption) (*types.QueryDkimPubKeysResponse, error) {
-				require.Equal(t, "", req.Domain)
-				require.Equal(t, "", req.Selector)
-				require.Equal(t, []byte("somehash"), req.PoseidonHash)
-				return &types.QueryDkimPubKeysResponse{
-					DkimPubKeys: []*types.DkimPubKey{
-						{Domain: "found.com", PoseidonHash: []byte("somehash")},
-					},
-				}, nil
-			},
-		}
-
-		res, err := cli.QueryDkimPubKeys(mockClient, cmd, "", "", "somehash")
-		require.NoError(t, err)
-		require.Len(t, res.DkimPubKeys, 1)
 	})
 }
 
@@ -1896,14 +1863,14 @@ func TestParseDkimPubKeysFlagsExtended(t *testing.T) {
 
 		require.NoError(t, cmd.Flags().Set("domain", "  example.com  "))
 		require.NoError(t, cmd.Flags().Set("selector", "  dkim1  "))
-		require.NoError(t, cmd.Flags().Set("hash", "  hash123  "))
+		require.NoError(t, cmd.Flags().Set("hash", "  789012  "))
 
 		domain, selector, hash, err := cli.ParseDkimPubKeysFlags(cmd)
 		require.NoError(t, err)
 		// Note: flags don't trim whitespace automatically
 		require.Equal(t, "  example.com  ", domain)
 		require.Equal(t, "  dkim1  ", selector)
-		require.Equal(t, "  hash123  ", hash)
+		require.Equal(t, "  789012  ", hash)
 	})
 
 	t.Run("flags with special characters", func(t *testing.T) {
@@ -1914,13 +1881,13 @@ func TestParseDkimPubKeysFlagsExtended(t *testing.T) {
 
 		require.NoError(t, cmd.Flags().Set("domain", "example-test.com"))
 		require.NoError(t, cmd.Flags().Set("selector", "dkim_2023-08"))
-		require.NoError(t, cmd.Flags().Set("hash", "abc123def456"))
+		require.NoError(t, cmd.Flags().Set("hash", "123456789012"))
 
 		domain, selector, hash, err := cli.ParseDkimPubKeysFlags(cmd)
 		require.NoError(t, err)
 		require.Equal(t, "example-test.com", domain)
 		require.Equal(t, "dkim_2023-08", selector)
-		require.Equal(t, "abc123def456", hash)
+		require.Equal(t, "123456789012", hash)
 	})
 }
 

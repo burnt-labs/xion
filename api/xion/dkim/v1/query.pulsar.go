@@ -4346,7 +4346,8 @@ func (x *QueryDkimPubKeysResponse) GetPagination() *v1beta1.PageResponse {
 	return nil
 }
 
-// QueryAuthenticateRequest defines the request structure for proof verification.
+// QueryAuthenticateRequest defines the request structure for proof
+// verification.
 type QueryAuthenticateRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

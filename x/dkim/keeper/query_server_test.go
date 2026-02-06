@@ -229,9 +229,8 @@ func TestParams(t *testing.T) {
 	})
 
 	t.Run("returns updated params after UpdateParams", func(t *testing.T) {
-		newParams := types.Params{
-			VkeyIdentifier: 42,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 42
 
 		// Update params
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
@@ -249,9 +248,8 @@ func TestParams(t *testing.T) {
 	})
 
 	t.Run("returns params with empty dkim pubkeys", func(t *testing.T) {
-		newParams := types.Params{
-			VkeyIdentifier: 99,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 99
 
 		// Update params
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
@@ -296,11 +294,47 @@ func TestAuthenticate(t *testing.T) {
 		"0",
 		"0",
 		"6632353713085157925504008443078919716322386156160602218536961028046468237192",
-		"11762134331805396920416922952213991069934071837728840958836946196083918461096",
+		"21084905302941062264575804210871487148258363738073263632230120817255351393954",
 		"0",
 		"191581113848055322477272311147821680130451026496941019613909483584263833445",
 		"149108628584424258332964971884436592255105616775526759101383287099246929273",
 		"20356082004311139738363494460884070443445370694676839",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
 		"0",
 		"0",
 		"0",
@@ -330,8 +364,8 @@ func TestAuthenticate(t *testing.T) {
 		"0",
 		"0",
 		"180980592328871182281563474567090989367752380861661653173671556731952063826",
-		"199965791649597635819612014058607621668296766642890136997670085336343868009",
-		"112994210254222040061540464",
+		"189366407839159640650411313259066674300878650730387363415856879007716700777",
+		"112965544445135736799656303",
 		"0",
 		"0",
 		"0",
@@ -343,55 +377,50 @@ func TestAuthenticate(t *testing.T) {
 	// Setup DKIM pub key
 	poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 	require.True(ok)
-	_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-		Authority: f.govModAddr,
-		DkimPubkeys: []types.DkimPubKey{
-			{
-				Domain:       "gmail.com",
-				PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-				PoseidonHash: poseidonHash.Bytes(),
-				Selector:     "selector1",
-				Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-			},
-		},
-	})
+	_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+		Domain:       "gmail.com",
+		PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+		PoseidonHash: poseidonHash.Bytes(),
+		Selector:     "selector1",
+		Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+	}, &f.k)
 	require.NoError(err)
 
 	// Common proof JSON
 	proofJSON := []byte(`{
-    "pi_a": [
-          "16033887932289084072641852821716279671311089646850766710691221284077578743545",
-          "5974174642941018797384676577427521180208049362077131029353162977787086557155",
-          "1"
-      ],
-    "pi_b": [
-          [
-              "17655538646220744440393885635381607152292020700665802628476878985056432944870",
-              "2464104724008844631994686500750179935230461847647096295190928278553347455232"
-          ],
-        [
-              "18818632085538916627534000047347257300695255749033908017683947011405569119717",
-              "12055749959640499980253325409390275076256199062355710210344897508457486934643"
+        "pi_a": [
+            "3520409830771234065994556634681427417950500323669026192927037346754953128831",
+            "3498073333995773007990629866509538975797753241506847777821035377435020235118",
+            "1"
         ],
-        [
-              "1",
-              "0"
-        ]
-    ],
-    "pi_c": [
-          "5202131712224779594464034343554944083329473057189256693326095127791456518457",
-          "6087398660265034412060305640870584420936370187577051761389360101875797222085",
-          "1"
-      ],
-      "protocol": "groth16",
-    "curve": "bn128"
-}`)
+        "pi_b": [
+            [
+                "5449376970517492854877490913806025222720139652422610862840169172156024987414",
+                "19970795329053509942253184076261379588636216808533565932150420541118191182415"
+            ],
+            [
+                "3329994826233724633278876134031495025607573045416243454711110428426399497078",
+                "12635663937591831780654697557378573948535834769571974614171466954698620359415"
+            ],
+            [
+                "1",
+                "0"
+            ]
+        ],
+        "pi_c": [
+            "7013834827668081216347999320368574690710153592707686848856775126651375200226",
+            "10870223918887009180919296136906814662608691011484426082412176806715867878616",
+            "1"
+        ],
+        "protocol": "groth16",
+        "curve": "bn128"
+    }`)
 
 	// Common email hash
 	emailHashStr := "9079378704521501721378444251561135763203091338587747860525949554473799137061"
 
 	// Common tx bytes
-	txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+	txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:68])
 	require.NoError(err)
 	txBytes, err := types.ConvertBigIntArrayToString(txParts)
 	require.NoError(err)
@@ -401,7 +430,7 @@ func TestAuthenticate(t *testing.T) {
 		emailHash         string
 		allowedEmailHosts []string
 		publicInputs      []string
-		txBytes           []byte // nil means compute from publicInputs[12:32]
+		txBytes           []byte // nil means compute from publicInputs[12:68]
 		expectedError     bool
 		expectedVerified  bool
 		errorContains     string
@@ -494,9 +523,9 @@ func TestAuthenticate(t *testing.T) {
 			var reqTxBytes []byte
 			if tc.txBytes != nil {
 				reqTxBytes = tc.txBytes
-			} else if len(tc.publicInputs) >= 32 {
-				// Compute txBytes from publicInputs[12:32]
-				txParts, err := types.ConvertStringArrayToBigInt(tc.publicInputs[12:32])
+			} else if len(tc.publicInputs) >= 88 {
+				// Compute txBytes from publicInputs[12:68]
+				txParts, err := types.ConvertStringArrayToBigInt(tc.publicInputs[12:68])
 				require.NoError(err)
 				txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 				require.NoError(err)
@@ -516,7 +545,6 @@ func TestAuthenticate(t *testing.T) {
 				if tc.errorContains != "" {
 					require.Contains(err.Error(), tc.errorContains)
 				}
-				require.ErrorIs(err, types.ErrInvalidPublicInput)
 				require.Nil(res)
 			} else {
 				require.NoError(err)
@@ -532,13 +560,13 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("fail - invalid tx bytes public input conversion", func(t *testing.T) {
-		// Create public inputs with invalid tx bytes values (indices 12-32)
-		invalidPublicInputs := make([]string, 52)
+		// Create public inputs with invalid tx bytes values (indices 12-68)
+		invalidPublicInputs := make([]string, 88)
 		for i := range invalidPublicInputs {
 			invalidPublicInputs[i] = "0"
 		}
 		invalidPublicInputs[12] = "invalid-number" // Invalid: should be numeric
-		invalidPublicInputs[32] = "test-hash"
+		invalidPublicInputs[68] = "test-hash"
 
 		req := &types.QueryAuthenticateRequest{
 			TxBytes:           []byte("test"),
@@ -556,17 +584,17 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 
 	t.Run("fail - invalid dkim domain public input conversion", func(t *testing.T) {
 		// Create public inputs where tx bytes are valid but dkim domain is invalid
-		// We need tx bytes [12:32] to be valid AND match the provided txBytes
+		// We need tx bytes [12:68] to be valid AND match the provided txBytes
 		// Then dkim domain [0:9] should be invalid
-		invalidPublicInputs := make([]string, 52)
+		invalidPublicInputs := make([]string, 88)
 		for i := range invalidPublicInputs {
 			invalidPublicInputs[i] = "0"
 		}
 		invalidPublicInputs[0] = "not-a-number" // Invalid dkim domain: should be numeric
-		invalidPublicInputs[32] = "test-hash"
+		invalidPublicInputs[68] = "test-hash"
 
-		// Compute txBytes from the valid publicInputs[12:32] (all zeros)
-		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:32])
+		// Compute txBytes from the valid publicInputs[12:68] (all zeros)
+		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -587,15 +615,15 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 
 	t.Run("fail - invalid dkim hash public input", func(t *testing.T) {
 		// Create public inputs where tx bytes and dkim domain are valid but dkim hash is invalid
-		invalidPublicInputs := make([]string, 52)
+		invalidPublicInputs := make([]string, 88)
 		for i := range invalidPublicInputs {
 			invalidPublicInputs[i] = "0"
 		}
 		invalidPublicInputs[9] = "not-a-valid-big-int" // Invalid: should be numeric
-		invalidPublicInputs[32] = "test-hash"
+		invalidPublicInputs[68] = "test-hash"
 
-		// Compute txBytes from the valid publicInputs[12:32] (all zeros)
-		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:32])
+		// Compute txBytes from the valid publicInputs[12:68] (all zeros)
+		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -616,15 +644,15 @@ func TestAuthenticateEdgeCases(t *testing.T) {
 
 	t.Run("fail - no dkim pubkey found for domain and hash", func(t *testing.T) {
 		// Create valid public inputs but with a domain/hash that doesn't exist
-		validPublicInputs := make([]string, 52)
+		validPublicInputs := make([]string, 88)
 		for i := range validPublicInputs {
 			validPublicInputs[i] = "0"
 		}
 		validPublicInputs[9] = "12345" // Valid numeric but non-existent hash
-		validPublicInputs[32] = "test-hash"
+		validPublicInputs[68] = "test-hash"
 
-		// Compute txBytes from the valid publicInputs[12:32] (all zeros)
-		txParts, err := types.ConvertStringArrayToBigInt(validPublicInputs[12:32])
+		// Compute txBytes from the valid publicInputs[12:68] (all zeros)
+		txParts, err := types.ConvertStringArrayToBigInt(validPublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -667,90 +695,125 @@ func ToLittleEndianWithTrimming(b []byte) []byte {
 func TestAuthenticateExtended(t *testing.T) {
 	// Base public inputs for testing
 	basePublicInputs := []string{
-		"2018721414038404820327", // [0] domain start
-		"0",                      // [1]
-		"0",                      // [2]
-		"0",                      // [3]
-		"0",                      // [4]
-		"0",                      // [5]
-		"0",                      // [6]
-		"0",                      // [7]
-		"0",                      // [8] domain end
-		"6632353713085157925504008443078919716322386156160602218536961028046468237192",  // [9] dkim hash
-		"13185378954442671764132716722680892126541180309281711451779967792194013187332", // [10]
-		"0", // [11]
-		"124413588010935573100449456468959839270027757215138439816955024736271298883", // [12] tx bytes start
-		"125987718504881168702817372751405511311626515399128115957683055706162879081", // [13]
-		"138174294419566073638917398478480233783462655482283489778477032129860416308", // [14]
-		"87164429935183530231106524238772469083021376536857547601286350511895957042",  // [15]
-		"159508995554830235422881220221659222882416701537684367907262541081181107041", // [16]
-		"216177859633033993616607456010987870980723214832657304250929052054387451251", // [17]
-		"136870293077760051536514689814528040652982158268238924211443105143315312977", // [18]
-		"209027647271941540634260128227139143305212625530130988286308577451934433604", // [19]
-		"216041037480816501846348705353738079775803623607373665378499876478757721956", // [20]
-		"184099808892606061942559141059081527262834859629181581270585908529014000483", // [21]
-		"173926821082308056829441773860483849128404996084932919505946802488367989070", // [22]
-		"136498083332900321215526260868562056670892412932671519510981704427905430578", // [23]
-		"0", // [24]
-		"0", // [25]
-		"0", // [26]
-		"0", // [27]
-		"0", // [28]
-		"0", // [29]
-		"0", // [30]
-		"0", // [31] tx bytes end
-		"3000556394959043010014733515040203427156458323284671772123625840161334499532", // [32] email hash
-		"1", // [33]
-		"145464208130933216679374873468710647147", // [34] email host start
-		"0", // [35]
-		"0", // [36]
-		"0", // [37]
-		"0", // [38]
-		"0", // [39]
-		"0", // [40]
-		"0", // [41]
-		"0", // [42] email host end
-		"0", // [43] subject start
-		"0", // [44]
-		"0", // [45]
-		"0", // [46]
-		"0", // [47]
-		"0", // [48]
-		"0", // [49]
-		"0", // [50]
-		"0", // [51] subject end
+		"2018721414038404820327",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"6632353713085157925504008443078919716322386156160602218536961028046468237192",
+		"21084905302941062264575804210871487148258363738073263632230120817255351393954",
+		"0",
+		"191581113848055322477272311147821680130451026496941019613909483584263833445",
+		"149108628584424258332964971884436592255105616775526759101383287099246929273",
+		"20356082004311139738363494460884070443445370694676839",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"9079378704521501721378444251561135763203091338587747860525949554473799137061",
+		"1",
+		"145464208130933216679374873468710647147",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"180980592328871182281563474567090989367752380861661653173671556731952063826",
+		"189366407839159640650411313259066674300878650730387363415856879007716700777",
+		"112965544445135736799656303",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
+		"0",
 	}
 
 	proofJSON := []byte(`{
-		"pi_a": [
-			"5944437716121039530762625376628032680849046097927020609695209588719894188243",
-			"15094002769215624870186764528984725808996604084528046254003333009805933658554",
-			"1"
-		],
-		"pi_b": [
-			[
-				"11598083160473577226526878990283964831145721095389575367950280122502890447797",
-				"14529469746311110352678726920583600119026340613211681015261396064225322174788"
-			],
-			[
-				"19761328430734755310670224609386128430264722951502273207101955623336691605782",
-				"12500326971227292003488161967372728627656522046132340490811691801399360223213"
-			],
-			[
-				"1",
-				"0"
-			]
-		],
-		"pi_c": [
-			"6578635487431859423834603914562173998011417661191656065435538317687874390535",
-			"2220324679577398770071235716942201306057806867497816712474653950694527471270",
-			"1"
-		],
-		"protocol": "groth16",
-		"curve": "bn128"
-	}`)
+        "pi_a": [
+            "5583158245518012202854967966688803983422579480975771799159435109682404412144",
+            "19132509617989255559927911185942768582713778613503304661723852230698387114840",
+            "1"
+        ],
+        "pi_b": [
+            [
+                "16209151427684011206863591092531391562117041646748639896310737311173246509260",
+                "17729357182912272387117349263688449009610186531485947940640482832772517448927"
+            ],
+            [
+                "5695516600618485685754260649529465903248888152110855008128547397403792546988",
+                "656772577582924627058107331850692187484072991458347712020152128940322124285"
+            ],
+            [
+                "1",
+                "0"
+            ]
+        ],
+        "pi_c": [
+            "17453897224382172288517505191435866511305436208311355514241444398256793953872",
+            "9163422778422181829456976190497942172380575625369266408413936273192580460236",
+            "1"
+        ],
+        "protocol": "groth16"
+    }`)
 
-	emailHashStr := "3000556394959043010014733515040203427156458323284671772123625840161334499532"
+	emailHashStr := "9079378704521501721378444251561135763203091338587747860525949554473799137061"
 
 	t.Run("fail - invalid email host public input conversion", func(t *testing.T) {
 		f := SetupTest(t)
@@ -759,27 +822,22 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Create public inputs with invalid email host values
 		invalidPublicInputs := make([]string, len(basePublicInputs))
 		copy(invalidPublicInputs, basePublicInputs)
-		invalidPublicInputs[34] = "not-a-number" // Invalid email host
+		invalidPublicInputs[70] = "not-a-number" // Invalid email host
 
 		// Compute valid txBytes
-		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(invalidPublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -805,22 +863,17 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
-		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -848,22 +901,17 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
-		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -886,31 +934,26 @@ func TestAuthenticateExtended(t *testing.T) {
 		require := require.New(t)
 
 		// Create exactly 52 elements of zeros
-		minimalPublicInputs := make([]string, 52)
+		minimalPublicInputs := make([]string, 88)
 		for i := range minimalPublicInputs {
 			minimalPublicInputs[i] = "0"
 		}
-		minimalPublicInputs[32] = "test-hash" // email hash at index 32
+		minimalPublicInputs[68] = "test-hash" // email hash at index 68
 
 		// Compute txBytes (all zeros)
-		txParts, err := types.ConvertStringArrayToBigInt(minimalPublicInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(minimalPublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err = f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err = keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 		req := &types.QueryAuthenticateRequest{
 			TxBytes:           []byte(txBytesStr),
@@ -932,8 +975,8 @@ func TestAuthenticateExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		// Create 37 elements (one less than required)
-		insufficientPublicInputs := make([]string, 37)
+		// Create 87 elements (one less than required)
+		insufficientPublicInputs := make([]string, 87)
 		for i := range insufficientPublicInputs {
 			insufficientPublicInputs[i] = "0"
 		}
@@ -956,39 +999,34 @@ func TestAuthenticateExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		// Create public inputs where email host [34:43] are all zeros
+		// Create public inputs where email host [70:79] are all zeros
 		// This results in empty string email host
 		zeroEmailHostInputs := make([]string, len(basePublicInputs))
 		copy(zeroEmailHostInputs, basePublicInputs)
-		zeroEmailHostInputs[34] = "0"
-		zeroEmailHostInputs[35] = "0"
-		zeroEmailHostInputs[36] = "0"
-		zeroEmailHostInputs[37] = "0"
-		zeroEmailHostInputs[38] = "0"
-		zeroEmailHostInputs[39] = "0"
-		zeroEmailHostInputs[40] = "0"
-		zeroEmailHostInputs[41] = "0"
-		zeroEmailHostInputs[42] = "0"
+		zeroEmailHostInputs[70] = "0"
+		zeroEmailHostInputs[71] = "0"
+		zeroEmailHostInputs[72] = "0"
+		zeroEmailHostInputs[73] = "0"
+		zeroEmailHostInputs[74] = "0"
+		zeroEmailHostInputs[75] = "0"
+		zeroEmailHostInputs[76] = "0"
+		zeroEmailHostInputs[77] = "0"
+		zeroEmailHostInputs[78] = "0"
 
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
-		txParts, err := types.ConvertStringArrayToBigInt(zeroEmailHostInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(zeroEmailHostInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -1016,22 +1054,17 @@ func TestAuthenticateExtended(t *testing.T) {
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(basePublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes
-		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(basePublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -1062,55 +1095,50 @@ func TestAuthenticateExtended(t *testing.T) {
 		fullPublicInputs := make([]string, len(basePublicInputs))
 		copy(fullPublicInputs, basePublicInputs)
 
-		// Fill all email host elements [34:43] with non-zero values
+		// Fill all email host elements [70:79] with non-zero values
 		// These represent a long email address that spans all 9 field elements
-		fullPublicInputs[34] = "145464208130933216679374873468710647147" // existing value
-		fullPublicInputs[35] = "123456789012345678901234567890123456789" // additional data
-		fullPublicInputs[36] = "234567890123456789012345678901234567890" // additional data
-		fullPublicInputs[37] = "345678901234567890123456789012345678901" // additional data
-		fullPublicInputs[38] = "456789012345678901234567890123456789012" // additional data
-		fullPublicInputs[39] = "567890123456789012345678901234567890123" // additional data
-		fullPublicInputs[40] = "678901234567890123456789012345678901234" // additional data
-		fullPublicInputs[41] = "789012345678901234567890123456789012345" // additional data
-		fullPublicInputs[42] = "890123456789012345678901234567890123456" // last element of email host
+		fullPublicInputs[70] = "145464208130933216679374873468710647147" // existing value
+		fullPublicInputs[71] = "123456789012345678901234567890123456789" // additional data
+		fullPublicInputs[72] = "234567890123456789012345678901234567890" // additional data
+		fullPublicInputs[73] = "345678901234567890123456789012345678901" // additional data
+		fullPublicInputs[74] = "456789012345678901234567890123456789012" // additional data
+		fullPublicInputs[75] = "567890123456789012345678901234567890123" // additional data
+		fullPublicInputs[76] = "678901234567890123456789012345678901234" // additional data
+		fullPublicInputs[77] = "789012345678901234567890123456789012345" // additional data
+		fullPublicInputs[78] = "890123456789012345678901234567890123456" // last element of email host
 
-		// Fill all email subject elements [43:52] with non-zero values
+		// Fill all email subject elements [79:88] with non-zero values
 		// These represent a long subject that spans all 9 field elements
-		fullPublicInputs[43] = "180980592328871182281563474567090989367752380861661653173671556731952063826" // existing
-		fullPublicInputs[44] = "175265870350771638945491578423233386960064756860306078150084022460882973289" // existing
-		fullPublicInputs[45] = "112994317117614493862539312"                                                 // existing
-		fullPublicInputs[46] = "111222333444555666777888999000111222333"                                     // additional data
-		fullPublicInputs[47] = "222333444555666777888999000111222333444"                                     // additional data
-		fullPublicInputs[48] = "333444555666777888999000111222333444555"                                     // additional data
-		fullPublicInputs[49] = "444555666777888999000111222333444555666"                                     // additional data
-		fullPublicInputs[50] = "555666777888999000111222333444555666777"                                     // additional data
-		fullPublicInputs[51] = "666777888999000111222333444555666777888"                                     // last element of subject
+		fullPublicInputs[79] = "180980592328871182281563474567090989367752380861661653173671556731952063826" // existing
+		fullPublicInputs[80] = "175265870350771638945491578423233386960064756860306078150084022460882973289" // existing
+		fullPublicInputs[81] = "112994317117614493862539312"                                                 // existing
+		fullPublicInputs[82] = "111222333444555666777888999000111222333"                                     // additional data
+		fullPublicInputs[83] = "222333444555666777888999000111222333444"                                     // additional data
+		fullPublicInputs[84] = "333444555666777888999000111222333444555"                                     // additional data
+		fullPublicInputs[85] = "444555666777888999000111222333444555666"                                     // additional data
+		fullPublicInputs[86] = "555666777888999000111222333444555666777"                                     // additional data
+		fullPublicInputs[87] = "666777888999000111222333444555666777888"                                     // last element of subject
 
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(fullPublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Compute valid txBytes from public inputs
-		txParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
 
 		// Convert email host from public inputs to get the expected email host string
-		emailHostParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[34:43])
+		emailHostParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[70:79])
 		require.NoError(err)
 		emailHostStr, err := types.ConvertBigIntArrayToString(emailHostParts)
 		require.NoError(err)
@@ -1122,7 +1150,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		require.True(strings.HasPrefix(emailHostStr, "kushal@burnt"), "email host should start with 'kushal@burnt'")
 
 		// Convert email subject from public inputs to verify it works
-		emailSubjectParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[43:52])
+		emailSubjectParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[79:88])
 		require.NoError(err)
 		emailSubjectStr, err := types.ConvertBigIntArrayToString(emailSubjectParts)
 		require.NoError(err)
@@ -1155,16 +1183,16 @@ func TestAuthenticateExtended(t *testing.T) {
 		_ = res
 	})
 
-	t.Run("success - all command data elements filled [12:32]", func(t *testing.T) {
+	t.Run("success - all command data elements filled [12:68]", func(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		// Create public inputs with all 20 elements filled for command/tx data [12:32]
+		// Create public inputs with all 20 elements filled for command/tx data [12:68]
 		// This tests the edge condition where the full range of tx bytes is utilized
 		fullPublicInputs := make([]string, len(basePublicInputs))
 		copy(fullPublicInputs, basePublicInputs)
 
-		// Fill all command/tx data elements [12:32] with non-zero values
+		// Fill all command/tx data elements [12:68] with non-zero values
 		// These represent a long transaction that spans all 20 field elements
 		fullPublicInputs[12] = "124413588010935573100449456468959839270027757215138439816955024736271298883"
 		fullPublicInputs[13] = "125987718504881168702817372751405511311626515399128115957683055706162879081"
@@ -1186,26 +1214,57 @@ func TestAuthenticateExtended(t *testing.T) {
 		fullPublicInputs[29] = "666777888999000111222333444555666777888999000111222333444555666777888999000"
 		fullPublicInputs[30] = "777888999000111222333444555666777888999000111222333444555666777888999000111"
 		fullPublicInputs[31] = "888999000111222333444555666777888999000111222333444555666777888999000111222"
+		fullPublicInputs[32] = "999000111222333444555666777888999000111222333444555666777888999000111222333"
+		fullPublicInputs[33] = "1000111222333444555666777888999000111222333444555666777888999000111222333444"
+		fullPublicInputs[34] = "124413588010935573100449456468959839270027757215138439816955024736271298883"
+		fullPublicInputs[35] = "125987718504881168702817372751405511311626515399128115957683055706162879081"
+		fullPublicInputs[36] = "138174294419566073638917398478480233783462655482283489778477032129860416308"
+		fullPublicInputs[37] = "87164429935183530231106524238772469083021376536857547601286350511895957042"
+		fullPublicInputs[38] = "159508995554830235422881220221659222882416701537684367907262541081181107041"
+		fullPublicInputs[39] = "216177859633033993616607456010987870980723214832657304250929052054387451251"
+		fullPublicInputs[40] = "136870293077760051536514689814528040652982158268238924211443105143315312977"
+		fullPublicInputs[41] = "209027647271941540634260128227139143305212625530130988286308577451934433604"
+		fullPublicInputs[42] = "216041037480816501846348705353738079775803623607373665378499876478757721956"
+		fullPublicInputs[43] = "184099808892606061942559141059081527262834859629181581270585908529014000483"
+		fullPublicInputs[44] = "173926821082308056829441773860483849128404996084932919505946802488367989070"
+		fullPublicInputs[45] = "136498083332900321215526260868562056670892412932671519510981704427905430578"
+		fullPublicInputs[46] = "111222333444555666777888999000111222333444555666777888999000111222333444555"
+		fullPublicInputs[47] = "222333444555666777888999000111222333444555666777888999000111222333444555666"
+		fullPublicInputs[48] = "333444555666777888999000111222333444555666777888999000111222333444555666777"
+		fullPublicInputs[49] = "444555666777888999000111222333444555666777888999000111222333444555666777888"
+		fullPublicInputs[50] = "555666777888999000111222333444555666777888999000111222333444555666777888999"
+		fullPublicInputs[51] = "666777888999000111222333444555666777888999000111222333444555666777888999000"
+		fullPublicInputs[52] = "777888999000111222333444555666777888999000111222333444555666777888999000111"
+		fullPublicInputs[53] = "888999000111222333444555666777888999000111222333444555666777888999000111222"
+		fullPublicInputs[54] = "999000111222333444555666777888999000111222333444555666777888999000111222333"
+		fullPublicInputs[55] = "1000111222333444555666777888999000111222333444555666777888999000111222333444"
+		fullPublicInputs[56] = "124413588010935573100449456468959839270027757215138439816955024736271298883"
+		fullPublicInputs[57] = "125987718504881168702817372751405511311626515399128115957683055706162879081"
+		fullPublicInputs[58] = "138174294419566073638917398478480233783462655482283489778477032129860416308"
+		fullPublicInputs[59] = "87164429935183530231106524238772469083021376536857547601286350511895957042"
+		fullPublicInputs[60] = "159508995554830235422881220221659222882416701537684367907262541081181107041"
+		fullPublicInputs[61] = "216177859633033993616607456010987870980723214832657304250929052054387451251"
+		fullPublicInputs[62] = "136870293077760051536514689814528040652982158268238924211443105143315312977"
+		fullPublicInputs[63] = "209027647271941540634260128227139143305212625530130988286308577451934433604"
+		fullPublicInputs[64] = "216041037480816501846348705353738079775803623607373665378499876478757721956"
+		fullPublicInputs[65] = "184099808892606061942559141059081527262834859629181581270585908529014000483"
+		fullPublicInputs[66] = "173926821082308056829441773860483849128404996084932919505946802488367989070"
+		fullPublicInputs[67] = "136498083332900321215526260868562056670892412932671519510981704427905430578"
 
 		// Setup DKIM pub key
 		poseidonHash, ok := new(big.Int).SetString(fullPublicInputs[9], 10)
 		require.True(ok)
-		_, err := f.msgServer.AddDkimPubKeys(f.ctx, &types.MsgAddDkimPubKeys{
-			Authority: f.govModAddr,
-			DkimPubkeys: []types.DkimPubKey{
-				{
-					Domain:       "gmail.com",
-					PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
-					PoseidonHash: poseidonHash.Bytes(),
-					Selector:     "selector1",
-					Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
-				},
-			},
-		})
+		_, err := keeper.SaveDkimPubKey(f.ctx, types.DkimPubKey{
+			Domain:       "gmail.com",
+			PubKey:       "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv3bzh5rabT+IWegVAoGnS/kRO2kbgr+jls+Gm5S/bsYYCS/MFsWBuegRE8yHwfiyT5Q90KzwZGkeGL609yrgZKJDHv4TM2kmybi4Kr/CsnhjVojMM7iZVu2Ncx/i/PaCEJzo94dcd4nIS+GXrFnRxU/vIilLojJ01W+jwuxrrkNg8zx6a9wWRwdQUYGUIbGkYazPdYUd/8M8rviLwT9qsnJcM4b3Ie/gtcYzsL5LhuvhfbhRVNGXEMADasx++xxfbIpPr5AgpnZo+6rA1UCUfwZT83Q2pAybaOcpjGUEWpP8h30Gi5xiUBR8rLjweG3MtYlnqTHSyiHGUt9JSCXGPQIDAQAB",
+			PoseidonHash: poseidonHash.Bytes(),
+			Selector:     "selector1",
+			Version:      types.Version_VERSION_DKIM1_UNSPECIFIED,
+		}, &f.k)
 		require.NoError(err)
 
 		// Convert command/tx data from public inputs [12:32]
-		txParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[12:32])
+		txParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[12:68])
 		require.NoError(err)
 		txBytesStr, err := types.ConvertBigIntArrayToString(txParts)
 		require.NoError(err)
@@ -1214,7 +1273,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		require.NotEmpty(txBytesStr, "tx bytes string should not be empty when all elements are filled")
 
 		// Convert email host from public inputs
-		emailHostParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[34:43])
+		emailHostParts, err := types.ConvertStringArrayToBigInt(fullPublicInputs[70:79])
 		require.NoError(err)
 		emailHostStr, err := types.ConvertBigIntArrayToString(emailHostParts)
 		require.NoError(err)
@@ -1258,9 +1317,8 @@ func TestParamsExtended(t *testing.T) {
 		require := require.New(t)
 
 		// First update
-		newParams1 := types.Params{
-			VkeyIdentifier: 10,
-		}
+		newParams1 := types.DefaultParams()
+		newParams1.VkeyIdentifier = 10
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams1,
@@ -1272,9 +1330,8 @@ func TestParamsExtended(t *testing.T) {
 		require.Equal(uint64(10), res1.Params.VkeyIdentifier)
 
 		// Second update
-		newParams2 := types.Params{
-			VkeyIdentifier: 20,
-		}
+		newParams2 := types.DefaultParams()
+		newParams2.VkeyIdentifier = 20
 		_, err = f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams2,
@@ -1290,9 +1347,8 @@ func TestParamsExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		newParams := types.Params{
-			VkeyIdentifier: 18446744073709551615, // max uint64
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 18446744073709551615 // max uint64
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams,
@@ -1308,9 +1364,8 @@ func TestParamsExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		newParams := types.Params{
-			VkeyIdentifier: 5,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 5
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: f.govModAddr,
 			Params:    newParams,
@@ -1322,9 +1377,8 @@ func TestParamsExtended(t *testing.T) {
 		f := SetupTest(t)
 		require := require.New(t)
 
-		newParams := types.Params{
-			VkeyIdentifier: 100,
-		}
+		newParams := types.DefaultParams()
+		newParams.VkeyIdentifier = 100
 		_, err := f.msgServer.UpdateParams(f.ctx, &types.MsgUpdateParams{
 			Authority: "invalid-authority",
 			Params:    newParams,

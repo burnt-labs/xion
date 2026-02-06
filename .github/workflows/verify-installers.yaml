@@ -61,7 +61,9 @@ jobs:
 
       - name: Install xiond
         run: |
-          yum install xiond-$( echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-/~/')-1 -y
+          # Convert version: strip 'v' prefix, convert '-rc' to '~rc', append '-1' for rpm
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/~rc/')
+          yum install xiond-${VERSION}-1 -y
 
       - name: Verify xiond installation
         run: |
@@ -91,7 +93,9 @@ jobs:
 
       - name: Install xiond
         run: |
-          apk update && apk add xiond=$( echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-/_/')
+          # Convert version: strip 'v' prefix, convert '-rc' to '_rc' for alpine
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/_rc/')
+          apk update && apk add xiond=${VERSION}
 
       - name: Verify xiond installation
         run: |

@@ -15,7 +15,7 @@ import (
 	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
-const UpgradeName = "v26"
+const UpgradeName = "v27"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -36,8 +36,19 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
+	// Check which stores already exist (for chains that had v26)
+	existingStores := app.getExistingStoreNames()
+
+	var storesToAdd []string
+	if !existingStores[zktypes.StoreKey] {
+		storesToAdd = append(storesToAdd, zktypes.StoreKey)
+	}
+	if !existingStores[dkimtypes.StoreKey] {
+		storesToAdd = append(storesToAdd, dkimtypes.StoreKey)
+	}
+
 	storeUpgrades := storetypes.StoreUpgrades{
-		Added:   []string{dkimtypes.StoreKey, zktypes.StoreKey},
+		Added:   storesToAdd,
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
 	}
@@ -54,19 +65,51 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 	return storeLoader
 }
 
+// getExistingStoreNames returns a map of store names that already exist in the database.
+func (app *WasmApp) getExistingStoreNames() map[string]bool {
+	existingStores := make(map[string]bool)
+
+	cms := app.CommitMultiStore()
+	latestVersion := cms.LatestVersion()
+	if latestVersion == 0 {
+		return existingStores
+	}
+
+	if rootStore, ok := cms.(interface {
+		GetCommitInfo(ver int64) (*storetypes.CommitInfo, error)
+	}); ok {
+		commitInfo, err := rootStore.GetCommitInfo(latestVersion)
+		if err != nil {
+			app.Logger().Error("failed to get commit info", "version", latestVersion, "error", err)
+			return existingStores
+		}
+		for _, storeInfo := range commitInfo.GetStoreInfos() {
+			existingStores[storeInfo.Name] = true
+		}
+	}
+
+	return existingStores
+}
+
 // NextUpgradeHandler is the upgrade handler that is called during the upgrade process.
 func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (vm module.VersionMap, err error) {
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
 
-	// Initialize new zk module
-	zkGenesis := zktypes.DefaultGenesisState()
-	app.ZkKeeper.InitGenesis(sdkCtx, zkGenesis)
+	// Initialize zk module if not already initialized (for chains skipping v26)
+	if !app.isModuleInitialized(ctx, app.ZkKeeper.Params) {
+		sdkCtx.Logger().Info("initializing zk module")
+		zkGenesis := zktypes.DefaultGenesisState()
+		app.ZkKeeper.InitGenesis(sdkCtx, zkGenesis)
+	}
 
-	// Initialize new dkim module
-	dkimGenesis := dkimtypes.DefaultGenesis()
-	if err := app.DkimKeeper.InitGenesis(sdkCtx, dkimGenesis); err != nil {
-		return nil, err
+	// Initialize dkim module if not already initialized (for chains skipping v26)
+	if !app.isModuleInitialized(ctx, app.DkimKeeper.Params) {
+		sdkCtx.Logger().Info("initializing dkim module")
+		dkimGenesis := dkimtypes.DefaultGenesis()
+		if err := app.DkimKeeper.InitGenesis(sdkCtx, dkimGenesis); err != nil {
+			return nil, err
+		}
 	}
 
 	// Run the migrations for all modules
@@ -77,4 +120,17 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
+}
+
+// isModuleInitialized checks if a module has been initialized by checking if its params exist.
+func (app *WasmApp) isModuleInitialized(ctx context.Context, params interface {
+	Has(context.Context) (bool, error)
+},
+) bool {
+	has, err := params.Has(ctx)
+	if err != nil {
+		// If there's an error checking, assume not initialized
+		return false
+	}
+	return has
 }

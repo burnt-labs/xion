@@ -894,3 +894,101 @@ func TestCombinedFeeRequirementEdgeCases(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, globalFees, result)
 }
+
+func TestAnteHandle_BypassWithAllowedFeeDenom(t *testing.T) {
+	// Test that bypass messages with fees in allowed denominations pass
+	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
+	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
+
+	subspace := paramstypes.NewSubspace(
+		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
+		codec.NewLegacyAmino(),
+		storeKey,
+		tkey,
+		types.ModuleName,
+	).WithKeyTable(types.ParamKeyTable())
+
+	// Set params with non-zero global fees (so denom validation is enforced)
+	params := types.Params{
+		MinimumGasPrices:                sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(1, 3))},
+		BypassMinFeeMsgTypes:            []string{},
+		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
+	}
+	subspace.SetParamSet(ctx.Ctx, &params)
+
+	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
+	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+
+	nextCalled := false
+	nextHandler := func(c sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		nextCalled = true
+		return c, nil
+	}
+
+	payer := sdk.AccAddress([]byte("test-payer-address"))
+
+	// Create bypass tx with fees in an allowed denom (uxion matches global fee denom)
+	// Empty messages slice is always considered bypass (ContainsOnlyBypassMinFeeMsgs returns true)
+	bypassTxWithAllowedFee := mockFeeTx{
+		gas:   100,
+		fees:  sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100))), // Allowed denom
+		payer: payer.Bytes(),
+		msgs:  []sdk.Msg{}, // Empty messages = bypass
+	}
+
+	ctx.Ctx = ctx.Ctx.WithIsCheckTx(true)
+	_, err := decorator.AnteHandle(ctx.Ctx, bypassTxWithAllowedFee, false, nextHandler)
+	require.NoError(t, err)
+	require.True(t, nextCalled)
+}
+
+func TestAnteHandle_BypassGetGlobalFeeError(t *testing.T) {
+	// Test that when GetGlobalFee fails during bypass fee validation, error is returned
+	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
+	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
+
+	subspace := paramstypes.NewSubspace(
+		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
+		codec.NewLegacyAmino(),
+		storeKey,
+		tkey,
+		types.ModuleName,
+	).WithKeyTable(types.ParamKeyTable())
+
+	// Set params with empty global fees (will use DefaultZeroGlobalFee)
+	params := types.Params{
+		MinimumGasPrices:                sdk.DecCoins{}, // Empty - will trigger DefaultZeroGlobalFee
+		BypassMinFeeMsgTypes:            []string{},
+		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
+	}
+	subspace.SetParamSet(ctx.Ctx, &params)
+
+	// Use empty bond denom to make GetGlobalFee fail via DefaultZeroGlobalFee
+	emptyBondDenomFunc := func(ctx sdk.Context) string { return "" }
+	decorator := ante.NewFeeDecorator(subspace, emptyBondDenomFunc)
+
+	nextCalled := false
+	nextHandler := func(c sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
+		nextCalled = true
+		return c, nil
+	}
+
+	payer := sdk.AccAddress([]byte("test-payer-address"))
+
+	// Create bypass tx with fees - this triggers the fee denom validation path
+	// Empty messages slice is always considered bypass (ContainsOnlyBypassMinFeeMsgs returns true)
+	bypassTxWithFees := mockFeeTx{
+		gas:   100,
+		fees:  sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(100))), // Non-zero fees to trigger validation
+		payer: payer.Bytes(),
+		msgs:  []sdk.Msg{}, // Empty messages = bypass
+	}
+
+	ctx.Ctx = ctx.Ctx.WithIsCheckTx(true)
+	_, err := decorator.AnteHandle(ctx.Ctx, bypassTxWithFees, false, nextHandler)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "empty staking bond denomination")
+	require.False(t, nextCalled)
+}

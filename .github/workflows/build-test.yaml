@@ -15,27 +15,28 @@ concurrency:
 jobs:
   lint:
     name: Golang CI Lint
-    uses: burnt-labs/xion/.github/workflows/golangci-lint.yaml@workflows/main
+    uses: ./.github/workflows/golangci-lint.yaml
     secrets: inherit
 
   update-swagger:
     name: Update Swagger
-    uses: burnt-labs/xion/.github/workflows/update-swagger.yaml@workflows/main
+    uses: ./.github/workflows/update-swagger.yaml
     secrets: inherit
 
   unit-tests:
     name: Go Unit Tests
-    uses: burnt-labs/xion/.github/workflows/tests.yaml@workflows/main
+    uses: ./.github/workflows/tests.yaml
     secrets: inherit
 
   build-docker:
     name: Build Docker Images
-    uses: burnt-labs/xion/.github/workflows/docker-build.yaml@workflows/main
+    uses: ./.github/workflows/docker-build.yaml
     secrets: inherit
 
   e2e-tests:
     name: E2E tests
     needs:
+      - unit-tests
       - build-docker
-    uses: burnt-labs/xion/.github/workflows/e2e-tests.yaml@workflows/main
+    uses: ./.github/workflows/e2e-tests.yaml
     secrets: inherit

@@ -9,23 +9,25 @@ import (
 	"testing"
 	"time"
 
-	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/gogoproto/proto"
+	ibctest "github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/testutil"
 
 	"cosmossdk.io/math"
-	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/interchaintest/v10/ibc"
-
 	"cosmossdk.io/x/feegrant"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+
+	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/gogoproto/proto"
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/testutil"
-	"github.com/stretchr/testify/require"
+
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 type GrantConfig struct {
@@ -204,7 +206,7 @@ func TestAppTreasuryContract(t *testing.T) {
 
 	executeMsg := map[string]any{}
 	feegrantMsg := map[string]any{}
-	feegrantMsg["authz_granter"] = granterUser.FormattedAddress() //"this should be the contract"
+	feegrantMsg["authz_granter"] = granterUser.FormattedAddress() // "this should be the contract"
 	feegrantMsg["authz_grantee"] = granteeUser.FormattedAddress()
 	executeMsg["deploy_fee_grant"] = feegrantMsg
 	executeMsgBz, err := json.Marshal(executeMsg)

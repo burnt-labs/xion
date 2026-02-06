@@ -286,8 +286,8 @@ github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb/go.mod h1:
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
 github.com/coinbase/mesh-sdk-go/types v1.0.0 h1:CQjX3SnIZvRClvSgjgNDLq342Wn9WNnGnpSfkmMu8nE=
 github.com/coinbase/mesh-sdk-go/types v1.0.0/go.mod h1:eq7W2TMRH22GTW0N0beDnN931DW0/WOI1R2sdHNHG4c=
-github.com/cometbft/cometbft v0.38.19 h1:vNdtCkvhuwUlrcLPAyigV7lQpmmo+tAq8CsB8gZjEYw=
-github.com/cometbft/cometbft v0.38.19/go.mod h1:UCu8dlHqvkAsmAFmWDRWNZJPlu6ya2fTWZlDrWsivwo=
+github.com/cometbft/cometbft v0.38.21 h1:qcIJSH9LiwU5s6ZgKR5eRbsLNucbubfraDs5bzgjtOI=
+github.com/cometbft/cometbft v0.38.21/go.mod h1:UCu8dlHqvkAsmAFmWDRWNZJPlu6ya2fTWZlDrWsivwo=
 github.com/cometbft/cometbft-db v1.0.4 h1:cezb8yx/ZWcF124wqUtAFjAuDksS1y1yXedvtprUFxs=
 github.com/cometbft/cometbft-db v1.0.4/go.mod h1:M+BtHAGU2XLrpUxo3Nn1nOCcnVCiLM9yx5OuT0u5SCA=
 github.com/consensys/gnark v0.14.0 h1:RG+8WxRanFSFBSlmCDRJnYMYYKpH3Ncs5SMzg24B5HQ=

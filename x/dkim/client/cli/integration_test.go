@@ -89,14 +89,14 @@ func TestIntegration_ParseDkimPubKeysFlags_WithCommand(t *testing.T) {
 	// Set flags
 	require.NoError(t, cmd.Flags().Set("domain", "example.com"))
 	require.NoError(t, cmd.Flags().Set("selector", "selector1"))
-	require.NoError(t, cmd.Flags().Set("hash", "hash123"))
+	require.NoError(t, cmd.Flags().Set("hash", "789012"))
 
 	// Parse flags using our helper
 	domain, selector, hash, err := cli.ParseDkimPubKeysFlags(cmd)
 	require.NoError(t, err)
 	require.Equal(t, "example.com", domain)
 	require.Equal(t, "selector1", selector)
-	require.Equal(t, "hash123", hash)
+	require.Equal(t, "789012", hash)
 
 	// Verify the command itself can start executing
 	// It will fail at gRPC connection, but that's expected
