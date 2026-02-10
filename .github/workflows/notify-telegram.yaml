@@ -1,0 +1,48 @@
+name: Notify Telegram
+
+on:
+  release:
+    types: [released, prereleased]
+
+jobs:
+  notify-telegram:
+    name: Send Release Notification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram message
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_RELEASE_CHAT_ID }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_PRERELEASE: ${{ github.event.release.prerelease }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          if [ "$RELEASE_PRERELEASE" = "true" ]; then
+            LABEL="Pre-release"
+          else
+            LABEL="New Release"
+          fi
+
+          # Escape HTML entities in changelog body
+          SAFE_BODY=$(printf '%s' "$RELEASE_BODY" \
+            | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' \
+            | head -c 3500)
+
+          # Build and send message via Telegram Bot API
+          # jq constructs the JSON payload with proper escaping
+          jq -n \
+            --arg chat_id "$TELEGRAM_CHAT_ID" \
+            --arg label "$LABEL" \
+            --arg tag "$RELEASE_TAG" \
+            --arg url "$RELEASE_URL" \
+            --arg body "$SAFE_BODY" \
+            '{
+              chat_id: $chat_id,
+              text: ("<b>" + $label + ": " + $tag + "</b>\n\n<a href=\"" + $url + "\">View on GitHub</a>\n\n<b>Changelog:</b>\n<pre>" + $body + "</pre>"),
+              parse_mode: "HTML"
+            }' \
+          | curl -sf -X POST \
+              "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -H "Content-Type: application/json" \
+              -d @-
