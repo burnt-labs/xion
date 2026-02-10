@@ -8,15 +8,16 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 )
 
 const (
-	testdataDir = "testdata"
-	vkeyFile    = "valid_ultrahonk_vkey.bin"
-	proofFile   = "valid_ultrahonk_proof.bin"
-	inputsFile  = "test_inputs.json"
+	testdataDir = "testdata/statics"
+	vkeyFile    = "vk"
+	proofFile   = "proof"
+	inputsFile  = "public_inputs"
 )
 
 // loadTestVector loads a test vector file from testdata directory.
@@ -28,6 +29,21 @@ func loadTestVector(t *testing.T, filename string) []byte {
 		t.Skipf("test vector %s not found: %v", filename, err)
 	}
 	return data
+}
+
+// loadTestInputs loads public inputs from the binary public_inputs file.
+func loadTestInputs(t *testing.T) [][]byte {
+	t.Helper()
+	data := loadTestVector(t, inputsFile)
+	if len(data)%FieldElementSize != 0 {
+		t.Fatalf("public_inputs file size %d is not a multiple of %d", len(data), FieldElementSize)
+	}
+	count := len(data) / FieldElementSize
+	elements := make([][]byte, count)
+	for i := range count {
+		elements[i] = data[i*FieldElementSize : (i+1)*FieldElementSize]
+	}
+	return elements
 }
 
 // TestParseVerificationKeyEmpty tests parsing empty verification key.
@@ -352,6 +368,7 @@ func TestValidateVerificationKeyBytesTooSmall(t *testing.T) {
 func TestVerifyValidProof(t *testing.T) {
 	vkeyData := loadTestVector(t, vkeyFile)
 	proofData := loadTestVector(t, proofFile)
+	inputs := loadTestInputs(t)
 
 	vkey, err := ParseVerificationKey(vkeyData)
 	if err != nil {
@@ -370,9 +387,7 @@ func TestVerifyValidProof(t *testing.T) {
 	}
 	defer verifier.Close()
 
-	// For testing without actual inputs, use empty inputs
-	// In real usage, you would load inputs from test_inputs.json
-	valid, err := verifier.Verify(proof, []string{})
+	valid, err := verifier.VerifyWithBytes(proof, inputs)
 	if err != nil {
 		t.Fatalf("verification error: %v", err)
 	}
@@ -384,6 +399,10 @@ func TestVerifyValidProof(t *testing.T) {
 
 // TestVerifyInvalidProof tests verification with tampered proof.
 func TestVerifyInvalidProof(t *testing.T) {
+	if strings.HasPrefix(Version(), "stub") {
+		t.Skip("stub library does not perform real verification")
+	}
+
 	vkeyData := loadTestVector(t, vkeyFile)
 	proofData := loadTestVector(t, proofFile)
 
@@ -411,7 +430,8 @@ func TestVerifyInvalidProof(t *testing.T) {
 	}
 	defer verifier.Close()
 
-	valid, err := verifier.Verify(proof, []string{})
+	inputs := loadTestInputs(t)
+	valid, err := verifier.VerifyWithBytes(proof, inputs)
 	// Either verification fails (valid = false) or we get an error
 	if valid {
 		t.Error("expected tampered proof to fail verification")
@@ -428,6 +448,19 @@ func BenchmarkVerify(b *testing.B) {
 	proofData, err := os.ReadFile(filepath.Join(testdataDir, proofFile))
 	if err != nil {
 		b.Skip("test vectors not available")
+	}
+
+	inputsData, err := os.ReadFile(filepath.Join(testdataDir, inputsFile))
+	if err != nil {
+		b.Skip("test vectors not available")
+	}
+	if len(inputsData)%FieldElementSize != 0 {
+		b.Fatalf("public_inputs file size %d is not a multiple of %d", len(inputsData), FieldElementSize)
+	}
+	count := len(inputsData) / FieldElementSize
+	inputs := make([][]byte, count)
+	for i := range count {
+		inputs[i] = inputsData[i*FieldElementSize : (i+1)*FieldElementSize]
 	}
 
 	vkey, err := ParseVerificationKey(vkeyData)
@@ -450,7 +483,7 @@ func BenchmarkVerify(b *testing.B) {
 	b.ResetTimer()
 
 	for b.Loop() {
-		_, _ = verifier.Verify(proof, []string{})
+		_, _ = verifier.VerifyWithBytes(proof, inputs)
 	}
 }
 
