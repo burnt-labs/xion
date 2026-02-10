@@ -26,5 +26,8 @@ jobs:
     secrets: inherit
   trigger-homebrew:
     name: Trigger Homebrew
+    # No guard needed here — the homebrew-xion repo handles pre-release detection internally.
+    # For RC tags: only versioned formulas (xiond@26.rb, xiond@26.0.0-rc1.rb) are created.
+    # The main formula (xiond.rb / `brew install xiond`) only updates for stable releases.
     uses: ./.github/workflows/trigger-homebrew.yaml
     secrets: inherit
