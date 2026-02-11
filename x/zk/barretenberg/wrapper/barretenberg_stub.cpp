@@ -107,8 +107,27 @@ bb_error_t bb_verify_proof(
         return BB_ERR_INVALID_PROOF;
     }
 
-    // Stub: always return success for now (real implementation would verify)
-    // In a real scenario, this would call barretenberg's verifier
+    // Validate public input count matches verification key
+    auto* impl = reinterpret_cast<const bb_vkey_impl*>(vkey);
+    if (static_cast<size_t>(impl->num_public_inputs) != num_inputs) {
+        g_last_error = "public input count mismatch: verification key expects "
+            + std::to_string(impl->num_public_inputs) + ", got " + std::to_string(num_inputs);
+        return BB_ERR_INVALID_PUBLIC_INPUTS;
+    }
+
+    if (num_inputs > 0) {
+        if (public_inputs == nullptr) {
+            g_last_error = "null public inputs with non-zero count";
+            return BB_ERR_INVALID_PUBLIC_INPUTS;
+        }
+        size_t expected_len = num_inputs * 32;
+        if (pub_len != expected_len) {
+            g_last_error = "invalid public inputs length";
+            return BB_ERR_INVALID_PUBLIC_INPUTS;
+        }
+    }
+
+    // Stub: return success after validation (real implementation would verify cryptographically)
     return BB_SUCCESS;
 }
 

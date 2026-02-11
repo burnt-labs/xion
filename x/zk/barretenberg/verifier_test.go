@@ -369,6 +369,7 @@ func TestVerifyValidProof(t *testing.T) {
 	vkeyData := loadTestVector(t, vkeyFile)
 	proofData := loadTestVector(t, proofFile)
 	inputs := loadTestInputs(t)
+	// inputs := [][]byte{}
 
 	vkey, err := ParseVerificationKey(vkeyData)
 	if err != nil {

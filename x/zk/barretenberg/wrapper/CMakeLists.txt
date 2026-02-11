@@ -14,9 +14,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Build options
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
-# Barretenberg git reference (branch, tag, or commit hash)
-# Note: Barretenberg doesn't use semantic version tags - use branch name or commit
-set(BB_REF "master" CACHE STRING "Barretenberg git reference (branch/tag/commit)")
+# Barretenberg git reference — pinned to aztec-packages monorepo stable release tag
+set(BB_REF "v3.0.3" CACHE STRING "Barretenberg git reference (branch/tag/commit)")
 
 # Detect target platform
 if(NOT DEFINED TARGET_PLATFORM)
@@ -73,12 +72,12 @@ else()
 
     FetchContent_Declare(
         barretenberg
-        GIT_REPOSITORY https://github.com/AztecProtocol/barretenberg.git
+        GIT_REPOSITORY https://github.com/AztecProtocol/aztec-packages.git
         GIT_TAG ${BB_REF}
-        GIT_SHALLOW FALSE
+        GIT_SHALLOW TRUE
         GIT_PROGRESS TRUE
         GIT_SUBMODULES ""
-        SOURCE_SUBDIR cpp
+        SOURCE_SUBDIR barretenberg/cpp
     )
 
     # Configure Barretenberg build options
@@ -88,7 +87,26 @@ else()
     set(DISABLE_ASM OFF CACHE BOOL "" FORCE)
     set(MULTITHREADING ON CACHE BOOL "" FORCE)
 
-    FetchContent_MakeAvailable(barretenberg)
+    # Use FetchContent_Populate (instead of MakeAvailable) so we can patch
+    # Barretenberg's compile flags before its CMakeLists.txt is processed.
+    FetchContent_GetProperties(barretenberg)
+    if(NOT barretenberg_POPULATED)
+        FetchContent_Populate(barretenberg)
+
+        # Apple Clang 17 triggers -Wvla-cxx-extension but reports version 17,
+        # while Barretenberg's fix only applies for Clang >= 18 (LLVM versioning).
+        # Patch the version check to cover Apple Clang as well.
+        set(_bb_src_cmake "${barretenberg_SOURCE_DIR}/barretenberg/cpp/src/CMakeLists.txt")
+        file(READ "${_bb_src_cmake}" _bb_src_cmake_content)
+        string(REPLACE
+            "CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18"
+            "CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16"
+            _bb_src_cmake_content "${_bb_src_cmake_content}")
+        file(WRITE "${_bb_src_cmake}" "${_bb_src_cmake_content}")
+        message(STATUS "Patched Barretenberg Clang version check for Apple Clang compatibility")
+
+        add_subdirectory(${barretenberg_SOURCE_DIR}/barretenberg/cpp ${barretenberg_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif()
 endif()
 
 # Create the wrapper static library
@@ -100,7 +118,9 @@ target_include_directories(barretenberg_wrapper
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/../include
     PRIVATE
-        ${barretenberg_SOURCE_DIR}/cpp/src
+        ${barretenberg_SOURCE_DIR}/barretenberg/cpp/src
+        ${CMAKE_BINARY_DIR}/_deps/tracy-src/public
+        ${CMAKE_BINARY_DIR}/_deps/msgpack-c/src/msgpack-c/include
 )
 
 # Link against Barretenberg libraries
@@ -124,25 +144,38 @@ target_compile_definitions(barretenberg_wrapper PRIVATE
 
 # Set output properties
 set_target_properties(barretenberg_wrapper PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUTPUT_DIR}
-    OUTPUT_NAME "barretenberg"
+    OUTPUT_NAME "barretenberg_wrapper"
     POSITION_INDEPENDENT_CODE ON
 )
 
-# On Linux, we need to create an archive that includes all dependencies
-# This creates a "fat" static library
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    # After building, merge all static libraries into one
-    add_custom_command(TARGET barretenberg_wrapper POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "Creating combined static library..."
-        COMMAND ${CMAKE_AR} -x $<TARGET_FILE:barretenberg_wrapper>
-        COMMAND ${CMAKE_AR} -rcs ${LIB_OUTPUT_DIR}/libbarretenberg.a *.o
-        COMMAND ${CMAKE_COMMAND} -E remove *.o
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Combining static libraries"
-        VERBATIM
-    )
+# Merge all static libraries (wrapper + barretenberg dependencies) into a single
+# fat archive so that Go/CGo can link against one -lbarretenberg.
+# Generate a merge script at configure time; find runs at build time via sh.
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    file(WRITE "${CMAKE_BINARY_DIR}/merge_libs.sh"
+"#!/bin/sh
+set -e
+libtool -static -o '${LIB_OUTPUT_DIR}/libbarretenberg.a' $(find '${CMAKE_BINARY_DIR}' -name '*.a' ! -path '${LIB_OUTPUT_DIR}/*')
+")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    file(WRITE "${CMAKE_BINARY_DIR}/merge_libs.sh"
+"#!/bin/sh
+set -e
+tmp=$(mktemp -d)
+cd \"$tmp\"
+for a in $(find '${CMAKE_BINARY_DIR}' -name '*.a' ! -path '${LIB_OUTPUT_DIR}/*'); do
+    '${CMAKE_AR}' x \"$a\"
+done
+'${CMAKE_AR}' rcs '${LIB_OUTPUT_DIR}/libbarretenberg.a' *.o
+cd /
+rm -rf \"$tmp\"
+")
 endif()
+
+add_custom_command(TARGET barretenberg_wrapper POST_BUILD
+    COMMAND sh "${CMAKE_BINARY_DIR}/merge_libs.sh"
+    COMMENT "Combining static libraries"
+)
 
 # Installation
 install(TARGETS barretenberg_wrapper

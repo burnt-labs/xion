@@ -6,17 +6,20 @@
 
 #include "../include/barretenberg_wrapper.h"
 
+#include <cstdio>
 #include <cstring>
 #include <memory>
-#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
 
 // Barretenberg headers
-#include "barretenberg/honk/proof_system/types/proof.hpp"
-#include "barretenberg/stdlib_circuit_builders/ultra_flavor.hpp"
-#include "barretenberg/ultra_honk/ultra_verifier.hpp"
+#include "barretenberg/common/serialize.hpp"                       // from_buffer<T>, many_from_buffer
+#include "barretenberg/flavor/ultra_zk_flavor.hpp"                 // UltraZKFlavor
+#include "barretenberg/honk/proof_system/types/proof.hpp"          // HonkProof = vector<fr>
+#include "barretenberg/ultra_honk/ultra_verifier.hpp"              // UltraVerifier_
+#include "barretenberg/special_public_inputs/special_public_inputs.hpp" // DefaultIO
+#include "barretenberg/srs/global_crs.hpp"                        // init_net_crs_factory
 
 // Version information
 #ifndef BB_VERSION
@@ -36,9 +39,14 @@ void clear_last_error() {
     g_last_error.clear();
 }
 
-// Wrapper struct for verification key
+// Use UltraZKFlavor to match the default behavior of the BB CLI (ZK enabled by default)
+using Flavor = bb::UltraZKFlavor;
+using VerificationKey = Flavor::VerificationKey;
+
+// Wrapper struct for verification key — stores raw bytes for fresh deserialization
 struct bb_vkey_impl {
-    std::shared_ptr<bb::UltraFlavor::VerificationKey> vk;
+    std::vector<uint8_t> vk_bytes;
+    std::shared_ptr<VerificationKey> vk;
     uint32_t num_public_inputs;
     uint64_t circuit_size;
 };
@@ -55,18 +63,20 @@ bb_vkey_t* bb_vkey_from_bytes(const uint8_t* data, size_t len) {
         return nullptr;
     }
 
+    // Minimum reasonable size for an UltraHonk verification key
+    constexpr size_t MIN_VKEY_SIZE = 1024;
+    if (len < MIN_VKEY_SIZE) {
+        set_last_error("verification key data too small");
+        return nullptr;
+    }
+
     try {
         // Create a vector from the input data
         std::vector<uint8_t> vk_bytes(data, data + len);
 
-        // Deserialize the verification key
-        // UltraHonk verification keys are serialized in msgpack format
-        auto vk = std::make_shared<bb::UltraFlavor::VerificationKey>();
-
-        // Use barretenberg's deserialization
-        // The verification key should be deserialized from the binary format
-        auto it = vk_bytes.begin();
-        bb::serialize::read(it, *vk);
+        // Deserialize the verification key using from_buffer (binary serialization)
+        auto vk = std::make_shared<VerificationKey>(
+            from_buffer<VerificationKey>(vk_bytes));
 
         // Allocate the wrapper struct
         auto* impl = new (std::nothrow) bb_vkey_impl();
@@ -75,9 +85,10 @@ bb_vkey_t* bb_vkey_from_bytes(const uint8_t* data, size_t len) {
             return nullptr;
         }
 
+        impl->vk_bytes = std::move(vk_bytes);
         impl->vk = vk;
         impl->num_public_inputs = vk->num_public_inputs;
-        impl->circuit_size = vk->circuit_size;
+        impl->circuit_size = 1ULL << vk->log_circuit_size;
 
         return reinterpret_cast<bb_vkey_t*>(impl);
 
@@ -162,48 +173,32 @@ bb_error_t bb_verify_proof(
     try {
         auto* impl = reinterpret_cast<const bb_vkey_impl*>(vkey);
 
-        // Validate public input count matches verification key expectation
-        if (static_cast<size_t>(impl->num_public_inputs) != num_inputs) {
-            std::ostringstream oss;
-            oss << "public input count mismatch: verification key expects "
-                << impl->num_public_inputs << ", got " << num_inputs;
-            set_last_error(oss.str());
-            return BB_ERR_INVALID_PUBLIC_INPUTS;
-        }
+        // Initialize global CRS factory if not already done (idempotent)
+        bb::srs::init_net_crs_factory(bb::srs::bb_crs_path());
 
-        // Parse public inputs as field elements
-        std::vector<bb::fr> public_inputs_vec;
-        public_inputs_vec.reserve(num_inputs);
+        // Deserialize VK fresh from bytes — mirrors BB CLI _verify() exactly
+        auto vk = std::make_shared<VerificationKey>(
+            from_buffer<VerificationKey>(impl->vk_bytes));
 
-        for (size_t i = 0; i < num_inputs; ++i) {
-            // Read 32-byte big-endian field element
-            const uint8_t* elem_ptr = public_inputs + (i * FIELD_SIZE);
-
-            // Convert from big-endian bytes to field element
-            bb::fr elem;
-            // barretenberg field elements are stored in Montgomery form
-            // We need to read the big-endian representation and convert
-            uint256_t value = 0;
-            for (size_t j = 0; j < FIELD_SIZE; ++j) {
-                value = (value << 8) | elem_ptr[j];
-            }
-            elem = bb::fr(value);
-            public_inputs_vec.push_back(elem);
-        }
-
-        // Deserialize the proof
+        // Use the same deserialization as the BB CLI (many_from_buffer<uint256_t>)
+        std::vector<uint8_t> pub_bytes(public_inputs, public_inputs + pub_len);
         std::vector<uint8_t> proof_bytes(proof, proof + proof_len);
 
-        // Create the UltraHonk verifier
-        bb::UltraVerifier verifier(impl->vk);
+        auto pub_u256 = many_from_buffer<uint256_t>(pub_bytes);
+        auto proof_u256 = many_from_buffer<uint256_t>(proof_bytes);
 
-        // Parse the proof into the HonkProof structure
-        bb::HonkProof honk_proof(proof_bytes);
+        // Concatenate public inputs + proof into a single vector
+        using DataType = typename Flavor::Transcript::DataType;
+        std::vector<DataType> complete_proof;
+        complete_proof.reserve(pub_u256.size() + proof_u256.size());
+        complete_proof.insert(complete_proof.end(), pub_u256.begin(), pub_u256.end());
+        complete_proof.insert(complete_proof.end(), proof_u256.begin(), proof_u256.end());
 
-        // Perform verification
-        bool verified = verifier.verify_proof(honk_proof, public_inputs_vec);
+        // Verify using UltraZKFlavor verifier with DefaultIO (matches BB CLI default)
+        bb::UltraVerifier_<Flavor> verifier{ vk };
+        auto output = verifier.verify_proof<bb::DefaultIO>(complete_proof);
 
-        if (!verified) {
+        if (!output.result) {
             set_last_error("proof verification failed");
             return BB_ERR_VERIFICATION_FAILED;
         }

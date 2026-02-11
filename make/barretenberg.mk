@@ -1,8 +1,8 @@
 # Barretenberg build targets
 
 # Barretenberg git reference (branch, tag, or commit hash)
-# Note: Barretenberg doesn't use semantic version tags - use branch or commit
-BB_REF ?= master
+# Pinned to aztec-packages monorepo stable release tag
+BB_REF ?= v3.0.3
 
 # Directory paths
 BB_DIR := x/zk/barretenberg
@@ -21,8 +21,8 @@ BB_PLATFORM := $(GOOS)_$(GOARCH)
         barretenberg-generate-testdata barretenberg-verify
 
 # Build barretenberg static library for current platform
-# By default, build the stub for development. Use barretenberg-build-full for real library.
-barretenberg-build: barretenberg-build-stub
+# Build the full library from source by default.
+barretenberg-build: barretenberg-build-native
 
 # Build stub library (for development/testing without full Barretenberg)
 barretenberg-build-stub:
@@ -57,10 +57,11 @@ barretenberg-build-linux-arm64:
 barretenberg-build-darwin-arm64:
 	cd $(BB_WRAPPER_DIR) && ./build.sh --platform darwin_arm64 --bb-ref $(BB_REF)
 
-# Clean build artifacts
+# Clean build artifacts, FetchContent cache, and stub objects
 barretenberg-clean:
-	@echo "Cleaning Barretenberg build artifacts..."
+	@echo "Cleaning Barretenberg build artifacts, cache, and stub..."
 	rm -rf $(BB_WRAPPER_DIR)/build
+	rm -f $(BB_WRAPPER_DIR)/*.o
 	rm -f $(BB_LIB_DIR)/*/libbarretenberg.a
 
 # Run barretenberg package tests
@@ -96,7 +97,7 @@ help-barretenberg-brief:
 
 help-barretenberg:
 	@echo "Barretenberg targets:"
-	@echo "  barretenberg-build          Build stub library (default, for dev)"
+	@echo "  barretenberg-build          Build full library from source (default)"
 	@echo "  barretenberg-build-stub     Build stub library for development"
 	@echo "  barretenberg-build-full     Build full library from source"
 	@echo "  barretenberg-build-native   Build full library (native)"
@@ -112,6 +113,5 @@ help-barretenberg:
 	@echo "  barretenberg-verify         Verify bindings compile"
 	@echo ""
 	@echo "  Note: Use barretenberg-build-stub for development without"
-	@echo "        full Barretenberg dependencies. For production, build"
-	@echo "        the full library or use pre-built binaries."
+	@echo "        full Barretenberg dependencies."
 	@echo ""

@@ -14,7 +14,7 @@
 #   --native             Build for the current platform only (default)
 #   --docker             Use Docker for cross-compilation
 #   --clean              Clean build artifacts before building
-#   --bb-ref REF         Barretenberg git ref - branch/tag/commit (default: master)
+#   --bb-ref REF         Barretenberg git ref - branch/tag/commit (default: v3.0.3)
 #   --help               Show this help message
 #
 
@@ -24,8 +24,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Default configuration
-# Note: Barretenberg doesn't use semantic version tags - use branch or commit hash
-BB_REF="${BB_REF:-master}"
+# Pinned to aztec-packages monorepo stable release tag
+BB_REF="${BB_REF:-v3.0.3}"
 USE_DOCKER=false
 CLEAN_BUILD=false
 BUILD_ALL=false
@@ -89,7 +89,7 @@ build_native() {
         -DTARGET_PLATFORM="${platform}" \
         -DBB_REF="${BB_REF}"
 
-    cmake --build . --parallel "$(nproc 2>/dev/null || sysctl -n hw.ncpu)"
+    cmake --build . --target barretenberg_wrapper --parallel "$(nproc 2>/dev/null || sysctl -n hw.ncpu)"
 
     log_info "Build complete: ${PROJECT_ROOT}/lib/${platform}/libbarretenberg.a"
 }
@@ -120,7 +120,7 @@ build_docker() {
             cmake ../.. \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DTARGET_PLATFORM=${platform} \
-                -DBB_VERSION=${BB_VERSION}
+                -DBB_REF=${BB_REF}
             cmake --build . --parallel \$(nproc)
         "
 
