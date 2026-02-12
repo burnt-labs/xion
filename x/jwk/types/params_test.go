@@ -216,7 +216,7 @@ func TestNewParams(t *testing.T) {
 func TestDefaultParams(t *testing.T) {
 	params := types.DefaultParams()
 	require.Equal(t, uint64(10_000), params.DeploymentGas)
-	require.Equal(t, uint64(30_000), params.TimeOffset)
+	require.Equal(t, uint64(30_000_000_000), params.TimeOffset)
 
 	// Default params should be valid
 	require.NoError(t, params.Validate())
