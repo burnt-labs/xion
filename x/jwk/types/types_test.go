@@ -48,7 +48,7 @@ func TestJWKParams(t *testing.T) {
 	defaultParams := types.DefaultParams()
 	require.NotNil(t, defaultParams)
 	require.Equal(t, uint64(10_000), defaultParams.DeploymentGas)
-	require.Equal(t, uint64(30_000), defaultParams.TimeOffset)
+	require.Equal(t, uint64(30_000_000_000), defaultParams.TimeOffset)
 
 	// Test ParamSetPairs
 	pairs := defaultParams.ParamSetPairs()
