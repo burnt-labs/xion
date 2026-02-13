@@ -102,6 +102,7 @@ func (gs GenesisState) Validate() error {
 	return nil
 }
 
+//nolint:staticcheck // ST1016
 func (d *DkimPubKey) Equal(v interface{}) bool {
 	if v == nil {
 		return d == nil
