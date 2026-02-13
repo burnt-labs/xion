@@ -15,7 +15,7 @@ import (
 	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
-const UpgradeName = "v27"
+const UpgradeName = "v28"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()

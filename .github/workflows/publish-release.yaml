@@ -1,33 +1,123 @@
 name: Publish Release
 
 on:
-  workflow_call: # is called from the create-release workflow
   workflow_dispatch: # manual trigger
   release: # triggered by release event
-    types: [released, prereleased]
+    types: [published]
     # Notice:
     # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
-    # - "published" type is happening when the release is marked as "latest"
-    # - "released" type is happening when a release was published, or a pre-release was changed to a release.
-    # - "prereleased" type is happening when a release was created and identified as a pre-release. A pre-release is a release that is not ready for production and may be unstable.
+    # - "published" fires for both full releases and pre-releases
 
 concurrency: # With concurrency control: Only the latest workflow run executes, previous runs get cancelled
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
-  trigger-types:
-    name: Trigger Types
-    uses: ./.github/workflows/trigger-types.yaml
-    secrets: inherit
-  trigger-assets:
-    name: Trigger Assets
-    uses: ./.github/workflows/trigger-assets.yaml
-    secrets: inherit
-  trigger-homebrew:
-    name: Trigger Homebrew
-    # No guard needed here — the homebrew-xion repo handles pre-release detection internally.
-    # For RC tags: only versioned formulas (xiond@26.rb, xiond@26.0.0-rc1.rb) are created.
-    # The main formula (xiond.rb / `brew install xiond`) only updates for stable releases.
-    uses: ./.github/workflows/trigger-homebrew.yaml
+  publish-fury:
+    name: Publish to Fury
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set Go Version
+        run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist
+          gh release download ${{ github.ref_name }} \
+            --repo ${{ github.repository }} \
+            --dir dist \
+            --pattern 'xiond*'
+
+      - name: Prepare dist layout
+        run: |
+          # goreleaser prebuilt expects: dist/xiond_<os>_<arch>_<variant>/bin/xiond-<os>-<arch>
+          # Release assets are tarballs containing a 'xiond' binary
+          declare -A VARIANTS=(
+            ["linux_amd64"]="v1"
+            ["linux_arm64"]="v8.0"
+            ["darwin_amd64"]="v1"
+            ["darwin_arm64"]="v8.0"
+          )
+
+          for platform in linux_amd64 linux_arm64 darwin_amd64 darwin_arm64; do
+            os="${platform%%_*}"
+            arch="${platform##*_}"
+            variant="${VARIANTS[$platform]}"
+            tarball=$(ls dist/xiond_*_${platform}.tar.gz 2>/dev/null | head -1)
+            if [ -z "$tarball" ]; then
+              echo "⚠️  No tarball found for $platform, skipping"
+              continue
+            fi
+
+            target_dir="dist/xiond_${platform}_${variant}/bin"
+            mkdir -p "$target_dir"
+
+            # Extract and rename the binary
+            tar xzf "$tarball" -C "$target_dir"
+            if [ -f "$target_dir/xiond" ]; then
+              mv "$target_dir/xiond" "$target_dir/xiond-${os}-${arch}"
+              echo "✅ $platform: $target_dir/xiond-${os}-${arch}"
+            else
+              echo "❌ $platform: xiond binary not found in tarball"
+              ls -la "$target_dir"
+            fi
+          done
+
+      - name: Import package signing GPG key
+        id: import_pkg_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Save GPG and RSA keys
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" > /home/runner/.gnupg/sign.asc
+          echo "${{ secrets.PEM_PRIVATE_KEY }}" > /home/runner/.gnupg/sign.pem
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Run GoReleaser (Fury only)
+        uses: goreleaser/goreleaser-action@v6
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          RELEASE_OWNER: ${{ github.repository_owner }}
+          RELEASE_REPO: ${{ github.event.repository.name }}
+          SKIP_GITHUB_RELEASE: "true"
+          GPG_KEY_ID: ${{ steps.import_pkg_gpg.outputs.keyid }}
+          GPG_KEY_PATH: /home/runner/.gnupg/sign.asc
+          GPG_FINGERPRINT: ${{ steps.import_pkg_gpg.outputs.fingerprint }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          NFPM_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          PEM_KEY_PATH: /home/runner/.gnupg/sign.pem
+        with:
+          distribution: goreleaser-pro
+          version: "~> v2"
+          args: release --config .goreleaser/release.yaml --skip=announce,validate
+
+  verify-installers:
+    name: Verify Package Installers
+    needs: publish-fury
+    uses: ./.github/workflows/verify-installers.yaml
     secrets: inherit

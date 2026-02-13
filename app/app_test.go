@@ -382,10 +382,13 @@ func TestRegisterUpgradeHandlers(t *testing.T) {
 		gapp := Setup(t)
 		gapp.RegisterUpgradeHandlers()
 
-		// Verify the upgrade handler was registered by checking it can be retrieved
-		// The handler should be set for UpgradeName
+		// UpgradeName must follow the "vN" convention and the handler must
+		// be retrievable from the upgrade keeper after registration.
 		require.NotEmpty(t, UpgradeName)
-		require.Equal(t, "v27", UpgradeName)
+		require.Regexp(t, `^v\d+$`, UpgradeName, "UpgradeName should match vN pattern")
+
+		require.True(t, gapp.UpgradeKeeper.HasHandler(UpgradeName),
+			"upgrade handler should be registered for %s", UpgradeName)
 	})
 
 	t.Run("multiple calls do not panic", func(t *testing.T) {
