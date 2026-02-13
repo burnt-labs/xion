@@ -32,7 +32,7 @@ func NewParams(timeOffset, deploymentGas uint64) Params {
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	deploymentGas := uint64(10_000)
-	timeOffset := uint64(30 * 1000) // default to 30 seconds
+	timeOffset := uint64(30_000_000_000) // 30 seconds in nanoseconds
 
 	return NewParams(timeOffset, deploymentGas)
 }
