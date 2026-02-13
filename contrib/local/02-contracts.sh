@@ -44,8 +44,8 @@ sleep 6
 wasmd q tx $(echo "$RESP"| jq -r '.txhash') -o json | jq
 
 
-predictedAdress=$(wasmd q wasm build-address "$CODE_HASH" $(wasmd keys show validator -a --keyring-backend=test) $(echo -n "testing" | xxd -ps) "$INIT")
-wasmd q wasm contract "$predictedAdress" -o json | jq
+predictedAddress=$(wasmd q wasm build-address "$CODE_HASH" $(wasmd keys show validator -a --keyring-backend=test) $(echo -n "testing" | xxd -ps) "$INIT")
+wasmd q wasm contract "$predictedAddress" -o json | jq
 
 echo "### Query all"
 RESP=$(wasmd query wasm contract-state all "$CONTRACT" -o json)

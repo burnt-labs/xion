@@ -83,11 +83,16 @@ func GetRepoInfoFromGit() (string, error) {
 // GHCRRepository is the base GHCR repository for xion images
 const GHCRRepository = "ghcr.io/burnt-labs/xion/xion"
 
+// PublicRepo is the canonical public repository for xion releases.
+// We always fetch the latest release from this repo, regardless of which
+// fork or mirror the CI is running from.
+const PublicRepo = "burnt-labs/xion"
+
 // GetLatestReleaseImageComponents returns the repository and version components
 // for the latest released xion image from GHCR.
 // Returns: [repository, version] e.g. ["ghcr.io/burnt-labs/xion/xion", "25.0.2"]
 func GetLatestReleaseImageComponents() ([]string, error) {
-	tag, err := GetLatestGithubReleaseCurrentRepo()
+	tag, err := GetLatestGithubRelease(PublicRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest release: %w", err)
 	}

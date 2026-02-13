@@ -813,6 +813,10 @@ func NewWasmApp(
 	// Since this is the lowest level middleware of the transfer stack, it should be the first entrypoint for transfer keeper's
 	// WriteAcknowledgement.
 	cbStack := ibccallbacks.NewIBCMiddleware(transferStack, app.PacketForwardKeeper, wasmStackIBCHandler, wasm.DefaultMaxIBCCallbackGas)
+	// Wire the transfer keeper's ICS4 wrapper through the callbacks middleware so that
+	// SendPacket validation (e.g. src_callback schema checks) is consistent with the
+	// timeout/ack path. Without this, the send path bypasses callbacks validation.
+	app.TransferKeeper.WithICS4Wrapper(cbStack)
 	transferStack = packetforward.NewIBCMiddleware(
 		cbStack,
 		app.PacketForwardKeeper,

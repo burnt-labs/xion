@@ -87,32 +87,33 @@ furies:
     disable: "{{ .IsSnapshot }}"
 
 # Docs: https://goreleaser.com/customization/homebrew/
-brews:
-  - alternative_names:
-      - xiond@{{ .Version }}
-      - xiond@{{ .Major }}
-    # Repository to push the generated files to.
-    skip_upload: false
-    ids:
-      - tgz
-    test: |
-      system "#{bin}/xiond version"
-    commit_author:
-      name: developer
-      email: 197779235+isburnt@users.noreply.github.com
-    directory: Formula
-    repository:
-      owner: burnt-labs
-      name: homebrew-xion
-      branch: "{{.ProjectName}}-v{{.Version}}"
-      token: "{{ .Env.GORELEASER_ACCESS_TOKEN }}"
-      pull_request:
-        enabled: true
-        draft: false
-        base:
-          owner: burnt-labs
-          name: homebrew-xion
-          branch: main
+# Homebrew updates are now handled by the trigger-homebrew workflow
+# brews:
+#   - alternative_names:
+#       - xiond@{{ .Version }}
+#       - xiond@{{ .Major }}
+#     # Repository to push the generated files to.
+#     skip_upload: false
+#     ids:
+#       - tgz
+#     test: |
+#       system "#{bin}/xiond version"
+#     commit_author:
+#       name: developer
+#       email: 197779235+isburnt@users.noreply.github.com
+#     directory: Formula
+#     repository:
+#       owner: burnt-labs
+#       name: homebrew-xion
+#       branch: "{{.ProjectName}}-v{{.Version}}"
+#       token: "{{ .Env.GORELEASER_ACCESS_TOKEN }}"
+#       pull_request:
+#         enabled: true
+#         draft: false
+#         base:
+#           owner: burnt-labs
+#           name: homebrew-xion
+#           branch: main
 
 
 # Docs: https://goreleaser.com/customization/changelog/
@@ -137,13 +138,13 @@ brews:
 # Docs: https://goreleaser.com/customization/release/
 release:
   github:
-    owner: burnt-labs
-    name: xion
+    owner: "{{ .Env.RELEASE_OWNER }}"
+    name: "{{ .Env.RELEASE_REPO }}"
+  disable: "{{ if index .Env \"SKIP_GITHUB_RELEASE\" }}{{ .Env.SKIP_GITHUB_RELEASE }}{{ else }}false{{ end }}"
   draft: true
   use_existing_draft: true
   replace_existing_artifacts: true
   prerelease: "true"
   make_latest: false
-  # disable: "{{ .Env.SKIP_GITHUB_RELEASE }}"
   mode: keep-existing
 

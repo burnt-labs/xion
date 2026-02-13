@@ -40,14 +40,58 @@ jobs:
         with:
           token: ${{ secrets.REPO_DISPATCH_TOKEN }}
           repository: burnt-labs/xion-types
-          event-type: xion-types-release-trigger # NOTICE: must match the trigger in xion-types workflow
-          # release_type values:
-          #   - 'prerelease': tag ends with -rc (e.g. v26.0.0-rc1)
-          #   - 'published': stable release (e.g. v25.1.0)
-          # Any other pre-release suffix (alpha, beta, etc.) will fail the workflow.
+          event-type: xion-types-release-trigger
           client-payload: |
             {
               "release_type": "${{ steps.release-type.outputs.release_type }}",
               "tag_name": "${{ github.event.release.tag_name }}",
               "release_name": "${{ github.event.release.name }}"
             }
+
+      - name: Wait for downstream runs
+        env:
+          GH_TOKEN: ${{ secrets.REPO_DISPATCH_TOKEN }}
+        run: |
+          REPO="burnt-labs/xion-types"
+          # Record the time just before dispatch (ISO 8601)
+          CREATED_AFTER=$(date -u -d '-60 seconds' '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -v-60S '+%Y-%m-%dT%H:%M:%SZ')
+
+          echo "Waiting for workflow runs triggered after $CREATED_AFTER..."
+          sleep 15 # give GitHub time to create the runs
+
+          # Find all runs triggered by repository_dispatch after our timestamp
+          RUNS=$(gh api "repos/$REPO/actions/runs?event=repository_dispatch&created=>=$CREATED_AFTER" \
+            --jq '.workflow_runs[].id')
+
+          if [ -z "$RUNS" ]; then
+            echo "::warning::No downstream runs found. They may not have been triggered."
+            exit 0
+          fi
+
+          echo "Found runs: $RUNS"
+
+          FAILED=0
+          for RUN_ID in $RUNS; do
+            echo "Polling run $RUN_ID..."
+            while true; do
+              STATUS=$(gh api "repos/$REPO/actions/runs/$RUN_ID" --jq '.status')
+              CONCLUSION=$(gh api "repos/$REPO/actions/runs/$RUN_ID" --jq '.conclusion')
+              echo "  Run $RUN_ID: status=$STATUS conclusion=$CONCLUSION"
+
+              if [ "$STATUS" = "completed" ]; then
+                if [ "$CONCLUSION" != "success" ]; then
+                  echo "::error::Run $RUN_ID finished with conclusion: $CONCLUSION"
+                  echo "  URL: https://github.com/$REPO/actions/runs/$RUN_ID"
+                  FAILED=1
+                fi
+                break
+              fi
+              sleep 30
+            done
+          done
+
+          if [ "$FAILED" -ne 0 ]; then
+            echo "::error::One or more downstream xion-types runs failed."
+            exit 1
+          fi
+          echo "All downstream xion-types runs succeeded."

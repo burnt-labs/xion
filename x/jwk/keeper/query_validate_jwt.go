@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
+	"unicode"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -41,6 +43,37 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, status.Error(codes.InvalidArgument, "empty jwt")
 	}
 
+	// SECURITY: Do not remove or relax this check without a thorough security review.
+	// Reject JWS JSON Serialization (both flattened and general forms).
+	// Only compact JWTs (header.payload.signature) are accepted.
+	//
+	// Background: jwt.Parse() from lestrrat-go/jwx accepts both compact and
+	// JWS JSON serialization formats.
+	//
+	// Defense in depth — two layers:
+	//
+	// 1. Explicit leading-byte check (primary): reject anything that looks like
+	//    JSON after trimming whitespace. jwt.Parse() calls bytes.TrimSpace()
+	//    internally, which uses unicode.IsSpace (includes \t \n \v \f \r,
+	//    space, U+0085 NEL, U+00A0 NBSP). We use TrimLeftFunc with the same
+	//    predicate to ensure exact parity.
+	//
+	// 2. jwt.Settings(jwt.WithCompactOnly(true)) (backstop): the global setting
+	//    is safe here because ValidateJWT is the only jwt.Parse() call site in
+	//    this binary. It uses atomic operations so concurrent calls are fine.
+	//    This guards against future code paths that might call jwt.Parse()
+	//    without the byte check above.
+	jwt.Settings(jwt.WithCompactOnly(true))
+
+	trimmed := strings.TrimLeftFunc(req.SigBytes, unicode.IsSpace)
+	if len(trimmed) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "empty jwt")
+	}
+
+	if trimmed[0] == '{' {
+		return nil, status.Error(codes.InvalidArgument, "JWS JSON serialization is not supported; use compact JWT format")
+	}
+
 	// parse + validate with panic safety (defensive: lib should not panic, but guard anyway)
 	var (
 		token jwt.Token
@@ -59,7 +92,6 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 
 		token, err = jwt.Parse(
 			[]byte(req.SigBytes),
-			// avoid global jwt.Settings mutation (thread-safety); specify options per call
 			jwt.WithKey(key.Algorithm(), key),
 			jwt.WithAudience(req.Aud),
 			jwt.WithSubject(req.Sub),
