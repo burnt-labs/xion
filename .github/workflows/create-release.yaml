@@ -13,6 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # CI checks run in parallel with builds — they don't block each other,
+  # but both must pass before the release is created.
   lint:
     name: Golang CI Lint
     uses: ./.github/workflows/golangci-lint.yaml
@@ -29,12 +31,12 @@ jobs:
     secrets: inherit
 
   build-darwin:
-    name: Build Binaries
+    name: Build Darwin Binaries
     uses: ./.github/workflows/binaries-darwin.yaml
     secrets: inherit
 
   build-linux:
-    name: Build Binaries
+    name: Build Linux Binaries
     uses: ./.github/workflows/binaries-linux.yaml
     secrets: inherit
 
@@ -63,16 +65,16 @@ jobs:
   e2e-tests:
     name: E2E tests
     needs:
-      - lint
-      - update-swagger
-      - unit-tests
       - build-docker
     uses: ./.github/workflows/e2e-tests.yaml
     secrets: inherit
 
-  build-release:
-    name: Build Release
+  create-release:
+    name: Create GitHub Release
     needs:
+      - lint
+      - update-swagger
+      - unit-tests
       - push-docker
       - docker-scout
       - e2e-tests

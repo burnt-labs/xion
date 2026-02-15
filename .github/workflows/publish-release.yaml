@@ -3,10 +3,10 @@ name: Publish Release
 on:
   workflow_dispatch: # manual trigger
   release: # triggered by release event
-    types: [released]
+    types: [published]
     # Notice:
     # ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads#release
-    # - "released" type is happening when a release was published, or a pre-release was changed to a release.
+    # - "published" fires for both full releases and pre-releases
 
 concurrency: # With concurrency control: Only the latest workflow run executes, previous runs get cancelled
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,9 +21,11 @@ jobs:
     uses: ./.github/workflows/trigger-types.yaml
     secrets: inherit
 
-  trigger-assets:
-    name: Trigger Assets
-    uses: ./.github/workflows/trigger-assets.yaml
+  update-chain-registry:
+    name: Update Chain Registry
+    uses: burnt-labs/xion-assets/.github/workflows/update_chain_registry.yaml@main
+    with:
+      release_tag: ${{ github.event.release.tag_name }}
     secrets: inherit
 
   publish-fury:
@@ -80,17 +82,23 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
 
       - name: Save GPG and RSA keys
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" > /home/runner/.gnupg/sign.asc
           echo "${{ secrets.PEM_PRIVATE_KEY }}" > /home/runner/.gnupg/sign.pem
 
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
       - name: Run GoReleaser (Fury only)
         uses: goreleaser/goreleaser-action@v6
         env:
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           RELEASE_OWNER: ${{ github.repository_owner }}
           RELEASE_REPO: ${{ github.event.repository.name }}
           SKIP_GITHUB_RELEASE: "true"
@@ -105,16 +113,24 @@ jobs:
           version: "~> v2"
           args: release --config .goreleaser/release.yaml --skip=announce,validate
 
-  trigger-homebrew:
-    name: Trigger Homebrew
-    # No guard needed here — the homebrew-xion repo handles pre-release detection internally.
-    # For RC tags: only versioned formulas (xiond@26.rb, xiond@26.0.0-rc1.rb) are created.
-    # The main formula (xiond.rb / `brew install xiond`) only updates for stable releases.
-    uses: ./.github/workflows/trigger-homebrew.yaml
-    secrets: inherit
-
   verify-installers:
     name: Verify Package Installers
     needs: publish-fury
     uses: ./.github/workflows/verify-installers.yaml
+    secrets: inherit
+
+  upgrade-testnet:
+    name: Testnet Upgrade PR
+    if: contains(github.event.release.tag_name, '-rc')
+    uses: burnt-labs/xion-testnet-2/.github/workflows/create-release.yml@main
+    with:
+      release_tag: ${{ github.event.release.tag_name }}
+    secrets: inherit
+
+  upgrade-mainnet:
+    name: Mainnet Upgrade PR
+    if: ${{ !contains(github.event.release.tag_name, '-rc') }}
+    uses: burnt-labs/xion-mainnet-1/.github/workflows/create-release.yml@main
+    with:
+      release_tag: ${{ github.event.release.tag_name }}
     secrets: inherit

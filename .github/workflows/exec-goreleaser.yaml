@@ -1,4 +1,4 @@
-name: Build Release
+name: GoReleaser
 # Run for new release tags only
 
 on:
@@ -44,16 +44,22 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
 
       - name: Save GPG and RSA keys
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" > /home/runner/.gnupg/sign.asc
           echo "${{ secrets.PEM_PRIVATE_KEY }}" > /home/runner/.gnupg/sign.pem
 
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           RELEASE_OWNER: ${{ github.repository_owner }}
           RELEASE_REPO: ${{ github.event.repository.name }}
           GPG_KEY_ID: ${{ steps.import_pkg_gpg.outputs.keyid }}

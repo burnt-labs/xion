@@ -87,53 +87,56 @@ furies:
     disable: "{{ .IsSnapshot }}"
 
 # Docs: https://goreleaser.com/customization/homebrew/
-# Homebrew updates are now handled by the trigger-homebrew workflow
-# brews:
-#   - alternative_names:
-#       - xiond@{{ .Version }}
-#       - xiond@{{ .Major }}
-#     # Repository to push the generated files to.
-#     skip_upload: false
-#     ids:
-#       - tgz
-#     test: |
-#       system "#{bin}/xiond version"
-#     commit_author:
-#       name: developer
-#       email: 197779235+isburnt@users.noreply.github.com
-#     directory: Formula
-#     repository:
-#       owner: burnt-labs
-#       name: homebrew-xion
-#       branch: "{{.ProjectName}}-v{{.Version}}"
-#       token: "{{ .Env.GORELEASER_ACCESS_TOKEN }}"
-#       pull_request:
-#         enabled: true
-#         draft: false
-#         base:
-#           owner: burnt-labs
-#           name: homebrew-xion
-#           branch: main
+brews:
+  - name: xiond
+    alternative_names:
+      - "xiond@{{ .Version }}"
+      - "xiond@{{ .Major }}"
+    ids:
+      - tgz
+    test: |
+      system "#{bin}/xiond version"
+    commit_author:
+      name: github-actions[bot]
+      email: github-actions[bot]@users.noreply.github.com
+      signing:
+        enabled: true
+        key: "{{ .Env.GPG_FINGERPRINT }}"
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    directory: Formula
+    homepage: "https://xion.burnt.com/"
+    description: "Xiond is the Cosmos SDK based blockchain cli/daemon for the Xion Network."
+    license: "Apache-2.0"
+    skip_upload: auto
+    repository:
+      owner: burnt-labs
+      name: homebrew-xion
+      branch: "{{ .ProjectName }}-v{{ .Version }}"
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+        base:
+          owner: burnt-labs
+          name: homebrew-xion
+          branch: main
 
+# Docs: https://goreleaser.com/customization/sbom/
+sboms:
+  - artifacts: archive
+    cmd: syft
 
 # Docs: https://goreleaser.com/customization/changelog/
-# changelog:
-  # disable: "{{ .Env.CREATE_CHANGELOG }}"
-  # ai:
-  #  use: openai
-  # groups:
-  # - title: Features
-  #   regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
-  #   order: 0
-  # - title: "Bug fixes"
-  #   regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
-  #   order: 1
-  # - title: Others
-  #   order: 999
-  # filters:
-  #   exclude:
-  #     - '^revert:'
-    #include:
+changelog:
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug fixes
+      regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
 
 # Docs: https://goreleaser.com/customization/release/
 release:
