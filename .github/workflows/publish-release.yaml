@@ -18,17 +18,67 @@ permissions:
 jobs:
   trigger-types:
     name: Trigger Types
-    uses: burnt-labs/xion-types/.github/workflows/release.yaml@main
-    with:
-      release_tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger and monitor xion-types release
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          REPO="burnt-labs/xion-types"
+          WORKFLOW="release.yaml"
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering $WORKFLOW in $REPO for $TAG"
+
+          BEFORE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run "$WORKFLOW" --repo "$REPO" --field release_tag="$TAG"
+
+          echo "Waiting for workflow run to appear..."
+          for i in $(seq 1 30); do
+            sleep 10
+            RUN_ID=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" \
+              --json databaseId,createdAt \
+              --jq "[.[] | select(.createdAt >= \"$BEFORE\")][0].databaseId")
+            [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ] && break
+            echo "  attempt $i/30..."
+          done
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::Workflow run not found after 5 minutes"
+            exit 1
+          fi
+          echo "Monitoring: https://github.com/$REPO/actions/runs/$RUN_ID"
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status
 
   update-chain-registry:
     name: Update Chain Registry
-    uses: burnt-labs/xion-assets/.github/workflows/update_chain_registry.yaml@main
-    with:
-      release_tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger and monitor chain registry update
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          REPO="burnt-labs/xion-assets"
+          WORKFLOW="update_chain_registry.yaml"
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering $WORKFLOW in $REPO for $TAG"
+
+          BEFORE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run "$WORKFLOW" --repo "$REPO" --field release_tag="$TAG"
+
+          echo "Waiting for workflow run to appear..."
+          for i in $(seq 1 30); do
+            sleep 10
+            RUN_ID=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" \
+              --json databaseId,createdAt \
+              --jq "[.[] | select(.createdAt >= \"$BEFORE\")][0].databaseId")
+            [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ] && break
+            echo "  attempt $i/30..."
+          done
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::Workflow run not found after 5 minutes"
+            exit 1
+          fi
+          echo "Monitoring: https://github.com/$REPO/actions/runs/$RUN_ID"
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status
 
   publish-fury:
     name: Publish to Fury
@@ -139,15 +189,65 @@ jobs:
   upgrade-testnet:
     name: Testnet Upgrade PR
     if: contains(github.event.release.tag_name, '-rc')
-    uses: burnt-labs/xion-testnet-2/.github/workflows/create-release.yml@main
-    with:
-      release_tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger and monitor testnet upgrade PR
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          REPO="burnt-labs/xion-testnet-2"
+          WORKFLOW="create-release.yml"
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering $WORKFLOW in $REPO for $TAG"
+
+          BEFORE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run "$WORKFLOW" --repo "$REPO" --field release_tag="$TAG"
+
+          echo "Waiting for workflow run to appear..."
+          for i in $(seq 1 30); do
+            sleep 10
+            RUN_ID=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" \
+              --json databaseId,createdAt \
+              --jq "[.[] | select(.createdAt >= \"$BEFORE\")][0].databaseId")
+            [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ] && break
+            echo "  attempt $i/30..."
+          done
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::Workflow run not found after 5 minutes"
+            exit 1
+          fi
+          echo "Monitoring: https://github.com/$REPO/actions/runs/$RUN_ID"
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status
 
   upgrade-mainnet:
     name: Mainnet Upgrade PR
     if: ${{ !contains(github.event.release.tag_name, '-rc') }}
-    uses: burnt-labs/xion-mainnet-1/.github/workflows/create-release.yml@main
-    with:
-      release_tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger and monitor mainnet upgrade PR
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          REPO="burnt-labs/xion-mainnet-1"
+          WORKFLOW="create-release.yml"
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering $WORKFLOW in $REPO for $TAG"
+
+          BEFORE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          gh workflow run "$WORKFLOW" --repo "$REPO" --field release_tag="$TAG"
+
+          echo "Waiting for workflow run to appear..."
+          for i in $(seq 1 30); do
+            sleep 10
+            RUN_ID=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" \
+              --json databaseId,createdAt \
+              --jq "[.[] | select(.createdAt >= \"$BEFORE\")][0].databaseId")
+            [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ] && break
+            echo "  attempt $i/30..."
+          done
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::Workflow run not found after 5 minutes"
+            exit 1
+          fi
+          echo "Monitoring: https://github.com/$REPO/actions/runs/$RUN_ID"
+          gh run watch "$RUN_ID" --repo "$REPO" --exit-status
