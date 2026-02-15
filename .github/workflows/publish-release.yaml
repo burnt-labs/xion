@@ -18,15 +18,33 @@ permissions:
 jobs:
   trigger-types:
     name: Trigger Types
-    uses: ./.github/workflows/trigger-types.yaml
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Trigger xion-types release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering xion-types release for $TAG"
+          gh workflow run release.yaml \
+            --repo burnt-labs/xion-types \
+            --field release_tag="$TAG"
 
   update-chain-registry:
     name: Update Chain Registry
-    uses: burnt-labs/xion-assets/.github/workflows/update_chain_registry.yaml@main
-    with:
-      release_tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger chain registry update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering chain registry update for $TAG"
+          gh workflow run update_chain_registry.yaml \
+            --repo burnt-labs/xion-assets \
+            --field release_tag="$TAG"
 
   publish-fury:
     name: Publish to Fury
@@ -122,15 +140,29 @@ jobs:
   upgrade-testnet:
     name: Testnet Upgrade PR
     if: contains(github.event.release.tag_name, '-rc')
-    uses: burnt-labs/xion-testnet-2/.github/workflows/create-release.yml@main
-    with:
-      release_tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger testnet upgrade PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering testnet upgrade PR for $TAG"
+          gh workflow run create-release.yml \
+            --repo burnt-labs/xion-testnet-2 \
+            --field release_tag="$TAG"
 
   upgrade-mainnet:
     name: Mainnet Upgrade PR
     if: ${{ !contains(github.event.release.tag_name, '-rc') }}
-    uses: burnt-labs/xion-mainnet-1/.github/workflows/create-release.yml@main
-    with:
-      release_tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger mainnet upgrade PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          echo "Triggering mainnet upgrade PR for $TAG"
+          gh workflow run create-release.yml \
+            --repo burnt-labs/xion-mainnet-1 \
+            --field release_tag="$TAG"
