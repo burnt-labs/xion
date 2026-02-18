@@ -34,100 +34,39 @@ jobs:
         os: [linux]
         arch: [amd64]
         test:
-          # Abstract Account Module Tests
-          - { dir: "abstract-account", type: "AABasic" }
-          - { dir: "abstract-account", type: "AAClientEvent" }
-          - { dir: "abstract-account", type: "AAJWTCLI" }
-          - { dir: "abstract-account", type: "AAMultiAuth" }
-          - { dir: "abstract-account", type: "AAPanic" }
-          - { dir: "abstract-account", type: "AASingleMigration" }
-          - { dir: "abstract-account", type: "AAWebAuthn" }
-          # App Module Tests
-          - { dir: "app", type: "AppGovernance" }
-          # - {dir: "app", type: "AppIBCTimeout"}
-          # - {dir: "app", type: "AppIBCTransfer"}
-          - { dir: "app", type: "AppMintInflationHighFees" }
-          - { dir: "app", type: "AppMintInflationLowFees" }
-          - { dir: "app", type: "AppMintInflationNoFees" }
-          - { dir: "app", type: "AppMintNoInflationNoFees" }
-          - { dir: "app", type: "AppSendPlatformFee" }
-          - { dir: "app", type: "AppSimulate" }
-          - { dir: "app", type: "AppTokenFactory" }
-          - { dir: "app", type: "AppTreasuryContract" }
-          - { dir: "app", type: "AppTreasuryGrants" }
-          - { dir: "app", type: "AppTreasuryMulti" }
-          - { dir: "app", type: "AppUpdateTreasuryConfigs" }
-          - { dir: "app", type: "AppUpdateTreasuryConfigsAA" }
-          - { dir: "app", type: "AppUpdateTreasuryParams" }
-          # - {dir: "app", type: "AppUpgradeIBC"}
-          # - {dir: "app", type: "AppUpgradeNetwork"}
-          # DKIM Module Tests
-          # - {dir: "dkim", type: "DKIMGovernance"}
-          # - {dir: "dkim", type: "DKIMKeyRevocation"}
-          # - {dir: "dkim", type: "DKIMModule"}
-          # - {dir: "dkim", type: "DKIMZKEmail"}
-          # - {dir: "dkim", type: "DKIMZKProof"}
-          # Indexer Module Tests
-          - { dir: "indexer", type: "IndexerAuthzCreate" }
-          - { dir: "indexer", type: "IndexerAuthzMultiple" }
-          - { dir: "indexer", type: "IndexerAuthzRevoke" }
-          - { dir: "indexer", type: "IndexerFeeGrantCreate" }
-          - { dir: "indexer", type: "IndexerFeeGrantMultiple" }
-          - { dir: "indexer", type: "IndexerFeeGrantPeriodic" }
-          - { dir: "indexer", type: "IndexerFeeGrantRevoke" }
-          # JWK Module Tests
-          - { dir: "jwk", type: "JWKAlgorithmConfusion" }
-          - { dir: "jwk", type: "JWKAudienceMismatch" }
-          - { dir: "jwk", type: "JWKExpiredToken" }
-          - { dir: "jwk", type: "JWKInvalidSignature" }
-          - { dir: "jwk", type: "JWKJWTAA" }
-          - { dir: "jwk", type: "JWKKeyRotation" }
-          - { dir: "jwk", type: "JWKMalformedTokens" }
-          - { dir: "jwk", type: "JWKMissingClaims" }
-          - { dir: "jwk", type: "JWKMultipleAudiences" }
-          - { dir: "jwk", type: "JWKTransactionHash" }
-          # Xion Module Tests - Genesis and Indexer
-          - { dir: "xion", type: "GenesisExportImport" }
-          - { dir: "xion", type: "XionIndexerAuthz" }
-          - { dir: "xion", type: "XionIndexerFeeGrant" }
-          - { dir: "xion", type: "XionIndexerNonConsensusCritical" }
-          # Xion Module Tests - Original
-          - { dir: "xion", type: "XionMinFeeBypass" }
-          - { dir: "xion", type: "XionMinFeeDefault" }
-          - { dir: "xion", type: "XionMinFeeMultiDenom" }
-          - { dir: "xion", type: "XionMinFeeMultiDenomIBC" }
-          - { dir: "xion", type: "XionMinFeeZero" }
-          - { dir: "xion", type: "XionPlatformFee" }
-          - { dir: "xion", type: "XionPlatformFeeBypass" }
-          - { dir: "xion", type: "XionPlatformMinCodecBug" }
-          - { dir: "xion", type: "XionPlatformMinDirect" }
-          # Xion Module Tests - Coverage Tests
-          - { dir: "xion", type: "XionMinFeeMultiDenomAdvanced" }
-          - { dir: "xion", type: "XionMinFeeExtremeValues" }
-          - { dir: "xion", type: "XionMinFeeConcurrentTransactions" }
-          - { dir: "xion", type: "XionMinFeeSequenceHandling" }
-          - { dir: "xion", type: "XionPlatformMinimumWithFees" }
-          - { dir: "xion", type: "XionPlatformMinimumCodecValidation" }
-          - { dir: "xion", type: "XionPlatformMinimumBypassInteraction" }
-          - { dir: "xion", type: "XionMinFeeErrorMessages" }
-          - { dir: "xion", type: "XionMinFeeInsufficientBalance" }
-          - { dir: "xion", type: "XionMinFeeEdgeCaseScenarios" }
-          - { dir: "xion", type: "XionMinFeeMemPoolBehavior" }
-          # Xion Module Tests - Critical Security Tests
-          - { dir: "xion", type: "XionMinFeeGasCapBoundaries" }
-          - { dir: "xion", type: "XionMinFeeGasCapWithFees" }
-          - { dir: "xion", type: "XionMinFeeGasCapMultipleMessages" }
-          - { dir: "xion", type: "XionMinFeeWithFeeGrant" }
-          - { dir: "xion", type: "XionMinFeeFeeGrantAllowanceTypes" }
-          - { dir: "xion", type: "XionMinFeeFeeGrantExpiration" }
-          - { dir: "xion", type: "XionMinFeeMultipleFeeGrants" }
-          - { dir: "xion", type: "XionMinFeeMultiMessageMixedTypes" }
-          - { dir: "xion", type: "XionMinFeeMultiMessageSameType" }
-          - { dir: "xion", type: "XionMinFeeMultiMessageGasAccounting" }
-          - { dir: "xion", type: "XionMinFeeMultiMessageWithFeeGrant" }
-          - { dir: "xion", type: "XionMinFeeMultiMessageErrorPaths" }
-          - { dir: "xion", type: "XionMinFeeMultiMessageSequential" }
-          - { dir: "xion", type: "XionMinFeeBypassMessageTypes" }
+          - {dir: "abstract-account", type: "AA"}
+          - {dir: "app", type: "AppGenesisExportImport"}
+          - {dir: "app", type: "AppGovernance"}
+          - {dir: "app", type: "AppMint"}
+          - {dir: "app", type: "AppSendPlatformFee"}
+          - {dir: "app", type: "AppSimulate"}
+          - {dir: "app", type: "AppTokenFactory"}
+          - {dir: "app", type: "AppTreasury"}
+          - {dir: "app", type: "AppUpdateTreasury"}
+          - {dir: "app", type: "AppUpgradeNetwork$"}
+          - {dir: "dkim", type: "DKIMModule"}
+          - {dir: "dkim", type: "DKIMGovernance"}
+          - {dir: "dkim", type: "DKIMPubKeyMaxSize"}
+          - {dir: "dkim", type: "DKIMRevokedKeyCannotBeReadded"}
+          - {dir: "indexer", type: "IndexerAuthz"}
+          - {dir: "indexer", type: "IndexerFeeGrant"}
+          - {dir: "indexer", type: "IndexerNonConsensusCritical"}
+          # - {dir: "ibc", type: "IBC"}
+          - {dir: "ibc", type: "IBCMinFeeMultiDenom"}
+          - {dir: "jwk", type: "JWK"}
+          - {dir: "xion", type: "XionMinFeeDefault"}
+          - {dir: "xion", type: "XionMinFeeZero"}
+          - {dir: "xion", type: "XionMinFeeMultiDenom"}
+          - {dir: "xion", type: "XionMinFeeBypass"}
+          - {dir: "xion", type: "XionMinFeeConcurrent"}
+          - {dir: "xion", type: "XionMinFeeError"}
+          - {dir: "xion", type: "XionMinFeeExtreme"}
+          - {dir: "xion", type: "XionMinFeeFeeGrant"}
+          - {dir: "xion", type: "XionMinFeeGasCap"}
+          - {dir: "xion", type: "XionMinFeeMemPool"}
+          - {dir: "xion", type: "XionMinFeeMultiMessage"}
+          - {dir: "xion", type: "XionPlatform"}
+          - {dir: "zk", type: "ZK"}
 
     steps:
       - name: checkout
