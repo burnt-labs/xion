@@ -13,6 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # CI checks run in parallel with builds — they don't block each other,
+  # but both must pass before the release is created.
   lint:
     name: Golang CI Lint
     uses: ./.github/workflows/golangci-lint.yaml
@@ -29,36 +31,34 @@ jobs:
     secrets: inherit
 
   build-darwin:
-    name: Build Binaries
+    name: Build Darwin Binaries
     uses: ./.github/workflows/binaries-darwin.yaml
     secrets: inherit
 
   build-linux:
-    name: Build Binaries
+    name: Build Linux Binaries
     uses: ./.github/workflows/binaries-linux.yaml
     secrets: inherit
 
   build-docker:
     name: Build Docker Images
-    needs: build-linux
+    needs:
+      - build-darwin
+      - build-linux
     uses: ./.github/workflows/docker-build.yaml
     secrets: inherit
 
   push-docker:
     name: Push Docker Images
-    needs: build-docker
+    needs:
+      - build-docker
     uses: ./.github/workflows/docker-push.yaml
-    secrets: inherit
-
-  push-heighliner:
-    name: Push Heighliner Images
-    needs: build-docker
-    uses: ./.github/workflows/heighliner-push.yaml
     secrets: inherit
 
   docker-scout:
     name: Docker Scout
-    needs: build-docker
+    needs:
+      - build-docker
     uses: ./.github/workflows/docker-scout.yaml
     secrets: inherit
 
@@ -69,21 +69,14 @@ jobs:
     uses: ./.github/workflows/e2e-tests.yaml
     secrets: inherit
 
-  build-release:
-    name: Build Release
+  create-release:
+    name: Create GitHub Release
     needs:
-      - build-linux
       - lint
       - update-swagger
       - unit-tests
-      - build-darwin
+      - push-docker
       - docker-scout
       - e2e-tests
     uses: ./.github/workflows/exec-goreleaser.yaml
-    secrets: inherit
-
-  verify-installers:
-    name: Verify Package Installers
-    needs: build-release
-    uses: ./.github/workflows/verify-installers.yaml
     secrets: inherit

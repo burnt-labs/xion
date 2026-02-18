@@ -61,6 +61,16 @@ func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPub
 		return nil, err
 	}
 
+	// Compute PoseidonHash for each record before saving
+	for i := range msg.DkimPubkeys {
+		hash, err := types.ComputePoseidonHash(msg.DkimPubkeys[i].PubKey)
+		if err != nil {
+			return nil, errors.Wrapf(types.ErrInvalidPubKey, "failed to compute poseidon hash for key %s/%s: %s",
+				msg.DkimPubkeys[i].Domain, msg.DkimPubkeys[i].Selector, err.Error())
+		}
+		msg.DkimPubkeys[i].PoseidonHash = hash.Bytes()
+	}
+
 	_, err = SaveDkimPubKeys(ctx, msg.DkimPubkeys, &ms.k)
 	if err != nil {
 		return nil, err

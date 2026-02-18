@@ -318,6 +318,29 @@ func TestMarshalVKey(t *testing.T) {
 		require.Nil(t, result)
 		require.Contains(t, err.Error(), "nil verification key")
 	})
+
+	t.Run("valid verification key", func(t *testing.T) {
+		// First unmarshal a valid vkey to get a CircomVerificationKey
+		vkey := &types.VKey{
+			KeyBytes:    validVKeyJSON,
+			Name:        "test-vkey",
+			Description: "test description",
+		}
+		circomVKey, err := types.UnmarshalVKey(vkey)
+		require.NoError(t, err)
+		require.NotNil(t, circomVKey)
+
+		// Now marshal it back
+		result, err := types.MarshalVKey(circomVKey)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Verify the result is valid JSON that can be unmarshaled
+		var unmarshaled map[string]interface{}
+		err = json.Unmarshal(result, &unmarshaled)
+		require.NoError(t, err)
+		require.Equal(t, "groth16", unmarshaled["protocol"])
+	})
 }
 
 func TestNewVKeyFromBytes(t *testing.T) {

@@ -318,3 +318,95 @@ func TestKeeperZkKeeperIntegration(t *testing.T) {
 		require.Equal(t, f.govModAddr, authority)
 	})
 }
+
+// ============================================================================
+// GetParams and SetParams Tests
+// ============================================================================
+
+func TestKeeperGetParams(t *testing.T) {
+	t.Run("returns default params when not set", func(t *testing.T) {
+		// Create a new keeper without setting params
+		logger := log.NewTestLogger(t)
+		encCfg := moduletestutil.MakeTestEncodingConfig()
+		types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+		key := storetypes.NewKVStoreKey(types.ModuleName)
+		storeService := runtime.NewKVStoreService(key)
+		testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+		authority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+		zkKeeper := zkkeeper.NewKeeper(encCfg.Codec, storeService, logger, authority)
+		k := keeper.NewKeeper(encCfg.Codec, storeService, logger, authority, zkKeeper)
+
+		// GetParams should return default params when nothing is set
+		params, err := k.GetParams(testCtx.Ctx)
+		require.NoError(t, err)
+		require.Equal(t, types.DefaultParams(), params)
+	})
+
+	t.Run("returns stored params when set", func(t *testing.T) {
+		f := SetupTest(t)
+
+		customParams := types.Params{
+			VkeyIdentifier:     42,
+			MaxPubkeySizeBytes: 4096,
+			PublicInputIndices: types.DefaultPublicInputIndices(),
+		}
+		err := f.k.SetParams(f.ctx, customParams)
+		require.NoError(t, err)
+
+		got, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, customParams.VkeyIdentifier, got.VkeyIdentifier)
+		require.Equal(t, customParams.MaxPubkeySizeBytes, got.MaxPubkeySizeBytes)
+	})
+}
+
+func TestKeeperSetParams(t *testing.T) {
+	t.Run("sets params with zero MaxPubkeySizeBytes uses default", func(t *testing.T) {
+		f := SetupTest(t)
+
+		params := types.Params{
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: 0, // Zero value should be replaced with default
+			PublicInputIndices: types.DefaultPublicInputIndices(),
+		}
+		err := f.k.SetParams(f.ctx, params)
+		require.NoError(t, err)
+
+		got, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, types.DefaultMaxPubKeySizeBytes, got.MaxPubkeySizeBytes)
+	})
+
+	t.Run("sets params with custom MaxPubkeySizeBytes", func(t *testing.T) {
+		f := SetupTest(t)
+
+		params := types.Params{
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: 8192,
+			PublicInputIndices: types.DefaultPublicInputIndices(),
+		}
+		err := f.k.SetParams(f.ctx, params)
+		require.NoError(t, err)
+
+		got, err := f.k.GetParams(f.ctx)
+		require.NoError(t, err)
+		require.Equal(t, uint64(8192), got.MaxPubkeySizeBytes)
+	})
+
+	t.Run("fails with invalid params", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Params with zero MinLength in PublicInputIndices should fail validation
+		params := types.Params{
+			VkeyIdentifier:     1,
+			MaxPubkeySizeBytes: 2048,
+			PublicInputIndices: types.PublicInputIndices{
+				MinLength: 0, // Invalid - should be positive
+			},
+		}
+		err := f.k.SetParams(f.ctx, params)
+		require.Error(t, err)
+	})
+}
