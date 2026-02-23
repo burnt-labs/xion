@@ -21,6 +21,7 @@ import (
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
+// Deprecated: Use DecodeJWT instead, which returns all claims (standard and private).
 func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRequest) (*types.QueryValidateJWTResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
