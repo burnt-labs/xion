@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -34,8 +33,6 @@ func CmdVerifyJWS() *cobra.Command {
 				Aud:      reqAud,
 				SigBytes: reqSigBytes,
 			}
-
-			fmt.Printf("request: %s", params)
 
 			res, err := queryClient.VerifyJWS(cmd.Context(), params)
 			if err != nil {
