@@ -38,6 +38,12 @@ service Query {
     option (google.api.http).get =
         "/xion/jwk/validate_jwt/{aud}/{sub}/{sig_bytes}";
   }
+
+  // VerifyJWS verifies a compact JWS signature and returns the payload.
+  rpc VerifyJWS(QueryVerifyJWSRequest) returns (QueryVerifyJWSResponse) {
+    option (google.api.http).get =
+        "/xion/jwk/verify_jws/{aud}/{sig_bytes}";
+  }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
@@ -153,4 +159,13 @@ message PrivateClaim {
 message QueryValidateJWTResponse {
   // The private claims from the JWT
   repeated PrivateClaim private_claims = 1;
+}
+
+message QueryVerifyJWSRequest {
+  string aud = 1;
+  string sig_bytes = 2;
+}
+
+message QueryVerifyJWSResponse {
+  bytes payload = 1;
 }

@@ -26,6 +26,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdShowAudience())
 	cmd.AddCommand(CmdShowAudienceClaim())
 	cmd.AddCommand(CmdValidateJWT())
+	cmd.AddCommand(CmdVerifyJWS())
 
 	// utils, not sure where best to put this
 	cmd.AddCommand(CmdConvertPemToJSON())
