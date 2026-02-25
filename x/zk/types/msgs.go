@@ -15,6 +15,12 @@ var (
 
 // types/msgs.go
 
+// ProofSystemGroth16 and ProofSystemUltraHonk are the allowed proof_system values.
+const (
+	ProofSystemGroth16   = "groth16"
+	ProofSystemUltraHonk = "ultrahonk"
+)
+
 func (m *MsgAddVKey) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
 		return fmt.Errorf("invalid authority address: %w", err)
@@ -28,8 +34,8 @@ func (m *MsgAddVKey) ValidateBasic() error {
 		return fmt.Errorf("vkey_bytes cannot be empty")
 	}
 
-	// Validate using the parser library
-	if err := ValidateVKeyBytes(m.VkeyBytes, 0); err != nil {
+	proofSystem := m.GetProofSystem()
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
 		return fmt.Errorf("invalid vkey_bytes: %w", err)
 	}
 
@@ -49,6 +55,12 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 	if len(m.VkeyBytes) == 0 {
 		return fmt.Errorf("vkey_bytes cannot be empty")
 	}
+
+	proofSystem := m.GetProofSystem()
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
+		return fmt.Errorf("invalid vkey_bytes: %w", err)
+	}
+
 	return nil
 }
 

@@ -1,14 +1,30 @@
 package cli_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/burnt-labs/xion/x/zk/client/cli"
 )
+
+// ctxWithFrom sets a client context with a valid from address so RunE passes
+// authority check and fails on vkey validation. Pass the returned context to
+// cmd.ExecuteContext(ctx) so the command uses it.
+func ctxWithFrom(t *testing.T) context.Context {
+	t.Helper()
+	addr := sdk.AccAddress("test_from_addr__________") // 20 bytes
+	clientCtx := client.Context{}.
+		WithFromAddress(addr).
+		WithFrom(addr.String())
+	return context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+}
 
 func TestGetTxCmd(t *testing.T) {
 	t.Run("returns valid command", func(t *testing.T) {
@@ -134,6 +150,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 
 	t.Run("RunE fails with invalid vkey JSON", func(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create a temporary vkey file with invalid content
 		tmpDir := t.TempDir()
@@ -142,13 +159,14 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid verification key")
 	})
 
 	t.Run("RunE fails with empty vkey file", func(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create an empty vkey file
 		tmpDir := t.TempDir()
@@ -157,9 +175,9 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid verification key")
+		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
 	})
 
 	t.Run("RunE with directory instead of file", func(t *testing.T) {
@@ -283,6 +301,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 
 	t.Run("RunE fails with invalid vkey JSON", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create a temporary vkey file with invalid content
 		tmpDir := t.TempDir()
@@ -291,13 +310,14 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid verification key")
 	})
 
 	t.Run("RunE fails with empty vkey file", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create an empty vkey file
 		tmpDir := t.TempDir()
@@ -306,13 +326,14 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid verification key")
+		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
 	})
 
 	t.Run("RunE fails with valid JSON but invalid vkey structure", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create a vkey file with valid JSON but missing required fields
 		tmpDir := t.TempDir()
@@ -321,7 +342,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		require.NoError(t, err)
 
 		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid verification key")
 	})

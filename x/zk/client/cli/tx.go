@@ -55,15 +55,10 @@ $ %s tx zk add-vkey rollup_batch ./rollup_vkey.json "Rollup batch verification" 
 			name := args[0]
 			description := args[2]
 
-			// Read vkey JSON file
+			// Read vkey file (Groth16 JSON or UltraHonk binary; validation in ValidateBasic)
 			vkeyBytes, err := os.ReadFile(args[1])
 			if err != nil {
 				return fmt.Errorf("failed to read vkey file: %w", err)
-			}
-
-			// Validate the vkey
-			if err := types.ValidateVKeyBytes(vkeyBytes, 0); err != nil {
-				return fmt.Errorf("invalid verification key: %w", err)
 			}
 
 			msg := &types.MsgAddVKey{
@@ -108,15 +103,10 @@ $ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.json "Updated rollup verif
 			name := args[0]
 			description := args[2]
 
-			// Read vkey JSON file
+			// Read vkey file (Groth16 JSON or UltraHonk binary; validation in ValidateBasic)
 			vkeyBytes, err := os.ReadFile(args[1])
 			if err != nil {
 				return fmt.Errorf("failed to read vkey file: %w", err)
-			}
-
-			// Validate the vkey
-			if err := types.ValidateVKeyBytes(vkeyBytes, 0); err != nil {
-				return fmt.Errorf("invalid verification key: %w", err)
 			}
 
 			msg := &types.MsgUpdateVKey{

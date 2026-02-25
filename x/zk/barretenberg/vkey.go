@@ -5,6 +5,16 @@ import (
 	"fmt"
 )
 
+// Validation limits for Barretenberg verification keys (heuristics to reject
+// obviously invalid or abusive vkeys without relying only on native parse).
+const (
+	// MinVKeySizeBytes is a heuristic minimum; smaller payloads are rejected
+	// before calling into the native library (avoids C round-trip for garbage).
+	MinVKeySizeBytes = 256
+	// MinCircuitSize is the minimum circuit size; native returns 0 on error.
+	MinCircuitSize = 1
+)
+
 // VerificationKey represents an UltraHonk verification key.
 // It wraps the native Barretenberg verification key with a safe Go interface.
 type VerificationKey struct {
@@ -94,26 +104,44 @@ func (vk *VerificationKey) IsClosed() bool {
 	return vk.handle.closed
 }
 
-// ValidateVerificationKeyBytes performs basic validation on verification key bytes
-// without fully parsing them. This is useful for quick validation before storage.
-func ValidateVerificationKeyBytes(data []byte) error {
+// ValidateVerificationKeyBytes validates verification key bytes so they are
+// appropriate and usable as an UltraHonk vkey. It enforces: non-empty data,
+// optional max size, minimum size heuristic, successful native parse, and
+// post-parse semantic checks (num public inputs and circuit size).
+// If maxSizeBytes is > 0, len(data) must not exceed it (same as Groth16's
+// ValidateVKeyByteSize / ValidateVKeyBytes).
+func ValidateVerificationKeyBytes(data []byte, maxSizeBytes uint64) error {
 	if len(data) == 0 {
 		return fmt.Errorf("%w: empty data", ErrInvalidVKey)
 	}
-
-	// Minimum reasonable size for an UltraHonk verification key
-	// This is a heuristic based on the expected structure
-	const minVKeySize = 1024
-	if len(data) < minVKeySize {
-		return fmt.Errorf("%w: data too small (%d bytes, minimum %d)", ErrInvalidVKey, len(data), minVKeySize)
+	if maxSizeBytes > 0 && uint64(len(data)) > maxSizeBytes {
+		return fmt.Errorf("%w: vkey size %d exceeds max %d", ErrInvalidVKey, len(data), maxSizeBytes)
+	}
+	if len(data) < MinVKeySizeBytes {
+		return fmt.Errorf("%w: data too small (%d bytes, minimum %d)", ErrInvalidVKey, len(data), MinVKeySizeBytes)
 	}
 
-	// Try to parse to validate fully
 	vk, err := ParseVerificationKey(data)
 	if err != nil {
 		return err
 	}
-	vk.Close()
+	defer vk.Close()
+
+	nPub, err := vk.NumPublicInputs()
+	if err != nil {
+		return fmt.Errorf("%w: num public inputs: %v", ErrInvalidVKey, err)
+	}
+	if nPub < 0 {
+		return fmt.Errorf("%w: invalid num public inputs: %d", ErrInvalidVKey, nPub)
+	}
+
+	circuitSize, err := vk.CircuitSize()
+	if err != nil {
+		return fmt.Errorf("%w: circuit size: %v", ErrInvalidVKey, err)
+	}
+	if circuitSize < MinCircuitSize {
+		return fmt.Errorf("%w: invalid circuit size: %d (minimum %d)", ErrInvalidVKey, circuitSize, MinCircuitSize)
+	}
 
 	return nil
 }

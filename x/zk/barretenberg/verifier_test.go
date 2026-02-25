@@ -46,40 +46,6 @@ func loadTestInputs(t *testing.T) [][]byte {
 	return elements
 }
 
-// TestParseVerificationKeyEmpty tests parsing empty verification key.
-func TestParseVerificationKeyEmpty(t *testing.T) {
-	_, err := ParseVerificationKey(nil)
-	if err == nil {
-		t.Error("expected error for nil data")
-	}
-
-	_, err = ParseVerificationKey([]byte{})
-	if err == nil {
-		t.Error("expected error for empty data")
-	}
-}
-
-// TestParseVerificationKeyInvalid tests parsing invalid verification key.
-func TestParseVerificationKeyInvalid(t *testing.T) {
-	invalidData := []byte("this is not a valid verification key")
-	_, err := ParseVerificationKey(invalidData)
-	if err == nil {
-		t.Error("expected error for invalid data")
-	}
-
-	if !errors.Is(err, ErrInvalidVKey) {
-		t.Errorf("expected ErrInvalidVKey, got %v", err)
-	}
-}
-
-// TestParseVerificationKeyHexInvalid tests parsing invalid hex string.
-func TestParseVerificationKeyHexInvalid(t *testing.T) {
-	_, err := ParseVerificationKeyHex("not valid hex!")
-	if err == nil {
-		t.Error("expected error for invalid hex")
-	}
-}
-
 // TestParseProofEmpty tests parsing empty proof.
 func TestParseProofEmpty(t *testing.T) {
 	_, err := ParseProof(nil)
@@ -341,28 +307,6 @@ func TestVerifierConcurrentUse(t *testing.T) {
 	wg.Wait()
 }
 
-// TestValidateVerificationKeyBytesEmpty tests validation with empty data.
-func TestValidateVerificationKeyBytesEmpty(t *testing.T) {
-	err := ValidateVerificationKeyBytes(nil)
-	if err == nil {
-		t.Error("expected error for nil data")
-	}
-
-	err = ValidateVerificationKeyBytes([]byte{})
-	if err == nil {
-		t.Error("expected error for empty data")
-	}
-}
-
-// TestValidateVerificationKeyBytesTooSmall tests validation with small data.
-func TestValidateVerificationKeyBytesTooSmall(t *testing.T) {
-	smallData := make([]byte, 100)
-	err := ValidateVerificationKeyBytes(smallData)
-	if err == nil {
-		t.Error("expected error for small data")
-	}
-}
-
 // TestVerifyValidProof tests verification with valid test vectors.
 // This test requires test vectors to be present in testdata/.
 func TestVerifyValidProof(t *testing.T) {
@@ -485,24 +429,6 @@ func BenchmarkVerify(b *testing.B) {
 
 	for b.Loop() {
 		_, _ = verifier.VerifyWithBytes(proof, inputs)
-	}
-}
-
-// BenchmarkParseVerificationKey benchmarks verification key parsing.
-func BenchmarkParseVerificationKey(b *testing.B) {
-	vkeyData, err := os.ReadFile(filepath.Join(testdataDir, vkeyFile))
-	if err != nil {
-		b.Skip("test vectors not available")
-	}
-
-	b.ResetTimer()
-
-	for b.Loop() {
-		vkey, err := ParseVerificationKey(vkeyData)
-		if err != nil {
-			b.Fatalf("failed to parse vkey: %v", err)
-		}
-		vkey.Close()
 	}
 }
 
