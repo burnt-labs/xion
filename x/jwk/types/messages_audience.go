@@ -1,6 +1,9 @@
 package types
 
 import (
+	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/rsa"
 	"fmt"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -16,6 +19,42 @@ const (
 	MaxJWKKeySize = 8192 // 8 KB
 	MaxAudSize    = 512
 
+	// MaxRSAKeyBits is the maximum allowed RSA key size in bits.
+	// 4096 bits is considered secure for the foreseeable future and prevents
+	// abuse via oversized keys that cause expensive verification operations.
+	MaxRSAKeyBits = 4096
+)
+
+// validateJWKKeySize checks that the raw key material does not exceed
+// the allowed maximum sizes. This prevents denial-of-service attacks
+// via oversized keys that are cheap to generate but expensive to verify against.
+func validateJWKKeySize(key jwk.Key) error {
+	var rawKey interface{}
+	if err := key.Raw(&rawKey); err != nil {
+		return errorsmod.Wrapf(ErrInvalidJWK, "unable to extract raw key: %s", err)
+	}
+
+	switch k := rawKey.(type) {
+	case *rsa.PublicKey:
+		if k.N.BitLen() > MaxRSAKeyBits {
+			return errorsmod.Wrapf(ErrInvalidJWK, "RSA key size %d bits exceeds maximum allowed %d bits", k.N.BitLen(), MaxRSAKeyBits)
+		}
+	case *rsa.PrivateKey:
+		if k.N.BitLen() > MaxRSAKeyBits {
+			return errorsmod.Wrapf(ErrInvalidJWK, "RSA key size %d bits exceeds maximum allowed %d bits", k.N.BitLen(), MaxRSAKeyBits)
+		}
+	case *ecdsa.PublicKey, *ecdsa.PrivateKey:
+		// ECDSA keys are inherently bounded by curve selection (P-256, P-384, P-521)
+	case ed25519.PublicKey, ed25519.PrivateKey:
+		// Ed25519 keys are fixed size (256 bits)
+	default:
+		// Unknown key type — allow but don't skip validation on known types
+	}
+
+	return nil
+}
+
+const (
 	TypeMsgCreateAudience = "create_audience"
 	TypeMsgUpdateAudience = "update_audience"
 	TypeMsgDeleteAudience = "delete_audience"
@@ -106,6 +145,10 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
 	}
 
+	if err := validateJWKKeySize(key); err != nil {
+		return err
+	}
+
 	var sigAlg jwa.SignatureAlgorithm
 	if err := sigAlg.Accept(key.Algorithm().String()); err != nil {
 		return err
@@ -186,6 +229,10 @@ func (msg *MsgUpdateAudience) ValidateBasic() error {
 	key, err := jwk.ParseKey([]byte(msg.Key))
 	if err != nil {
 		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
+	}
+
+	if err := validateJWKKeySize(key); err != nil {
+		return err
 	}
 
 	var sigAlg jwa.SignatureAlgorithm
