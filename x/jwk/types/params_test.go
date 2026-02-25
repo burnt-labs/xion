@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -150,6 +151,16 @@ func TestValidateTimeOffset(t *testing.T) {
 			input:     nil,
 			expectErr: true,
 		},
+		{
+			name:      "max int64 is valid",
+			input:     uint64(math.MaxInt64),
+			expectErr: false,
+		},
+		{
+			name:      "exceeds max int64",
+			input:     uint64(math.MaxInt64) + 1,
+			expectErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -205,7 +216,7 @@ func TestNewParams(t *testing.T) {
 func TestDefaultParams(t *testing.T) {
 	params := types.DefaultParams()
 	require.Equal(t, uint64(10_000), params.DeploymentGas)
-	require.Equal(t, uint64(30_000), params.TimeOffset)
+	require.Equal(t, uint64(30_000_000_000), params.TimeOffset)
 
 	// Default params should be valid
 	require.NoError(t, params.Validate())

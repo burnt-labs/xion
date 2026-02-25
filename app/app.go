@@ -152,6 +152,9 @@ import (
 
 	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
+	dkim "github.com/burnt-labs/xion/x/dkim"
+	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
+	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
@@ -159,6 +162,9 @@ import (
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	zk "github.com/burnt-labs/xion/x/zk"
+	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
 const (
@@ -278,6 +284,8 @@ type WasmApp struct {
 	XionKeeper         xionkeeper.Keeper
 	JwkKeeper          jwkkeeper.Keeper
 	TokenFactoryKeeper tokenfactorykeeper.Keeper
+	DkimKeeper         dkimkeeper.Keeper
+	ZkKeeper           zkkeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -358,7 +366,7 @@ func NewWasmApp(
 		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, packetforwardtypes.StoreKey,
-		jwktypes.StoreKey, tokenfactorytypes.StoreKey,
+		jwktypes.StoreKey, tokenfactorytypes.StoreKey, zktypes.StoreKey, dkimtypes.StoreKey,
 	)
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -591,6 +599,20 @@ func NewWasmApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	app.ZkKeeper = zkkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[zktypes.StoreKey]),
+		logger,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+	app.DkimKeeper = dkimkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[dkimtypes.StoreKey]),
+		logger,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.ZkKeeper,
+	)
+
 	app.JwkKeeper = jwkkeeper.NewKeeper(
 		appCodec,
 		keys[jwktypes.StoreKey],
@@ -791,6 +813,10 @@ func NewWasmApp(
 	// Since this is the lowest level middleware of the transfer stack, it should be the first entrypoint for transfer keeper's
 	// WriteAcknowledgement.
 	cbStack := ibccallbacks.NewIBCMiddleware(transferStack, app.PacketForwardKeeper, wasmStackIBCHandler, wasm.DefaultMaxIBCCallbackGas)
+	// Wire the transfer keeper's ICS4 wrapper through the callbacks middleware so that
+	// SendPacket validation (e.g. src_callback schema checks) is consistent with the
+	// timeout/ack path. Without this, the send path bypasses callbacks validation.
+	app.TransferKeeper.WithICS4Wrapper(cbStack)
 	transferStack = packetforward.NewIBCMiddleware(
 		cbStack,
 		app.PacketForwardKeeper,
@@ -875,6 +901,8 @@ func NewWasmApp(
 		// ibchooks.NewAppModule(app.AccountKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
+		zk.NewAppModule(appCodec, app.ZkKeeper),
+		dkim.NewAppModule(appCodec, app.DkimKeeper),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -924,6 +952,7 @@ func NewWasmApp(
 		xiontypes.ModuleName,
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
@@ -947,6 +976,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		dkimtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -979,6 +1009,8 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		zktypes.ModuleName,
+		dkimtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
@@ -1372,6 +1404,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
 	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
+	paramsKeeper.Subspace(zktypes.ModuleName)
+	paramsKeeper.Subspace(dkimtypes.ModuleName)
 
 	// IBC params migration - legacySubspace to selfManaged
 	// https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/11-v7-to-v10.md#params-migration

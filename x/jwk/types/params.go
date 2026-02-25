@@ -1,6 +1,8 @@
 package types
 
 import (
+	"math"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -30,7 +32,7 @@ func NewParams(timeOffset, deploymentGas uint64) Params {
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	deploymentGas := uint64(10_000)
-	timeOffset := uint64(30 * 1000) // default to 30 seconds
+	timeOffset := uint64(30_000_000_000) // 30 seconds in nanoseconds
 
 	return NewParams(timeOffset, deploymentGas)
 }
@@ -64,6 +66,11 @@ func validateTimeOffset(i interface{}) error {
 
 	if v == 0 {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "time offset must be positive")
+	}
+
+	// Reject values that would overflow when converted to int64 (used in JWT clock).
+	if v > uint64(math.MaxInt64) {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "time offset exceeds max int64")
 	}
 
 	return nil

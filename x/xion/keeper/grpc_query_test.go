@@ -143,6 +143,22 @@ func TestWebAuthNVerifyAuthenticate_SizeLimit(t *testing.T) {
 	require.Contains(t, err.Error(), "exceeds maximum")
 
 	t.Logf("Successfully rejected oversized auth data (%d bytes): %v", len(oversizeData), err)
+
+	// Test credential exceeding limit should be rejected immediately
+	oversizeCredential := make([]byte, types.MaxWebAuthDataSize+1)
+	req2 := &types.QueryWebAuthNVerifyAuthenticateRequest{
+		Rp:         "https://example.com",
+		Addr:       "test_addr",
+		Challenge:  "test_challenge",
+		Credential: oversizeCredential,
+		Data:       []byte("{}"),
+	}
+	_, err = k.WebAuthNVerifyAuthenticate(ctx, req2)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "credential size")
+	require.Contains(t, err.Error(), "exceeds maximum")
+
+	t.Logf("Successfully rejected oversized credential (%d bytes): %v", len(oversizeCredential), err)
 }
 
 func TestWebAuthNVerifyRegister_ErrorBranches(t *testing.T) {

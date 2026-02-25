@@ -33,6 +33,11 @@ linters:
         disabled: true
         severity: "warning"
         arguments: []
+    staticcheck:
+      checks:
+        - "all"
+        - "-SA1019" # TODO: fix deprecated API usage (module.AppModule, MustSortJSON, etc.)
+        - "-ST1003" # TODO: fix naming convention violations
   exclusions:
     generated: lax
     presets:
