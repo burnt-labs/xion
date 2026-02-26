@@ -214,7 +214,7 @@ $ %s q zk verify-proof ./proofs/email.json --vkey-name email_auth --public-input
 			vkeyID, _ := cmd.Flags().GetUint64("vkey-id")
 			publicInputsStr, _ := cmd.Flags().GetString("public-inputs")
 
-			// Validate inputs
+			// Validate inputs: at least one of vkey-name or vkey-id (server prefers name when both set)
 			if vkeyName == "" && vkeyID == 0 {
 				return fmt.Errorf("either --vkey-name or --vkey-id must be specified")
 			}
@@ -279,6 +279,7 @@ $ %s q zk verify-ultrahonk proof.bin --vkey-id 1 --public-inputs-file inputs.bin
 			vkeyID, _ := cmd.Flags().GetUint64("vkey-id")
 			inputsPath, _ := cmd.Flags().GetString("public-inputs-file")
 
+			// At least one of vkey-name or vkey-id (server prefers name when both set, same as verify-proof)
 			if vkeyName == "" && vkeyID == 0 {
 				return fmt.Errorf("either --vkey-name or --vkey-id must be specified")
 			}
@@ -322,6 +323,9 @@ func GetCmdQueryParams() *cobra.Command {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
+			}
+			if clientCtx.Output == nil {
+				return fmt.Errorf("client context not configured: missing output writer (run within a proper app client)")
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)

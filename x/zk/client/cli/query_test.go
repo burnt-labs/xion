@@ -835,7 +835,7 @@ func TestVerifyProofFlagInteractions(t *testing.T) {
 
 		cmd.SetArgs([]string{proofFile})
 		err = cmd.Execute()
-		// Should proceed (both set is valid)
+		// Server prefers name when both set; error is from RPC (e.g. vkey not found), not validation
 		require.Error(t, err)
 		require.NotContains(t, err.Error(), "either --vkey-name or --vkey-id must be specified")
 	})

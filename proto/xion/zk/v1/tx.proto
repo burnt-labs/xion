@@ -40,7 +40,7 @@ message MsgAddVKey {
   // description provides context about this verification key
   string description = 3;
 
-  // vkey_bytes is the verification key (Groth16/Circom JSON or Barretenberg binary per proof_system).
+  // vkey_bytes is the verification key (Groth16 or Barretenberg binary per proof_system).
   bytes vkey_bytes = 4;
 
   // proof_system identifies the proof system: "groth16" (default) or "ultrahonk".
@@ -67,7 +67,7 @@ message MsgUpdateVKey {
   // description provides updated context
   string description = 3;
 
-  // vkey_bytes is the new verification key (Groth16/Circom JSON or Barretenberg binary per proof_system).
+  // vkey_bytes is the new verification key (Groth16 or Barretenberg binary per proof_system).
   bytes vkey_bytes = 4;
   // proof_system identifies the proof system: "groth16" (default) or "ultrahonk".
   string proof_system = 5;

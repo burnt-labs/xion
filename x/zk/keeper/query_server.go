@@ -74,18 +74,16 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	if len(req.GetProof()) == 0 {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
 	}
-	hasName := req.GetVkeyName() != ""
-	hasID := req.GetVkeyId() != 0
-	if hasName == hasID {
-		return nil, errors.Wrap(types.ErrInvalidRequest, "exactly one of vkey_name or vkey_id must be provided")
-	}
-
+	// Resolve vkey by name or ID (prefer name when both are set, same as Groth16 verify-proof)
 	var vkey types.VKey
 	var err error
-	if hasName {
+	switch {
+	case req.GetVkeyName() != "":
 		vkey, err = q.GetVKeyByName(c, req.GetVkeyName())
-	} else {
+	case req.GetVkeyId() != 0:
 		vkey, err = q.GetVKeyByID(c, req.GetVkeyId())
+	default:
+		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
 	}
 	if err != nil {
 		return nil, err
@@ -99,11 +97,11 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	if len(publicInputs)%barretenberg.FieldElementSize != 0 {
 		return nil, errors.Wrapf(types.ErrInvalidRequest, "public_inputs length %d is not a multiple of %d", len(publicInputs), barretenberg.FieldElementSize)
 	}
-	chunks := make([][]byte, 0, len(publicInputs)/barretenberg.FieldElementSize)
-	for i := 0; i < len(publicInputs); i += barretenberg.FieldElementSize {
-		chunk := make([]byte, barretenberg.FieldElementSize)
-		copy(chunk, publicInputs[i:i+barretenberg.FieldElementSize])
-		chunks = append(chunks, chunk)
+	numChunks := len(publicInputs) / barretenberg.FieldElementSize
+	chunks := make([][]byte, numChunks)
+	for i := 0; i < numChunks; i++ {
+		start := i * barretenberg.FieldElementSize
+		chunks[i] = publicInputs[start : start+barretenberg.FieldElementSize]
 	}
 
 	vk, err := barretenberg.ParseVerificationKey(vkey.KeyBytes)

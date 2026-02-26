@@ -689,21 +689,21 @@ func TestQueryProofVerifyUltraHonk_InvalidRequest(t *testing.T) {
 		}
 		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "exactly one of vkey_name or vkey_id")
+		require.Contains(t, err.Error(), "either vkey_name or vkey_id must be provided")
 		require.Nil(t, resp)
 	})
 
-	t.Run("both vkey_name and vkey_id", func(t *testing.T) {
+	t.Run("both vkey_name and vkey_id uses name", func(t *testing.T) {
 		req := &types.QueryVerifyUltraHonkRequest{
 			Proof:        proofBytes,
 			PublicInputs: publicInputsBytes,
-			VkeyName:      "ultrahonk_circuit",
-			VkeyId:        1,
+			VkeyName:     "ultrahonk_circuit",
+			VkeyId:       1,
 		}
 		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "exactly one of vkey_name or vkey_id")
-		require.Nil(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified, "when both set, server uses name and should verify")
 	})
 
 	t.Run("public_inputs not multiple of 32", func(t *testing.T) {

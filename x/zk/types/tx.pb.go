@@ -39,7 +39,7 @@ type MsgAddVKey struct {
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// description provides context about this verification key
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// vkey_bytes is the verification key (Groth16/Circom JSON or Barretenberg binary per proof_system).
+	// vkey_bytes is the verification key (Groth16 or Barretenberg binary per proof_system).
 	VkeyBytes []byte `protobuf:"bytes,4,opt,name=vkey_bytes,json=vkeyBytes,proto3" json:"vkey_bytes,omitempty"`
 	// proof_system identifies the proof system: "groth16" (default) or "ultrahonk".
 	ProofSystem string `protobuf:"bytes,5,opt,name=proof_system,json=proofSystem,proto3" json:"proof_system,omitempty"`
@@ -167,7 +167,7 @@ type MsgUpdateVKey struct {
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// description provides updated context
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	// vkey_bytes is the new verification key (Groth16/Circom JSON or Barretenberg binary per proof_system).
+	// vkey_bytes is the new verification key (Groth16 or Barretenberg binary per proof_system).
 	VkeyBytes []byte `protobuf:"bytes,4,opt,name=vkey_bytes,json=vkeyBytes,proto3" json:"vkey_bytes,omitempty"`
 	// proof_system identifies the proof system: "groth16" (default) or "ultrahonk".
 	ProofSystem string `protobuf:"bytes,5,opt,name=proof_system,json=proofSystem,proto3" json:"proof_system,omitempty"`

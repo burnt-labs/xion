@@ -20,7 +20,10 @@ service Query {
   // ultrahonk.
   rpc ProofVerifyUltraHonk(QueryVerifyUltraHonkRequest)
       returns (ProofVerifyResponse) {
-    option (google.api.http).get = "/burnt/xion/zk/v1/verify-ultrahonk";
+    option (google.api.http) = {
+      post: "/burnt/xion/zk/v1/verify-ultrahonk"
+      body: "*"
+    };
   }
   // VKey queries a verification key by ID
   rpc VKey(QueryVKeyRequest) returns (QueryVKeyResponse) {
