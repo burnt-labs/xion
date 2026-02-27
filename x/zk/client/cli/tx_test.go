@@ -1,14 +1,30 @@
 package cli_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/burnt-labs/xion/x/zk/client/cli"
 )
+
+// ctxWithFrom sets a client context with a valid from address so RunE passes
+// authority check and fails on vkey validation. Pass the returned context to
+// cmd.ExecuteContext(ctx) so the command uses it.
+func ctxWithFrom(t *testing.T) context.Context {
+	t.Helper()
+	addr := sdk.AccAddress("test_from_addr__________") // 20 bytes
+	clientCtx := client.Context{}.
+		WithFromAddress(addr).
+		WithFrom(addr.String())
+	return context.WithValue(context.Background(), client.ClientContextKey, &clientCtx)
+}
 
 func TestGetTxCmd(t *testing.T) {
 	t.Run("returns valid command", func(t *testing.T) {
@@ -32,8 +48,8 @@ func TestGetTxCmd(t *testing.T) {
 			names[subcmd.Use] = true
 		}
 
-		require.True(t, names["add-vkey [name] [vkey-json-file] [description]"])
-		require.True(t, names["update-vkey [name] [vkey-json-file] [description]"])
+		require.True(t, names["add-vkey [name] [vkey-file] [description] [proof-system]"])
+		require.True(t, names["update-vkey [name] [vkey-file] [description] [proof-system]"])
 		require.True(t, names["remove-vkey [name]"])
 	})
 
@@ -48,11 +64,11 @@ func TestGetCmdAddVKey(t *testing.T) {
 	t.Run("returns valid command", func(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
 		require.NotNil(t, cmd)
-		require.Equal(t, "add-vkey [name] [vkey-json-file] [description]", cmd.Use)
+		require.Equal(t, "add-vkey [name] [vkey-file] [description] [proof-system]", cmd.Use)
 		require.Equal(t, "Add a new verification key", cmd.Short)
 	})
 
-	t.Run("requires exactly three arguments", func(t *testing.T) {
+	t.Run("requires exactly four arguments", func(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
 		require.NotNil(t, cmd.Args)
 
@@ -66,10 +82,13 @@ func TestGetCmdAddVKey(t *testing.T) {
 		err = cmd.Args(cmd, []string{"name", "file.json"})
 		require.Error(t, err)
 
-		err = cmd.Args(cmd, []string{"name", "file.json", "description", "extra"})
+		err = cmd.Args(cmd, []string{"name", "file.json", "description"})
 		require.Error(t, err)
 
-		err = cmd.Args(cmd, []string{"name", "file.json", "description"})
+		err = cmd.Args(cmd, []string{"name", "file.json", "description", "groth16", "extra"})
+		require.Error(t, err)
+
+		err = cmd.Args(cmd, []string{"name", "file.json", "description", "groth16"})
 		require.NoError(t, err)
 	})
 
@@ -93,8 +112,8 @@ func TestGetCmdAddVKey(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
 		require.NotEmpty(t, cmd.Long)
 		require.Contains(t, cmd.Long, "verification key")
-		require.Contains(t, cmd.Long, "JSON-encoded")
-		require.Contains(t, cmd.Long, "SnarkJS")
+		require.Contains(t, cmd.Long, "groth16")
+		require.Contains(t, cmd.Long, "ultrahonk")
 	})
 
 	t.Run("has example usage", func(t *testing.T) {
@@ -118,7 +137,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
 		err = cmd.Execute()
 		require.Error(t, err)
 	})
@@ -126,7 +145,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 	t.Run("RunE fails with non-existent vkey file", func(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
 
-		cmd.SetArgs([]string{"test_name", "/non/existent/vkey.json", "test description"})
+		cmd.SetArgs([]string{"test_name", "/non/existent/vkey.json", "test description", "groth16"})
 		err := cmd.Execute()
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to read vkey file")
@@ -134,6 +153,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 
 	t.Run("RunE fails with invalid vkey JSON", func(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create a temporary vkey file with invalid content
 		tmpDir := t.TempDir()
@@ -141,14 +161,15 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte(`not valid json`), 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid verification key")
 	})
 
 	t.Run("RunE fails with empty vkey file", func(t *testing.T) {
 		cmd := cli.GetCmdAddVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create an empty vkey file
 		tmpDir := t.TempDir()
@@ -156,10 +177,10 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte{}, 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid verification key")
+		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
 	})
 
 	t.Run("RunE with directory instead of file", func(t *testing.T) {
@@ -167,7 +188,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 
 		tmpDir := t.TempDir()
 
-		cmd.SetArgs([]string{"test_name", tmpDir, "test description"})
+		cmd.SetArgs([]string{"test_name", tmpDir, "test description", "groth16"})
 		err := cmd.Execute()
 		require.Error(t, err)
 	})
@@ -187,7 +208,7 @@ func TestGetCmdAddVKeyExtended(t *testing.T) {
 			require.NoError(t, err)
 		}()
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
 		err = cmd.Execute()
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to read vkey file")
@@ -198,11 +219,11 @@ func TestGetCmdUpdateVKey(t *testing.T) {
 	t.Run("returns valid command", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
 		require.NotNil(t, cmd)
-		require.Equal(t, "update-vkey [name] [vkey-json-file] [description]", cmd.Use)
+		require.Equal(t, "update-vkey [name] [vkey-file] [description] [proof-system]", cmd.Use)
 		require.Equal(t, "Update an existing verification key", cmd.Short)
 	})
 
-	t.Run("requires exactly three arguments", func(t *testing.T) {
+	t.Run("requires exactly four arguments", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
 		require.NotNil(t, cmd.Args)
 
@@ -216,10 +237,13 @@ func TestGetCmdUpdateVKey(t *testing.T) {
 		err = cmd.Args(cmd, []string{"name", "file.json"})
 		require.Error(t, err)
 
-		err = cmd.Args(cmd, []string{"name", "file.json", "description", "extra"})
+		err = cmd.Args(cmd, []string{"name", "file.json", "description"})
 		require.Error(t, err)
 
-		err = cmd.Args(cmd, []string{"name", "file.json", "description"})
+		err = cmd.Args(cmd, []string{"name", "file.json", "description", "groth16", "extra"})
+		require.Error(t, err)
+
+		err = cmd.Args(cmd, []string{"name", "file.json", "description", "groth16"})
 		require.NoError(t, err)
 	})
 
@@ -244,7 +268,8 @@ func TestGetCmdUpdateVKey(t *testing.T) {
 		require.NotEmpty(t, cmd.Long)
 		require.Contains(t, cmd.Long, "Update")
 		require.Contains(t, cmd.Long, "verification key")
-		require.Contains(t, cmd.Long, "JSON-encoded")
+		require.Contains(t, cmd.Long, "groth16")
+		require.Contains(t, cmd.Long, "ultrahonk")
 	})
 
 	t.Run("has example usage", func(t *testing.T) {
@@ -267,7 +292,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
 		err = cmd.Execute()
 		require.Error(t, err)
 	})
@@ -275,7 +300,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 	t.Run("RunE fails with non-existent vkey file", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
 
-		cmd.SetArgs([]string{"test_name", "/non/existent/vkey.json", "test description"})
+		cmd.SetArgs([]string{"test_name", "/non/existent/vkey.json", "test description", "groth16"})
 		err := cmd.Execute()
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to read vkey file")
@@ -283,6 +308,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 
 	t.Run("RunE fails with invalid vkey JSON", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create a temporary vkey file with invalid content
 		tmpDir := t.TempDir()
@@ -290,14 +316,15 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte(`not valid json`), 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid verification key")
 	})
 
 	t.Run("RunE fails with empty vkey file", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create an empty vkey file
 		tmpDir := t.TempDir()
@@ -305,14 +332,15 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte{}, 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid verification key")
+		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
 	})
 
 	t.Run("RunE fails with valid JSON but invalid vkey structure", func(t *testing.T) {
 		cmd := cli.GetCmdUpdateVKey()
+		ctx := ctxWithFrom(t)
 
 		// Create a vkey file with valid JSON but missing required fields
 		tmpDir := t.TempDir()
@@ -320,8 +348,8 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte(`{"some": "data"}`), 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "test description"})
-		err = cmd.Execute()
+		cmd.SetArgs([]string{"test_name", vkeyFile, "test description", "groth16"})
+		err = cmd.ExecuteContext(ctx)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid verification key")
 	})
@@ -336,7 +364,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		require.NoError(t, err)
 
 		// Name with special characters
-		cmd.SetArgs([]string{"test-name_v2", vkeyFile, "test description"})
+		cmd.SetArgs([]string{"test-name_v2", vkeyFile, "test description", "groth16"})
 		err = cmd.Execute()
 		require.Error(t, err)
 		// Should fail on validation or client context, not on name parsing
@@ -351,7 +379,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte(`{}`), 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, ""})
+		cmd.SetArgs([]string{"test_name", vkeyFile, "", "groth16"})
 		err = cmd.Execute()
 		require.Error(t, err)
 	})
@@ -371,7 +399,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 			longDesc += "a"
 		}
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, longDesc})
+		cmd.SetArgs([]string{"test_name", vkeyFile, longDesc, "groth16"})
 		err = cmd.Execute()
 		require.Error(t, err)
 	})
@@ -385,7 +413,7 @@ func TestGetCmdUpdateVKeyExtended(t *testing.T) {
 		err := os.WriteFile(vkeyFile, []byte(`{"invalid": true}`), 0o600)
 		require.NoError(t, err)
 
-		cmd.SetArgs([]string{"test_name", vkeyFile, "description"})
+		cmd.SetArgs([]string{"test_name", vkeyFile, "description", "groth16"})
 		err = cmd.Execute()
 		require.Error(t, err)
 	})
@@ -510,12 +538,12 @@ func TestTxCommandsIntegration(t *testing.T) {
 		parentCmd := cli.GetTxCmd()
 
 		// Find add-vkey subcommand
-		addVKeyCmd, _, err := parentCmd.Find([]string{"add-vkey", "name", "file.json", "desc"})
+		addVKeyCmd, _, err := parentCmd.Find([]string{"add-vkey", "name", "file.json", "desc", "groth16"})
 		require.NoError(t, err)
 		require.NotNil(t, addVKeyCmd)
 
 		// Find update-vkey subcommand
-		updateVKeyCmd, _, err := parentCmd.Find([]string{"update-vkey", "name", "file.json", "desc"})
+		updateVKeyCmd, _, err := parentCmd.Find([]string{"update-vkey", "name", "file.json", "desc", "groth16"})
 		require.NoError(t, err)
 		require.NotNil(t, updateVKeyCmd)
 
@@ -551,11 +579,11 @@ func TestTxCommandConsistency(t *testing.T) {
 		addCmd := cli.GetCmdAddVKey()
 		updateCmd := cli.GetCmdUpdateVKey()
 
-		// Both should require exactly 3 args
-		err := addCmd.Args(addCmd, []string{"a", "b", "c"})
+		// Both require exactly 4 args: name, vkey-file, description, proof-system
+		err := addCmd.Args(addCmd, []string{"name", "vkey.json", "description", "groth16"})
 		require.NoError(t, err)
 
-		err = updateCmd.Args(updateCmd, []string{"a", "b", "c"})
+		err = updateCmd.Args(updateCmd, []string{"name", "vkey.json", "description", "groth16"})
 		require.NoError(t, err)
 	})
 

@@ -35,15 +35,15 @@ func GetTxCmd() *cobra.Command {
 // GetCmdAddVKey implements the add verification key command
 func GetCmdAddVKey() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-vkey [name] [vkey-json-file] [description]",
+		Use:   "add-vkey [name] [vkey-file] [description] [proof-system]",
 		Short: "Add a new verification key",
 		Long: `Add a new verification key to the blockchain.
-The vkey-json-file should contain the JSON-encoded verification key from SnarkJS.
-Any account can add verification keys.`,
-		Args: cobra.ExactArgs(3),
+The vkey-file should contain the verification key: JSON for groth16 (SnarkJS), or binary for ultrahonk (Barretenberg).
+proof-system must be "groth16" or "ultrahonk". Any account can add verification keys.`,
+		Args: cobra.ExactArgs(4),
 		Example: fmt.Sprintf(
-			`$ %s tx zk add-vkey email_auth ./vkey.json "Email authentication circuit" --from mykey
-$ %s tx zk add-vkey rollup_batch ./rollup_vkey.json "Rollup batch verification" --from mykey --chain-id xion-1`,
+			`$ %s tx zk add-vkey email_auth ./vkey.json "Email authentication circuit" groth16 --from mykey
+$ %s tx zk add-vkey rollup_batch ./rollup_vkey.bin "Rollup batch verification" ultrahonk --from mykey --chain-id xion-1`,
 			"xiond", "xiond",
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -54,16 +54,15 @@ $ %s tx zk add-vkey rollup_batch ./rollup_vkey.json "Rollup batch verification" 
 
 			name := args[0]
 			description := args[2]
+			proofSystem := args[3]
+			if proofSystem != types.ProofSystemGroth16 && proofSystem != types.ProofSystemUltraHonk {
+				return fmt.Errorf("proof_system must be %q or %q, got %q", types.ProofSystemGroth16, types.ProofSystemUltraHonk, proofSystem)
+			}
 
-			// Read vkey JSON file
+			// Read vkey file (Groth16 JSON or UltraHonk binary; validation in ValidateBasic)
 			vkeyBytes, err := os.ReadFile(args[1])
 			if err != nil {
 				return fmt.Errorf("failed to read vkey file: %w", err)
-			}
-
-			// Validate the vkey
-			if err := types.ValidateVKeyBytes(vkeyBytes, 0); err != nil {
-				return fmt.Errorf("invalid verification key: %w", err)
 			}
 
 			msg := &types.MsgAddVKey{
@@ -71,6 +70,7 @@ $ %s tx zk add-vkey rollup_batch ./rollup_vkey.json "Rollup batch verification" 
 				Name:        name,
 				Description: description,
 				VkeyBytes:   vkeyBytes,
+				ProofSystem: proofSystem,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -88,15 +88,15 @@ $ %s tx zk add-vkey rollup_batch ./rollup_vkey.json "Rollup batch verification" 
 // GetCmdUpdateVKey implements the update verification key command
 func GetCmdUpdateVKey() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-vkey [name] [vkey-json-file] [description]",
+		Use:   "update-vkey [name] [vkey-file] [description] [proof-system]",
 		Short: "Update an existing verification key",
 		Long: `Update an existing verification key on the blockchain.
-The vkey-json-file should contain the JSON-encoded verification key from SnarkJS.
-Any account can update verification keys.`,
-		Args: cobra.ExactArgs(3),
+The vkey-file should contain the verification key: JSON for groth16 (SnarkJS), or binary for ultrahonk (Barretenberg).
+proof-system must be "groth16" or "ultrahonk". Any account can update verification keys.`,
+		Args: cobra.ExactArgs(4),
 		Example: fmt.Sprintf(
-			`$ %s tx zk update-vkey email_auth ./new_vkey.json "Updated email authentication circuit" --from mykey
-$ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.json "Updated rollup verification" --from mykey`,
+			`$ %s tx zk update-vkey email_auth ./new_vkey.json "Updated email authentication circuit" groth16 --from mykey
+$ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.bin "Updated rollup verification" ultrahonk --from mykey`,
 			"xiond", "xiond",
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -107,16 +107,15 @@ $ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.json "Updated rollup verif
 
 			name := args[0]
 			description := args[2]
+			proofSystem := args[3]
+			if proofSystem != types.ProofSystemGroth16 && proofSystem != types.ProofSystemUltraHonk {
+				return fmt.Errorf("proof_system must be %q or %q, got %q", types.ProofSystemGroth16, types.ProofSystemUltraHonk, proofSystem)
+			}
 
-			// Read vkey JSON file
+			// Read vkey file (Groth16 JSON or UltraHonk binary; validation in ValidateBasic)
 			vkeyBytes, err := os.ReadFile(args[1])
 			if err != nil {
 				return fmt.Errorf("failed to read vkey file: %w", err)
-			}
-
-			// Validate the vkey
-			if err := types.ValidateVKeyBytes(vkeyBytes, 0); err != nil {
-				return fmt.Errorf("invalid verification key: %w", err)
 			}
 
 			msg := &types.MsgUpdateVKey{
@@ -124,6 +123,7 @@ $ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.json "Updated rollup verif
 				Name:        name,
 				Description: description,
 				VkeyBytes:   vkeyBytes,
+				ProofSystem: proofSystem,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

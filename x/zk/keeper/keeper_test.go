@@ -336,7 +336,7 @@ func TestInitGenesis(t *testing.T) {
 
 		// Add a new key and verify it gets ID 101
 		newVKeyBytes := createTestVKeyBytes("new_key")
-		newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key", newVKeyBytes, "New key")
+		newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key", newVKeyBytes, "New key", types.ProofSystemGroth16)
 		require.NoError(t, err)
 		require.Equal(t, uint64(101), newID)
 	})
@@ -356,11 +356,11 @@ func TestExportGenesis(t *testing.T) {
 
 		// Add some vkeys
 		vkey1Bytes := createTestVKeyBytes("key1")
-		id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key")
+		id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key", types.ProofSystemGroth16)
 		require.NoError(t, err)
 
 		vkey2Bytes := createTestVKeyBytes("key2")
-		id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key")
+		id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key", types.ProofSystemGroth16)
 		require.NoError(t, err)
 
 		// Export genesis
@@ -388,11 +388,11 @@ func TestExportGenesis(t *testing.T) {
 
 		// Add vkeys
 		vkey1Bytes := createTestVKeyBytes("key1")
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key", types.ProofSystemGroth16)
 		require.NoError(t, err)
 
 		vkey2Bytes := createTestVKeyBytes("key2")
-		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key")
+		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key", types.ProofSystemGroth16)
 		require.NoError(t, err)
 
 		// Export genesis
@@ -441,7 +441,7 @@ func TestIterateVKeys(t *testing.T) {
 		// Add multiple vkeys
 		for i := 0; i < 5; i++ {
 			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystemGroth16)
 			require.NoError(t, err)
 		}
 
@@ -473,7 +473,7 @@ func TestIterateVKeys(t *testing.T) {
 		// Add multiple vkeys
 		for i := 0; i < 10; i++ {
 			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystemGroth16)
 			require.NoError(t, err)
 		}
 
@@ -495,7 +495,7 @@ func TestIterateVKeys(t *testing.T) {
 
 		// Add a vkey
 		vkeyBytes := createTestVKeyBytes("key1")
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1", types.ProofSystemGroth16)
 		require.NoError(t, err)
 
 		// Iterate with error
@@ -515,7 +515,7 @@ func TestIterateVKeys(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			name := fmt.Sprintf("key%d", i)
 			vkeyBytes := createTestVKeyBytes(name)
-			id, err := f.k.AddVKey(f.ctx, f.govModAddr, name, vkeyBytes, fmt.Sprintf("Key %d", i))
+			id, err := f.k.AddVKey(f.ctx, f.govModAddr, name, vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystemGroth16)
 			require.NoError(t, err)
 			expectedIDs[id] = name
 		}
@@ -602,7 +602,7 @@ func TestAddVKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, err := f.k.AddVKey(f.ctx, tt.authority, tt.vkeyName, tt.vkeyBytes, tt.description)
+			id, err := f.k.AddVKey(f.ctx, tt.authority, tt.vkeyName, tt.vkeyBytes, tt.description, types.ProofSystemGroth16)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -629,7 +629,7 @@ func TestGetVKeyByID(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test verification key")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test verification key", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -672,7 +672,7 @@ func TestGetVKeyByName(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -715,7 +715,7 @@ func TestGetCircomVKeyByName(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	// Get as CircomVerificationKey
@@ -732,7 +732,7 @@ func TestGetCircomVKeyByID(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	t.Run("successfully get circom vkey by ID", func(t *testing.T) {
@@ -755,7 +755,7 @@ func TestHasVKey(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -789,12 +789,12 @@ func TestUpdateVKey(t *testing.T) {
 
 	// Add initial vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	// Add user-owned vkey
 	userVkeyBytes := createTestVKeyBytes("user_auth")
-	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_auth", userVkeyBytes, "User description")
+	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_auth", userVkeyBytes, "User description", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -853,7 +853,7 @@ func TestUpdateVKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := f.k.UpdateVKey(f.ctx, tt.authority, tt.vkeyName, tt.newBytes, tt.description)
+			err := f.k.UpdateVKey(f.ctx, tt.authority, tt.vkeyName, tt.newBytes, tt.description, types.ProofSystemGroth16)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -875,15 +875,15 @@ func TestRemoveVKey(t *testing.T) {
 
 	// Add test vkeys
 	vkey1Bytes := createTestVKeyBytes("key1")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	vkey2Bytes := createTestVKeyBytes("key2")
-	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
+	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	userKeyBytes := createTestVKeyBytes("user_key")
-	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_key", userKeyBytes, "User key")
+	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_key", userKeyBytes, "User key", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -958,7 +958,7 @@ func TestListVKeys(t *testing.T) {
 	// Add multiple vkeys
 	for i := 0; i < 3; i++ {
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystemGroth16)
 		require.NoError(t, err)
 	}
 
@@ -986,17 +986,17 @@ func TestSequenceIncrement(t *testing.T) {
 
 	// Add multiple vkeys and verify IDs increment
 	vkey1Bytes := createTestVKeyBytes("key1")
-	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1")
+	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1", types.ProofSystemGroth16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), id1)
 
 	vkey2Bytes := createTestVKeyBytes("key2")
-	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
+	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2", types.ProofSystemGroth16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), id2)
 
 	vkey3Bytes := createTestVKeyBytes("key3")
-	id3, err := f.k.AddVKey(f.ctx, f.govModAddr, "key3", vkey3Bytes, "Key 3")
+	id3, err := f.k.AddVKey(f.ctx, f.govModAddr, "key3", vkey3Bytes, "Key 3", types.ProofSystemGroth16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(3), id3)
 }
@@ -1006,13 +1006,13 @@ func TestSequencePersistence(t *testing.T) {
 
 	// Add first vkey
 	vkey1Bytes := createTestVKeyBytes("key1")
-	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1")
+	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1", types.ProofSystemGroth16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), id1)
 
 	// Add second vkey - sequence should increment
 	vkey2Bytes := createTestVKeyBytes("key2")
-	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
+	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2", types.ProofSystemGroth16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), id2)
 
@@ -1035,7 +1035,7 @@ func TestNameIndexConsistency(t *testing.T) {
 
 	// Add vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	// Verify both ID and name access return the same vkey
@@ -1055,7 +1055,7 @@ func TestNameIndexAfterRemoval(t *testing.T) {
 
 	// Add vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	// Remove vkey
@@ -1083,7 +1083,7 @@ func TestEmptyName(t *testing.T) {
 	f := SetupTest(t)
 
 	vkeyBytes := createTestVKeyBytes("")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "", vkeyBytes, "Empty name test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "", vkeyBytes, "Empty name test", types.ProofSystemGroth16)
 
 	// Empty names should be allowed at keeper level
 	// Validation should happen at message level
@@ -1104,7 +1104,7 @@ func TestVeryLongName(t *testing.T) {
 	}
 
 	vkeyBytes := createTestVKeyBytes(longName)
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, longName, vkeyBytes, "Long name test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, longName, vkeyBytes, "Long name test", types.ProofSystemGroth16)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, id, uint64(0))
 
@@ -1120,7 +1120,7 @@ func TestConcurrentAccess(t *testing.T) {
 	// Add multiple vkeys
 	for i := 1; i < 11; i++ {
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystemGroth16)
 		require.NoError(t, err)
 	}
 
@@ -1145,7 +1145,7 @@ func TestFullVKeyLifecycle(t *testing.T) {
 
 	// 1. Add vkey
 	vkeyBytes := createTestVKeyBytes("lifecycle_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "lifecycle_key", vkeyBytes, "Initial version")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "lifecycle_key", vkeyBytes, "Initial version", types.ProofSystemGroth16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), id)
 
@@ -1166,7 +1166,7 @@ func TestFullVKeyLifecycle(t *testing.T) {
 
 	// 5. Update
 	updatedBytes := createTestVKeyBytes("lifecycle_key")
-	err = f.k.UpdateVKey(f.ctx, f.govModAddr, "lifecycle_key", updatedBytes, "Updated version")
+	err = f.k.UpdateVKey(f.ctx, f.govModAddr, "lifecycle_key", updatedBytes, "Updated version", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	// 6. Verify update
@@ -1203,7 +1203,7 @@ func TestCircomVKeyConversion(t *testing.T) {
 
 	// Add vkey
 	vkeyBytes := createTestVKeyBytes("circom_test")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_test", vkeyBytes, "Circom test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_test", vkeyBytes, "Circom test", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	// Get as standard VKey
@@ -1236,7 +1236,7 @@ func TestLoadActualVKeyFile(t *testing.T) {
 	vkeyBytes := loadVKeyFromJSON(t, "testdata/email_auth_vkey.json")
 
 	// Add to keeper
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication from file")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication from file", types.ProofSystemGroth16)
 	require.NoError(t, err)
 
 	// Retrieve and verify
