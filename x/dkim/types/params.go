@@ -134,6 +134,10 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(ErrInvalidParams, "max_pubkey_size_bytes must be positive")
 	}
 
+	if p.VkeyIdentifier == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "vkey_identifier must be positive")
+	}
+
 	if err := p.PublicInputIndices.Validate(); err != nil {
 		return err
 	}
