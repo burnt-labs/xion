@@ -324,9 +324,6 @@ func GetCmdQueryParams() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if clientCtx.Output == nil {
-				return fmt.Errorf("client context not configured: missing output writer (run within a proper app client)")
-			}
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
