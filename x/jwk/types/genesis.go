@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 // DefaultIndex is the default global index
@@ -38,6 +39,11 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for audience")
 		}
 		audienceIndexMap[index] = struct{}{}
+
+		// Validate JWK key format
+		if _, err := jwk.ParseKey([]byte(elem.Key)); err != nil {
+			return errorsmod.Wrapf(ErrInvalidJWK, "invalid JWK in genesis for audience %s: %s", elem.Aud, err)
+		}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

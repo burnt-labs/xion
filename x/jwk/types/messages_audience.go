@@ -13,6 +13,9 @@ import (
 )
 
 const (
+	MaxJWKKeySize = 8192 // 8 KB
+	MaxAudSize    = 512
+
 	TypeMsgCreateAudience = "create_audience"
 	TypeMsgUpdateAudience = "update_audience"
 	TypeMsgDeleteAudience = "delete_audience"
@@ -60,6 +63,13 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
+	if len(msg.Key) > MaxJWKKeySize {
+		return errorsmod.Wrapf(ErrInvalidJWK, "key size %d exceeds maximum %d bytes", len(msg.Key), MaxJWKKeySize)
+	}
+	if len(msg.Aud) > MaxAudSize {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "aud length %d exceeds maximum %d", len(msg.Aud), MaxAudSize)
 	}
 
 	key, err := jwk.ParseKey([]byte(msg.Key))
@@ -128,6 +138,13 @@ func (msg *MsgUpdateAudience) ValidateBasic() error {
 	_, err = sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
+	if len(msg.Key) > MaxJWKKeySize {
+		return errorsmod.Wrapf(ErrInvalidJWK, "key size %d exceeds maximum %d bytes", len(msg.Key), MaxJWKKeySize)
+	}
+	if len(msg.Aud) > MaxAudSize {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "aud length %d exceeds maximum %d", len(msg.Aud), MaxAudSize)
 	}
 
 	key, err := jwk.ParseKey([]byte(msg.Key))
@@ -272,6 +289,10 @@ func (msg *MsgDeleteAudienceClaim) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid admin address (%s)", err)
+	}
+
+	if len(msg.AudHash) != 32 {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "hash must be 32 byte sha256")
 	}
 
 	return nil
