@@ -120,7 +120,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		return nil, err
 	}
 
-	iter, err := ms.k.DkimPubKeys.Iterate(ctx, nil)
+	iter, err := ms.k.DkimPubKeys.Iterate(ctx, collections.NewPrefixedPairRange[string, string](msg.Domain))
 	if err != nil {
 		return nil, err
 	}

@@ -108,7 +108,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			if err != nil {
 				return nil, err
 			}
-			buf := make([]byte, 256)
+			buf := make([]byte, 1024)
 			n, err := keyCodec.EncodeNonTerminal(buf, fullKey)
 			if err != nil {
 				return nil, err
@@ -176,7 +176,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	// Generate NextKey if there are more results
 	var nextKey []byte
 	if hasLastKey {
-		buf := make([]byte, 256)
+		buf := make([]byte, 1024)
 		n, err := keyCodec.EncodeNonTerminal(buf, lastKey)
 		if err != nil {
 			return nil, err
@@ -263,8 +263,13 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert email host bigint to string"), "failed to convert allowed email hosts to string: %s", err.Error())
 	}
 
+	// Reject empty email host from public inputs
+	if emailHostFromPublicInputsString == "" {
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs is empty")
+	}
+
 	// If public inputs have email hosts but allowedEmailHosts is empty, return error
-	if emailHostFromPublicInputsString != "" && len(req.AllowedEmailHosts) == 0 {
+	if len(req.AllowedEmailHosts) == 0 {
 		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s is not present in allowed email hosts list", emailHostFromPublicInputsString)
 	}
 

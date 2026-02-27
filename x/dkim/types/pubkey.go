@@ -6,23 +6,33 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 )
+
+// MinRSAKeyBits is the minimum allowed RSA key size in bits.
+const MinRSAKeyBits = 2048
 
 // ParseRSAPublicKey parses PKIX or PKCS#1-encoded RSA public key bytes.
 func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
+	var rsaPub *rsa.PublicKey
+
 	pub, err := x509.ParsePKIXPublicKey(pubKeyBytes)
 	if err == nil {
-		rsaPub, ok := pub.(*rsa.PublicKey)
+		key, ok := pub.(*rsa.PublicKey)
 		if !ok {
 			return nil, ErrNotRSAKey
 		}
-		return rsaPub, nil
+		rsaPub = key
+	} else {
+		key, err := x509.ParsePKCS1PublicKey(pubKeyBytes)
+		if err != nil {
+			return nil, errorsmod.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
+		}
+		rsaPub = key
 	}
 
-	rsaPub, err := x509.ParsePKCS1PublicKey(pubKeyBytes)
-	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
+	if rsaPub.N.BitLen() < MinRSAKeyBits {
+		return nil, errorsmod.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPub.N.BitLen(), MinRSAKeyBits)
 	}
 
 	return rsaPub, nil

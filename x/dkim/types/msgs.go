@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"net/url"
 
 	"cosmossdk.io/errors"
@@ -84,6 +85,12 @@ func (msg *MsgRemoveDkimPubKey) GetSigners() []sdk.AccAddress {
 func (msg *MsgRemoveDkimPubKey) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
+	}
+	if msg.Domain == "" {
+		return fmt.Errorf("domain cannot be empty")
+	}
+	if msg.Selector == "" {
+		return fmt.Errorf("selector cannot be empty")
 	}
 	return nil
 }
@@ -203,7 +210,7 @@ func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 	}
 
 	// Validate PubKey is valid base64-encoded RSA public key
-	pubKeyBytes, err := DecodePubKey(dkimKey.PubKey)
+	pubKeyBytes, err := DecodePubKeyWithLimit(dkimKey.PubKey, DefaultMaxPubKeySizeBytes)
 	if err != nil {
 		return err
 	}
