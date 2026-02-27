@@ -35,6 +35,9 @@ func (m *MsgAddVKey) ValidateBasic() error {
 	}
 
 	proofSystem := m.GetProofSystem()
+	if proofSystem != "" && proofSystem != ProofSystemGroth16 && proofSystem != ProofSystemUltraHonk {
+		return fmt.Errorf("proof_system must be %q or %q", ProofSystemGroth16, ProofSystemUltraHonk)
+	}
 	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
 		return fmt.Errorf("invalid vkey_bytes: %w", err)
 	}
@@ -57,6 +60,9 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 	}
 
 	proofSystem := m.GetProofSystem()
+	if proofSystem != "" && proofSystem != ProofSystemGroth16 && proofSystem != ProofSystemUltraHonk {
+		return fmt.Errorf("proof_system must be %q or %q", ProofSystemGroth16, ProofSystemUltraHonk)
+	}
 	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
 		return fmt.Errorf("invalid vkey_bytes: %w", err)
 	}

@@ -90,7 +90,11 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	}
 
 	if vkey.ProofSystem != types.ProofSystemUltraHonk {
-		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not an UltraHonk key (proof_system=%q)", vkey.ProofSystem)
+		proofSystem := vkey.ProofSystem
+		if proofSystem == "" {
+			proofSystem = types.ProofSystemGroth16
+		}
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not an UltraHonk key (proof_system=%q)", proofSystem)
 	}
 
 	publicInputs := req.GetPublicInputs()
