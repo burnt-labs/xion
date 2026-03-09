@@ -403,7 +403,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	}
 
 	t.Run("valid key without revocation check", func(t *testing.T) {
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, nil)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, nil, true)
 		require.NoError(t, err)
 	})
 
@@ -411,7 +411,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		isRevoked := func(_ context.Context, _ string) (bool, error) {
 			return false, nil
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked, true)
 		require.NoError(t, err)
 	})
 
@@ -419,7 +419,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		isRevoked := func(_ context.Context, _ string) (bool, error) {
 			return true, nil
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidatedKey)
 	})
@@ -428,7 +428,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		isRevoked := func(_ context.Context, _ string) (bool, error) {
 			return false, errors.New("database error")
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked, true)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "database error")
 	})
@@ -440,7 +440,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 			t.Fatal("should not be called")
 			return false, nil
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, isRevoked, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidKeyType)
 	})
@@ -448,7 +448,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	t.Run("invalid version fails before revocation check", func(t *testing.T) {
 		invalidKey := validKey
 		invalidKey.Version = types.Version(999)
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, nil)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, nil, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidVersion)
 	})

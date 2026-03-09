@@ -164,16 +164,20 @@ func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 }
 
 func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
-	return ValidateDkimPubKeysWithRevocation(context.Background(), dkimKeys, params, nil)
+	return ValidateDkimPubKeysWithRevocation(context.Background(), dkimKeys, params, nil, false)
 }
 
 // ValidateDkimPubKeysWithRevocation validates DKIM keys and optionally checks a revocation lookup.
 // isRevoked should return true if the provided pubkey has been revoked.
+// When enforceMinKeySize is true, keys below MinRSAKeyBits are rejected (use for
+// message validation). Genesis/state-loading paths should pass false to allow
+// legacy keys such as Yahoo's s1024 selector.
 func ValidateDkimPubKeysWithRevocation(
 	ctx context.Context,
 	dkimKeys []DkimPubKey,
 	params Params,
 	isRevoked func(context.Context, string) (bool, error),
+	enforceMinKeySize bool,
 ) error {
 	for _, dkimKey := range dkimKeys {
 		if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
@@ -190,8 +194,10 @@ func ValidateDkimPubKeysWithRevocation(
 			return err
 		}
 
-		if err := ValidateRSAKeySize(rsaPubKey); err != nil {
-			return err
+		if enforceMinKeySize {
+			if err := ValidateRSAKeySize(rsaPubKey); err != nil {
+				return err
+			}
 		}
 
 		if isRevoked != nil {

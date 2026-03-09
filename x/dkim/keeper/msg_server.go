@@ -57,7 +57,7 @@ func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPub
 	// Validate all DKIM public keys before saving
 	if err := types.ValidateDkimPubKeysWithRevocation(ctx, msg.DkimPubkeys, params, func(c context.Context, pubKey string) (bool, error) {
 		return ms.k.RevokedKeys.Has(c, pubKey)
-	}); err != nil {
+	}, true); err != nil {
 		return nil, err
 	}
 
