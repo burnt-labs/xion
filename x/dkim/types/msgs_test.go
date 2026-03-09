@@ -335,6 +335,24 @@ func TestValidateDkimPubKeys(t *testing.T) {
 		key.PubKey = pkcs1Key
 		require.NoError(t, types.ValidateDkimPubKeys([]types.DkimPubKey{key}, params))
 	})
+
+	t.Run("1024-bit key accepted for genesis path", func(t *testing.T) {
+		// Genesis validation must accept legacy keys (e.g. Yahoo s1024).
+		// ValidateDkimPubKeys must NOT enforce the 2048-bit minimum.
+		smallKey, err := rsa.GenerateKey(rand.Reader, 1024)
+		require.NoError(t, err)
+		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
+		require.NoError(t, err)
+		b64 := base64.StdEncoding.EncodeToString(pkixBytes)
+		key := types.DkimPubKey{
+			Domain:   "example.com",
+			Selector: "legacy",
+			PubKey:   b64,
+			Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
+			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+		}
+		require.NoError(t, types.ValidateDkimPubKeys([]types.DkimPubKey{key}, params))
+	})
 }
 
 func TestValidateRSAPubKey(t *testing.T) {
@@ -451,6 +469,25 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, nil, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidVersion)
+	})
+
+	t.Run("1024-bit key rejected for message path", func(t *testing.T) {
+		// Message validation must enforce the 2048-bit minimum.
+		smallKey, err := rsa.GenerateKey(rand.Reader, 1024)
+		require.NoError(t, err)
+		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
+		require.NoError(t, err)
+		b64 := base64.StdEncoding.EncodeToString(pkixBytes)
+		key := types.DkimPubKey{
+			Domain:   "example.com",
+			Selector: "legacy",
+			PubKey:   b64,
+			Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
+			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+		}
+		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil)
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrInvalidPubKey)
 	})
 }
 
