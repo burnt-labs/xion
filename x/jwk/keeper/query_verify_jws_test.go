@@ -151,8 +151,14 @@ func TestVerifyJWS(t *testing.T) {
 	})
 
 	t.Run("invalid JWK key format rejected", func(t *testing.T) {
-		// Use an audience identifier that will cause jwk.ParseKey to fail inside VerifyJWS.
+		// Register an audience with an invalid (non-JWK) key so that
+		// jwk.ParseKey fails inside VerifyJWS.
 		invalidAud := "invalid-key-format"
+		k.SetAudience(ctx, types.Audience{
+			Admin: admin,
+			Aud:   invalidAud,
+			Key:   `{"not":"a-valid-jwk"}`,
+		})
 
 		payload := []byte(`{"hello":"world"}`)
 		signed, err := jws.Sign(payload, jws.WithKey(jwa.RS256, rsaPriv))
@@ -164,5 +170,6 @@ func TestVerifyJWS(t *testing.T) {
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "parse")
 	})
 }
