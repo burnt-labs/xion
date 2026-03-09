@@ -57,6 +57,19 @@ func TestParseRSAPublicKeyAcceptsSmallKeys(t *testing.T) {
 }
 
 func TestValidateRSAKeySize(t *testing.T) {
+	t.Run("rejects nil key", func(t *testing.T) {
+		err := types.ValidateRSAKeySize(nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "RSA public key is nil")
+	})
+
+	t.Run("rejects key with nil N", func(t *testing.T) {
+		key := &rsa.PublicKey{}
+		err := types.ValidateRSAKeySize(key)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "RSA public key is nil")
+	})
+
 	t.Run("rejects 1024-bit key", func(t *testing.T) {
 		key, err := rsa.GenerateKey(rand.Reader, 1024)
 		require.NoError(t, err)
