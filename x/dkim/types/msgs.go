@@ -163,8 +163,27 @@ func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
+// ValidateDkimPubKeys validates DKIM keys for genesis and state-loading paths.
+// Unlike ValidateDkimPubKeysWithRevocation, it does NOT enforce a minimum RSA key
+// size so that legacy keys (e.g. Yahoo's s1024 at 1024 bits) present in the default
+// genesis are accepted. Use ValidateDkimPubKeysWithRevocation for message validation
+// paths where new-key policy should be enforced.
 func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
-	return ValidateDkimPubKeysWithRevocation(context.Background(), dkimKeys, params, nil)
+	for _, dkimKey := range dkimKeys {
+		if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
+			return err
+		}
+
+		pubKeyBytes, err := DecodePubKeyWithLimit(dkimKey.PubKey, params.MaxPubkeySizeBytes)
+		if err != nil {
+			return err
+		}
+
+		if _, err := ParseRSAPublicKey(pubKeyBytes); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ValidateDkimPubKeysWithRevocation validates DKIM keys and optionally checks a revocation lookup.
