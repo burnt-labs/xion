@@ -1040,11 +1040,11 @@ func TestAuthenticateExtended(t *testing.T) {
 		}
 
 		// When email host from public inputs is empty string "" and allowed list is empty [],
-		// IsSubset([""], []) returns false, so this fails
+		// the early check rejects empty email host before checking the allowed list.
 		res, err := f.queryServer.Authenticate(f.ctx, req)
 		require.Error(err)
 		require.Nil(res)
-		require.Contains(err.Error(), "is not present in allowed email hosts list")
+		require.Contains(err.Error(), "email host from public inputs is empty")
 	})
 
 	t.Run("multiple allowed email hosts - first match", func(t *testing.T) {
