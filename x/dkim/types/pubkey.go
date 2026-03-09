@@ -42,6 +42,9 @@ func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
 // Call this in message validation paths (ValidateBasic, msg server) but NOT
 // in genesis/state-loading paths where legacy keys may be smaller.
 func ValidateRSAKeySize(key *rsa.PublicKey) error {
+	if key == nil || key.N == nil {
+		return errorsmod.Wrap(ErrInvalidPubKey, "RSA public key is nil")
+	}
 	if key.N.BitLen() < MinRSAKeyBits {
 		return errorsmod.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", key.N.BitLen(), MinRSAKeyBits)
 	}
