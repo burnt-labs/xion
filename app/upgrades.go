@@ -10,12 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
-	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
-	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
-const UpgradeName = "v28"
+const UpgradeName = "v29"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -37,15 +34,12 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
 	// Check which stores already exist (for chains that had v26)
-	existingStores := app.getExistingStoreNames()
+	// existingStores := app.getExistingStoreNames()
 
 	var storesToAdd []string
-	if !existingStores[zktypes.StoreKey] {
-		storesToAdd = append(storesToAdd, zktypes.StoreKey)
-	}
-	if !existingStores[dkimtypes.StoreKey] {
-		storesToAdd = append(storesToAdd, dkimtypes.StoreKey)
-	}
+	// if !existingStores[<module>.StoreKey] {
+	// 	storesToAdd = append(storesToAdd, <module>.StoreKey)
+	// }
 
 	storeUpgrades := storetypes.StoreUpgrades{
 		Added:   storesToAdd,
@@ -96,21 +90,12 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	sdkCtx := sdktypes.UnwrapSDKContext(ctx)
 	sdkCtx.Logger().Info("running module migrations", "name", plan.Name)
 
-	// Initialize zk module if not already initialized (for chains skipping v26)
-	if !app.isModuleInitialized(ctx, app.ZkKeeper.Params) {
-		sdkCtx.Logger().Info("initializing zk module")
-		zkGenesis := zktypes.DefaultGenesisState()
-		app.ZkKeeper.InitGenesis(sdkCtx, zkGenesis)
-	}
-
-	// Initialize dkim module if not already initialized (for chains skipping v26)
-	if !app.isModuleInitialized(ctx, app.DkimKeeper.Params) {
-		sdkCtx.Logger().Info("initializing dkim module")
-		dkimGenesis := dkimtypes.DefaultGenesis()
-		if err := app.DkimKeeper.InitGenesis(sdkCtx, dkimGenesis); err != nil {
-			return nil, err
-		}
-	}
+	// Initialize module if not already initialized
+	// if !app.isModuleInitialized(ctx, app.<module>Keeper.Params) {
+	// 	sdkCtx.Logger().Info("initializing <module> module")
+	// 	<module>Genesis := <module>types.DefaultGenesisState()
+	// 	app.<module>Keeper.InitGenesis(sdkCtx, <module>Genesis)
+	// }
 
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
