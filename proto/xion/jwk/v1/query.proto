@@ -173,7 +173,9 @@ message QueryVerifyJWSRequest {
   string sig_bytes = 2;
 }
 
+// QueryVerifyJWSResponse is the response type for verifying a JWS signature
 message QueryVerifyJWSResponse {
+  // The verified payload bytes extracted from the JWS
   bytes payload = 1;
 }
 
