@@ -1,9 +1,8 @@
 package types_test
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"encoding/base64"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -48,13 +47,19 @@ func TestValidateJWKKeySize(t *testing.T) {
 	})
 }
 
-// generateOversizedRSAJWK creates a JWK JSON string with the given RSA key size
+// generateOversizedRSAJWK creates a JWK JSON string with a mock RSA key of the
+// given bit length. Instead of calling rsa.GenerateKey (which is slow for large
+// keys and flaky in CI), we construct an rsa.PublicKey with a synthetic N of the
+// desired bit length. The validation logic only inspects the modulus size, so a
+// cryptographically valid key is not required.
 func generateOversizedRSAJWK(t *testing.T, bits int) string {
 	t.Helper()
-	privateKey, err := rsa.GenerateKey(rand.Reader, bits)
-	require.NoError(t, err)
 
-	n := base64.RawURLEncoding.EncodeToString(privateKey.N.Bytes())
+	// Build a mock modulus: set the top bit so BitLen() == bits.
+	mockN := new(big.Int).SetBit(new(big.Int), bits-1, 1) // 2^(bits-1)
+	mockN.SetBit(mockN, 0, 1)                              // make it odd
+
+	n := base64.RawURLEncoding.EncodeToString(mockN.Bytes())
 	e := base64.RawURLEncoding.EncodeToString([]byte{1, 0, 1}) // 65537
 
 	return `{"kty":"RSA","use":"sig","kid":"test-oversized","alg":"RS256","n":"` + n + `","e":"` + e + `"}`

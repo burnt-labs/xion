@@ -28,6 +28,9 @@ const (
 // validateJWKKeySize checks that the raw key material does not exceed
 // the allowed maximum sizes. This prevents denial-of-service attacks
 // via oversized keys that are cheap to generate but expensive to verify against.
+//
+// NOTE: This validation is enforced at message ingress (ValidateBasic) only.
+// It does not retroactively reject keys already stored in state, by design.
 func validateJWKKeySize(key jwk.Key) error {
 	var rawKey interface{}
 	if err := key.Raw(&rawKey); err != nil {
