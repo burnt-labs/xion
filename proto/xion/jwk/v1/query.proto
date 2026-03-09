@@ -168,8 +168,11 @@ message QueryValidateJWTResponse {
   repeated PrivateClaim private_claims = 1;
 }
 
+// QueryVerifyJWSRequest is the request type for verifying a JWS signature
 message QueryVerifyJWSRequest {
+  // The audience identifier
   string aud = 1;
+  // The JWS signature bytes in compact serialization format
   string sig_bytes = 2;
 }
 
