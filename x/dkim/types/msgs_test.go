@@ -146,6 +146,28 @@ func TestMsgRemoveDkimPubKey(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid authority address")
 	})
+
+	t.Run("ValidateBasic - empty domain", func(t *testing.T) {
+		msg := &types.MsgRemoveDkimPubKey{
+			Authority: validAddress,
+			Domain:    "",
+			Selector:  "default",
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "domain cannot be empty")
+	})
+
+	t.Run("ValidateBasic - empty selector", func(t *testing.T) {
+		msg := &types.MsgRemoveDkimPubKey{
+			Authority: validAddress,
+			Domain:    "example.com",
+			Selector:  "",
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "selector cannot be empty")
+	})
 }
 
 func TestMsgRevokeDkimPubKey(t *testing.T) {
@@ -176,6 +198,17 @@ func TestMsgRevokeDkimPubKey(t *testing.T) {
 		signers := msg.GetSigners()
 		require.Len(t, signers, 1)
 		require.Equal(t, addr, signers[0])
+	})
+
+	t.Run("ValidateBasic - empty domain", func(t *testing.T) {
+		msg := &types.MsgRevokeDkimPubKey{
+			Signer:  validAddress,
+			Domain:  "",
+			PrivKey: []byte(validPrivKey),
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "domain cannot be empty")
 	})
 
 	t.Run("ValidateBasic - invalid domain URL", func(t *testing.T) {

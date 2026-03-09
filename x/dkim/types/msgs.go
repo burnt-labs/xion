@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"net/url"
 
 	"cosmossdk.io/errors"
@@ -87,10 +86,10 @@ func (msg *MsgRemoveDkimPubKey) ValidateBasic() error {
 		return errors.Wrap(err, "invalid authority address")
 	}
 	if msg.Domain == "" {
-		return fmt.Errorf("domain cannot be empty")
+		return errors.Wrap(sdkError.ErrInvalidRequest, "domain cannot be empty")
 	}
 	if msg.Selector == "" {
-		return fmt.Errorf("selector cannot be empty")
+		return errors.Wrap(sdkError.ErrInvalidRequest, "selector cannot be empty")
 	}
 	return nil
 }
@@ -123,6 +122,11 @@ func (msg *MsgRevokeDkimPubKey) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgRevokeDkimPubKey) ValidateBasic() error {
+	// Reject empty domain to prevent full-table scans in the msg server's
+	// NewPrefixedPairRange iteration.
+	if msg.Domain == "" {
+		return errors.Wrap(sdkError.ErrInvalidRequest, "domain cannot be empty")
+	}
 	// url pass the pubkey domain
 	if _, err := url.Parse(msg.Domain); err != nil {
 		return errors.Wrap(sdkError.ErrInvalidRequest, "dkim url key parsing failed "+err.Error())
@@ -186,6 +190,10 @@ func ValidateDkimPubKeysWithRevocation(
 			return err
 		}
 
+		if err := ValidateRSAKeySize(rsaPubKey); err != nil {
+			return err
+		}
+
 		if isRevoked != nil {
 			canonicalKey, err := CanonicalizeRSAPublicKey(rsaPubKey)
 			if err != nil {
@@ -203,7 +211,11 @@ func ValidateDkimPubKeysWithRevocation(
 	return nil
 }
 
-// ValidateDkimPubKey validates a DKIM public key entry
+// ValidateDkimPubKey validates a DKIM public key entry for use in messages.
+// Uses DefaultMaxPubKeySizeBytes as the size ceiling since ValidateBasic is
+// stateless and cannot access on-chain params. If on-chain params allow a
+// larger size, the msg server's param-aware ValidateDkimPubKeysWithRevocation
+// path will accept it.
 func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 	if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
 		return err
@@ -215,19 +227,28 @@ func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 		return err
 	}
 
-	_, err = ParseRSAPublicKey(pubKeyBytes)
-	return err
+	rsaPub, err := ParseRSAPublicKey(pubKeyBytes)
+	if err != nil {
+		return err
+	}
+
+	return ValidateRSAKeySize(rsaPub)
 }
 
 // ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
+// with minimum key size enforcement.
 func ValidateRSAPubKey(pubKeyStr string) error {
 	pubKeyBytes, err := DecodePubKey(pubKeyStr)
 	if err != nil {
 		return err
 	}
 
-	_, err = ParseRSAPublicKey(pubKeyBytes)
-	return err
+	rsaPub, err := ParseRSAPublicKey(pubKeyBytes)
+	if err != nil {
+		return err
+	}
+
+	return ValidateRSAKeySize(rsaPub)
 }
 
 func validateDkimPubKeyMetadata(dkimKey DkimPubKey) error {
