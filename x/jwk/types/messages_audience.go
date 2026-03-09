@@ -146,6 +146,9 @@ func (msg *MsgUpdateAudience) ValidateBasic() error {
 	if len(msg.Aud) > MaxAudSize {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "aud length %d exceeds maximum %d", len(msg.Aud), MaxAudSize)
 	}
+	if len(msg.NewAud) > MaxAudSize {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "new_aud length %d exceeds maximum %d", len(msg.NewAud), MaxAudSize)
+	}
 
 	key, err := jwk.ParseKey([]byte(msg.Key))
 	if err != nil {
