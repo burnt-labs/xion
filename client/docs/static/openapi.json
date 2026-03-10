@@ -3,7 +3,7 @@
     "info": {
         "title": "XION - gRPC Gateway docs",
         "description": "A REST interface for state queries",
-        "version": "v28.1.0"
+        "version": "v29.0.0"
     },
     "paths": {
         "/cosmos/auth/v1beta1/account_info/{address}": {
@@ -25442,6 +25442,108 @@
                 ]
             }
         },
+        "/xion/jwk/decode_jwt/{aud}/{sub}/{sigBytes}": {
+            "get": {
+                "summary": "DecodeJWT validates a JWT and returns all claims (standard and private).",
+                "operationId": "DecodeJWT",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "claims": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "key": {
+                                                        "type": "string",
+                                                        "title": "The claim key"
+                                                    },
+                                                    "value": {
+                                                        "type": "string",
+                                                        "title": "The claim value (stringified)"
+                                                    }
+                                                },
+                                                "title": "JWTClaim represents a single JWT claim (standard or private)"
+                                            },
+                                            "title": "All claims from the JWT (standard and private), sorted by key"
+                                        }
+                                    },
+                                    "title": "QueryDecodeJWTResponse is the response type for decoding a JWT"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "format": "int32"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "@type": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "additionalProperties": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "aud",
+                        "description": "The audience identifier",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sub",
+                        "description": "The subject",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sigBytes",
+                        "description": "The signature bytes (compact JWT)",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "XionJWK"
+                ]
+            }
+        },
         "/xion/jwk/params": {
             "get": {
                 "summary": "Parameters queries the parameters of the module.",
@@ -25515,7 +25617,7 @@
         },
         "/xion/jwk/validate_jwt/{aud}/{sub}/{sigBytes}": {
             "get": {
-                "summary": "Queries a list of ValidateJWT items.",
+                "summary": "Deprecated: Use DecodeJWT instead, which returns all claims.",
                 "operationId": "ValidateJWT",
                 "responses": {
                     "200": {
@@ -25603,6 +25705,86 @@
                     {
                         "name": "sigBytes",
                         "description": "The signature bytes",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "XionJWK"
+                ]
+            }
+        },
+        "/xion/jwk/verify_jws/{aud}/{sigBytes}": {
+            "get": {
+                "summary": "VerifyJWS verifies a compact JWS signature and returns the payload.",
+                "operationId": "VerifyJWS",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "payload": {
+                                            "type": "string",
+                                            "format": "byte",
+                                            "title": "The verified payload bytes extracted from the JWS"
+                                        }
+                                    },
+                                    "title": "QueryVerifyJWSResponse is the response type for verifying a JWS signature"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "integer",
+                                            "format": "int32"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "@type": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "additionalProperties": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "aud",
+                        "description": "The audience identifier",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sigBytes",
+                        "description": "The JWS signature bytes in compact serialization format",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -48029,6 +48211,20 @@
                 },
                 "title": "AudienceClaim represents a claim for an audience"
             },
+            "xion.jwk.v1.JWTClaim": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "title": "The claim key"
+                    },
+                    "value": {
+                        "type": "string",
+                        "title": "The claim value (stringified)"
+                    }
+                },
+                "title": "JWTClaim represents a single JWT claim (standard or private)"
+            },
             "xion.jwk.v1.Params": {
                 "type": "object",
                 "properties": {
@@ -48144,6 +48340,30 @@
                 },
                 "title": "QueryAudienceResponse is the response type for querying an audience"
             },
+            "xion.jwk.v1.QueryDecodeJWTResponse": {
+                "type": "object",
+                "properties": {
+                    "claims": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "string",
+                                    "title": "The claim key"
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "title": "The claim value (stringified)"
+                                }
+                            },
+                            "title": "JWTClaim represents a single JWT claim (standard or private)"
+                        },
+                        "title": "All claims from the JWT (standard and private), sorted by key"
+                    }
+                },
+                "title": "QueryDecodeJWTResponse is the response type for decoding a JWT"
+            },
             "xion.jwk.v1.QueryParamsResponse": {
                 "type": "object",
                 "properties": {
@@ -48189,6 +48409,17 @@
                     }
                 },
                 "title": "QueryValidateJWTResponse is the response type for validating a JWT"
+            },
+            "xion.jwk.v1.QueryVerifyJWSResponse": {
+                "type": "object",
+                "properties": {
+                    "payload": {
+                        "type": "string",
+                        "format": "byte",
+                        "title": "The verified payload bytes extracted from the JWS"
+                    }
+                },
+                "title": "QueryVerifyJWSResponse is the response type for verifying a JWS signature"
             },
             "xion.mint.v1.Params": {
                 "type": "object",
