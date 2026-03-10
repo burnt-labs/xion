@@ -25,13 +25,13 @@ const (
 	MaxRSAKeyBits = 4096
 )
 
-// validateJWKKeySize checks that the raw key material does not exceed
+// ValidateJWKKeySize checks that the raw key material does not exceed
 // the allowed maximum sizes. This prevents denial-of-service attacks
 // via oversized keys that are cheap to generate but expensive to verify against.
 //
-// NOTE: This validation is enforced at message ingress (ValidateBasic) only.
-// It does not retroactively reject keys already stored in state, by design.
-func validateJWKKeySize(key jwk.Key) error {
+// This function is exported and reusable to allow key size validation
+// in multiple contexts including JWT verification and genesis validation.
+func ValidateJWKKeySize(key jwk.Key) error {
 	var rawKey interface{}
 	if err := key.Raw(&rawKey); err != nil {
 		return errorsmod.Wrapf(ErrInvalidJWK, "unable to extract raw key: %s", err)
@@ -148,7 +148,7 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
 	}
 
-	if err := validateJWKKeySize(key); err != nil {
+	if err := ValidateJWKKeySize(key); err != nil {
 		return err
 	}
 
@@ -234,7 +234,7 @@ func (msg *MsgUpdateAudience) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidJWK, "invalid jwk format (%s)", err)
 	}
 
-	if err := validateJWKKeySize(key); err != nil {
+	if err := ValidateJWKKeySize(key); err != nil {
 		return err
 	}
 
