@@ -49,3 +49,4 @@ func (gs GenesisState) Validate() error {
 
 	return gs.Params.Validate()
 }
+
