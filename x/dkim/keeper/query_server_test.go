@@ -460,7 +460,7 @@ func TestAuthenticate(t *testing.T) {
 			publicInputs:      basePublicInputs,
 			txBytes:           nil, // will be computed from publicInputs
 			expectedError:     true,
-			errorContains:     "is not present in allowed email hosts list",
+			errorContains:     "email host does not match any of the allowed email hosts",
 		},
 		{
 			name:              "success - allowed list of email hosts match public inputs",
@@ -478,7 +478,7 @@ func TestAuthenticate(t *testing.T) {
 			publicInputs:      basePublicInputs,
 			txBytes:           nil, // will be computed from publicInputs
 			expectedError:     true,
-			errorContains:     "is not present in allowed email hosts list",
+			errorContains:     "email host does not match any of the allowed email hosts",
 		},
 		{
 			name:              "fail - tx bytes mismatch",
@@ -968,7 +968,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		require.Nil(res)
 		// The error will be about email host validation since empty string from public inputs
 		// is not in empty allowed list (IsSubset([""], []) = false)
-		require.Contains(err.Error(), "is not present in allowed email hosts list")
+		require.Contains(err.Error(), "email host does not match any of the allowed email hosts")
 	})
 
 	t.Run("fail - public inputs with 37 elements (boundary)", func(t *testing.T) {
@@ -1080,7 +1080,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		res, err := f.queryServer.Authenticate(f.ctx, req)
 		// Should pass email host validation
 		if err != nil {
-			require.NotContains(err.Error(), "is not present in allowed email hosts list")
+			require.NotContains(err.Error(), "email host does not match any of the allowed email hosts")
 		}
 		_ = res
 	})
@@ -1176,7 +1176,7 @@ func TestAuthenticateExtended(t *testing.T) {
 		if err != nil {
 			require.NotContains(err.Error(), "failed to convert allowed email hosts to big int")
 			require.NotContains(err.Error(), "failed to convert allowed email hosts to string")
-			require.NotContains(err.Error(), "is not present in allowed email hosts list")
+			require.NotContains(err.Error(), "email host does not match any of the allowed email hosts")
 			require.NotContains(err.Error(), "failed to convertemail subject to big int")
 			require.NotContains(err.Error(), "failed to convert email subject to string")
 		}

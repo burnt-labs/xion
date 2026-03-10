@@ -95,6 +95,11 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	// providing a domain and private key revokes all pubkeys for that domain
 	// that match the private key
 
+	params, err := ms.k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var privateKey *rsa.PrivateKey
 	d, _ := pem.Decode(msg.PrivKey)
 	if d == nil {
@@ -135,7 +140,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		if kvs[i].Value.Domain != msg.Domain {
 			continue
 		}
-		pubKeyBytes, err := types.DecodePubKey(kvs[i].Value.PubKey)
+		pubKeyBytes, err := types.DecodePubKeyWithLimit(kvs[i].Value.PubKey, params.MaxPubkeySizeBytes)
 		if err != nil {
 			return nil, err
 		}

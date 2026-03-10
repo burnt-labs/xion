@@ -485,7 +485,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 			Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
-		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil)
+		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidPubKey)
 	})
