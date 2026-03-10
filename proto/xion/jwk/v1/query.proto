@@ -42,10 +42,8 @@ service Query {
 
   // VerifyJWS verifies a compact JWS signature and returns the payload.
   rpc VerifyJWS(QueryVerifyJWSRequest) returns (QueryVerifyJWSResponse) {
-    option (google.api.http) = {
-      post: "/xion/jwk/verify_jws/{aud}"
-      body: "*"
-    };
+    option (google.api.http).get =
+        "/xion/jwk/verify_jws/{aud}/{sig_bytes}";
   }
 
   // DecodeJWT validates a JWT and returns all claims (standard and private).
