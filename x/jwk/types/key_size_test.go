@@ -24,7 +24,7 @@ func TestValidateJWKKeySize(t *testing.T) {
 	})
 
 	t.Run("oversized RSA key rejected in CreateAudience", func(t *testing.T) {
-		oversizedKey := generateOversizedRSAJWK(t, 8192)
+		oversizedKey := generateOversizedRSAJWK(t, types.MaxRSAKeyBits*2)
 		msg := types.NewMsgCreateAudience(admin, "https://test.example.com", oversizedKey)
 		err := msg.ValidateBasic()
 		require.Error(t, err)
@@ -32,16 +32,23 @@ func TestValidateJWKKeySize(t *testing.T) {
 	})
 
 	t.Run("oversized RSA key rejected in UpdateAudience", func(t *testing.T) {
-		oversizedKey := generateOversizedRSAJWK(t, 8192)
+		oversizedKey := generateOversizedRSAJWK(t, types.MaxRSAKeyBits*2)
 		msg := types.NewMsgUpdateAudience(admin, admin, "https://test.example.com", "", oversizedKey)
 		err := msg.ValidateBasic()
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "exceeds maximum allowed")
 	})
 
-	t.Run("4096-bit RSA key accepted", func(t *testing.T) {
-		key4096 := generateOversizedRSAJWK(t, 4096)
-		msg := types.NewMsgCreateAudience(admin, "https://test.example.com", key4096)
+	t.Run("boundary RSA key accepted in CreateAudience", func(t *testing.T) {
+		key := generateOversizedRSAJWK(t, types.MaxRSAKeyBits)
+		msg := types.NewMsgCreateAudience(admin, "https://test.example.com", key)
+		err := msg.ValidateBasic()
+		require.NoError(t, err)
+	})
+
+	t.Run("boundary RSA key accepted in UpdateAudience", func(t *testing.T) {
+		key := generateOversizedRSAJWK(t, types.MaxRSAKeyBits)
+		msg := types.NewMsgUpdateAudience(admin, admin, "https://test.example.com", "", key)
 		err := msg.ValidateBasic()
 		require.NoError(t, err)
 	})
