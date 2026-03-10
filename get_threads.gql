@@ -1,0 +1,20 @@
+query {
+  repository(owner:"burnt-labs", name:"xion") {
+    pullRequest(number:496) {
+      reviewThreads(first:100) {
+        nodes {
+          id
+          isResolved
+          comments(first:5) {
+            nodes {
+              author {
+                login
+              }
+              body
+            }
+          }
+        }
+      }
+    }
+  }
+}

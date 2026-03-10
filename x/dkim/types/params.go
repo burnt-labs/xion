@@ -8,6 +8,10 @@ import (
 
 const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
+	// ValidateBasicMaxPubKeySizeBytes is a higher ceiling for ValidateBasic
+	// to allow on-chain params to be meaningful. The message server will
+	// enforce the actual param limits.
+	ValidateBasicMaxPubKeySizeBytes uint64 = 2048
 
 	// Default public input indices for the Authenticate query
 	DefaultMinPublicInputsLength  uint64 = 88

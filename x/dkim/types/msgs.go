@@ -237,27 +237,25 @@ func ValidateDkimPubKeysWithRevocation(
 }
 
 // ValidateDkimPubKey validates a DKIM public key entry for use in messages.
-// Uses DefaultMaxPubKeySizeBytes as the size ceiling since ValidateBasic is
-// stateless and cannot access on-chain params. If on-chain params allow a
-// larger size, the msg server's param-aware ValidateDkimPubKeysWithRevocation
-// path will accept it.
+// Uses ValidateBasicMaxPubKeySizeBytes as a high ceiling since ValidateBasic is
+// stateless and cannot access on-chain params. The msg server will enforce
+// actual param limits and key size requirements via ValidateDkimPubKeysWithRevocation.
 func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 	if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
 		return err
 	}
 
 	// Validate PubKey is valid base64-encoded RSA public key
-	pubKeyBytes, err := DecodePubKeyWithLimit(dkimKey.PubKey, DefaultMaxPubKeySizeBytes)
+	pubKeyBytes, err := DecodePubKeyWithLimit(dkimKey.PubKey, ValidateBasicMaxPubKeySizeBytes)
 	if err != nil {
 		return err
 	}
 
-	rsaPub, err := ParseRSAPublicKey(pubKeyBytes)
-	if err != nil {
-		return err
-	}
-
-	return ValidateRSAKeySize(rsaPub)
+	// Only validate that it parses as RSA - don't enforce key size limits here
+	// since ValidateBasic should be stateless. The msg server will enforce
+	// size requirements via ValidateDkimPubKeysWithRevocation.
+	_, err = ParseRSAPublicKey(pubKeyBytes)
+	return err
 }
 
 // ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
