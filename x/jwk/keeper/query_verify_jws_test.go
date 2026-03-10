@@ -170,6 +170,6 @@ func TestVerifyJWS(t *testing.T) {
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "parse")
+		require.Contains(t, err.Error(), "invalid key type")
 	})
 }
