@@ -144,8 +144,20 @@ func (v *Verifier) VerifyWithHexInputs(proof *Proof, hexInputs []string) (bool, 
 // verifyWithInputs is the internal verification method.
 // Caller must hold at least a read lock on v.mu.
 func (v *Verifier) verifyWithInputs(proof *Proof, publicInputs *PublicInputs) (bool, error) {
+	// Cross-check public input count against what the vkey declares.
+	// This surfaces version mismatches (e.g. vkey generated with a different bb version)
+	// with a clear error instead of an opaque barretenberg exception.
+	expectedCount, err := v.vkey.NumPublicInputs()
+	if err != nil {
+		return false, fmt.Errorf("failed to read vkey public input count: %w", err)
+	}
+	if publicInputs.Count() != expectedCount {
+		return false, fmt.Errorf("%w: vkey expects %d public input(s), got %d — ensure bb version matches compiled library",
+			ErrInvalidPublicInputs, expectedCount, publicInputs.Count())
+	}
+
 	// Verify using the CGo bindings
-	err := v.vkey.handle.verifyProof(
+	err = v.vkey.handle.verifyProof(
 		proof.Bytes(),
 		publicInputs.Bytes(),
 		publicInputs.Count(),

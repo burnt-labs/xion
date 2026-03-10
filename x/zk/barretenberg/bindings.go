@@ -2,10 +2,6 @@ package barretenberg
 
 /*
 #cgo CFLAGS: -I${SRCDIR}/include
-#cgo linux,amd64 LDFLAGS: -L${SRCDIR}/lib/linux_amd64 -lbarretenberg -lstdc++ -lm -lpthread
-#cgo linux,arm64 LDFLAGS: -L${SRCDIR}/lib/linux_arm64 -lbarretenberg -lstdc++ -lm -lpthread
-#cgo darwin,arm64 LDFLAGS: -L${SRCDIR}/lib/darwin_arm64 -lbarretenberg -lc++ -lm
-
 #include "barretenberg_wrapper.h"
 #include <stdlib.h>
 */

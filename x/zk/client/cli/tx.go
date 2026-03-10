@@ -13,6 +13,18 @@ import (
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 
+// parseProofSystem converts the user-supplied string ("groth16" or "ultrahonk") to the typed enum.
+func parseProofSystem(s string) (types.ProofSystem, error) {
+	switch s {
+	case "groth16":
+		return types.ProofSystem_PROOF_SYSTEM_GROTH16, nil
+	case "ultrahonk":
+		return types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK, nil
+	default:
+		return 0, fmt.Errorf("proof_system must be %q or %q, got %q", "groth16", "ultrahonk", s)
+	}
+}
+
 // GetTxCmd returns the transaction commands for the zk module
 func GetTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -54,9 +66,9 @@ $ %s tx zk add-vkey rollup_batch ./rollup_vkey.bin "Rollup batch verification" u
 
 			name := args[0]
 			description := args[2]
-			proofSystem := args[3]
-			if proofSystem != types.ProofSystemGroth16 && proofSystem != types.ProofSystemUltraHonk {
-				return fmt.Errorf("proof_system must be %q or %q, got %q", types.ProofSystemGroth16, types.ProofSystemUltraHonk, proofSystem)
+			ps, err := parseProofSystem(args[3])
+			if err != nil {
+				return err
 			}
 
 			// Read vkey file (Groth16 JSON or UltraHonk binary; validation in ValidateBasic)
@@ -70,7 +82,7 @@ $ %s tx zk add-vkey rollup_batch ./rollup_vkey.bin "Rollup batch verification" u
 				Name:        name,
 				Description: description,
 				VkeyBytes:   vkeyBytes,
-				ProofSystem: proofSystem,
+				ProofSystem: ps,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -107,9 +119,9 @@ $ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.bin "Updated rollup verifi
 
 			name := args[0]
 			description := args[2]
-			proofSystem := args[3]
-			if proofSystem != types.ProofSystemGroth16 && proofSystem != types.ProofSystemUltraHonk {
-				return fmt.Errorf("proof_system must be %q or %q, got %q", types.ProofSystemGroth16, types.ProofSystemUltraHonk, proofSystem)
+			ps, err := parseProofSystem(args[3])
+			if err != nil {
+				return err
 			}
 
 			// Read vkey file (Groth16 JSON or UltraHonk binary; validation in ValidateBasic)
@@ -123,7 +135,7 @@ $ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.bin "Updated rollup verifi
 				Name:        name,
 				Description: description,
 				VkeyBytes:   vkeyBytes,
-				ProofSystem: proofSystem,
+				ProofSystem: ps,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

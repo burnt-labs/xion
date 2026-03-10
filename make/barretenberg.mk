@@ -1,8 +1,8 @@
 # Barretenberg build targets
 
-# Barretenberg git reference (branch, tag, or commit hash)
-# Pinned to aztec-packages monorepo stable release tag
-BB_REF ?= v3.0.3
+# Barretenberg version — pinned to aztec-packages tag with pre-built libbb-external.a.
+# The version is also embedded inside build-wrapper.sh (BB_AZTEC_TAG) for traceability.
+BB_REF ?= v4.0.4
 
 # Directory paths
 BB_DIR := x/zk/barretenberg
@@ -15,47 +15,36 @@ GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 BB_PLATFORM := $(GOOS)_$(GOARCH)
 
-.PHONY: barretenberg-build barretenberg-build-stub barretenberg-build-full \
-        barretenberg-build-native barretenberg-build-all \
-        barretenberg-build-docker barretenberg-clean barretenberg-test \
+.PHONY: barretenberg-build barretenberg-build-stub barretenberg-build-wrapper \
+        barretenberg-build-linux-amd64 barretenberg-build-darwin-amd64 barretenberg-build-darwin-arm64 \
+        barretenberg-clean barretenberg-test \
         barretenberg-generate-testdata barretenberg-verify
 
-# Build barretenberg static library for current platform
-# Build the full library from source by default.
-barretenberg-build: barretenberg-build-native
+# Build libbarretenberg.a for the current platform using the pinned pre-built Aztec static lib.
+barretenberg-build: barretenberg-build-wrapper
 
-# Build stub library (for development/testing without full Barretenberg)
+# Build stub library (for development/testing without the real Barretenberg library).
+# The stub links a no-op static lib built from barretenberg_stub.cpp via stub.mk.
 barretenberg-build-stub:
 	@echo "Building Barretenberg stub for $(BB_PLATFORM)..."
-	$(MAKE) -f Makefile.stub -C $(BB_WRAPPER_DIR)
+	$(MAKE) -f stub.mk -C $(BB_WRAPPER_DIR)
 
-# Build full library from source (requires all dependencies)
-barretenberg-build-full: barretenberg-build-native
+# Download the pinned Aztec libbb-external.a, compile the C++ wrapper shim against it,
+# and merge into lib/$(BB_PLATFORM)/libbarretenberg.a.
+# Version is pinned inside build-wrapper.sh (BB_AZTEC_TAG=$(BB_REF)).
+barretenberg-build-wrapper:
+	@echo "Building Barretenberg wrapper for $(BB_PLATFORM) (pinned: $(BB_REF))..."
+	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform $(BB_PLATFORM)
 
-# Build for native platform
-barretenberg-build-native:
-	@echo "Building Barretenberg for $(BB_PLATFORM)..."
-	cd $(BB_WRAPPER_DIR) && ./build.sh --bb-ref $(BB_REF)
-
-# Build for all supported platforms using Docker
-barretenberg-build-all:
-	@echo "Building Barretenberg for all platforms..."
-	cd $(BB_WRAPPER_DIR) && ./build.sh --all --docker --bb-ref $(BB_REF)
-
-# Build using Docker (for cross-compilation)
-barretenberg-build-docker:
-	@echo "Building Barretenberg for $(BB_PLATFORM) using Docker..."
-	cd $(BB_WRAPPER_DIR) && ./build.sh --docker --platform $(BB_PLATFORM) --bb-ref $(BB_REF)
-
-# Build for specific platforms
+# Per-platform convenience targets
 barretenberg-build-linux-amd64:
-	cd $(BB_WRAPPER_DIR) && ./build.sh --docker --platform linux_amd64 --bb-ref $(BB_REF)
-
-barretenberg-build-linux-arm64:
-	cd $(BB_WRAPPER_DIR) && ./build.sh --docker --platform linux_arm64 --bb-ref $(BB_REF)
+	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform linux_amd64
 
 barretenberg-build-darwin-arm64:
-	cd $(BB_WRAPPER_DIR) && ./build.sh --platform darwin_arm64 --bb-ref $(BB_REF)
+	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform darwin_arm64
+
+barretenberg-build-darwin-amd64:
+	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform darwin_amd64
 
 # Clean build artifacts, FetchContent cache, and stub objects
 barretenberg-clean:
@@ -97,21 +86,18 @@ help-barretenberg-brief:
 
 help-barretenberg:
 	@echo "Barretenberg targets:"
-	@echo "  barretenberg-build          Build full library from source (default)"
-	@echo "  barretenberg-build-stub     Build stub library for development"
-	@echo "  barretenberg-build-full     Build full library from source"
-	@echo "  barretenberg-build-native   Build full library (native)"
-	@echo "  barretenberg-build-docker   Build full library (Docker)"
-	@echo "  barretenberg-build-all      Build for all platforms (Docker)"
-	@echo "  barretenberg-build-linux-amd64   Build for Linux AMD64"
-	@echo "  barretenberg-build-linux-arm64   Build for Linux ARM64"
-	@echo "  barretenberg-build-darwin-arm64  Build for Darwin ARM64"
-	@echo "  barretenberg-clean          Clean build artifacts"
-	@echo "  barretenberg-test           Run package tests"
-	@echo "  barretenberg-bench          Run benchmarks"
-	@echo "  barretenberg-generate-testdata   Generate test vectors"
-	@echo "  barretenberg-verify         Verify bindings compile"
+	@echo "  barretenberg-build              Build libbarretenberg.a for current platform (default)"
+	@echo "  barretenberg-build-wrapper      Download pinned Aztec lib + compile wrapper shim"
+	@echo "  barretenberg-build-stub         Build stub library for development (no real lib needed)"
+	@echo "  barretenberg-build-linux-amd64  Build for Linux AMD64"
+	@echo "  barretenberg-build-darwin-arm64 Build for Darwin ARM64"
+	@echo "  barretenberg-build-darwin-amd64 Build for Darwin AMD64"
+	@echo "  barretenberg-clean              Clean build artifacts"
+	@echo "  barretenberg-test               Run package tests"
+	@echo "  barretenberg-bench              Run benchmarks"
+	@echo "  barretenberg-generate-testdata  Generate test vectors"
+	@echo "  barretenberg-verify             Verify bindings compile"
 	@echo ""
-	@echo "  Note: Use barretenberg-build-stub for development without"
-	@echo "        full Barretenberg dependencies."
+	@echo "  Supported platforms: linux_amd64, darwin_amd64, darwin_arm64"
+	@echo "  (linux_arm64 is not supported — no pre-built Aztec static lib available)"
 	@echo ""

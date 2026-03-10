@@ -100,8 +100,8 @@ message VKey {
   string circuit_hash = 4;
   // authority is the uploader of the verification key.
   string authority = 5;
-  // proof_system identifies the proof system: "groth16" (default) or "ultrahonk".
-  string proof_system = 6;
+  // proof_system identifies the ZK backend: GROTH16 (default) or ULTRA_HONK_ZK.
+  ProofSystem proof_system = 6;
 }
 
 

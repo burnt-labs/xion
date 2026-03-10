@@ -2,9 +2,20 @@
 #
 # generate.sh - Generate test vectors for Barretenberg bindings
 #
+# Compatible versions (tested):
+#   bb:    4.0.4  (install: npm install -g @aztec/bb@4.0.4  OR  bbup --version 4.0.4)
+#   nargo: compatible with aztec-packages v4.0.4
+#          (check: https://github.com/AztecProtocol/aztec-packages/blob/v4.0.4/yarn-project/package.json)
+#          (install: noirup --version <VERSION>)
+#
+# IMPORTANT: The compiled libbarretenberg.a is built from aztec-packages v4.0.4.
+# Test vectors must be generated with the SAME bb version to ensure vkey/proof
+# binary format compatibility. Using a mismatched version (e.g. nightly vs release)
+# will cause "invalid public inputs" or vkey deserialization errors at verification time.
+#
 # Prerequisites:
 #   - Noir (nargo): https://noir-lang.org/docs/getting_started/installation
-#   - Barretenberg CLI (bb): npm install -g @aztec/bb
+#   - Barretenberg CLI (bb): npm install -g @aztec/bb@4.0.4
 #
 # Usage:
 #   ./generate.sh
@@ -25,6 +36,10 @@ rm -rf "${SCRIPT_DIR}/statics"
 mkdir -p "${SCRIPT_DIR}/statics"
 
 echo "Checking prerequisites..."
+echo "  bb version:    $(bb --version 2>/dev/null || echo 'not found')"
+echo "  nargo version: $(nargo --version 2>/dev/null | head -1 || echo 'not found')"
+echo "  (requires bb 4.0.4 and compatible nargo; see header comments)"
+echo ""
 
 if ! command -v nargo &> /dev/null; then
     echo "Error: nargo not found. Install Noir: https://noir-lang.org/docs/getting_started/installation"
@@ -46,7 +61,6 @@ cat > test_circuit/Nargo.toml << 'EOF'
 name = "test_circuit"
 type = "bin"
 authors = [""]
-compiler_version = ">=0.30.0"
 
 [dependencies]
 EOF
