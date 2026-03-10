@@ -187,6 +187,7 @@ func TestGenesisRoundTrip(t *testing.T) {
 
 func TestGenesisValidation(t *testing.T) {
 	validAdmin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	validKey := `{"kty":"RSA","use":"sig","kid":"test","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw","e":"AQAB"}`
 
 	tests := []struct {
 		name      string
@@ -201,7 +202,7 @@ func TestGenesisValidation(t *testing.T) {
 					{
 						Admin: validAdmin,
 						Aud:   "audience1",
-						Key:   "key1",
+						Key:   validKey,
 					},
 				},
 			},
@@ -215,7 +216,21 @@ func TestGenesisValidation(t *testing.T) {
 					{
 						Admin: "invalid-address",
 						Aud:   "audience1",
-						Key:   "key1",
+						Key:   validKey,
+					},
+				},
+			},
+			expectErr: true,
+		},
+		{
+			name: "invalid JWK key in genesis",
+			genesis: types.GenesisState{
+				Params: types.DefaultParams(),
+				AudienceList: []types.Audience{
+					{
+						Admin: validAdmin,
+						Aud:   "audience1",
+						Key:   "not-valid-json",
 					},
 				},
 			},
@@ -229,12 +244,12 @@ func TestGenesisValidation(t *testing.T) {
 					{
 						Admin: validAdmin,
 						Aud:   "audience1",
-						Key:   "key1",
+						Key:   validKey,
 					},
 					{
 						Admin: validAdmin,
 						Aud:   "audience1", // Duplicate
-						Key:   "key2",
+						Key:   validKey,
 					},
 				},
 			},

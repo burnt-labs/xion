@@ -3,10 +3,12 @@ package types
 import (
 	"fmt"
 
+	"github.com/lestrrat-go/jwx/v2/jwk"
+
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 // DefaultIndex is the default global index
@@ -50,4 +52,3 @@ func (gs GenesisState) Validate() error {
 
 	return gs.Params.Validate()
 }
-
