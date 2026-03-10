@@ -15,10 +15,10 @@ var (
 
 // types/msgs.go
 
-// ProofSystemGroth16 and ProofSystemUltraHonk are the allowed proof_system values.
+// ProofSystemGroth16 and ProofSystemUltraHonk are typed aliases for the ProofSystem enum.
 const (
-	ProofSystemGroth16   = "groth16"
-	ProofSystemUltraHonk = "ultrahonk"
+	ProofSystemGroth16   = ProofSystem_PROOF_SYSTEM_GROTH16
+	ProofSystemUltraHonk = ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK
 )
 
 func (m *MsgAddVKey) ValidateBasic() error {
@@ -35,8 +35,10 @@ func (m *MsgAddVKey) ValidateBasic() error {
 	}
 
 	proofSystem := m.GetProofSystem()
-	if proofSystem != "" && proofSystem != ProofSystemGroth16 && proofSystem != ProofSystemUltraHonk {
-		return fmt.Errorf("proof_system must be %q or %q", ProofSystemGroth16, ProofSystemUltraHonk)
+	if proofSystem != ProofSystem_PROOF_SYSTEM_UNSPECIFIED &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
+		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
 	}
 	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
 		return fmt.Errorf("invalid vkey_bytes: %w", err)
@@ -60,8 +62,10 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 	}
 
 	proofSystem := m.GetProofSystem()
-	if proofSystem != "" && proofSystem != ProofSystemGroth16 && proofSystem != ProofSystemUltraHonk {
-		return fmt.Errorf("proof_system must be %q or %q", ProofSystemGroth16, ProofSystemUltraHonk)
+	if proofSystem != ProofSystem_PROOF_SYSTEM_UNSPECIFIED &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
+		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
 	}
 	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
 		return fmt.Errorf("invalid vkey_bytes: %w", err)

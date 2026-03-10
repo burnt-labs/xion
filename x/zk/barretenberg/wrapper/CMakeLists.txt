@@ -86,6 +86,16 @@ else()
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
     set(DISABLE_ASM OFF CACHE BOOL "" FORCE)
     set(MULTITHREADING ON CACHE BOOL "" FORCE)
+    
+    # Disable warnings-as-errors for Barretenberg to handle stricter compiler checks
+    # GCC and Clang have different warning flag names, so we need to check the compiler
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # GCC-specific flags for GCC 13+ stricter checks
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=stringop-overflow -Wno-error=missing-field-initializers -Wno-error=array-bounds" CACHE STRING "" FORCE)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # Clang-specific flags (Apple Clang and LLVM Clang)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=missing-field-initializers" CACHE STRING "" FORCE)
+    endif()
 
     # Use FetchContent_Populate (instead of MakeAvailable) so we can patch
     # Barretenberg's compile flags before its CMakeLists.txt is processed.
@@ -104,6 +114,15 @@ else()
             _bb_src_cmake_content "${_bb_src_cmake_content}")
         file(WRITE "${_bb_src_cmake}" "${_bb_src_cmake_content}")
         message(STATUS "Patched Barretenberg Clang version check for Apple Clang compatibility")
+
+        # Disable nodejs_module which has CMake errors when NAPI_VERSION is not set
+        set(_bb_nodejs_cmake "${barretenberg_SOURCE_DIR}/barretenberg/cpp/src/barretenberg/nodejs_module/CMakeLists.txt")
+        if(EXISTS "${_bb_nodejs_cmake}")
+            file(READ "${_bb_nodejs_cmake}" _bb_nodejs_cmake_content)
+            # Wrap the entire file content in a condition that's always false
+            file(WRITE "${_bb_nodejs_cmake}" "# Disabled for wrapper build - nodejs module not needed\nreturn()\n${_bb_nodejs_cmake_content}")
+            message(STATUS "Disabled Barretenberg nodejs_module (not needed for wrapper)")
+        endif()
 
         add_subdirectory(${barretenberg_SOURCE_DIR}/barretenberg/cpp ${barretenberg_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
@@ -163,10 +182,17 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 set -e
 tmp=$(mktemp -d)
 cd \"$tmp\"
+counter=0
 for a in $(find '${CMAKE_BINARY_DIR}' -name '*.a' ! -path '${LIB_OUTPUT_DIR}/*'); do
+    # Create unique subdirectory for each archive to avoid .o filename collisions
+    mkdir -p \"ar_$counter\"
+    cd \"ar_$counter\"
     '${CMAKE_AR}' x \"$a\"
+    cd ..
+    counter=$((counter + 1))
 done
-'${CMAKE_AR}' rcs '${LIB_OUTPUT_DIR}/libbarretenberg.a' *.o
+# Collect all .o files from all subdirectories
+find . -name '*.o' -exec '${CMAKE_AR}' rcs '${LIB_OUTPUT_DIR}/libbarretenberg.a' {} +
 cd /
 rm -rf \"$tmp\"
 ")

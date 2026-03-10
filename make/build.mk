@@ -78,7 +78,7 @@ BUILD_FLAGS := -tags "$(build_tags_comma_sep)" -ldflags '$(ldflags)' -trimpath
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
 
-build: guard-VERSION guard-COMMIT
+build: barretenberg-build-wrapper guard-VERSION guard-COMMIT
 ifeq ($(OS),Windows_NT)
 	$(error wasmd server not supported. Use "make build-windows-client" for client)
 	exit 1
@@ -95,7 +95,7 @@ build-all:
 		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		build --config .goreleaser/build.yaml --clean --skip validate
 
-build-local:
+build-local: barretenberg-build-wrapper
 	$(DOCKER) run --rm \
 		--env GOOS=$(GOOS) \
 		--env GOARCH=$(GOARCH) \
