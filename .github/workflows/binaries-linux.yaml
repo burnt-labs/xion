@@ -8,7 +8,7 @@ on:
 jobs:
   build-binaries:
     name: Build xiond-${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ matrix.arch == 'arm64' && format('github-{0}', matrix.arch) || 'ubuntu-latest' }}
+    runs-on: ${{ format('github-{0}', matrix.arch) }}
 
     strategy:
       fail-fast: false
@@ -18,7 +18,7 @@ jobs:
         arch:
           - amd64
           - arm64
-    
+
     steps:
       - name: Check Out Code
         uses: actions/checkout@v5
@@ -34,7 +34,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Build Linux Binary
-        env: 
+        env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
         run: |
           make build-${{ matrix.os }}-${{ matrix.arch }}

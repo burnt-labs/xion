@@ -7,7 +7,7 @@ on:
 
 jobs:
   apt-install:
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -15,7 +15,7 @@ jobs:
         arch:
           - amd64
           - arm64
-          
+
     steps:
       - name: Download the repository key
         run: |
@@ -40,7 +40,7 @@ jobs:
           xiond version --long
 
   rpm-install:
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -72,7 +72,7 @@ jobs:
           xiond version --long
 
   apk-install:
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -87,7 +87,7 @@ jobs:
     steps:
       - name: Download the repository key
         run: |
-          wget -qO - https://alpine.fury.io/burnt/burnt@fury.io-b8abd990.rsa.pub | tee /etc/apk/keys/burnt@fury.io-b8abd990.rsa.pub 
+          wget -qO - https://alpine.fury.io/burnt/burnt@fury.io-b8abd990.rsa.pub | tee /etc/apk/keys/burnt@fury.io-b8abd990.rsa.pub
 
       - name: Add to apk repos list
         run: |
