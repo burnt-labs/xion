@@ -2,6 +2,8 @@ package indexer
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -21,6 +23,38 @@ import (
 
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
 )
+
+// errorAddressCodec is a mock address codec that always returns errors
+type errorAddressCodec struct{}
+
+func (e *errorAddressCodec) StringToBytes(_ string) ([]byte, error) {
+	return nil, errors.New("mock address codec error")
+}
+
+func (e *errorAddressCodec) BytesToString(_ []byte) (string, error) {
+	return "", errors.New("mock address codec error")
+}
+
+// secondCallErrorAddressCodec returns success on first call, error on second
+type secondCallErrorAddressCodec struct {
+	callCount int
+}
+
+func (e *secondCallErrorAddressCodec) StringToBytes(_ string) ([]byte, error) {
+	e.callCount++
+	if e.callCount > 1 {
+		return nil, errors.New("mock address codec error on second call")
+	}
+	return []byte("valid"), nil
+}
+
+func (e *secondCallErrorAddressCodec) BytesToString(_ []byte) (string, error) {
+	e.callCount++
+	if e.callCount > 1 {
+		return "", errors.New("mock address codec error on second call")
+	}
+	return "valid", nil
+}
 
 // TestParseGrantsRequestParams tests the address parsing and prefix logic
 // This is 100% testable without any pagination
@@ -268,6 +302,81 @@ func TestTransformGrantToAuthorization(t *testing.T) {
 	err = cdc.UnpackAny(result.Authorization, &unpackedAuth)
 	require.NoError(t, err)
 	require.Equal(t, sendAuth.MsgTypeURL(), unpackedAuth.MsgTypeURL())
+}
+
+// TestTransformGrantToAuthorizationErrors tests error paths in transformation
+func TestTransformGrantToAuthorizationErrors(t *testing.T) {
+	// Setup codec
+	interfaceRegistry := codectypes.NewInterfaceRegistry()
+	std.RegisterInterfaces(interfaceRegistry)
+	authz.RegisterInterfaces(interfaceRegistry)
+	banktypes.RegisterInterfaces(interfaceRegistry)
+	cdc := codec.NewProtoCodec(interfaceRegistry)
+
+	addrCodec := addresscodec.NewBech32Codec("xion")
+
+	granter := sdk.AccAddress([]byte("granter_addr_test__"))
+	grantee := sdk.AccAddress([]byte("grantee_addr_test__"))
+
+	t.Run("InvalidGrantAuthorization", func(t *testing.T) {
+		// Create a grant with invalid/nil authorization that will fail GetAuthorization()
+		grant := authz.Grant{
+			Authorization: nil, // nil authorization will cause GetAuthorization to fail
+			Expiration:    nil,
+		}
+
+		primaryKey := collections.Join3(granter, grantee, "/test.MsgType")
+
+		result, err := TransformGrantToAuthorization(primaryKey, grant, cdc, addrCodec)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("GranterAddressEncodingError", func(t *testing.T) {
+		// Create a valid grant
+		sendAuth := banktypes.NewSendAuthorization(
+			sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+			nil,
+		)
+		sendAuthAny, err := codectypes.NewAnyWithValue(sendAuth)
+		require.NoError(t, err)
+
+		grant := authz.Grant{
+			Authorization: sendAuthAny,
+			Expiration:    nil,
+		}
+
+		// Use an address codec that returns errors
+		errorAddrCodec := &errorAddressCodec{}
+		primaryKey := collections.Join3(granter, grantee, sendAuth.MsgTypeURL())
+
+		result, err := TransformGrantToAuthorization(primaryKey, grant, cdc, errorAddrCodec)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("GranteeAddressEncodingError", func(t *testing.T) {
+		// Create a valid grant
+		sendAuth := banktypes.NewSendAuthorization(
+			sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1000))),
+			nil,
+		)
+		sendAuthAny, err := codectypes.NewAnyWithValue(sendAuth)
+		require.NoError(t, err)
+
+		grant := authz.Grant{
+			Authorization: sendAuthAny,
+			Expiration:    nil,
+		}
+
+		// Use an address codec that fails only on second call (grantee)
+		secondCallErrorAddrCodec := &secondCallErrorAddressCodec{}
+		primaryKey := collections.Join3(granter, grantee, sendAuth.MsgTypeURL())
+
+		result, err := TransformGrantToAuthorization(primaryKey, grant, cdc, secondCallErrorAddrCodec)
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
 }
 
 // TestTransformGrantToAuthorizationEdgeCases tests edge cases in transformation
@@ -759,6 +868,432 @@ func TestGranteeGrantsFilterByGrantee(t *testing.T) {
 	require.Equal(t, grantee2Str, resp2.Grants[0].Grantee)
 
 	t.Log("✓ Grantee filtering works correctly")
+}
+
+// TestGranterGrantsErrorPaths tests error paths in GranterGrants
+func TestGranterGrantsErrorPaths(t *testing.T) {
+	memDB, cdc, addrCodec := setupTest(t)
+	ctx := context.Background()
+
+	handler, err := NewAuthzHandler(&kvAccessor{db: memDB}, cdc)
+	require.NoError(t, err)
+
+	t.Run("InvalidGranterAddress", func(t *testing.T) {
+		querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+		_, err := querier.GranterGrants(ctx, &indexerauthz.QueryGranterGrantsRequest{
+			Granter: "invalid_granter_addr",
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.Error(t, err, "Should fail with invalid granter address")
+	})
+
+	t.Run("EmptyResults", func(t *testing.T) {
+		querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+		// Query for a granter with no grants
+		emptyGranter := sdk.AccAddress([]byte("empty_granter_______"))
+		emptyGranterStr, _ := addrCodec.BytesToString(emptyGranter)
+
+		resp, err := querier.GranterGrants(ctx, &indexerauthz.QueryGranterGrantsRequest{
+			Granter: emptyGranterStr,
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, resp.Grants)
+	})
+
+	t.Run("MultipleGrants", func(t *testing.T) {
+		querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+		// Setup multiple grants from the same granter
+		granter := sdk.AccAddress([]byte("multi_grant_granter_"))
+		grantee1 := sdk.AccAddress([]byte("multi_grant_grantee1"))
+		grantee2 := sdk.AccAddress([]byte("multi_grant_grantee2"))
+
+		sendAuth := banktypes.NewSendAuthorization(sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)), nil)
+		expiration := time.Now().Add(24 * time.Hour)
+		grant, err := authz.NewGrant(expiration, sendAuth, nil)
+		require.NoError(t, err)
+
+		err = handler.SetGrant(ctx, granter, grantee1, sendAuth.MsgTypeURL(), grant)
+		require.NoError(t, err)
+		err = handler.SetGrant(ctx, granter, grantee2, sendAuth.MsgTypeURL(), grant)
+		require.NoError(t, err)
+
+		granterStr, _ := addrCodec.BytesToString(granter)
+		resp, err := querier.GranterGrants(ctx, &indexerauthz.QueryGranterGrantsRequest{
+			Granter: granterStr,
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, resp.Grants, 2)
+
+		// Verify the granter is correct for all grants
+		for _, g := range resp.Grants {
+			require.Equal(t, granterStr, g.Granter)
+		}
+	})
+
+	t.Run("WithPagination", func(t *testing.T) {
+		querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+		// Setup multiple grants
+		granter := sdk.AccAddress([]byte("paginated_granter___"))
+		grantee1 := sdk.AccAddress([]byte("paginated_grantee1__"))
+		grantee2 := sdk.AccAddress([]byte("paginated_grantee2__"))
+		grantee3 := sdk.AccAddress([]byte("paginated_grantee3__"))
+
+		sendAuth := banktypes.NewSendAuthorization(sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)), nil)
+		expiration := time.Now().Add(24 * time.Hour)
+		grant, err := authz.NewGrant(expiration, sendAuth, nil)
+		require.NoError(t, err)
+
+		err = handler.SetGrant(ctx, granter, grantee1, sendAuth.MsgTypeURL(), grant)
+		require.NoError(t, err)
+		err = handler.SetGrant(ctx, granter, grantee2, sendAuth.MsgTypeURL(), grant)
+		require.NoError(t, err)
+		err = handler.SetGrant(ctx, granter, grantee3, sendAuth.MsgTypeURL(), grant)
+		require.NoError(t, err)
+
+		granterStr, _ := addrCodec.BytesToString(granter)
+
+		// First page
+		resp1, err := querier.GranterGrants(ctx, &indexerauthz.QueryGranterGrantsRequest{
+			Granter: granterStr,
+			Pagination: &query.PageRequest{
+				Limit: 2,
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, resp1.Grants, 2)
+		require.NotEmpty(t, resp1.Pagination.NextKey)
+
+		// Second page using nextKey
+		resp2, err := querier.GranterGrants(ctx, &indexerauthz.QueryGranterGrantsRequest{
+			Granter: granterStr,
+			Pagination: &query.PageRequest{
+				Key:   resp1.Pagination.NextKey,
+				Limit: 10,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp2)
+	})
+}
+
+// TestGrantsQueryPaths tests different paths in the Grants query
+func TestGrantsQueryPaths(t *testing.T) {
+	memDB, cdc, addrCodec := setupTest(t)
+	ctx := context.Background()
+
+	handler, err := NewAuthzHandler(&kvAccessor{db: memDB}, cdc)
+	require.NoError(t, err)
+	querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+	// Setup test data
+	granter := sdk.AccAddress([]byte("grants_granter______"))
+	grantee := sdk.AccAddress([]byte("grants_grantee______"))
+
+	sendAuth := banktypes.NewSendAuthorization(sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)), nil)
+	expiration := time.Now().Add(24 * time.Hour)
+	grant, err := authz.NewGrant(expiration, sendAuth, nil)
+	require.NoError(t, err)
+
+	err = handler.SetGrant(ctx, granter, grantee, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+
+	granterStr, _ := addrCodec.BytesToString(granter)
+	granteeStr, _ := addrCodec.BytesToString(grantee)
+
+	t.Run("QueryWithGranterOnly", func(t *testing.T) {
+		resp, err := querier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
+			Granter: granterStr,
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, resp.Grants)
+	})
+
+	t.Run("QueryWithGranteeOnly", func(t *testing.T) {
+		resp, err := querier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
+			Grantee: granteeStr,
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("QueryWithBoth", func(t *testing.T) {
+		resp, err := querier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
+			Granter: granterStr,
+			Grantee: granteeStr,
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, resp.Grants)
+	})
+
+	t.Run("QueryWithNeither", func(t *testing.T) {
+		resp, err := querier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("InvalidGranterAddress", func(t *testing.T) {
+		_, err := querier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
+			Granter: "invalid_addr",
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("InvalidGranteeAddress", func(t *testing.T) {
+		_, err := querier.Grants(ctx, &indexerauthz.QueryGrantsRequest{
+			Grantee: "invalid_addr",
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.Error(t, err)
+	})
+}
+
+// TestGranteeGrantsWithOffset tests the offset pagination path
+func TestGranteeGrantsWithOffset(t *testing.T) {
+	memDB, cdc, addrCodec := setupTest(t)
+	ctx := context.Background()
+
+	handler, err := NewAuthzHandler(&kvAccessor{db: memDB}, cdc)
+	require.NoError(t, err)
+	querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+	// Setup multiple grants to the same grantee
+	granter1 := sdk.AccAddress([]byte("offset_granter1_____"))
+	granter2 := sdk.AccAddress([]byte("offset_granter2_____"))
+	granter3 := sdk.AccAddress([]byte("offset_granter3_____"))
+	grantee := sdk.AccAddress([]byte("offset_grantee______"))
+
+	sendAuth := banktypes.NewSendAuthorization(sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)), nil)
+	expiration := time.Now().Add(24 * time.Hour)
+	grant, err := authz.NewGrant(expiration, sendAuth, nil)
+	require.NoError(t, err)
+
+	err = handler.SetGrant(ctx, granter1, grantee, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+	err = handler.SetGrant(ctx, granter2, grantee, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+	err = handler.SetGrant(ctx, granter3, grantee, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+
+	granteeStr, _ := addrCodec.BytesToString(grantee)
+
+	t.Run("WithOffset", func(t *testing.T) {
+		// Query with offset=1 to skip first result
+		resp, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+			Grantee: granteeStr,
+			Pagination: &query.PageRequest{
+				Offset: 1,
+				Limit:  10,
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, resp.Grants, 2, "Should return 2 grants after skipping 1")
+	})
+
+	t.Run("WithOffsetBeyondResults", func(t *testing.T) {
+		// Query with offset=10 which is beyond the number of grants
+		resp, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+			Grantee: granteeStr,
+			Pagination: &query.PageRequest{
+				Offset: 10,
+				Limit:  10,
+			},
+		})
+		require.NoError(t, err)
+		require.Empty(t, resp.Grants, "Should return no grants when offset exceeds count")
+	})
+
+	t.Run("InvalidGranteeAddress", func(t *testing.T) {
+		_, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+			Grantee: "invalid_grantee",
+			Pagination: &query.PageRequest{
+				Limit: 10,
+			},
+		})
+		require.Error(t, err)
+	})
+}
+
+// TestGranteeGrantsWithRawIterationCountTotal tests the CountTotal path in raw iteration
+func TestGranteeGrantsWithRawIterationCountTotal(t *testing.T) {
+	memDB, cdc, addrCodec := setupTest(t)
+	ctx := context.Background()
+
+	handler, err := NewAuthzHandler(&kvAccessor{db: memDB}, cdc)
+	require.NoError(t, err)
+	querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+	// Setup multiple grants from different granters to the same grantee
+	granter1 := sdk.AccAddress([]byte("raw_count_granter1__"))
+	granter2 := sdk.AccAddress([]byte("raw_count_granter2__"))
+	granter3 := sdk.AccAddress([]byte("raw_count_granter3__"))
+	grantee := sdk.AccAddress([]byte("raw_count_grantee___"))
+
+	sendAuth := banktypes.NewSendAuthorization(sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)), nil)
+	expiration := time.Now().Add(24 * time.Hour)
+	grant, err := authz.NewGrant(expiration, sendAuth, nil)
+	require.NoError(t, err)
+
+	err = handler.SetGrant(ctx, granter1, grantee, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+	err = handler.SetGrant(ctx, granter2, grantee, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+	err = handler.SetGrant(ctx, granter3, grantee, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+
+	granteeStr, _ := addrCodec.BytesToString(grantee)
+
+	// First query to get a pagination key
+	resp1, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+		Grantee: granteeStr,
+		Pagination: &query.PageRequest{
+			Limit: 1,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, resp1.Grants, 1)
+	require.NotEmpty(t, resp1.Pagination.NextKey)
+
+	// Now use the pagination key with CountTotal to exercise the raw iteration with countTotal
+	resp2, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+		Grantee: granteeStr,
+		Pagination: &query.PageRequest{
+			Key:        resp1.Pagination.NextKey,
+			Limit:      1,
+			CountTotal: true,
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp2)
+	require.NotNil(t, resp2.Pagination)
+	require.Greater(t, resp2.Pagination.Total, uint64(0), "Should count remaining grants")
+	t.Logf("✓ Raw iteration CountTotal returned total=%d", resp2.Pagination.Total)
+}
+
+// TestGranteeGrantsWithRawIterationNextKey tests the nextKey encoding in raw iteration
+func TestGranteeGrantsWithRawIterationNextKey(t *testing.T) {
+	memDB, cdc, addrCodec := setupTest(t)
+	ctx := context.Background()
+
+	handler, err := NewAuthzHandler(&kvAccessor{db: memDB}, cdc)
+	require.NoError(t, err)
+	querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+	// Setup many grants to ensure we have more results for nextKey
+	grantee := sdk.AccAddress([]byte("raw_nextkey_grantee_"))
+
+	sendAuth := banktypes.NewSendAuthorization(sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)), nil)
+	expiration := time.Now().Add(24 * time.Hour)
+	grant, err := authz.NewGrant(expiration, sendAuth, nil)
+	require.NoError(t, err)
+
+	// Create 5 grants
+	for i := 0; i < 5; i++ {
+		granter := sdk.AccAddress([]byte(fmt.Sprintf("raw_nextkey_grant%d__", i)))
+		err = handler.SetGrant(ctx, granter, grantee, sendAuth.MsgTypeURL(), grant)
+		require.NoError(t, err)
+	}
+
+	granteeStr, _ := addrCodec.BytesToString(grantee)
+
+	// Get first page to get pagination key
+	resp1, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+		Grantee: granteeStr,
+		Pagination: &query.PageRequest{
+			Limit: 2,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, resp1.Grants, 2)
+	require.NotEmpty(t, resp1.Pagination.NextKey)
+
+	// Use pagination key with limit that should produce another nextKey
+	resp2, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+		Grantee: granteeStr,
+		Pagination: &query.PageRequest{
+			Key:   resp1.Pagination.NextKey,
+			Limit: 2,
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp2)
+
+	// Should have grants and potentially a nextKey if there are more
+	require.GreaterOrEqual(t, len(resp2.Grants), 1)
+
+	t.Logf("✓ Raw iteration second page returned %d grants", len(resp2.Grants))
+	if len(resp2.Pagination.NextKey) > 0 {
+		t.Log("✓ Raw iteration has more results, nextKey is set")
+	}
+}
+
+// TestGranteeGrantsWithRawIterationFilterByGrantee tests that grantee filter works in raw iteration
+func TestGranteeGrantsWithRawIterationFilterByGrantee(t *testing.T) {
+	memDB, cdc, addrCodec := setupTest(t)
+	ctx := context.Background()
+
+	handler, err := NewAuthzHandler(&kvAccessor{db: memDB}, cdc)
+	require.NoError(t, err)
+	querier := NewAuthzQuerier(handler, cdc, addrCodec)
+
+	// Setup grants for different grantees
+	granter := sdk.AccAddress([]byte("raw_filter_granter__"))
+	grantee1 := sdk.AccAddress([]byte("raw_filter_grantee1_"))
+	grantee2 := sdk.AccAddress([]byte("raw_filter_grantee2_"))
+
+	sendAuth := banktypes.NewSendAuthorization(sdk.NewCoins(sdk.NewInt64Coin("uxion", 1000)), nil)
+	expiration := time.Now().Add(24 * time.Hour)
+	grant, err := authz.NewGrant(expiration, sendAuth, nil)
+	require.NoError(t, err)
+
+	err = handler.SetGrant(ctx, granter, grantee1, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+	err = handler.SetGrant(ctx, granter, grantee2, sendAuth.MsgTypeURL(), grant)
+	require.NoError(t, err)
+
+	grantee1Str, _ := addrCodec.BytesToString(grantee1)
+
+	// Query grantee1 first without key
+	resp1, err := querier.GranteeGrants(ctx, &indexerauthz.QueryGranteeGrantsRequest{
+		Grantee: grantee1Str,
+		Pagination: &query.PageRequest{
+			Limit: 10,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, resp1.Grants, 1)
+	require.Equal(t, grantee1Str, resp1.Grants[0].Grantee)
+
+	t.Log("✓ Raw iteration correctly filters by grantee")
 }
 
 // TestGranteeGrantsNextKeyEncoding tests the nextKey encoding logic

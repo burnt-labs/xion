@@ -20,14 +20,14 @@ func TestGenesis(t *testing.T) {
 	}{
 		{
 			name:    "success, only default params",
-			request: &types.GenesisState{},
+			request: types.DefaultGenesis(),
 			err:     false,
 		},
 		{
 			name: "success, with revoked pubkey",
 			request: &types.GenesisState{
 				RevokedPubkeys: []string{testPubKey},
-				Params:         types.Params{},
+				Params:         types.DefaultParams(),
 			},
 			err: false,
 		},
@@ -42,7 +42,7 @@ func TestGenesis(t *testing.T) {
 						PoseidonHash: []byte(hash.String()),
 					},
 				},
-				Params: types.Params{},
+				Params: types.DefaultParams(),
 			},
 			err: false,
 		},
@@ -57,7 +57,7 @@ func TestGenesis(t *testing.T) {
 						PoseidonHash: hash.Bytes(),
 					},
 				},
-				Params: types.Params{},
+				Params: types.DefaultParams(),
 			},
 			err: true,
 		},
@@ -72,7 +72,7 @@ func TestGenesis(t *testing.T) {
 						PoseidonHash: []byte("test"),
 					},
 				},
-				Params: types.Params{},
+				Params: types.DefaultParams(),
 			},
 			err: true,
 		},
@@ -80,7 +80,7 @@ func TestGenesis(t *testing.T) {
 			name: "fail, invalid revoked pubkey",
 			request: &types.GenesisState{
 				RevokedPubkeys: []string{"not-base64"},
-				Params:         types.Params{},
+				Params:         types.DefaultParams(),
 			},
 			err: true,
 		},
@@ -155,7 +155,7 @@ func TestInitGenesisExtended(t *testing.T) {
 					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -186,7 +186,7 @@ func TestInitGenesisExtended(t *testing.T) {
 					PoseidonHash: []byte(hash.String()),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -203,7 +203,7 @@ func TestInitGenesisExtended(t *testing.T) {
 
 		genesis := &types.GenesisState{
 			RevokedPubkeys: []string{testPubKey},
-			Params:         types.Params{},
+			Params:         types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -237,7 +237,7 @@ func TestInitGenesisExtended(t *testing.T) {
 					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -263,7 +263,7 @@ func TestInitGenesisExtended(t *testing.T) {
 					PoseidonHash: []byte("hash1"),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 		err := f.k.InitGenesis(f.ctx, genesis1)
 		require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestInitGenesisExtended(t *testing.T) {
 					PoseidonHash: []byte("hash2"),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 		err = f.k.InitGenesis(f.ctx, genesis2)
 		require.NoError(t, err)
@@ -320,7 +320,7 @@ func TestExportGenesisExtended(t *testing.T) {
 					PoseidonHash: []byte(hash.String()),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -360,7 +360,7 @@ func TestExportGenesisExtended(t *testing.T) {
 					PoseidonHash: []byte(hash.String()),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -389,7 +389,7 @@ func TestExportGenesisExtended(t *testing.T) {
 					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -431,7 +431,7 @@ func TestGenesisValidation(t *testing.T) {
 					KeyType:      types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -450,7 +450,7 @@ func TestGenesisValidation(t *testing.T) {
 					PoseidonHash: []byte(hash.String()),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -475,7 +475,7 @@ func TestGenesisValidation(t *testing.T) {
 					PoseidonHash: []byte(hash.String()),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -494,7 +494,7 @@ func TestGenesisValidation(t *testing.T) {
 					PoseidonHash: []byte(hash.String()),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)
@@ -518,7 +518,7 @@ func TestGenesisValidation(t *testing.T) {
 					PoseidonHash: []byte(hash.String()),
 				},
 			},
-			Params: types.Params{},
+			Params: types.DefaultParams(),
 		}
 
 		err := f.k.InitGenesis(f.ctx, genesis)

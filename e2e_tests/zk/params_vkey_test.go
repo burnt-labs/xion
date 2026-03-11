@@ -144,7 +144,7 @@ func addVKeyTx(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, key
 	require.NoError(t, err)
 
 	vkeyPath := filepath.Join(node.HomeDir(), filename)
-	txHash, err := testlib.ExecTx(t, ctx, node, keyName, "zk", "add-vkey", vkeyName, vkeyPath, description, "groth16", "--chain-id", chain.Config().ChainID)
+	txHash, err := testlib.ExecTx(t, ctx, node, keyName, "zk", "add-vkey", vkeyName, vkeyPath, description, "--chain-id", chain.Config().ChainID)
 	if err != nil {
 		return 0, err
 	}

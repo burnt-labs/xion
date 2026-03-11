@@ -24,7 +24,7 @@ func TestMigrations(t *testing.T) {
 	params := k.GetParams(ctx)
 	require.NotNil(t, params)
 	require.Equal(t, uint64(10_000), params.DeploymentGas)
-	require.Equal(t, uint64(30_000), params.TimeOffset)
+	require.Equal(t, uint64(30_000_000_000), params.TimeOffset)
 
 	// Test NewMigrator
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)

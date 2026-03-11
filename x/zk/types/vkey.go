@@ -36,6 +36,7 @@ func ValidateVKeyForProofSystem(vkeyBytes []byte, maxSizeBytes uint64, proofSyst
 	}
 }
 
+
 // ValidateVKeyBytes enforces that the vkey bytes represent a valid CircomVerificationKey JSON structure.
 func ValidateVKeyBytes(data []byte, maxDecodedSize uint64) error {
 	if err := ValidateVKeyByteSize(data, maxDecodedSize); err != nil {

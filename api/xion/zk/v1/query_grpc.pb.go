@@ -19,14 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Query_ProofVerify_FullMethodName          = "/xion.zk.v1.Query/ProofVerify"
-	Query_ProofVerifyUltraHonk_FullMethodName = "/xion.zk.v1.Query/ProofVerifyUltraHonk"
-	Query_VKey_FullMethodName                 = "/xion.zk.v1.Query/VKey"
-	Query_VKeyByName_FullMethodName           = "/xion.zk.v1.Query/VKeyByName"
-	Query_VKeys_FullMethodName                = "/xion.zk.v1.Query/VKeys"
-	Query_HasVKey_FullMethodName              = "/xion.zk.v1.Query/HasVKey"
-	Query_NextVKeyID_FullMethodName           = "/xion.zk.v1.Query/NextVKeyID"
-	Query_Params_FullMethodName               = "/xion.zk.v1.Query/Params"
+	Query_ProofVerify_FullMethodName = "/xion.zk.v1.Query/ProofVerify"
+	Query_VKey_FullMethodName        = "/xion.zk.v1.Query/VKey"
+	Query_VKeyByName_FullMethodName  = "/xion.zk.v1.Query/VKeyByName"
+	Query_VKeys_FullMethodName       = "/xion.zk.v1.Query/VKeys"
+	Query_HasVKey_FullMethodName     = "/xion.zk.v1.Query/HasVKey"
+	Query_NextVKeyID_FullMethodName  = "/xion.zk.v1.Query/NextVKeyID"
+	Query_Params_FullMethodName      = "/xion.zk.v1.Query/Params"
 )
 
 // QueryClient is the client API for Query service.
@@ -37,9 +36,6 @@ const (
 type QueryClient interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error)
-	// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof. The vkey is
-	// resolved by vkey_name or vkey_id from the store and must be of type ultrahonk.
-	ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error)
 	// VKey queries a verification key by ID
 	VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -48,6 +44,7 @@ type QueryClient interface {
 	VKeys(ctx context.Context, in *QueryVKeysRequest, opts ...grpc.CallOption) (*QueryVKeysResponse, error)
 	// HasVKey checks if a verification key exists by name
 	HasVKey(ctx context.Context, in *QueryHasVKeyRequest, opts ...grpc.CallOption) (*QueryHasVKeyResponse, error)
+	// NextVKeyID queries the next available verification key ID
 	NextVKeyID(ctx context.Context, in *QueryNextVKeyIDRequest, opts ...grpc.CallOption) (*QueryNextVKeyIDResponse, error)
 	// Params returns zk module parameters.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
@@ -65,16 +62,6 @@ func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ProofVerifyResponse)
 	err := c.cc.Invoke(ctx, Query_ProofVerify_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProofVerifyResponse)
-	err := c.cc.Invoke(ctx, Query_ProofVerifyUltraHonk_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -149,9 +136,6 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 type QueryServer interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error)
-	// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof. The vkey is
-	// resolved by vkey_name or vkey_id from the store and must be of type ultrahonk.
-	ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyResponse, error)
 	// VKey queries a verification key by ID
 	VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -160,6 +144,7 @@ type QueryServer interface {
 	VKeys(context.Context, *QueryVKeysRequest) (*QueryVKeysResponse, error)
 	// HasVKey checks if a verification key exists by name
 	HasVKey(context.Context, *QueryHasVKeyRequest) (*QueryHasVKeyResponse, error)
+	// NextVKeyID queries the next available verification key ID
 	NextVKeyID(context.Context, *QueryNextVKeyIDRequest) (*QueryNextVKeyIDResponse, error)
 	// Params returns zk module parameters.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
@@ -175,9 +160,6 @@ type UnimplementedQueryServer struct{}
 
 func (UnimplementedQueryServer) ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
-}
-func (UnimplementedQueryServer) ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ProofVerifyUltraHonk not implemented")
 }
 func (UnimplementedQueryServer) VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VKey not implemented")
@@ -232,24 +214,6 @@ func _Query_ProofVerify_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).ProofVerify(ctx, req.(*QueryVerifyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_ProofVerifyUltraHonk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryVerifyUltraHonkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).ProofVerifyUltraHonk(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_ProofVerifyUltraHonk_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ProofVerifyUltraHonk(ctx, req.(*QueryVerifyUltraHonkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -372,10 +336,6 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProofVerify",
 			Handler:    _Query_ProofVerify_Handler,
-		},
-		{
-			MethodName: "ProofVerifyUltraHonk",
-			Handler:    _Query_ProofVerifyUltraHonk_Handler,
 		},
 		{
 			MethodName: "VKey",

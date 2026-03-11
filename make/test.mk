@@ -152,6 +152,9 @@ test-zk-params-and-vkey-uploads:
 test-zk-ultrahonk-verify:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKUltraHonkVKeyAndProofVerification
 
+test-zk-add-authenticators:
+	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKAddAuthenticators
+
 # JWK Module Tests
 test-jwk-algorithm-confusion:
 	$(MAKE) test-run DIR_NAME=jwk TEST_NAME=TestJWKAlgorithmConfusion
@@ -506,6 +509,7 @@ help-test:
 	@echo "  ZK Module Individual Tests:"
 	@echo "    test-zk-params-and-vkey-uploads     Test ZK params and vkey uploads"
 	@echo "    test-zk-ultrahonk-verify            Test Barretenberg UltraHonk vkey upload and proof verification"
+	@echo "    test-dkim-zk-params-and-vkey-uploads Test DKIM ZK params and vkey uploads"
 	@echo ""
 	@echo "Simulation tests:"
 	@echo "  test-sim                   Run simulation tests"

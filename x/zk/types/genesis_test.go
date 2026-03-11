@@ -275,7 +275,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 			},
 			expectError: true,
-			errorMsg:    "invalid verification key",
+			errorMsg:    "has invalid key_bytes",
 		},
 		{
 			name: "invalid key bytes - missing required fields",
@@ -295,7 +295,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 			},
 			expectError: true,
-			errorMsg:    "invalid verification key",
+			errorMsg:    "has invalid key_bytes",
 		},
 		{
 			name: "invalid key bytes - wrong protocol",
@@ -321,7 +321,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 			},
 			expectError: true,
-			errorMsg:    "invalid verification key",
+			errorMsg:    "has invalid key_bytes",
 		},
 		{
 			name: "non-sequential IDs are valid",

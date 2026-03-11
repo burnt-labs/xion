@@ -10,14 +10,14 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// wasmd fork with genesis exports
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.6-xion.4
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.8-xion.2
 	github.com/burnt-labs/xion => ../
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
 
 	// ibc-go fork with wasmvm3 support
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0-xion.1
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0-xion.1
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
@@ -41,14 +41,14 @@ require (
 	cosmossdk.io/x/feegrant v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
-	github.com/CosmWasm/wasmd v0.61.6
+	github.com/CosmWasm/wasmd v0.61.8
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/burnt-labs/abstract-account v0.1.3
 	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
-	github.com/cometbft/cometbft v0.38.19
-	github.com/cosmos/cosmos-sdk v0.53.4
+	github.com/cometbft/cometbft v0.38.21
+	github.com/cosmos/cosmos-sdk v0.53.6
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/ibc-go/v10 v10.4.0
+	github.com/cosmos/ibc-go/v10 v10.5.0
 	github.com/cosmos/interchaintest/v10 v10.0.1
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/dvsekhvalnov/jose2go v1.8.0
@@ -86,7 +86,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
-	github.com/CosmWasm/wasmvm/v3 v3.0.2 // indirect
+	github.com/CosmWasm/wasmvm/v3 v3.0.3 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.30.0 // indirect
@@ -150,10 +150,10 @@ require (
 	github.com/cosmos/iavl v1.2.6 // indirect
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10 v10.1.0 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.1 // indirect
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.4.0 // indirect
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/interchain-security/v7 v7.0.1 // indirect
-	github.com/cosmos/ledger-cosmos-go v0.16.0 // indirect
+	github.com/cosmos/ledger-cosmos-go v1.0.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.4.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
@@ -171,7 +171,7 @@ require (
 	github.com/envoyproxy/go-control-plane/envoy v1.36.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/ethereum/c-kzg-4844/v2 v2.1.5 // indirect
-	github.com/ethereum/go-ethereum v1.16.7 // indirect
+	github.com/ethereum/go-ethereum v1.16.8 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
@@ -281,7 +281,7 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
-	github.com/spf13/cobra v1.10.1 // indirect
+	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spf13/viper v1.21.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
@@ -321,15 +321,15 @@ require (
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.22.0 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/oauth2 v0.32.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/term v0.36.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/term v0.37.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/api v0.255.0 // indirect

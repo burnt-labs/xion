@@ -8,13 +8,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/testutil"
-	"github.com/stretchr/testify/require"
+
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
 )
 
 // In this test case, the mint module inflation is set to 0 by setting the inflation rate
@@ -31,7 +34,7 @@ func TestAppMintNoInflationNoFees(t *testing.T) {
 
 	// Create custom chain spec with inflation set to 0
 	chainSpec := testlib.XionLocalChainSpec(t, 3, 1)
-	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(append(testlib.DefaultGenesisKVMods,
+	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(append(testlib.DefaultGenesisKVMods,
 		cosmos.NewGenesisKV("app_state.mint.params.inflation_min", "0.0"),
 		cosmos.NewGenesisKV("app_state.mint.params.inflation_max", "0.0"),
 		cosmos.NewGenesisKV("app_state.mint.params.inflation_rate_change", "0.0"),

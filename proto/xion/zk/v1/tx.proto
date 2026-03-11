@@ -32,7 +32,7 @@ message MsgAddVKey {
   option (amino.name) = "zk/MsgAddVKey";
 
   // authority is the address that controls the module (governance)
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // name is the unique identifier for this verification key
   string name = 2;
@@ -40,7 +40,7 @@ message MsgAddVKey {
   // description provides context about this verification key
   string description = 3;
 
-  // vkey_bytes is the verification key (Groth16 or Barretenberg binary per proof_system).
+  // vkey_bytes is the verification key (Groth16 JSON or Barretenberg binary per proof_system).
   bytes vkey_bytes = 4;
 
   // proof_system identifies the ZK backend: GROTH16 (default) or ULTRA_HONK_ZK.
@@ -59,7 +59,7 @@ message MsgUpdateVKey {
   option (amino.name) = "zk/MsgUpdateVKey";
 
   // authority is the address that controls the module (governance)
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // name is the identifier of the verification key to update
   string name = 2;
@@ -67,8 +67,9 @@ message MsgUpdateVKey {
   // description provides updated context
   string description = 3;
 
-  // vkey_bytes is the new verification key (Groth16 or Barretenberg binary per proof_system).
+  // vkey_bytes is the new verification key (Groth16 JSON or Barretenberg binary per proof_system).
   bytes vkey_bytes = 4;
+
   // proof_system identifies the ZK backend: GROTH16 (default) or ULTRA_HONK_ZK.
   ProofSystem proof_system = 5;
 }
@@ -82,7 +83,7 @@ message MsgRemoveVKey {
   option (amino.name) = "zk/MsgRemoveVKey";
 
   // authority is the address that controls the module (governance)
-  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
 
   // name is the identifier of the verification key to remove
   string name = 2;

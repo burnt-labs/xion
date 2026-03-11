@@ -88,18 +88,167 @@ func (m *GenesisState) GetRevokedPubkeys() []string {
 	return nil
 }
 
+// IndexRange defines a range of indices [start, end) in the public inputs array.
+type IndexRange struct {
+	Start uint64 `protobuf:"varint,1,opt,name=start,proto3" json:"start,omitempty"`
+	End   uint64 `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`
+}
+
+func (m *IndexRange) Reset()         { *m = IndexRange{} }
+func (m *IndexRange) String() string { return proto.CompactTextString(m) }
+func (*IndexRange) ProtoMessage()    {}
+func (*IndexRange) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b19cfeea9df0a486, []int{1}
+}
+func (m *IndexRange) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *IndexRange) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_IndexRange.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *IndexRange) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IndexRange.Merge(m, src)
+}
+func (m *IndexRange) XXX_Size() int {
+	return m.Size()
+}
+func (m *IndexRange) XXX_DiscardUnknown() {
+	xxx_messageInfo_IndexRange.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IndexRange proto.InternalMessageInfo
+
+func (m *IndexRange) GetStart() uint64 {
+	if m != nil {
+		return m.Start
+	}
+	return 0
+}
+
+func (m *IndexRange) GetEnd() uint64 {
+	if m != nil {
+		return m.End
+	}
+	return 0
+}
+
+// PublicInputIndices defines the indices for extracting data from public inputs.
+type PublicInputIndices struct {
+	MinLength         uint64     `protobuf:"varint,1,opt,name=min_length,json=minLength,proto3" json:"min_length,omitempty"`
+	EmailHashIndex    uint64     `protobuf:"varint,2,opt,name=email_hash_index,json=emailHashIndex,proto3" json:"email_hash_index,omitempty"`
+	DkimDomainRange   IndexRange `protobuf:"bytes,3,opt,name=dkim_domain_range,json=dkimDomainRange,proto3" json:"dkim_domain_range"`
+	DkimHashIndex     uint64     `protobuf:"varint,4,opt,name=dkim_hash_index,json=dkimHashIndex,proto3" json:"dkim_hash_index,omitempty"`
+	TxBytesRange      IndexRange `protobuf:"bytes,5,opt,name=tx_bytes_range,json=txBytesRange,proto3" json:"tx_bytes_range"`
+	EmailHostRange    IndexRange `protobuf:"bytes,6,opt,name=email_host_range,json=emailHostRange,proto3" json:"email_host_range"`
+	EmailSubjectRange IndexRange `protobuf:"bytes,7,opt,name=email_subject_range,json=emailSubjectRange,proto3" json:"email_subject_range"`
+}
+
+func (m *PublicInputIndices) Reset()         { *m = PublicInputIndices{} }
+func (m *PublicInputIndices) String() string { return proto.CompactTextString(m) }
+func (*PublicInputIndices) ProtoMessage()    {}
+func (*PublicInputIndices) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b19cfeea9df0a486, []int{2}
+}
+func (m *PublicInputIndices) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublicInputIndices) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublicInputIndices.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublicInputIndices) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublicInputIndices.Merge(m, src)
+}
+func (m *PublicInputIndices) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublicInputIndices) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublicInputIndices.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublicInputIndices proto.InternalMessageInfo
+
+func (m *PublicInputIndices) GetMinLength() uint64 {
+	if m != nil {
+		return m.MinLength
+	}
+	return 0
+}
+
+func (m *PublicInputIndices) GetEmailHashIndex() uint64 {
+	if m != nil {
+		return m.EmailHashIndex
+	}
+	return 0
+}
+
+func (m *PublicInputIndices) GetDkimDomainRange() IndexRange {
+	if m != nil {
+		return m.DkimDomainRange
+	}
+	return IndexRange{}
+}
+
+func (m *PublicInputIndices) GetDkimHashIndex() uint64 {
+	if m != nil {
+		return m.DkimHashIndex
+	}
+	return 0
+}
+
+func (m *PublicInputIndices) GetTxBytesRange() IndexRange {
+	if m != nil {
+		return m.TxBytesRange
+	}
+	return IndexRange{}
+}
+
+func (m *PublicInputIndices) GetEmailHostRange() IndexRange {
+	if m != nil {
+		return m.EmailHostRange
+	}
+	return IndexRange{}
+}
+
+func (m *PublicInputIndices) GetEmailSubjectRange() IndexRange {
+	if m != nil {
+		return m.EmailSubjectRange
+	}
+	return IndexRange{}
+}
+
 // Params defines the set of module parameters.
 type Params struct {
 	// vkey defines the verification key used by the module.
 	VkeyIdentifier uint64 `protobuf:"varint,1,opt,name=vkey_identifier,json=vkeyIdentifier,proto3" json:"vkey_identifier,omitempty"`
-	// max_pubkey_size_bytes caps the allowed DKIM public key size (base64 decoded).
+	// max_pubkey_size_bytes caps the allowed DKIM public key size (base64
+	// decoded).
 	MaxPubkeySizeBytes uint64 `protobuf:"varint,2,opt,name=max_pubkey_size_bytes,json=maxPubkeySizeBytes,proto3" json:"max_pubkey_size_bytes,omitempty"`
+	// public_input_indices defines the indices for extracting data from public inputs.
+	PublicInputIndices PublicInputIndices `protobuf:"bytes,3,opt,name=public_input_indices,json=publicInputIndices,proto3" json:"public_input_indices"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }
 func (*Params) ProtoMessage() {}
 func (*Params) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b19cfeea9df0a486, []int{1}
+	return fileDescriptor_b19cfeea9df0a486, []int{3}
 }
 func (m *Params) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -142,40 +291,133 @@ func (m *Params) GetMaxPubkeySizeBytes() uint64 {
 	return 0
 }
 
+func (m *Params) GetPublicInputIndices() PublicInputIndices {
+	if m != nil {
+		return m.PublicInputIndices
+	}
+	return PublicInputIndices{}
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "xion.dkim.v1.GenesisState")
+	proto.RegisterType((*IndexRange)(nil), "xion.dkim.v1.IndexRange")
+	proto.RegisterType((*PublicInputIndices)(nil), "xion.dkim.v1.PublicInputIndices")
 	proto.RegisterType((*Params)(nil), "xion.dkim.v1.Params")
 }
 
 func init() { proto.RegisterFile("xion/dkim/v1/genesis.proto", fileDescriptor_b19cfeea9df0a486) }
 
 var fileDescriptor_b19cfeea9df0a486 = []byte{
-	// 364 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x90, 0xc1, 0x6a, 0xea, 0x40,
-	0x14, 0x86, 0x93, 0xab, 0x08, 0x37, 0x8a, 0x97, 0x1b, 0xbc, 0x10, 0x5c, 0x44, 0x71, 0xa3, 0x5c,
-	0x68, 0x06, 0xed, 0xae, 0x3b, 0xa5, 0x50, 0x4a, 0x37, 0xa2, 0xbb, 0x6e, 0x42, 0xd2, 0x9c, 0xa6,
-	0x43, 0x3a, 0x99, 0x90, 0x99, 0x84, 0xc4, 0x45, 0x1f, 0xa0, 0xab, 0x2e, 0xbb, 0xf4, 0x09, 0x4a,
-	0x1f, 0xc3, 0xa5, 0xcb, 0xae, 0x4a, 0xd1, 0x45, 0xfb, 0x18, 0x65, 0x66, 0x82, 0xd4, 0x4d, 0x08,
-	0xff, 0x77, 0xfe, 0xff, 0xfc, 0x73, 0x8c, 0x6e, 0x81, 0x69, 0x8c, 0x82, 0x08, 0x13, 0x94, 0x8f,
-	0x51, 0x08, 0x31, 0x30, 0xcc, 0x9c, 0x24, 0xa5, 0x9c, 0x9a, 0x2d, 0xc1, 0x1c, 0xc1, 0x9c, 0x7c,
-	0xdc, 0xed, 0x84, 0x34, 0xa4, 0x12, 0x20, 0xf1, 0xa7, 0x66, 0xba, 0x7f, 0x3d, 0x82, 0x63, 0x8a,
-	0xe4, 0xb7, 0x92, 0xac, 0xa3, 0x48, 0xc6, 0x3d, 0x0e, 0x8a, 0x0c, 0x5e, 0x74, 0xa3, 0x75, 0xa1,
-	0x56, 0x2c, 0x85, 0x6c, 0x4e, 0x8c, 0x46, 0xe2, 0xa5, 0x1e, 0x61, 0x96, 0xde, 0xd7, 0x47, 0xcd,
-	0x49, 0xc7, 0xf9, 0xb9, 0xd2, 0x99, 0x4b, 0x36, 0xab, 0x6f, 0xde, 0x7b, 0xda, 0xa2, 0x9a, 0x34,
-	0xa7, 0x46, 0x4b, 0x70, 0x37, 0xc9, 0xfc, 0x08, 0x4a, 0x66, 0xfd, 0xea, 0xd7, 0x46, 0xcd, 0x89,
-	0x75, 0xec, 0x3c, 0x8f, 0x30, 0x99, 0x67, 0xfe, 0x15, 0x94, 0x95, 0xbb, 0x19, 0x28, 0x45, 0x58,
-	0xcc, 0xa1, 0xf1, 0x27, 0x85, 0x9c, 0x46, 0x10, 0x1c, 0x52, 0x6a, 0xfd, 0xda, 0xe8, 0xf7, 0xa2,
-	0x5d, 0xc9, 0xd5, 0xe0, 0xe0, 0xc1, 0x68, 0xa8, 0x0e, 0xc2, 0x92, 0x47, 0x50, 0xba, 0x38, 0x80,
-	0x98, 0xe3, 0x5b, 0x0c, 0xa9, 0xac, 0x5c, 0x5f, 0xb4, 0x85, 0x7c, 0x79, 0x50, 0xcd, 0xb1, 0xf1,
-	0x8f, 0x78, 0x45, 0x95, 0xeb, 0x32, 0xbc, 0x02, 0xd7, 0x2f, 0x39, 0x88, 0x9e, 0x62, 0xdc, 0x24,
-	0x5e, 0xa1, 0xd2, 0x97, 0x78, 0x05, 0x33, 0x41, 0xce, 0xac, 0xe7, 0x75, 0x4f, 0xfb, 0x5a, 0xf7,
-	0xf4, 0xc7, 0xcf, 0xd7, 0xff, 0xb2, 0x28, 0x52, 0x6f, 0x9d, 0x4d, 0x37, 0x3b, 0x5b, 0xdf, 0xee,
-	0x6c, 0xfd, 0x63, 0x67, 0xeb, 0x4f, 0x7b, 0x5b, 0xdb, 0xee, 0x6d, 0xed, 0x6d, 0x6f, 0x6b, 0xd7,
-	0xc3, 0x10, 0xf3, 0xbb, 0xcc, 0x77, 0x6e, 0x28, 0x41, 0x7e, 0x96, 0xc6, 0xfc, 0xe4, 0xde, 0xf3,
-	0x19, 0x92, 0xa7, 0x2f, 0xd4, 0xf1, 0x79, 0x99, 0x00, 0xf3, 0x1b, 0xf2, 0xf4, 0xa7, 0xdf, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0x04, 0xfc, 0xd2, 0xf3, 0xe9, 0x01, 0x00, 0x00,
+	// 593 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0x4d, 0x8f, 0xd2, 0x40,
+	0x18, 0xa6, 0x5b, 0x16, 0xb3, 0xb3, 0xc8, 0x2e, 0x23, 0x26, 0x0d, 0x89, 0x85, 0x70, 0x70, 0x89,
+	0x89, 0x6d, 0xc0, 0x1b, 0xb7, 0x25, 0x24, 0x2e, 0x6a, 0x0c, 0x81, 0x8b, 0xf1, 0xd2, 0x4c, 0xe9,
+	0x58, 0x46, 0xe8, 0xb4, 0xe9, 0x4c, 0x49, 0xd9, 0x9f, 0xe0, 0xc9, 0xa3, 0xc7, 0xfd, 0x05, 0xc6,
+	0x9b, 0x7f, 0x61, 0x8f, 0x7b, 0xdc, 0x93, 0x31, 0x70, 0xd0, 0x9f, 0x61, 0xe6, 0x43, 0xf6, 0xeb,
+	0xc2, 0x85, 0x94, 0xe7, 0x99, 0xf7, 0x79, 0xe6, 0x7d, 0xe7, 0x79, 0x41, 0x3d, 0x27, 0x31, 0x75,
+	0x83, 0x39, 0x89, 0xdc, 0x65, 0xc7, 0x0d, 0x31, 0xc5, 0x8c, 0x30, 0x27, 0x49, 0x63, 0x1e, 0xc3,
+	0xb2, 0xe0, 0x1c, 0xc1, 0x39, 0xcb, 0x4e, 0xbd, 0x16, 0xc6, 0x61, 0x2c, 0x09, 0x57, 0x7c, 0xa9,
+	0x33, 0xf5, 0x2a, 0x8a, 0x08, 0x8d, 0x5d, 0xf9, 0xab, 0x21, 0xeb, 0x8e, 0x24, 0xe3, 0x88, 0x63,
+	0xc5, 0xb4, 0xbe, 0x1b, 0xa0, 0xfc, 0x5a, 0x59, 0x4c, 0x04, 0x0c, 0xbb, 0xa0, 0x94, 0xa0, 0x14,
+	0x45, 0xcc, 0x32, 0x9a, 0x46, 0xfb, 0xb0, 0x5b, 0x73, 0x6e, 0x5b, 0x3a, 0x23, 0xc9, 0xf5, 0x8b,
+	0x97, 0xbf, 0x1a, 0x85, 0xb1, 0x3e, 0x09, 0x4f, 0x41, 0x59, 0xf0, 0x5e, 0x92, 0xf9, 0x73, 0xbc,
+	0x62, 0xd6, 0x5e, 0xd3, 0x6c, 0x1f, 0x76, 0xad, 0xbb, 0x95, 0x83, 0x39, 0x89, 0x46, 0x99, 0xff,
+	0x16, 0xaf, 0x74, 0xf5, 0x61, 0xa0, 0x10, 0x51, 0x02, 0x4f, 0xc0, 0x51, 0x8a, 0x97, 0xf1, 0x1c,
+	0x07, 0x5b, 0x15, 0xb3, 0x69, 0xb6, 0x0f, 0xc6, 0x15, 0x0d, 0xeb, 0x83, 0xad, 0x1e, 0x00, 0x43,
+	0x1a, 0xe0, 0x7c, 0x8c, 0x68, 0x88, 0x61, 0x0d, 0xec, 0x33, 0x8e, 0x52, 0x2e, 0x2f, 0x5b, 0x1c,
+	0xab, 0x3f, 0xf0, 0x18, 0x98, 0x98, 0x06, 0xd6, 0x9e, 0xc4, 0xc4, 0x67, 0xaf, 0xf8, 0xf7, 0xa2,
+	0x61, 0xb4, 0x7e, 0x9a, 0x00, 0x8e, 0x32, 0x7f, 0x41, 0xa6, 0x43, 0x9a, 0x64, 0x7c, 0x48, 0x03,
+	0x32, 0xc5, 0x0c, 0x3e, 0x03, 0x20, 0x22, 0xd4, 0x5b, 0x60, 0x1a, 0xf2, 0x99, 0x56, 0x3a, 0x88,
+	0x08, 0x7d, 0x27, 0x01, 0xd8, 0x06, 0xc7, 0x38, 0x42, 0x64, 0xe1, 0xcd, 0x10, 0x9b, 0x79, 0x44,
+	0x98, 0x6b, 0xe9, 0x8a, 0xc4, 0xcf, 0x10, 0x9b, 0xc9, 0x2b, 0xc1, 0x37, 0xa0, 0x2a, 0xe7, 0x10,
+	0xc4, 0x11, 0x22, 0xd4, 0x4b, 0xc5, 0x15, 0x2d, 0x53, 0x8e, 0xf1, 0xde, 0x30, 0x6e, 0x5a, 0xd0,
+	0xc3, 0x38, 0x12, 0xcc, 0x40, 0xd6, 0xa9, 0xce, 0x9e, 0x03, 0x09, 0xdd, 0x36, 0x2d, 0x4a, 0xd3,
+	0xc7, 0x02, 0xbe, 0xf1, 0x1c, 0x80, 0x0a, 0xcf, 0x3d, 0x7f, 0xc5, 0x31, 0xd3, 0x86, 0xfb, 0x3b,
+	0x19, 0x96, 0x79, 0xde, 0x17, 0x45, 0xca, 0xed, 0x6c, 0xdb, 0x63, 0xcc, 0xb8, 0xd6, 0x29, 0xed,
+	0xa4, 0xa3, 0x67, 0x10, 0x33, 0xae, 0x94, 0xde, 0x83, 0x27, 0x4a, 0x89, 0x65, 0xfe, 0x67, 0x3c,
+	0xfd, 0x2f, 0xf6, 0x68, 0x27, 0xb1, 0xaa, 0x2c, 0x9d, 0xa8, 0x4a, 0x49, 0xe8, 0x97, 0xbb, 0x36,
+	0x40, 0x49, 0x45, 0x4f, 0x24, 0x65, 0x39, 0xc7, 0x2b, 0x8f, 0x04, 0x98, 0x72, 0xf2, 0x89, 0xe0,
+	0x54, 0x3f, 0x59, 0x45, 0xc0, 0xc3, 0x2d, 0x0a, 0x3b, 0xe0, 0x69, 0x84, 0x72, 0x1d, 0x27, 0x8f,
+	0x91, 0x73, 0xac, 0xc6, 0xa4, 0x1f, 0x0f, 0x46, 0x28, 0x57, 0xa1, 0x9a, 0x90, 0x73, 0x2c, 0x67,
+	0x01, 0x3f, 0x80, 0x5a, 0x22, 0xf3, 0xe1, 0x11, 0x11, 0x10, 0x31, 0x77, 0x91, 0x10, 0xfd, 0x86,
+	0xcd, 0x7b, 0xab, 0xf0, 0x20, 0x49, 0xba, 0x0b, 0x98, 0x3c, 0x60, 0x7a, 0xd6, 0xb7, 0x8b, 0x46,
+	0x41, 0xb4, 0xf2, 0xe5, 0xcf, 0x8f, 0x17, 0x32, 0xf9, 0xae, 0x5a, 0x9e, 0xfe, 0xe9, 0xe5, 0xda,
+	0x36, 0xae, 0xd6, 0xb6, 0xf1, 0x7b, 0x6d, 0x1b, 0x5f, 0x37, 0x76, 0xe1, 0x6a, 0x63, 0x17, 0xae,
+	0x37, 0x76, 0xe1, 0xe3, 0x49, 0x48, 0xf8, 0x2c, 0xf3, 0x9d, 0x69, 0x1c, 0xb9, 0x7e, 0x96, 0x52,
+	0xfe, 0x72, 0x81, 0x7c, 0xe6, 0xca, 0x5d, 0xce, 0xd5, 0x36, 0xf3, 0x55, 0x82, 0x99, 0x5f, 0x92,
+	0xbb, 0xfc, 0xea, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x7c, 0x0b, 0xab, 0x73, 0x3a, 0x04, 0x00,
+	0x00,
 }
 
+func (this *IndexRange) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*IndexRange)
+	if !ok {
+		that2, ok := that.(IndexRange)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Start != that1.Start {
+		return false
+	}
+	if this.End != that1.End {
+		return false
+	}
+	return true
+}
+func (this *PublicInputIndices) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*PublicInputIndices)
+	if !ok {
+		that2, ok := that.(PublicInputIndices)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.MinLength != that1.MinLength {
+		return false
+	}
+	if this.EmailHashIndex != that1.EmailHashIndex {
+		return false
+	}
+	if !this.DkimDomainRange.Equal(&that1.DkimDomainRange) {
+		return false
+	}
+	if this.DkimHashIndex != that1.DkimHashIndex {
+		return false
+	}
+	if !this.TxBytesRange.Equal(&that1.TxBytesRange) {
+		return false
+	}
+	if !this.EmailHostRange.Equal(&that1.EmailHostRange) {
+		return false
+	}
+	if !this.EmailSubjectRange.Equal(&that1.EmailSubjectRange) {
+		return false
+	}
+	return true
+}
 func (this *Params) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
@@ -199,6 +441,9 @@ func (this *Params) Equal(that interface{}) bool {
 		return false
 	}
 	if this.MaxPubkeySizeBytes != that1.MaxPubkeySizeBytes {
+		return false
+	}
+	if !this.PublicInputIndices.Equal(&that1.PublicInputIndices) {
 		return false
 	}
 	return true
@@ -259,6 +504,117 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *IndexRange) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *IndexRange) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *IndexRange) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.End != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.End))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Start != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.Start))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PublicInputIndices) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublicInputIndices) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublicInputIndices) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.EmailSubjectRange.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x3a
+	{
+		size, err := m.EmailHostRange.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x32
+	{
+		size, err := m.TxBytesRange.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	if m.DkimHashIndex != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.DkimHashIndex))
+		i--
+		dAtA[i] = 0x20
+	}
+	{
+		size, err := m.DkimDomainRange.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.EmailHashIndex != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.EmailHashIndex))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.MinLength != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.MinLength))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *Params) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -279,6 +635,16 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.PublicInputIndices.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
 	if m.MaxPubkeySizeBytes != 0 {
 		i = encodeVarintGenesis(dAtA, i, uint64(m.MaxPubkeySizeBytes))
 		i--
@@ -326,6 +692,47 @@ func (m *GenesisState) Size() (n int) {
 	return n
 }
 
+func (m *IndexRange) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Start != 0 {
+		n += 1 + sovGenesis(uint64(m.Start))
+	}
+	if m.End != 0 {
+		n += 1 + sovGenesis(uint64(m.End))
+	}
+	return n
+}
+
+func (m *PublicInputIndices) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MinLength != 0 {
+		n += 1 + sovGenesis(uint64(m.MinLength))
+	}
+	if m.EmailHashIndex != 0 {
+		n += 1 + sovGenesis(uint64(m.EmailHashIndex))
+	}
+	l = m.DkimDomainRange.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	if m.DkimHashIndex != 0 {
+		n += 1 + sovGenesis(uint64(m.DkimHashIndex))
+	}
+	l = m.TxBytesRange.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	l = m.EmailHostRange.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	l = m.EmailSubjectRange.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	return n
+}
+
 func (m *Params) Size() (n int) {
 	if m == nil {
 		return 0
@@ -338,6 +745,8 @@ func (m *Params) Size() (n int) {
 	if m.MaxPubkeySizeBytes != 0 {
 		n += 1 + sovGenesis(uint64(m.MaxPubkeySizeBytes))
 	}
+	l = m.PublicInputIndices.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	return n
 }
 
@@ -496,6 +905,333 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *IndexRange) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: IndexRange: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: IndexRange: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Start", wireType)
+			}
+			m.Start = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Start |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field End", wireType)
+			}
+			m.End = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.End |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PublicInputIndices) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublicInputIndices: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublicInputIndices: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinLength", wireType)
+			}
+			m.MinLength = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MinLength |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EmailHashIndex", wireType)
+			}
+			m.EmailHashIndex = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.EmailHashIndex |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DkimDomainRange", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.DkimDomainRange.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DkimHashIndex", wireType)
+			}
+			m.DkimHashIndex = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DkimHashIndex |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxBytesRange", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TxBytesRange.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EmailHostRange", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.EmailHostRange.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EmailSubjectRange", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.EmailSubjectRange.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *Params) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -563,6 +1299,39 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PublicInputIndices", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.PublicInputIndices.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenesis(dAtA[iNdEx:])

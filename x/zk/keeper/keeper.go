@@ -106,15 +106,11 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 
 	// Import all vkeys
 	for _, vkeyWithID := range gs.Vkeys {
-		vkey := vkeyWithID.Vkey
-		proofSystem := vkey.ProofSystem
-		if proofSystem == 0 {
-			proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
-		}
-		if err := types.ValidateVKeyForProofSystem(vkey.KeyBytes, params.MaxVkeySizeBytes, proofSystem); err != nil {
+		if err := types.ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes); err != nil {
 			panic(err)
 		}
 
+		vkey := vkeyWithID.Vkey
 		if vkey.Authority == "" {
 			vkey.Authority = k.authority
 		}
@@ -215,7 +211,7 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 // keyBytes is Groth16/Circom JSON (proofSystem groth16) or Barretenberg binary (proofSystem ultrahonk).
 // proofSystem should be types.ProofSystem_PROOF_SYSTEM_GROTH16 or types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK; unspecified defaults to groth16.
 func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string, proofSystem types.ProofSystem) (uint64, error) {
-	if proofSystem == 0 {
+	if proofSystem == types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
 		proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
 	}
 
@@ -321,10 +317,11 @@ func (k Keeper) GetCircomVKeyByID(ctx context.Context, id uint64) (*parser.Circo
 // UpdateVKey updates an existing verification key.
 // proofSystem should be types.ProofSystem_PROOF_SYSTEM_GROTH16 or types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK; unspecified defaults to groth16.
 func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string, proofSystem types.ProofSystem) error {
-	if proofSystem == 0 {
+	if proofSystem == types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
 		proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
 	}
 
+	// Get existing ID
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
 		if errors.IsOf(err, collections.ErrNotFound) {

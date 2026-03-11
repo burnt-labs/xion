@@ -7,7 +7,7 @@ on:
 
 jobs:
   apt-install:
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -15,7 +15,7 @@ jobs:
         arch:
           - amd64
           - arm64
-          
+
     steps:
       - name: Download the repository key
         run: |
@@ -31,14 +31,16 @@ jobs:
 
       - name: Install xiond
         run: |
-          sudo apt install -y xiond=$( echo ${{ github.ref_name }} | sed 's/^v//')
+          # Convert version: strip 'v' prefix, convert '-rc' to '~rc' for deb
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/~rc/')
+          sudo apt install -y xiond=${VERSION}
 
       - name: Verify xiond installation
         run: |
           xiond version --long
 
   rpm-install:
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -61,14 +63,16 @@ jobs:
 
       - name: Install xiond
         run: |
-          yum install xiond-$( echo ${{ github.ref_name }} | sed 's/^v//')-1 -y
+          # Convert version: strip 'v' prefix, convert '-rc' to '~rc', append '-1' for rpm
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/~rc/')
+          yum install xiond-${VERSION}-1 -y
 
       - name: Verify xiond installation
         run: |
           xiond version --long
 
   apk-install:
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -83,7 +87,7 @@ jobs:
     steps:
       - name: Download the repository key
         run: |
-          wget -qO - https://alpine.fury.io/burnt/burnt@fury.io-b8abd990.rsa.pub | tee /etc/apk/keys/burnt@fury.io-b8abd990.rsa.pub 
+          wget -qO - https://alpine.fury.io/burnt/burnt@fury.io-b8abd990.rsa.pub | tee /etc/apk/keys/burnt@fury.io-b8abd990.rsa.pub
 
       - name: Add to apk repos list
         run: |
@@ -91,7 +95,9 @@ jobs:
 
       - name: Install xiond
         run: |
-          apk update && apk add xiond=$( echo ${{ github.ref_name }} | sed 's/^v//')
+          # Convert version: strip 'v' prefix, convert '-rc' to '_rc' for alpine
+          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/_rc/')
+          apk update && apk add xiond=${VERSION}
 
       - name: Verify xiond installation
         run: |

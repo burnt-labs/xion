@@ -41,7 +41,7 @@ func TestMigrateStore(t *testing.T) {
 	var params types.Params
 	paramStore.GetParamSet(ctx.Ctx, &params)
 	require.Equal(t, uint64(10_000), params.DeploymentGas)
-	require.Equal(t, uint64(30_000), params.TimeOffset)
+	require.Equal(t, uint64(30_000_000_000), params.TimeOffset)
 
 	// Test case 2: Create a fresh param subspace with key table already set
 	storeKey2 := storetypes.NewKVStoreKey(types.StoreKey + "2")
@@ -64,5 +64,5 @@ func TestMigrateStore(t *testing.T) {
 	var params2 types.Params
 	paramStoreWithKeyTable.GetParamSet(ctx2.Ctx, &params2)
 	require.Equal(t, uint64(10_000), params2.DeploymentGas)
-	require.Equal(t, uint64(30_000), params2.TimeOffset)
+	require.Equal(t, uint64(30_000_000_000), params2.TimeOffset)
 }

@@ -18,6 +18,25 @@ message GenesisState {
   repeated string revoked_pubkeys = 3;
 }
 
+// IndexRange defines a range of indices [start, end) in the public inputs array.
+message IndexRange {
+  option (gogoproto.equal) = true;
+  uint64 start = 1;
+  uint64 end = 2;
+}
+
+// PublicInputIndices defines the indices for extracting data from public inputs.
+message PublicInputIndices {
+  option (gogoproto.equal) = true;
+  uint64 min_length = 1;
+  uint64 email_hash_index = 2;
+  IndexRange dkim_domain_range = 3 [(gogoproto.nullable) = false];
+  uint64 dkim_hash_index = 4;
+  IndexRange tx_bytes_range = 5 [(gogoproto.nullable) = false];
+  IndexRange email_host_range = 6 [(gogoproto.nullable) = false];
+  IndexRange email_subject_range = 7 [(gogoproto.nullable) = false];
+}
+
 // Params defines the set of module parameters.
 message Params {
   option (amino.name) = "dkim/params";
@@ -27,6 +46,10 @@ message Params {
   // vkey defines the verification key used by the module.
   uint64 vkey_identifier = 1;
 
-  // max_pubkey_size_bytes caps the allowed DKIM public key size (base64 decoded).
+  // max_pubkey_size_bytes caps the allowed DKIM public key size (base64
+  // decoded).
   uint64 max_pubkey_size_bytes = 2;
+
+  // public_input_indices defines the indices for extracting data from public inputs.
+  PublicInputIndices public_input_indices = 3 [(gogoproto.nullable) = false];
 }

@@ -308,8 +308,12 @@ func TestVerifierConcurrentUse(t *testing.T) {
 }
 
 // TestVerifyValidProof tests verification with valid test vectors.
-// This test requires test vectors to be present in testdata/.
+// This test requires test vectors to be present in testdata/ AND the real barretenberg library.
+// It is skipped with the stub library (which does not perform cryptographic verification).
 func TestVerifyValidProof(t *testing.T) {
+	if strings.HasPrefix(Version(), "stub") {
+		t.Skip("stub library does not perform real verification; regenerate testdata with bb@4.0.4 and build real library")
+	}
 	vkeyData := loadTestVector(t, vkeyFile)
 	proofData := loadTestVector(t, proofFile)
 	inputs := loadTestInputs(t)
