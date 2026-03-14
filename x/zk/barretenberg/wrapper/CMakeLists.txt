@@ -15,7 +15,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 # Barretenberg git reference — pinned to aztec-packages monorepo stable release tag
-set(BB_REF "v3.0.3" CACHE STRING "Barretenberg git reference (branch/tag/commit)")
+set(BB_REF "v4.0.4" CACHE STRING "Barretenberg git reference (branch/tag/commit)")
 
 # Detect target platform
 if(NOT DEFINED TARGET_PLATFORM)

@@ -24,9 +24,13 @@ ENV COMMIT=${COMMIT} \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH} 
 
-# Install CMake for Barretenberg build
+# Install libc++ so the barretenberg wrapper can be compiled and linked against
+# the same C++ stdlib used by Aztec's pre-built libbb-external.a (built with Zig,
+# which uses LLVM libc++ with the std::__1 ABI — incompatible with libstdc++).
+# Note: libc++abi-dev is NOT needed — Zig builds libc++ with
+# LIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON, merging abi symbols into libc++.a itself.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    cmake \
+    libc++-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the workdir
@@ -34,27 +38,6 @@ WORKDIR /go/src/github.com/burnt-labs/xion
 
 # Copy local files
 COPY . .
-
-# Barretenberg git reference (pinned to aztec-packages stable release)
-ARG BB_REF=v3.0.3
-
-# Build Barretenberg library for the target platform
-# This must happen before xiond build so CGo can link against libbarretenberg.a
-RUN --mount=type=cache,target=/root/.cache/cmake \
-    set -eux; \
-    BB_PLATFORM="linux_${TARGETARCH}"; \
-    cd x/zk/barretenberg/wrapper && \
-    mkdir -p build/${BB_PLATFORM} && \
-    cd build/${BB_PLATFORM} && \
-    cmake ../.. \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DTARGET_PLATFORM=${BB_PLATFORM} \
-        -DBB_REF=${BB_REF} && \
-    cmake --build . --target barretenberg_wrapper --parallel $(nproc) && \
-    echo "Checking for library files..." && \
-    find /go/src/github.com/burnt-labs/xion/x/zk/barretenberg -name "*.a" -ls && \
-    test -f /go/src/github.com/burnt-labs/xion/x/zk/barretenberg/lib/${BB_PLATFORM}/libbarretenberg.a && \
-    echo "Barretenberg library built successfully"
 
 # Build xiond binary
 ARG PREBUILT_BINARY

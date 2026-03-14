@@ -18,15 +18,20 @@
 #   5. Run tests: go test -tags barretenberg_stub ./x/zk/barretenberg/...
 #
 # Usage:
-#   ./build-wrapper.sh --platform linux_amd64|darwin_amd64|darwin_arm64
+#   ./build-wrapper.sh --platform linux_amd64|linux_arm64|darwin_amd64|darwin_arm64
 #
-# Supported platforms: linux_amd64, darwin_amd64, darwin_arm64
-# (linux_arm64 is not officially supported — no pre-built static lib provided by Aztec)
+# Supported platforms: linux_amd64, linux_arm64, darwin_amd64, darwin_arm64
 #
 # Prerequisites:
-#   - clang++ with C++20 support
+#   - clang++ with C++20 support (honours $CXX; defaults to clang++)
+#     Linux targets require clang++ (not g++) because libbb-external.a is built by
+#     Aztec with Zig/libc++ and its symbols use the std::__1 ABI — incompatible with
+#     g++/libstdc++. The -stdlib=libc++ and --target=<triple> flags are injected
+#     automatically for linux targets when CXX contains "clang".
+#     Darwin cross-compilation: set CXX=o64-clang++ (darwin/amd64), CXX=oa64-clang++ (darwin/arm64)
 #   - curl
-#   - ar (Linux) or libtool (Darwin)
+#   - ar or llvm-ar (honours $AR; defaults to ar)
+#     Cross-compilation from Linux: set AR=llvm-ar (handles Darwin Mach-O archives)
 #   - git (for sparse-checkout of headers)
 
 set -euo pipefail
@@ -65,7 +70,18 @@ case "$PLATFORM" in
     linux_amd64)
         AZTEC_ARCH="amd64"
         AZTEC_OS="linux"
-        EXTRA_LDFLAGS="-lstdc++ -lm -lpthread"
+        # libbb-external.a is built by Aztec with Zig's libc++ (std::__1 ABI).
+        # Must link libc++/libc++abi instead of libstdc++ to satisfy those symbols,
+        # and compile the wrapper with clang++ -stdlib=libc++ to match function
+        # signatures (std::__1::vector vs std::vector have different manglings).
+        EXTRA_LDFLAGS="-lc++ -lc++abi -lm -lpthread"
+        LINUX_CROSS_TARGET="--target=x86_64-linux-gnu"
+        ;;
+    linux_arm64)
+        AZTEC_ARCH="arm64"
+        AZTEC_OS="linux"
+        EXTRA_LDFLAGS="-lc++ -lc++abi -lm -lpthread"
+        LINUX_CROSS_TARGET="--target=aarch64-linux-gnu"
         ;;
     darwin_amd64)
         AZTEC_ARCH="amd64"
@@ -77,11 +93,11 @@ case "$PLATFORM" in
         AZTEC_ARCH="arm64"
         AZTEC_OS="darwin"
         EXTRA_LDFLAGS="-lc++ -lm"
-        DARWIN_TARGET=""
+        DARWIN_TARGET="-mmacosx-version-min=11.0"
         ;;
     *)
-        echo "Unsupported platform: $PLATFORM" >&2
-        echo "Supported platforms: linux_amd64, darwin_amd64, darwin_arm64" >&2
+        echo "ERROR: unsupported platform '$PLATFORM'." >&2
+        echo "  Supported platforms: linux_amd64, linux_arm64, darwin_amd64, darwin_arm64" >&2
         exit 1
         ;;
 esac
@@ -196,6 +212,7 @@ CLANG_FLAGS=(
     -fPIC
     -O2
     -fvisibility=hidden
+    -fvisibility-inlines-hidden
     -I "$MSGPACK_DIR/include"                      # msgpack-c headers (barretenberg external dep)
     -I "${STUBS_DIR}"                              # macro-only stubs (e.g. tracy)
     -I "$HEADERS_DIR/barretenberg/cpp/src"
@@ -205,11 +222,22 @@ CLANG_FLAGS=(
     -o "$WRAPPER_O"
 )
 
-if [[ "$PLATFORM" == "darwin_amd64" ]]; then
+# Apply Darwin-specific target flags (version pin for both darwin_amd64 and darwin_arm64)
+if [[ "$AZTEC_OS" == "darwin" && -n "$DARWIN_TARGET" ]]; then
     CLANG_FLAGS=($DARWIN_TARGET "${CLANG_FLAGS[@]}")
 fi
 
-clang++ "${CLANG_FLAGS[@]}"
+# Apply Linux-specific flags when using clang++ (required to match libbb-external.a's libc++ ABI):
+#   --target=<triple>  : explicit cross-compilation target so a native clang++ correctly
+#                        emits arm64 or amd64 code even when running on a different arch
+#   -stdlib=libc++     : use libc++ (std::__1 ABI) matching the Zig-built libbb-external.a;
+#                        without this, clang++ defaults to libstdc++ on Linux and symbol
+#                        mangling diverges at every std:: type in barretenberg function sigs
+if [[ "$AZTEC_OS" == "linux" && "${CXX:-clang++}" == *clang* ]]; then
+    CLANG_FLAGS=($LINUX_CROSS_TARGET -stdlib=libc++ "${CLANG_FLAGS[@]}")
+fi
+
+${CXX:-clang++} "${CLANG_FLAGS[@]}"
 echo "  Compiled: $WRAPPER_O"
 
 # ── Step 4: Merge wrapper.o + libbb-external.a → libbarretenberg.a ───────────
@@ -218,22 +246,14 @@ echo "▶ Step 4: Merging into libbarretenberg.a..."
 mkdir -p "$LIB_DIR"
 OUTPUT_A="$LIB_DIR/libbarretenberg.a"
 
-if [[ "$AZTEC_OS" == "linux" ]]; then
-    MERGE_DIR="$(mktemp -d)"
-    trap 'rm -rf "$WORK_DIR" "$MERGE_DIR"' EXIT
-    (
-        cd "$MERGE_DIR"
-        ar x "$BB_EXTERNAL_A"
-        ar rcs "$OUTPUT_A" ./*.o "$WRAPPER_O"
-    )
-elif [[ "$AZTEC_OS" == "darwin" ]]; then
-    if [[ "$PLATFORM" == "darwin_amd64" ]]; then
-        # Cross-compile: wrap wrapper.o in a thin static lib then merge
-        libtool -static -o "$OUTPUT_A" "$BB_EXTERNAL_A" "$WRAPPER_O"
-    else
-        libtool -static -o "$OUTPUT_A" "$BB_EXTERNAL_A" "$WRAPPER_O"
-    fi
-fi
+# Append approach: copy the Aztec pre-built archive as-is, then add our wrapper
+# object on top. This avoids the extract+repack strategy, which silently loses
+# symbols when the archive contains duplicate member basenames — a known property
+# of libbb-external.a (barretenberg has multiple source files with the same name
+# across different subdirectories). ar rcs appends to an existing archive without
+# touching existing members. llvm-ar handles both ELF and Mach-O archives.
+cp "$BB_EXTERNAL_A" "$OUTPUT_A"
+${AR:-ar} rcs "$OUTPUT_A" "$WRAPPER_O"
 
 echo "  Output: $(du -sh "$OUTPUT_A" | cut -f1) $OUTPUT_A"
 

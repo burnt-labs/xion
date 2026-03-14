@@ -95,7 +95,7 @@ build-all:
 		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
 		build --config .goreleaser/build.yaml --clean --skip validate
 
-build-local: barretenberg-build-wrapper
+build-local:
 	$(DOCKER) run --rm \
 		--env GOOS=$(GOOS) \
 		--env GOARCH=$(GOARCH) \

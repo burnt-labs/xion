@@ -28,9 +28,9 @@ func readBarretenbergTestData(t *testing.T) (vkBytes, proofBytes, publicInputsBy
 	t.Helper()
 	base := testlib.IntegrationTestPath("testdata", "keys", "barretenberg")
 	for name, dest := range map[string]*[]byte{
-		"vk":             &vkBytes,
-		"proof":          &proofBytes,
-		"public_inputs":  &publicInputsBytes,
+		"vk":            &vkBytes,
+		"proof":         &proofBytes,
+		"public_inputs": &publicInputsBytes,
 	} {
 		path := filepath.Join(base, name)
 		data, err := os.ReadFile(path)
@@ -107,9 +107,12 @@ func TestZKUltraHonkVKeyAndProofVerification(t *testing.T) {
 	require.True(t, exists, "vkey ultrahonk_circuit should exist after add-vkey")
 	vkeyID, err := dyno.Get(hasResp, "id")
 	require.NoError(t, err)
-	idFloat, ok := vkeyID.(float64)
+	vkeyIDUint, ok := vkeyID.(string)
+	require.True(t, ok, "id should be string")
+	vkeyIDUint64, err := strconv.ParseUint(vkeyIDUint, 10, 64)
+	require.NoError(t, err, "id should be parseable as uint64")
+	t.Logf("vKey is %v", vkeyIDUint64)
 	require.True(t, ok, "id should be number")
-	vkeyIDUint := uint64(idFloat)
 
 	// Write proof and public inputs into node container for verify-ultrahonk query
 	err = node.WriteFile(ctx, proofBytes, "proof.bin")
@@ -129,7 +132,7 @@ func TestZKUltraHonkVKeyAndProofVerification(t *testing.T) {
 	require.True(t, verifiedByName, "proof should verify when using vkey name")
 
 	// Verify proof by vkey ID
-	respByID, err := testlib.ExecQuery(t, ctx, node, "zk", "verify-ultrahonk", proofPath, "--vkey-id", strconv.FormatUint(vkeyIDUint, 10), "--public-inputs-file", inputsPath)
+	respByID, err := testlib.ExecQuery(t, ctx, node, "zk", "verify-ultrahonk", proofPath, "--vkey-id", strconv.FormatUint(vkeyIDUint64, 10), "--public-inputs-file", inputsPath)
 	require.NoError(t, err)
 	verifiedByIDVal, err := dyno.Get(respByID, "verified")
 	require.NoError(t, err)
