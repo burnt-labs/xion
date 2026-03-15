@@ -53,6 +53,15 @@ endif
 ifeq ($(WITH_CLEVELDB),yes)
   build_tags += gcc
 endif
+
+# handle rocksdb
+ifeq ($(WITH_ROCKSDB),yes)
+  export CGO_ENABLED := 1
+  export CGO_CFLAGS += -I/usr/local/include
+  export CGO_LDFLAGS += -L/usr/local/lib -lrocksdb -lstdc++ -lm
+  build_tags += rocksdb grocksdb_clean_link
+endif
+
 build_tags += $(BUILD_TAGS)
 build_tags := $(strip $(build_tags))
 
@@ -66,6 +75,9 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=xion \
 
 ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
+endif
+ifeq ($(WITH_ROCKSDB),yes)
+  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=rocksdb
 endif
 ifeq ($(LINK_STATICALLY),true)
 	ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
