@@ -26,9 +26,12 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmos "github.com/cometbft/cometbft/libs/os"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
+	cmtstore "github.com/cometbft/cometbft/proto/tendermint/store"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	dbm "github.com/cosmos/cosmos-db"
+	"github.com/linxGnu/grocksdb"
 	"github.com/cosmos/gogoproto/proto"
 	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/keeper"
@@ -1090,6 +1093,44 @@ func NewWasmApp(
 	app.SetEndBlocker(app.EndBlocker)
 	app.setAnteHandler(txConfig, nodeConfig, keys[wasmtypes.StoreKey])
 
+	// Create rocksdb checkpoints every 10 blocks (after commit)
+	if cp, ok := db.(dbm.Checkpointable); ok {
+		app.SetPrepareCheckStater(func(ctx sdk.Context) {
+			height := ctx.BlockHeight()
+			if height%10 == 0 {
+				cpDir := filepath.Join(homePath, "data", "checkpoints", fmt.Sprintf("block_%d", height))
+
+				// Checkpoint application.db (app state — uses hardlinks, very cheap)
+				appCpPath := filepath.Join(cpDir, "application.db")
+				if err := cp.CreateCheckpoint(appCpPath); err != nil {
+					logger.Error("failed to checkpoint application.db", "height", height, "error", err)
+					return
+				}
+
+				// Build minimal state.db with only the keys needed to bootstrap from this height
+				if err := buildMinimalStateDB(homePath, cpDir, height); err != nil {
+					logger.Error("failed to build minimal state.db", "height", height, "error", err)
+					return
+				}
+
+				// Build minimal blockstore.db with only the last block's data
+				if err := buildMinimalBlockStoreDB(homePath, cpDir, height); err != nil {
+					logger.Error("failed to build minimal blockstore.db", "height", height, "error", err)
+					return
+				}
+
+				// Write a reset priv_validator_state.json so the fork can start signing
+				pvStatePath := filepath.Join(cpDir, "priv_validator_state.json")
+				if err := os.WriteFile(pvStatePath, []byte(`{"height":"0","round":0,"step":0}`), 0o644); err != nil {
+					logger.Error("failed to write priv_validator_state.json", "height", height, "error", err)
+					return
+				}
+
+				logger.Info("created fork checkpoint", "height", height, "path", cpDir)
+			}
+		})
+	}
+
 	// must be before Loading version
 	// requires the snapshot store to be created and registered as a BaseAppOption
 	// see cmd/xiond/root.go: 206 - 214 approx
@@ -1131,7 +1172,7 @@ func NewWasmApp(
 			logger.Error("error on loading last version", "err", err)
 			os.Exit(1)
 		}
-		ctx := app.NewUncachedContext(true, tmproto.Header{})
+		ctx := app.NewUncachedContext(true, cmtproto.Header{})
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
@@ -1442,6 +1483,362 @@ func (app *WasmApp) AutoCliOpts() autocli.AppOptions {
 		ValidatorAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		ConsensusAddressCodec: authcodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	}
+}
+
+// buildMinimalStateDB constructs a minimal CometBFT state.db for bootstrapping
+// a forked chain from the given checkpoint height.
+//
+// CometBFT's state.db normally accumulates entries across all heights:
+//
+//	stateKey                    → main consensus state (validators, app hash, chain ID, etc.)
+//	validatorsKey:{height}      → validator set or pointer to LastHeightChanged
+//	consensusParamsKey:{height} → consensus params or pointer to LastHeightChanged
+//	lastABCIResponseKey         → most recent FinalizeBlock response (crash recovery)
+//
+// A full checkpoint of state.db would include all historical entries. Instead,
+// this function creates a new rocksdb containing only the keys required to
+// continue consensus from the checkpoint height:
+//
+//  1. stateKey — patched so that LastHeightValidatorsChanged and
+//     LastHeightConsensusParamsChanged point to the checkpoint height (not genesis).
+//     This ensures new ValidatorsInfo entries written by CometBFT after the fork
+//     reference our checkpoint height (where the full set is stored) instead of
+//     looking back to the original chain's genesis.
+//
+//  2. validatorsKey for heights {H-1, H, H+1} — CometBFT needs:
+//     - H-1: LastValidators (used to validate block H's LastCommit signatures)
+//     - H:   Validators (current proposer selection)
+//     - H+1: NextValidators (for the upcoming block)
+//     Each entry is "resolved": if the source entry only contains a
+//     LastHeightChanged pointer (no inline ValidatorSet), we follow the pointer,
+//     read the full set, and write a self-contained entry with
+//     LastHeightChanged = H. This breaks the dependency chain back to genesis.
+//
+//  3. consensusParamsKey for height H — resolved the same way as validators.
+//
+//  4. lastABCIResponseKey — copied verbatim for crash recovery.
+func buildMinimalStateDB(homePath, cpDir string, height int64) error {
+	srcPath := filepath.Join(homePath, "data", "state.db")
+	dstPath := filepath.Join(cpDir, "state.db")
+
+	if err := os.MkdirAll(dstPath, 0o755); err != nil {
+		return fmt.Errorf("mkdir state.db: %w", err)
+	}
+
+	// Open source read-only
+	roOpts := grocksdb.NewDefaultOptions()
+	src, err := grocksdb.OpenDbForReadOnly(roOpts, srcPath, false)
+	if err != nil {
+		return fmt.Errorf("open source state.db: %w", err)
+	}
+	defer src.Close()
+
+	// Open destination for writing
+	wOpts := grocksdb.NewDefaultOptions()
+	wOpts.SetCreateIfMissing(true)
+	dst, err := grocksdb.OpenDb(wOpts, dstPath)
+	if err != nil {
+		return fmt.Errorf("open dest state.db: %w", err)
+	}
+	defer dst.Close()
+
+	readOpts := grocksdb.NewDefaultReadOptions()
+	writeOpts := grocksdb.NewDefaultWriteOptions()
+
+	// Helper to copy a key directly from src to dst
+	copyKey := func(key []byte) error {
+		val, err := src.Get(readOpts, key)
+		if err != nil {
+			return fmt.Errorf("read key %s: %w", key, err)
+		}
+		defer val.Free()
+		if val.Data() != nil {
+			return dst.Put(writeOpts, key, val.Data())
+		}
+		return nil
+	}
+
+	// Helper to resolve a ValidatorsInfo: if it has no inline ValidatorSet,
+	// follow LastHeightChanged to find the actual set, then write a
+	// self-contained entry with LastHeightChanged = height itself.
+	resolveAndWriteValidators := func(h int64) error {
+		key := []byte(fmt.Sprintf("validatorsKey:%v", h))
+		val, err := src.Get(readOpts, key)
+		if err != nil {
+			return fmt.Errorf("read %s: %w", key, err)
+		}
+		defer val.Free()
+		if val.Data() == nil {
+			return nil // no validators at this height, skip
+		}
+
+		var vi cmtstate.ValidatorsInfo
+		if err := vi.Unmarshal(val.Data()); err != nil {
+			return fmt.Errorf("unmarshal %s: %w", key, err)
+		}
+
+		// If ValidatorSet is nil, it means "same as LastHeightChanged" — resolve it
+		if vi.ValidatorSet == nil {
+			refKey := []byte(fmt.Sprintf("validatorsKey:%v", vi.LastHeightChanged))
+			refVal, err := src.Get(readOpts, refKey)
+			if err != nil {
+				return fmt.Errorf("read ref %s: %w", refKey, err)
+			}
+			defer refVal.Free()
+			if refVal.Data() == nil {
+				return fmt.Errorf("validator set at ref height %d not found", vi.LastHeightChanged)
+			}
+			var refVi cmtstate.ValidatorsInfo
+			if err := refVi.Unmarshal(refVal.Data()); err != nil {
+				return fmt.Errorf("unmarshal ref %s: %w", refKey, err)
+			}
+			vi.ValidatorSet = refVi.ValidatorSet
+		}
+
+		// Write with LastHeightChanged = h so no further lookups are needed
+		vi.LastHeightChanged = h
+		bz, err := vi.Marshal()
+		if err != nil {
+			return fmt.Errorf("marshal validators for height %d: %w", h, err)
+		}
+		return dst.Put(writeOpts, key, bz)
+	}
+
+	// Same for ConsensusParamsInfo
+	resolveAndWriteConsensusParams := func(h int64) error {
+		key := []byte(fmt.Sprintf("consensusParamsKey:%v", h))
+		val, err := src.Get(readOpts, key)
+		if err != nil {
+			return fmt.Errorf("read %s: %w", key, err)
+		}
+		defer val.Free()
+		if val.Data() == nil {
+			return nil
+		}
+
+		var cpi cmtstate.ConsensusParamsInfo
+		if err := cpi.Unmarshal(val.Data()); err != nil {
+			return fmt.Errorf("unmarshal %s: %w", key, err)
+		}
+
+		if cpi.ConsensusParams.Equal(cmtproto.ConsensusParams{}) && cpi.LastHeightChanged != h {
+			refKey := []byte(fmt.Sprintf("consensusParamsKey:%v", cpi.LastHeightChanged))
+			refVal, err := src.Get(readOpts, refKey)
+			if err != nil {
+				return fmt.Errorf("read ref %s: %w", refKey, err)
+			}
+			defer refVal.Free()
+			if refVal.Data() != nil {
+				var refCpi cmtstate.ConsensusParamsInfo
+				if err := refCpi.Unmarshal(refVal.Data()); err != nil {
+					return fmt.Errorf("unmarshal ref %s: %w", refKey, err)
+				}
+				cpi.ConsensusParams = refCpi.ConsensusParams
+			}
+		}
+
+		cpi.LastHeightChanged = h
+		bz, err := cpi.Marshal()
+		if err != nil {
+			return fmt.Errorf("marshal consensus params for height %d: %w", h, err)
+		}
+		return dst.Put(writeOpts, key, bz)
+	}
+
+	// Read, patch, and write stateKey — update LastHeightValidatorsChanged and
+	// LastHeightConsensusParamsChanged to the checkpoint height so that new
+	// validator entries written by CometBFT reference our checkpoint (where the
+	// full set is stored) instead of the original genesis height.
+	{
+		stateVal, err := src.Get(readOpts, []byte("stateKey"))
+		if err != nil {
+			return fmt.Errorf("read stateKey: %w", err)
+		}
+		defer stateVal.Free()
+		if stateVal.Data() == nil {
+			return fmt.Errorf("stateKey not found in source state.db")
+		}
+
+		var state cmtstate.State
+		if err := state.Unmarshal(stateVal.Data()); err != nil {
+			return fmt.Errorf("unmarshal stateKey: %w", err)
+		}
+
+		// Point back-references to checkpoint height so future entries resolve here
+		state.LastHeightValidatorsChanged = height
+		state.LastHeightConsensusParamsChanged = height
+
+		bz, err := state.Marshal()
+		if err != nil {
+			return fmt.Errorf("marshal patched stateKey: %w", err)
+		}
+		if err := dst.Put(writeOpts, []byte("stateKey"), bz); err != nil {
+			return fmt.Errorf("write patched stateKey: %w", err)
+		}
+	}
+
+	// Resolve and write self-contained validator sets for height-1, height, height+1
+	for _, h := range []int64{height - 1, height, height + 1} {
+		if err := resolveAndWriteValidators(h); err != nil {
+			return fmt.Errorf("resolve validators at %d: %w", h, err)
+		}
+	}
+
+	// Resolve and write consensus params
+	if err := resolveAndWriteConsensusParams(height); err != nil {
+		return fmt.Errorf("resolve consensus params: %w", err)
+	}
+
+	// Copy last ABCI response
+	if err := copyKey([]byte("lastABCIResponseKey")); err != nil {
+		return fmt.Errorf("copy lastABCIResponseKey: %w", err)
+	}
+
+	return nil
+}
+
+// buildMinimalBlockStoreDB constructs a minimal CometBFT blockstore.db for
+// bootstrapping a forked chain from the given checkpoint height.
+//
+// CometBFT's blockstore.db normally stores every block ever produced:
+//
+//	blockStore       → BlockStoreState proto {Base, Height} — tracks the range of stored blocks
+//	H:{height}       → BlockMeta proto (header, block ID, size, num txs)
+//	P:{height}:{idx} → Part proto (64KB chunk of the serialized block)
+//	C:{height}       → Commit proto (precommit signatures for this height's block)
+//	SC:{height}      → SeenCommit proto (+2/3 precommits observed by this node)
+//	BH:{hash}        → height (reverse index from block hash to height)
+//
+// A fork only needs the last committed block to continue consensus. This
+// function creates a new rocksdb containing:
+//
+//  1. H:{H} — block meta at the checkpoint height. Parsed to determine the
+//     number of block parts (via BlockID.PartSetHeader.Total).
+//
+//  2. P:{H}:{0..N} — all block parts for height H. CometBFT reconstructs the
+//     full block by reassembling these 64KB chunks. All parts must be present.
+//
+//  3. C:{H-1} and C:{H} — commit (precommit signatures) for the previous and
+//     current block. C:{H-1} is stored as block H's LastCommit and is needed
+//     to validate the commit signatures. C:{H} is needed for the current height.
+//
+//  4. SC:{H} — the seen commit at the checkpoint height, tracking which +2/3
+//     precommits this node observed.
+//
+//  5. blockStore — a BlockStoreState with Base=H and Height=H, telling CometBFT
+//     that this store contains exactly one block at height H.
+func buildMinimalBlockStoreDB(homePath, cpDir string, height int64) error {
+	srcPath := filepath.Join(homePath, "data", "blockstore.db")
+	dstPath := filepath.Join(cpDir, "blockstore.db")
+
+	if err := os.MkdirAll(dstPath, 0o755); err != nil {
+		return fmt.Errorf("mkdir blockstore.db: %w", err)
+	}
+
+	// Open source read-only
+	roOpts := grocksdb.NewDefaultOptions()
+	src, err := grocksdb.OpenDbForReadOnly(roOpts, srcPath, false)
+	if err != nil {
+		return fmt.Errorf("open source blockstore.db: %w", err)
+	}
+	defer src.Close()
+
+	// Open destination for writing
+	wOpts := grocksdb.NewDefaultOptions()
+	wOpts.SetCreateIfMissing(true)
+	dst, err := grocksdb.OpenDb(wOpts, dstPath)
+	if err != nil {
+		return fmt.Errorf("open dest blockstore.db: %w", err)
+	}
+	defer dst.Close()
+
+	readOpts := grocksdb.NewDefaultReadOptions()
+	writeOpts := grocksdb.NewDefaultWriteOptions()
+
+	// First, read block meta to find how many parts
+	metaKey := []byte(fmt.Sprintf("H:%v", height))
+	metaVal, err := src.Get(readOpts, metaKey)
+	if err != nil {
+		return fmt.Errorf("read block meta: %w", err)
+	}
+	defer metaVal.Free()
+
+	if metaVal.Data() == nil {
+		return fmt.Errorf("block meta not found at height %d", height)
+	}
+
+	// Parse block meta to get total parts count
+	var blockMeta cmtproto.BlockMeta
+	if err := proto.Unmarshal(metaVal.Data(), &blockMeta); err != nil {
+		return fmt.Errorf("unmarshal block meta: %w", err)
+	}
+	totalParts := int(blockMeta.BlockID.PartSetHeader.Total)
+
+	// Copy block meta
+	if err := dst.Put(writeOpts, metaKey, metaVal.Data()); err != nil {
+		return fmt.Errorf("write block meta: %w", err)
+	}
+
+	// Copy all block parts
+	for i := 0; i < totalParts; i++ {
+		partKey := []byte(fmt.Sprintf("P:%v:%v", height, i))
+		partVal, err := src.Get(readOpts, partKey)
+		if err != nil {
+			return fmt.Errorf("read block part %d: %w", i, err)
+		}
+		if partVal.Data() != nil {
+			if err := dst.Put(writeOpts, partKey, partVal.Data()); err != nil {
+				partVal.Free()
+				return fmt.Errorf("write block part %d: %w", i, err)
+			}
+		}
+		partVal.Free()
+	}
+
+	// Copy commit for height-1 (block's LastCommit) and height
+	for _, h := range []int64{height - 1, height} {
+		commitKey := []byte(fmt.Sprintf("C:%v", h))
+		commitVal, err := src.Get(readOpts, commitKey)
+		if err != nil {
+			return fmt.Errorf("read commit %d: %w", h, err)
+		}
+		if commitVal.Data() != nil {
+			if err := dst.Put(writeOpts, commitKey, commitVal.Data()); err != nil {
+				commitVal.Free()
+				return fmt.Errorf("write commit %d: %w", h, err)
+			}
+		}
+		commitVal.Free()
+	}
+
+	// Copy seen commit
+	scKey := []byte(fmt.Sprintf("SC:%v", height))
+	scVal, err := src.Get(readOpts, scKey)
+	if err != nil {
+		return fmt.Errorf("read seen commit: %w", err)
+	}
+	if scVal.Data() != nil {
+		if err := dst.Put(writeOpts, scKey, scVal.Data()); err != nil {
+			scVal.Free()
+			return fmt.Errorf("write seen commit: %w", err)
+		}
+	}
+	scVal.Free()
+
+	// Write BlockStoreState with base=height, height=height
+	bss := &cmtstore.BlockStoreState{
+		Base:   height,
+		Height: height,
+	}
+	bssBytes, err := proto.Marshal(bss)
+	if err != nil {
+		return fmt.Errorf("marshal blockstore state: %w", err)
+	}
+	if err := dst.Put(writeOpts, []byte("blockStore"), bssBytes); err != nil {
+		return fmt.Errorf("write blockstore state: %w", err)
+	}
+
+	return nil
 }
 
 // overrideWasmVariables overrides the wasm variables to:

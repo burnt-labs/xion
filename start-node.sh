@@ -25,5 +25,7 @@ $APPD genesis validate-genesis --home $XIOND_HOME
 # set db backend to rocksdb
 sed -i 's/^db_backend = .*/db_backend = "rocksdb"/' "$XIOND_HOME/config/config.toml"
 sed -i 's/^app-db-backend = .*/app-db-backend = "rocksdb"/' "$XIOND_HOME/config/app.toml"
+sed -i 's/^timeout_propose = .*/timeout_propose = "100ms"/' "$XIOND_HOME/config/config.toml"
+sed -i 's/^timeout_commit = .*/timeout_commit = "100ms"/' "$XIOND_HOME/config/config.toml"
 
 $APPD start --home $XIOND_HOME
