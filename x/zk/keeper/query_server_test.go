@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	barretenberg "github.com/burnt-labs/barretenberg-go"
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 

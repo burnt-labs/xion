@@ -5,6 +5,7 @@ import (
 	goerrors "errors"
 	"fmt"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	"cosmossdk.io/collections"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	barretenberg "github.com/burnt-labs/barretenberg-go"
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 
