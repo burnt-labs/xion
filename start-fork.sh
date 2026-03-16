@@ -36,5 +36,8 @@ cp "$LATEST_CP/priv_validator_state.json" "$FORK/data/priv_validator_state.json"
 sed -i 's/^timeout_propose = .*/timeout_propose = "3s"/' "$FORK/config/config.toml"
 sed -i 's/^timeout_commit = .*/timeout_commit = "3s"/' "$FORK/config/config.toml"
 
+# wasm cache — wasmvm needs the compiled contract artifacts
+cp -r "$SOURCE/wasm" "$FORK/wasm" 2>/dev/null || true
+
 # CometBFT will recreate evidence.db, tx_index.db, cs.wal fresh
 $APPD start --home "$FORK"
