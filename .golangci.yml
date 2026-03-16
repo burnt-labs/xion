@@ -1,6 +1,8 @@
 version: "2"
 run:
   tests: true
+  build-tags:
+    - barretenberg_stub
 linters:
   default: none
   enable:

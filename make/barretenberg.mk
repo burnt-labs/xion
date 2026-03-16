@@ -23,8 +23,9 @@ BB_PLATFORM := $(GOOS)_$(GOARCH)
 # Build libbarretenberg.a for the current platform using the pinned pre-built Aztec static lib.
 barretenberg-build: barretenberg-build-wrapper
 
-# Build stub library (for development/testing without the real Barretenberg library).
-# The stub links a no-op static lib built from barretenberg_stub.cpp via stub.mk.
+# Build stub library (for CI/testing without the real Barretenberg library).
+# Compiles barretenberg_stub.c (pure C) with gcc — no clang or C++ stdlib needed.
+# Output: lib/$(BB_PLATFORM)/libbarretenberg_stub.a; use with -tags barretenberg_stub.
 barretenberg-build-stub:
 	@echo "Building Barretenberg stub for $(BB_PLATFORM)..."
 	$(MAKE) -f stub.mk -C $(BB_WRAPPER_DIR)
@@ -52,6 +53,7 @@ barretenberg-clean:
 	rm -rf $(BB_WRAPPER_DIR)/build
 	rm -f $(BB_WRAPPER_DIR)/*.o
 	rm -f $(BB_LIB_DIR)/*/libbarretenberg.a
+	rm -f $(BB_LIB_DIR)/*/libbarretenberg_stub.a
 
 # Run barretenberg package tests
 barretenberg-test:
@@ -98,6 +100,5 @@ help-barretenberg:
 	@echo "  barretenberg-generate-testdata  Generate test vectors"
 	@echo "  barretenberg-verify             Verify bindings compile"
 	@echo ""
-	@echo "  Supported platforms: linux_amd64, darwin_amd64, darwin_arm64"
-	@echo "  (linux_arm64 is not supported — no pre-built Aztec static lib available)"
+	@echo "  Supported platforms: linux_amd64, linux_arm64, darwin_amd64, darwin_arm64"
 	@echo ""

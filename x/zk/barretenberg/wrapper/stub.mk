@@ -1,14 +1,14 @@
-# Makefile.stub - Build the stub library for development/testing
+# stub.mk — Build libbarretenberg_stub.a for CI/testing without the real library.
 #
-# This builds a minimal stub implementation that allows the Go code
-# to compile and run basic tests without the full Barretenberg library.
+# The stub is pure C (barretenberg_stub.c), so it compiles with plain gcc.
+# No clang, no libc++, no libstdc++ required — no C++ stdlib flags at all.
 #
 # Usage:
-#   make -f Makefile.stub           # Build for current platform
-#   make -f Makefile.stub clean     # Clean build artifacts
+#   make -f stub.mk           # Build for current platform
+#   make -f stub.mk clean     # Clean build artifacts
 
-CXX := clang++
-CXXFLAGS := -std=c++17 -fPIC -O2 -Wall -Wextra
+CC := gcc
+CFLAGS := -std=c11 -fPIC -O2 -Wall -Wextra
 
 # Detect platform
 UNAME_S := $(shell uname -s)
@@ -17,10 +17,8 @@ UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(UNAME_M),arm64)
         PLATFORM := darwin_arm64
-        LDFLAGS := -lc++
     else
         PLATFORM := darwin_amd64
-        LDFLAGS := -lc++
     endif
 else ifeq ($(UNAME_S),Linux)
     ifeq ($(UNAME_M),aarch64)
@@ -28,14 +26,13 @@ else ifeq ($(UNAME_S),Linux)
     else
         PLATFORM := linux_amd64
     endif
-    LDFLAGS := -lstdc++
 endif
 
 LIB_DIR := ../lib/$(PLATFORM)
-TARGET := $(LIB_DIR)/libbarretenberg.a
+TARGET := $(LIB_DIR)/libbarretenberg_stub.a
 
-SRCS := barretenberg_stub.cpp
-OBJS := $(SRCS:.cpp=.o)
+SRCS := barretenberg_stub.c
+OBJS := $(SRCS:.c=.o)
 
 .PHONY: all clean
 
@@ -48,8 +45,8 @@ $(TARGET): $(OBJS) | $(LIB_DIR)
 $(LIB_DIR):
 	mkdir -p $(LIB_DIR)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -I../include -c $< -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) -I../include -c $< -o $@
 
 clean:
 	rm -f $(OBJS)

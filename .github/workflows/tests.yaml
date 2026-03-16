@@ -27,8 +27,11 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
+      - name: Build Barretenberg stub
+        run: make barretenberg-build-stub
+
       - name: Build
-        run: go build -v ./...
+        run: go build -tags barretenberg_stub -v ./...
 
       - name: Test
-        run: make test-cover
+        run: make test-cover EXTRA_BUILD_TAGS=barretenberg_stub
