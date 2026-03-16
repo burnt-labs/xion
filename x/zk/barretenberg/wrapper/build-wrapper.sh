@@ -15,7 +15,7 @@
 #   2. Verify the new release has barretenberg-static-{arch}-{os}.tar.gz assets
 #   3. Check barretenberg_wrapper.cpp for API compatibility with the new version
 #   4. Re-run this script to regenerate lib/{platform}/libbarretenberg.a
-#   5. Run tests: go test -tags barretenberg_stub ./x/zk/barretenberg/...
+#   5. Run tests: go test ./x/zk/barretenberg/...
 #
 # Usage:
 #   ./build-wrapper.sh --platform linux_amd64|linux_arm64|darwin_amd64|darwin_arm64
@@ -47,7 +47,7 @@ readonly BB_AZTEC_REPO="https://github.com/AztecProtocol/aztec-packages"
 PLATFORM=""
 
 usage() {
-    echo "Usage: $0 --platform linux_amd64|darwin_amd64|darwin_arm64" >&2
+    echo "Usage: $0 --platform linux_amd64|linux_arm64|darwin_amd64|darwin_arm64" >&2
     exit 1
 }
 
@@ -78,6 +78,8 @@ case "$PLATFORM" in
         EXTRA_LDFLAGS="-lstdc++ -lm -lpthread"
         LINUX_CROSS_TARGET="--target=x86_64-linux-gnu"
         LINUX_STDLIB=""   # use compiler default (libstdc++) — matches Aztec's amd64 build
+        # SHA256 digest from https://github.com/AztecProtocol/aztec-packages/releases/tag/v4.0.4
+        EXPECTED_SHA256="7578c9fc80dec89988acd6038ff733f88ff1847eef2e06d16504357e8ad6373a"
         ;;
     linux_arm64)
         AZTEC_ARCH="arm64"
@@ -88,18 +90,24 @@ case "$PLATFORM" in
         EXTRA_LDFLAGS="-lc++ -lm -lpthread"
         LINUX_CROSS_TARGET="--target=aarch64-linux-gnu"
         LINUX_STDLIB="-stdlib=libc++"   # match Zig/libc++ used for arm64
+        # SHA256 digest from https://github.com/AztecProtocol/aztec-packages/releases/tag/v4.0.4
+        EXPECTED_SHA256="1a0b3bd4b2a6dc95c7e15106cd71a161e5f47c40b2bdc06bc155f8c69e44a958"
         ;;
     darwin_amd64)
         AZTEC_ARCH="amd64"
         AZTEC_OS="darwin"
         EXTRA_LDFLAGS="-lc++ -lm"
         DARWIN_TARGET="-target x86_64-apple-macos10.15"
+        # SHA256 digest from https://github.com/AztecProtocol/aztec-packages/releases/tag/v4.0.4
+        EXPECTED_SHA256="20f77d04b477770f288074e4876ace2044ae265b42a290a7acc164efdb8d9d7e"
         ;;
     darwin_arm64)
         AZTEC_ARCH="arm64"
         AZTEC_OS="darwin"
         EXTRA_LDFLAGS="-lc++ -lm"
         DARWIN_TARGET="-mmacosx-version-min=11.0"
+        # SHA256 digest from https://github.com/AztecProtocol/aztec-packages/releases/tag/v4.0.4
+        EXPECTED_SHA256="324249ed62dc266a1d6fea9ee33b37494ea0edc80b0c848bf94f0a1b3ce77a8e"
         ;;
     *)
         echo "ERROR: unsupported platform '$PLATFORM'." >&2
@@ -127,11 +135,29 @@ echo "════════════════════════�
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
-# ── Step 1: Download libbb-external.a ────────────────────────────────────────
+# ── Step 1: Download and verify libbb-external.a ─────────────────────────────
 echo ""
 echo "▶ Step 1: Downloading libbb-external.a from Aztec release..."
 echo "  URL: $TARBALL_URL"
-curl -fsSL "$TARBALL_URL" | tar -xz -C "$WORK_DIR"
+TARBALL="$WORK_DIR/barretenberg-static.tar.gz"
+curl -fsSL -o "$TARBALL" "$TARBALL_URL"
+
+echo "  Verifying SHA256 checksum..."
+# sha256sum on Linux; shasum -a 256 on macOS
+if command -v sha256sum &>/dev/null; then
+    ACTUAL_SHA256="$(sha256sum "$TARBALL" | awk '{print $1}')"
+else
+    ACTUAL_SHA256="$(shasum -a 256 "$TARBALL" | awk '{print $1}')"
+fi
+if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
+    echo "ERROR: SHA256 mismatch for barretenberg-static-${AZTEC_ARCH}-${AZTEC_OS}.tar.gz" >&2
+    echo "  Expected: $EXPECTED_SHA256" >&2
+    echo "  Got:      $ACTUAL_SHA256" >&2
+    echo "  Refusing to continue — the tarball may have been tampered with." >&2
+    exit 1
+fi
+echo "  Checksum OK: $ACTUAL_SHA256"
+tar -xz -C "$WORK_DIR" -f "$TARBALL"
 
 BB_EXTERNAL_A="$WORK_DIR/libbb-external.a"
 if [[ ! -f "$BB_EXTERNAL_A" ]]; then

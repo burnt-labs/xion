@@ -27,11 +27,14 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
-      - name: Build Barretenberg stub
-        run: make barretenberg-build-stub
+      - name: Install clang
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang
+
+      - name: Build Barretenberg wrapper
+        run: make barretenberg-build-wrapper
 
       - name: Build
-        run: go build -tags barretenberg_stub -v ./...
+        run: go build -v ./...
 
       - name: Test
-        run: make test-cover EXTRA_BUILD_TAGS=barretenberg_stub
+        run: make test-cover

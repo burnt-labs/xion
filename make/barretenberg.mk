@@ -15,20 +15,14 @@ GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 BB_PLATFORM := $(GOOS)_$(GOARCH)
 
-.PHONY: barretenberg-build barretenberg-build-stub barretenberg-build-wrapper \
-        barretenberg-build-linux-amd64 barretenberg-build-darwin-amd64 barretenberg-build-darwin-arm64 \
+.PHONY: barretenberg-build barretenberg-build-wrapper \
+        barretenberg-build-linux-amd64 barretenberg-build-linux-arm64 \
+        barretenberg-build-darwin-amd64 barretenberg-build-darwin-arm64 \
         barretenberg-clean barretenberg-test \
         barretenberg-generate-testdata barretenberg-verify
 
 # Build libbarretenberg.a for the current platform using the pinned pre-built Aztec static lib.
 barretenberg-build: barretenberg-build-wrapper
-
-# Build stub library (for CI/testing without the real Barretenberg library).
-# Compiles barretenberg_stub.c (pure C) with gcc — no clang or C++ stdlib needed.
-# Output: lib/$(BB_PLATFORM)/libbarretenberg_stub.a; use with -tags barretenberg_stub.
-barretenberg-build-stub:
-	@echo "Building Barretenberg stub for $(BB_PLATFORM)..."
-	$(MAKE) -f stub.mk -C $(BB_WRAPPER_DIR)
 
 # Download the pinned Aztec libbb-external.a, compile the C++ wrapper shim against it,
 # and merge into lib/$(BB_PLATFORM)/libbarretenberg.a.
@@ -41,19 +35,21 @@ barretenberg-build-wrapper:
 barretenberg-build-linux-amd64:
 	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform linux_amd64
 
+barretenberg-build-linux-arm64:
+	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform linux_arm64
+
 barretenberg-build-darwin-arm64:
 	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform darwin_arm64
 
 barretenberg-build-darwin-amd64:
 	$(BB_WRAPPER_DIR)/build-wrapper.sh --platform darwin_amd64
 
-# Clean build artifacts, FetchContent cache, and stub objects
+# Clean build artifacts and compiled wrapper objects
 barretenberg-clean:
-	@echo "Cleaning Barretenberg build artifacts, cache, and stub..."
+	@echo "Cleaning Barretenberg build artifacts..."
 	rm -rf $(BB_WRAPPER_DIR)/build
 	rm -f $(BB_WRAPPER_DIR)/*.o
 	rm -f $(BB_LIB_DIR)/*/libbarretenberg.a
-	rm -f $(BB_LIB_DIR)/*/libbarretenberg_stub.a
 
 # Run barretenberg package tests
 barretenberg-test:
@@ -90,8 +86,8 @@ help-barretenberg:
 	@echo "Barretenberg targets:"
 	@echo "  barretenberg-build              Build libbarretenberg.a for current platform (default)"
 	@echo "  barretenberg-build-wrapper      Download pinned Aztec lib + compile wrapper shim"
-	@echo "  barretenberg-build-stub         Build stub library for development (no real lib needed)"
 	@echo "  barretenberg-build-linux-amd64  Build for Linux AMD64"
+	@echo "  barretenberg-build-linux-arm64  Build for Linux ARM64"
 	@echo "  barretenberg-build-darwin-arm64 Build for Darwin ARM64"
 	@echo "  barretenberg-build-darwin-amd64 Build for Darwin AMD64"
 	@echo "  barretenberg-clean              Clean build artifacts"

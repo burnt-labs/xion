@@ -12,8 +12,8 @@
 #include <vector>
 
 // Barretenberg headers
-#include "barretenberg/common/serialize.hpp"       // from_buffer<T>, many_from_buffer
-#include "barretenberg/flavor/ultra_zk_flavor.hpp" // UltraZKFlavor
+#include "barretenberg/common/serialize.hpp"          // from_buffer<T>, many_from_buffer
+#include "barretenberg/flavor/ultra_zk_flavor.hpp"    // UltraZKFlavor
 #include "barretenberg/ultra_honk/ultra_verifier.hpp" // UltraVerifier_
 #include "barretenberg/srs/global_crs.hpp"            // init_net_crs_factory, bb_crs_path
 
@@ -197,11 +197,14 @@ extern "C"
             // Initialise the CRS factory (reads from BB_CRS_PATH env var or ~/.bb-crs).
             // Validators: set BB_CRS_PATH to a pre-populated directory.
             // If the path is absent or CRS files are missing, verification will throw below.
-            try {
+            try
+            {
                 const char *crs_path_env = std::getenv("BB_CRS_PATH");
                 std::string crs_path = crs_path_env ? std::string(crs_path_env) : bb::srs::bb_crs_path().string();
                 bb::srs::init_net_crs_factory(crs_path);
-            } catch (const std::exception &e) {
+            }
+            catch (const std::exception &e)
+            {
                 std::ostringstream oss;
                 oss << "CRS initialisation failed (set BB_CRS_PATH or populate ~/.bb-crs): " << e.what();
                 set_last_error(oss.str());

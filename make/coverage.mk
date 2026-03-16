@@ -7,9 +7,7 @@ COVERAGE_FILTERED ?= coverage_filtered.out
 COVERAGE_HTML ?= coverage.html
 PACKAGES_SIMTEST = $(shell go list ./... | grep '/simulation')
 
-# Extra build tags injected at call site (e.g. EXTRA_BUILD_TAGS=barretenberg_stub in CI)
-EXTRA_BUILD_TAGS ?=
-_ALL_BUILD_TAGS := ledger test_ledger_mock$(if $(EXTRA_BUILD_TAGS), $(EXTRA_BUILD_TAGS))
+_ALL_BUILD_TAGS := ledger test_ledger_mock
 
 # Extract threshold from .coveragerc if not set via environment
 COVERAGE_THRESHOLD ?= $(shell grep -A 10 '^\[run\]' $(COVERAGERC) 2>/dev/null | grep '^threshold' | sed 's/.*=[[:space:]]*//' || echo 84)
