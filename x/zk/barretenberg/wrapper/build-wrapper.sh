@@ -24,10 +24,11 @@
 #
 # Prerequisites:
 #   - clang++ with C++20 support (honours $CXX; defaults to clang++)
-#     Linux targets require clang++ (not g++) because libbb-external.a is built by
-#     Aztec with Zig/libc++ and its symbols use the std::__1 ABI — incompatible with
-#     g++/libstdc++. The -stdlib=libc++ and --target=<triple> flags are injected
-#     automatically for linux targets when CXX contains "clang".
+#     The stdlib used to compile the wrapper MUST match how Aztec built libbb-external.a:
+#       linux/arm64  → Aztec uses Zig/libc++ (std::__1 ABI) → compile with -stdlib=libc++
+#       linux/amd64  → Aztec uses g++/libstdc++ (std:: ABI) → compile without -stdlib flag
+#       darwin/*     → Aztec uses clang++/libc++ (std::__1 ABI)
+#     The --target=<triple> flag is injected automatically for linux when CXX contains "clang".
 #     Darwin cross-compilation: set CXX=o64-clang++ (darwin/amd64), CXX=oa64-clang++ (darwin/arm64)
 #   - curl
 #   - ar or llvm-ar (honours $AR; defaults to ar)
@@ -70,18 +71,23 @@ case "$PLATFORM" in
     linux_amd64)
         AZTEC_ARCH="amd64"
         AZTEC_OS="linux"
-        # libbb-external.a is built by Aztec with Zig's libc++ (std::__1 ABI).
-        # Must link libc++/libc++abi instead of libstdc++ to satisfy those symbols,
-        # and compile the wrapper with clang++ -stdlib=libc++ to match function
-        # signatures (std::__1::vector vs std::vector have different manglings).
-        EXTRA_LDFLAGS="-lc++ -lc++abi -lm -lpthread"
+        # Aztec builds libbb-external.a for linux/amd64 with g++/libstdc++ (std:: ABI).
+        # Compile the wrapper without -stdlib=libc++ so clang++ defaults to libstdc++,
+        # keeping function signatures (std::vector, std::string, etc.) consistent.
+        # CGo links with -lstdc++ accordingly (see link_linux_amd64.go).
+        EXTRA_LDFLAGS="-lstdc++ -lm -lpthread"
         LINUX_CROSS_TARGET="--target=x86_64-linux-gnu"
+        LINUX_STDLIB=""   # use compiler default (libstdc++) — matches Aztec's amd64 build
         ;;
     linux_arm64)
         AZTEC_ARCH="arm64"
         AZTEC_OS="linux"
-        EXTRA_LDFLAGS="-lc++ -lc++abi -lm -lpthread"
+        # Aztec builds libbb-external.a for linux/arm64 with Zig/libc++ (std::__1 ABI).
+        # Compile the wrapper with -stdlib=libc++ to match those function signatures.
+        # CGo links with -lc++ accordingly (see link_linux_arm64.go).
+        EXTRA_LDFLAGS="-lc++ -lm -lpthread"
         LINUX_CROSS_TARGET="--target=aarch64-linux-gnu"
+        LINUX_STDLIB="-stdlib=libc++"   # match Zig/libc++ used for arm64
         ;;
     darwin_amd64)
         AZTEC_ARCH="amd64"
@@ -227,14 +233,17 @@ if [[ "$AZTEC_OS" == "darwin" && -n "$DARWIN_TARGET" ]]; then
     CLANG_FLAGS=($DARWIN_TARGET "${CLANG_FLAGS[@]}")
 fi
 
-# Apply Linux-specific flags when using clang++ (required to match libbb-external.a's libc++ ABI):
+# Apply Linux-specific flags when using clang++:
 #   --target=<triple>  : explicit cross-compilation target so a native clang++ correctly
 #                        emits arm64 or amd64 code even when running on a different arch
-#   -stdlib=libc++     : use libc++ (std::__1 ABI) matching the Zig-built libbb-external.a;
-#                        without this, clang++ defaults to libstdc++ on Linux and symbol
-#                        mangling diverges at every std:: type in barretenberg function sigs
+#   -stdlib=...        : stdlib selection is ARCH-SPECIFIC (see platform cases above):
+#                          arm64 → -stdlib=libc++  (Aztec arm64 built with Zig/libc++)
+#                          amd64 → (omitted)       (Aztec amd64 built with g++/libstdc++;
+#                                                   clang++ defaults to libstdc++ on Linux)
 if [[ "$AZTEC_OS" == "linux" && "${CXX:-clang++}" == *clang* ]]; then
-    CLANG_FLAGS=($LINUX_CROSS_TARGET -stdlib=libc++ "${CLANG_FLAGS[@]}")
+    STDLIB_FLAGS=()
+    [[ -n "${LINUX_STDLIB:-}" ]] && STDLIB_FLAGS=($LINUX_STDLIB)
+    CLANG_FLAGS=($LINUX_CROSS_TARGET "${STDLIB_FLAGS[@]}" "${CLANG_FLAGS[@]}")
 fi
 
 ${CXX:-clang++} "${CLANG_FLAGS[@]}"
