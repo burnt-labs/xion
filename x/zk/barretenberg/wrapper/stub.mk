@@ -40,6 +40,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS) | $(LIB_DIR)
 	ar rcs $@ $^
+	ranlib $@
 	@echo "Built stub library: $@"
 
 $(LIB_DIR):
