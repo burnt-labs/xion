@@ -3,6 +3,7 @@ set -eux
 
 rm -rf .testnode/
 mkdir -p .testnode
+export XION_CHECKPOINT_INTERVAL="${XION_CHECKPOINT_INTERVAL:-10}"
 APPD=./build/xiond
 XIOND_HOME="$PWD/.testnode"
 $APPD config set client chain-id localnet-1 --home $XIOND_HOME

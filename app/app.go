@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"runtime/debug"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -1093,42 +1094,46 @@ func NewWasmApp(
 	app.SetEndBlocker(app.EndBlocker)
 	app.setAnteHandler(txConfig, nodeConfig, keys[wasmtypes.StoreKey])
 
-	// Create rocksdb checkpoints every 10 blocks (after commit)
-	if cp, ok := db.(dbm.Checkpointable); ok {
-		app.SetPrepareCheckStater(func(ctx sdk.Context) {
-			height := ctx.BlockHeight()
-			if height%10 == 0 {
-				cpDir := filepath.Join(homePath, "data", "checkpoints", fmt.Sprintf("block_%d", height))
+	// Create rocksdb fork checkpoints every N blocks (controlled by XION_CHECKPOINT_INTERVAL).
+	// If the env var is empty or unset, checkpointing is disabled.
+	if cpInterval, _ := strconv.ParseInt(os.Getenv("XION_CHECKPOINT_INTERVAL"), 10, 64); cpInterval > 0 {
+		if cp, ok := db.(dbm.Checkpointable); ok {
+			logger.Info("fork checkpointing enabled", "interval", cpInterval)
+			app.SetPrepareCheckStater(func(ctx sdk.Context) {
+				height := ctx.BlockHeight()
+				if height%cpInterval == 0 {
+					cpDir := filepath.Join(homePath, "data", "checkpoints", fmt.Sprintf("block_%d", height))
 
-				// Checkpoint application.db (app state — uses hardlinks, very cheap)
-				appCpPath := filepath.Join(cpDir, "application.db")
-				if err := cp.CreateCheckpoint(appCpPath); err != nil {
-					logger.Error("failed to checkpoint application.db", "height", height, "error", err)
-					return
+					// Checkpoint application.db (app state — uses hardlinks, very cheap)
+					appCpPath := filepath.Join(cpDir, "application.db")
+					if err := cp.CreateCheckpoint(appCpPath); err != nil {
+						logger.Error("failed to checkpoint application.db", "height", height, "error", err)
+						return
+					}
+
+					// Build minimal state.db with only the keys needed to bootstrap from this height
+					if err := buildMinimalStateDB(homePath, cpDir, height); err != nil {
+						logger.Error("failed to build minimal state.db", "height", height, "error", err)
+						return
+					}
+
+					// Build minimal blockstore.db with only the last block's data
+					if err := buildMinimalBlockStoreDB(homePath, cpDir, height); err != nil {
+						logger.Error("failed to build minimal blockstore.db", "height", height, "error", err)
+						return
+					}
+
+					// Write a reset priv_validator_state.json so the fork can start signing
+					pvStatePath := filepath.Join(cpDir, "priv_validator_state.json")
+					if err := os.WriteFile(pvStatePath, []byte(`{"height":"0","round":0,"step":0}`), 0o644); err != nil {
+						logger.Error("failed to write priv_validator_state.json", "height", height, "error", err)
+						return
+					}
+
+					logger.Info("created fork checkpoint", "height", height, "path", cpDir)
 				}
-
-				// Build minimal state.db with only the keys needed to bootstrap from this height
-				if err := buildMinimalStateDB(homePath, cpDir, height); err != nil {
-					logger.Error("failed to build minimal state.db", "height", height, "error", err)
-					return
-				}
-
-				// Build minimal blockstore.db with only the last block's data
-				if err := buildMinimalBlockStoreDB(homePath, cpDir, height); err != nil {
-					logger.Error("failed to build minimal blockstore.db", "height", height, "error", err)
-					return
-				}
-
-				// Write a reset priv_validator_state.json so the fork can start signing
-				pvStatePath := filepath.Join(cpDir, "priv_validator_state.json")
-				if err := os.WriteFile(pvStatePath, []byte(`{"height":"0","round":0,"step":0}`), 0o644); err != nil {
-					logger.Error("failed to write priv_validator_state.json", "height", height, "error", err)
-					return
-				}
-
-				logger.Info("created fork checkpoint", "height", height, "path", cpDir)
-			}
-		})
+			})
+		}
 	}
 
 	// must be before Loading version
