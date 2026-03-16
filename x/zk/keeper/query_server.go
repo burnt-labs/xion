@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/burnt-labs/xion/x/zk/barretenberg"
+	barretenberg "github.com/burnt-labs/barretenberg-go"
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 

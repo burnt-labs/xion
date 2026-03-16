@@ -9,7 +9,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/burnt-labs/xion/x/zk/barretenberg"
+	barretenberg "github.com/burnt-labs/barretenberg-go"
 )
 
 func ValidateVKeyByteSize(data []byte, maxSizeBytes uint64) error {

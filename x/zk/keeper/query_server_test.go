@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/burnt-labs/xion/x/zk/barretenberg"
+	barretenberg "github.com/burnt-labs/barretenberg-go"
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 
@@ -1454,10 +1454,10 @@ func TestQueryParams(t *testing.T) {
 // Skips the test if any file is missing (e.g. when testdata is not generated).
 func loadBarretenbergTestdata(t *testing.T) (vkBytes, proofBytes, publicInputsBytes []byte) {
 	t.Helper()
-	// Try paths: from repo root "x/zk/barretenberg/testdata/statics", or from package dir "../barretenberg/testdata/statics"
+	// Try paths: from package dir "testdata/barretenberg", or from repo root "x/zk/keeper/testdata/barretenberg"
 	candidates := []string{
-		filepath.Join("x", "zk", "barretenberg", "testdata", "statics"),
-		filepath.Join("..", "barretenberg", "testdata", "statics"),
+		filepath.Join("testdata", "barretenberg"),
+		filepath.Join("x", "zk", "keeper", "testdata", "barretenberg"),
 	}
 	var base string
 	for _, cand := range candidates {

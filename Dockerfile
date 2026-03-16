@@ -24,15 +24,6 @@ ENV COMMIT=${COMMIT} \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH} 
 
-# Install libc++ so the barretenberg wrapper can be compiled and linked against
-# the same C++ stdlib used by Aztec's pre-built libbb-external.a (built with Zig,
-# which uses LLVM libc++ with the std::__1 ABI — incompatible with libstdc++).
-# Note: libc++abi-dev is NOT needed — Zig builds libc++ with
-# LIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON, merging abi symbols into libc++.a itself.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libc++-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Set the workdir
 WORKDIR /go/src/github.com/burnt-labs/xion
 
