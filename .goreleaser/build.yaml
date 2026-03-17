@@ -4,8 +4,12 @@ project_name: xiond
 
 # Docs: https://goreleaser.com/customization/hooks/
 before:
-  # hooks:
-  #   - apt update && apt install -y musl-dev
+  hooks:
+    # Install libc++ for arm64 cross-compilation.
+    # Aztec's pre-built barretenberg .a for linux_arm64 is compiled with libc++,
+    # but goreleaser-cross only ships libstdc++. Without this, the linker can't
+    # resolve std::__1::* symbols from the barretenberg static archive.
+    - apt-get update -qq && apt-get install -y -qq libc++-18-dev:arm64 libc++abi-18-dev:arm64 >/dev/null 2>&1
 
 # Docs: https://goreleaser.com/customization/build/
 builds:
