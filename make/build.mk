@@ -76,18 +76,21 @@ ldflags := $(strip $(ldflags))
 BUILD_FLAGS := -tags "$(build_tags_comma_sep)" -ldflags '$(ldflags)' -trimpath
 
 BB_VERSION := $(shell grep 'github.com/burnt-labs/barretenberg-go' go.mod | awk '{print $$2}')
-BB_MOD_DIR := $(shell go list -m -f '{{.Dir}}' github.com/burnt-labs/barretenberg-go)
-BB_LIB_DIR := $(BB_MOD_DIR)/lib/$(GOOS)_$(GOARCH)
-BB_LIB_FILE := $(BB_LIB_DIR)/libbarretenberg.a
-BB_RELEASE_URL := https://github.com/burnt-labs/barretenberg-go/releases/download/$(BB_VERSION)/libbarretenberg_$(GOOS)_$(GOARCH).a
+BB_RELEASE_URL = https://github.com/burnt-labs/barretenberg-go/releases/download/$(BB_VERSION)/libbarretenberg_$(GOOS)_$(GOARCH).a
 
-barretenberg-build-wrapper: $(BB_LIB_FILE)
-
-$(BB_LIB_FILE):
-	@echo "--> Downloading libbarretenberg $(BB_VERSION) for $(GOOS)/$(GOARCH)"
-	@chmod -R u+w $(BB_MOD_DIR) 2>/dev/null || true
-	@mkdir -p $(BB_LIB_DIR)
-	@curl -sSfL $(BB_RELEASE_URL) -o $(BB_LIB_FILE)
+.PHONY: barretenberg-build-wrapper
+barretenberg-build-wrapper:
+	@BB_MOD_DIR=$$(go mod download -json github.com/burnt-labs/barretenberg-go@$(BB_VERSION) | grep '"Dir"' | cut -d'"' -f4); \
+	BB_LIB_DIR="$$BB_MOD_DIR/lib/$(GOOS)_$(GOARCH)"; \
+	BB_LIB_FILE="$$BB_LIB_DIR/libbarretenberg.a"; \
+	if [ -f "$$BB_LIB_FILE" ]; then \
+		echo "--> libbarretenberg $(BB_VERSION) already present"; \
+	else \
+		echo "--> Downloading libbarretenberg $(BB_VERSION) for $(GOOS)/$(GOARCH)"; \
+		chmod -R u+w "$$BB_MOD_DIR" 2>/dev/null || true; \
+		mkdir -p "$$BB_LIB_DIR"; \
+		curl -sSfL $(BB_RELEASE_URL) -o "$$BB_LIB_FILE"; \
+	fi
 
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
