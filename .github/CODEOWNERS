@@ -29,6 +29,6 @@
 
 * @burnt-labs/burnt-engineering/burnt-protocol
 
-.github/ @burnt-labs/burnt-devops
-.goreleaser @burnt-labs/burnt-devops
-Dockerfile @burnt-labs/burnt-devops
+.github/ @burnt-labs/burnt-engineering/burnt-devops
+.goreleaser @burnt-labs/burnt-engineering/burnt-devops
+Dockerfile @burnt-labs/burnt-engineering/burnt-devops
