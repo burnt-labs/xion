@@ -14,6 +14,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/libs/bytes"
+
 	tmcfg "github.com/cometbft/cometbft/config"
 
 	dbm "github.com/cosmos/cosmos-db"
@@ -156,6 +159,8 @@ func initRootCmd(rootCmd *cobra.Command,
 	)
 
 	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
+	server.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
+	rootCmd.AddCommand(fixGenesisChainIDCmd())
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
@@ -235,6 +240,45 @@ func txCommand(manager module.BasicManager) *cobra.Command {
 	manager.AddTxCommands(cmd)
 
 	return cmd
+}
+
+// newTestnetApp creates the application with testnet modifications.
+// Called by the in-place-testnet command to fork mainnet state into a single-validator testnet.
+func newTestnetApp(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	appOpts servertypes.AppOptions,
+) servertypes.Application {
+	baseappOptions := server.DefaultBaseappOptions(appOpts)
+
+	var wasmOpts []wasmkeeper.Option
+	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
+		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
+	}
+
+	wasmApp := app.NewWasmApp(
+		logger, db, traceStore, true,
+		appOpts,
+		wasmOpts,
+		baseappOptions...,
+	)
+
+	newValAddr, ok := appOpts.Get(server.KeyNewValAddr).(bytes.HexBytes)
+	if !ok {
+		panic("newValAddr is not set")
+	}
+	newValPubKey, ok := appOpts.Get(server.KeyUserPubKey).(crypto.PubKey)
+	if !ok {
+		panic("newValPubKey is not set")
+	}
+	newOperatorAddress, ok := appOpts.Get(server.KeyNewOpAddr).(string)
+	if !ok {
+		panic("newOperatorAddress is not set")
+	}
+	upgradeToTrigger, _ := appOpts.Get(server.KeyTriggerTestnetUpgrade).(string)
+
+	return app.InitXionAppForTestnet(wasmApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger)
 }
 
 // newApp creates the application
