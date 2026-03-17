@@ -2,11 +2,16 @@ name: Trigger Types
 
 on:
   workflow_call:
+    inputs:
+      release_tag:
+        description: "Release tag (e.g. v28.0.0)"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Release tag (e.g. v28.0.0). Defaults to the release event tag."
-        required: false
+        description: "Release tag (e.g. v28.0.0)"
+        required: true
         type: string
 
 jobs:
@@ -14,5 +19,5 @@ jobs:
     name: Release Types
     uses: burnt-labs/xion-types/.github/workflows/release.yaml@main
     with:
-      release_tag: ${{ inputs.release_tag || github.event.release.tag_name }}
+      release_tag: ${{ inputs.release_tag }}
     secrets: inherit
