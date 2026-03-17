@@ -75,6 +75,18 @@ ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags_comma_sep)" -ldflags '$(ldflags)' -trimpath
 
+BB_VERSION := $(shell grep 'github.com/burnt-labs/barretenberg-go' go.mod | awk '{print $$2}')
+BB_LIB_DIR := $(shell go list -m -f '{{.Dir}}' github.com/burnt-labs/barretenberg-go)/lib/$(GOOS)_$(GOARCH)
+BB_LIB_FILE := $(BB_LIB_DIR)/libbarretenberg.a
+BB_RELEASE_URL := https://github.com/burnt-labs/barretenberg-go/releases/download/$(BB_VERSION)/libbarretenberg_$(GOOS)_$(GOARCH).a
+
+barretenberg-build-wrapper: $(BB_LIB_FILE)
+
+$(BB_LIB_FILE):
+	@echo "--> Downloading libbarretenberg $(BB_VERSION) for $(GOOS)/$(GOARCH)"
+	@mkdir -p $(BB_LIB_DIR)
+	@curl -sSfL $(BB_RELEASE_URL) -o $(BB_LIB_FILE)
+
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
 
