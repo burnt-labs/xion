@@ -26,17 +26,10 @@ builds:
     hooks:
       pre:
         - cmd: mkdir -p {{ .Env.LIB_PATH }}
-        # Build libbarretenberg.a inside the container using the cross-compiler for
-        # this target platform. AR=llvm-ar handles both ELF (Linux) and Mach-O
-        # (Darwin) archive merges from the Linux-based goreleaser-cross container.
-        # Supported: linux/amd64, linux/arm64, darwin/amd64, darwin/arm64.
-        - cmd: sh -c 'x/zk/barretenberg/wrapper/build-wrapper.sh --platform {{ .Os }}_{{ .Arch }}'
-          env:
-            - >-
-              {{- if eq .Os "darwin" -}}
-                {{- if eq .Arch "arm64" -}}CXX=oa64-clang++{{- else -}}CXX=o64-clang++{{- end -}}
-              {{- else -}}CXX=clang++{{- end }}
-            - AR=llvm-ar
+        # Download pre-built libbarretenberg.a from barretenberg-go releases.
+        # Version is read from go.mod, same pattern as wasmvm below.
+        - cmd: sh -c 'grep "github.com/burnt-labs/barretenberg-go" go.mod | cut -d " " -f 2 | xargs -I {} wget https://github.com/burnt-labs/barretenberg-go/releases/download/{}/{{ .Env.BB_LIB }} -O {{ .Env.LIB_PATH }}/libbarretenberg.a'
+        # Download pre-built libwasmvm from CosmWasm releases.
         - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/{{ .Env.WASM_LIB }} -O {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB}}'
         - cmd: echo Starting build...
     ldflags:
@@ -69,6 +62,7 @@ builds:
       - CGO_ENABLED=1
       - CGO_LDFLAGS='-L./dist/lib'
       - LIB_PATH=./dist/lib
+      - BB_LIB=libbarretenberg_{{ .Os }}_{{ .Arch }}.a
       - >-
         {{- if eq .Os "darwin" }}MACOSX_DEPLOYMENT_TARGET=10.12{{- end }}
       - >-

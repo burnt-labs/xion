@@ -10,7 +10,6 @@ include make/coverage.mk
 include make/proto.mk
 include make/lint.mk
 
-
 # The below include contains the tools and runsim targets.
 include contrib/devtools/Makefile
 
@@ -63,7 +62,6 @@ help:
 	@$(MAKE) --no-print-directory help-coverage-brief
 	@$(MAKE) --no-print-directory help-proto-brief
 	@$(MAKE) --no-print-directory help-lint-brief
-
 	@echo "  clean                      Clean build artifacts"
 	@echo ""
 	@echo "Use 'make help-full' for complete list of targets"
