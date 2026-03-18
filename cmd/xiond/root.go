@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -18,6 +19,7 @@ import (
 	"github.com/cometbft/cometbft/libs/bytes"
 
 	tmcfg "github.com/cometbft/cometbft/config"
+	pvm "github.com/cometbft/cometbft/privval"
 
 	dbm "github.com/cosmos/cosmos-db"
 	rosettaCmd "github.com/cosmos/rosetta/cmd"
@@ -159,7 +161,7 @@ func initRootCmd(rootCmd *cobra.Command,
 	)
 
 	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
-	server.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
+	rootCmd.AddCommand(forkStateCmd())
 	rootCmd.AddCommand(fixGenesisChainIDCmd())
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -281,7 +283,9 @@ func newTestnetApp(
 	return app.InitXionAppForTestnet(wasmApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger)
 }
 
-// newApp creates the application
+// newApp creates the application. If a testnet_params.json marker file exists
+// in the node home, it applies fork state modifications (new validator, funding, etc.)
+// on first start, then removes the marker.
 func newApp(
 	logger log.Logger,
 	db dbm.DB,
@@ -295,12 +299,49 @@ func newApp(
 		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 	}
 
-	return app.NewWasmApp(
+	wasmApp := app.NewWasmApp(
 		logger, db, traceStore, true,
 		appOpts,
 		wasmOpts,
 		baseappOptions...,
 	)
+
+	// Check for fork-state marker file
+	homePath, _ := appOpts.Get(flags.FlagHome).(string)
+	if homePath != "" {
+		markerPath := homePath + "/testnet_params.json"
+		if markerData, err := os.ReadFile(markerPath); err == nil {
+			logger.Info("detected testnet_params.json, applying fork state modifications")
+
+			// Parse marker
+			var params struct {
+				Operator  string `json:"operator"`
+				Validator string `json:"validator"`
+				Pubkey    string `json:"pubkey"`
+			}
+			if err := json.Unmarshal(markerData, &params); err != nil {
+				logger.Error("failed to parse testnet_params.json", "error", err)
+			} else {
+				// Load validator key from config
+				privValidator := pvm.LoadOrGenFilePV(
+					homePath+"/config/priv_validator_key.json",
+					homePath+"/data/priv_validator_state.json",
+				)
+				pubKey, _ := privValidator.GetPubKey()
+				valAddr := pubKey.Address()
+
+				upgradeToTrigger, _ := appOpts.Get(server.KeyTriggerTestnetUpgrade).(string)
+
+				app.InitXionAppForTestnet(wasmApp, valAddr, pubKey, params.Operator, upgradeToTrigger)
+				logger.Info("fork state applied", "operator", params.Operator, "validator", valAddr)
+
+				// Remove marker so it doesn't run again on restart
+				os.Remove(markerPath)
+			}
+		}
+	}
+
+	return wasmApp
 }
 
 // appExport creates a new wasm app (optionally at a given height) and exports state.

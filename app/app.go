@@ -1699,9 +1699,8 @@ func buildMinimalStateDB(homePath, cpDir string, height int64) error {
 		return fmt.Errorf("copy lastABCIResponseKey: %w", err)
 	}
 
-	// Copy genesis doc — in-place-testnet reads it from state.db to avoid
-	// parsing the genesis JSON file (which has integer encoding CometBFT rejects).
-	// Note: in-place-testnet updates the chain ID in this doc after loading it.
+	// Copy genesisDoc — fork-state pre-patches its chain ID before loading state,
+	// avoiding the genesis JSON integer parsing issue entirely.
 	if err := copyKey([]byte("genesisDoc")); err != nil {
 		return fmt.Errorf("copy genesisDoc: %w", err)
 	}
