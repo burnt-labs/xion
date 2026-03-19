@@ -104,6 +104,9 @@ jobs:
           # This allows interchaintest's UpgradeVersion to find it without pulling from registry
           docker tag xion:${{ matrix.os }}-${{ matrix.arch }} local/xion:${{ matrix.os }}-${{ matrix.arch }}
 
+      - name: Download libbarretenberg
+        run: make barretenberg-build-wrapper
+
       - name: Run e2e test
         env:
           E2E_SKIP_CLEANUP: true

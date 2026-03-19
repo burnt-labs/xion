@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	errorsmod "cosmossdk.io/errors"
-
-	"github.com/burnt-labs/xion/x/zk/barretenberg"
 )
 
 func ValidateVKeyByteSize(data []byte, maxSizeBytes uint64) error {
@@ -35,7 +34,6 @@ func ValidateVKeyForProofSystem(vkeyBytes []byte, maxSizeBytes uint64, proofSyst
 		return fmt.Errorf("proof_system must be %v or %v, got %v", ProofSystem_PROOF_SYSTEM_GROTH16, ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK, proofSystem)
 	}
 }
-
 
 // ValidateVKeyBytes enforces that the vkey bytes represent a valid CircomVerificationKey JSON structure.
 func ValidateVKeyBytes(data []byte, maxDecodedSize uint64) error {
