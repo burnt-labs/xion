@@ -7,15 +7,17 @@
 #include "../include/barretenberg_wrapper.h"
 
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
 
 // Barretenberg headers
-#include "barretenberg/common/serialize.hpp"          // from_buffer<T>, many_from_buffer
-#include "barretenberg/flavor/ultra_zk_flavor.hpp"    // UltraZKFlavor
-#include "barretenberg/ultra_honk/ultra_verifier.hpp" // UltraVerifier_
-#include "barretenberg/srs/global_crs.hpp"            // init_net_crs_factory, bb_crs_path
+#include "barretenberg/common/serialize.hpp"               // from_buffer<T>, many_from_buffer
+#include "barretenberg/flavor/ultra_zk_flavor.hpp"         // UltraZKFlavor
+#include "barretenberg/ultra_honk/ultra_verifier.hpp"      // UltraVerifier_
+#include "barretenberg/srs/global_crs.hpp"                 // init_bn254_mem_crs_factory
+#include "barretenberg/srs/factories/bn254_crs_data.hpp"   // get_bn254_g2_crs_element()
 
 // Version information
 #ifndef BB_VERSION
@@ -194,22 +196,15 @@ extern "C"
         {
             auto *impl = reinterpret_cast<const bb_vkey_impl *>(vkey);
 
-            // Initialise the CRS factory (reads from BB_CRS_PATH env var or ~/.bb-crs).
-            // Validators: set BB_CRS_PATH to a pre-populated directory.
-            // If the path is absent or CRS files are missing, verification will throw below.
-            try
-            {
-                const char *crs_path_env = std::getenv("BB_CRS_PATH");
-                std::string crs_path = crs_path_env ? std::string(crs_path_env) : bb::srs::bb_crs_path().string();
-                bb::srs::init_net_crs_factory(crs_path);
-            }
-            catch (const std::exception &e)
-            {
-                std::ostringstream oss;
-                oss << "CRS initialisation failed (set BB_CRS_PATH or populate ~/.bb-crs): " << e.what();
-                set_last_error(oss.str());
-                return BB_ERR_INTERNAL;
-            }
+            // Initialize CRS with hardcoded constants - no network download needed.
+            // For verification, we only need:
+            // - 1 G1 point (the generator, a known constant)
+            // - 1 G2 point (already hardcoded in barretenberg)
+            static std::once_flag crs_init_flag;
+            std::call_once(crs_init_flag, []() {
+                std::vector<bb::g1::affine_element> minimal_g1_points = { bb::g1::affine_one };
+                bb::srs::init_bn254_mem_crs_factory(minimal_g1_points, bb::srs::get_bn254_g2_crs_element());
+            });
 
             // Deserialize VK fresh from bytes — mirrors BB CLI _verify() exactly
             auto vk = std::make_shared<VerificationKey>(
