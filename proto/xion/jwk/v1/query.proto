@@ -33,10 +33,23 @@ service Query {
     option (google.api.http).get = "/xion/jwk/audience";
   }
 
-  // Queries a list of ValidateJWT items.
+  // Deprecated: Use DecodeJWT instead, which returns all claims.
   rpc ValidateJWT(QueryValidateJWTRequest) returns (QueryValidateJWTResponse) {
+    option deprecated = true;
     option (google.api.http).get =
         "/xion/jwk/validate_jwt/{aud}/{sub}/{sig_bytes}";
+  }
+
+  // VerifyJWS verifies a compact JWS signature and returns the payload.
+  rpc VerifyJWS(QueryVerifyJWSRequest) returns (QueryVerifyJWSResponse) {
+    option (google.api.http).get =
+        "/xion/jwk/verify_jws/{aud}/{sig_bytes}";
+  }
+
+  // DecodeJWT validates a JWT and returns all claims (standard and private).
+  rpc DecodeJWT(QueryDecodeJWTRequest) returns (QueryDecodeJWTResponse) {
+    option (google.api.http).get =
+        "/xion/jwk/decode_jwt/{aud}/{sub}/{sig_bytes}";
   }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -153,4 +166,42 @@ message PrivateClaim {
 message QueryValidateJWTResponse {
   // The private claims from the JWT
   repeated PrivateClaim private_claims = 1;
+}
+
+// QueryVerifyJWSRequest is the request type for verifying a JWS signature
+message QueryVerifyJWSRequest {
+  // The audience identifier
+  string aud = 1;
+  // The JWS signature bytes in compact serialization format
+  string sig_bytes = 2;
+}
+
+// QueryVerifyJWSResponse is the response type for verifying a JWS signature
+message QueryVerifyJWSResponse {
+  // The verified payload bytes extracted from the JWS
+  bytes payload = 1;
+}
+
+// QueryDecodeJWTRequest is the request type for decoding a JWT
+message QueryDecodeJWTRequest {
+  // The audience identifier
+  string aud = 1;
+  // The subject
+  string sub = 2;
+  // The signature bytes (compact JWT)
+  string sig_bytes = 3;
+}
+
+// JWTClaim represents a single JWT claim (standard or private)
+message JWTClaim {
+  // The claim key
+  string key = 1;
+  // The claim value (stringified)
+  string value = 2;
+}
+
+// QueryDecodeJWTResponse is the response type for decoding a JWT
+message QueryDecodeJWTResponse {
+  // All claims from the JWT (standard and private), sorted by key
+  repeated JWTClaim claims = 1;
 }
