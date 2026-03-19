@@ -21,8 +21,7 @@ import (
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
-// Deprecated: Use DecodeJWT instead, which returns all claims (standard and private).
-func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRequest) (*types.QueryValidateJWTResponse, error) {
+func (k Keeper) DecodeJWT(goCtx context.Context, req *types.QueryDecodeJWTRequest) (*types.QueryDecodeJWTResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -48,22 +47,7 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 	// Reject JWS JSON Serialization (both flattened and general forms).
 	// Only compact JWTs (header.payload.signature) are accepted.
 	//
-	// Background: jwt.Parse() from lestrrat-go/jwx accepts both compact and
-	// JWS JSON serialization formats.
-	//
-	// Defense in depth — two layers:
-	//
-	// 1. Explicit leading-byte check (primary): reject anything that looks like
-	//    JSON after trimming whitespace. jwt.Parse() calls bytes.TrimSpace()
-	//    internally, which uses unicode.IsSpace (includes \t \n \v \f \r,
-	//    space, U+0085 NEL, U+00A0 NBSP). We use TrimLeftFunc with the same
-	//    predicate to ensure exact parity.
-	//
-	// 2. jwt.Settings(jwt.WithCompactOnly(true)) (backstop): the global setting
-	//    is safe here because ValidateJWT is the only jwt.Parse() call site in
-	//    this binary. It uses atomic operations so concurrent calls are fine.
-	//    This guards against future code paths that might call jwt.Parse()
-	//    without the byte check above.
+	// See ValidateJWT for full rationale. Same defence-in-depth applies here.
 	jwt.Settings(jwt.WithCompactOnly(true))
 
 	trimmed := strings.TrimLeftFunc(req.SigBytes, unicode.IsSpace)
@@ -104,12 +88,36 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 	if err != nil {
 		return nil, err
 	}
-	// returning maps in protobufs can get hairy, we return a list instead
-	privateClaimsMap := token.PrivateClaims()
-	privateClaims := make([]*types.PrivateClaim, len(privateClaimsMap))
 
-	i := 0
-	for k, v := range privateClaimsMap {
+	// Collect all claims (standard + private) into a flat list
+	claims := make([]*types.JWTClaim, 0)
+
+	// Standard claims
+	if v := token.Issuer(); v != "" {
+		claims = append(claims, &types.JWTClaim{Key: "iss", Value: v})
+	}
+	if v := token.Subject(); v != "" {
+		claims = append(claims, &types.JWTClaim{Key: "sub", Value: v})
+	}
+	if v := token.Audience(); len(v) > 0 {
+		b, _ := json.Marshal(v)
+		claims = append(claims, &types.JWTClaim{Key: "aud", Value: string(b)})
+	}
+	if v := token.Expiration(); !v.IsZero() {
+		claims = append(claims, &types.JWTClaim{Key: "exp", Value: fmt.Sprintf("%d", v.Unix())})
+	}
+	if v := token.NotBefore(); !v.IsZero() {
+		claims = append(claims, &types.JWTClaim{Key: "nbf", Value: fmt.Sprintf("%d", v.Unix())})
+	}
+	if v := token.IssuedAt(); !v.IsZero() {
+		claims = append(claims, &types.JWTClaim{Key: "iat", Value: fmt.Sprintf("%d", v.Unix())})
+	}
+	if v := token.JwtID(); v != "" {
+		claims = append(claims, &types.JWTClaim{Key: "jti", Value: v})
+	}
+
+	// Private claims
+	for claimKey, v := range token.PrivateClaims() {
 		var valStr string
 		switch c := v.(type) {
 		case string:
@@ -124,22 +132,18 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 			if b, mErr := json.Marshal(v); mErr == nil {
 				valStr = string(b)
 			} else {
-				// Fallback to fmt if JSON marshaling fails
 				valStr = fmt.Sprintf("%v", v)
 			}
 		}
-		privateClaims[i] = &types.PrivateClaim{
-			Key:   k,
-			Value: valStr,
-		}
-		i++
+		claims = append(claims, &types.JWTClaim{Key: claimKey, Value: valStr})
 	}
-	// even though there should be no duplicates, sort this deterministically
-	sort.SliceStable(privateClaims, func(i, j int) bool {
-		return privateClaims[i].Key < privateClaims[j].Key
+
+	// Sort deterministically by key
+	sort.SliceStable(claims, func(i, j int) bool {
+		return claims[i].Key < claims[j].Key
 	})
 
-	return &types.QueryValidateJWTResponse{
-		PrivateClaims: privateClaims,
+	return &types.QueryDecodeJWTResponse{
+		Claims: claims,
 	}, nil
 }
