@@ -101,11 +101,11 @@ func (p Params) Validate() error {
 	}
 
 	if p.MaxUltraHonkProofSizeBytes == 0 {
-		return errorsmod.Wrapf(ErrInvalidParams, "max_ultrahonk_proof_size_bytes must be positive")
+		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_proof_size_bytes must be positive")
 	}
 
 	if p.MaxUltraHonkPublicInputSizeBytes == 0 {
-		return errorsmod.Wrapf(ErrInvalidParams, "max_ultrahonk_public_input_size_bytes must be positive")
+		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_public_input_size_bytes must be positive")
 	}
 
 	return nil
