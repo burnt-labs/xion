@@ -3,8 +3,12 @@ package keeper_test
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -670,7 +674,7 @@ func TestQueryProofVerify(t *testing.T) {
 	f := SetupTest(t)
 
 	// Add valid vkey to the keeper for successful tests
-	validVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth_circuit", vkeyData, "Email authentication circuit")
+	validVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth_circuit", vkeyData, "Email authentication circuit", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Add an invalid vkey for error testing
@@ -688,7 +692,7 @@ func TestQueryProofVerify(t *testing.T) {
 			["19", "20", "1"]
 		]
 	}`)
-	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKey, "Invalid circuit for testing")
+	invalidVKeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_circuit", invalidVKey, "Invalid circuit for testing", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -824,7 +828,7 @@ func TestQueryProofVerifyWithStoredVKey(t *testing.T) {
 	f := SetupTest(t)
 
 	// 1. Add vkey to keeper
-	vkeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyData, "Email authentication circuit")
+	vkeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyData, "Email authentication circuit", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), vkeyID)
 
@@ -872,13 +876,13 @@ func TestQueryProofVerifyMultipleVKeys(t *testing.T) {
 	f := SetupTest(t)
 
 	// Add multiple vkeys
-	vkey1ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_1", vkeyData, "Circuit 1")
+	vkey1ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_1", vkeyData, "Circuit 1", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
-	vkey2ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_2", vkeyData, "Circuit 2")
+	vkey2ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_2", vkeyData, "Circuit 2", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
-	vkey3ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_3", vkeyData, "Circuit 3")
+	vkey3ID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circuit_3", vkeyData, "Circuit 3", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Verify proof with each vkey
@@ -917,7 +921,7 @@ func TestQueryVKey(t *testing.T) {
 
 	// Add a test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test verification key")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test verification key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -972,7 +976,7 @@ func TestQueryVKeyByName(t *testing.T) {
 
 	// Add a test vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	expectedID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication")
+	expectedID, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1044,7 +1048,7 @@ func TestQueryVKeys(t *testing.T) {
 	// Add multiple vkeys
 	for i := 0; i < 5; i++ {
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 	}
 
@@ -1132,7 +1136,7 @@ func TestQueryVKeysPagination(t *testing.T) {
 	totalVKeys := 10
 	for i := 0; i < totalVKeys; i++ {
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 	}
 
@@ -1175,7 +1179,7 @@ func TestQueryHasVKey(t *testing.T) {
 
 	// Add a test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	expectedID, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	expectedID, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1257,7 +1261,7 @@ func TestQueryNextVKeyID(t *testing.T) {
 
 		// Add a vkey
 		vkeyBytes := createTestVKeyBytes("key1")
-		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1")
+		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		// Check next ID has incremented
@@ -1276,7 +1280,7 @@ func TestQueryNextVKeyID(t *testing.T) {
 		numToAdd := 4
 		for i := 0; i < numToAdd; i++ {
 			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("multi_key%d", i))
-			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("multi_key%d", i), vkeyBytes, fmt.Sprintf("Multi Key %d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("multi_key%d", i), vkeyBytes, fmt.Sprintf("Multi Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 			require.NoError(t, err)
 		}
 
@@ -1305,7 +1309,7 @@ func TestQueryNextVKeyID(t *testing.T) {
 	t.Run("next id unchanged after vkey removal", func(t *testing.T) {
 		// Add a vkey to remove
 		vkeyBytes := createTestVKeyBytes("to_remove")
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "to_remove", vkeyBytes, "To Remove")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "to_remove", vkeyBytes, "To Remove", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		// Get next ID before removal
@@ -1343,7 +1347,7 @@ func TestQueryNextVKeyIDPredictability(t *testing.T) {
 
 		// Add vkey and get actual ID
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("predict_key%d", i))
-		actualID, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("predict_key%d", i), vkeyBytes, fmt.Sprintf("Predict Key %d", i))
+		actualID, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("predict_key%d", i), vkeyBytes, fmt.Sprintf("Predict Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		// Verify prediction was correct
@@ -1385,7 +1389,7 @@ func TestQueryNextVKeyIDAfterGenesis(t *testing.T) {
 
 	// Add a new key and verify it gets ID 101
 	vkeyBytes := createTestVKeyBytes("new_key_after_genesis")
-	newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key_after_genesis", vkeyBytes, "New key after genesis")
+	newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key_after_genesis", vkeyBytes, "New key after genesis", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(101), newID)
 
@@ -1415,7 +1419,7 @@ func TestQueryNextVKeyIDSequential(t *testing.T) {
 
 		// Add vkey
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("seq_key%d", i))
-		actualID, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("seq_key%d", i), vkeyBytes, fmt.Sprintf("Seq Key %d", i))
+		actualID, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("seq_key%d", i), vkeyBytes, fmt.Sprintf("Seq Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 		require.Equal(t, expectedID, actualID)
 	}
@@ -1440,4 +1444,204 @@ func TestQueryParams(t *testing.T) {
 	resp, err := f.queryServer.Params(f.ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, customParams, resp.Params)
+}
+
+// ============================================================================
+// UltraHonk (Barretenberg) Query Tests
+// ============================================================================
+
+// loadBarretenbergTestdata loads vk, proof, and public_inputs from x/zk/barretenberg/testdata/statics.
+// Skips the test if any file is missing (e.g. when testdata is not generated).
+func loadBarretenbergTestdata(t *testing.T) (vkBytes, proofBytes, publicInputsBytes []byte) {
+	t.Helper()
+	// Try paths: from package dir "testdata/barretenberg", or from repo root "x/zk/keeper/testdata/barretenberg"
+	candidates := []string{
+		filepath.Join("testdata", "barretenberg"),
+		filepath.Join("x", "zk", "keeper", "testdata", "barretenberg"),
+	}
+	var base string
+	for _, cand := range candidates {
+		path := filepath.Join(cand, "vk")
+		if _, err := os.Stat(path); err == nil {
+			base = cand
+			break
+		}
+	}
+	if base == "" {
+		t.Skipf("barretenberg testdata not found (run from repo root or x/zk/keeper, or set up testdata)")
+	}
+	for _, name := range []string{"vk", "proof", "public_inputs"} {
+		path := filepath.Join(base, name)
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Skipf("barretenberg testdata %s not found: %v", name, err)
+		}
+		switch name {
+		case "vk":
+			vkBytes = data
+		case "proof":
+			proofBytes = data
+		case "public_inputs":
+			publicInputsBytes = data
+		}
+	}
+	return vkBytes, proofBytes, publicInputsBytes
+}
+
+// TestQueryProofVerifyUltraHonk_Success verifies an UltraHonk proof using barretenberg testdata.
+// Requires the real barretenberg library (not stub) and testdata regenerated with bb@4.0.4.
+func TestQueryProofVerifyUltraHonk_Success(t *testing.T) {
+	if strings.HasPrefix(barretenberg.Version(), "stub") {
+		t.Skip("stub library does not perform real verification; build real library and regenerate testdata with bb@4.0.4")
+	}
+	vkBytes, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	vkeyID, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+
+	reqByName := &types.QueryVerifyUltraHonkRequest{
+		Proof:        proofBytes,
+		PublicInputs: publicInputsBytes,
+		VkeyName:     "ultrahonk_circuit",
+	}
+	resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, reqByName)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.True(t, resp.Verified, "proof should verify by vkey name")
+
+	reqByID := &types.QueryVerifyUltraHonkRequest{
+		Proof:        proofBytes,
+		PublicInputs: publicInputsBytes,
+		VkeyId:       vkeyID,
+	}
+	resp2, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, reqByID)
+	require.NoError(t, err)
+	require.NotNil(t, resp2)
+	require.True(t, resp2.Verified, "proof should verify by vkey ID")
+}
+
+// TestQueryProofVerifyUltraHonk_InvalidRequest tests error cases for ProofVerifyUltraHonk.
+func TestQueryProofVerifyUltraHonk_InvalidRequest(t *testing.T) {
+	vkBytes, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+
+	t.Run("nil request", func(t *testing.T) {
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "empty request")
+		require.Nil(t, resp)
+	})
+
+	t.Run("empty proof", func(t *testing.T) {
+		req := &types.QueryVerifyUltraHonkRequest{
+			Proof:        nil,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_circuit",
+		}
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "proof cannot be empty")
+		require.Nil(t, resp)
+	})
+
+	t.Run("neither vkey_name nor vkey_id", func(t *testing.T) {
+		req := &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+		}
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "either vkey_name or vkey_id must be provided")
+		require.Nil(t, resp)
+	})
+
+	t.Run("public_inputs not multiple of 32", func(t *testing.T) {
+		req := &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: []byte{1, 2, 3}, // not 32-byte aligned
+			VkeyName:     "ultrahonk_circuit",
+		}
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "multiple of")
+		require.Nil(t, resp)
+	})
+
+	t.Run("vkey not found by name", func(t *testing.T) {
+		req := &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "nonexistent",
+		}
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+		require.Nil(t, resp)
+	})
+
+	t.Run("vkey not found by ID", func(t *testing.T) {
+		req := &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyId:       9999,
+		}
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+		require.Nil(t, resp)
+	})
+}
+
+// TestQueryProofVerifyUltraHonk_Groth16VKeyRejected ensures a Groth16 vkey cannot be used for UltraHonk verification.
+func TestQueryProofVerifyUltraHonk_Groth16VKeyRejected(t *testing.T) {
+	_, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "groth16_circuit", vkeyData, "Groth16 vkey", types.ProofSystem_PROOF_SYSTEM_GROTH16)
+	require.NoError(t, err)
+
+	req := &types.QueryVerifyUltraHonkRequest{
+		Proof:        proofBytes,
+		PublicInputs: publicInputsBytes,
+		VkeyName:     "groth16_circuit",
+	}
+	resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not an UltraHonk key")
+	require.Nil(t, resp)
+}
+
+// TestQueryProofVerifyUltraHonk_WrongInputsReturnsFalse verifies that wrong public inputs yield Verified=false (not an error).
+// Requires the real barretenberg library (stub always returns success without cryptographic verification).
+func TestQueryProofVerifyUltraHonk_WrongInputsReturnsFalse(t *testing.T) {
+	if strings.HasPrefix(barretenberg.Version(), "stub") {
+		t.Skip("stub library always returns success; build real library to test wrong-inputs rejection")
+	}
+	vkBytes, proofBytes, _ := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+
+	// Wrong public inputs: correct count (must match vkey's expected public input count)
+	// but with incorrect values. The testdata vkey expects 2 public inputs (64 bytes total).
+	// We provide 2 field elements all set to 0xff so the count is correct but values are wrong.
+	wrongInputs := make([]byte, 2*barretenberg.FieldElementSize)
+	for i := range wrongInputs {
+		wrongInputs[i] = 0xff
+	}
+
+	req := &types.QueryVerifyUltraHonkRequest{
+		Proof:        proofBytes,
+		PublicInputs: wrongInputs,
+		VkeyName:     "ultrahonk_circuit",
+	}
+	resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.False(t, resp.Verified, "proof with wrong inputs should not verify")
 }

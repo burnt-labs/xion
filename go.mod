@@ -50,6 +50,7 @@ require (
 	github.com/CosmWasm/wasmvm/v3 v3.0.3
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/burnt-labs/abstract-account v0.1.3
+	github.com/burnt-labs/barretenberg-go v0.1.3
 	github.com/cometbft/cometbft v0.38.21
 	github.com/cosmos/cosmos-db v1.1.3
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5

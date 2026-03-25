@@ -27,6 +27,12 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
+      - name: Install clang and libc++
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+
+      - name: Build Barretenberg wrapper
+        run: make barretenberg-build-wrapper
+
       - name: Build
         run: go build -v ./...
 

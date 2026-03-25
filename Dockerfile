@@ -24,6 +24,11 @@ ENV COMMIT=${COMMIT} \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH} 
 
+# Install libc++ (barretenberg static lib is built against libc++)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libc++-dev libc++abi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the workdir
 WORKDIR /go/src/github.com/burnt-labs/xion
 

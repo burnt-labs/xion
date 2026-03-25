@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	errorsmod "cosmossdk.io/errors"
@@ -15,6 +16,23 @@ func ValidateVKeyByteSize(data []byte, maxSizeBytes uint64) error {
 		return errorsmod.Wrapf(ErrVKeyTooLarge, "vkey size %d exceeds max %d", len(data), maxSizeBytes)
 	}
 	return nil
+}
+
+// ValidateVKeyForProofSystem validates vkey bytes for the given proof system.
+// maxSizeBytes is the maximum allowed size (0 = no limit for Groth16; both systems use it when > 0).
+// Callers: msgs use DefaultMaxVKeySizeBytes; keeper uses params.MaxVkeySizeBytes.
+func ValidateVKeyForProofSystem(vkeyBytes []byte, maxSizeBytes uint64, proofSystem ProofSystem) error {
+	if proofSystem == ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
+		proofSystem = ProofSystem_PROOF_SYSTEM_GROTH16
+	}
+	switch proofSystem {
+	case ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK:
+		return barretenberg.ValidateVerificationKeyBytes(vkeyBytes, maxSizeBytes)
+	case ProofSystem_PROOF_SYSTEM_GROTH16:
+		return ValidateVKeyBytes(vkeyBytes, maxSizeBytes)
+	default:
+		return fmt.Errorf("proof_system must be %v or %v, got %v", ProofSystem_PROOF_SYSTEM_GROTH16, ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK, proofSystem)
+	}
 }
 
 // ValidateVKeyBytes enforces that the vkey bytes represent a valid CircomVerificationKey JSON structure.

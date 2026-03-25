@@ -207,9 +207,14 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 	return parser.VerifyProof(gnarkProof)
 }
 
-// AddVKey adds a new verification key to the store
-// keyBytes should be the raw JSON from SnarkJS
-func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) (uint64, error) {
+// AddVKey adds a new verification key to the store.
+// keyBytes is Groth16/Circom JSON (proofSystem groth16) or Barretenberg binary (proofSystem ultrahonk).
+// proofSystem should be types.ProofSystem_PROOF_SYSTEM_GROTH16 or types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK; unspecified defaults to groth16.
+func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string, proofSystem types.ProofSystem) (uint64, error) {
+	if proofSystem == types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
+		proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+	}
+
 	// Check if name already exists
 	has, err := k.VKeyNameIndex.Has(ctx, name)
 	if err != nil {
@@ -231,8 +236,8 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 	// charge gas for vkey size
 	ctx.GasMeter().ConsumeGas(gasCost, "zk/AddVKey: vkey size cost")
 
-	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
-		return 0, err
+	if err := types.ValidateVKeyForProofSystem(keyBytes, params.MaxVkeySizeBytes, proofSystem); err != nil {
+		return 0, errors.Wrapf(types.ErrInvalidVKey, "vkey validation: %v", err)
 	}
 
 	// Generate new ID
@@ -247,6 +252,7 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 		Name:        name,
 		Description: description,
 		Authority:   authority,
+		ProofSystem: proofSystem,
 	}
 
 	// Store vkey
@@ -308,8 +314,13 @@ func (k Keeper) GetCircomVKeyByID(ctx context.Context, id uint64) (*parser.Circo
 	return types.UnmarshalVKey(&vkey)
 }
 
-// UpdateVKey updates an existing verification key
-func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) error {
+// UpdateVKey updates an existing verification key.
+// proofSystem should be types.ProofSystem_PROOF_SYSTEM_GROTH16 or types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK; unspecified defaults to groth16.
+func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string, proofSystem types.ProofSystem) error {
+	if proofSystem == types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
+		proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+	}
+
 	// Get existing ID
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
@@ -348,8 +359,8 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 	// charge gas for vkey size
 	ctx.GasMeter().ConsumeGas(gasCost, "zk/UpdateVKey: vkey size cost")
 
-	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
-		return err
+	if err := types.ValidateVKeyForProofSystem(keyBytes, params.MaxVkeySizeBytes, proofSystem); err != nil {
+		return errors.Wrapf(types.ErrInvalidVKey, "vkey validation: %v", err)
 	}
 
 	// Update vkey
@@ -358,6 +369,7 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 		Name:        name,
 		Description: description,
 		Authority:   storedAuthority,
+		ProofSystem: proofSystem,
 	}
 
 	if err := k.VKeys.Set(ctx, id, updatedVKey); err != nil {

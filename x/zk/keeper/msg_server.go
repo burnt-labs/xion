@@ -31,7 +31,7 @@ func (ms msgServer) AddVKey(goCtx context.Context, msg *types.MsgAddVKey) (*type
 	}
 
 	// Add the vkey (authority check and validation happens inside)
-	id, err := ms.k.AddVKey(ctx, msg.Authority, msg.Name, msg.VkeyBytes, msg.Description)
+	id, err := ms.k.AddVKey(ctx, msg.Authority, msg.Name, msg.VkeyBytes, msg.Description, msg.GetProofSystem())
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (ms msgServer) UpdateVKey(goCtx context.Context, msg *types.MsgUpdateVKey) 
 		return nil, err
 	}
 
-	err := ms.k.UpdateVKey(ctx, msg.Authority, msg.Name, msg.VkeyBytes, msg.Description)
+	err := ms.k.UpdateVKey(ctx, msg.Authority, msg.Name, msg.VkeyBytes, msg.Description, msg.GetProofSystem())
 	if err != nil {
 		return nil, err
 	}

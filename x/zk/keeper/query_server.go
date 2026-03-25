@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"context"
+	goerrors "errors"
 	"fmt"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	"cosmossdk.io/collections"
@@ -60,6 +62,77 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	verified, err := q.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
 	if err != nil {
 		return nil, err
+	}
+	return &types.ProofVerifyResponse{Verified: verified}, nil
+}
+
+// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof using a vkey looked up by name or ID.
+func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyUltraHonkRequest) (*types.ProofVerifyResponse, error) {
+	if req == nil {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
+	}
+	if len(req.GetProof()) == 0 {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
+	}
+	// Resolve vkey by name or ID (prefer name when both are set, same as Groth16 verify-proof)
+	var vkey types.VKey
+	var err error
+	switch {
+	case req.GetVkeyName() != "":
+		vkey, err = q.GetVKeyByName(c, req.GetVkeyName())
+	case req.GetVkeyId() != 0:
+		vkey, err = q.GetVKeyByID(c, req.GetVkeyId())
+	default:
+		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if vkey.ProofSystem != types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
+		proofSystem := vkey.ProofSystem
+		if proofSystem == 0 {
+			proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+		}
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not an UltraHonk key (proof_system=%v)", proofSystem)
+	}
+
+	publicInputs := req.GetPublicInputs()
+	if len(publicInputs)%barretenberg.FieldElementSize != 0 {
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "public_inputs length %d is not a multiple of %d", len(publicInputs), barretenberg.FieldElementSize)
+	}
+	numChunks := len(publicInputs) / barretenberg.FieldElementSize
+	chunks := make([][]byte, numChunks)
+	for i := 0; i < numChunks; i++ {
+		start := i * barretenberg.FieldElementSize
+		chunks[i] = publicInputs[start : start+barretenberg.FieldElementSize]
+	}
+
+	vk, err := barretenberg.ParseVerificationKey(vkey.KeyBytes)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidVKey, "ultrahonk vkey: %v", err)
+	}
+	defer vk.Close()
+
+	proof, err := barretenberg.ParseProof(req.GetProof())
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "proof: %v", err)
+	}
+
+	verifier, err := barretenberg.NewVerifier(vk)
+	if err != nil {
+		return nil, err
+	}
+	defer verifier.Close()
+
+	verified, err := verifier.VerifyWithBytes(proof, chunks)
+	if err != nil {
+		if goerrors.Is(err, barretenberg.ErrVerificationFailed) ||
+			goerrors.Is(err, barretenberg.ErrInvalidPublicInputs) ||
+			goerrors.Is(err, barretenberg.ErrInternal) {
+			return &types.ProofVerifyResponse{Verified: false}, nil
+		}
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification: %v", err)
 	}
 	return &types.ProofVerifyResponse{Verified: verified}, nil
 }
