@@ -18,5 +18,5 @@ var (
 	ErrVKeyTooLarge         = errorsmod.Register(ModuleName, 1108, "verification key exceeds maximum size")
 	ErrInvalidParams        = errorsmod.Register(ModuleName, 1109, "invalid zk module parameters")
 	ErrProofTooLarge        = errorsmod.Register(ModuleName, 1110, "proof exceeds maximum size")
-	ErrPublicInputsTooLarge = errorsmod.Register(ModuleName, 1111, "public inputs exceeds maximum size")
+	ErrPublicInputsTooLarge = errorsmod.Register(ModuleName, 1111, "public inputs exceed maximum size")
 )
