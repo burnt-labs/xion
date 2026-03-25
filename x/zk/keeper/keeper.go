@@ -97,7 +97,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 		params = types.DefaultParams()
 	}
 
-	// Backfill newly-added Groth16 size params when upgrading old genesis files.
+	// Backfill newly-added Groth16 and UltraHonk proof/public-input size params when upgrading old genesis files.
 	params = params.WithMaxLimitDefaults()
 
 	if err := params.Validate(); err != nil {
