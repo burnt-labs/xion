@@ -11,7 +11,7 @@ jobs:
   trigger-types:
     name: Trigger Types
     if: github.repository == 'burnt-labs/xion'
-    uses: burnt-labs/xion-types/.github/workflows/release.yaml@main
+    uses: ./.github/workflows/trigger-types.yaml
     with:
       release_tag: ${{ github.event.release.tag_name }}
     secrets: inherit
