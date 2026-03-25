@@ -93,7 +93,8 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 		return fmt.Errorf("invalid authority address: %w", err)
 	}
 
-	return m.Params.Validate()
+	// Backfill newly-added Groth16 size params for older clients that don't specify them.
+	return m.Params.WithMaxLimitDefaults().Validate()
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.

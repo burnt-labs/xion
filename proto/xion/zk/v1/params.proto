@@ -30,4 +30,18 @@ message Params {
 
   // upload_chunk_gas defines the gas cost per upload chunk.
   uint64 upload_chunk_gas = 3;
+
+  // max_groth16_proof_size_bytes caps the size of a Groth16 proof JSON payload.
+  uint64 max_groth16_proof_size_bytes = 4;
+
+  // max_groth16_public_input_size_bytes caps the size of the Groth16 public inputs.
+  // The size is computed as the total UTF-8 byte length of all provided public input strings.
+  uint64 max_groth16_public_input_size_bytes = 5;
+
+  // max_ultra_honk_proof_size_bytes caps the size of an UltraHonk proof.
+  uint64 max_ultra_honk_proof_size_bytes = 6;
+
+  // max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk public inputs.
+  // UltraHonk public inputs are provided as raw bytes.
+  uint64 max_ultra_honk_public_input_size_bytes = 7;
 }

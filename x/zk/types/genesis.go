@@ -30,6 +30,9 @@ func (gs GenesisState) Validate() error {
 		params = DefaultParams()
 	}
 
+	// Backfill newly-added Groth16 params when loading older genesis files.
+	params = params.WithMaxLimitDefaults()
+
 	if err := params.Validate(); err != nil {
 		return err
 	}

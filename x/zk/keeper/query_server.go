@@ -31,9 +31,37 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
 	}
 
+	params, err := q.GetParams(c)
+	if err != nil {
+		return nil, err
+	}
+
 	// Validate proof bytes
 	if len(req.Proof) == 0 {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
+	}
+
+	if uint64(len(req.Proof)) > params.MaxGroth16ProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d > max %d bytes",
+			len(req.Proof),
+			params.MaxGroth16ProofSizeBytes,
+		)
+	}
+
+	// Approximate public-input payload size as total UTF-8 byte length of all provided strings.
+	var publicInputsSize uint64
+	for _, in := range req.PublicInputs {
+		publicInputsSize += uint64(len(in))
+	}
+	if publicInputsSize > params.MaxGroth16PublicInputSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrPublicInputsTooLarge,
+			"public inputs size %d > max %d bytes",
+			publicInputsSize,
+			params.MaxGroth16PublicInputSizeBytes,
+		)
 	}
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
@@ -74,9 +102,33 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	if len(req.GetProof()) == 0 {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
 	}
+
+	params, err := q.GetParams(c)
+	if err != nil {
+		return nil, err
+	}
+
+	if uint64(len(req.GetProof())) > params.MaxUltraHonkProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d > max %d bytes",
+			len(req.GetProof()),
+			params.MaxUltraHonkProofSizeBytes,
+		)
+	}
+
+	// UltraHonk public inputs are provided as raw bytes.
+	if uint64(len(req.GetPublicInputs())) > params.MaxUltraHonkPublicInputSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrPublicInputsTooLarge,
+			"public inputs size %d > max %d bytes",
+			len(req.GetPublicInputs()),
+			params.MaxUltraHonkPublicInputSizeBytes,
+		)
+	}
+
 	// Resolve vkey by name or ID (prefer name when both are set, same as Groth16 verify-proof)
 	var vkey types.VKey
-	var err error
 	switch {
 	case req.GetVkeyName() != "":
 		vkey, err = q.GetVKeyByName(c, req.GetVkeyName())
