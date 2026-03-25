@@ -192,7 +192,7 @@ func (k Keeper) GetParams(ctx context.Context) (types.Params, error) {
 
 // SetParams validates and persists zk module parameters.
 func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
-	// Backfill newly-added Groth16 size params when not provided.
+	// Backfill newly-added max limit params (e.g. Groth16 and UltraHonk) when not provided.
 	params = params.WithMaxLimitDefaults()
 
 	if err := params.Validate(); err != nil {
