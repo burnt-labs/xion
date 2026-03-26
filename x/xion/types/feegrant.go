@@ -6,10 +6,10 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-	"github.com/cosmos/gogoproto/proto"
-
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/x/feegrant"
+
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +22,8 @@ import (
 // O(n) bookkeeping iterations, not cryptographic operations.
 //
 // Upstream tracking: https://github.com/cosmos/cosmos-sdk/issues/9054
-//                    https://github.com/cosmos/cosmos-sdk/discussions/9072
+//
+//	https://github.com/cosmos/cosmos-sdk/discussions/9072
 //
 // For the heavier cryptographic query endpoints (ZK proof verification and
 // DKIM authentication), dedicated gas constants are defined in
