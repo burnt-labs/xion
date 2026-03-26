@@ -712,6 +712,10 @@ func TestQueryProofVerify(t *testing.T) {
 		vkeyID       uint64
 		shouldError  bool
 		errorMsg     string
+		// expectedErr, when non-nil, is checked with require.ErrorIs in addition to the
+		// errorMsg substring check. Storing this in the struct avoids fragile name-based
+		// switches in the test runner.
+		expectedErr error
 	}{
 		{
 			name:         "verify proof success with valid data using vkey name",
