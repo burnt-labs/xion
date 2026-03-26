@@ -104,7 +104,12 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 			}
 		}
 
-		return next(ctx, tx, simulate)
+		// Clear the validator-local min-gas-prices from the context so that
+		// downstream ante decorators do not reject zero-fee bypass transactions
+		// (e.g. IBC relayer packets) on validators with non-zero local minimums.
+		// The non-bypass path sets feeRequired via ctx.WithMinGasPrices; we apply
+		// the same pattern here with an empty DecCoins to normalize the context.
+		return next(ctx.WithMinGasPrices(sdk.DecCoins{}), tx, simulate)
 	}
 
 	// Get the required fees, as per xion specification max(network_fees, local_validator_fees)
