@@ -270,12 +270,12 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 
 	// If public inputs have email hosts but allowedEmailHosts is empty, return error
 	if len(req.AllowedEmailHosts) == 0 {
-		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s is not present in allowed email hosts list", emailHostFromPublicInputsString)
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s does not match any of the allowed email hosts", emailHostFromPublicInputsString)
 	}
 
 	// Check if the email host from public inputs is present in the allowedEmailHosts list
 	if !IsSubset([]string{emailHostFromPublicInputsString}, req.AllowedEmailHosts) {
-		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s is not present in allowed email hosts list: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s does not match any of the allowed email hosts: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
 	}
 
 	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.EmailSubjectRange.Start:indices.EmailSubjectRange.End])

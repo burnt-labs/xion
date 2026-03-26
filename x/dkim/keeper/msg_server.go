@@ -137,9 +137,6 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	}
 	revoked := false
 	for i := range kvs {
-		if kvs[i].Value.Domain != msg.Domain {
-			continue
-		}
 		pubKeyBytes, err := types.DecodePubKeyWithLimit(kvs[i].Value.PubKey, params.MaxPubkeySizeBytes)
 		if err != nil {
 			return nil, err
