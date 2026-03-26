@@ -712,6 +712,10 @@ func TestQueryProofVerify(t *testing.T) {
 		vkeyID       uint64
 		shouldError  bool
 		errorMsg     string
+		// expectedErr, when non-nil, is checked with require.ErrorIs in addition to the
+		// errorMsg substring check. Storing this in the struct avoids fragile name-based
+		// switches in the test runner.
+		expectedErr error
 	}{
 		{
 			name:         "verify proof success with valid data using vkey name",
@@ -750,6 +754,7 @@ func TestQueryProofVerify(t *testing.T) {
 			vkeyName:     "email_auth_circuit",
 			shouldError:  true,
 			errorMsg:     "proof size",
+			expectedErr:  types.ErrProofTooLarge,
 		},
 		{
 			name:         "public inputs exceed max size",
@@ -758,6 +763,7 @@ func TestQueryProofVerify(t *testing.T) {
 			vkeyName:     "email_auth_circuit",
 			shouldError:  true,
 			errorMsg:     "public inputs size",
+			expectedErr:  types.ErrPublicInputsTooLarge,
 		},
 		{
 			name:         "non-existent vkey name",
@@ -835,11 +841,8 @@ func TestQueryProofVerify(t *testing.T) {
 
 			if tc.shouldError {
 				require.Error(t, err, "Expected error for test case: %s", tc.name)
-				switch tc.name {
-				case "proof exceeds max size":
-					require.ErrorIs(t, err, types.ErrProofTooLarge)
-				case "public inputs exceed max size":
-					require.ErrorIs(t, err, types.ErrPublicInputsTooLarge)
+				if tc.expectedErr != nil {
+					require.ErrorIs(t, err, tc.expectedErr)
 				}
 				if tc.errorMsg != "" {
 					require.Contains(t, err.Error(), tc.errorMsg, "Error message mismatch for test case: %s", tc.name)
