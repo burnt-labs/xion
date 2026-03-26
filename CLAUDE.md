@@ -15,7 +15,7 @@ make proto-gen              # Regenerate protobuf types
 
 ### Release Flow (most important)
 
-Releasing is triggered by **pushing a tag** matching `v[0-9]+.[0-9]+.[0-9]+` or `v*-rc*`.
+Releasing is triggered by **manually running** `create-release.yaml` via `workflow_dispatch`, or by **pushing a tag** matching `v[0-9]+\.[0-9]+\.[0-9]+` (stable) or `v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+` (release candidate).
 
 1. **`create-release.yaml`** — Triggered on tag push. Kicks off the full build pipeline.
 2. **`publish-release.yaml`** — Triggered on `release:published`. Runs GoReleaser (Fury packages, homebrew).
@@ -39,6 +39,9 @@ Releasing is triggered by **pushing a tag** matching `v[0-9]+.[0-9]+.[0-9]+` or 
 | `docker-build.yaml` / `docker-push.yaml` | Docker image build/push |
 | `exec-goreleaser.yaml` | GoReleaser execution |
 | `trigger-types.yaml` | Calls xion-types release workflow |
+| `update-swagger.yaml` | Update OpenAPI/Swagger specifications |
+| `docker-scout.yaml` | Docker image vulnerability scanning |
+| `verify-installers.yaml` | Verify release installers and artifacts |
 
 ### CI Workflows
 
@@ -74,4 +77,4 @@ On every rc release:
 | `FURY_TOKEN` | Publish to Gemfury |
 | `AWS_OIDC_ROLE` | Docker ECR |
 | `DOCKER_HUB_USERNAME` / `DOCKER_HUB_ACCESS_TOKEN` | Docker Hub |
-| `BURNT_CLAUDE_API_KEY` | Claude Code workflows |
+| `BURNT_CLAUDE_API_KEY` | (optional) Used by `claude-code-review.yml` and `claude.yml` Claude Code workflows |
