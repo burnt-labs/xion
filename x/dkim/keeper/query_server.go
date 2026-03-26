@@ -205,6 +205,12 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 	indices := params.PublicInputIndices
 
+	// Charge gas proportional to public inputs count to prevent free DoS
+	// via Stargate-whitelisted or CosmWasm-callable query endpoints.
+	sdkCtx := sdk.UnwrapSDKContext(c)
+	authGas := types.AuthenticateBaseGas + types.AuthenticatePerPublicInputGas*uint64(len(req.PublicInputs))
+	sdkCtx.GasMeter().ConsumeGas(authGas, "dkim/Authenticate: proof verification cost")
+
 	if uint64(len(req.PublicInputs)) < indices.MinLength {
 		return nil, errors.Wrapf(types.ErrNotEnoughPublicInputs, "insufficient public inputs, need at least %d elements, got %d", indices.MinLength, len(req.PublicInputs))
 	}
