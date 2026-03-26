@@ -6,10 +6,10 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/x/feegrant"
-
-	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
