@@ -474,7 +474,7 @@ func TestMsgServer_UpdateParams(t *testing.T) {
 
 		stored, err := f.k.GetParams(f.ctx)
 		require.NoError(t, err)
-		require.Equal(t, newParams, stored)
+		require.Equal(t, newParams.WithMaxLimitDefaults(), stored)
 	})
 
 	t.Run("rejects mismatched authority", func(t *testing.T) {

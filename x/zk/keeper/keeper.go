@@ -96,6 +96,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 	if params == (types.Params{}) {
 		params = types.DefaultParams()
 	}
+
+	// Backfill newly-added Groth16 and UltraHonk proof/public-input size params when upgrading old genesis files.
+	params = params.WithMaxLimitDefaults()
+
 	if err := params.Validate(); err != nil {
 		panic(err)
 	}
@@ -182,11 +186,15 @@ func (k Keeper) GetParams(ctx context.Context) (types.Params, error) {
 		return types.Params{}, err
 	}
 
-	return params, nil
+	// Ensure newly-added fields are always populated with sane defaults.
+	return params.WithMaxLimitDefaults(), nil
 }
 
 // SetParams validates and persists zk module parameters.
 func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
+	// Backfill newly-added max limit params (e.g. Groth16 and UltraHonk) when not provided.
+	params = params.WithMaxLimitDefaults()
+
 	if err := params.Validate(); err != nil {
 		return err
 	}

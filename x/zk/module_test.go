@@ -47,7 +47,7 @@ func TestAppModule_Name(t *testing.T) {
 
 func TestAppModule_ConsensusVersion(t *testing.T) {
 	appModule, _ := setupModule(t)
-	require.Equal(t, uint64(2), appModule.ConsensusVersion())
+	require.Equal(t, uint64(3), appModule.ConsensusVersion())
 }
 
 func TestAppModule_DefaultGenesis(t *testing.T) {

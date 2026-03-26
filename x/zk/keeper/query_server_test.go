@@ -670,6 +670,15 @@ var vkeyJSON = []byte(`{
 
 var vkeyData = vkeyJSON
 
+// groth16PublicInputsTotalBytes matches ProofVerify: sum of UTF-8 lengths of each public input string.
+func groth16PublicInputsTotalBytes(inputs []string) uint64 {
+	var n uint64
+	for _, s := range inputs {
+		n += uint64(len(s))
+	}
+	return n
+}
+
 func TestQueryProofVerify(t *testing.T) {
 	f := SetupTest(t)
 
@@ -733,6 +742,22 @@ func TestQueryProofVerify(t *testing.T) {
 			vkeyName:     "email_auth_circuit",
 			shouldError:  true,
 			errorMsg:     "proof cannot be empty",
+		},
+		{
+			name:         "proof exceeds max size",
+			proofBz:      make([]byte, int(types.DefaultMaxGroth16ProofSizeBytes)+1),
+			publicInputs: publicInputs,
+			vkeyName:     "email_auth_circuit",
+			shouldError:  true,
+			errorMsg:     "proof size",
+		},
+		{
+			name:         "public inputs exceed max size",
+			proofBz:      proofData,
+			publicInputs: []string{strings.Repeat("1", int(types.DefaultMaxGroth16PublicInputSizeBytes)+1)},
+			vkeyName:     "email_auth_circuit",
+			shouldError:  true,
+			errorMsg:     "public inputs size",
 		},
 		{
 			name:         "non-existent vkey name",
@@ -810,6 +835,12 @@ func TestQueryProofVerify(t *testing.T) {
 
 			if tc.shouldError {
 				require.Error(t, err, "Expected error for test case: %s", tc.name)
+				switch tc.name {
+				case "proof exceeds max size":
+					require.ErrorIs(t, err, types.ErrProofTooLarge)
+				case "public inputs exceed max size":
+					require.ErrorIs(t, err, types.ErrPublicInputsTooLarge)
+				}
 				if tc.errorMsg != "" {
 					require.Contains(t, err.Error(), tc.errorMsg, "Error message mismatch for test case: %s", tc.name)
 				}
@@ -821,6 +852,79 @@ func TestQueryProofVerify(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestQueryProofVerify_ParamMaxSizeEnforced checks that ProofVerify reads limits from module params:
+// tightening max below the real payload must fail; restoring limits allows verification to succeed.
+func TestQueryProofVerify_ParamMaxSizeEnforced(t *testing.T) {
+	f := SetupTest(t)
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "size_limit_circuit", vkeyData, "circuit for size limit tests", types.ProofSystem_PROOF_SYSTEM_GROTH16)
+	require.NoError(t, err)
+
+	proofLen := uint64(len(proofData))
+	pubTotal := groth16PublicInputsTotalBytes(publicInputs)
+	require.Greater(t, proofLen, uint64(1), "proof fixture must be longer than 1 byte")
+	require.Greater(t, pubTotal, uint64(1), "public inputs fixture must have positive total size")
+
+	base := types.DefaultParams()
+
+	t.Run("proof rejected when max_groth16_proof_size_bytes below payload", func(t *testing.T) {
+		p := base
+		p.MaxGroth16ProofSizeBytes = proofLen - 1
+		require.NoError(t, f.k.SetParams(f.ctx, p))
+
+		_, err := f.queryServer.ProofVerify(f.ctx, &types.QueryVerifyRequest{
+			Proof:        proofData,
+			PublicInputs: publicInputs,
+			VkeyName:     "size_limit_circuit",
+		})
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrProofTooLarge)
+	})
+
+	t.Run("public inputs rejected when max_groth16_public_input_size_bytes below payload", func(t *testing.T) {
+		p := base
+		p.MaxGroth16ProofSizeBytes = proofLen
+		p.MaxGroth16PublicInputSizeBytes = pubTotal - 1
+		require.NoError(t, f.k.SetParams(f.ctx, p))
+
+		_, err := f.queryServer.ProofVerify(f.ctx, &types.QueryVerifyRequest{
+			Proof:        proofData,
+			PublicInputs: publicInputs,
+			VkeyName:     "size_limit_circuit",
+		})
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrPublicInputsTooLarge)
+	})
+
+	t.Run("verification succeeds when limits cover payload", func(t *testing.T) {
+		require.NoError(t, f.k.SetParams(f.ctx, base))
+
+		res, err := f.queryServer.ProofVerify(f.ctx, &types.QueryVerifyRequest{
+			Proof:        proofData,
+			PublicInputs: publicInputs,
+			VkeyName:     "size_limit_circuit",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.True(t, res.Verified)
+	})
+
+	t.Run("proof exactly at max size limit is allowed through size gate", func(t *testing.T) {
+		p := base
+		p.MaxGroth16ProofSizeBytes = proofLen
+		p.MaxGroth16PublicInputSizeBytes = pubTotal
+		require.NoError(t, f.k.SetParams(f.ctx, p))
+
+		res, err := f.queryServer.ProofVerify(f.ctx, &types.QueryVerifyRequest{
+			Proof:        proofData,
+			PublicInputs: publicInputs,
+			VkeyName:     "size_limit_circuit",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.True(t, res.Verified)
+	})
 }
 
 // TestQueryProofVerifyWithStoredVKey tests the complete flow of storing a vkey and using it for verification
@@ -1437,6 +1541,11 @@ func TestQueryParams(t *testing.T) {
 		MaxVkeySizeBytes: 1024,
 		UploadChunkSize:  32,
 		UploadChunkGas:   500,
+
+		MaxGroth16ProofSizeBytes:         types.DefaultMaxGroth16ProofSizeBytes,
+		MaxGroth16PublicInputSizeBytes:   types.DefaultMaxGroth16PublicInputSizeBytes,
+		MaxUltraHonkProofSizeBytes:       types.DefaultMaxUltraHonkProofSizeBytes,
+		MaxUltraHonkPublicInputSizeBytes: types.DefaultMaxUltraHonkPublicInputSizeBytes,
 	}
 	err := f.k.Params.Set(f.ctx, customParams)
 	require.NoError(t, err)
@@ -1571,6 +1680,30 @@ func TestQueryProofVerifyUltraHonk_InvalidRequest(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
+	t.Run("proof exceeds max size", func(t *testing.T) {
+		req := &types.QueryVerifyUltraHonkRequest{
+			Proof:        make([]byte, int(types.DefaultMaxUltraHonkProofSizeBytes)+1),
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_circuit",
+		}
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrProofTooLarge)
+		require.Nil(t, resp)
+	})
+
+	t.Run("public inputs exceed max size", func(t *testing.T) {
+		req := &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: make([]byte, int(types.DefaultMaxUltraHonkPublicInputSizeBytes)+1),
+			VkeyName:     "ultrahonk_circuit",
+		}
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrPublicInputsTooLarge)
+		require.Nil(t, resp)
+	})
+
 	t.Run("vkey not found by name", func(t *testing.T) {
 		req := &types.QueryVerifyUltraHonkRequest{
 			Proof:        proofBytes,
@@ -1593,6 +1726,86 @@ func TestQueryProofVerifyUltraHonk_InvalidRequest(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not found")
 		require.Nil(t, resp)
+	})
+}
+
+// TestQueryProofVerifyUltraHonk_ParamMaxSizeEnforced checks that ProofVerifyUltraHonk reads limits from module params.
+func TestQueryProofVerifyUltraHonk_ParamMaxSizeEnforced(t *testing.T) {
+	vkBytes, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_size_circuit", vkBytes, "UltraHonk size limit tests", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+
+	proofLen := uint64(len(proofBytes))
+	pubLen := uint64(len(publicInputsBytes))
+	require.Greater(t, proofLen, uint64(1))
+	require.Greater(t, pubLen, uint64(1))
+
+	base := types.DefaultParams()
+
+	t.Run("proof rejected when max_ultrahonk_proof_size_bytes below payload", func(t *testing.T) {
+		p := base
+		p.MaxUltraHonkProofSizeBytes = proofLen - 1
+		require.NoError(t, f.k.SetParams(f.ctx, p))
+
+		_, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_size_circuit",
+		})
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrProofTooLarge)
+	})
+
+	t.Run("public inputs rejected when max_ultrahonk_public_input_size_bytes below payload", func(t *testing.T) {
+		p := base
+		p.MaxUltraHonkProofSizeBytes = proofLen
+		p.MaxUltraHonkPublicInputSizeBytes = pubLen - 1
+		require.NoError(t, f.k.SetParams(f.ctx, p))
+
+		_, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_size_circuit",
+		})
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrPublicInputsTooLarge)
+	})
+
+	t.Run("verification succeeds when limits cover payload", func(t *testing.T) {
+		if strings.HasPrefix(barretenberg.Version(), "stub") {
+			t.Skip("stub library does not perform real verification")
+		}
+		require.NoError(t, f.k.SetParams(f.ctx, base))
+
+		res, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_size_circuit",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.True(t, res.Verified)
+	})
+
+	t.Run("payload exactly at max limits passes size gate and verifies", func(t *testing.T) {
+		if strings.HasPrefix(barretenberg.Version(), "stub") {
+			t.Skip("stub library does not perform real verification")
+		}
+		p := base
+		p.MaxUltraHonkProofSizeBytes = proofLen
+		p.MaxUltraHonkPublicInputSizeBytes = pubLen
+		require.NoError(t, f.k.SetParams(f.ctx, p))
+
+		res, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_size_circuit",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, res)
+		require.True(t, res.Verified)
 	})
 }
 
