@@ -58,6 +58,20 @@ func TestMsgCreateAudience(t *testing.T) {
 			key:       `{"kty":"oct","alg":"HS256","k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow"}`,
 			expectErr: true,
 		},
+		{
+			name:      "kty=oct with RSA algorithm (kty/alg mismatch)",
+			admin:     admin,
+			aud:       "test-audience",
+			key:       `{"kty":"oct","alg":"RS256","k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow"}`,
+			expectErr: true,
+		},
+		{
+			name:      "kty=RSA with EC algorithm (kty/alg mismatch)",
+			admin:     admin,
+			aud:       "test-audience",
+			key:       `{"kty":"RSA","alg":"ES256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw","e":"AQAB"}`,
+			expectErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -366,6 +380,26 @@ func TestMsgUpdateAudienceValidation(t *testing.T) {
 				NewAdmin: validNewAdmin,
 				Aud:      "test-audience",
 				Key:      `{"kty":"RSA","use":"sig","alg":"INVALID","n":"test","e":"AQAB"}`,
+			},
+			wantErr: true,
+		},
+		{
+			name: "kty=oct with RSA algorithm (kty/alg mismatch)",
+			msg: types.MsgUpdateAudience{
+				Admin:    validAdmin,
+				NewAdmin: validNewAdmin,
+				Aud:      "test-audience",
+				Key:      `{"kty":"oct","alg":"RS256","k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow"}`,
+			},
+			wantErr: true,
+		},
+		{
+			name: "kty=RSA with EC algorithm (kty/alg mismatch)",
+			msg: types.MsgUpdateAudience{
+				Admin:    validAdmin,
+				NewAdmin: validNewAdmin,
+				Aud:      "test-audience",
+				Key:      `{"kty":"RSA","alg":"ES256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`,
 			},
 			wantErr: true,
 		},

@@ -56,6 +56,35 @@ func (msg *MsgCreateAudience) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
+// validateJWKKeyTypeAlgConsistency checks that the key type (kty) is
+// consistent with the signature algorithm (alg).  A mismatch (e.g.
+// kty=oct combined with alg=RS256) would be stored successfully but
+// would permanently break JWT verification for that audience because
+// the verifier would attempt to use the wrong key material.
+func validateJWKKeyTypeAlgConsistency(key jwk.Key, sigAlg jwa.SignatureAlgorithm) error {
+	kty := key.KeyType()
+
+	switch sigAlg {
+	// RSA algorithms require kty=RSA
+	case jwa.RS256, jwa.RS384, jwa.RS512, jwa.PS256, jwa.PS384, jwa.PS512:
+		if kty != jwa.RSA {
+			return fmt.Errorf("algorithm %s requires kty=RSA, got kty=%s", sigAlg, kty)
+		}
+	// ECDSA algorithms require kty=EC
+	case jwa.ES256, jwa.ES384, jwa.ES512:
+		if kty != jwa.EC {
+			return fmt.Errorf("algorithm %s requires kty=EC, got kty=%s", sigAlg, kty)
+		}
+	// EdDSA requires kty=OKP
+	case jwa.EdDSA:
+		if kty != jwa.OKP {
+			return fmt.Errorf("algorithm %s requires kty=OKP, got kty=%s", sigAlg, kty)
+		}
+	}
+
+	return nil
+}
+
 func (msg *MsgCreateAudience) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Admin)
 	if err != nil {
@@ -75,6 +104,10 @@ func (msg *MsgCreateAudience) ValidateBasic() error {
 	switch sigAlg {
 	case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
 		return fmt.Errorf("invalid algorithm: %s", sigAlg.String())
+	}
+
+	if err := validateJWKKeyTypeAlgConsistency(key, sigAlg); err != nil {
+		return errorsmod.Wrapf(ErrInvalidJWK, "%s", err)
 	}
 
 	return nil
@@ -143,6 +176,10 @@ func (msg *MsgUpdateAudience) ValidateBasic() error {
 	switch sigAlg {
 	case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
 		return fmt.Errorf("invalid algorithm: %s", sigAlg.String())
+	}
+
+	if err := validateJWKKeyTypeAlgConsistency(key, sigAlg); err != nil {
+		return errorsmod.Wrapf(ErrInvalidJWK, "%s", err)
 	}
 
 	return nil
