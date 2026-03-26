@@ -95,7 +95,14 @@ func ConvertBigIntArrayToString(arr []*big.Int) (string, error) {
 	return string(bytes.TrimRight(allBytes, "\x00")), nil
 }
 
-// this function converts a byte slice to little-endian format and trims leading zeros
+// ToLittleEndianWithLeadingZerosTrimming converts a big-endian byte slice to
+// little-endian and removes any high-order (trailing in little-endian) zero
+// bytes that correspond to leading zeros in the original big-endian form.
+//
+// A BN254 field element whose value is exactly zero must not produce an empty
+// slice, because that would be indistinguishable from the absence of data and
+// would cause two distinct inputs to hash to the same Poseidon value.  For
+// the zero element, a single 0x00 byte is returned instead.
 func ToLittleEndianWithLeadingZerosTrimming(b []byte) []byte {
 	result := make([]byte, 0)
 	skipZeros := true
@@ -108,6 +115,13 @@ func ToLittleEndianWithLeadingZerosTrimming(b []byte) []byte {
 		skipZeros = false
 		result = append(result, val)
 	}
+
+	// If every byte was zero the input represents the zero field element.
+	// Return a single zero byte so callers can distinguish it from "no data".
+	if len(result) == 0 {
+		return []byte{0x00}
+	}
+
 	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
 		result[i], result[j] = result[j], result[i]
 	}

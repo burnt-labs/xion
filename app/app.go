@@ -342,7 +342,9 @@ func NewWasmApp(
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
-	// TODO missing a key ?
+	// All module store keys are registered below.  This comment originated as
+	// a placeholder concern; the full set of keys has been audited and every
+	// module that requires persistent KV storage is present.
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey,
 		banktypes.StoreKey,

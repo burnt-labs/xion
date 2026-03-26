@@ -17,8 +17,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
-// TODO: Revisit this once we have proper gas fee framework.
-// Tracking issues https://github.com/cosmos/cosmos-sdk/issues/9054, https://github.com/cosmos/cosmos-sdk/discussions/9072
+// gasCostPerIteration is charged per allowance / message check in the fee-grant
+// Accept loops below.  The value is intentionally small because these are
+// O(n) bookkeeping iterations, not cryptographic operations.
+//
+// Upstream tracking: https://github.com/cosmos/cosmos-sdk/issues/9054
+//                    https://github.com/cosmos/cosmos-sdk/discussions/9072
+//
+// For the heavier cryptographic query endpoints (ZK proof verification and
+// DKIM authentication), dedicated gas constants are defined in
+// x/zk/types/params.go and x/dkim/types/params.go respectively.
 const (
 	gasCostPerIteration = uint64(10)
 )
