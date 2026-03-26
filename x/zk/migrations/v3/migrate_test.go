@@ -39,6 +39,12 @@ func TestMigrateStore(t *testing.T) {
 	_, err := sb.Build()
 	require.NoError(t, err)
 
+	t.Run("returns nil when params not found", func(t *testing.T) {
+		require.NoError(t, v3.MigrateStore(ctx, paramsItem))
+		_, err := paramsItem.Get(ctx)
+		require.ErrorIs(t, err, collections.ErrNotFound)
+	})
+
 	t.Run("backfills groth16 param defaults", func(t *testing.T) {
 		// Simulate pre-v3 persisted params (new groth16 fields unset -> zero values).
 		oldParams := types.Params{
@@ -61,5 +67,48 @@ func TestMigrateStore(t *testing.T) {
 		require.Equal(t, oldParams.MaxVkeySizeBytes, got.MaxVkeySizeBytes)
 		require.Equal(t, oldParams.UploadChunkSize, got.UploadChunkSize)
 		require.Equal(t, oldParams.UploadChunkGas, got.UploadChunkGas)
+	})
+
+	t.Run("is idempotent when all params already set", func(t *testing.T) {
+		params := types.DefaultParams()
+		params.MaxVkeySizeBytes = 2000
+		params.UploadChunkSize = 40
+		params.UploadChunkGas = 20_000
+		params.MaxGroth16ProofSizeBytes = 111
+		params.MaxGroth16PublicInputSizeBytes = 222
+		params.MaxUltraHonkProofSizeBytes = 333
+		params.MaxUltraHonkPublicInputSizeBytes = 444
+		require.NoError(t, paramsItem.Set(ctx, params))
+
+		require.NoError(t, v3.MigrateStore(ctx, paramsItem))
+		afterFirst, err := paramsItem.Get(ctx)
+		require.NoError(t, err)
+		require.Equal(t, params, afterFirst)
+
+		require.NoError(t, v3.MigrateStore(ctx, paramsItem))
+		afterSecond, err := paramsItem.Get(ctx)
+		require.NoError(t, err)
+		require.Equal(t, afterFirst, afterSecond)
+	})
+
+	t.Run("fills only missing limit fields", func(t *testing.T) {
+		params := types.DefaultParams()
+		params.MaxGroth16ProofSizeBytes = 0
+		params.MaxGroth16PublicInputSizeBytes = 800
+		params.MaxUltraHonkProofSizeBytes = 0
+		params.MaxUltraHonkPublicInputSizeBytes = 900
+		require.NoError(t, paramsItem.Set(ctx, params))
+
+		require.NoError(t, v3.MigrateStore(ctx, paramsItem))
+		got, err := paramsItem.Get(ctx)
+		require.NoError(t, err)
+
+		require.Equal(t, types.DefaultMaxGroth16ProofSizeBytes, got.MaxGroth16ProofSizeBytes)
+		require.Equal(t, uint64(800), got.MaxGroth16PublicInputSizeBytes)
+		require.Equal(t, types.DefaultMaxUltraHonkProofSizeBytes, got.MaxUltraHonkProofSizeBytes)
+		require.Equal(t, uint64(900), got.MaxUltraHonkPublicInputSizeBytes)
+		require.Equal(t, params.MaxVkeySizeBytes, got.MaxVkeySizeBytes)
+		require.Equal(t, params.UploadChunkSize, got.UploadChunkSize)
+		require.Equal(t, params.UploadChunkGas, got.UploadChunkGas)
 	})
 }

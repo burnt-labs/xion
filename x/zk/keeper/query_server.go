@@ -53,7 +53,11 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	// Approximate public-input payload size as total UTF-8 byte length of all provided strings.
 	var publicInputsSize uint64
 	for _, in := range req.PublicInputs {
-		publicInputsSize += uint64(len(in))
+		inputSize := uint64(len(in))
+		if publicInputsSize+inputSize < publicInputsSize {
+			return nil, errors.Wrap(types.ErrPublicInputsTooLarge, "public inputs size overflow")
+		}
+		publicInputsSize += inputSize
 	}
 	if publicInputsSize > params.MaxGroth16PublicInputSizeBytes {
 		return nil, errors.Wrapf(
