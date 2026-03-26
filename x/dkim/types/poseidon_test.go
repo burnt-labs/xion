@@ -178,16 +178,16 @@ func TestConvertBigIntArrayToString(t *testing.T) {
 }
 
 func TestToLittleEndianWithLeadingZerosTrimming(t *testing.T) {
-	t.Run("empty input returns empty output", func(t *testing.T) {
+	t.Run("empty input returns zero sentinel", func(t *testing.T) {
 		input := []byte{}
 		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
-		require.Empty(t, result)
+		require.Equal(t, []byte{0x00}, result)
 	})
 
-	t.Run("all zeros returns empty output", func(t *testing.T) {
+	t.Run("all zeros returns zero sentinel", func(t *testing.T) {
 		input := []byte{0, 0, 0, 0}
 		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
-		require.Empty(t, result)
+		require.Equal(t, []byte{0x00}, result)
 	})
 
 	t.Run("single non-zero byte", func(t *testing.T) {
@@ -211,10 +211,10 @@ func TestToLittleEndianWithLeadingZerosTrimming(t *testing.T) {
 		require.Equal(t, []byte{4, 3, 2, 1}, result)
 	})
 
-	t.Run("single zero byte returns empty", func(t *testing.T) {
+	t.Run("single zero byte returns zero sentinel", func(t *testing.T) {
 		input := []byte{0}
 		result := types.ToLittleEndianWithLeadingZerosTrimming(input)
-		require.Empty(t, result)
+		require.Equal(t, []byte{0x00}, result)
 	})
 
 	t.Run("zeros in middle are preserved", func(t *testing.T) {

@@ -4,12 +4,33 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	errorsmod "cosmossdk.io/errors"
 )
+
+// bn254FieldPrime is the prime field modulus for the BN254 curve:
+// p = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+var bn254FieldPrime, _ = new(big.Int).SetString("21888242871839275222246405745257275088696311157297823662689037894645226208583", 10)
+
+// checkBN254FieldCoord validates that a single string coordinate is a valid
+// BN254 field element, i.e. 0 <= coord < p.
+func checkBN254FieldCoord(coord, field string) error {
+	n, ok := new(big.Int).SetString(coord, 10)
+	if !ok {
+		return fmt.Errorf("%s: %q is not a valid integer", field, coord)
+	}
+	if n.Sign() < 0 {
+		return fmt.Errorf("%s: coordinate %q is negative", field, coord)
+	}
+	if n.Cmp(bn254FieldPrime) >= 0 {
+		return fmt.Errorf("%s: coordinate %q is >= BN254 field prime", field, coord)
+	}
+	return nil
+}
 
 func ValidateVKeyByteSize(data []byte, maxSizeBytes uint64) error {
 	if maxSizeBytes > 0 && uint64(len(data)) > maxSizeBytes {
@@ -115,6 +136,43 @@ func validateCircomVerificationKey(vk *parser.CircomVerificationKey) error {
 	for i, icPoint := range vk.IC {
 		if len(icPoint) < 2 {
 			return fmt.Errorf("invalid IC[%d]: expected at least 2 coordinates, got %d", i, len(icPoint))
+		}
+	}
+
+	// SEC-21: Validate all G1 and G2 point coordinates are within the BN254 field.
+	// Only the affine (x, y) coordinates are validated; the projective Z-coordinate
+	// at index 2 ("1" or "0") is intentionally skipped.
+	for j, coord := range vk.VkAlpha1[:2] {
+		if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkAlpha1[%d]", j)); err != nil {
+			return err
+		}
+	}
+	for i := 0; i < 2 && i < len(vk.VkBeta2); i++ {
+		for j, coord := range vk.VkBeta2[i] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkBeta2[%d][%d]", i, j)); err != nil {
+				return err
+			}
+		}
+	}
+	for i := 0; i < 2 && i < len(vk.VkGamma2); i++ {
+		for j, coord := range vk.VkGamma2[i] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkGamma2[%d][%d]", i, j)); err != nil {
+				return err
+			}
+		}
+	}
+	for i := 0; i < 2 && i < len(vk.VkDelta2); i++ {
+		for j, coord := range vk.VkDelta2[i] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkDelta2[%d][%d]", i, j)); err != nil {
+				return err
+			}
+		}
+	}
+	for i, icPoint := range vk.IC {
+		for j, coord := range icPoint[:2] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("IC[%d][%d]", i, j)); err != nil {
+				return err
+			}
 		}
 	}
 
