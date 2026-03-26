@@ -158,7 +158,11 @@ func ComputePoseidonHash(pub string) (*big.Int, error) {
 		if key, err := x509.ParsePKIXPublicKey(block.Bytes); err != nil {
 			return nil, errors.Wrap(ErrParsingPubKey, "failed to decode public key")
 		} else {
-			publicKey = key.(*rsa.PublicKey)
+			rsaKey, ok := key.(*rsa.PublicKey)
+			if !ok {
+				return nil, errors.Wrap(ErrParsingPubKey, "key is not an RSA public key")
+			}
+			publicKey = rsaKey
 		}
 	} else {
 		publicKey = key
