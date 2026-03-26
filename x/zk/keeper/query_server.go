@@ -11,6 +11,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/burnt-labs/xion/x/zk/types"
@@ -70,6 +71,12 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 			params.MaxGroth16PublicInputSizeBytes,
 		)
 	}
+
+	// Charge gas proportional to proof + public inputs sizes to prevent free DoS
+	// via Stargate-whitelisted or CosmWasm-callable query endpoints.
+	sdkCtx := sdk.UnwrapSDKContext(c)
+	verifyGas := types.ProofVerifyBaseGas + types.ProofVerifyPerByteGas*(uint64(len(req.Proof))+publicInputsSize)
+	sdkCtx.GasMeter().ConsumeGas(verifyGas, "zk/ProofVerify: proof verification cost")
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
@@ -133,6 +140,12 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 			params.MaxUltraHonkPublicInputSizeBytes,
 		)
 	}
+
+	// Charge gas proportional to proof + public inputs sizes to prevent free DoS
+	// via Stargate-whitelisted or CosmWasm-callable query endpoints.
+	sdkCtxHonk := sdk.UnwrapSDKContext(c)
+	honkGas := types.ProofVerifyUltraHonkBaseGas + types.ProofVerifyUltraHonkPerByteGas*(uint64(len(req.GetProof()))+uint64(len(req.GetPublicInputs())))
+	sdkCtxHonk.GasMeter().ConsumeGas(honkGas, "zk/ProofVerifyUltraHonk: proof verification cost")
 
 	// Resolve vkey by name or ID (prefer name when both are set, same as Groth16 verify-proof)
 	var vkey types.VKey
