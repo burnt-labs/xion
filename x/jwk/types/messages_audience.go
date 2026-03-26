@@ -295,7 +295,11 @@ func (msg *MsgDeleteAudienceClaim) ValidateBasic() error {
 	}
 
 	if len(msg.AudHash) != 32 {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "hash must be 32 byte sha256")
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidRequest,
+			"audience hash must be 32-byte SHA-256 (got %d bytes)",
+			len(msg.AudHash),
+		)
 	}
 
 	return nil
