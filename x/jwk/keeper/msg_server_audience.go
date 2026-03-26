@@ -148,6 +148,22 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 		audience.Aud = msg.NewAud
 	}
 
+	// If the admin is changing, transfer the audience claim to the new admin.
+	// Without this, the old admin retains the claim and could re-create the
+	// audience, while the new admin cannot manage the audience claim.
+	if msg.NewAdmin != msg.Admin {
+		newAdminAddr, err := sdk.AccAddressFromBech32(msg.NewAdmin)
+		if err != nil {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new admin address (%s)", err)
+		}
+		// Compute the hash for the audience that is being transferred.
+		effectiveAud := audience.Aud
+		audHash := sha256.Sum256([]byte(effectiveAud))
+		// Remove old admin's claim and install the new admin's claim.
+		k.RemoveAudienceClaim(ctx, audHash[:])
+		k.SetAudienceClaim(ctx, audHash[:], newAdminAddr)
+	}
+
 	k.SetAudience(ctx, audience)
 
 	return &types.MsgUpdateAudienceResponse{Audience: &audience}, nil
