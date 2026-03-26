@@ -1,0 +1,100 @@
+syntax = "proto3";
+package xion.tee.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/tee/types";
+
+// Query provides defines the gRPC querier service.
+service Query {
+  // QuoteVerify verifies a TDX quote and returns parsed fields.
+  rpc QuoteVerify(QueryQuoteVerifyRequest)
+      returns (QueryQuoteVerifyResponse) {
+    option (google.api.http).get = "/burnt/xion/tee/v1/verify";
+  }
+}
+
+// QueryQuoteVerifyRequest is the request type for the Query/QuoteVerify RPC
+// method.
+message QueryQuoteVerifyRequest {
+  // quote is the raw TDX quote bytes in Intel ABI format.
+  bytes quote = 1;
+}
+
+// QueryQuoteVerifyResponse is the response type for the Query/QuoteVerify RPC
+// method.
+message QueryQuoteVerifyResponse {
+  // verified indicates whether the quote signature chain is valid.
+  bool verified = 1;
+
+  // header contains the parsed TDX quote header fields.
+  QuoteHeader header = 2;
+
+  // td_quote_body contains the parsed TD quote body fields.
+  TDQuoteBody td_quote_body = 3;
+}
+
+// QuoteHeader represents the header of a TDX quote.
+message QuoteHeader {
+  // version is the quote format version.
+  uint32 version = 1;
+
+  // attestation_key_type is the type of the attestation key.
+  uint32 attestation_key_type = 2;
+
+  // tee_type identifies the TEE type (TDX, SGX, etc).
+  uint32 tee_type = 3;
+
+  // qe_svn is the Quoting Enclave security version number.
+  bytes qe_svn = 4;
+
+  // pce_svn is the Provisioning Certification Enclave security version number.
+  bytes pce_svn = 5;
+
+  // qe_vendor_id is the unique identifier of the QE vendor.
+  bytes qe_vendor_id = 6;
+
+  // user_data is the custom user-defined data in the quote header.
+  bytes user_data = 7;
+}
+
+// TDQuoteBody represents the body of a TDX quote containing measurement and
+// identity fields.
+message TDQuoteBody {
+  // tee_tcb_svn is the TEE TCB security version number.
+  bytes tee_tcb_svn = 1;
+
+  // mr_seam is the measurement of the SEAM module.
+  bytes mr_seam = 2;
+
+  // mr_signer_seam is the measurement of the SEAM module signer.
+  bytes mr_signer_seam = 3;
+
+  // seam_attributes are the SEAM attributes.
+  bytes seam_attributes = 4;
+
+  // td_attributes are the TD attributes.
+  bytes td_attributes = 5;
+
+  // xfam is the XFAM (extended feature attribute mask).
+  bytes xfam = 6;
+
+  // mr_td is the measurement of the TD.
+  bytes mr_td = 7;
+
+  // mr_config_id is the measurement of the TD configuration.
+  bytes mr_config_id = 8;
+
+  // mr_owner is the measurement of the TD owner.
+  bytes mr_owner = 9;
+
+  // mr_owner_config is the measurement of the TD owner configuration.
+  bytes mr_owner_config = 10;
+
+  // rtmrs are the runtime measurement registers.
+  repeated bytes rtmrs = 11;
+
+  // report_data is the report data included in the quote.
+  bytes report_data = 12;
+}

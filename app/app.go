@@ -162,6 +162,9 @@ import (
 	"github.com/burnt-labs/xion/x/xion"
 	xionkeeper "github.com/burnt-labs/xion/x/xion/keeper"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
+	tee "github.com/burnt-labs/xion/x/tee"
+	teekeeper "github.com/burnt-labs/xion/x/tee/keeper"
+	teetypes "github.com/burnt-labs/xion/x/tee/types"
 	zk "github.com/burnt-labs/xion/x/zk"
 	zkkeeper "github.com/burnt-labs/xion/x/zk/keeper"
 	zktypes "github.com/burnt-labs/xion/x/zk/types"
@@ -286,6 +289,7 @@ type WasmApp struct {
 	TokenFactoryKeeper tokenfactorykeeper.Keeper
 	DkimKeeper         dkimkeeper.Keeper
 	ZkKeeper           zkkeeper.Keeper
+	TeeKeeper          teekeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -605,6 +609,7 @@ func NewWasmApp(
 		logger,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	app.TeeKeeper = teekeeper.NewKeeper(appCodec, logger)
 	app.DkimKeeper = dkimkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[dkimtypes.StoreKey]),
@@ -902,6 +907,7 @@ func NewWasmApp(
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 		zk.NewAppModule(appCodec, app.ZkKeeper),
+		tee.NewAppModule(appCodec, app.TeeKeeper),
 		dkim.NewAppModule(appCodec, app.DkimKeeper),
 	)
 
@@ -952,6 +958,7 @@ func NewWasmApp(
 		xiontypes.ModuleName,
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		teetypes.ModuleName,
 		dkimtypes.ModuleName,
 	)
 
@@ -976,6 +983,7 @@ func NewWasmApp(
 		aatypes.ModuleName,
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		teetypes.ModuleName,
 		dkimtypes.ModuleName,
 	)
 
@@ -1010,6 +1018,7 @@ func NewWasmApp(
 		// ibchookstypes.ModuleName,
 		packetforwardtypes.ModuleName,
 		zktypes.ModuleName,
+		teetypes.ModuleName,
 		dkimtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)

@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package xion.tee.v1;
+option go_package = "github.com/burnt-labs/xion/x/tee/types";
+
+// GenesisState defines the tee module's genesis state.
+message GenesisState {}

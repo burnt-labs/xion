@@ -20,6 +20,7 @@ import (
 
 	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
+	teetypes "github.com/burnt-labs/xion/x/tee/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
@@ -90,6 +91,7 @@ func init() {
 	setWhitelistedQuery("/xion.dkim.v1.Query/DkimPubKey", func() proto.Message { return &dkimtypes.QueryDkimPubKeyResponse{} })
 	setWhitelistedQuery("/xion.dkim.v1.Query/Authenticate", func() proto.Message { return &dkimtypes.AuthenticateResponse{} })
 	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerify", func() proto.Message { return &zktypes.ProofVerifyResponse{} })
+	setWhitelistedQuery("/xion.tee.v1.Query/QuoteVerify", func() proto.Message { return &teetypes.QueryQuoteVerifyResponse{} })
 }
 
 // ProtoMessageFactory is a function that creates a new proto.Message instance.

@@ -63,6 +63,7 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.8.0
 	github.com/go-webauthn/webauthn v0.14.0
 	github.com/golang/protobuf v1.5.4
+	github.com/google/go-tdx-guest v0.3.1
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.4
@@ -79,7 +80,10 @@ require (
 	sigs.k8s.io/yaml v1.6.0
 )
 
-require github.com/blang/semver/v4 v4.0.0 // indirect
+require (
+	github.com/blang/semver/v4 v4.0.0 // indirect
+	github.com/google/logger v1.1.1 // indirect
+)
 
 require (
 	cel.dev/expr v0.25.0 // indirect
