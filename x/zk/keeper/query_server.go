@@ -31,14 +31,17 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
 	}
 
-	params, err := q.GetParams(c)
-	if err != nil {
-		return nil, err
-	}
-
 	// Validate proof bytes
 	if len(req.Proof) == 0 {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
+	}
+	if req.VkeyName == "" && req.VkeyId == 0 {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
+	}
+
+	params, err := q.GetParams(c)
+	if err != nil {
+		return nil, err
 	}
 
 	if uint64(len(req.Proof)) > params.MaxGroth16ProofSizeBytes {
