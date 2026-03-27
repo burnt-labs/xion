@@ -45,6 +45,11 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, status.Error(codes.FailedPrecondition, fmt.Sprintf("stored key validation failed: %s", err))
 	}
 
+	// Charge gas proportional to key size to prevent free DoS via
+	// Stargate-whitelisted or CosmWasm-callable query endpoints.
+	verifyGas := types.JWTVerifyBaseGas + types.JWTVerifyPerByteGas*uint64(len(audience.Key))
+	ctx.GasMeter().ConsumeGas(verifyGas, "jwk/ValidateJWT: JWT verification cost")
+
 	// basic sanity check
 	if len(req.SigBytes) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "empty jwt")

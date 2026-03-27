@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -31,6 +32,17 @@ func (k Keeper) VerifyJWS(goCtx context.Context, req *types.QueryVerifyJWSReques
 	if err != nil {
 		return nil, err
 	}
+
+	// Validate key size to prevent DoS attacks from oversized keys
+	// that might have been stored before validation was implemented
+	if err := types.ValidateJWKKeySize(key); err != nil {
+		return nil, status.Error(codes.FailedPrecondition, fmt.Sprintf("stored key validation failed: %s", err))
+	}
+
+	// Charge gas proportional to key size to prevent free DoS via
+	// Stargate-whitelisted or CosmWasm-callable query endpoints.
+	verifyGas := types.JWSVerifyBaseGas + types.JWSVerifyPerByteGas*uint64(len(audience.Key))
+	ctx.GasMeter().ConsumeGas(verifyGas, "jwk/VerifyJWS: JWS verification cost")
 
 	// basic sanity check
 	if len(req.SigBytes) == 0 {
