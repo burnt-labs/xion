@@ -64,7 +64,7 @@ func generateOversizedRSAJWK(t *testing.T, bits int) string {
 
 	// Build a mock modulus: set the top bit so BitLen() == bits.
 	mockN := new(big.Int).SetBit(new(big.Int), bits-1, 1) // 2^(bits-1)
-	mockN.SetBit(mockN, 0, 1)                              // make it odd
+	mockN.SetBit(mockN, 0, 1)                             // make it odd
 
 	n := base64.RawURLEncoding.EncodeToString(mockN.Bytes())
 	e := base64.RawURLEncoding.EncodeToString([]byte{1, 0, 1}) // 65537
