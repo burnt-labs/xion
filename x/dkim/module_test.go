@@ -78,7 +78,7 @@ func TestAppModule_ValidateGenesis(t *testing.T) {
 
 	t.Run("invalid genesis with zero min_length fails validation", func(t *testing.T) {
 		// Genesis with null/empty params will have zero values which should fail validation
-		invalidGenesis := []byte(`{"params": {"public_input_indices": {"min_length": 0}} }`)
+		invalidGenesis := []byte(`{"params": {"vkey_identifier": 1, "max_pubkey_size_bytes": 4096, "public_input_indices": {"min_length": 0}} }`)
 		err := appModule.ValidateGenesis(encCfg.Codec, nil, invalidGenesis)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "min_length must be positive")

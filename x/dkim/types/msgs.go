@@ -85,6 +85,12 @@ func (msg *MsgRemoveDkimPubKey) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
 	}
+	if msg.Domain == "" {
+		return errors.Wrap(sdkError.ErrInvalidRequest, "domain cannot be empty")
+	}
+	if msg.Selector == "" {
+		return errors.Wrap(sdkError.ErrInvalidRequest, "selector cannot be empty")
+	}
 	return nil
 }
 
@@ -116,6 +122,11 @@ func (msg *MsgRevokeDkimPubKey) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgRevokeDkimPubKey) ValidateBasic() error {
+	// Reject empty domain to prevent full-table scans in the msg server's
+	// NewPrefixedPairRange iteration.
+	if msg.Domain == "" {
+		return errors.Wrap(sdkError.ErrInvalidRequest, "domain cannot be empty")
+	}
 	// url pass the pubkey domain
 	if _, err := url.Parse(msg.Domain); err != nil {
 		return errors.Wrap(sdkError.ErrInvalidRequest, "dkim url key parsing failed "+err.Error())
@@ -152,17 +163,26 @@ func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr}
 }
 
+// ValidateDkimPubKeys validates DKIM keys for genesis and state-loading paths.
+// Unlike ValidateDkimPubKeysWithRevocation, it does NOT enforce a minimum RSA key
+// size so that legacy keys (e.g. Yahoo's s1024 at 1024 bits) present in the default
+// genesis are accepted. Use ValidateDkimPubKeysWithRevocation for message validation
+// paths where new-key policy should be enforced.
 func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
-	return ValidateDkimPubKeysWithRevocation(context.Background(), dkimKeys, params, nil)
+	return ValidateDkimPubKeysWithRevocation(context.Background(), dkimKeys, params, nil, false)
 }
 
 // ValidateDkimPubKeysWithRevocation validates DKIM keys and optionally checks a revocation lookup.
 // isRevoked should return true if the provided pubkey has been revoked.
+// When enforceMinKeySize is true, keys below MinRSAKeyBits are rejected (use for
+// message validation). Genesis/state-loading paths should pass false to allow
+// legacy keys such as Yahoo's s1024 selector.
 func ValidateDkimPubKeysWithRevocation(
 	ctx context.Context,
 	dkimKeys []DkimPubKey,
 	params Params,
 	isRevoked func(context.Context, string) (bool, error),
+	enforceMinKeySize bool,
 ) error {
 	for _, dkimKey := range dkimKeys {
 		if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
@@ -177,6 +197,12 @@ func ValidateDkimPubKeysWithRevocation(
 		rsaPubKey, err := ParseRSAPublicKey(pubKeyBytes)
 		if err != nil {
 			return err
+		}
+
+		if enforceMinKeySize {
+			if err := ValidateRSAKeySize(rsaPubKey); err != nil {
+				return err
+			}
 		}
 
 		if isRevoked != nil {
@@ -196,31 +222,42 @@ func ValidateDkimPubKeysWithRevocation(
 	return nil
 }
 
-// ValidateDkimPubKey validates a DKIM public key entry
+// ValidateDkimPubKey validates a DKIM public key entry for use in messages.
+// Uses ValidateBasicMaxPubKeySizeBytes as a high ceiling since ValidateBasic is
+// stateless and cannot access on-chain params. The msg server will enforce
+// actual param limits and key size requirements via ValidateDkimPubKeysWithRevocation.
 func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 	if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
 		return err
 	}
 
 	// Validate PubKey is valid base64-encoded RSA public key
-	pubKeyBytes, err := DecodePubKey(dkimKey.PubKey)
+	pubKeyBytes, err := DecodePubKeyWithLimit(dkimKey.PubKey, ValidateBasicMaxPubKeySizeBytes)
 	if err != nil {
 		return err
 	}
 
+	// Only validate that it parses as RSA - don't enforce key size limits here
+	// since ValidateBasic should be stateless. The msg server will enforce
+	// size requirements via ValidateDkimPubKeysWithRevocation.
 	_, err = ParseRSAPublicKey(pubKeyBytes)
 	return err
 }
 
 // ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
+// with minimum key size enforcement.
 func ValidateRSAPubKey(pubKeyStr string) error {
 	pubKeyBytes, err := DecodePubKey(pubKeyStr)
 	if err != nil {
 		return err
 	}
 
-	_, err = ParseRSAPublicKey(pubKeyBytes)
-	return err
+	rsaPub, err := ParseRSAPublicKey(pubKeyBytes)
+	if err != nil {
+		return err
+	}
+
+	return ValidateRSAKeySize(rsaPub)
 }
 
 func validateDkimPubKeyMetadata(dkimKey DkimPubKey) error {

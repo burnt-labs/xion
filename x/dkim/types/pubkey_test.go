@@ -41,3 +41,54 @@ func TestCanonicalizeRSAPublicKeyEncodingInvariant(t *testing.T) {
 	require.Equal(t, pkixHash, pkcs1Hash)
 	require.NotEmpty(t, pkixHash)
 }
+
+func TestParseRSAPublicKeyAcceptsSmallKeys(t *testing.T) {
+	// ParseRSAPublicKey should parse without enforcing minimum key size.
+	// This is needed for genesis/state-loading of legacy keys (e.g. Yahoo s1024).
+	key, err := rsa.GenerateKey(rand.Reader, 1024)
+	require.NoError(t, err)
+
+	pkixBytes, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	require.NoError(t, err)
+
+	parsed, err := types.ParseRSAPublicKey(pkixBytes)
+	require.NoError(t, err)
+	require.Equal(t, 1024, parsed.N.BitLen())
+}
+
+func TestValidateRSAKeySize(t *testing.T) {
+	t.Run("rejects nil key", func(t *testing.T) {
+		err := types.ValidateRSAKeySize(nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "RSA public key is nil")
+	})
+
+	t.Run("rejects key with nil N", func(t *testing.T) {
+		key := &rsa.PublicKey{}
+		err := types.ValidateRSAKeySize(key)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "RSA public key is nil")
+	})
+
+	t.Run("rejects 1024-bit key", func(t *testing.T) {
+		key, err := rsa.GenerateKey(rand.Reader, 1024)
+		require.NoError(t, err)
+		err = types.ValidateRSAKeySize(&key.PublicKey)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "below minimum")
+	})
+
+	t.Run("accepts 2048-bit key", func(t *testing.T) {
+		key, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+		err = types.ValidateRSAKeySize(&key.PublicKey)
+		require.NoError(t, err)
+	})
+
+	t.Run("accepts 4096-bit key", func(t *testing.T) {
+		key, err := rsa.GenerateKey(rand.Reader, 4096)
+		require.NoError(t, err)
+		err = types.ValidateRSAKeySize(&key.PublicKey)
+		require.NoError(t, err)
+	})
+}

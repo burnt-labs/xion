@@ -6,26 +6,49 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 )
 
+// MinRSAKeyBits is the minimum allowed RSA key size in bits for new keys
+// submitted via messages. Genesis and state-loading paths use ParseRSAPublicKey
+// (which does not enforce this limit) to avoid rejecting legacy keys such as
+// Yahoo's s1024 selector.
+const MinRSAKeyBits = 2048
+
 // ParseRSAPublicKey parses PKIX or PKCS#1-encoded RSA public key bytes.
+// It does NOT enforce a minimum key size — use ValidateRSAKeySize for that.
 func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
+	var rsaPub *rsa.PublicKey
+
 	pub, err := x509.ParsePKIXPublicKey(pubKeyBytes)
 	if err == nil {
-		rsaPub, ok := pub.(*rsa.PublicKey)
+		key, ok := pub.(*rsa.PublicKey)
 		if !ok {
 			return nil, ErrNotRSAKey
 		}
-		return rsaPub, nil
-	}
-
-	rsaPub, err := x509.ParsePKCS1PublicKey(pubKeyBytes)
-	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
+		rsaPub = key
+	} else {
+		key, err := x509.ParsePKCS1PublicKey(pubKeyBytes)
+		if err != nil {
+			return nil, errorsmod.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
+		}
+		rsaPub = key
 	}
 
 	return rsaPub, nil
+}
+
+// ValidateRSAKeySize checks that the RSA key meets the minimum bit length.
+// Call this in message validation paths (ValidateBasic, msg server) but NOT
+// in genesis/state-loading paths where legacy keys may be smaller.
+func ValidateRSAKeySize(key *rsa.PublicKey) error {
+	if key == nil || key.N == nil {
+		return errorsmod.Wrap(ErrInvalidPubKey, "RSA public key is nil")
+	}
+	if key.N.BitLen() < MinRSAKeyBits {
+		return errorsmod.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", key.N.BitLen(), MinRSAKeyBits)
+	}
+	return nil
 }
 
 // CanonicalizeRSAPublicKey returns a canonical, base64-encoded hash of the given RSA

@@ -8,6 +8,10 @@ import (
 
 const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
+	// ValidateBasicMaxPubKeySizeBytes is a higher ceiling for ValidateBasic
+	// to allow on-chain params to be meaningful. The message server will
+	// enforce the actual param limits.
+	ValidateBasicMaxPubKeySizeBytes uint64 = 2048
 
 	// Gas constants for the Authenticate query.
 	// These are charged to prevent free DoS via Stargate-whitelisted or
@@ -141,6 +145,10 @@ func (p PublicInputIndices) Validate() error {
 func (p Params) Validate() error {
 	if p.MaxPubkeySizeBytes <= 0 {
 		return errorsmod.Wrap(ErrInvalidParams, "max_pubkey_size_bytes must be positive")
+	}
+
+	if p.VkeyIdentifier == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "vkey_identifier must be positive")
 	}
 
 	if err := p.PublicInputIndices.Validate(); err != nil {
