@@ -39,6 +39,12 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, err
 	}
 
+	// Validate key size to prevent DoS attacks from oversized keys
+	// that might have been stored before validation was implemented
+	if err := types.ValidateJWKKeySize(key); err != nil {
+		return nil, status.Error(codes.FailedPrecondition, fmt.Sprintf("stored key validation failed: %s", err))
+	}
+
 	// basic sanity check
 	if len(req.SigBytes) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "empty jwt")
