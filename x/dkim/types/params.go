@@ -18,17 +18,6 @@ const (
 	// matches the x/zk Groth16 limit and prevents allocator DoS from multi-MB blobs.
 	MaxDKIMProofSizeBytes uint64 = 4 * 1024 // 4 KiB
 
-	// Gas constants for the Authenticate query.
-	// These are charged to prevent free DoS via Stargate-whitelisted or
-	// CosmWasm-callable query endpoints that run Groth16 BN254 verification.
-
-	// AuthenticateBaseGas is the flat overhead charged on every Authenticate call.
-	AuthenticateBaseGas uint64 = 100_000
-	// AuthenticatePerPublicInputGas is charged per public input element.
-	AuthenticatePerPublicInputGas uint64 = 500
-	// AuthenticatePerProofByteGas is charged per byte of proof JSON to account
-	// for the deserialization cost and to prevent free DoS from large proof blobs.
-	AuthenticatePerProofByteGas uint64 = 10
 
 	// Default public input indices for the Authenticate query
 	DefaultMinPublicInputsLength  uint64 = 88

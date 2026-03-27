@@ -339,7 +339,7 @@ func TestValidateDkimPubKeys(t *testing.T) {
 	t.Run("1024-bit key accepted for genesis path", func(t *testing.T) {
 		// Genesis validation must accept legacy keys (e.g. Yahoo s1024).
 		// ValidateDkimPubKeys must NOT enforce the 2048-bit minimum.
-		smallKey, err := rsa.GenerateKey(rand.Reader, 1024)
+		smallKey, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
 		require.NoError(t, err)
 		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
 		require.NoError(t, err)
@@ -473,7 +473,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 
 	t.Run("1024-bit key rejected for message path", func(t *testing.T) {
 		// Message validation must enforce the 2048-bit minimum.
-		smallKey, err := rsa.GenerateKey(rand.Reader, 1024)
+		smallKey, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
 		require.NoError(t, err)
 		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
 		require.NoError(t, err)

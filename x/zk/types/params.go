@@ -28,21 +28,6 @@ const (
 	// DefaultMaxUltraHonkPublicInputSizeBytes caps the maximum allowed UltraHonk public inputs bytes size.
 	// For UltraHonk, public inputs are provided as raw bytes.
 	DefaultMaxUltraHonkPublicInputSizeBytes uint64 = 10 * 1024 // 10 KiB
-
-	// Gas constants for proof verification queries.
-	// These are charged proportional to input sizes to prevent free DoS via
-	// Stargate-whitelisted or CosmWasm-callable query endpoints.
-
-	// ProofVerifyBaseGas is the flat overhead charged on every Groth16/BN254 proof
-	// verification call regardless of payload size.
-	ProofVerifyBaseGas uint64 = 100_000
-	// ProofVerifyPerByteGas is charged per byte of proof + public inputs for Groth16.
-	ProofVerifyPerByteGas uint64 = 10
-
-	// ProofVerifyUltraHonkBaseGas is the flat overhead for every UltraHonk verification call.
-	ProofVerifyUltraHonkBaseGas uint64 = 150_000
-	// ProofVerifyUltraHonkPerByteGas is charged per byte of proof + public inputs for UltraHonk.
-	ProofVerifyUltraHonkPerByteGas uint64 = 15
 )
 
 // NewParams creates a new Params instance.
