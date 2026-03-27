@@ -13,6 +13,11 @@ const (
 	// enforce the actual param limits.
 	ValidateBasicMaxPubKeySizeBytes uint64 = 2048
 
+	// MaxDKIMProofSizeBytes caps the proof JSON payload accepted by Authenticate.
+	// A valid Circom Groth16 proof over BN254 is ~350–500 bytes of JSON; 4 KiB
+	// matches the x/zk Groth16 limit and prevents allocator DoS from multi-MB blobs.
+	MaxDKIMProofSizeBytes uint64 = 4 * 1024 // 4 KiB
+
 	// Gas constants for the Authenticate query.
 	// These are charged to prevent free DoS via Stargate-whitelisted or
 	// CosmWasm-callable query endpoints that run Groth16 BN254 verification.
@@ -21,6 +26,9 @@ const (
 	AuthenticateBaseGas uint64 = 100_000
 	// AuthenticatePerPublicInputGas is charged per public input element.
 	AuthenticatePerPublicInputGas uint64 = 500
+	// AuthenticatePerProofByteGas is charged per byte of proof JSON to account
+	// for the deserialization cost and to prevent free DoS from large proof blobs.
+	AuthenticatePerProofByteGas uint64 = 10
 
 	// Default public input indices for the Authenticate query
 	DefaultMinPublicInputsLength  uint64 = 88
