@@ -205,10 +205,24 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 	indices := params.PublicInputIndices
 
-	// Charge gas proportional to public inputs count to prevent free DoS
+	// Reject oversized proof blobs before any deserialization to prevent allocator DoS.
+	// A valid Circom Groth16/BN254 proof is ~350–500 bytes of JSON; anything beyond
+	// MaxDKIMProofSizeBytes is not a legitimate proof.
+	if uint64(len(req.Proof)) > types.MaxDKIMProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d bytes exceeds maximum allowed %d bytes",
+			len(req.Proof),
+			types.MaxDKIMProofSizeBytes,
+		)
+	}
+
+	// Charge gas proportional to public inputs count and proof size to prevent free DoS
 	// via Stargate-whitelisted or CosmWasm-callable query endpoints.
 	sdkCtx := sdk.UnwrapSDKContext(c)
-	authGas := types.AuthenticateBaseGas + types.AuthenticatePerPublicInputGas*uint64(len(req.PublicInputs))
+	authGas := types.AuthenticateBaseGas +
+		types.AuthenticatePerPublicInputGas*uint64(len(req.PublicInputs)) +
+		types.AuthenticatePerProofByteGas*uint64(len(req.Proof))
 	sdkCtx.GasMeter().ConsumeGas(authGas, "dkim/Authenticate: proof verification cost")
 
 	if uint64(len(req.PublicInputs)) < indices.MinLength {

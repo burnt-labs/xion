@@ -27,4 +27,5 @@ var (
 	ErrTxBytesMismatch       = errorsmod.Register(ModuleName, 1115, "transaction bytes hash does not match the provided transaction bytes")
 	ErrNoDkimPubKey          = errorsmod.Register(ModuleName, 1116, "no DKIM public key found for the given domain and poseidon hash")
 	ErrEmailHostMismatch     = errorsmod.Register(ModuleName, 1117, "email host does not match any of the allowed email hosts")
+	ErrProofTooLarge         = errorsmod.Register(ModuleName, 1118, "proof size exceeds maximum allowed bytes")
 )

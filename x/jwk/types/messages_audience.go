@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	MaxJWKKeySize = 8192 // 8 KB
+	MaxJWKKeySize = 2048 // 2 KB — max legitimate RSA-4096 JWK is ~900 bytes
 	MaxAudSize    = 512
 
 	// MaxRSAKeyBits is the maximum allowed RSA key size in bits.
