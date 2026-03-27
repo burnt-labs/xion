@@ -141,5 +141,10 @@ func (p Params) GasCostForSize(size uint64) (uint64, error) {
 	}
 
 	chunks := (size + p.UploadChunkSize - 1) / p.UploadChunkSize
-	return chunks * p.UploadChunkGas, nil
+	cost := chunks * p.UploadChunkGas
+	// Check for overflow
+	if chunks != 0 && cost/chunks != p.UploadChunkGas {
+		return 0, errorsmod.Wrapf(ErrInvalidParams, "gas cost overflow: chunks=%d, chunkGas=%d", chunks, p.UploadChunkGas)
+	}
+	return cost, nil
 }
