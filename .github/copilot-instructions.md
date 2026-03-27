@@ -20,38 +20,38 @@ Xion is a Cosmos SDK-based blockchain optimized for consumer applications with a
    - Stores DNS-verified DKIM public keys on-chain
    - Computes Poseidon hashes for ZK email verification
    - Governance-controlled key management
-   - Location: `/home/runner/work/xion/xion/x/dkim/`
+   - Location: `x/dkim/`
 
 2. **x/jwk** - JSON Web Key management for JWT authentication
    - Manages JWT public keys for Abstract Account authentication
    - Supports key rotation and audience validation
    - Security-critical: validates expired tokens, audience mismatch
-   - Location: `/home/runner/work/xion/xion/x/jwk/`
+   - Location: `x/jwk/`
 
 3. **x/xion** - Core platform functionality
    - Platform fee management (percentage and minimums)
    - WebAuthn signature validation utilities
    - Multi-denomination fee support
-   - Location: `/home/runner/work/xion/xion/x/xion/`
+   - Location: `x/xion/`
 
 4. **x/zk** - Zero-knowledge proof verification
    - Groth16 proof verification
    - Configurable proof size limits (max 896 bytes default)
    - Public input validation
-   - Location: `/home/runner/work/xion/xion/x/zk/`
+   - Location: `x/zk/`
 
 5. **x/mint** - Custom minting and fee burning
    - Inflation control and supply management
    - Fee burning mechanism
-   - Location: `/home/runner/work/xion/xion/x/mint/`
+   - Location: `x/mint/`
 
 6. **x/globalfee** - Global minimum fee enforcement
    - Multi-denom minimum fees
    - Platform fee integration
-   - Location: `/home/runner/work/xion/xion/x/globalfee/`
+   - Location: `x/globalfee/`
 
 7. **x/feeabs** - Fee abstraction for gas payments in multiple denoms
-   - Location: `/home/runner/work/xion/xion/x/feeabs/`
+   - Location: `x/feeabs/`
 
 ### Abstract Account Architecture
 
@@ -74,7 +74,7 @@ Xion is a Cosmos SDK-based blockchain optimized for consumer applications with a
 Makefile                    # Main entry point
 ├── make/build.mk          # Build and release targets
 ├── make/test.mk           # Testing targets
-├── make/coverage.mk       # Coverage analysis (85% threshold required)
+├── make/coverage.mk       # Coverage analysis (80% threshold required)
 ├── make/proto.mk          # Protobuf generation (requires Docker)
 └── make/lint.mk           # Linting and formatting
 ```
@@ -115,7 +115,7 @@ make test-aa-all            # Abstract Account tests
 ```
 
 #### Coverage Requirements
-- **Threshold**: 85% total coverage (enforced in CI)
+- **Threshold**: 80% total coverage (enforced in CI)
 - **Excluded**: `api/` and `cmd/` packages
 - **Report types**: HTML, filtered (no .pb.go files), detailed analysis
 - Coverage config: `.coveragerc` (Python format, parsed by Makefile)
@@ -221,9 +221,8 @@ result, err := ExecQuery(t, ctx, xion.GetNode(),
 ```
 
 **E2E Test Organization** (`e2e_tests/`):
-- Tests are organized by module: `aa/`, `app/`, `dkim/`, `jwk/`, `xion/`, `mint/`, `indexer/`
+- Tests are organized by module: `abstract-account/`, `app/`, `dkim/`, `jwk/`, `xion/`, `ibc/`, `indexer/`, `zk/`
 - Each module has its own `testdata/` with contracts, keys, proofs
-- Multi-binary compilation strategy for CI parallelization
 - Tests use `t.Parallel()` when possible
 
 ## Critical Patterns and Gotchas
@@ -398,27 +397,31 @@ github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.202108190228
 ```
 
 ### E2E Test Strategy (CI)
-**Multi-binary compilation approach**:
-1. Build separate test binaries for each module: `jwk.test`, `dkim.test`, `app.test`, `xion.test`, `abstract-account.test`
-2. Matrix strategy routes tests to correct binary based on test name prefix
-3. Enables massive parallelization (30+ concurrent tests)
+**Matrix strategy**: The CI uses a `{dir, type}` matrix where each entry maps to a test directory and test name prefix. Tests run via:
+```bash
+make test-run TEST_NAME=Test${type} DIR_NAME=${dir}
+```
+This enables massive parallelization — 40+ concurrent test jobs, each running one specific test.
 
-**Test Name Routing**:
-- `JWK*`, `JWT*` → `jwk.test`
-- `DKIM*` → `dkim.test`
-- `IBC*`, `Governance*` → `app.test`
-- `Platform*`, `Minimum*`, `Treasury*`, `FeeGrant*`, `WebAuthN*` → `xion.test`
-- `Multiple*`, `Single*` → `abstract-account.test`
+**Matrix entries** (dir → test type):
+- `abstract-account` → `AA`
+- `app` → `AppGenesisExportImport`, `AppGovernance`, `AppMint`, etc.
+- `dkim` → `DKIMModule`, `DKIMGovernance`, `DKIMPubKeyMaxSize`, etc.
+- `jwk` → `JWKAlgorithmConfusion`, `JWKExpiredToken`, etc.
+- `xion` → `XionMinFeeDefault`, `XionPlatform`, etc.
+- `zk` → `ZK`
+- `ibc` → `IBCMinFeeMultiDenom`
+- `indexer` → `IndexerAuthz`, `IndexerFeeGrant`, etc.
 
-### Local E2E Test Binary Build
+### Local E2E Test Run
 ```bash
 cd e2e_tests
-for dir in abstract-account app dkim jwk xion; do
-  go test -c -o ${dir}.test ./${dir}
-done
 
-# Run specific test
-./jwk.test -test.v -test.run TestJWKExpiredToken
+# Run a specific test
+make test-run TEST_NAME=TestJWKExpiredToken DIR_NAME=jwk
+
+# Or directly with go test
+go test -v -run TestJWKExpiredToken ./jwk/...
 ```
 
 ## Common Errors and Solutions
@@ -428,7 +431,7 @@ done
 - **Fix**: Ensure Docker is running: `docker ps`
 
 ### 2. "coverage threshold not met"
-- **Cause**: New code lacks sufficient test coverage (85% required)
+- **Cause**: New code lacks sufficient test coverage (80% required)
 - **Fix**: Add unit tests, check coverage with `make test-cover-html`
 
 ### 3. "store query fails after upgrade"
@@ -471,14 +474,14 @@ done
 ## Documentation Locations
 
 ### Module Documentation
-- x/dkim: `/home/runner/work/xion/xion/x/dkim/README.md`
-- x/xion: `/home/runner/work/xion/xion/x/xion/README.md`
-- E2E tests: `/home/runner/work/xion/xion/e2e_tests/README.md`
+- x/dkim: `x/dkim/README.md`
+- x/xion: `x/xion/README.md`
+- E2E tests: `e2e_tests/README.md`
 
 ### Build Documentation
-- Main README: `/home/runner/work/xion/xion/README.md`
-- Security Policy: `/home/runner/work/xion/xion/SECURITY.md`
-- Installer Guide: `/home/runner/work/xion/xion/INSTALLERS.md`
+- Main README: `README.md`
+- Security Policy: `SECURITY.md`
+- Installer Guide: `INSTALLERS.md`
 
 ### Online Resources
 - Cosmos SDK docs: https://docs.cosmos.network/
@@ -570,7 +573,7 @@ Before asking for help, verify:
 1. **This is a Cosmos SDK chain with CosmWasm support** - follow Cosmos conventions
 2. **Abstract Accounts are fundamental** - user accounts are smart contracts
 3. **Security is paramount** - JWT, WebAuthn, ZK proofs are security-critical
-4. **Coverage matters** - 85% threshold is enforced
+4. **Coverage matters** - 80% threshold is enforced
 5. **E2E tests are expensive** - use judiciously, prefer unit tests
 6. **Protobuf requires Docker** - don't try to generate without it
 7. **Multiple forks in use** - check go.mod replace directives before updating deps
