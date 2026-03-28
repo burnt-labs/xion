@@ -96,37 +96,39 @@ func ConvertBigIntArrayToString(arr []*big.Int) (string, error) {
 }
 
 // ToLittleEndianWithLeadingZerosTrimming converts a big-endian byte slice to
-// little-endian and removes any high-order (trailing in little-endian) zero
-// bytes that correspond to leading zeros in the original big-endian form.
+// little-endian and removes trailing zero bytes (which were leading zeros in the
+// original big-endian representation).
+//
+// The input b is assumed to be big-endian (e.g. the 32-byte canonical encoding
+// of a BN254 field element). We reverse first to obtain the little-endian form,
+// then trim any trailing zero bytes that carry no significance.
 //
 // A BN254 field element whose value is exactly zero must not produce an empty
 // slice, because that would be indistinguishable from the absence of data and
 // would cause two distinct inputs to hash to the same Poseidon value.  For
 // the zero element, a single 0x00 byte is returned instead.
 func ToLittleEndianWithLeadingZerosTrimming(b []byte) []byte {
-	result := make([]byte, 0)
-	skipZeros := true
+	// Reverse into a new buffer to produce little-endian bytes.
+	n := len(b)
+	result := make([]byte, n)
+	for i := 0; i < n; i++ {
+		result[i] = b[n-1-i]
+	}
 
-	for i := range b {
-		val := b[i]
-		if skipZeros && val == 0 {
-			continue
-		}
-		skipZeros = false
-		result = append(result, val)
+	// Trim trailing zero bytes (these were leading zeros in the big-endian input
+	// and carry no value in the little-endian representation).
+	end := n
+	for end > 0 && result[end-1] == 0 {
+		end--
 	}
 
 	// If every byte was zero the input represents the zero field element.
 	// Return a single zero byte so callers can distinguish it from "no data".
-	if len(result) == 0 {
+	if end == 0 {
 		return []byte{0x00}
 	}
 
-	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
-		result[i], result[j] = result[j], result[i]
-	}
-
-	return result
+	return result[:end]
 }
 
 // Converts a base64 encoded string `pk` into a PEM format key. It essentially adds the PEM header and footer
