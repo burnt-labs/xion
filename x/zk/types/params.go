@@ -28,6 +28,11 @@ const (
 	// DefaultMaxUltraHonkPublicInputSizeBytes caps the maximum allowed UltraHonk public inputs bytes size.
 	// For UltraHonk, public inputs are provided as raw bytes.
 	DefaultMaxUltraHonkPublicInputSizeBytes uint64 = 10 * 1024 // 10 KiB
+
+	// ProofVerifyGas is the flat gas cost charged per BN254 proof verification.
+	// BN254 pairing checks are computationally expensive; this cost bounds the
+	// number of verifications an account can submit per block under its gas limit.
+	ProofVerifyGas uint64 = 500_000
 )
 
 // NewParams creates a new Params instance.
