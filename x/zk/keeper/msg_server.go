@@ -30,7 +30,14 @@ func (ms msgServer) AddVKey(goCtx context.Context, msg *types.MsgAddVKey) (*type
 		return nil, err
 	}
 
-	// Add the vkey (authority check and validation happens inside)
+	// Only the module authority (governance) may register verification keys.
+	// Allowing arbitrary callers to register VKeys permits squatting of canonical
+	// key namespaces that other contracts and modules depend on for ZK authentication.
+	if msg.Authority != ms.k.GetAuthority() {
+		return nil, errors.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", ms.k.GetAuthority(), msg.Authority)
+	}
+
+	// Add the vkey
 	id, err := ms.k.AddVKey(ctx, msg.Authority, msg.Name, msg.VkeyBytes, msg.Description)
 	if err != nil {
 		return nil, err
