@@ -46,6 +46,17 @@ func TestMigrations(t *testing.T) {
 	dbCtx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 	err := migrator.Migrate1To2(dbCtx.Ctx)
 	require.NoError(t, err)
+
+	// Test Migrate2To3 - set DeploymentGas so GetParamSet doesn't panic,
+	// and set a broken TimeOffset that the migration should correct.
+	paramStore.Set(dbCtx.Ctx, types.ParamStoreKeyDeploymentGas, uint64(10_000))
+	paramStore.Set(dbCtx.Ctx, types.ParamStoreKeyTimeOffset, uint64(30_000))
+	err = migrator.Migrate2To3(dbCtx.Ctx)
+	require.NoError(t, err)
+
+	var afterOffset uint64
+	paramStore.Get(dbCtx.Ctx, types.ParamStoreKeyTimeOffset, &afterOffset)
+	require.Equal(t, uint64(30_000_000_000), afterOffset)
 }
 
 func TestMigrateStore(t *testing.T) {

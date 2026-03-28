@@ -1,4 +1,4 @@
-package v3_test
+package v2_test
 
 import (
 	"testing"
@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	v3migration "github.com/burnt-labs/xion/x/jwk/migrations/v3"
+	v2migration "github.com/burnt-labs/xion/x/jwk/migrations/v2"
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
@@ -22,8 +22,6 @@ func TestMigrateStore(t *testing.T) {
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Simulate the broken state: subspace with key table, TimeOffset set to the
-	// wrong value that Migrate1To2 wrote (30_000 instead of 30_000_000_000).
 	paramStore := paramstypes.NewSubspace(
 		cdc,
 		codec.NewLegacyAmino(),
@@ -32,39 +30,42 @@ func TestMigrateStore(t *testing.T) {
 		types.ModuleName,
 	).WithKeyTable(types.ParamKeyTable())
 
-	brokenTimeOffset := uint64(30_000)
-	paramStore.Set(ctx.Ctx, types.ParamStoreKeyTimeOffset, brokenTimeOffset)
+	// Simulate chain that has DeploymentGas set but no TimeOffset.
 	paramStore.Set(ctx.Ctx, types.ParamStoreKeyDeploymentGas, uint64(10_000))
 
-	var beforeParams types.Params
-	paramStore.GetParamSet(ctx.Ctx, &beforeParams)
-	require.Equal(t, brokenTimeOffset, beforeParams.TimeOffset, "pre-condition: TimeOffset should be the broken value")
-
-	// Run the migration.
-	err := v3migration.MigrateStore(ctx.Ctx, paramStore)
+	err := v2migration.MigrateStore(ctx.Ctx, paramStore)
 	require.NoError(t, err)
 
-	// Verify TimeOffset was corrected.
-	var afterParams types.Params
-	paramStore.GetParamSet(ctx.Ctx, &afterParams)
-	require.Equal(t, uint64(30_000_000_000), afterParams.TimeOffset, "TimeOffset should be 30 seconds in nanoseconds after migration")
+	// TimeOffset should now be set to 30 seconds in nanoseconds.
+	var timeOffset uint64
+	paramStore.Get(ctx.Ctx, types.ParamStoreKeyTimeOffset, &timeOffset)
+	require.Equal(t, uint64(30_000_000_000), timeOffset)
 }
 
-func TestMigrateStoreWithoutKeyTable(t *testing.T) {
+func TestMigrateStoreSkipsExistingTimeOffset(t *testing.T) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create subspace WITHOUT key table to exercise that branch.
 	paramStore := paramstypes.NewSubspace(
 		cdc,
 		codec.NewLegacyAmino(),
 		storeKey,
 		tkey,
 		types.ModuleName,
-	)
+	).WithKeyTable(types.ParamKeyTable())
 
-	err := v3migration.MigrateStore(ctx.Ctx, paramStore)
+	// Set both params, including a non-zero TimeOffset.
+	existingOffset := uint64(60_000_000_000)
+	paramStore.Set(ctx.Ctx, types.ParamStoreKeyDeploymentGas, uint64(10_000))
+	paramStore.Set(ctx.Ctx, types.ParamStoreKeyTimeOffset, existingOffset)
+
+	err := v2migration.MigrateStore(ctx.Ctx, paramStore)
 	require.NoError(t, err)
+
+	// TimeOffset should remain unchanged.
+	var timeOffset uint64
+	paramStore.Get(ctx.Ctx, types.ParamStoreKeyTimeOffset, &timeOffset)
+	require.Equal(t, existingOffset, timeOffset)
 }
