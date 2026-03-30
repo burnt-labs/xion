@@ -13,12 +13,17 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
-// types/msgs.go
-
 // ProofSystemGroth16 and ProofSystemUltraHonk are typed aliases for the ProofSystem enum.
 const (
 	ProofSystemGroth16   = ProofSystem_PROOF_SYSTEM_GROTH16
 	ProofSystemUltraHonk = ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK
+)
+
+const (
+	// MaxVKeyNameLen is the maximum allowed length (in bytes) for a verification key name.
+	MaxVKeyNameLen = 128
+	// MaxVKeyDescLen is the maximum allowed length (in bytes) for a verification key description.
+	MaxVKeyDescLen = 1024
 )
 
 func (m *MsgAddVKey) ValidateBasic() error {
@@ -30,6 +35,14 @@ func (m *MsgAddVKey) ValidateBasic() error {
 		return fmt.Errorf("name cannot be empty")
 	}
 
+	if len(m.Name) > MaxVKeyNameLen {
+		return fmt.Errorf("name length %d bytes exceeds maximum %d bytes", len(m.Name), MaxVKeyNameLen)
+	}
+
+	if len(m.Description) > MaxVKeyDescLen {
+		return fmt.Errorf("description length %d bytes exceeds maximum %d bytes", len(m.Description), MaxVKeyDescLen)
+	}
+
 	if len(m.VkeyBytes) == 0 {
 		return fmt.Errorf("vkey_bytes cannot be empty")
 	}
@@ -39,9 +52,6 @@ func (m *MsgAddVKey) ValidateBasic() error {
 		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
 		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
 		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
-	}
-	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
-		return fmt.Errorf("invalid vkey_bytes: %w", err)
 	}
 
 	return nil
@@ -57,6 +67,14 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 		return fmt.Errorf("name cannot be empty")
 	}
 
+	if len(m.Name) > MaxVKeyNameLen {
+		return fmt.Errorf("name length %d bytes exceeds maximum %d bytes", len(m.Name), MaxVKeyNameLen)
+	}
+
+	if len(m.Description) > MaxVKeyDescLen {
+		return fmt.Errorf("description length %d bytes exceeds maximum %d bytes", len(m.Description), MaxVKeyDescLen)
+	}
+
 	if len(m.VkeyBytes) == 0 {
 		return fmt.Errorf("vkey_bytes cannot be empty")
 	}
@@ -66,9 +84,6 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
 		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
 		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
-	}
-	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
-		return fmt.Errorf("invalid vkey_bytes: %w", err)
 	}
 
 	return nil

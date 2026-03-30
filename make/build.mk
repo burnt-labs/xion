@@ -132,7 +132,7 @@ build-linux-arm64 build-linux-amd64 build-darwin-amd64 build-darwin-arm64 build-
 
 build-docker:
 	$(DOCKER) build \
-	  --platform linux/amd64 \
+	  --platform linux/$(GOARCH) 
 	  --target=$(if $(TARGET),$(TARGET),release) \
 	  --progress=plain \
 	  --build-arg=GORELEASER_IMAGE=$(GORELEASER_IMAGE) \

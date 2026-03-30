@@ -2,8 +2,6 @@ package types_test
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -146,6 +144,28 @@ func TestMsgRemoveDkimPubKey(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid authority address")
 	})
+
+	t.Run("ValidateBasic - empty domain", func(t *testing.T) {
+		msg := &types.MsgRemoveDkimPubKey{
+			Authority: validAddress,
+			Domain:    "",
+			Selector:  "default",
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "domain cannot be empty")
+	})
+
+	t.Run("ValidateBasic - empty selector", func(t *testing.T) {
+		msg := &types.MsgRemoveDkimPubKey{
+			Authority: validAddress,
+			Domain:    "example.com",
+			Selector:  "",
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "selector cannot be empty")
+	})
 }
 
 func TestMsgRevokeDkimPubKey(t *testing.T) {
@@ -176,6 +196,17 @@ func TestMsgRevokeDkimPubKey(t *testing.T) {
 		signers := msg.GetSigners()
 		require.Len(t, signers, 1)
 		require.Equal(t, addr, signers[0])
+	})
+
+	t.Run("ValidateBasic - empty domain", func(t *testing.T) {
+		msg := &types.MsgRevokeDkimPubKey{
+			Signer:  validAddress,
+			Domain:  "",
+			PrivKey: []byte(validPrivKey),
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "domain cannot be empty")
 	})
 
 	t.Run("ValidateBasic - invalid domain URL", func(t *testing.T) {
@@ -263,7 +294,7 @@ func TestMsgUpdateParams(t *testing.T) {
 
 func TestValidateDkimPubKeys(t *testing.T) {
 	pkixKey, pkcs1Key := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048}
+	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
 	validKey := types.DkimPubKey{
 		Domain:   "example.com",
 		Selector: "default",
@@ -302,32 +333,23 @@ func TestValidateDkimPubKeys(t *testing.T) {
 		key.PubKey = pkcs1Key
 		require.NoError(t, types.ValidateDkimPubKeys([]types.DkimPubKey{key}, params))
 	})
-}
 
-func TestValidateRSAPubKey(t *testing.T) {
-	pkixKey, pkcs1Key := generateRSAPubKeyEncodings(t)
-
-	t.Run("valid pkix", func(t *testing.T) {
-		require.NoError(t, types.ValidateRSAPubKey(pkixKey))
-	})
-
-	t.Run("valid pkcs1", func(t *testing.T) {
-		require.NoError(t, types.ValidateRSAPubKey(pkcs1Key))
-	})
-
-	t.Run("non rsa key", func(t *testing.T) {
-		ecdsaKey := generateECDSAPubKeyEncoding(t)
-		err := types.ValidateRSAPubKey(ecdsaKey)
-		require.ErrorIs(t, err, types.ErrNotRSAKey)
-	})
-
-	t.Run("invalid base64", func(t *testing.T) {
-		require.ErrorIs(t, types.ValidateRSAPubKey("$$"), types.ErrInvalidPubKey)
-	})
-
-	t.Run("invalid rsa bytes", func(t *testing.T) {
-		raw := base64.StdEncoding.EncodeToString([]byte{9, 9, 9})
-		require.ErrorIs(t, types.ValidateRSAPubKey(raw), types.ErrInvalidPubKey)
+	t.Run("1024-bit key accepted for genesis path", func(t *testing.T) {
+		// Genesis validation must accept legacy keys (e.g. Yahoo s1024).
+		// ValidateDkimPubKeys must NOT enforce the 2048-bit minimum.
+		smallKey, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
+		require.NoError(t, err)
+		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
+		require.NoError(t, err)
+		b64 := base64.StdEncoding.EncodeToString(pkixBytes)
+		key := types.DkimPubKey{
+			Domain:   "example.com",
+			Selector: "legacy",
+			PubKey:   b64,
+			Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
+			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+		}
+		require.NoError(t, types.ValidateDkimPubKeys([]types.DkimPubKey{key}, params))
 	})
 }
 
@@ -344,20 +366,9 @@ func generateRSAPubKeyEncodings(t *testing.T) (string, string) {
 	return base64.StdEncoding.EncodeToString(pkixBytes), base64.StdEncoding.EncodeToString(pkcs1Bytes)
 }
 
-func generateECDSAPubKeyEncoding(t *testing.T) string {
-	t.Helper()
-	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.NoError(t, err)
-
-	bz, err := x509.MarshalPKIXPublicKey(&ecKey.PublicKey)
-	require.NoError(t, err)
-
-	return base64.StdEncoding.EncodeToString(bz)
-}
-
 func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	pkixKey, _ := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048}
+	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
 	hash, err := types.ComputePoseidonHash(pkixKey)
 	require.NoError(t, err)
 	validKey := types.DkimPubKey{
@@ -370,7 +381,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	}
 
 	t.Run("valid key without revocation check", func(t *testing.T) {
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, nil)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, nil, true)
 		require.NoError(t, err)
 	})
 
@@ -378,7 +389,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		isRevoked := func(_ context.Context, _ string) (bool, error) {
 			return false, nil
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked, true)
 		require.NoError(t, err)
 	})
 
@@ -386,7 +397,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		isRevoked := func(_ context.Context, _ string) (bool, error) {
 			return true, nil
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidatedKey)
 	})
@@ -395,7 +406,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		isRevoked := func(_ context.Context, _ string) (bool, error) {
 			return false, errors.New("database error")
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{validKey}, params, isRevoked, true)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "database error")
 	})
@@ -407,7 +418,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 			t.Fatal("should not be called")
 			return false, nil
 		}
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, isRevoked)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, isRevoked, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidKeyType)
 	})
@@ -415,9 +426,28 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	t.Run("invalid version fails before revocation check", func(t *testing.T) {
 		invalidKey := validKey
 		invalidKey.Version = types.Version(999)
-		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, nil)
+		err := types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{invalidKey}, params, nil, true)
 		require.Error(t, err)
 		require.ErrorIs(t, err, types.ErrInvalidVersion)
+	})
+
+	t.Run("1024-bit key accepted for message path (Yahoo s1024 compatibility)", func(t *testing.T) {
+		// MinRSAKeyBits is set to 1024 to support legacy providers like Yahoo (s1024 selector).
+		// 1024-bit keys are low-assurance and expected to be rotated when providers upgrade.
+		smallKey, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
+		require.NoError(t, err)
+		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
+		require.NoError(t, err)
+		b64 := base64.StdEncoding.EncodeToString(pkixBytes)
+		key := types.DkimPubKey{
+			Domain:   "example.com",
+			Selector: "legacy",
+			PubKey:   b64,
+			Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
+			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+		}
+		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil, true)
+		require.NoError(t, err)
 	})
 }
 

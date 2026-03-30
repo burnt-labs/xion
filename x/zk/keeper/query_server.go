@@ -72,11 +72,11 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		)
 	}
 
-	// Charge gas proportional to proof + public inputs sizes to prevent free DoS
-	// via Stargate-whitelisted or CosmWasm-callable query endpoints.
+	// Charge gas before executing the BN254 pairing check. Proof verification is
+	// computationally expensive and must be metered to prevent a single query from
+	// consuming unbounded node resources.
 	sdkCtx := sdk.UnwrapSDKContext(c)
-	verifyGas := types.ProofVerifyBaseGas + types.ProofVerifyPerByteGas*(uint64(len(req.Proof))+publicInputsSize)
-	sdkCtx.GasMeter().ConsumeGas(verifyGas, "zk/ProofVerify: proof verification cost")
+	sdkCtx.GasMeter().ConsumeGas(types.ProofVerifyGas, "zk/ProofVerify: bn254 pairing")
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
@@ -140,12 +140,6 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 			params.MaxUltraHonkPublicInputSizeBytes,
 		)
 	}
-
-	// Charge gas proportional to proof + public inputs sizes to prevent free DoS
-	// via Stargate-whitelisted or CosmWasm-callable query endpoints.
-	sdkCtxHonk := sdk.UnwrapSDKContext(c)
-	honkGas := types.ProofVerifyUltraHonkBaseGas + types.ProofVerifyUltraHonkPerByteGas*(uint64(len(req.GetProof()))+uint64(len(req.GetPublicInputs())))
-	sdkCtxHonk.GasMeter().ConsumeGas(honkGas, "zk/ProofVerifyUltraHonk: proof verification cost")
 
 	// Resolve vkey by name or ID (prefer name when both are set, same as Groth16 verify-proof)
 	var vkey types.VKey

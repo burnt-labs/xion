@@ -108,7 +108,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 			if err != nil {
 				return nil, err
 			}
-			buf := make([]byte, 256)
+			buf := make([]byte, 1024)
 			n, err := keyCodec.EncodeNonTerminal(buf, fullKey)
 			if err != nil {
 				return nil, err
@@ -176,7 +176,7 @@ func (k Querier) DkimPubKeys(ctx context.Context, msg *types.QueryDkimPubKeysReq
 	// Generate NextKey if there are more results
 	var nextKey []byte
 	if hasLastKey {
-		buf := make([]byte, 256)
+		buf := make([]byte, 1024)
 		n, err := keyCodec.EncodeNonTerminal(buf, lastKey)
 		if err != nil {
 			return nil, err
@@ -205,11 +205,17 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 	indices := params.PublicInputIndices
 
-	// Charge gas proportional to public inputs count to prevent free DoS
-	// via Stargate-whitelisted or CosmWasm-callable query endpoints.
-	sdkCtx := sdk.UnwrapSDKContext(c)
-	authGas := types.AuthenticateBaseGas + types.AuthenticatePerPublicInputGas*uint64(len(req.PublicInputs))
-	sdkCtx.GasMeter().ConsumeGas(authGas, "dkim/Authenticate: proof verification cost")
+	// Reject oversized proof blobs before any deserialization to prevent allocator DoS.
+	// A valid Circom Groth16/BN254 proof is ~350–500 bytes of JSON; anything beyond
+	// MaxDKIMProofSizeBytes is not a legitimate proof.
+	if uint64(len(req.Proof)) > types.MaxDKIMProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d bytes exceeds maximum allowed %d bytes",
+			len(req.Proof),
+			types.MaxDKIMProofSizeBytes,
+		)
+	}
 
 	if uint64(len(req.PublicInputs)) < indices.MinLength {
 		return nil, errors.Wrapf(types.ErrNotEnoughPublicInputs, "insufficient public inputs, need at least %d elements, got %d", indices.MinLength, len(req.PublicInputs))
@@ -269,14 +275,19 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(errors.Wrap(types.ErrInvalidPublicInput, "cannot convert email host bigint to string"), "failed to convert allowed email hosts to string: %s", err.Error())
 	}
 
+	// Reject empty email host from public inputs
+	if emailHostFromPublicInputsString == "" {
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs is empty")
+	}
+
 	// If public inputs have email hosts but allowedEmailHosts is empty, return error
-	if emailHostFromPublicInputsString != "" && len(req.AllowedEmailHosts) == 0 {
-		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s is not present in allowed email hosts list", emailHostFromPublicInputsString)
+	if len(req.AllowedEmailHosts) == 0 {
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s does not match any of the allowed email hosts", emailHostFromPublicInputsString)
 	}
 
 	// Check if the email host from public inputs is present in the allowedEmailHosts list
 	if !IsSubset([]string{emailHostFromPublicInputsString}, req.AllowedEmailHosts) {
-		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s is not present in allowed email hosts list: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
+		return nil, errors.Wrapf(types.ErrEmailHostMismatch, "email host from public inputs %s does not match any of the allowed email hosts: %s", emailHostFromPublicInputsString, req.AllowedEmailHosts)
 	}
 
 	emailSubjectFromPublicInputs, err := types.ConvertStringArrayToBigInt(req.PublicInputs[indices.EmailSubjectRange.Start:indices.EmailSubjectRange.End])

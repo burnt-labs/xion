@@ -243,6 +243,8 @@ type Params struct {
 	MaxPubkeySizeBytes uint64 `protobuf:"varint,2,opt,name=max_pubkey_size_bytes,json=maxPubkeySizeBytes,proto3" json:"max_pubkey_size_bytes,omitempty"`
 	// public_input_indices defines the indices for extracting data from public inputs.
 	PublicInputIndices PublicInputIndices `protobuf:"bytes,3,opt,name=public_input_indices,json=publicInputIndices,proto3" json:"public_input_indices"`
+	// min_rsa_key_bits is the minimum RSA key size in bits accepted via governance.
+	MinRsaKeyBits uint64 `protobuf:"varint,4,opt,name=min_rsa_key_bits,json=minRsaKeyBits,proto3" json:"min_rsa_key_bits,omitempty"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }
@@ -296,6 +298,13 @@ func (m *Params) GetPublicInputIndices() PublicInputIndices {
 		return m.PublicInputIndices
 	}
 	return PublicInputIndices{}
+}
+
+func (m *Params) GetMinRsaKeyBits() uint64 {
+	if m != nil {
+		return m.MinRsaKeyBits
+	}
+	return 0
 }
 
 func init() {
@@ -444,6 +453,9 @@ func (this *Params) Equal(that interface{}) bool {
 		return false
 	}
 	if !this.PublicInputIndices.Equal(&that1.PublicInputIndices) {
+		return false
+	}
+	if this.MinRsaKeyBits != that1.MinRsaKeyBits {
 		return false
 	}
 	return true
@@ -635,6 +647,11 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.MinRsaKeyBits != 0 {
+		i = encodeVarintGenesis(dAtA, i, uint64(m.MinRsaKeyBits))
+		i--
+		dAtA[i] = 0x20
+	}
 	{
 		size, err := m.PublicInputIndices.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -747,6 +764,9 @@ func (m *Params) Size() (n int) {
 	}
 	l = m.PublicInputIndices.Size()
 	n += 1 + l + sovGenesis(uint64(l))
+	if m.MinRsaKeyBits != 0 {
+		n += 1 + sovGenesis(uint64(m.MinRsaKeyBits))
+	}
 	return n
 }
 
@@ -1332,6 +1352,25 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MinRsaKeyBits", wireType)
+			}
+			m.MinRsaKeyBits = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MinRsaKeyBits |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenesis(dAtA[iNdEx:])

@@ -1,6 +1,9 @@
 package types
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 // d line is used by starport scaffolding # genesis/types/import
 
@@ -84,6 +87,9 @@ func (gs GenesisState) Validate() error {
 	if params.MaxPubkeySizeBytes == 0 {
 		params.MaxPubkeySizeBytes = DefaultMaxPubKeySizeBytes
 	}
+	if params.MinRsaKeyBits == 0 {
+		params.MinRsaKeyBits = DefaultMinRSAKeyBits
+	}
 	if err := params.Validate(); err != nil {
 		return err
 	}
@@ -95,8 +101,19 @@ func (gs GenesisState) Validate() error {
 		if err != nil {
 			return err
 		}
+		// RevokedPubkeys entries may be either:
+		//   - a 32-byte SHA-256 hash (produced by CanonicalizeRSAPublicKey), or
+		//   - a full DER-encoded RSA public key (legacy direct-storage entries).
+		// Attempting to ParseRSAPublicKey on a 32-byte hash always fails because
+		// 32 bytes is not valid ASN.1, causing ValidateGenesis to reject any chain
+		// export that contains revoked keys (SEC-653). Accept 32-byte entries as
+		// valid SHA-256 hashes and only attempt RSA parsing for longer byte slices.
+		if len(pubKeyBytes) == 32 {
+			// Valid SHA-256 hash from CanonicalizeRSAPublicKey; no further parsing needed.
+			continue
+		}
 		if _, err := ParseRSAPublicKey(pubKeyBytes); err != nil {
-			return err
+			return fmt.Errorf("invalid revoked pubkey: not a 32-byte sha256 hash and not a valid RSA public key: %w", err)
 		}
 	}
 	return nil

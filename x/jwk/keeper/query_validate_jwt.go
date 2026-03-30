@@ -39,6 +39,20 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, err
 	}
 
+	// Validate key size to prevent DoS attacks from oversized keys
+	// that might have been stored before validation was implemented
+	if err := types.ValidateJWKKeySize(key); err != nil {
+		return nil, status.Error(codes.FailedPrecondition, fmt.Sprintf("stored key validation failed: %s", err))
+	}
+
+	// NOTE: No explicit gas charge here.
+	// ValidateJWT is Stargate-whitelisted and called by CosmWasm abstract-account
+	// contracts in their sudo handler. Charging 50 k+ gas per call would push
+	// those contracts over their existing gas budgets and break them post-upgrade.
+	// DoS protection is handled structurally: audience keys are bounded to
+	// MaxJWKKeySize bytes at registration time (ValidateJWKKeySize above), so
+	// the cryptographic work per call is already capped.
+
 	// basic sanity check
 	if len(req.SigBytes) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "empty jwt")

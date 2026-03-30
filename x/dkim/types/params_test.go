@@ -72,6 +72,21 @@ func TestParams_Validate(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "max_pubkey_size_bytes must be positive")
 	})
+
+	t.Run("params with zero vkey_identifier are invalid", func(t *testing.T) {
+		params := types.DefaultParams()
+		params.VkeyIdentifier = 0
+		err := params.Validate()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "vkey_identifier must be positive")
+	})
+
+	t.Run("params with positive vkey_identifier are valid", func(t *testing.T) {
+		params := types.DefaultParams()
+		params.VkeyIdentifier = 42
+		err := params.Validate()
+		require.NoError(t, err)
+	})
 }
 
 func TestIndexRange_Validate(t *testing.T) {

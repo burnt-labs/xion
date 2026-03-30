@@ -9,14 +9,20 @@ import (
 const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
 
-	// Gas constants for the Authenticate query.
-	// These are charged to prevent free DoS via Stargate-whitelisted or
-	// CosmWasm-callable query endpoints that run Groth16 BN254 verification.
+	// DefaultMinRSAKeyBits is the governance-configurable minimum RSA key size
+	// for DKIM public keys, stored on-chain as params.MinRsaKeyBits.
+	// Set to 1024 to accommodate legacy providers like Yahoo (s1024 selector).
+	// Governance can raise this once legacy providers rotate to larger keys.
+	DefaultMinRSAKeyBits uint64 = 1024
+	// ValidateBasicMaxPubKeySizeBytes is a higher ceiling for ValidateBasic
+	// to allow on-chain params to be meaningful. The message server will
+	// enforce the actual param limits.
+	ValidateBasicMaxPubKeySizeBytes uint64 = 2048
 
-	// AuthenticateBaseGas is the flat overhead charged on every Authenticate call.
-	AuthenticateBaseGas uint64 = 100_000
-	// AuthenticatePerPublicInputGas is charged per public input element.
-	AuthenticatePerPublicInputGas uint64 = 500
+	// MaxDKIMProofSizeBytes caps the proof JSON payload accepted by Authenticate.
+	// A valid Circom Groth16 proof over BN254 is ~350–500 bytes of JSON; 4 KiB
+	// matches the x/zk Groth16 limit and prevents allocator DoS from multi-MB blobs.
+	MaxDKIMProofSizeBytes uint64 = 4 * 1024 // 4 KiB
 
 	// Default public input indices for the Authenticate query
 	DefaultMinPublicInputsLength  uint64 = 88
@@ -61,6 +67,7 @@ func DefaultParams() Params {
 		VkeyIdentifier:     vkeyIdentifier,
 		MaxPubkeySizeBytes: DefaultMaxPubKeySizeBytes,
 		PublicInputIndices: DefaultPublicInputIndices(),
+		MinRsaKeyBits:      DefaultMinRSAKeyBits,
 	}
 }
 
@@ -143,8 +150,16 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(ErrInvalidParams, "max_pubkey_size_bytes must be positive")
 	}
 
+	if p.VkeyIdentifier == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "vkey_identifier must be positive")
+	}
+
 	if err := p.PublicInputIndices.Validate(); err != nil {
 		return err
+	}
+
+	if p.MinRsaKeyBits == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "min_rsa_key_bits must be positive")
 	}
 
 	return nil

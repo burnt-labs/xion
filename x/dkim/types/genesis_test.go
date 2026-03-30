@@ -54,6 +54,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					VkeyIdentifier:     uint64(42),
 					MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 					PublicInputIndices: types.DefaultPublicInputIndices(),
+					MinRsaKeyBits:      types.DefaultMinRSAKeyBits,
 				},
 			},
 			valid: true,
@@ -199,6 +200,7 @@ func TestGenesisStateValidateRevokedPubkeys(t *testing.T) {
 				VkeyIdentifier:     1,
 				MaxPubkeySizeBytes: 0, // Will be set to default
 				PublicInputIndices: types.DefaultPublicInputIndices(),
+				MinRsaKeyBits:      types.DefaultMinRSAKeyBits,
 			},
 			RevokedPubkeys: []string{validPubKey},
 		}
@@ -217,6 +219,20 @@ func TestGenesisStateValidateRevokedPubkeys(t *testing.T) {
 		}
 		err := gs.Validate()
 		require.Error(t, err)
+	})
+
+	t.Run("valid genesis with sha256 hash revoked pubkey (SEC-653)", func(t *testing.T) {
+		// CanonicalizeRSAPublicKey produces base64(sha256(pkcs1(pubkey))) — a 44-char
+		// base64 string decoding to exactly 32 bytes. Validate() must accept this
+		// format so that chains with revoked keys can restart from genesis export.
+		// "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" is base64 of 32 zero bytes.
+		sha256Hash := "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+		gs := &types.GenesisState{
+			Params:         types.DefaultParams(),
+			RevokedPubkeys: []string{sha256Hash},
+		}
+		err := gs.Validate()
+		require.NoError(t, err, "32-byte sha256 hash entries in RevokedPubkeys must be accepted by Validate")
 	})
 }
 

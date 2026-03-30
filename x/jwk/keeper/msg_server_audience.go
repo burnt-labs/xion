@@ -145,6 +145,9 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 		}
 
 		k.RemoveAudience(ctx, valFound.Aud)
+		// Remove the old audience's claim so it does not become an orphan.
+		oldAudHash := sha256.Sum256([]byte(valFound.Aud))
+		k.RemoveAudienceClaim(ctx, oldAudHash[:])
 		audience.Aud = msg.NewAud
 	}
 
@@ -190,6 +193,10 @@ func (k msgServer) DeleteAudience(goCtx context.Context, msg *types.MsgDeleteAud
 		ctx,
 		msg.Aud,
 	)
+
+	// Also remove the audience claim so the name can be re-claimed in the future.
+	audHash := sha256.Sum256([]byte(msg.Aud))
+	k.RemoveAudienceClaim(ctx, audHash[:])
 
 	return &types.MsgDeleteAudienceResponse{}, nil
 }
