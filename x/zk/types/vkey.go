@@ -147,6 +147,12 @@ func validateCircomVerificationKey(vk *parser.CircomVerificationKey) error {
 			return err
 		}
 	}
+	// G2 generators (VkBeta2, VkGamma2, VkDelta2) are points on the BN254 G2 curve,
+	// which is defined over Fp2 — a degree-2 extension of the base field. Each
+	// coordinate (x and y) therefore consists of two Fp components: [c0, c1]. Both
+	// components must be valid BN254 field elements, so the inner loop ranges over
+	// all elements in each row. The outer loop is bounded to 2 to skip the
+	// projective Z-row that may be present in extended representations.
 	for i := 0; i < 2 && i < len(vk.VkBeta2); i++ {
 		for j, coord := range vk.VkBeta2[i] {
 			if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkBeta2[%d][%d]", i, j)); err != nil {
@@ -168,6 +174,10 @@ func validateCircomVerificationKey(vk *parser.CircomVerificationKey) error {
 			}
 		}
 	}
+	// IC points are G1 affine points serialised as [x, y, z] where z is the
+	// projective Z-coordinate (always "1" for affine, "0" for the point at
+	// infinity). Index 2 is not a BN254 field element in the cryptographic sense,
+	// so [:2] limits validation to only the affine x and y coordinates.
 	for i, icPoint := range vk.IC {
 		for j, coord := range icPoint[:2] {
 			if err := checkBN254FieldCoord(coord, fmt.Sprintf("IC[%d][%d]", i, j)); err != nil {
