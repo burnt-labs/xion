@@ -205,6 +205,10 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 	indices := params.PublicInputIndices
 
+	// No gas is charged for this Stargate-whitelisted query. DoS protection is provided by
+	// proof size and public input count limits (governance-managed). This is intentional
+	// and consistent with ValidateJWT — adding gas to whitelisted endpoints would break deployed
+	// CosmWasm contracts that call them with fixed gas budgets.
 	if uint64(len(req.PublicInputs)) < indices.MinLength {
 		return nil, errors.Wrapf(types.ErrNotEnoughPublicInputs, "insufficient public inputs, need at least %d elements, got %d", indices.MinLength, len(req.PublicInputs))
 	}

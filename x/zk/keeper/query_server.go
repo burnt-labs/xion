@@ -34,6 +34,10 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
 	}
 
+	// No gas is charged for this Stargate-whitelisted query. DoS protection is provided by
+	// proof size validation and vkey lookup controls (governance-managed). This is intentional
+	// and consistent with ValidateJWT — adding gas to whitelisted endpoints would break deployed
+	// CosmWasm contracts that call them with fixed gas budgets.
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
 		return nil, err
