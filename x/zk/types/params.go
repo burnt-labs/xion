@@ -29,6 +29,19 @@ const (
 	// For UltraHonk, public inputs are provided as raw bytes.
 	DefaultMaxUltraHonkPublicInputSizeBytes uint64 = 10 * 1024 // 10 KiB
 
+	// DefaultMaxGnarkProofSizeBytes caps the maximum allowed gnark native Groth16 proof bytes size.
+	// Used by `Query.ProofVerifyGnark`. gnark BN254 Groth16 proofs are ~384 bytes (3 curve points).
+	DefaultMaxGnarkProofSizeBytes uint64 = 4 * 1024 // 4 KiB
+
+	// DefaultMaxGnarkPublicInputSizeBytes caps the maximum allowed gnark Groth16 public inputs bytes size.
+	// Public inputs are provided as raw bytes (concatenated 32-byte big-endian field elements).
+	DefaultMaxGnarkPublicInputSizeBytes uint64 = 10 * 1024 // 10 KiB
+
+	// ProofVerifyGas is the flat gas cost charged per BN254 proof verification.
+	// BN254 pairing checks are computationally expensive; this cost bounds the
+	// number of verifications an account can submit per block under its gas limit.
+	ProofVerifyGas uint64 = 500_000
+
 	// MinProofOrInputSizeBytes is the minimum value governance may set for any
 	// proof or public-input size parameter (must be at least 1 byte).
 	MinProofOrInputSizeBytes uint64 = 1
@@ -56,6 +69,8 @@ func NewParams(maxSize, chunkSize, chunkGas uint64) Params {
 		MaxGroth16PublicInputSizeBytes:   DefaultMaxGroth16PublicInputSizeBytes,
 		MaxUltraHonkProofSizeBytes:       DefaultMaxUltraHonkProofSizeBytes,
 		MaxUltraHonkPublicInputSizeBytes: DefaultMaxUltraHonkPublicInputSizeBytes,
+		MaxGnarkProofSizeBytes:           DefaultMaxGnarkProofSizeBytes,
+		MaxGnarkPublicInputSizeBytes:     DefaultMaxGnarkPublicInputSizeBytes,
 	}
 }
 
@@ -80,6 +95,13 @@ func (p Params) WithMaxLimitDefaults() Params {
 	}
 	if p.MaxUltraHonkPublicInputSizeBytes == 0 {
 		p.MaxUltraHonkPublicInputSizeBytes = DefaultMaxUltraHonkPublicInputSizeBytes
+	}
+
+	if p.MaxGnarkProofSizeBytes == 0 {
+		p.MaxGnarkProofSizeBytes = DefaultMaxGnarkProofSizeBytes
+	}
+	if p.MaxGnarkPublicInputSizeBytes == 0 {
+		p.MaxGnarkPublicInputSizeBytes = DefaultMaxGnarkPublicInputSizeBytes
 	}
 	return p
 }
@@ -138,6 +160,20 @@ func (p Params) Validate() error {
 
 	if p.MaxVkeySizeBytes > MaxAllowedVKeySizeBytes {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_vkey_size_bytes exceeds hard upper bound of %d bytes (1 MiB)", MaxAllowedVKeySizeBytes)
+	}
+
+	if p.MaxGnarkProofSizeBytes < MinProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_gnark_proof_size_bytes must be positive")
+	}
+	if p.MaxGnarkProofSizeBytes > MaxAllowedProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_gnark_proof_size_bytes exceeds hard upper bound of %d bytes (512 KiB)", MaxAllowedProofOrInputSizeBytes)
+	}
+
+	if p.MaxGnarkPublicInputSizeBytes < MinProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_gnark_public_input_size_bytes must be positive")
+	}
+	if p.MaxGnarkPublicInputSizeBytes > MaxAllowedProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_gnark_public_input_size_bytes exceeds hard upper bound of %d bytes (512 KiB)", MaxAllowedProofOrInputSizeBytes)
 	}
 
 	return nil

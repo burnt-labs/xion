@@ -236,6 +236,69 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	return &types.ProofVerifyUltraHonkResponse{Verified: verified}, nil
 }
 
+// ProofVerifyGnark verifies a gnark native Groth16 proof (BN254) using a vkey looked up by name or ID.
+func (q Querier) ProofVerifyGnark(c context.Context, req *types.QueryVerifyGnarkRequest) (*types.ProofVerifyResponse, error) {
+	if req == nil {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
+	}
+	if len(req.GetProof()) == 0 {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
+	}
+
+	params, err := q.GetParams(c)
+	if err != nil {
+		return nil, err
+	}
+
+	if uint64(len(req.GetProof())) > params.MaxGnarkProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d > max %d bytes",
+			len(req.GetProof()),
+			params.MaxGnarkProofSizeBytes,
+		)
+	}
+
+	if uint64(len(req.GetPublicInputs())) > params.MaxGnarkPublicInputSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrPublicInputsTooLarge,
+			"public inputs size %d > max %d bytes",
+			len(req.GetPublicInputs()),
+			params.MaxGnarkPublicInputSizeBytes,
+		)
+	}
+
+	// Resolve vkey by name or ID (prefer name when both are set)
+	var vkey types.VKey
+	switch {
+	case req.GetVkeyName() != "":
+		vkey, err = q.GetVKeyByName(c, req.GetVkeyName())
+	case req.GetVkeyId() != 0:
+		vkey, err = q.GetVKeyByID(c, req.GetVkeyId())
+	default:
+		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if vkey.ProofSystem != types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK {
+		proofSystem := vkey.ProofSystem
+		if proofSystem == 0 {
+			proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+		}
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not a gnark Groth16 key (proof_system=%v)", proofSystem)
+	}
+
+	// Verify the proof
+	verified, err := q.VerifyGnark(c, req.GetProof(), vkey.KeyBytes, req.GetPublicInputs())
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.ProofVerifyResponse{Verified: verified}, nil
+}
+
 // VKey queries a verification key by ID
 func (q Querier) VKey(goCtx context.Context, req *types.QueryVKeyRequest) (*types.QueryVKeyResponse, error) {
 	if req == nil {
