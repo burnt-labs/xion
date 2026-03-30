@@ -76,6 +76,9 @@ USER heighliner:heighliner
 # --------------------------------------------------------
 FROM heighliner AS release
 
+# Always set by buildkit
+ARG TARGETARCH
+
 USER root:root
 
 COPY --from=builder /go/bin/xiond /usr/bin/xiond
@@ -83,8 +86,8 @@ COPY --from=builder /go/bin/xiond /usr/bin/xiond
 # Add tools and cosmovisor
 RUN set -euxo pipefail; \
     apk add --no-cache bash openssl curl htop jq lz4 tini; \
-    curl -sSL https://github.com/cosmos/cosmos-sdk/releases/download/cosmovisor%2Fv1.5.0/cosmovisor-v1.5.0-linux-amd64.tar.gz \
-    | tar -xz -C /usr/bin; 
+    curl -sSL https://github.com/cosmos/cosmos-sdk/releases/download/cosmovisor%2Fv1.5.0/cosmovisor-v1.5.0-linux-${TARGETARCH}.tar.gz \
+    | tar -xz -C /usr/bin;
 
 # Add xiond users and groups
 RUN set -euxo pipefail; \
