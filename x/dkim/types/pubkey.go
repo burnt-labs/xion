@@ -9,17 +9,14 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-// MinRSAKeyBits is the minimum allowed RSA key size in bits for new keys
-// submitted via messages. Genesis and state-loading paths use ParseRSAPublicKey
-// (which does not enforce this limit) to avoid rejecting legacy keys at rest.
-//
-// Set to 1024 to accommodate major email providers (e.g. Yahoo, which uses a
-// 1024-bit "s1024" DKIM selector) whose keys must be registerable for
-// DKIM-authenticated abstract accounts to function. 1024-bit RSA is below
-// modern cryptographic recommendations but is still required for broad email
-// provider compatibility. Keys stored at this size should be treated as
-// low-assurance and rotated when the provider upgrades.
-const MinRSAKeyBits = 1024
+// MinDKIMRSAKeyBits is the minimum RSA key size for any valid DKIM key (per RFC 6376).
+// This allows legacy 1024-bit keys such as Yahoo's s1024 selector.
+const MinDKIMRSAKeyBits = 1024
+
+// MinRSAKeyBits is the hardcoded fallback minimum RSA key size used in stateless
+// ValidateBasic paths and as a safety net when params.MinRsaKeyBits is unset.
+// The governance-configurable minimum is params.MinRsaKeyBits (default 1024).
+const MinRSAKeyBits = 2048
 
 // ParseRSAPublicKey parses PKIX or PKCS#1-encoded RSA public key bytes.
 // It does NOT enforce a minimum key size — use ValidateRSAKeySize for that.
@@ -44,9 +41,9 @@ func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
-// ValidateRSAKeySize checks that the RSA key meets the minimum bit length.
-// Call this in message validation paths (ValidateBasic, msg server) but NOT
-// in genesis/state-loading paths where legacy keys may be smaller.
+// ValidateRSAKeySize checks that the RSA key meets the hardcoded minimum bit length.
+// Used in stateless ValidateBasic paths that cannot access on-chain params.
+// The msg server uses params.MinRsaKeyBits for the governance-configurable check.
 func ValidateRSAKeySize(key *rsa.PublicKey) error {
 	if key == nil || key.N == nil {
 		return errorsmod.Wrap(ErrInvalidPubKey, "RSA public key is nil")

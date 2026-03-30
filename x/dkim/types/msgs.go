@@ -200,8 +200,12 @@ func ValidateDkimPubKeysWithRevocation(
 		}
 
 		if enforceMinKeySize {
-			if err := ValidateRSAKeySize(rsaPubKey); err != nil {
-				return err
+			minBits := params.MinRsaKeyBits
+			if minBits == 0 {
+				minBits = MinRSAKeyBits
+			}
+			if rsaPubKey.N.BitLen() < int(minBits) {
+				return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPubKey.N.BitLen(), minBits)
 			}
 		}
 
@@ -245,7 +249,8 @@ func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 }
 
 // ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
-// with minimum key size enforcement.
+// meeting the DKIM minimum key size (MinDKIMRSAKeyBits). Use ValidateRSAKeySize
+// separately to enforce the stricter governance minimum (MinRSAKeyBits).
 func ValidateRSAPubKey(pubKeyStr string) error {
 	pubKeyBytes, err := DecodePubKey(pubKeyStr)
 	if err != nil {
@@ -257,7 +262,10 @@ func ValidateRSAPubKey(pubKeyStr string) error {
 		return err
 	}
 
-	return ValidateRSAKeySize(rsaPub)
+	if rsaPub.N.BitLen() < MinDKIMRSAKeyBits {
+		return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPub.N.BitLen(), MinDKIMRSAKeyBits)
+	}
+	return nil
 }
 
 func validateDkimPubKeyMetadata(dkimKey DkimPubKey) error {
