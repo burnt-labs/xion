@@ -53,9 +53,6 @@ func (m *MsgAddVKey) ValidateBasic() error {
 		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
 		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
 	}
-	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
-		return fmt.Errorf("invalid vkey_bytes: %w", err)
-	}
 
 	return nil
 }
@@ -87,9 +84,6 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
 		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
 		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
-	}
-	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
-		return fmt.Errorf("invalid vkey_bytes: %w", err)
 	}
 
 	return nil
