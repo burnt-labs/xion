@@ -13,15 +13,17 @@ import (
 	"github.com/burnt-labs/xion/x/zk/types"
 )
 
-// parseProofSystem converts the user-supplied string ("groth16" or "ultrahonk") to the typed enum.
+// parseProofSystem converts the user-supplied string ("groth16", "gnark", or "ultrahonk") to the typed enum.
 func parseProofSystem(s string) (types.ProofSystem, error) {
 	switch s {
 	case "groth16":
 		return types.ProofSystem_PROOF_SYSTEM_GROTH16, nil
+	case "gnark":
+		return types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, nil
 	case "ultrahonk":
 		return types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK, nil
 	default:
-		return 0, fmt.Errorf("proof_system must be %q or %q, got %q", "groth16", "ultrahonk", s)
+		return 0, fmt.Errorf("proof_system must be %q, %q, or %q, got %q", "groth16", "gnark", "ultrahonk", s)
 	}
 }
 
@@ -50,13 +52,14 @@ func GetCmdAddVKey() *cobra.Command {
 		Use:   "add-vkey [name] [vkey-file] [description] [proof-system]",
 		Short: "Add a new verification key",
 		Long: `Add a new verification key to the blockchain.
-The vkey-file should contain the verification key: JSON for groth16 (SnarkJS), or binary for ultrahonk (Barretenberg).
-proof-system must be "groth16" or "ultrahonk". Any account can add verification keys.`,
+The vkey-file should contain the verification key: JSON for groth16 (SnarkJS/Circom), binary for gnark (gnark Groth16), or binary for ultrahonk (Barretenberg).
+proof-system must be "groth16", "gnark", or "ultrahonk". Any account can add verification keys.`,
 		Args: cobra.ExactArgs(4),
 		Example: fmt.Sprintf(
 			`$ %s tx zk add-vkey email_auth ./vkey.json "Email authentication circuit" groth16 --from mykey
+$ %s tx zk add-vkey zkml_model ./model_vkey.bin "ZKML model verification" gnark --from mykey
 $ %s tx zk add-vkey rollup_batch ./rollup_vkey.bin "Rollup batch verification" ultrahonk --from mykey --chain-id xion-1`,
-			"xiond", "xiond",
+			"xiond", "xiond", "xiond",
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -103,13 +106,14 @@ func GetCmdUpdateVKey() *cobra.Command {
 		Use:   "update-vkey [name] [vkey-file] [description] [proof-system]",
 		Short: "Update an existing verification key",
 		Long: `Update an existing verification key on the blockchain.
-The vkey-file should contain the verification key: JSON for groth16 (SnarkJS), or binary for ultrahonk (Barretenberg).
-proof-system must be "groth16" or "ultrahonk". Any account can update verification keys.`,
+The vkey-file should contain the verification key: JSON for groth16 (SnarkJS/Circom), binary for gnark (gnark Groth16), or binary for ultrahonk (Barretenberg).
+proof-system must be "groth16", "gnark", or "ultrahonk". Any account can update verification keys.`,
 		Args: cobra.ExactArgs(4),
 		Example: fmt.Sprintf(
 			`$ %s tx zk update-vkey email_auth ./new_vkey.json "Updated email authentication circuit" groth16 --from mykey
+$ %s tx zk update-vkey zkml_model ./new_model_vkey.bin "Updated ZKML model verification" gnark --from mykey
 $ %s tx zk update-vkey rollup_batch ./new_rollup_vkey.bin "Updated rollup verification" ultrahonk --from mykey`,
-			"xiond", "xiond",
+			"xiond", "xiond", "xiond",
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
