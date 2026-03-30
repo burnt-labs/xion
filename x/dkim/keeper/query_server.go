@@ -217,7 +217,6 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		)
 	}
 
-
 	if uint64(len(req.PublicInputs)) < indices.MinLength {
 		return nil, errors.Wrapf(types.ErrNotEnoughPublicInputs, "insufficient public inputs, need at least %d elements, got %d", indices.MinLength, len(req.PublicInputs))
 	}
