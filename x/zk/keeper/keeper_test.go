@@ -2086,3 +2086,457 @@ func TestValidateVKeyBytes(t *testing.T) {
 		})
 	}
 }
+
+// ============================================================================
+// Gnark Integration Tests
+// ============================================================================
+
+// loadGnarkTestdata loads gnark testdata binary files
+func loadGnarkTestdata(t *testing.T) (vkeyBytes, proofBytes, publicInputBytes []byte) {
+	t.Helper()
+
+	vkeyBytes, err := os.ReadFile("testdata/gnark/vkey.bin")
+	require.NoError(t, err, "failed to load gnark vkey.bin")
+
+	proofBytes, err = os.ReadFile("testdata/gnark/proof.bin")
+	require.NoError(t, err, "failed to load gnark proof.bin")
+
+	publicInputBytes, err = os.ReadFile("testdata/gnark/public_input.bin")
+	require.NoError(t, err, "failed to load gnark public_input.bin")
+
+	return vkeyBytes, proofBytes, publicInputBytes
+}
+
+func TestAddGnarkVKey(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	t.Run("successfully add gnark vkey", func(t *testing.T) {
+		id, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_test_key", vkeyBytes, "Gnark Groth16 test key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, id, uint64(1))
+
+		// Verify the vkey was stored correctly
+		storedVKey, err := f.k.GetVKeyByID(f.ctx, id)
+		require.NoError(t, err)
+		require.Equal(t, "gnark_test_key", storedVKey.Name)
+		require.Equal(t, "Gnark Groth16 test key", storedVKey.Description)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, storedVKey.ProofSystem)
+		require.Equal(t, vkeyBytes, storedVKey.KeyBytes)
+	})
+
+	t.Run("fail to add gnark vkey with invalid bytes", func(t *testing.T) {
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_gnark_key", []byte("invalid binary data"), "Invalid gnark key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+
+	t.Run("fail to add gnark vkey with circom json format", func(t *testing.T) {
+		circomVkeyBytes := createTestVKeyBytes("circom_key")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_as_gnark", circomVkeyBytes, "Circom key as gnark", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+}
+
+func TestUpdateGnarkVKey(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	// Add initial gnark vkey
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_update_test", vkeyBytes, "Original description", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+	require.NoError(t, err)
+
+	t.Run("successfully update gnark vkey", func(t *testing.T) {
+		err := f.k.UpdateVKey(f.ctx, f.govModAddr, "gnark_update_test", vkeyBytes, "Updated description", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Verify the update
+		updated, err := f.k.GetVKeyByName(f.ctx, "gnark_update_test")
+		require.NoError(t, err)
+		require.Equal(t, "Updated description", updated.Description)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, updated.ProofSystem)
+	})
+
+	t.Run("fail to update gnark vkey with invalid bytes", func(t *testing.T) {
+		err := f.k.UpdateVKey(f.ctx, f.govModAddr, "gnark_update_test", []byte("invalid"), "Invalid update", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+}
+
+func TestVerifyGnark(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, proofBytes, publicInputBytes := loadGnarkTestdata(t)
+
+	t.Run("successfully verify gnark proof", func(t *testing.T) {
+		verified, err := f.k.VerifyGnark(f.ctx, proofBytes, vkeyBytes, publicInputBytes)
+		require.NoError(t, err)
+		require.True(t, verified, "valid gnark proof should verify successfully")
+	})
+
+	t.Run("fail verification with invalid proof", func(t *testing.T) {
+		invalidProof := make([]byte, len(proofBytes))
+		copy(invalidProof, proofBytes)
+		// Corrupt the proof by flipping some bytes
+		invalidProof[0] ^= 0xFF
+		invalidProof[10] ^= 0xFF
+
+		verified, err := f.k.VerifyGnark(f.ctx, invalidProof, vkeyBytes, publicInputBytes)
+		// Either returns error or returns false for invalid proof
+		if err == nil {
+			require.False(t, verified, "corrupted proof should not verify")
+		}
+	})
+
+	t.Run("fail verification with wrong public inputs", func(t *testing.T) {
+		// Create completely different public inputs (all zeros)
+		wrongPublicInputs := make([]byte, len(publicInputBytes))
+		// Keep zeros - this is a completely different value
+
+		verified, err := f.k.VerifyGnark(f.ctx, proofBytes, vkeyBytes, wrongPublicInputs)
+		// Either returns error or returns false for wrong inputs
+		if err == nil {
+			require.False(t, verified, "proof with wrong public inputs should not verify")
+		}
+	})
+
+	t.Run("fail with empty proof", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, []byte{}, vkeyBytes, publicInputBytes)
+		require.Error(t, err)
+	})
+
+	t.Run("fail with empty vkey", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, proofBytes, []byte{}, publicInputBytes)
+		require.Error(t, err)
+	})
+
+	t.Run("fail with malformed vkey bytes", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, proofBytes, []byte("not a valid vkey"), publicInputBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark vkey")
+	})
+
+	t.Run("fail with malformed proof bytes", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, []byte("not a valid proof"), vkeyBytes, publicInputBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark proof")
+	})
+}
+
+func TestProofVerifyGnarkQuery(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, proofBytes, publicInputBytes := loadGnarkTestdata(t)
+
+	// Add gnark vkey first
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_verify_test", vkeyBytes, "Gnark verification test key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+	require.NoError(t, err)
+
+	t.Run("successfully verify gnark proof by vkey name", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_verify_test",
+		}
+
+		resp, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified, "valid gnark proof should verify successfully")
+	})
+
+	t.Run("successfully verify gnark proof by vkey id", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyId:       id,
+		}
+
+		resp, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified, "valid gnark proof should verify successfully")
+	})
+
+	t.Run("fail verification with corrupted proof", func(t *testing.T) {
+		corruptedProof := make([]byte, len(proofBytes))
+		copy(corruptedProof, proofBytes)
+		corruptedProof[0] ^= 0xFF
+		corruptedProof[20] ^= 0xFF
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        corruptedProof,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_verify_test",
+		}
+
+		resp, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		// Either returns error or verified=false
+		if err == nil {
+			require.False(t, resp.Verified, "corrupted proof should not verify")
+		}
+	})
+
+	t.Run("fail with empty request", func(t *testing.T) {
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "empty request")
+	})
+
+	t.Run("fail with empty proof", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        []byte{},
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_verify_test",
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "proof cannot be empty")
+	})
+
+	t.Run("fail with missing vkey identifier", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "either vkey_name or vkey_id must be provided")
+	})
+
+	t.Run("fail with non-existent vkey name", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "non_existent_key",
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("fail with non-existent vkey id", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyId:       9999,
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("fail when using circom vkey with gnark verifier", func(t *testing.T) {
+		// Add a circom (non-gnark) vkey
+		circomVkeyBytes := createTestVKeyBytes("circom_key")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_key_for_gnark_test", circomVkeyBytes, "Circom key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.NoError(t, err)
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "circom_key_for_gnark_test",
+		}
+
+		_, err = f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "verification key is not a gnark Groth16 key")
+	})
+}
+
+func TestGnarkVKeyGenesis(t *testing.T) {
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	t.Run("export genesis with gnark vkey", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add gnark vkey
+		id, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_export_key", vkeyBytes, "Gnark export test", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Export genesis
+		exportedGS := f.k.ExportGenesis(f.ctx)
+		require.NotNil(t, exportedGS)
+		require.Len(t, exportedGS.Vkeys, 1)
+
+		// Verify exported vkey has correct proof system
+		exportedVkey := exportedGS.Vkeys[0]
+		require.Equal(t, id, exportedVkey.Id)
+		require.Equal(t, "gnark_export_key", exportedVkey.Vkey.Name)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, exportedVkey.Vkey.ProofSystem)
+		require.Equal(t, vkeyBytes, exportedVkey.Vkey.KeyBytes)
+	})
+
+	t.Run("export genesis preserves gnark vkey bytes", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add gnark vkey
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_bytes_key", vkeyBytes, "Gnark bytes test", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Export genesis
+		exportedGS := f.k.ExportGenesis(f.ctx)
+		require.Len(t, exportedGS.Vkeys, 1)
+
+		// Verify the key bytes are exactly preserved
+		require.Equal(t, vkeyBytes, exportedGS.Vkeys[0].Vkey.KeyBytes)
+	})
+
+	t.Run("export genesis with mixed vkey types", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add circom vkey
+		circomVkeyBytes := createTestVKeyBytes("circom_key")
+		circomID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_mixed_key", circomVkeyBytes, "Circom key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.NoError(t, err)
+
+		// Add gnark vkey
+		gnarkID, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_mixed_key", vkeyBytes, "Gnark key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Export genesis
+		exportedGS := f.k.ExportGenesis(f.ctx)
+		require.Len(t, exportedGS.Vkeys, 2)
+
+		// Verify both keys are exported with correct proof systems
+		exportedByID := make(map[uint64]types.VKey)
+		for _, vkeyWithID := range exportedGS.Vkeys {
+			exportedByID[vkeyWithID.Id] = vkeyWithID.Vkey
+		}
+
+		circomExported := exportedByID[circomID]
+		require.Equal(t, "circom_mixed_key", circomExported.Name)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16, circomExported.ProofSystem)
+
+		gnarkExported := exportedByID[gnarkID]
+		require.Equal(t, "gnark_mixed_key", gnarkExported.Name)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, gnarkExported.ProofSystem)
+	})
+}
+
+func TestGnarkProofSizeLimits(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, proofBytes, publicInputBytes := loadGnarkTestdata(t)
+
+	// Add gnark vkey
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_size_test", vkeyBytes, "Size test key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+	require.NoError(t, err)
+
+	t.Run("fail with proof exceeding max size", func(t *testing.T) {
+		// Set params with a very small max proof size
+		params := types.Params{
+			MaxVkeySizeBytes:         types.DefaultMaxVKeySizeBytes,
+			UploadChunkSize:          types.DefaultUploadChunkSize,
+			UploadChunkGas:           types.DefaultUploadChunkGas,
+			MaxGnarkProofSizeBytes:   10, // Very small limit
+			MaxGnarkPublicInputSizeBytes: types.DefaultMaxGnarkPublicInputSizeBytes,
+		}
+		err := f.k.SetParams(f.ctx, params)
+		require.NoError(t, err)
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes, // Larger than 10 bytes
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_size_test",
+		}
+
+		_, err = f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "proof size")
+	})
+
+	t.Run("fail with public inputs exceeding max size", func(t *testing.T) {
+		// Reset params with small public input limit
+		params := types.Params{
+			MaxVkeySizeBytes:             types.DefaultMaxVKeySizeBytes,
+			UploadChunkSize:              types.DefaultUploadChunkSize,
+			UploadChunkGas:               types.DefaultUploadChunkGas,
+			MaxGnarkProofSizeBytes:       types.DefaultMaxGnarkProofSizeBytes,
+			MaxGnarkPublicInputSizeBytes: 10, // Very small limit
+		}
+		err := f.k.SetParams(f.ctx, params)
+		require.NoError(t, err)
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes, // Larger than 10 bytes
+			VkeyName:     "gnark_size_test",
+		}
+
+		_, err = f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "public inputs size")
+	})
+}
+
+func TestValidateGnarkVKeyBytes(t *testing.T) {
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	t.Run("valid gnark vkey", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(vkeyBytes, 0)
+		require.NoError(t, err)
+	})
+
+	t.Run("empty vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte{}, 0)
+		require.Error(t, err)
+	})
+
+	t.Run("invalid vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte("invalid binary data"), 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark")
+	})
+
+	t.Run("vkey exceeds max size", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(vkeyBytes, 10) // Very small limit
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "exceeds max")
+	})
+
+	t.Run("circom json as gnark vkey fails", func(t *testing.T) {
+		circomVkeyBytes := createTestVKeyBytes("test")
+		err := types.ValidateGnarkVKeyBytes(circomVkeyBytes, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark")
+	})
+}
+
+func TestValidateVKeyForProofSystem(t *testing.T) {
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+	circomVkeyBytes := createTestVKeyBytes("circom_test")
+
+	t.Run("gnark vkey with gnark proof system", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(vkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+	})
+
+	t.Run("circom vkey with groth16 proof system", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(circomVkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.NoError(t, err)
+	})
+
+	t.Run("gnark vkey with groth16 proof system fails", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(vkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.Error(t, err)
+	})
+
+	t.Run("circom vkey with gnark proof system fails", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(circomVkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+	})
+
+	t.Run("unspecified defaults to groth16", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(circomVkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED)
+		require.NoError(t, err)
+	})
+}
