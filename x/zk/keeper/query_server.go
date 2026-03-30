@@ -11,7 +11,6 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/burnt-labs/xion/x/zk/types"
@@ -45,6 +44,9 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, err
 	}
 
+	// No gas is charged for this whitelisted query — size limits (MaxGroth16ProofSizeBytes,
+	// MaxGroth16PublicInputSizeBytes) and governance-controlled ceilings (MaxAllowedProofOrInputSizeBytes)
+	// serve as the DoS governors, consistent with v28 behavior.
 	if uint64(len(req.Proof)) > params.MaxGroth16ProofSizeBytes {
 		return nil, errors.Wrapf(
 			types.ErrProofTooLarge,
@@ -71,12 +73,6 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 			params.MaxGroth16PublicInputSizeBytes,
 		)
 	}
-
-	// Charge gas before executing the BN254 pairing check. Proof verification is
-	// computationally expensive and must be metered to prevent a single query from
-	// consuming unbounded node resources.
-	sdkCtx := sdk.UnwrapSDKContext(c)
-	sdkCtx.GasMeter().ConsumeGas(types.ProofVerifyGas, "zk/ProofVerify: bn254 pairing")
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
@@ -122,6 +118,9 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		return nil, err
 	}
 
+	// No gas is charged for this whitelisted query — size limits (MaxUltraHonkProofSizeBytes,
+	// MaxUltraHonkPublicInputSizeBytes) and governance-controlled ceilings (MaxAllowedProofOrInputSizeBytes)
+	// serve as the DoS governors, consistent with v28 behavior.
 	if uint64(len(req.GetProof())) > params.MaxUltraHonkProofSizeBytes {
 		return nil, errors.Wrapf(
 			types.ErrProofTooLarge,
