@@ -18,7 +18,6 @@ const (
 	// matches the x/zk Groth16 limit and prevents allocator DoS from multi-MB blobs.
 	MaxDKIMProofSizeBytes uint64 = 4 * 1024 // 4 KiB
 
-
 	// Default public input indices for the Authenticate query
 	DefaultMinPublicInputsLength  uint64 = 88
 	DefaultEmailHashIndex         uint64 = 68

@@ -24,6 +24,8 @@ const (
 	Query_Audience_FullMethodName      = "/xion.jwk.v1.Query/Audience"
 	Query_AudienceAll_FullMethodName   = "/xion.jwk.v1.Query/AudienceAll"
 	Query_ValidateJWT_FullMethodName   = "/xion.jwk.v1.Query/ValidateJWT"
+	Query_VerifyJWS_FullMethodName     = "/xion.jwk.v1.Query/VerifyJWS"
+	Query_DecodeJWT_FullMethodName     = "/xion.jwk.v1.Query/DecodeJWT"
 )
 
 // QueryClient is the client API for Query service.
@@ -40,8 +42,13 @@ type QueryClient interface {
 	Audience(ctx context.Context, in *QueryAudienceRequest, opts ...grpc.CallOption) (*QueryAudienceResponse, error)
 	// AudienceAll queries all audiences
 	AudienceAll(ctx context.Context, in *QueryAudienceAllRequest, opts ...grpc.CallOption) (*QueryAudienceAllResponse, error)
-	// Queries a list of ValidateJWT items.
+	// Deprecated: Do not use.
+	// Deprecated: Use DecodeJWT instead, which returns all claims.
 	ValidateJWT(ctx context.Context, in *QueryValidateJWTRequest, opts ...grpc.CallOption) (*QueryValidateJWTResponse, error)
+	// VerifyJWS verifies a compact JWS signature and returns the payload.
+	VerifyJWS(ctx context.Context, in *QueryVerifyJWSRequest, opts ...grpc.CallOption) (*QueryVerifyJWSResponse, error)
+	// DecodeJWT validates a JWT and returns all claims (standard and private).
+	DecodeJWT(ctx context.Context, in *QueryDecodeJWTRequest, opts ...grpc.CallOption) (*QueryDecodeJWTResponse, error)
 }
 
 type queryClient struct {
@@ -92,10 +99,31 @@ func (c *queryClient) AudienceAll(ctx context.Context, in *QueryAudienceAllReque
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *queryClient) ValidateJWT(ctx context.Context, in *QueryValidateJWTRequest, opts ...grpc.CallOption) (*QueryValidateJWTResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(QueryValidateJWTResponse)
 	err := c.cc.Invoke(ctx, Query_ValidateJWT_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) VerifyJWS(ctx context.Context, in *QueryVerifyJWSRequest, opts ...grpc.CallOption) (*QueryVerifyJWSResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryVerifyJWSResponse)
+	err := c.cc.Invoke(ctx, Query_VerifyJWS_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) DecodeJWT(ctx context.Context, in *QueryDecodeJWTRequest, opts ...grpc.CallOption) (*QueryDecodeJWTResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryDecodeJWTResponse)
+	err := c.cc.Invoke(ctx, Query_DecodeJWT_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,8 +144,13 @@ type QueryServer interface {
 	Audience(context.Context, *QueryAudienceRequest) (*QueryAudienceResponse, error)
 	// AudienceAll queries all audiences
 	AudienceAll(context.Context, *QueryAudienceAllRequest) (*QueryAudienceAllResponse, error)
-	// Queries a list of ValidateJWT items.
+	// Deprecated: Do not use.
+	// Deprecated: Use DecodeJWT instead, which returns all claims.
 	ValidateJWT(context.Context, *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error)
+	// VerifyJWS verifies a compact JWS signature and returns the payload.
+	VerifyJWS(context.Context, *QueryVerifyJWSRequest) (*QueryVerifyJWSResponse, error)
+	// DecodeJWT validates a JWT and returns all claims (standard and private).
+	DecodeJWT(context.Context, *QueryDecodeJWTRequest) (*QueryDecodeJWTResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -142,6 +175,12 @@ func (UnimplementedQueryServer) AudienceAll(context.Context, *QueryAudienceAllRe
 }
 func (UnimplementedQueryServer) ValidateJWT(context.Context, *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateJWT not implemented")
+}
+func (UnimplementedQueryServer) VerifyJWS(context.Context, *QueryVerifyJWSRequest) (*QueryVerifyJWSResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyJWS not implemented")
+}
+func (UnimplementedQueryServer) DecodeJWT(context.Context, *QueryDecodeJWTRequest) (*QueryDecodeJWTResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DecodeJWT not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 func (UnimplementedQueryServer) testEmbeddedByValue()               {}
@@ -254,6 +293,42 @@ func _Query_ValidateJWT_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_VerifyJWS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyJWSRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VerifyJWS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_VerifyJWS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VerifyJWS(ctx, req.(*QueryVerifyJWSRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_DecodeJWT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDecodeJWTRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).DecodeJWT(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_DecodeJWT_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).DecodeJWT(ctx, req.(*QueryDecodeJWTRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -280,6 +355,14 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateJWT",
 			Handler:    _Query_ValidateJWT_Handler,
+		},
+		{
+			MethodName: "VerifyJWS",
+			Handler:    _Query_VerifyJWS_Handler,
+		},
+		{
+			MethodName: "DecodeJWT",
+			Handler:    _Query_DecodeJWT_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
