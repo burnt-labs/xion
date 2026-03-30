@@ -39,10 +39,16 @@ const (
 	MinProofOrInputSizeBytes uint64 = 1
 
 	// MaxAllowedProofOrInputSizeBytes is the hard upper bound governance may set
-	// for any proof or public-input size parameter. Capping at 1 MiB prevents a
-	// governance proposal from setting these values to uint64_max, which would
-	// effectively disable the size limits and open a DoS vector.
-	MaxAllowedProofOrInputSizeBytes uint64 = 1_048_576 // 1 MiB
+	// for any proof or public-input size parameter (Groth16/UltraHonk proofs and
+	// public inputs). Capping at 512 KiB prevents a governance proposal from
+	// setting these values to uint64_max, which would effectively disable the
+	// size limits and open a DoS vector.
+	MaxAllowedProofOrInputSizeBytes uint64 = 524_288 // 512 KiB
+
+	// MaxAllowedVKeySizeBytes is the hard upper bound governance may set for any
+	// verification-key size parameter. VKeys can legitimately be larger than
+	// proofs/inputs, so this ceiling is set to 1 MiB.
+	MaxAllowedVKeySizeBytes uint64 = 1_048_576 // 1 MiB
 )
 
 // NewParams creates a new Params instance.
@@ -111,28 +117,32 @@ func (p Params) Validate() error {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_proof_size_bytes must be positive")
 	}
 	if p.MaxGroth16ProofSizeBytes > MaxAllowedProofOrInputSizeBytes {
-		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_proof_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
+		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_proof_size_bytes exceeds hard upper bound of %d bytes (512 KiB)", MaxAllowedProofOrInputSizeBytes)
 	}
 
 	if p.MaxGroth16PublicInputSizeBytes < MinProofOrInputSizeBytes {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_public_input_size_bytes must be positive")
 	}
 	if p.MaxGroth16PublicInputSizeBytes > MaxAllowedProofOrInputSizeBytes {
-		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_public_input_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
+		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_public_input_size_bytes exceeds hard upper bound of %d bytes (512 KiB)", MaxAllowedProofOrInputSizeBytes)
 	}
 
 	if p.MaxUltraHonkProofSizeBytes < MinProofOrInputSizeBytes {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_proof_size_bytes must be positive")
 	}
 	if p.MaxUltraHonkProofSizeBytes > MaxAllowedProofOrInputSizeBytes {
-		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_proof_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
+		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_proof_size_bytes exceeds hard upper bound of %d bytes (512 KiB)", MaxAllowedProofOrInputSizeBytes)
 	}
 
 	if p.MaxUltraHonkPublicInputSizeBytes < MinProofOrInputSizeBytes {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_public_input_size_bytes must be positive")
 	}
 	if p.MaxUltraHonkPublicInputSizeBytes > MaxAllowedProofOrInputSizeBytes {
-		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_public_input_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
+		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_public_input_size_bytes exceeds hard upper bound of %d bytes (512 KiB)", MaxAllowedProofOrInputSizeBytes)
+	}
+
+	if p.MaxVkeySizeBytes > MaxAllowedVKeySizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_vkey_size_bytes exceeds hard upper bound of %d bytes (1 MiB)", MaxAllowedVKeySizeBytes)
 	}
 
 	return nil
