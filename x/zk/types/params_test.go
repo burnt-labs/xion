@@ -45,6 +45,38 @@ func TestParamsValidate(t *testing.T) {
 	invalidParams = types.DefaultParams()
 	invalidParams.MaxUltraHonkPublicInputSizeBytes = 0
 	require.Error(t, invalidParams.Validate())
+
+	// Proof/input params must not exceed 512 KiB ceiling.
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxGroth16ProofSizeBytes = types.MaxAllowedProofOrInputSizeBytes + 1
+	require.Error(t, invalidParams.Validate())
+
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxGroth16PublicInputSizeBytes = types.MaxAllowedProofOrInputSizeBytes + 1
+	require.Error(t, invalidParams.Validate())
+
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxUltraHonkProofSizeBytes = types.MaxAllowedProofOrInputSizeBytes + 1
+	require.Error(t, invalidParams.Validate())
+
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxUltraHonkPublicInputSizeBytes = types.MaxAllowedProofOrInputSizeBytes + 1
+	require.Error(t, invalidParams.Validate())
+
+	// VKey param must not exceed 1 MiB ceiling.
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxVkeySizeBytes = types.MaxAllowedVKeySizeBytes + 1
+	require.Error(t, invalidParams.Validate())
+
+	// VKey param at exactly 1 MiB ceiling is valid.
+	validParams := types.DefaultParams()
+	validParams.MaxVkeySizeBytes = types.MaxAllowedVKeySizeBytes
+	require.NoError(t, validParams.Validate())
+
+	// Proof param at exactly 512 KiB ceiling is valid.
+	validParams = types.DefaultParams()
+	validParams.MaxGroth16ProofSizeBytes = types.MaxAllowedProofOrInputSizeBytes
+	require.NoError(t, validParams.Validate())
 }
 
 func TestGasCostForSize(t *testing.T) {

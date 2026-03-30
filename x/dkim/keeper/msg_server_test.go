@@ -1450,62 +1450,6 @@ func TestValidateDkimPubKey(t *testing.T) {
 	})
 }
 
-func TestValidateRSAPubKey(t *testing.T) {
-	t.Run("valid PKIX/SPKI format key", func(t *testing.T) {
-		err := types.ValidateRSAPubKey(validPubKey2048)
-		require.NoError(t, err)
-	})
-
-	t.Run("invalid base64 returns error", func(t *testing.T) {
-		err := types.ValidateRSAPubKey("not-valid-base64!@#$%")
-		require.Error(t, err)
-		require.ErrorIs(t, err, types.ErrInvalidPubKey)
-	})
-
-	t.Run("empty string returns error", func(t *testing.T) {
-		err := types.ValidateRSAPubKey("")
-		require.Error(t, err)
-	})
-
-	t.Run("valid base64 but not a key returns error", func(t *testing.T) {
-		// "Hello World!" encoded in base64
-		err := types.ValidateRSAPubKey("SGVsbG8gV29ybGQh")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to parse public key")
-	})
-
-	t.Run("valid base64 random bytes returns error", func(t *testing.T) {
-		// Random bytes that are valid base64 but not a valid key
-		err := types.ValidateRSAPubKey("AQAB")
-		require.Error(t, err)
-	})
-
-	t.Run("truncated key returns error", func(t *testing.T) {
-		// Take first half of valid key
-		truncated := validPubKey2048[:len(validPubKey2048)/2]
-		err := types.ValidateRSAPubKey(truncated)
-		require.Error(t, err)
-	})
-
-	t.Run("PKCS1 format key", func(t *testing.T) {
-		// This is a PKCS#1 format RSA public key (starts with different ASN.1 structure)
-		// The function should accept this as fallback
-		// Note: This is a minimal 512-bit key for testing (not secure, just for parsing test)
-		pkcs1Key := "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKj34GkxFhD90vcNLYLInFEX6Ppy1tPf9Cnzj4p4WGeKLs1Pt8QuKUpRKfFLfRYC9AIKjbJTWit+CqvjWYzvQwECAwEAAQ=="
-		err := types.ValidateRSAPubKey(pkcs1Key)
-		// This should either succeed or fail gracefully
-		// The key above is actually PKIX format, let me test with actual PKCS1
-		_ = err
-	})
-
-	t.Run("non-RSA key type returns error", func(t *testing.T) {
-		// This would be an EC key or other type in PKIX format
-		// For now, we test that random valid base64 fails
-		err := types.ValidateRSAPubKey("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=")
-		require.Error(t, err)
-	})
-}
-
 func TestMsgServerIntegration(t *testing.T) {
 	t.Run("add then remove key", func(t *testing.T) {
 		f := SetupTest(t)

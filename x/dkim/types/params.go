@@ -8,6 +8,12 @@ import (
 
 const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
+
+	// DefaultMinRSAKeyBits is the governance-configurable minimum RSA key size
+	// for DKIM public keys, stored on-chain as params.MinRsaKeyBits.
+	// Set to 1024 to accommodate legacy providers like Yahoo (s1024 selector).
+	// Governance can raise this once legacy providers rotate to larger keys.
+	DefaultMinRSAKeyBits uint64 = 1024
 	// ValidateBasicMaxPubKeySizeBytes is a higher ceiling for ValidateBasic
 	// to allow on-chain params to be meaningful. The message server will
 	// enforce the actual param limits.
@@ -61,6 +67,7 @@ func DefaultParams() Params {
 		VkeyIdentifier:     vkeyIdentifier,
 		MaxPubkeySizeBytes: DefaultMaxPubKeySizeBytes,
 		PublicInputIndices: DefaultPublicInputIndices(),
+		MinRsaKeyBits:      DefaultMinRSAKeyBits,
 	}
 }
 
@@ -149,6 +156,10 @@ func (p Params) Validate() error {
 
 	if err := p.PublicInputIndices.Validate(); err != nil {
 		return err
+	}
+
+	if p.MinRsaKeyBits == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "min_rsa_key_bits must be positive")
 	}
 
 	return nil

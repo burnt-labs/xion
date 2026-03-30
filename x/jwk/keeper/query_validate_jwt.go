@@ -45,10 +45,13 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 		return nil, status.Error(codes.FailedPrecondition, fmt.Sprintf("stored key validation failed: %s", err))
 	}
 
-	// Charge gas proportional to key size to prevent free DoS via
-	// Stargate-whitelisted or CosmWasm-callable query endpoints.
-	verifyGas := types.JWTVerifyBaseGas + types.JWTVerifyPerByteGas*uint64(len(audience.Key))
-	ctx.GasMeter().ConsumeGas(verifyGas, "jwk/ValidateJWT: JWT verification cost")
+	// NOTE: No explicit gas charge here.
+	// ValidateJWT is Stargate-whitelisted and called by CosmWasm abstract-account
+	// contracts in their sudo handler. Charging 50 k+ gas per call would push
+	// those contracts over their existing gas budgets and break them post-upgrade.
+	// DoS protection is handled structurally: audience keys are bounded to
+	// MaxJWKKeySize bytes at registration time (ValidateJWKKeySize above), so
+	// the cryptographic work per call is already capped.
 
 	// basic sanity check
 	if len(req.SigBytes) == 0 {

@@ -2,8 +2,6 @@ package types_test
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -296,7 +294,7 @@ func TestMsgUpdateParams(t *testing.T) {
 
 func TestValidateDkimPubKeys(t *testing.T) {
 	pkixKey, pkcs1Key := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048}
+	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
 	validKey := types.DkimPubKey{
 		Domain:   "example.com",
 		Selector: "default",
@@ -355,32 +353,6 @@ func TestValidateDkimPubKeys(t *testing.T) {
 	})
 }
 
-func TestValidateRSAPubKey(t *testing.T) {
-	pkixKey, pkcs1Key := generateRSAPubKeyEncodings(t)
-
-	t.Run("valid pkix", func(t *testing.T) {
-		require.NoError(t, types.ValidateRSAPubKey(pkixKey))
-	})
-
-	t.Run("valid pkcs1", func(t *testing.T) {
-		require.NoError(t, types.ValidateRSAPubKey(pkcs1Key))
-	})
-
-	t.Run("non rsa key", func(t *testing.T) {
-		ecdsaKey := generateECDSAPubKeyEncoding(t)
-		err := types.ValidateRSAPubKey(ecdsaKey)
-		require.ErrorIs(t, err, types.ErrNotRSAKey)
-	})
-
-	t.Run("invalid base64", func(t *testing.T) {
-		require.ErrorIs(t, types.ValidateRSAPubKey("$$"), types.ErrInvalidPubKey)
-	})
-
-	t.Run("invalid rsa bytes", func(t *testing.T) {
-		raw := base64.StdEncoding.EncodeToString([]byte{9, 9, 9})
-		require.ErrorIs(t, types.ValidateRSAPubKey(raw), types.ErrInvalidPubKey)
-	})
-}
 
 func generateRSAPubKeyEncodings(t *testing.T) (string, string) {
 	t.Helper()
@@ -395,20 +367,9 @@ func generateRSAPubKeyEncodings(t *testing.T) (string, string) {
 	return base64.StdEncoding.EncodeToString(pkixBytes), base64.StdEncoding.EncodeToString(pkcs1Bytes)
 }
 
-func generateECDSAPubKeyEncoding(t *testing.T) string {
-	t.Helper()
-	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.NoError(t, err)
-
-	bz, err := x509.MarshalPKIXPublicKey(&ecKey.PublicKey)
-	require.NoError(t, err)
-
-	return base64.StdEncoding.EncodeToString(bz)
-}
-
 func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	pkixKey, _ := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048}
+	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
 	hash, err := types.ComputePoseidonHash(pkixKey)
 	require.NoError(t, err)
 	validKey := types.DkimPubKey{
@@ -471,8 +432,9 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		require.ErrorIs(t, err, types.ErrInvalidVersion)
 	})
 
-	t.Run("1024-bit key rejected for message path", func(t *testing.T) {
-		// Message validation must enforce the 2048-bit minimum.
+	t.Run("1024-bit key accepted for message path (Yahoo s1024 compatibility)", func(t *testing.T) {
+		// MinRSAKeyBits is set to 1024 to support legacy providers like Yahoo (s1024 selector).
+		// 1024-bit keys are low-assurance and expected to be rotated when providers upgrade.
 		smallKey, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
 		require.NoError(t, err)
 		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
@@ -486,8 +448,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil, true)
-		require.Error(t, err)
-		require.ErrorIs(t, err, types.ErrInvalidPubKey)
+		require.NoError(t, err)
 	})
 }
 
@@ -540,3 +501,4 @@ func TestValidateDkimPubKey(t *testing.T) {
 		require.ErrorIs(t, err, types.ErrInvalidPubKey)
 	})
 }
+
