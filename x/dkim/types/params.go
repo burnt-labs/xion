@@ -8,6 +8,7 @@ import (
 
 const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
+	DefaultMinRSAKeyBits      uint64 = 1024
 	// ValidateBasicMaxPubKeySizeBytes is a higher ceiling for ValidateBasic
 	// to allow on-chain params to be meaningful. The message server will
 	// enforce the actual param limits.
@@ -61,6 +62,7 @@ func DefaultParams() Params {
 		VkeyIdentifier:     vkeyIdentifier,
 		MaxPubkeySizeBytes: DefaultMaxPubKeySizeBytes,
 		PublicInputIndices: DefaultPublicInputIndices(),
+		MinRsaKeyBits:      DefaultMinRSAKeyBits,
 	}
 }
 
@@ -149,6 +151,10 @@ func (p Params) Validate() error {
 
 	if err := p.PublicInputIndices.Validate(); err != nil {
 		return err
+	}
+
+	if p.MinRsaKeyBits == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "min_rsa_key_bits must be positive")
 	}
 
 	return nil
