@@ -2,8 +2,6 @@ package types_test
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -296,7 +294,7 @@ func TestMsgUpdateParams(t *testing.T) {
 
 func TestValidateDkimPubKeys(t *testing.T) {
 	pkixKey, pkcs1Key := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048}
+	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
 	validKey := types.DkimPubKey{
 		Domain:   "example.com",
 		Selector: "default",
@@ -355,32 +353,6 @@ func TestValidateDkimPubKeys(t *testing.T) {
 	})
 }
 
-func TestValidateRSAPubKey(t *testing.T) {
-	pkixKey, pkcs1Key := generateRSAPubKeyEncodings(t)
-
-	t.Run("valid pkix", func(t *testing.T) {
-		require.NoError(t, types.ValidateRSAPubKey(pkixKey))
-	})
-
-	t.Run("valid pkcs1", func(t *testing.T) {
-		require.NoError(t, types.ValidateRSAPubKey(pkcs1Key))
-	})
-
-	t.Run("non rsa key", func(t *testing.T) {
-		ecdsaKey := generateECDSAPubKeyEncoding(t)
-		err := types.ValidateRSAPubKey(ecdsaKey)
-		require.ErrorIs(t, err, types.ErrNotRSAKey)
-	})
-
-	t.Run("invalid base64", func(t *testing.T) {
-		require.ErrorIs(t, types.ValidateRSAPubKey("$$"), types.ErrInvalidPubKey)
-	})
-
-	t.Run("invalid rsa bytes", func(t *testing.T) {
-		raw := base64.StdEncoding.EncodeToString([]byte{9, 9, 9})
-		require.ErrorIs(t, types.ValidateRSAPubKey(raw), types.ErrInvalidPubKey)
-	})
-}
 
 func generateRSAPubKeyEncodings(t *testing.T) (string, string) {
 	t.Helper()
@@ -395,20 +367,9 @@ func generateRSAPubKeyEncodings(t *testing.T) (string, string) {
 	return base64.StdEncoding.EncodeToString(pkixBytes), base64.StdEncoding.EncodeToString(pkcs1Bytes)
 }
 
-func generateECDSAPubKeyEncoding(t *testing.T) string {
-	t.Helper()
-	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.NoError(t, err)
-
-	bz, err := x509.MarshalPKIXPublicKey(&ecKey.PublicKey)
-	require.NoError(t, err)
-
-	return base64.StdEncoding.EncodeToString(bz)
-}
-
 func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	pkixKey, _ := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048}
+	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
 	hash, err := types.ComputePoseidonHash(pkixKey)
 	require.NoError(t, err)
 	validKey := types.DkimPubKey{

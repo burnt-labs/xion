@@ -174,9 +174,9 @@ func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
 
 // ValidateDkimPubKeysWithRevocation validates DKIM keys and optionally checks a revocation lookup.
 // isRevoked should return true if the provided pubkey has been revoked.
-// When enforceMinKeySize is true, keys below MinRSAKeyBits are rejected (use for
-// message validation). Genesis/state-loading paths should pass false to allow
-// legacy keys such as Yahoo's s1024 selector.
+// When enforceMinKeySize is true, keys below params.MinRsaKeyBits are rejected
+// (use for message validation). Genesis/state-loading paths should pass false
+// to allow legacy keys such as Yahoo's s1024 selector.
 func ValidateDkimPubKeysWithRevocation(
 	ctx context.Context,
 	dkimKeys []DkimPubKey,
@@ -199,14 +199,8 @@ func ValidateDkimPubKeysWithRevocation(
 			return err
 		}
 
-		if enforceMinKeySize {
-			minBits := params.MinRsaKeyBits
-			if minBits == 0 {
-				minBits = MinRSAKeyBits
-			}
-			if rsaPubKey.N.BitLen() < int(minBits) {
-				return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPubKey.N.BitLen(), minBits)
-			}
+		if enforceMinKeySize && rsaPubKey.N.BitLen() < int(params.MinRsaKeyBits) {
+			return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPubKey.N.BitLen(), params.MinRsaKeyBits)
 		}
 
 		if isRevoked != nil {
@@ -226,46 +220,23 @@ func ValidateDkimPubKeysWithRevocation(
 	return nil
 }
 
-// ValidateDkimPubKey validates a DKIM public key entry for use in messages.
-// Uses ValidateBasicMaxPubKeySizeBytes as a high ceiling since ValidateBasic is
-// stateless and cannot access on-chain params. The msg server will enforce
-// actual param limits and key size requirements via ValidateDkimPubKeysWithRevocation.
+// ValidateDkimPubKey validates a DKIM public key entry for use in
+// MsgAddDkimPubKeys.ValidateBasic. It uses ValidateBasicMaxPubKeySizeBytes as a
+// generous ceiling since ValidateBasic is stateless. RSA key size is NOT checked
+// here because the minimum is governance-configurable (params.MinRsaKeyBits);
+// the msg server enforces it via ValidateDkimPubKeysWithRevocation.
 func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 	if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
 		return err
 	}
 
-	// Validate PubKey is valid base64-encoded RSA public key
 	pubKeyBytes, err := DecodePubKeyWithLimit(dkimKey.PubKey, ValidateBasicMaxPubKeySizeBytes)
 	if err != nil {
 		return err
 	}
 
-	// Only validate that it parses as RSA - don't enforce key size limits here
-	// since ValidateBasic should be stateless. The msg server will enforce
-	// size requirements via ValidateDkimPubKeysWithRevocation.
 	_, err = ParseRSAPublicKey(pubKeyBytes)
 	return err
-}
-
-// ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
-// meeting the DKIM minimum key size (MinDKIMRSAKeyBits). Use ValidateRSAKeySize
-// separately to enforce the stricter governance minimum (MinRSAKeyBits).
-func ValidateRSAPubKey(pubKeyStr string) error {
-	pubKeyBytes, err := DecodePubKey(pubKeyStr)
-	if err != nil {
-		return err
-	}
-
-	rsaPub, err := ParseRSAPublicKey(pubKeyBytes)
-	if err != nil {
-		return err
-	}
-
-	if rsaPub.N.BitLen() < MinDKIMRSAKeyBits {
-		return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPub.N.BitLen(), MinDKIMRSAKeyBits)
-	}
-	return nil
 }
 
 func validateDkimPubKeyMetadata(dkimKey DkimPubKey) error {
