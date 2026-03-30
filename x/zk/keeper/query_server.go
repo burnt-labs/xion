@@ -11,6 +11,7 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/burnt-labs/xion/x/zk/types"
@@ -70,6 +71,12 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 			params.MaxGroth16PublicInputSizeBytes,
 		)
 	}
+
+	// Charge gas before executing the BN254 pairing check. Proof verification is
+	// computationally expensive and must be metered to prevent a single query from
+	// consuming unbounded node resources.
+	sdkCtx := sdk.UnwrapSDKContext(c)
+	sdkCtx.GasMeter().ConsumeGas(types.ProofVerifyGas, "zk/ProofVerify: bn254 pairing")
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
