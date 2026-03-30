@@ -109,7 +109,7 @@ func TestMsgServer_AddVKey(t *testing.T) {
 		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
 	})
 
-	t.Run("fail with invalid vkey bytes", func(t *testing.T) {
+	t.Run("fail with invalid vkey bytes via keeper validation", func(t *testing.T) {
 		msg := &types.MsgAddVKey{
 			Authority:   f.govModAddr,
 			Name:        "invalid_bytes",
@@ -120,7 +120,7 @@ func TestMsgServer_AddVKey(t *testing.T) {
 		resp, err := f.msgServer.AddVKey(f.ctx, msg)
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "invalid vkey_bytes")
+		require.Contains(t, err.Error(), "vkey validation")
 	})
 
 	t.Run("fail with duplicate name", func(t *testing.T) {
@@ -297,7 +297,7 @@ func TestMsgServer_UpdateVKey(t *testing.T) {
 		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
 	})
 
-	t.Run("fail with invalid vkey bytes", func(t *testing.T) {
+	t.Run("fail with invalid vkey bytes via keeper validation", func(t *testing.T) {
 		msg := &types.MsgUpdateVKey{
 			Authority:   f.govModAddr,
 			Name:        "update_test",
