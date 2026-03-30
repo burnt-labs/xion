@@ -7772,6 +7772,2438 @@ func (x *fastReflection_QueryValidateJWTResponse) ProtoMethods() *protoiface.Met
 	}
 }
 
+var (
+	md_QueryVerifyJWSRequest           protoreflect.MessageDescriptor
+	fd_QueryVerifyJWSRequest_aud       protoreflect.FieldDescriptor
+	fd_QueryVerifyJWSRequest_sig_bytes protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryVerifyJWSRequest = File_xion_jwk_v1_query_proto.Messages().ByName("QueryVerifyJWSRequest")
+	fd_QueryVerifyJWSRequest_aud = md_QueryVerifyJWSRequest.Fields().ByName("aud")
+	fd_QueryVerifyJWSRequest_sig_bytes = md_QueryVerifyJWSRequest.Fields().ByName("sig_bytes")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVerifyJWSRequest)(nil)
+
+type fastReflection_QueryVerifyJWSRequest QueryVerifyJWSRequest
+
+func (x *QueryVerifyJWSRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVerifyJWSRequest)(x)
+}
+
+func (x *QueryVerifyJWSRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVerifyJWSRequest_messageType fastReflection_QueryVerifyJWSRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVerifyJWSRequest_messageType{}
+
+type fastReflection_QueryVerifyJWSRequest_messageType struct{}
+
+func (x fastReflection_QueryVerifyJWSRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVerifyJWSRequest)(nil)
+}
+func (x fastReflection_QueryVerifyJWSRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVerifyJWSRequest)
+}
+func (x fastReflection_QueryVerifyJWSRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVerifyJWSRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVerifyJWSRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVerifyJWSRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVerifyJWSRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVerifyJWSRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVerifyJWSRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryVerifyJWSRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVerifyJWSRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryVerifyJWSRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVerifyJWSRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Aud != "" {
+		value := protoreflect.ValueOfString(x.Aud)
+		if !f(fd_QueryVerifyJWSRequest_aud, value) {
+			return
+		}
+	}
+	if x.SigBytes != "" {
+		value := protoreflect.ValueOfString(x.SigBytes)
+		if !f(fd_QueryVerifyJWSRequest_sig_bytes, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVerifyJWSRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSRequest.aud":
+		return x.Aud != ""
+	case "xion.jwk.v1.QueryVerifyJWSRequest.sig_bytes":
+		return x.SigBytes != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSRequest.aud":
+		x.Aud = ""
+	case "xion.jwk.v1.QueryVerifyJWSRequest.sig_bytes":
+		x.SigBytes = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVerifyJWSRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSRequest.aud":
+		value := x.Aud
+		return protoreflect.ValueOfString(value)
+	case "xion.jwk.v1.QueryVerifyJWSRequest.sig_bytes":
+		value := x.SigBytes
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSRequest.aud":
+		x.Aud = value.Interface().(string)
+	case "xion.jwk.v1.QueryVerifyJWSRequest.sig_bytes":
+		x.SigBytes = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSRequest.aud":
+		panic(fmt.Errorf("field aud of message xion.jwk.v1.QueryVerifyJWSRequest is not mutable"))
+	case "xion.jwk.v1.QueryVerifyJWSRequest.sig_bytes":
+		panic(fmt.Errorf("field sig_bytes of message xion.jwk.v1.QueryVerifyJWSRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVerifyJWSRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSRequest.aud":
+		return protoreflect.ValueOfString("")
+	case "xion.jwk.v1.QueryVerifyJWSRequest.sig_bytes":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVerifyJWSRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryVerifyJWSRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVerifyJWSRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVerifyJWSRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVerifyJWSRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVerifyJWSRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Aud)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.SigBytes)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVerifyJWSRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.SigBytes) > 0 {
+			i -= len(x.SigBytes)
+			copy(dAtA[i:], x.SigBytes)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.SigBytes)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Aud) > 0 {
+			i -= len(x.Aud)
+			copy(dAtA[i:], x.Aud)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Aud)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVerifyJWSRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVerifyJWSRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVerifyJWSRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Aud", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Aud = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SigBytes", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.SigBytes = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryVerifyJWSResponse         protoreflect.MessageDescriptor
+	fd_QueryVerifyJWSResponse_payload protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryVerifyJWSResponse = File_xion_jwk_v1_query_proto.Messages().ByName("QueryVerifyJWSResponse")
+	fd_QueryVerifyJWSResponse_payload = md_QueryVerifyJWSResponse.Fields().ByName("payload")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryVerifyJWSResponse)(nil)
+
+type fastReflection_QueryVerifyJWSResponse QueryVerifyJWSResponse
+
+func (x *QueryVerifyJWSResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryVerifyJWSResponse)(x)
+}
+
+func (x *QueryVerifyJWSResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryVerifyJWSResponse_messageType fastReflection_QueryVerifyJWSResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryVerifyJWSResponse_messageType{}
+
+type fastReflection_QueryVerifyJWSResponse_messageType struct{}
+
+func (x fastReflection_QueryVerifyJWSResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryVerifyJWSResponse)(nil)
+}
+func (x fastReflection_QueryVerifyJWSResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryVerifyJWSResponse)
+}
+func (x fastReflection_QueryVerifyJWSResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVerifyJWSResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryVerifyJWSResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryVerifyJWSResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryVerifyJWSResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryVerifyJWSResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryVerifyJWSResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryVerifyJWSResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryVerifyJWSResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryVerifyJWSResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryVerifyJWSResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Payload) != 0 {
+		value := protoreflect.ValueOfBytes(x.Payload)
+		if !f(fd_QueryVerifyJWSResponse_payload, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryVerifyJWSResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSResponse.payload":
+		return len(x.Payload) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSResponse.payload":
+		x.Payload = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryVerifyJWSResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSResponse.payload":
+		value := x.Payload
+		return protoreflect.ValueOfBytes(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSResponse.payload":
+		x.Payload = value.Bytes()
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSResponse.payload":
+		panic(fmt.Errorf("field payload of message xion.jwk.v1.QueryVerifyJWSResponse is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryVerifyJWSResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryVerifyJWSResponse.payload":
+		return protoreflect.ValueOfBytes(nil)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryVerifyJWSResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryVerifyJWSResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryVerifyJWSResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryVerifyJWSResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryVerifyJWSResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryVerifyJWSResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryVerifyJWSResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryVerifyJWSResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryVerifyJWSResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Payload)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVerifyJWSResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Payload) > 0 {
+			i -= len(x.Payload)
+			copy(dAtA[i:], x.Payload)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Payload)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryVerifyJWSResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVerifyJWSResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryVerifyJWSResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Payload = append(x.Payload[:0], dAtA[iNdEx:postIndex]...)
+				if x.Payload == nil {
+					x.Payload = []byte{}
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryDecodeJWTRequest           protoreflect.MessageDescriptor
+	fd_QueryDecodeJWTRequest_aud       protoreflect.FieldDescriptor
+	fd_QueryDecodeJWTRequest_sub       protoreflect.FieldDescriptor
+	fd_QueryDecodeJWTRequest_sig_bytes protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryDecodeJWTRequest = File_xion_jwk_v1_query_proto.Messages().ByName("QueryDecodeJWTRequest")
+	fd_QueryDecodeJWTRequest_aud = md_QueryDecodeJWTRequest.Fields().ByName("aud")
+	fd_QueryDecodeJWTRequest_sub = md_QueryDecodeJWTRequest.Fields().ByName("sub")
+	fd_QueryDecodeJWTRequest_sig_bytes = md_QueryDecodeJWTRequest.Fields().ByName("sig_bytes")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryDecodeJWTRequest)(nil)
+
+type fastReflection_QueryDecodeJWTRequest QueryDecodeJWTRequest
+
+func (x *QueryDecodeJWTRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryDecodeJWTRequest)(x)
+}
+
+func (x *QueryDecodeJWTRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryDecodeJWTRequest_messageType fastReflection_QueryDecodeJWTRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryDecodeJWTRequest_messageType{}
+
+type fastReflection_QueryDecodeJWTRequest_messageType struct{}
+
+func (x fastReflection_QueryDecodeJWTRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryDecodeJWTRequest)(nil)
+}
+func (x fastReflection_QueryDecodeJWTRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryDecodeJWTRequest)
+}
+func (x fastReflection_QueryDecodeJWTRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryDecodeJWTRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryDecodeJWTRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryDecodeJWTRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryDecodeJWTRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryDecodeJWTRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryDecodeJWTRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryDecodeJWTRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryDecodeJWTRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryDecodeJWTRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryDecodeJWTRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Aud != "" {
+		value := protoreflect.ValueOfString(x.Aud)
+		if !f(fd_QueryDecodeJWTRequest_aud, value) {
+			return
+		}
+	}
+	if x.Sub != "" {
+		value := protoreflect.ValueOfString(x.Sub)
+		if !f(fd_QueryDecodeJWTRequest_sub, value) {
+			return
+		}
+	}
+	if x.SigBytes != "" {
+		value := protoreflect.ValueOfString(x.SigBytes)
+		if !f(fd_QueryDecodeJWTRequest_sig_bytes, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryDecodeJWTRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTRequest.aud":
+		return x.Aud != ""
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sub":
+		return x.Sub != ""
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sig_bytes":
+		return x.SigBytes != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTRequest.aud":
+		x.Aud = ""
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sub":
+		x.Sub = ""
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sig_bytes":
+		x.SigBytes = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryDecodeJWTRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTRequest.aud":
+		value := x.Aud
+		return protoreflect.ValueOfString(value)
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sub":
+		value := x.Sub
+		return protoreflect.ValueOfString(value)
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sig_bytes":
+		value := x.SigBytes
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTRequest.aud":
+		x.Aud = value.Interface().(string)
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sub":
+		x.Sub = value.Interface().(string)
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sig_bytes":
+		x.SigBytes = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTRequest.aud":
+		panic(fmt.Errorf("field aud of message xion.jwk.v1.QueryDecodeJWTRequest is not mutable"))
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sub":
+		panic(fmt.Errorf("field sub of message xion.jwk.v1.QueryDecodeJWTRequest is not mutable"))
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sig_bytes":
+		panic(fmt.Errorf("field sig_bytes of message xion.jwk.v1.QueryDecodeJWTRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryDecodeJWTRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTRequest.aud":
+		return protoreflect.ValueOfString("")
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sub":
+		return protoreflect.ValueOfString("")
+	case "xion.jwk.v1.QueryDecodeJWTRequest.sig_bytes":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTRequest"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryDecodeJWTRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryDecodeJWTRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryDecodeJWTRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryDecodeJWTRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryDecodeJWTRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryDecodeJWTRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Aud)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Sub)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.SigBytes)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryDecodeJWTRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.SigBytes) > 0 {
+			i -= len(x.SigBytes)
+			copy(dAtA[i:], x.SigBytes)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.SigBytes)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if len(x.Sub) > 0 {
+			i -= len(x.Sub)
+			copy(dAtA[i:], x.Sub)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Sub)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Aud) > 0 {
+			i -= len(x.Aud)
+			copy(dAtA[i:], x.Aud)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Aud)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryDecodeJWTRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDecodeJWTRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDecodeJWTRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Aud", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Aud = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Sub", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Sub = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field SigBytes", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.SigBytes = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_JWTClaim       protoreflect.MessageDescriptor
+	fd_JWTClaim_key   protoreflect.FieldDescriptor
+	fd_JWTClaim_value protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_JWTClaim = File_xion_jwk_v1_query_proto.Messages().ByName("JWTClaim")
+	fd_JWTClaim_key = md_JWTClaim.Fields().ByName("key")
+	fd_JWTClaim_value = md_JWTClaim.Fields().ByName("value")
+}
+
+var _ protoreflect.Message = (*fastReflection_JWTClaim)(nil)
+
+type fastReflection_JWTClaim JWTClaim
+
+func (x *JWTClaim) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_JWTClaim)(x)
+}
+
+func (x *JWTClaim) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_JWTClaim_messageType fastReflection_JWTClaim_messageType
+var _ protoreflect.MessageType = fastReflection_JWTClaim_messageType{}
+
+type fastReflection_JWTClaim_messageType struct{}
+
+func (x fastReflection_JWTClaim_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_JWTClaim)(nil)
+}
+func (x fastReflection_JWTClaim_messageType) New() protoreflect.Message {
+	return new(fastReflection_JWTClaim)
+}
+func (x fastReflection_JWTClaim_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_JWTClaim
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_JWTClaim) Descriptor() protoreflect.MessageDescriptor {
+	return md_JWTClaim
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_JWTClaim) Type() protoreflect.MessageType {
+	return _fastReflection_JWTClaim_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_JWTClaim) New() protoreflect.Message {
+	return new(fastReflection_JWTClaim)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_JWTClaim) Interface() protoreflect.ProtoMessage {
+	return (*JWTClaim)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_JWTClaim) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Key != "" {
+		value := protoreflect.ValueOfString(x.Key)
+		if !f(fd_JWTClaim_key, value) {
+			return
+		}
+	}
+	if x.Value != "" {
+		value := protoreflect.ValueOfString(x.Value)
+		if !f(fd_JWTClaim_value, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_JWTClaim) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.JWTClaim.key":
+		return x.Key != ""
+	case "xion.jwk.v1.JWTClaim.value":
+		return x.Value != ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.JWTClaim"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.JWTClaim does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_JWTClaim) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.JWTClaim.key":
+		x.Key = ""
+	case "xion.jwk.v1.JWTClaim.value":
+		x.Value = ""
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.JWTClaim"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.JWTClaim does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_JWTClaim) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.JWTClaim.key":
+		value := x.Key
+		return protoreflect.ValueOfString(value)
+	case "xion.jwk.v1.JWTClaim.value":
+		value := x.Value
+		return protoreflect.ValueOfString(value)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.JWTClaim"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.JWTClaim does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_JWTClaim) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.JWTClaim.key":
+		x.Key = value.Interface().(string)
+	case "xion.jwk.v1.JWTClaim.value":
+		x.Value = value.Interface().(string)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.JWTClaim"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.JWTClaim does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_JWTClaim) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.JWTClaim.key":
+		panic(fmt.Errorf("field key of message xion.jwk.v1.JWTClaim is not mutable"))
+	case "xion.jwk.v1.JWTClaim.value":
+		panic(fmt.Errorf("field value of message xion.jwk.v1.JWTClaim is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.JWTClaim"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.JWTClaim does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_JWTClaim) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.JWTClaim.key":
+		return protoreflect.ValueOfString("")
+	case "xion.jwk.v1.JWTClaim.value":
+		return protoreflect.ValueOfString("")
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.JWTClaim"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.JWTClaim does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_JWTClaim) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.JWTClaim", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_JWTClaim) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_JWTClaim) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_JWTClaim) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_JWTClaim) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*JWTClaim)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.Key)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.Value)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*JWTClaim)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Value) > 0 {
+			i -= len(x.Value)
+			copy(dAtA[i:], x.Value)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Value)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Key) > 0 {
+			i -= len(x.Key)
+			copy(dAtA[i:], x.Key)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Key)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*JWTClaim)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: JWTClaim: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: JWTClaim: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Key = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Value = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var _ protoreflect.List = (*_QueryDecodeJWTResponse_1_list)(nil)
+
+type _QueryDecodeJWTResponse_1_list struct {
+	list *[]*JWTClaim
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*JWTClaim)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*JWTClaim)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) AppendMutable() protoreflect.Value {
+	v := new(JWTClaim)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) NewElement() protoreflect.Value {
+	v := new(JWTClaim)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryDecodeJWTResponse_1_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_QueryDecodeJWTResponse        protoreflect.MessageDescriptor
+	fd_QueryDecodeJWTResponse_claims protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_xion_jwk_v1_query_proto_init()
+	md_QueryDecodeJWTResponse = File_xion_jwk_v1_query_proto.Messages().ByName("QueryDecodeJWTResponse")
+	fd_QueryDecodeJWTResponse_claims = md_QueryDecodeJWTResponse.Fields().ByName("claims")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryDecodeJWTResponse)(nil)
+
+type fastReflection_QueryDecodeJWTResponse QueryDecodeJWTResponse
+
+func (x *QueryDecodeJWTResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryDecodeJWTResponse)(x)
+}
+
+func (x *QueryDecodeJWTResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_xion_jwk_v1_query_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryDecodeJWTResponse_messageType fastReflection_QueryDecodeJWTResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryDecodeJWTResponse_messageType{}
+
+type fastReflection_QueryDecodeJWTResponse_messageType struct{}
+
+func (x fastReflection_QueryDecodeJWTResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryDecodeJWTResponse)(nil)
+}
+func (x fastReflection_QueryDecodeJWTResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryDecodeJWTResponse)
+}
+func (x fastReflection_QueryDecodeJWTResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryDecodeJWTResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryDecodeJWTResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryDecodeJWTResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryDecodeJWTResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryDecodeJWTResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryDecodeJWTResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryDecodeJWTResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryDecodeJWTResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryDecodeJWTResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryDecodeJWTResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Claims) != 0 {
+		value := protoreflect.ValueOfList(&_QueryDecodeJWTResponse_1_list{list: &x.Claims})
+		if !f(fd_QueryDecodeJWTResponse_claims, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryDecodeJWTResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTResponse.claims":
+		return len(x.Claims) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTResponse.claims":
+		x.Claims = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryDecodeJWTResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTResponse.claims":
+		if len(x.Claims) == 0 {
+			return protoreflect.ValueOfList(&_QueryDecodeJWTResponse_1_list{})
+		}
+		listValue := &_QueryDecodeJWTResponse_1_list{list: &x.Claims}
+		return protoreflect.ValueOfList(listValue)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTResponse.claims":
+		lv := value.List()
+		clv := lv.(*_QueryDecodeJWTResponse_1_list)
+		x.Claims = *clv.list
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTResponse.claims":
+		if x.Claims == nil {
+			x.Claims = []*JWTClaim{}
+		}
+		value := &_QueryDecodeJWTResponse_1_list{list: &x.Claims}
+		return protoreflect.ValueOfList(value)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryDecodeJWTResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "xion.jwk.v1.QueryDecodeJWTResponse.claims":
+		list := []*JWTClaim{}
+		return protoreflect.ValueOfList(&_QueryDecodeJWTResponse_1_list{list: &list})
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.jwk.v1.QueryDecodeJWTResponse"))
+		}
+		panic(fmt.Errorf("message xion.jwk.v1.QueryDecodeJWTResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryDecodeJWTResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in xion.jwk.v1.QueryDecodeJWTResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryDecodeJWTResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryDecodeJWTResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryDecodeJWTResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryDecodeJWTResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryDecodeJWTResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if len(x.Claims) > 0 {
+			for _, e := range x.Claims {
+				l = options.Size(e)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryDecodeJWTResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Claims) > 0 {
+			for iNdEx := len(x.Claims) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Claims[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+				i--
+				dAtA[i] = 0xa
+			}
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryDecodeJWTResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDecodeJWTResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryDecodeJWTResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Claims", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Claims = append(x.Claims, &JWTClaim{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Claims[len(x.Claims)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 // 	protoc-gen-go v1.27.0
@@ -8456,6 +10888,227 @@ func (x *QueryValidateJWTResponse) GetPrivateClaims() []*PrivateClaim {
 	return nil
 }
 
+// QueryVerifyJWSRequest is the request type for verifying a JWS signature
+type QueryVerifyJWSRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The audience identifier
+	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The JWS signature bytes in compact serialization format
+	SigBytes string `protobuf:"bytes,2,opt,name=sig_bytes,json=sigBytes,proto3" json:"sig_bytes,omitempty"`
+}
+
+func (x *QueryVerifyJWSRequest) Reset() {
+	*x = QueryVerifyJWSRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVerifyJWSRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVerifyJWSRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryVerifyJWSRequest.ProtoReflect.Descriptor instead.
+func (*QueryVerifyJWSRequest) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *QueryVerifyJWSRequest) GetAud() string {
+	if x != nil {
+		return x.Aud
+	}
+	return ""
+}
+
+func (x *QueryVerifyJWSRequest) GetSigBytes() string {
+	if x != nil {
+		return x.SigBytes
+	}
+	return ""
+}
+
+// QueryVerifyJWSResponse is the response type for verifying a JWS signature
+type QueryVerifyJWSResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The verified payload bytes extracted from the JWS
+	Payload []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+}
+
+func (x *QueryVerifyJWSResponse) Reset() {
+	*x = QueryVerifyJWSResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryVerifyJWSResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryVerifyJWSResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryVerifyJWSResponse.ProtoReflect.Descriptor instead.
+func (*QueryVerifyJWSResponse) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *QueryVerifyJWSResponse) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+// QueryDecodeJWTRequest is the request type for decoding a JWT
+type QueryDecodeJWTRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The audience identifier
+	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The subject
+	Sub string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
+	// The signature bytes (compact JWT)
+	SigBytes string `protobuf:"bytes,3,opt,name=sig_bytes,json=sigBytes,proto3" json:"sig_bytes,omitempty"`
+}
+
+func (x *QueryDecodeJWTRequest) Reset() {
+	*x = QueryDecodeJWTRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryDecodeJWTRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryDecodeJWTRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryDecodeJWTRequest.ProtoReflect.Descriptor instead.
+func (*QueryDecodeJWTRequest) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *QueryDecodeJWTRequest) GetAud() string {
+	if x != nil {
+		return x.Aud
+	}
+	return ""
+}
+
+func (x *QueryDecodeJWTRequest) GetSub() string {
+	if x != nil {
+		return x.Sub
+	}
+	return ""
+}
+
+func (x *QueryDecodeJWTRequest) GetSigBytes() string {
+	if x != nil {
+		return x.SigBytes
+	}
+	return ""
+}
+
+// JWTClaim represents a single JWT claim (standard or private)
+type JWTClaim struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The claim key
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// The claim value (stringified)
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *JWTClaim) Reset() {
+	*x = JWTClaim{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *JWTClaim) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JWTClaim) ProtoMessage() {}
+
+// Deprecated: Use JWTClaim.ProtoReflect.Descriptor instead.
+func (*JWTClaim) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *JWTClaim) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *JWTClaim) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+// QueryDecodeJWTResponse is the response type for decoding a JWT
+type QueryDecodeJWTResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// All claims from the JWT (standard and private), sorted by key
+	Claims []*JWTClaim `protobuf:"bytes,1,rep,name=claims,proto3" json:"claims,omitempty"`
+}
+
+func (x *QueryDecodeJWTResponse) Reset() {
+	*x = QueryDecodeJWTResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_xion_jwk_v1_query_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryDecodeJWTResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryDecodeJWTResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryDecodeJWTResponse.ProtoReflect.Descriptor instead.
+func (*QueryDecodeJWTResponse) Descriptor() ([]byte, []int) {
+	return file_xion_jwk_v1_query_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *QueryDecodeJWTResponse) GetClaims() []*JWTClaim {
+	if x != nil {
+		return x.Claims
+	}
+	return nil
+}
+
 var File_xion_jwk_v1_query_proto protoreflect.FileDescriptor
 
 var file_xion_jwk_v1_query_proto_rawDesc = []byte{
@@ -8556,57 +11209,96 @@ var file_xion_jwk_v1_query_proto_rawDesc = []byte{
 	0x65, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19,
 	0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x72, 0x69,
 	0x76, 0x61, 0x74, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x0d, 0x70, 0x72, 0x69, 0x76, 0x61,
-	0x74, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x32, 0xfc, 0x04, 0x0a, 0x05, 0x51, 0x75, 0x65,
-	0x72, 0x79, 0x12, 0x65, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x1f, 0x2e, 0x78,
-	0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x20, 0x2e,
-	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x18, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x12, 0x12, 0x10, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
-	0x77, 0x6b, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x89, 0x01, 0x0a, 0x0d, 0x41, 0x75,
-	0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x12, 0x26, 0x2e, 0x78, 0x69,
-	0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41,
-	0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x27, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43,
-	0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x27, 0x82, 0xd3,
-	0xe4, 0x93, 0x02, 0x21, 0x12, 0x1f, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f,
-	0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x5f, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x2f, 0x7b,
-	0x68, 0x61, 0x73, 0x68, 0x7d, 0x12, 0x73, 0x0a, 0x08, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63,
-	0x65, 0x12, 0x21, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e,
-	0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e,
+	0x74, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x22, 0x46, 0x0a, 0x15, 0x51, 0x75, 0x65, 0x72,
+	0x79, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x4a, 0x57, 0x53, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x10, 0x0a, 0x03, 0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x61, 0x75, 0x64, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x69, 0x67, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x69, 0x67, 0x42, 0x79, 0x74, 0x65, 0x73,
+	0x22, 0x32, 0x0a, 0x16, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x4a,
+	0x57, 0x53, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x61,
+	0x79, 0x6c, 0x6f, 0x61, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x07, 0x70, 0x61, 0x79,
+	0x6c, 0x6f, 0x61, 0x64, 0x22, 0x58, 0x0a, 0x15, 0x51, 0x75, 0x65, 0x72, 0x79, 0x44, 0x65, 0x63,
+	0x6f, 0x64, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a,
+	0x03, 0x61, 0x75, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x61, 0x75, 0x64, 0x12,
+	0x10, 0x0a, 0x03, 0x73, 0x75, 0x62, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x73, 0x75,
+	0x62, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x69, 0x67, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x69, 0x67, 0x42, 0x79, 0x74, 0x65, 0x73, 0x22, 0x32,
+	0x0a, 0x08, 0x4a, 0x57, 0x54, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c,
+	0x75, 0x65, 0x22, 0x47, 0x0a, 0x16, 0x51, 0x75, 0x65, 0x72, 0x79, 0x44, 0x65, 0x63, 0x6f, 0x64,
+	0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2d, 0x0a, 0x06,
+	0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x78,
+	0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x4a, 0x57, 0x54, 0x43, 0x6c,
+	0x61, 0x69, 0x6d, 0x52, 0x06, 0x63, 0x6c, 0x61, 0x69, 0x6d, 0x73, 0x32, 0x93, 0x07, 0x0a, 0x05,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x65, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12,
+	0x1f, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x20, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51,
+	0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x18, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x12, 0x12, 0x10, 0x2f, 0x78, 0x69, 0x6f,
+	0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x89, 0x01, 0x0a,
+	0x0d, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x12, 0x26,
+	0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x27, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77,
+	0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e,
+	0x63, 0x65, 0x43, 0x6c, 0x61, 0x69, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x27, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x21, 0x12, 0x1f, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
+	0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x5f, 0x63, 0x6c, 0x61, 0x69,
+	0x6d, 0x2f, 0x7b, 0x68, 0x61, 0x73, 0x68, 0x7d, 0x12, 0x73, 0x0a, 0x08, 0x41, 0x75, 0x64, 0x69,
+	0x65, 0x6e, 0x63, 0x65, 0x12, 0x21, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e,
 	0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x20, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1a,
-	0x12, 0x18, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69,
-	0x65, 0x6e, 0x63, 0x65, 0x2f, 0x7b, 0x61, 0x75, 0x64, 0x7d, 0x12, 0x76, 0x0a, 0x0b, 0x41, 0x75,
-	0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x24, 0x2e, 0x78, 0x69, 0x6f, 0x6e,
-	0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64,
-	0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x25, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
-	0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65,
-	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1a, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x14, 0x12, 0x12,
-	0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64, 0x69, 0x65, 0x6e,
-	0x63, 0x65, 0x12, 0x92, 0x01, 0x0a, 0x0b, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a,
-	0x57, 0x54, 0x12, 0x24, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31,
-	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57,
-	0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e,
-	0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69,
-	0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x36, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x30, 0x12, 0x2e, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
-	0x77, 0x6b, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x2f,
-	0x7b, 0x61, 0x75, 0x64, 0x7d, 0x2f, 0x7b, 0x73, 0x75, 0x62, 0x7d, 0x2f, 0x7b, 0x73, 0x69, 0x67,
-	0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x7d, 0x42, 0x9d, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e,
-	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65,
-	0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73,
-	0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a,
-	0x77, 0x6b, 0x2f, 0x76, 0x31, 0x3b, 0x6a, 0x77, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x4a,
-	0x58, 0xaa, 0x02, 0x0b, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x4a, 0x77, 0x6b, 0x2e, 0x56, 0x31, 0xca,
-	0x02, 0x0b, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x4a, 0x77, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17,
-	0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x4a, 0x77, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
-	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0d, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a,
-	0x4a, 0x77, 0x6b, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x22, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a,
+	0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65,
+	0x6e, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x20, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x1a, 0x12, 0x18, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61,
+	0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x2f, 0x7b, 0x61, 0x75, 0x64, 0x7d, 0x12, 0x76, 0x0a,
+	0x0b, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x24, 0x2e, 0x78,
+	0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x25, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31,
+	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x41, 0x6c,
+	0x6c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1a, 0x82, 0xd3, 0xe4, 0x93, 0x02,
+	0x14, 0x12, 0x12, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x61, 0x75, 0x64,
+	0x69, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x95, 0x01, 0x0a, 0x0b, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61,
+	0x74, 0x65, 0x4a, 0x57, 0x54, 0x12, 0x24, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b,
+	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74,
+	0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x25, 0x2e, 0x78, 0x69,
+	0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56,
+	0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x57, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x39, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x30, 0x12, 0x2e, 0x2f, 0x78, 0x69, 0x6f,
+	0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x5f, 0x6a,
+	0x77, 0x74, 0x2f, 0x7b, 0x61, 0x75, 0x64, 0x7d, 0x2f, 0x7b, 0x73, 0x75, 0x62, 0x7d, 0x2f, 0x7b,
+	0x73, 0x69, 0x67, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x7d, 0x88, 0x02, 0x01, 0x12, 0x84, 0x01,
+	0x0a, 0x09, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x4a, 0x57, 0x53, 0x12, 0x22, 0x2e, 0x78, 0x69,
+	0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56,
+	0x65, 0x72, 0x69, 0x66, 0x79, 0x4a, 0x57, 0x53, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x23, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x4a, 0x57, 0x53, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2e, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x28, 0x12, 0x26, 0x2f, 0x78,
+	0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x79, 0x5f, 0x6a,
+	0x77, 0x73, 0x2f, 0x7b, 0x61, 0x75, 0x64, 0x7d, 0x2f, 0x7b, 0x73, 0x69, 0x67, 0x5f, 0x62, 0x79,
+	0x74, 0x65, 0x73, 0x7d, 0x12, 0x8a, 0x01, 0x0a, 0x09, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x4a,
+	0x57, 0x54, 0x12, 0x22, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77, 0x6b, 0x2e, 0x76, 0x31,
+	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x4a, 0x57, 0x54, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a, 0x77,
+	0x6b, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65,
+	0x4a, 0x57, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x34, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x2e, 0x12, 0x2c, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x64,
+	0x65, 0x63, 0x6f, 0x64, 0x65, 0x5f, 0x6a, 0x77, 0x74, 0x2f, 0x7b, 0x61, 0x75, 0x64, 0x7d, 0x2f,
+	0x7b, 0x73, 0x75, 0x62, 0x7d, 0x2f, 0x7b, 0x73, 0x69, 0x67, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73,
+	0x7d, 0x42, 0x9d, 0x01, 0x0a, 0x0f, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x6a,
+	0x77, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74,
+	0x6f, 0x50, 0x01, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
+	0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x6a, 0x77, 0x6b, 0x2f, 0x76, 0x31, 0x3b,
+	0x6a, 0x77, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x4a, 0x58, 0xaa, 0x02, 0x0b, 0x58, 0x69,
+	0x6f, 0x6e, 0x2e, 0x4a, 0x77, 0x6b, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0b, 0x58, 0x69, 0x6f, 0x6e,
+	0x5c, 0x4a, 0x77, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x17, 0x58, 0x69, 0x6f, 0x6e, 0x5c, 0x4a,
+	0x77, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
+	0x61, 0xea, 0x02, 0x0d, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x4a, 0x77, 0x6b, 0x3a, 0x3a, 0x56,
+	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -8621,7 +11313,7 @@ func file_xion_jwk_v1_query_proto_rawDescGZIP() []byte {
 	return file_xion_jwk_v1_query_proto_rawDescData
 }
 
-var file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_xion_jwk_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_xion_jwk_v1_query_proto_goTypes = []interface{}{
 	(*QueryParamsRequest)(nil),            // 0: xion.jwk.v1.QueryParamsRequest
 	(*QueryParamsResponse)(nil),           // 1: xion.jwk.v1.QueryParamsResponse
@@ -8640,40 +11332,50 @@ var file_xion_jwk_v1_query_proto_goTypes = []interface{}{
 	(*QueryValidateJWTRequest)(nil),       // 14: xion.jwk.v1.QueryValidateJWTRequest
 	(*PrivateClaim)(nil),                  // 15: xion.jwk.v1.PrivateClaim
 	(*QueryValidateJWTResponse)(nil),      // 16: xion.jwk.v1.QueryValidateJWTResponse
-	(*Params)(nil),                        // 17: xion.jwk.v1.Params
-	(*AudienceClaim)(nil),                 // 18: xion.jwk.v1.AudienceClaim
-	(*Audience)(nil),                      // 19: xion.jwk.v1.Audience
-	(*v1beta1.PageRequest)(nil),           // 20: cosmos.base.query.v1beta1.PageRequest
-	(*v1beta1.PageResponse)(nil),          // 21: cosmos.base.query.v1beta1.PageResponse
+	(*QueryVerifyJWSRequest)(nil),         // 17: xion.jwk.v1.QueryVerifyJWSRequest
+	(*QueryVerifyJWSResponse)(nil),        // 18: xion.jwk.v1.QueryVerifyJWSResponse
+	(*QueryDecodeJWTRequest)(nil),         // 19: xion.jwk.v1.QueryDecodeJWTRequest
+	(*JWTClaim)(nil),                      // 20: xion.jwk.v1.JWTClaim
+	(*QueryDecodeJWTResponse)(nil),        // 21: xion.jwk.v1.QueryDecodeJWTResponse
+	(*Params)(nil),                        // 22: xion.jwk.v1.Params
+	(*AudienceClaim)(nil),                 // 23: xion.jwk.v1.AudienceClaim
+	(*Audience)(nil),                      // 24: xion.jwk.v1.Audience
+	(*v1beta1.PageRequest)(nil),           // 25: cosmos.base.query.v1beta1.PageRequest
+	(*v1beta1.PageResponse)(nil),          // 26: cosmos.base.query.v1beta1.PageResponse
 }
 var file_xion_jwk_v1_query_proto_depIdxs = []int32{
-	17, // 0: xion.jwk.v1.QueryParamsResponse.params:type_name -> xion.jwk.v1.Params
-	18, // 1: xion.jwk.v1.QueryAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim
-	18, // 2: xion.jwk.v1.QueryGetAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim
-	19, // 3: xion.jwk.v1.QueryAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
-	19, // 4: xion.jwk.v1.QueryGetAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
-	20, // 5: xion.jwk.v1.QueryAudienceAllRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
-	19, // 6: xion.jwk.v1.QueryAudienceAllResponse.audience:type_name -> xion.jwk.v1.Audience
-	21, // 7: xion.jwk.v1.QueryAudienceAllResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
-	20, // 8: xion.jwk.v1.QueryAllAudienceRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
-	19, // 9: xion.jwk.v1.QueryAllAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
-	21, // 10: xion.jwk.v1.QueryAllAudienceResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	22, // 0: xion.jwk.v1.QueryParamsResponse.params:type_name -> xion.jwk.v1.Params
+	23, // 1: xion.jwk.v1.QueryAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim
+	23, // 2: xion.jwk.v1.QueryGetAudienceClaimResponse.claim:type_name -> xion.jwk.v1.AudienceClaim
+	24, // 3: xion.jwk.v1.QueryAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
+	24, // 4: xion.jwk.v1.QueryGetAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
+	25, // 5: xion.jwk.v1.QueryAudienceAllRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	24, // 6: xion.jwk.v1.QueryAudienceAllResponse.audience:type_name -> xion.jwk.v1.Audience
+	26, // 7: xion.jwk.v1.QueryAudienceAllResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	25, // 8: xion.jwk.v1.QueryAllAudienceRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	24, // 9: xion.jwk.v1.QueryAllAudienceResponse.audience:type_name -> xion.jwk.v1.Audience
+	26, // 10: xion.jwk.v1.QueryAllAudienceResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
 	15, // 11: xion.jwk.v1.QueryValidateJWTResponse.private_claims:type_name -> xion.jwk.v1.PrivateClaim
-	0,  // 12: xion.jwk.v1.Query.Params:input_type -> xion.jwk.v1.QueryParamsRequest
-	2,  // 13: xion.jwk.v1.Query.AudienceClaim:input_type -> xion.jwk.v1.QueryAudienceClaimRequest
-	6,  // 14: xion.jwk.v1.Query.Audience:input_type -> xion.jwk.v1.QueryAudienceRequest
-	10, // 15: xion.jwk.v1.Query.AudienceAll:input_type -> xion.jwk.v1.QueryAudienceAllRequest
-	14, // 16: xion.jwk.v1.Query.ValidateJWT:input_type -> xion.jwk.v1.QueryValidateJWTRequest
-	1,  // 17: xion.jwk.v1.Query.Params:output_type -> xion.jwk.v1.QueryParamsResponse
-	3,  // 18: xion.jwk.v1.Query.AudienceClaim:output_type -> xion.jwk.v1.QueryAudienceClaimResponse
-	7,  // 19: xion.jwk.v1.Query.Audience:output_type -> xion.jwk.v1.QueryAudienceResponse
-	11, // 20: xion.jwk.v1.Query.AudienceAll:output_type -> xion.jwk.v1.QueryAudienceAllResponse
-	16, // 21: xion.jwk.v1.Query.ValidateJWT:output_type -> xion.jwk.v1.QueryValidateJWTResponse
-	17, // [17:22] is the sub-list for method output_type
-	12, // [12:17] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	20, // 12: xion.jwk.v1.QueryDecodeJWTResponse.claims:type_name -> xion.jwk.v1.JWTClaim
+	0,  // 13: xion.jwk.v1.Query.Params:input_type -> xion.jwk.v1.QueryParamsRequest
+	2,  // 14: xion.jwk.v1.Query.AudienceClaim:input_type -> xion.jwk.v1.QueryAudienceClaimRequest
+	6,  // 15: xion.jwk.v1.Query.Audience:input_type -> xion.jwk.v1.QueryAudienceRequest
+	10, // 16: xion.jwk.v1.Query.AudienceAll:input_type -> xion.jwk.v1.QueryAudienceAllRequest
+	14, // 17: xion.jwk.v1.Query.ValidateJWT:input_type -> xion.jwk.v1.QueryValidateJWTRequest
+	17, // 18: xion.jwk.v1.Query.VerifyJWS:input_type -> xion.jwk.v1.QueryVerifyJWSRequest
+	19, // 19: xion.jwk.v1.Query.DecodeJWT:input_type -> xion.jwk.v1.QueryDecodeJWTRequest
+	1,  // 20: xion.jwk.v1.Query.Params:output_type -> xion.jwk.v1.QueryParamsResponse
+	3,  // 21: xion.jwk.v1.Query.AudienceClaim:output_type -> xion.jwk.v1.QueryAudienceClaimResponse
+	7,  // 22: xion.jwk.v1.Query.Audience:output_type -> xion.jwk.v1.QueryAudienceResponse
+	11, // 23: xion.jwk.v1.Query.AudienceAll:output_type -> xion.jwk.v1.QueryAudienceAllResponse
+	16, // 24: xion.jwk.v1.Query.ValidateJWT:output_type -> xion.jwk.v1.QueryValidateJWTResponse
+	18, // 25: xion.jwk.v1.Query.VerifyJWS:output_type -> xion.jwk.v1.QueryVerifyJWSResponse
+	21, // 26: xion.jwk.v1.Query.DecodeJWT:output_type -> xion.jwk.v1.QueryDecodeJWTResponse
+	20, // [20:27] is the sub-list for method output_type
+	13, // [13:20] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_xion_jwk_v1_query_proto_init() }
@@ -8888,6 +11590,66 @@ func file_xion_jwk_v1_query_proto_init() {
 				return nil
 			}
 		}
+		file_xion_jwk_v1_query_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVerifyJWSRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryVerifyJWSResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryDecodeJWTRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*JWTClaim); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_xion_jwk_v1_query_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryDecodeJWTResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -8895,7 +11657,7 @@ func file_xion_jwk_v1_query_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_xion_jwk_v1_query_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -101,7 +101,7 @@ func TestAppModule(t *testing.T) {
 	appModule, ctx, k := setupModuleTest(t)
 
 	// Test ConsensusVersion
-	require.Equal(t, uint64(2), appModule.ConsensusVersion())
+	require.Equal(t, uint64(3), appModule.ConsensusVersion())
 
 	// Test IsOnePerModuleType and IsAppModule (these just need to not panic)
 	require.NotPanics(t, func() {
@@ -164,7 +164,7 @@ func TestJWKAppModule(t *testing.T) {
 
 	// Test ConsensusVersion
 	version := appModule.ConsensusVersion()
-	require.Equal(t, uint64(2), version)
+	require.Equal(t, uint64(3), version)
 
 	// Note: RegisterServices requires a proper configurator to work,
 	// so we skip testing it with nil to avoid panics
@@ -219,7 +219,7 @@ func TestAppModuleProperties(t *testing.T) {
 	appModule, _, _ := setupModuleTest(t)
 
 	// Test module functions
-	require.Equal(t, uint64(2), appModule.ConsensusVersion())
+	require.Equal(t, uint64(3), appModule.ConsensusVersion())
 
 	// Test that these don't panic
 	require.NotPanics(t, func() {

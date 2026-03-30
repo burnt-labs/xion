@@ -471,8 +471,9 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 		require.ErrorIs(t, err, types.ErrInvalidVersion)
 	})
 
-	t.Run("1024-bit key rejected for message path", func(t *testing.T) {
-		// Message validation must enforce the 2048-bit minimum.
+	t.Run("1024-bit key accepted for message path (Yahoo s1024 compatibility)", func(t *testing.T) {
+		// MinRSAKeyBits is set to 1024 to support legacy providers like Yahoo (s1024 selector).
+		// 1024-bit keys are low-assurance and expected to be rotated when providers upgrade.
 		smallKey, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
 		require.NoError(t, err)
 		pkixBytes, err := x509.MarshalPKIXPublicKey(&smallKey.PublicKey)
@@ -486,8 +487,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil, true)
-		require.Error(t, err)
-		require.ErrorIs(t, err, types.ErrInvalidPubKey)
+		require.NoError(t, err)
 	})
 }
 
@@ -540,3 +540,4 @@ func TestValidateDkimPubKey(t *testing.T) {
 		require.ErrorIs(t, err, types.ErrInvalidPubKey)
 	})
 }
+

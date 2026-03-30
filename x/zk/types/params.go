@@ -28,6 +28,21 @@ const (
 	// DefaultMaxUltraHonkPublicInputSizeBytes caps the maximum allowed UltraHonk public inputs bytes size.
 	// For UltraHonk, public inputs are provided as raw bytes.
 	DefaultMaxUltraHonkPublicInputSizeBytes uint64 = 10 * 1024 // 10 KiB
+
+	// ProofVerifyGas is the flat gas cost charged per BN254 proof verification.
+	// BN254 pairing checks are computationally expensive; this cost bounds the
+	// number of verifications an account can submit per block under its gas limit.
+	ProofVerifyGas uint64 = 500_000
+
+	// MinProofOrInputSizeBytes is the minimum value governance may set for any
+	// proof or public-input size parameter (must be at least 1 byte).
+	MinProofOrInputSizeBytes uint64 = 1
+
+	// MaxAllowedProofOrInputSizeBytes is the hard upper bound governance may set
+	// for any proof or public-input size parameter. Capping at 1 MiB prevents a
+	// governance proposal from setting these values to uint64_max, which would
+	// effectively disable the size limits and open a DoS vector.
+	MaxAllowedProofOrInputSizeBytes uint64 = 1_048_576 // 1 MiB
 )
 
 // NewParams creates a new Params instance.
@@ -92,20 +107,32 @@ func (p Params) Validate() error {
 		return errorsmod.Wrapf(ErrInvalidParams, "upload_chunk_gas must be positive")
 	}
 
-	if p.MaxGroth16ProofSizeBytes == 0 {
+	if p.MaxGroth16ProofSizeBytes < MinProofOrInputSizeBytes {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_proof_size_bytes must be positive")
 	}
+	if p.MaxGroth16ProofSizeBytes > MaxAllowedProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_proof_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
+	}
 
-	if p.MaxGroth16PublicInputSizeBytes == 0 {
+	if p.MaxGroth16PublicInputSizeBytes < MinProofOrInputSizeBytes {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_public_input_size_bytes must be positive")
 	}
-
-	if p.MaxUltraHonkProofSizeBytes == 0 {
-		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_proof_size_bytes must be positive")
+	if p.MaxGroth16PublicInputSizeBytes > MaxAllowedProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_groth16_public_input_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
 	}
 
-	if p.MaxUltraHonkPublicInputSizeBytes == 0 {
+	if p.MaxUltraHonkProofSizeBytes < MinProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_proof_size_bytes must be positive")
+	}
+	if p.MaxUltraHonkProofSizeBytes > MaxAllowedProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_proof_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
+	}
+
+	if p.MaxUltraHonkPublicInputSizeBytes < MinProofOrInputSizeBytes {
 		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_public_input_size_bytes must be positive")
+	}
+	if p.MaxUltraHonkPublicInputSizeBytes > MaxAllowedProofOrInputSizeBytes {
+		return errorsmod.Wrapf(ErrInvalidParams, "max_ultra_honk_public_input_size_bytes exceeds hard upper bound of %d bytes", MaxAllowedProofOrInputSizeBytes)
 	}
 
 	return nil

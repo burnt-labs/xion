@@ -11,9 +11,15 @@ import (
 
 // MinRSAKeyBits is the minimum allowed RSA key size in bits for new keys
 // submitted via messages. Genesis and state-loading paths use ParseRSAPublicKey
-// (which does not enforce this limit) to avoid rejecting legacy keys such as
-// Yahoo's s1024 selector.
-const MinRSAKeyBits = 2048
+// (which does not enforce this limit) to avoid rejecting legacy keys at rest.
+//
+// Set to 1024 to accommodate major email providers (e.g. Yahoo, which uses a
+// 1024-bit "s1024" DKIM selector) whose keys must be registerable for
+// DKIM-authenticated abstract accounts to function. 1024-bit RSA is below
+// modern cryptographic recommendations but is still required for broad email
+// provider compatibility. Keys stored at this size should be treated as
+// low-assurance and rotated when the provider upgrades.
+const MinRSAKeyBits = 1024
 
 // ParseRSAPublicKey parses PKIX or PKCS#1-encoded RSA public key bytes.
 // It does NOT enforce a minimum key size — use ValidateRSAKeySize for that.
@@ -57,7 +63,7 @@ func ValidateRSAKeySize(key *rsa.PublicKey) error {
 // The function:
 //   - Marshals the RSA public key using PKCS#1 via x509.MarshalPKCS1PublicKey to obtain
 //     a stable, canonical byte representation of the key, independent of the original
-//     input encoding (for example, PKIX vs PKCS#1).
+//     input encoding (for example, PKIX vs PKCS#1)
 //   - Hashes those bytes using SHA-256.
 //   - Encodes the resulting 32-byte SHA-256 digest using standard base64 encoding.
 //
