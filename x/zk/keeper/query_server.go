@@ -193,9 +193,11 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 
 	verified, err := verifier.VerifyWithBytes(proof, chunks)
 	if err != nil {
+		if goerrors.Is(err, barretenberg.ErrInternal) {
+			return nil, errors.Wrap(err, "internal verifier error")
+		}
 		if goerrors.Is(err, barretenberg.ErrVerificationFailed) ||
-			goerrors.Is(err, barretenberg.ErrInvalidPublicInputs) ||
-			goerrors.Is(err, barretenberg.ErrInternal) {
+			goerrors.Is(err, barretenberg.ErrInvalidPublicInputs) {
 			return &types.ProofVerifyResponse{Verified: false}, nil
 		}
 		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification: %v", err)
