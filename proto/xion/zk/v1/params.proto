@@ -8,11 +8,10 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/burnt-labs/xion/x/zk/types";
 
 // ProofSystem identifies which ZK backend and wire format a vkey/proof uses.
-// Values 2 and 3 are reserved for future honk variants.
 enum ProofSystem {
   PROOF_SYSTEM_UNSPECIFIED   = 0;
   PROOF_SYSTEM_GROTH16       = 1;  // BN254, snarkjs / circom format
-  PROOF_SYSTEM_ULTRA_HONK_ZK = 4;  // Barretenberg v4.0.4, UltraHonk ZK variant (bb >= 0.87)
+  PROOF_SYSTEM_ULTRA_HONK_ZK = 2;  // Barretenberg v4.0.4, UltraHonk ZK variant (bb >= 0.87)
 }
 
 
