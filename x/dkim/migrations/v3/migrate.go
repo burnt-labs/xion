@@ -1,6 +1,8 @@
 package v3
 
 import (
+	"errors"
+
 	"cosmossdk.io/collections"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,8 +22,11 @@ func MigrateStore(
 
 	existingParams, err := paramsCollection.Get(ctx)
 	if err != nil {
-		ctx.Logger().Info("No existing params found, setting defaults")
-		return paramsCollection.Set(ctx, types.DefaultParams())
+		if errors.Is(err, collections.ErrNotFound) {
+			ctx.Logger().Info("No existing params found, setting defaults")
+			return paramsCollection.Set(ctx, types.DefaultParams())
+		}
+		return err
 	}
 
 	if existingParams.MinRsaKeyBits == 0 {

@@ -9,13 +9,10 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-// MinDKIMRSAKeyBits is the minimum RSA key size for any valid DKIM key (per RFC 6376).
-// This allows legacy 1024-bit keys such as Yahoo's s1024 selector.
-const MinDKIMRSAKeyBits = 1024
-
-// MinRSAKeyBits is the hardcoded fallback minimum RSA key size used in stateless
-// ValidateBasic paths and as a safety net when params.MinRsaKeyBits is unset.
-// The governance-configurable minimum is params.MinRsaKeyBits (default 1024).
+// MinRSAKeyBits is the hardcoded fallback minimum RSA key size used in
+// ValidateDkimPubKeysWithRevocation when params.MinRsaKeyBits is unset (zero).
+// The governance-configurable minimum is params.MinRsaKeyBits (default 1024,
+// defined as DefaultMinRSAKeyBits in params.go).
 const MinRSAKeyBits = 2048
 
 // ParseRSAPublicKey parses PKIX or PKCS#1-encoded RSA public key bytes.
@@ -41,9 +38,9 @@ func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
-// ValidateRSAKeySize checks that the RSA key meets the hardcoded minimum bit length.
-// Used in stateless ValidateBasic paths that cannot access on-chain params.
-// The msg server uses params.MinRsaKeyBits for the governance-configurable check.
+// ValidateRSAKeySize checks that the RSA key meets the hardcoded minimum bit length
+// (MinRSAKeyBits = 2048). This is the fallback used by ValidateDkimPubKeysWithRevocation
+// when params.MinRsaKeyBits is unset. It is NOT called from any ValidateBasic path.
 func ValidateRSAKeySize(key *rsa.PublicKey) error {
 	if key == nil || key.N == nil {
 		return errorsmod.Wrap(ErrInvalidPubKey, "RSA public key is nil")

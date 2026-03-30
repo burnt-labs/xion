@@ -70,11 +70,12 @@ func TestValidateRSAKeySize(t *testing.T) {
 		require.Contains(t, err.Error(), "RSA public key is nil")
 	})
 
-	t.Run("accepts 1024-bit key (Yahoo s1024 compatibility)", func(t *testing.T) {
+	t.Run("rejects 1024-bit key", func(t *testing.T) {
 		key, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
 		require.NoError(t, err)
 		err = types.ValidateRSAKeySize(&key.PublicKey)
-		require.NoError(t, err)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "below minimum")
 	})
 
 	t.Run("accepts 2048-bit key", func(t *testing.T) {

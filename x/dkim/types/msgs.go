@@ -226,10 +226,17 @@ func ValidateDkimPubKeysWithRevocation(
 	return nil
 }
 
-// ValidateDkimPubKey validates a DKIM public key entry for use in messages.
+// ValidateDkimPubKey validates a DKIM public key entry for use in messages
+// (called from MsgAddDkimPubKeys.ValidateBasic).
+//
 // Uses ValidateBasicMaxPubKeySizeBytes as a high ceiling since ValidateBasic is
 // stateless and cannot access on-chain params. The msg server will enforce
 // actual param limits and key size requirements via ValidateDkimPubKeysWithRevocation.
+//
+// NOTE: RSA key size is intentionally NOT checked here because the minimum
+// is a governance-configurable on-chain parameter (params.MinRsaKeyBits).
+// ValidateBasic must remain stateless. The msg server enforces key size via
+// ValidateDkimPubKeysWithRevocation after loading params from state.
 func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 	if err := validateDkimPubKeyMetadata(dkimKey); err != nil {
 		return err
@@ -241,16 +248,15 @@ func ValidateDkimPubKey(dkimKey DkimPubKey) error {
 		return err
 	}
 
-	// Only validate that it parses as RSA - don't enforce key size limits here
-	// since ValidateBasic should be stateless. The msg server will enforce
-	// size requirements via ValidateDkimPubKeysWithRevocation.
+	// Only validate that it parses as RSA — key size is not checked here
+	// (see function comment above for rationale).
 	_, err = ParseRSAPublicKey(pubKeyBytes)
 	return err
 }
 
 // ValidateRSAPubKey validates that the string is a valid base64-encoded RSA public key
-// meeting the DKIM minimum key size (MinDKIMRSAKeyBits). Use ValidateRSAKeySize
-// separately to enforce the stricter governance minimum (MinRSAKeyBits).
+// meeting the default minimum key size (DefaultMinRSAKeyBits = 1024). Use
+// ValidateRSAKeySize separately to enforce the stricter hardcoded minimum (MinRSAKeyBits = 2048).
 func ValidateRSAPubKey(pubKeyStr string) error {
 	pubKeyBytes, err := DecodePubKey(pubKeyStr)
 	if err != nil {
@@ -262,8 +268,8 @@ func ValidateRSAPubKey(pubKeyStr string) error {
 		return err
 	}
 
-	if rsaPub.N.BitLen() < MinDKIMRSAKeyBits {
-		return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPub.N.BitLen(), MinDKIMRSAKeyBits)
+	if rsaPub.N.BitLen() < int(DefaultMinRSAKeyBits) {
+		return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d", rsaPub.N.BitLen(), DefaultMinRSAKeyBits)
 	}
 	return nil
 }
