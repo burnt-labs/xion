@@ -8,7 +8,7 @@ on:
 jobs:
   build-binaries:
     name: Build xiond-${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
 
     strategy:
       fail-fast: false

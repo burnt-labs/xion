@@ -16,7 +16,7 @@ jobs:
   build-heighliner:
     name: Build Heighliner ${{ matrix.os }}/${{ matrix.arch }}
     needs: build-linux
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
 
     strategy:
       fail-fast: false
@@ -83,7 +83,7 @@ jobs:
   push-heighliner:
     name: Push Heighliner Images
     needs: build-heighliner
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04
     permissions:
       id-token: write
       contents: read
