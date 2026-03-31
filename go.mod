@@ -46,7 +46,7 @@ require (
 	cosmossdk.io/x/nft v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
-	github.com/CosmWasm/wasmd v0.68.8
+	github.com/CosmWasm/wasmd v0.68.10
 	github.com/CosmWasm/wasmvm/v3 v3.0.3
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/burnt-labs/abstract-account v0.1.4

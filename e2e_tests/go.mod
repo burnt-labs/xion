@@ -41,7 +41,7 @@ require (
 	cosmossdk.io/x/feegrant v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
-	github.com/CosmWasm/wasmd v0.68.8
+	github.com/CosmWasm/wasmd v0.68.10
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/burnt-labs/abstract-account v0.1.4
 	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
