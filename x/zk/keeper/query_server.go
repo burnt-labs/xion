@@ -265,7 +265,6 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	return resp, nil
 }
 
-
 // VKey queries a verification key by ID
 func (q Querier) VKey(goCtx context.Context, req *types.QueryVKeyRequest) (*types.QueryVKeyResponse, error) {
 	if req == nil {
