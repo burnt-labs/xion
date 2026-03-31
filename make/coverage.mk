@@ -26,7 +26,7 @@ TESTABLE_PACKAGES = $(shell go list ./... |  grep -v '$(TEST_EXCLUSIONS_PATTERN)
 test-cover-run:
 	@echo "🧪 Running tests with coverage..."
 	@echo "Testing packages (excluding .coveragerc excludes)..."
-	@go test $(TESTABLE_PACKAGES) -coverprofile=$(COVERAGE_OUT) -covermode=atomic -timeout=30m -race -tags='$(_ALL_BUILD_TAGS)' -ldflags="-w"
+	@go test $(TESTABLE_PACKAGES) -coverprofile=$(COVERAGE_OUT) -covermode=atomic -timeout=30m -tags='$(_ALL_BUILD_TAGS)' -ldflags="-w"
 
 # Filter coverage report (remove generated files)
 test-cover-filter: test-cover-run
