@@ -43,13 +43,15 @@ func ValidateJWKKeySize(key jwk.Key) error {
 			return errorsmod.Wrapf(ErrInvalidJWK, "RSA key size %d bits exceeds maximum allowed %d bits", k.N.BitLen(), MaxRSAKeyBits)
 		}
 	case *rsa.PrivateKey:
-		if k.N.BitLen() > MaxRSAKeyBits {
-			return errorsmod.Wrapf(ErrInvalidJWK, "RSA key size %d bits exceeds maximum allowed %d bits", k.N.BitLen(), MaxRSAKeyBits)
-		}
-	case *ecdsa.PublicKey, *ecdsa.PrivateKey:
-		// ECDSA keys are inherently bounded by curve selection (P-256, P-384, P-521)
-	case ed25519.PublicKey, ed25519.PrivateKey:
-		// Ed25519 keys are fixed size (256 bits)
+		return errorsmod.Wrap(ErrInvalidJWK, "RSA private keys must not be stored on-chain; provide a public key")
+	case *ecdsa.PublicKey:
+		// ECDSA public keys are inherently bounded by curve selection (P-256, P-384, P-521)
+	case *ecdsa.PrivateKey:
+		return errorsmod.Wrap(ErrInvalidJWK, "ECDSA private keys must not be stored on-chain; provide a public key")
+	case ed25519.PublicKey:
+		// Ed25519 public keys are fixed size (256 bits)
+	case ed25519.PrivateKey:
+		return errorsmod.Wrap(ErrInvalidJWK, "Ed25519 private keys must not be stored on-chain; provide a public key")
 	default:
 		// Unknown key type — allow but don't skip validation on known types
 	}
