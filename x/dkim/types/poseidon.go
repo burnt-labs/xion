@@ -188,9 +188,22 @@ func ComputePoseidonHash(pub string) (*big.Int, error) {
 	modulusBytes := BigIntToChunkedBytes(modulus, CircomBigintN, CircomBigintK)
 	// prepare the pubkey for hashing
 	pubKeyInputBigInt := PreparePubkeyForHashing(modulusBytes, CircomBigintN, CircomBigintK)
-	hash, err := poseidon.Hash(pubKeyInputBigInt)
-	if err != nil {
-		return nil, errors.Wrap(sdkError.ErrInvalidRequest, err.Error())
+	// Wrap poseidon.Hash with panic recovery — the go-iden3-crypto poseidon
+	// implementation can panic on zero-denominator inputs in the permutation.
+	var (
+		hash    *big.Int
+		hashErr error
+	)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				hashErr = errors.Wrap(sdkError.ErrInvalidRequest, fmt.Sprintf("panic during poseidon hash: %v", r))
+			}
+		}()
+		hash, hashErr = poseidon.Hash(pubKeyInputBigInt)
+	}()
+	if hashErr != nil {
+		return nil, errors.Wrap(sdkError.ErrInvalidRequest, hashErr.Error())
 	}
 	return hash, nil
 }

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -233,11 +234,26 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 		}
 	}
 
-	gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
-	if err != nil {
-		return false, err
-	}
-	return parser.VerifyProof(gnarkProof)
+	// Wrap gnark calls with panic recovery — circom2gnark/gnark may panic on
+	// malformed proofs or VKeys that pass JSON parsing but have invalid curve points.
+	var (
+		verified bool
+		verifyErr error
+	)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				verifyErr = fmt.Errorf("panic during groth16 verification: %v", r)
+			}
+		}()
+		gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
+		if err != nil {
+			verifyErr = err
+			return
+		}
+		verified, verifyErr = parser.VerifyProof(gnarkProof)
+	}()
+	return verified, verifyErr
 }
 
 // AddVKey adds a new verification key to the store.
