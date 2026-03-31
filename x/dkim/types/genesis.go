@@ -87,9 +87,6 @@ func (gs GenesisState) Validate() error {
 	if params.MaxPubkeySizeBytes == 0 {
 		params.MaxPubkeySizeBytes = DefaultMaxPubKeySizeBytes
 	}
-	if params.MinRsaKeyBits == 0 {
-		params.MinRsaKeyBits = DefaultMinRSAKeyBits
-	}
 	if err := params.Validate(); err != nil {
 		return err
 	}

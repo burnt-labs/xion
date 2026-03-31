@@ -106,7 +106,6 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 		VkeyIdentifier:     uint64(1),
 		MaxPubkeySizeBytes: decodedSize - 1,
 		PublicInputIndices: dkimTypes.DefaultPublicInputIndices(),
-		MinRsaKeyBits:      dkimTypes.DefaultMinRSAKeyBits,
 	}
 	updateParamsMsg := &dkimTypes.MsgUpdateParams{
 		Authority: testlib.GetModuleAddress(t, xion, ctx, govModule.ModuleName),

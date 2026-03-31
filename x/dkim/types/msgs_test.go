@@ -294,7 +294,7 @@ func TestMsgUpdateParams(t *testing.T) {
 
 func TestValidateDkimPubKeys(t *testing.T) {
 	pkixKey, pkcs1Key := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
+	params := types.Params{MaxPubkeySizeBytes: 2048}
 	validKey := types.DkimPubKey{
 		Domain:   "example.com",
 		Selector: "default",
@@ -368,7 +368,7 @@ func generateRSAPubKeyEncodings(t *testing.T) (string, string) {
 
 func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	pkixKey, _ := generateRSAPubKeyEncodings(t)
-	params := types.Params{MaxPubkeySizeBytes: 2048, MinRsaKeyBits: types.DefaultMinRSAKeyBits}
+	params := types.Params{MaxPubkeySizeBytes: 2048}
 	hash, err := types.ComputePoseidonHash(pkixKey)
 	require.NoError(t, err)
 	validKey := types.DkimPubKey{

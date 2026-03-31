@@ -351,7 +351,6 @@ func TestKeeperGetParams(t *testing.T) {
 			VkeyIdentifier:     42,
 			MaxPubkeySizeBytes: 4096,
 			PublicInputIndices: types.DefaultPublicInputIndices(),
-			MinRsaKeyBits:      types.DefaultMinRSAKeyBits,
 		}
 		err := f.k.SetParams(f.ctx, customParams)
 		require.NoError(t, err)
@@ -371,7 +370,6 @@ func TestKeeperSetParams(t *testing.T) {
 			VkeyIdentifier:     1,
 			MaxPubkeySizeBytes: 0, // Zero value should be replaced with default
 			PublicInputIndices: types.DefaultPublicInputIndices(),
-			MinRsaKeyBits:      types.DefaultMinRSAKeyBits,
 		}
 		err := f.k.SetParams(f.ctx, params)
 		require.NoError(t, err)
@@ -388,7 +386,6 @@ func TestKeeperSetParams(t *testing.T) {
 			VkeyIdentifier:     1,
 			MaxPubkeySizeBytes: 8192,
 			PublicInputIndices: types.DefaultPublicInputIndices(),
-			MinRsaKeyBits:      types.DefaultMinRSAKeyBits,
 		}
 		err := f.k.SetParams(f.ctx, params)
 		require.NoError(t, err)
