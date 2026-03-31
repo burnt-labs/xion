@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"math/big"
+	"strings"
 
 	"github.com/vocdoni/circom2gnark/parser"
 
@@ -207,7 +209,30 @@ func (k Keeper) ensureVKeySize(params types.Params, size int) (uint64, error) {
 	return gasCost, err
 }
 
+// bn254ScalarPrime is the BN254 scalar field modulus r. All Groth16 public inputs
+// must be strictly less than this value — circom2gnark's SetBigInt silently reduces
+// values >= p modulo p, so p+x would verify identically to x.
+var bn254ScalarPrime, _ = new(big.Int).SetString(
+	"21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+
 func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *parser.CircomVerificationKey, inputs *[]string) (bool, error) {
+	// Validate all public inputs are canonical BN254 scalar field elements.
+	// This check must live here so that ALL callers (ProofVerify query, DKIM
+	// Authenticate, and any future callers) are protected — not just the query layer.
+	for i, inp := range *inputs {
+		s := inp
+		base := 10
+		if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+			s = s[2:]
+			base = 16
+		}
+		v, ok := new(big.Int).SetString(s, base)
+		if !ok || v.Sign() < 0 || v.Cmp(bn254ScalarPrime) >= 0 {
+			return false, errors.Wrapf(types.ErrInvalidRequest,
+				"public input[%d] is not a canonical BN254 scalar field element", i)
+		}
+	}
+
 	gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
 	if err != nil {
 		return false, err
