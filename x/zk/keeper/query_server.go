@@ -237,7 +237,7 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 }
 
 // ProofVerifyGnark verifies a gnark native Groth16 proof (BN254) using a vkey looked up by name or ID.
-func (q Querier) ProofVerifyGnark(c context.Context, req *types.QueryVerifyGnarkRequest) (*types.ProofVerifyResponse, error) {
+func (q Querier) ProofVerifyGnark(c context.Context, req *types.QueryVerifyGnarkRequest) (*types.ProofVerifyGnarkResponse, error) {
 	if req == nil {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
 	}
@@ -296,7 +296,7 @@ func (q Querier) ProofVerifyGnark(c context.Context, req *types.QueryVerifyGnark
 		return nil, err
 	}
 
-	return &types.ProofVerifyResponse{Verified: verified}, nil
+	return &types.ProofVerifyGnarkResponse{Verified: verified}, nil
 }
 
 // VKey queries a verification key by ID

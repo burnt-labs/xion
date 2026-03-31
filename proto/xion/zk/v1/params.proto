@@ -51,10 +51,12 @@ message Params {
   // public inputs. UltraHonk public inputs are provided as raw bytes.
   uint64 max_ultra_honk_public_input_size_bytes = 7;
 
-  // max_gnark_proof_size_bytes caps the size of a gnark native Groth16 proof (binary).
+  // max_gnark_proof_size_bytes caps the size of a gnark native Groth16 proof
+  // (binary).
   uint64 max_gnark_proof_size_bytes = 8;
 
-  // max_gnark_public_input_size_bytes caps the size of the gnark Groth16 public inputs.
-  // Public inputs are provided as raw bytes (concatenated 32-byte big-endian field elements).
+  // max_gnark_public_input_size_bytes caps the size of the gnark Groth16 public
+  // inputs. Public inputs are provided as raw bytes (concatenated 32-byte
+  // big-endian field elements).
   uint64 max_gnark_public_input_size_bytes = 9;
 }

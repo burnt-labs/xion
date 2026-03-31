@@ -35,6 +35,8 @@ const (
 	// PROOF_SYSTEM_ULTRA_HONK_ZK uses Barretenberg UltraHonk ZK variant
 	// (bb >= 0.87).
 	ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK ProofSystem = 2
+	// PROOF_SYSTEM_GROTH16_GNARK uses BN254 Groth16 proofs in gnark native
+	// format (binary).
 	ProofSystem_PROOF_SYSTEM_GROTH16_GNARK ProofSystem = 3
 )
 
@@ -79,10 +81,12 @@ type Params struct {
 	// max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk
 	// public inputs. UltraHonk public inputs are provided as raw bytes.
 	MaxUltraHonkPublicInputSizeBytes uint64 `protobuf:"varint,7,opt,name=max_ultra_honk_public_input_size_bytes,json=maxUltraHonkPublicInputSizeBytes,proto3" json:"max_ultra_honk_public_input_size_bytes,omitempty"`
-	// max_gnark_proof_size_bytes caps the size of a gnark native Groth16 proof (binary).
+	// max_gnark_proof_size_bytes caps the size of a gnark native Groth16 proof
+	// (binary).
 	MaxGnarkProofSizeBytes uint64 `protobuf:"varint,8,opt,name=max_gnark_proof_size_bytes,json=maxGnarkProofSizeBytes,proto3" json:"max_gnark_proof_size_bytes,omitempty"`
-	// max_gnark_public_input_size_bytes caps the size of the gnark Groth16 public inputs.
-	// Public inputs are provided as raw bytes (concatenated 32-byte big-endian field elements).
+	// max_gnark_public_input_size_bytes caps the size of the gnark Groth16 public
+	// inputs. Public inputs are provided as raw bytes (concatenated 32-byte
+	// big-endian field elements).
 	MaxGnarkPublicInputSizeBytes uint64 `protobuf:"varint,9,opt,name=max_gnark_public_input_size_bytes,json=maxGnarkPublicInputSizeBytes,proto3" json:"max_gnark_public_input_size_bytes,omitempty"`
 }
 

@@ -30,10 +30,10 @@ service Query {
   // is resolved by vkey_name or vkey_id from the store and must be of type
   // groth16_gnark.
   rpc ProofVerifyGnark(QueryVerifyGnarkRequest)
-      returns (ProofVerifyResponse) {
+      returns (ProofVerifyGnarkResponse) {
     option (google.api.http) = {
-      post: "/burnt/xion/zk/v1/verify-gnark"
-      body: "*"
+      post : "/burnt/xion/zk/v1/verify-gnark"
+      body : "*"
     };
   }
 
@@ -102,6 +102,13 @@ message ProofVerifyUltraHonkResponse {
   bool verified = 1;
 }
 
+// ProofVerifyGnarkResponse defines the response structure for gnark Groth16
+// proof verification.
+message ProofVerifyGnarkResponse {
+  // verified indicates whether the proof verification was successful.
+  bool verified = 1;
+}
+
 // QueryVerifyUltraHonkRequest is the request for ProofVerifyUltraHonk.
 // The verification key is resolved by vkey_name or vkey_id from the store (must
 // be ultrahonk type). Proof and public_inputs are raw binary as produced by
@@ -121,7 +128,8 @@ message QueryVerifyUltraHonkRequest {
 
 // QueryVerifyGnarkRequest is the request for ProofVerifyGnark.
 // The verification key is resolved by vkey_name or vkey_id from the store (must
-// be groth16_gnark type). Proof and public_inputs are gnark native binary format.
+// be groth16_gnark type). Proof and public_inputs are gnark native binary
+// format.
 message QueryVerifyGnarkRequest {
   // proof is the gnark native Groth16 proof bytes (serialized groth16.Proof).
   bytes proof = 1;
