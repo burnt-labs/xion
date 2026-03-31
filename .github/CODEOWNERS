@@ -32,3 +32,12 @@
 .github/ @burnt-labs/burnt-devops
 .goreleaser @burnt-labs/burnt-devops
 Dockerfile @burnt-labs/burnt-devops
+
+# Coverage requirements and gates must have DevOps sign-off
+.coveragerc @burnt-labs/burnt-devops
+.codecov.yml @burnt-labs/burnt-devops
+make/coverage.mk @burnt-labs/burnt-devops
+make/test.mk @burnt-labs/burnt-devops
+scripts/coverage-analyze.sh @burnt-labs/burnt-devops
+.github/workflows/tests.yaml @burnt-labs/burnt-devops
+.github/workflows/build-test.yaml @burnt-labs/burnt-devops
