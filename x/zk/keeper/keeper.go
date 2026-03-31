@@ -110,7 +110,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 
 	// Import all vkeys
 	for _, vkeyWithID := range gs.Vkeys {
-		if err := types.ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes); err != nil {
+		if err := types.ValidateVKeyForProofSystem(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes, vkeyWithID.Vkey.ProofSystem); err != nil {
 			panic(err)
 		}
 
