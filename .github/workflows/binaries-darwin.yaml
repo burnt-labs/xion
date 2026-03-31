@@ -17,7 +17,7 @@ jobs:
           - darwin
         arch:
           - amd64
-          - arm64
+          # - arm64  # disabled: cross-compile from amd64 for now
 
     steps:
       - name: Check Out Code
