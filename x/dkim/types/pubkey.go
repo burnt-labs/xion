@@ -11,7 +11,7 @@ import (
 
 // ParseRSAPublicKey parses PKIX or PKCS#1-encoded RSA public key bytes.
 // It does NOT enforce a minimum key size; that is done by
-// ValidateDkimPubKeysWithRevocation using the on-chain params.MinRsaKeyBits.
+// ValidateDkimPubKeysWithRevocation.
 func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
 	var rsaPub *rsa.PublicKey
 

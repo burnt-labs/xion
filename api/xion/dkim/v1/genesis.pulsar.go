@@ -1984,7 +1984,6 @@ var (
 	fd_Params_vkey_identifier       protoreflect.FieldDescriptor
 	fd_Params_max_pubkey_size_bytes protoreflect.FieldDescriptor
 	fd_Params_public_input_indices  protoreflect.FieldDescriptor
-	fd_Params_min_rsa_key_bits      protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -1993,7 +1992,6 @@ func init() {
 	fd_Params_vkey_identifier = md_Params.Fields().ByName("vkey_identifier")
 	fd_Params_max_pubkey_size_bytes = md_Params.Fields().ByName("max_pubkey_size_bytes")
 	fd_Params_public_input_indices = md_Params.Fields().ByName("public_input_indices")
-	fd_Params_min_rsa_key_bits = md_Params.Fields().ByName("min_rsa_key_bits")
 }
 
 var _ protoreflect.Message = (*fastReflection_Params)(nil)
@@ -2079,12 +2077,6 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 			return
 		}
 	}
-	if x.MinRsaKeyBits != uint64(0) {
-		value := protoreflect.ValueOfUint64(x.MinRsaKeyBits)
-		if !f(fd_Params_min_rsa_key_bits, value) {
-			return
-		}
-	}
 }
 
 // Has reports whether a field is populated.
@@ -2106,8 +2098,6 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 		return x.MaxPubkeySizeBytes != uint64(0)
 	case "xion.dkim.v1.Params.public_input_indices":
 		return x.PublicInputIndices != nil
-	case "xion.dkim.v1.Params.min_rsa_key_bits":
-		return x.MinRsaKeyBits != uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -2130,8 +2120,6 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 		x.MaxPubkeySizeBytes = uint64(0)
 	case "xion.dkim.v1.Params.public_input_indices":
 		x.PublicInputIndices = nil
-	case "xion.dkim.v1.Params.min_rsa_key_bits":
-		x.MinRsaKeyBits = uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -2157,9 +2145,6 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 	case "xion.dkim.v1.Params.public_input_indices":
 		value := x.PublicInputIndices
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	case "xion.dkim.v1.Params.min_rsa_key_bits":
-		value := x.MinRsaKeyBits
-		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -2186,8 +2171,6 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 		x.MaxPubkeySizeBytes = value.Uint()
 	case "xion.dkim.v1.Params.public_input_indices":
 		x.PublicInputIndices = value.Message().Interface().(*PublicInputIndices)
-	case "xion.dkim.v1.Params.min_rsa_key_bits":
-		x.MinRsaKeyBits = value.Uint()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -2217,8 +2200,6 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 		panic(fmt.Errorf("field vkey_identifier of message xion.dkim.v1.Params is not mutable"))
 	case "xion.dkim.v1.Params.max_pubkey_size_bytes":
 		panic(fmt.Errorf("field max_pubkey_size_bytes of message xion.dkim.v1.Params is not mutable"))
-	case "xion.dkim.v1.Params.min_rsa_key_bits":
-		panic(fmt.Errorf("field min_rsa_key_bits of message xion.dkim.v1.Params is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -2239,8 +2220,6 @@ func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protor
 	case "xion.dkim.v1.Params.public_input_indices":
 		m := new(PublicInputIndices)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	case "xion.dkim.v1.Params.min_rsa_key_bits":
-		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.dkim.v1.Params"))
@@ -2320,9 +2299,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			l = options.Size(x.PublicInputIndices)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.MinRsaKeyBits != 0 {
-			n += 1 + runtime.Sov(uint64(x.MinRsaKeyBits))
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -2351,11 +2327,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.MinRsaKeyBits != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.MinRsaKeyBits))
-			i--
-			dAtA[i] = 0x20
 		}
 		if x.PublicInputIndices != nil {
 			encoded, err := options.Marshal(x.PublicInputIndices)
@@ -2504,25 +2475,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 4:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MinRsaKeyBits", wireType)
-				}
-				x.MinRsaKeyBits = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.MinRsaKeyBits |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -2781,10 +2733,6 @@ type Params struct {
 	// public_input_indices defines the indices for extracting data from public
 	// inputs.
 	PublicInputIndices *PublicInputIndices `protobuf:"bytes,3,opt,name=public_input_indices,json=publicInputIndices,proto3" json:"public_input_indices,omitempty"`
-	// min_rsa_key_bits is the minimum RSA key size in bits accepted via
-	// governance. Defaults to 1024 to allow legacy keys such as Yahoo's s1024
-	// selector.
-	MinRsaKeyBits uint64 `protobuf:"varint,4,opt,name=min_rsa_key_bits,json=minRsaKeyBits,proto3" json:"min_rsa_key_bits,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -2826,13 +2774,6 @@ func (x *Params) GetPublicInputIndices() *PublicInputIndices {
 		return x.PublicInputIndices
 	}
 	return nil
-}
-
-func (x *Params) GetMinRsaKeyBits() uint64 {
-	if x != nil {
-		return x.MinRsaKeyBits
-	}
-	return 0
 }
 
 var File_xion_dkim_v1_genesis_proto protoreflect.FileDescriptor

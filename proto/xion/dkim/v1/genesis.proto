@@ -66,9 +66,4 @@ message Params {
   // public_input_indices defines the indices for extracting data from public
   // inputs.
   PublicInputIndices public_input_indices = 3 [ (gogoproto.nullable) = false ];
-
-  // min_rsa_key_bits is the minimum RSA key size in bits accepted via
-  // governance. Defaults to 1024 to allow legacy keys such as Yahoo's s1024
-  // selector.
-  uint64 min_rsa_key_bits = 4;
 }

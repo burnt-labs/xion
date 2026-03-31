@@ -54,7 +54,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					VkeyIdentifier:     uint64(42),
 					MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 					PublicInputIndices: types.DefaultPublicInputIndices(),
-					MinRsaKeyBits:      types.DefaultMinRSAKeyBits,
+
 				},
 			},
 			valid: true,
@@ -200,7 +200,6 @@ func TestGenesisStateValidateRevokedPubkeys(t *testing.T) {
 				VkeyIdentifier:     1,
 				MaxPubkeySizeBytes: 0, // Will be set to default
 				PublicInputIndices: types.DefaultPublicInputIndices(),
-				MinRsaKeyBits:      types.DefaultMinRSAKeyBits,
 			},
 			RevokedPubkeys: []string{validPubKey},
 		}
