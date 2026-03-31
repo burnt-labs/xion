@@ -370,7 +370,7 @@ func NewWasmApp(
 		jwktypes.StoreKey, tokenfactorytypes.StoreKey, zktypes.StoreKey, dkimtypes.StoreKey,
 	)
 
-	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
+	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, aatypes.TransientStoreKey)
 
 	// register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, keys); err != nil {
@@ -769,6 +769,7 @@ func NewWasmApp(
 	app.AbstractAccountKeeper = aakeeper.NewKeeper(
 		appCodec,
 		keys[aatypes.StoreKey],
+		tkeys[aatypes.TransientStoreKey],
 		app.AccountKeeper,
 		wasmkeeper.NewGovPermissionKeeper(app.WasmKeeper),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
