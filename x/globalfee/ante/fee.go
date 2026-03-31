@@ -109,7 +109,7 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		// zero-fee bypass transactions (e.g. IBC relayer packets).
 		// When a non-zero fee is provided, keep the original context so
 		// the fee is still validated against the local minimum.
-		if feeCoins.IsZero() {
+		if feeCoins.IsZero() && !ctx.MinGasPrices().IsZero() {
 			return next(ctx.WithMinGasPrices(sdk.DecCoins{}), tx, simulate)
 		}
 		return next(ctx, tx, simulate)
