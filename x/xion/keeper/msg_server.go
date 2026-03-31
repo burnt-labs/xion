@@ -162,11 +162,11 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	return &types.MsgMultiSendResponse{}, nil
 }
 
-// meetsConfiguredMinimums returns true if, for every denom in amt that has a configured
-// minimum in mins, the amount for that denom is greater than or equal to the minimum.
-// Denoms without a configured minimum are not constrained by this check.
-// If no minimums are configured at all, this returns false to maintain backwards compatibility
-// requiring platform minimums to be explicitly set.
+// meetsConfiguredMinimums returns true if every coin in amt has a configured minimum
+// and meets it.  Denoms not present in mins are rejected: the minimums list acts as
+// an explicit allowlist so that unconfigured denoms cannot bypass the minimum check.
+// If no minimums are configured at all, this returns false to maintain backwards
+// compatibility requiring platform minimums to be explicitly set.
 func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
 	// Require that platform minimums be explicitly set (backwards compatibility)
 	if len(mins) == 0 {
@@ -181,7 +181,13 @@ func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
 
 	for _, c := range amt {
 		min, ok := minMap[c.Denom]
-		if ok && !min.IsZero() && c.Amount.LT(min) {
+		if !ok {
+			// Denom has no configured minimum — reject it.
+			// Unconfigured denoms are not permitted when minimums are in use,
+			// preventing bypass by sending only non-listed denominations.
+			return false
+		}
+		if !min.IsZero() && c.Amount.LT(min) {
 			return false
 		}
 	}
