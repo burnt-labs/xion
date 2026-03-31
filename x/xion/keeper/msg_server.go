@@ -233,13 +233,17 @@ func getPlatformCoins(coins sdk.Coins, percentage sdkmath.Int) sdk.Coins {
 			bigPercentage := percentage.BigInt()
 			bigDivisor := sdkmath.NewInt(10000).BigInt()
 
+			// Ceiling division: add (divisor - 1) before dividing to round up.
 			bigResult := new(big.Int).Mul(bigAmount, bigPercentage)
+			bigResult.Add(bigResult, new(big.Int).Sub(bigDivisor, big.NewInt(1)))
 			bigResult = bigResult.Quo(bigResult, bigDivisor)
 
 			platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, sdkmath.NewIntFromBigInt(bigResult)))
 		} else {
-			// Safe to use normal calculation
-			feeAmount := coin.Amount.Mul(percentage).Quo(sdkmath.NewInt(10000))
+			// Ceiling division: ensures any non-zero output with a non-zero platform
+			// percentage always contributes at least 1 unit of fee, removing the
+			// incentive to split outputs into many small amounts to exploit rounding.
+			feeAmount := coin.Amount.Mul(percentage).Add(sdkmath.NewInt(9999)).Quo(sdkmath.NewInt(10000))
 			platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, feeAmount))
 		}
 	}
