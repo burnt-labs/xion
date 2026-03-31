@@ -1,0 +1,8 @@
+*.pb.go linguist-generated=true
+*.pb.gw.go linguist-generated=true
+*.pulsar.go linguist-generated=true
+client/docs/static/swagger.json linguist-generated=true
+client/docs/static/openapi.json linguist-generated=true
+
+# Keep source proto files reviewable
+proto/**/*.proto linguist-generated=false
