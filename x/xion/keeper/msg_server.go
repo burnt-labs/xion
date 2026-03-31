@@ -123,7 +123,10 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	}
 
 	for _, out := range msg.Outputs {
-		accAddr := sdk.MustAccAddressFromBech32(out.Address)
+		accAddr, err := sdk.AccAddressFromBech32(out.Address)
+		if err != nil {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid output address %s: %s", out.Address, err)
+		}
 
 		if k.bankKeeper.BlockedAddr(accAddr) {
 			return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", out.Address)
@@ -188,6 +191,10 @@ func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
 func (k msgServer) SetPlatformPercentage(goCtx context.Context, msg *types.MsgSetPlatformPercentage) (*types.MsgSetPlatformPercentageResponse, error) {
 	if k.GetAuthority() != msg.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	if msg.PlatformPercentage > 10000 {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "platform percentage %d exceeds maximum 10000 (100%%)", msg.PlatformPercentage)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

@@ -209,12 +209,14 @@ func (mfd FeeDecorator) GetBypassMsgTypes(ctx sdk.Context) (res []string) {
 	return
 }
 
-func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) (res uint64) {
+func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) uint64 {
 	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage) {
+		var res uint64
 		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage, &res)
+		return res
 	}
 
-	return
+	return types.DefaultmaxTotalBypassMinFeeMsgGasUsage
 }
 
 // GetMinGasPrice returns a nodes's local minimum gas prices
