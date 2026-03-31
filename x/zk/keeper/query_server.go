@@ -139,7 +139,7 @@ func validatePublicInputsInScalarField(inputs []string) error {
 }
 
 // ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof using a vkey looked up by name or ID.
-func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyUltraHonkRequest) (*types.ProofVerifyResponse, error) {
+func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyUltraHonkRequest) (*types.ProofVerifyUltraHonkResponse, error) {
 	if req == nil {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
 	}
@@ -229,11 +229,11 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		if goerrors.Is(err, barretenberg.ErrVerificationFailed) ||
 			goerrors.Is(err, barretenberg.ErrInvalidPublicInputs) ||
 			goerrors.Is(err, barretenberg.ErrInternal) {
-			return &types.ProofVerifyResponse{Verified: false}, nil
+			return &types.ProofVerifyUltraHonkResponse{Verified: false}, nil
 		}
 		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification: %v", err)
 	}
-	return &types.ProofVerifyResponse{Verified: verified}, nil
+	return &types.ProofVerifyUltraHonkResponse{Verified: verified}, nil
 }
 
 // VKey queries a verification key by ID

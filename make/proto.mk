@@ -13,7 +13,23 @@ proto-all:
 		echo '🚀 STARTING PROTOBUF BUILD PIPELINE' && \
 		echo '🚀 ========================================' && \
 		echo '' && \
-		sh ./scripts/proto-gen.sh --gogo --pulsar --openapi && \
+		echo '📦 ========================================' && \
+		echo '📦 GENERATING GOGO PROTOBUF FILES' && \
+		echo '📦 ========================================' && \
+		sh ./scripts/proto-gen.sh --gogo && \
+		echo '✅ Gogo protobuf generation complete' && \
+		echo '' && \
+		echo '⚡ ========================================' && \
+		echo '⚡ GENERATING PULSAR PROTOBUF FILES' && \
+		echo '⚡ ========================================' && \
+		sh ./scripts/proto-gen.sh --pulsar && \
+		echo '✅ Pulsar protobuf generation complete' && \
+		echo '' && \
+		echo '🌐 ========================================' && \
+		echo '🌐 GENERATING OPENAPI SPECS' && \
+		echo '🌐 ========================================' && \
+		sh ./scripts/proto-gen.sh --openapi && \
+		echo '✅ OpenAPI generation complete' && \
 		echo '' && \
 		echo '🔧 ========================================' && \
 		echo '🔧 FORMATTING PROTOBUF FILES' && \

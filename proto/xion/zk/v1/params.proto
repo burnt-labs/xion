@@ -9,11 +9,14 @@ option go_package = "github.com/burnt-labs/xion/x/zk/types";
 
 // ProofSystem identifies which ZK backend and wire format a vkey/proof uses.
 enum ProofSystem {
-  PROOF_SYSTEM_UNSPECIFIED   = 0;
-  PROOF_SYSTEM_GROTH16       = 1;  // BN254, snarkjs / circom format
-  PROOF_SYSTEM_ULTRA_HONK_ZK = 2;  // Barretenberg v4.0.4, UltraHonk ZK variant (bb >= 0.87)
+  // PROOF_SYSTEM_UNSPECIFIED is the default unset value.
+  PROOF_SYSTEM_UNSPECIFIED = 0;
+  // PROOF_SYSTEM_GROTH16 uses BN254 Groth16 proofs in snarkjs/circom format.
+  PROOF_SYSTEM_GROTH16 = 1;
+  // PROOF_SYSTEM_ULTRA_HONK_ZK uses Barretenberg UltraHonk ZK variant
+  // (bb >= 0.87).
+  PROOF_SYSTEM_ULTRA_HONK_ZK = 2;
 }
-
 
 // Params defines the zk module parameters.
 message Params {
@@ -33,14 +36,15 @@ message Params {
   // max_groth16_proof_size_bytes caps the size of a Groth16 proof JSON payload.
   uint64 max_groth16_proof_size_bytes = 4;
 
-  // max_groth16_public_input_size_bytes caps the size of the Groth16 public inputs.
-  // The size is computed as the total UTF-8 byte length of all provided public input strings.
+  // max_groth16_public_input_size_bytes caps the size of the Groth16 public
+  // inputs. The size is computed as the total UTF-8 byte length of all provided
+  // public input strings.
   uint64 max_groth16_public_input_size_bytes = 5;
 
   // max_ultra_honk_proof_size_bytes caps the size of an UltraHonk proof.
   uint64 max_ultra_honk_proof_size_bytes = 6;
 
-  // max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk public inputs.
-  // UltraHonk public inputs are provided as raw bytes.
+  // max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk
+  // public inputs. UltraHonk public inputs are provided as raw bytes.
   uint64 max_ultra_honk_public_input_size_bytes = 7;
 }
