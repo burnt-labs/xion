@@ -28,14 +28,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up docker buildx for push
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker
-          platforms: ${{ matrix.os }}/${{ matrix.arch }}
+      - name: Set up Depot
+        uses: depot/setup-action@v1
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -52,13 +46,13 @@ jobs:
 
       - name: Build Docker Image
         id: build-docker
-        uses: docker/build-push-action@v5
+        uses: depot/build-push-action@v1
         with:
-          context: . # important
+          project: cp89wgwf7x
+          context: .
           target: release
           push: false
           load: true
-          labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ matrix.os }}/${{ matrix.arch }}
           tags: xion:${{ matrix.os }}-${{ matrix.arch }}
           build-args: |

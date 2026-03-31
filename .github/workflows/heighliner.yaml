@@ -36,14 +36,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up docker buildx for push
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker
-          platforms: ${{ matrix.os }}/${{ matrix.arch }}
+      - name: Set up Depot
+        uses: depot/setup-action@v1
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -59,8 +53,9 @@ jobs:
 
       - name: Build Heighliner Image
         id: build-heighliner
-        uses: docker/build-push-action@v5
+        uses: depot/build-push-action@v1
         with:
+          project: cp89wgwf7x
           context: .
           target: heighliner
           push: false
