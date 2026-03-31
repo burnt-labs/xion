@@ -58,7 +58,10 @@ jobs:
           - { dir: "xion", type: "XionMinFeeMemPool" }
           - { dir: "xion", type: "XionMinFeeMultiMessage" }
           - { dir: "xion", type: "XionPlatform" }
-          - { dir: "zk", type: "ZK" }
+          - { dir: "zk", type: "ZKAddAuthenticators$" }
+          - { dir: "zk", type: "ZKParamsAndVKeyUploads$" }
+          - { dir: "zk", type: "ZKUltraHonkVKeyAndProofVerification$" }
+          - { dir: "zk", type: "ZKEmailAuthenticator$" }
 
     steps:
       - name: checkout
