@@ -27,7 +27,7 @@ jobs:
 
   e2e-tests:
     needs: cache-dependencies
-    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-4-arm' || 'depot-ubuntu-24.04-4' }}
     strategy:
       fail-fast: false
       matrix:
