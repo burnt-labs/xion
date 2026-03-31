@@ -17,7 +17,7 @@ jobs:
           - linux
         arch:
           - amd64
-          # - arm64  # disabled: Depot handles multi-arch natively
+          - arm64
 
     permissions:
       id-token: write

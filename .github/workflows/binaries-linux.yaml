@@ -17,7 +17,7 @@ jobs:
           - linux
         arch:
           - amd64
-          # - arm64  # disabled: cross-compile from amd64 for now
+          - arm64
 
     steps:
       - name: Check Out Code
