@@ -5,8 +5,9 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/stretchr/testify/require"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"cosmossdk.io/math"
 

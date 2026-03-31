@@ -16,7 +16,7 @@ jobs:
   build-heighliner:
     name: Build Heighliner ${{ matrix.os }}/${{ matrix.arch }}
     needs: build-linux
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
 
     strategy:
       fail-fast: false
