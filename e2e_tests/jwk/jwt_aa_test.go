@@ -380,6 +380,17 @@ func TestJWKJWTAA(t *testing.T) {
 	txHash, err = testlib.ExecBroadcastWithFlags(t, ctx, xion.GetNode(), jsonTx, "--output", "json")
 	require.NoError(t, err)
 	t.Logf("tx hash: %s", txHash)
+
+	// Verify committed tx result before asserting balances so failures are explicit.
+	txDetails, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", txHash)
+	require.NoError(t, err)
+	txCode, ok := txDetails["code"].(float64)
+	require.True(t, ok, "unexpected tx query response shape: %v", txDetails)
+	if txCode != 0 {
+		rawLog, _ := txDetails["raw_log"].(string)
+		require.Failf(t, "broadcasted tx failed at execution", "tx hash: %s, code: %.0f, raw_log: %s", txHash, txCode, rawLog)
+	}
+
 	newBalance, err = xion.GetBalance(ctx, contract, xion.Config().Denom)
 	require.NoError(t, err)
 	require.Equal(t, int64(10_000-1337), newBalance.Int64())
