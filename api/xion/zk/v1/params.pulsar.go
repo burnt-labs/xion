@@ -723,9 +723,13 @@ const (
 type ProofSystem int32
 
 const (
-	ProofSystem_PROOF_SYSTEM_UNSPECIFIED   ProofSystem = 0
-	ProofSystem_PROOF_SYSTEM_GROTH16       ProofSystem = 1 // BN254, snarkjs / circom format
-	ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK ProofSystem = 2 // Barretenberg v4.0.4, UltraHonk ZK variant (bb >= 0.87)
+	// PROOF_SYSTEM_UNSPECIFIED is the default unset value.
+	ProofSystem_PROOF_SYSTEM_UNSPECIFIED ProofSystem = 0
+	// PROOF_SYSTEM_GROTH16 uses BN254 Groth16 proofs in snarkjs/circom format.
+	ProofSystem_PROOF_SYSTEM_GROTH16 ProofSystem = 1
+	// PROOF_SYSTEM_ULTRA_HONK_ZK uses Barretenberg UltraHonk ZK variant
+	// (bb >= 0.87).
+	ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK ProofSystem = 2
 )
 
 // Enum value maps for ProofSystem.
@@ -783,13 +787,14 @@ type Params struct {
 	UploadChunkGas uint64 `protobuf:"varint,3,opt,name=upload_chunk_gas,json=uploadChunkGas,proto3" json:"upload_chunk_gas,omitempty"`
 	// max_groth16_proof_size_bytes caps the size of a Groth16 proof JSON payload.
 	MaxGroth16ProofSizeBytes uint64 `protobuf:"varint,4,opt,name=max_groth16_proof_size_bytes,json=maxGroth16ProofSizeBytes,proto3" json:"max_groth16_proof_size_bytes,omitempty"`
-	// max_groth16_public_input_size_bytes caps the size of the Groth16 public inputs.
-	// The size is computed as the total UTF-8 byte length of all provided public input strings.
+	// max_groth16_public_input_size_bytes caps the size of the Groth16 public
+	// inputs. The size is computed as the total UTF-8 byte length of all provided
+	// public input strings.
 	MaxGroth16PublicInputSizeBytes uint64 `protobuf:"varint,5,opt,name=max_groth16_public_input_size_bytes,json=maxGroth16PublicInputSizeBytes,proto3" json:"max_groth16_public_input_size_bytes,omitempty"`
 	// max_ultra_honk_proof_size_bytes caps the size of an UltraHonk proof.
 	MaxUltraHonkProofSizeBytes uint64 `protobuf:"varint,6,opt,name=max_ultra_honk_proof_size_bytes,json=maxUltraHonkProofSizeBytes,proto3" json:"max_ultra_honk_proof_size_bytes,omitempty"`
-	// max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk public inputs.
-	// UltraHonk public inputs are provided as raw bytes.
+	// max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk
+	// public inputs. UltraHonk public inputs are provided as raw bytes.
 	MaxUltraHonkPublicInputSizeBytes uint64 `protobuf:"varint,7,opt,name=max_ultra_honk_public_input_size_bytes,json=maxUltraHonkPublicInputSizeBytes,proto3" json:"max_ultra_honk_public_input_size_bytes,omitempty"`
 }
 

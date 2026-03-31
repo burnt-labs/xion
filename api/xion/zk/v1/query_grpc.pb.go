@@ -40,7 +40,7 @@ type QueryClient interface {
 	// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof. The vkey
 	// is resolved by vkey_name or vkey_id from the store and must be of type
 	// ultrahonk.
-	ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error)
+	ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyUltraHonkResponse, error)
 	// VKey queries a verification key by ID
 	VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -73,9 +73,9 @@ func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, o
 	return out, nil
 }
 
-func (c *queryClient) ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error) {
+func (c *queryClient) ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyUltraHonkResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ProofVerifyResponse)
+	out := new(ProofVerifyUltraHonkResponse)
 	err := c.cc.Invoke(ctx, Query_ProofVerifyUltraHonk_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ type QueryServer interface {
 	// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof. The vkey
 	// is resolved by vkey_name or vkey_id from the store and must be of type
 	// ultrahonk.
-	ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyResponse, error)
+	ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyUltraHonkResponse, error)
 	// VKey queries a verification key by ID
 	VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -180,7 +180,7 @@ type UnimplementedQueryServer struct{}
 func (UnimplementedQueryServer) ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
 }
-func (UnimplementedQueryServer) ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyResponse, error) {
+func (UnimplementedQueryServer) ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyUltraHonkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProofVerifyUltraHonk not implemented")
 }
 func (UnimplementedQueryServer) VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error) {

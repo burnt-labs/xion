@@ -40,11 +40,13 @@ message PublicInputIndices {
   IndexRange dkim_domain_range = 3 [ (gogoproto.nullable) = false ];
   // dkim_hash_index is the index of the DKIM signature hash in public inputs.
   uint64 dkim_hash_index = 4;
-  // tx_bytes_range is the index range for the transaction bytes in public inputs.
+  // tx_bytes_range is the index range for the transaction bytes in public
+  // inputs.
   IndexRange tx_bytes_range = 5 [ (gogoproto.nullable) = false ];
   // email_host_range is the index range for the email host in public inputs.
   IndexRange email_host_range = 6 [ (gogoproto.nullable) = false ];
-  // email_subject_range is the index range for the email subject in public inputs.
+  // email_subject_range is the index range for the email subject in public
+  // inputs.
   IndexRange email_subject_range = 7 [ (gogoproto.nullable) = false ];
 }
 

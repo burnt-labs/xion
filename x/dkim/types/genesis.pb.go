@@ -155,11 +155,13 @@ type PublicInputIndices struct {
 	DkimDomainRange IndexRange `protobuf:"bytes,3,opt,name=dkim_domain_range,json=dkimDomainRange,proto3" json:"dkim_domain_range"`
 	// dkim_hash_index is the index of the DKIM signature hash in public inputs.
 	DkimHashIndex uint64 `protobuf:"varint,4,opt,name=dkim_hash_index,json=dkimHashIndex,proto3" json:"dkim_hash_index,omitempty"`
-	// tx_bytes_range is the index range for the transaction bytes in public inputs.
+	// tx_bytes_range is the index range for the transaction bytes in public
+	// inputs.
 	TxBytesRange IndexRange `protobuf:"bytes,5,opt,name=tx_bytes_range,json=txBytesRange,proto3" json:"tx_bytes_range"`
 	// email_host_range is the index range for the email host in public inputs.
 	EmailHostRange IndexRange `protobuf:"bytes,6,opt,name=email_host_range,json=emailHostRange,proto3" json:"email_host_range"`
-	// email_subject_range is the index range for the email subject in public inputs.
+	// email_subject_range is the index range for the email subject in public
+	// inputs.
 	EmailSubjectRange IndexRange `protobuf:"bytes,7,opt,name=email_subject_range,json=emailSubjectRange,proto3" json:"email_subject_range"`
 }
 
