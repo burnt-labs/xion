@@ -7,7 +7,7 @@ on:
 
 jobs:
   apt-install:
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
 
     strategy:
       fail-fast: false
@@ -40,7 +40,7 @@ jobs:
           xiond version --long
 
   rpm-install:
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
 
     strategy:
       fail-fast: false
@@ -72,7 +72,7 @@ jobs:
           xiond version --long
 
   apk-install:
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
 
     strategy:
       fail-fast: false

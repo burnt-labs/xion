@@ -363,7 +363,18 @@ func (a *MultiAnyAllowance) Accept(ctx context.Context, fee sdk.Coins, msgs []sd
 	return len(a.Allowances) == 0, nil
 }
 
+// maxMultiAnyAllowanceDepth limits recursive nesting of MultiAnyAllowance to
+// prevent stack overflow during ValidateBasic traversal.
+const maxMultiAnyAllowanceDepth = 5
+
 func (a *MultiAnyAllowance) ValidateBasic() error {
+	return a.validateBasicDepth(0)
+}
+
+func (a *MultiAnyAllowance) validateBasicDepth(depth int) error {
+	if depth > maxMultiAnyAllowanceDepth {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "MultiAnyAllowance nesting exceeds maximum depth")
+	}
 	if len(a.Allowances) == 0 {
 		return errorsmod.Wrap(feegrant.ErrNoAllowance, "allowance list should contain at least one")
 	}
@@ -373,7 +384,11 @@ func (a *MultiAnyAllowance) ValidateBasic() error {
 		if err != nil {
 			return err
 		}
-		if err := allowance.ValidateBasic(); err != nil {
+		if nested, ok := allowance.(*MultiAnyAllowance); ok {
+			if err := nested.validateBasicDepth(depth + 1); err != nil {
+				return err
+			}
+		} else if err := allowance.ValidateBasic(); err != nil {
 			return err
 		}
 	}

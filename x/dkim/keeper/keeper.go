@@ -95,6 +95,10 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		params.MaxPubkeySizeBytes = types.DefaultMaxPubKeySizeBytes
 	}
 
+	if params.MinRsaKeyBits == 0 {
+		params.MinRsaKeyBits = types.DefaultMinRSAKeyBits
+	}
+
 	if err := k.SetParams(ctx, params); err != nil {
 		return err
 	}
@@ -182,6 +186,12 @@ func (k Keeper) GetParams(ctx context.Context) (types.Params, error) {
 		return types.Params{}, err
 	}
 
+	// Belt-and-suspenders: backfill MinRsaKeyBits for chains that were not
+	// migrated via the v2→v3 store migration (e.g. state-exported genesis).
+	if params.MinRsaKeyBits == 0 {
+		params.MinRsaKeyBits = types.DefaultMinRSAKeyBits
+	}
+
 	return params, nil
 }
 
@@ -189,6 +199,10 @@ func (k Keeper) GetParams(ctx context.Context) (types.Params, error) {
 func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
 	if params.MaxPubkeySizeBytes == 0 {
 		params.MaxPubkeySizeBytes = types.DefaultMaxPubKeySizeBytes
+	}
+
+	if params.MinRsaKeyBits == 0 {
+		params.MinRsaKeyBits = types.DefaultMinRSAKeyBits
 	}
 
 	if err := params.Validate(); err != nil {

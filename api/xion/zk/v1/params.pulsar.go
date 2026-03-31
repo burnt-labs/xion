@@ -720,13 +720,16 @@ const (
 )
 
 // ProofSystem identifies which ZK backend and wire format a vkey/proof uses.
-// Values 2 and 3 are reserved for future honk variants.
 type ProofSystem int32
 
 const (
-	ProofSystem_PROOF_SYSTEM_UNSPECIFIED   ProofSystem = 0
-	ProofSystem_PROOF_SYSTEM_GROTH16       ProofSystem = 1 // BN254, snarkjs / circom format
-	ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK ProofSystem = 4 // Barretenberg v4.0.4, UltraHonk ZK variant (bb >= 0.87)
+	// PROOF_SYSTEM_UNSPECIFIED is the default unset value.
+	ProofSystem_PROOF_SYSTEM_UNSPECIFIED ProofSystem = 0
+	// PROOF_SYSTEM_GROTH16 uses BN254 Groth16 proofs in snarkjs/circom format.
+	ProofSystem_PROOF_SYSTEM_GROTH16 ProofSystem = 1
+	// PROOF_SYSTEM_ULTRA_HONK_ZK uses Barretenberg UltraHonk ZK variant
+	// (bb >= 0.87).
+	ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK ProofSystem = 2
 )
 
 // Enum value maps for ProofSystem.
@@ -734,12 +737,12 @@ var (
 	ProofSystem_name = map[int32]string{
 		0: "PROOF_SYSTEM_UNSPECIFIED",
 		1: "PROOF_SYSTEM_GROTH16",
-		4: "PROOF_SYSTEM_ULTRA_HONK_ZK",
+		2: "PROOF_SYSTEM_ULTRA_HONK_ZK",
 	}
 	ProofSystem_value = map[string]int32{
 		"PROOF_SYSTEM_UNSPECIFIED":   0,
 		"PROOF_SYSTEM_GROTH16":       1,
-		"PROOF_SYSTEM_ULTRA_HONK_ZK": 4,
+		"PROOF_SYSTEM_ULTRA_HONK_ZK": 2,
 	}
 )
 
@@ -784,13 +787,14 @@ type Params struct {
 	UploadChunkGas uint64 `protobuf:"varint,3,opt,name=upload_chunk_gas,json=uploadChunkGas,proto3" json:"upload_chunk_gas,omitempty"`
 	// max_groth16_proof_size_bytes caps the size of a Groth16 proof JSON payload.
 	MaxGroth16ProofSizeBytes uint64 `protobuf:"varint,4,opt,name=max_groth16_proof_size_bytes,json=maxGroth16ProofSizeBytes,proto3" json:"max_groth16_proof_size_bytes,omitempty"`
-	// max_groth16_public_input_size_bytes caps the size of the Groth16 public inputs.
-	// The size is computed as the total UTF-8 byte length of all provided public input strings.
+	// max_groth16_public_input_size_bytes caps the size of the Groth16 public
+	// inputs. The size is computed as the total UTF-8 byte length of all provided
+	// public input strings.
 	MaxGroth16PublicInputSizeBytes uint64 `protobuf:"varint,5,opt,name=max_groth16_public_input_size_bytes,json=maxGroth16PublicInputSizeBytes,proto3" json:"max_groth16_public_input_size_bytes,omitempty"`
 	// max_ultra_honk_proof_size_bytes caps the size of an UltraHonk proof.
 	MaxUltraHonkProofSizeBytes uint64 `protobuf:"varint,6,opt,name=max_ultra_honk_proof_size_bytes,json=maxUltraHonkProofSizeBytes,proto3" json:"max_ultra_honk_proof_size_bytes,omitempty"`
-	// max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk public inputs.
-	// UltraHonk public inputs are provided as raw bytes.
+	// max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk
+	// public inputs. UltraHonk public inputs are provided as raw bytes.
 	MaxUltraHonkPublicInputSizeBytes uint64 `protobuf:"varint,7,opt,name=max_ultra_honk_public_input_size_bytes,json=maxUltraHonkPublicInputSizeBytes,proto3" json:"max_ultra_honk_public_input_size_bytes,omitempty"`
 }
 
@@ -906,7 +910,7 @@ var file_xion_zk_v1_params_proto_rawDesc = []byte{
 	0x5f, 0x53, 0x59, 0x53, 0x54, 0x45, 0x4d, 0x5f, 0x47, 0x52, 0x4f, 0x54, 0x48, 0x31, 0x36, 0x10,
 	0x01, 0x12, 0x1e, 0x0a, 0x1a, 0x50, 0x52, 0x4f, 0x4f, 0x46, 0x5f, 0x53, 0x59, 0x53, 0x54, 0x45,
 	0x4d, 0x5f, 0x55, 0x4c, 0x54, 0x52, 0x41, 0x5f, 0x48, 0x4f, 0x4e, 0x4b, 0x5f, 0x5a, 0x4b, 0x10,
-	0x04, 0x42, 0x97, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a,
+	0x02, 0x42, 0x97, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e, 0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a,
 	0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x50, 0x72, 0x6f, 0x74,
 	0x6f, 0x50, 0x01, 0x5a, 0x2e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
 	0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f,

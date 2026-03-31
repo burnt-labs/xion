@@ -205,6 +205,8 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 	}
 	indices := params.PublicInputIndices
 
+	// No gas is charged for this Stargate-whitelisted query — proof size and input limits
+	// serve as the DoS governors, consistent with v28 behavior.
 	// Reject oversized proof blobs before any deserialization to prevent allocator DoS.
 	// A valid Circom Groth16/BN254 proof is ~350–500 bytes of JSON; anything beyond
 	// MaxDKIMProofSizeBytes is not a legitimate proof.

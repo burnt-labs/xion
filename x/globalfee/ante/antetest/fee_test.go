@@ -238,11 +238,7 @@ func (s *IntegrationTestSuite) TestGlobalFeeSetAnteHandler() {
 			expected, err := xionfeeante.CombinedFeeRequirement(networkFee, localFee)
 			s.Require().NoError(err)
 			if !tc.networkFee {
-				if !tc.expErr {
-					// Successful bypass clears local min-gas-prices from the context
-					s.Require().Equal(sdk.DecCoins{}, minGas)
-				}
-				// When bypass errors (e.g. excessive gas), context is unmodified
+				s.Require().Equal(sdk.NewDecCoins(tc.minGasPrice...), minGas)
 			} else {
 				s.Require().Equal(expected, minGas)
 			}

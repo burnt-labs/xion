@@ -9,25 +9,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  cache-dependencies:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: "e2e_tests/go.mod"
-          cache-dependency-path: "e2e_tests/go.sum"
-
-      - name: Download dependencies
-        working-directory: e2e_tests
-        run: go mod download
-
   e2e-tests:
-    needs: cache-dependencies
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm-4' || 'depot-ubuntu-24.04-4' }}
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +58,10 @@ jobs:
           - { dir: "xion", type: "XionMinFeeMemPool" }
           - { dir: "xion", type: "XionMinFeeMultiMessage" }
           - { dir: "xion", type: "XionPlatform" }
-          - { dir: "zk", type: "ZK" }
+          - { dir: "zk", type: "ZKAddAuthenticators$" }
+          - { dir: "zk", type: "ZKParamsAndVKeyUploads$" }
+          - { dir: "zk", type: "ZKUltraHonkVKeyAndProofVerification$" }
+          - { dir: "zk", type: "ZKEmailAuthenticator$" }
 
     steps:
       - name: checkout
@@ -87,7 +73,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: "e2e_tests/go.mod"
-          cache-dependency-path: "e2e_tests/go.sum"
+          cache: false
 
       - name: Download docker image
         uses: actions/download-artifact@v4

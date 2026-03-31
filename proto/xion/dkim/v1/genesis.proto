@@ -18,23 +18,36 @@ message GenesisState {
   repeated string revoked_pubkeys = 3;
 }
 
-// IndexRange defines a range of indices [start, end) in the public inputs array.
+// IndexRange defines a range of indices [start, end) in the public inputs
+// array.
 message IndexRange {
   option (gogoproto.equal) = true;
+  // start is the inclusive lower bound of the index range.
   uint64 start = 1;
+  // end is the exclusive upper bound of the index range.
   uint64 end = 2;
 }
 
-// PublicInputIndices defines the indices for extracting data from public inputs.
+// PublicInputIndices defines the indices for extracting data from public
+// inputs.
 message PublicInputIndices {
   option (gogoproto.equal) = true;
+  // min_length is the minimum required length of the public inputs array.
   uint64 min_length = 1;
+  // email_hash_index is the index of the email hash in the public inputs.
   uint64 email_hash_index = 2;
-  IndexRange dkim_domain_range = 3 [(gogoproto.nullable) = false];
+  // dkim_domain_range is the index range for the DKIM domain in public inputs.
+  IndexRange dkim_domain_range = 3 [ (gogoproto.nullable) = false ];
+  // dkim_hash_index is the index of the DKIM signature hash in public inputs.
   uint64 dkim_hash_index = 4;
-  IndexRange tx_bytes_range = 5 [(gogoproto.nullable) = false];
-  IndexRange email_host_range = 6 [(gogoproto.nullable) = false];
-  IndexRange email_subject_range = 7 [(gogoproto.nullable) = false];
+  // tx_bytes_range is the index range for the transaction bytes in public
+  // inputs.
+  IndexRange tx_bytes_range = 5 [ (gogoproto.nullable) = false ];
+  // email_host_range is the index range for the email host in public inputs.
+  IndexRange email_host_range = 6 [ (gogoproto.nullable) = false ];
+  // email_subject_range is the index range for the email subject in public
+  // inputs.
+  IndexRange email_subject_range = 7 [ (gogoproto.nullable) = false ];
 }
 
 // Params defines the set of module parameters.
@@ -50,10 +63,12 @@ message Params {
   // decoded).
   uint64 max_pubkey_size_bytes = 2;
 
-  // public_input_indices defines the indices for extracting data from public inputs.
-  PublicInputIndices public_input_indices = 3 [(gogoproto.nullable) = false];
+  // public_input_indices defines the indices for extracting data from public
+  // inputs.
+  PublicInputIndices public_input_indices = 3 [ (gogoproto.nullable) = false ];
 
-  // min_rsa_key_bits is the minimum RSA key size in bits accepted via governance.
-  // Defaults to 1024 to allow legacy keys such as Yahoo's s1024 selector.
+  // min_rsa_key_bits is the minimum RSA key size in bits accepted via
+  // governance. Defaults to 1024 to allow legacy keys such as Yahoo's s1024
+  // selector.
   uint64 min_rsa_key_bits = 4;
 }

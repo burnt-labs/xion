@@ -40,7 +40,8 @@ message MsgAddVKey {
   // description provides context about this verification key
   string description = 3;
 
-  // vkey_bytes is the verification key (Groth16 JSON or Barretenberg binary per proof_system).
+  // vkey_bytes is the verification key (Groth16 JSON or Barretenberg binary per
+  // proof_system).
   bytes vkey_bytes = 4;
 
   // proof_system identifies the ZK backend: GROTH16 (default) or ULTRA_HONK_ZK.
@@ -67,7 +68,8 @@ message MsgUpdateVKey {
   // description provides updated context
   string description = 3;
 
-  // vkey_bytes is the new verification key (Groth16 JSON or Barretenberg binary per proof_system).
+  // vkey_bytes is the new verification key (Groth16 JSON or Barretenberg binary
+  // per proof_system).
   bytes vkey_bytes = 4;
 
   // proof_system identifies the ZK backend: GROTH16 (default) or ULTRA_HONK_ZK.

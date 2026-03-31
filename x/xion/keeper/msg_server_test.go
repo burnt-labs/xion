@@ -707,7 +707,7 @@ func TestGetPlatformCoins(t *testing.T) {
 			name:       "very small amount",
 			coins:      sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1))),
 			percentage: math.NewInt(1000),                                  // 10%
-			expected:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(0))), // Rounds down
+			expected:   sdk.NewCoins(sdk.NewCoin("uxion", math.NewInt(1))), // Rounds up (ceiling division)
 		},
 		{
 			name:       "empty coins",
@@ -747,8 +747,8 @@ func TestGetPlatformCoins_LargeAmounts(t *testing.T) {
 			amount:     "999999999999999999999999999999999999999999", // Very large number
 			percentage: math.NewInt(1000),                            // 10%
 			expectedFn: func(amount math.Int) math.Int {
-				// Should use big integer arithmetic
-				return amount.Mul(math.NewInt(1000)).Quo(math.NewInt(10000))
+				// Ceiling division: (amount * percentage + 9999) / 10000
+				return amount.Mul(math.NewInt(1000)).Add(math.NewInt(9999)).Quo(math.NewInt(10000))
 			},
 		},
 	}

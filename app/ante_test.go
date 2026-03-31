@@ -7,6 +7,8 @@ import (
 	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -176,6 +178,37 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 		// We expect this to fail but we want to exercise the code path for coverage
 		// The anonymous function should be called during fee processing
 	})
+}
+
+func TestSignerAddressTransient(t *testing.T) {
+	app := Setup(t)
+
+	signerAddr := sdk.AccAddress([]byte("test_signer_address1"))
+
+	// Block N: set a signer address (simulating BeforeTxDecorator without a
+	// matching AfterTxDecorator cleanup, e.g. tx failure mid-execution)
+	ctx1 := app.NewContext(false)
+	app.AbstractAccountKeeper.SetSignerAddress(ctx1, signerAddr)
+
+	// Verify it's readable within the same block context
+	got := app.AbstractAccountKeeper.GetSignerAddress(ctx1)
+	require.Equal(t, signerAddr, got, "signer address should be readable within the same block context")
+
+	// Advance to the next block: Commit clears transient stores
+	_, err := app.Commit()
+	require.NoError(t, err)
+
+	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: app.LastBlockHeight() + 1,
+	})
+	require.NoError(t, err)
+
+	// Get a fresh context after the block boundary
+	ctx2 := app.NewContext(false)
+
+	// The signer address must NOT survive the block boundary
+	leaked := app.AbstractAccountKeeper.GetSignerAddress(ctx2)
+	require.Nil(t, leaked, "signer address must not persist across block boundaries")
 }
 
 func TestNewPostHandler_ValidationErrors(t *testing.T) {

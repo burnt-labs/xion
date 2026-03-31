@@ -4,6 +4,8 @@ import (
 	"context"
 	goerrors "errors"
 	"fmt"
+	"math/big"
+	"strings"
 
 	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
@@ -11,7 +13,6 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/burnt-labs/xion/x/zk/types"
@@ -45,6 +46,9 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		return nil, err
 	}
 
+	// No gas is charged for this whitelisted query — size limits (MaxGroth16ProofSizeBytes,
+	// MaxGroth16PublicInputSizeBytes) and governance-controlled ceilings (MaxAllowedProofOrInputSizeBytes)
+	// serve as the DoS governors, consistent with v28 behavior.
 	if uint64(len(req.Proof)) > params.MaxGroth16ProofSizeBytes {
 		return nil, errors.Wrapf(
 			types.ErrProofTooLarge,
@@ -72,12 +76,6 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 		)
 	}
 
-	// Charge gas before executing the BN254 pairing check. Proof verification is
-	// computationally expensive and must be metered to prevent a single query from
-	// consuming unbounded node resources.
-	sdkCtx := sdk.UnwrapSDKContext(c)
-	sdkCtx.GasMeter().ConsumeGas(types.ProofVerifyGas, "zk/ProofVerify: bn254 pairing")
-
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
 		return nil, err
@@ -101,6 +99,13 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	default:
 		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
 	}
+	// Reject any public input that is not a canonical BN254 scalar field element.
+	// circom2gnark's fr.Element.SetBigInt silently reduces values >= p modulo p,
+	// so an input p+x would verify identically to x, enabling proof forgery.
+	if err := validatePublicInputsInScalarField(req.PublicInputs); err != nil {
+		return nil, err
+	}
+
 	verified, err := q.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
 	if err != nil {
 		return nil, err
@@ -108,8 +113,33 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	return &types.ProofVerifyResponse{Verified: verified}, nil
 }
 
+// bn254ScalarFieldPrime is the BN254 scalar field modulus r.
+// All Groth16 public inputs must be strictly less than this value.
+var bn254ScalarFieldPrime, _ = new(big.Int).SetString(
+	"21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+
+// validatePublicInputsInScalarField rejects any public input string whose numeric
+// value is >= the BN254 scalar field prime.  Inputs may be decimal or 0x-prefixed hex,
+// matching the formats accepted by circom2gnark's ConvertPublicInputs.
+func validatePublicInputsInScalarField(inputs []string) error {
+	for i, inp := range inputs {
+		s := inp
+		base := 10
+		if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+			s = s[2:]
+			base = 16
+		}
+		v, ok := new(big.Int).SetString(s, base)
+		if !ok || v.Sign() < 0 || v.Cmp(bn254ScalarFieldPrime) >= 0 {
+			return errors.Wrapf(types.ErrInvalidRequest,
+				"public input[%d] is not a canonical BN254 scalar field element", i)
+		}
+	}
+	return nil
+}
+
 // ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof using a vkey looked up by name or ID.
-func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyUltraHonkRequest) (*types.ProofVerifyResponse, error) {
+func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyUltraHonkRequest) (*types.ProofVerifyUltraHonkResponse, error) {
 	if req == nil {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
 	}
@@ -122,6 +152,9 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		return nil, err
 	}
 
+	// No gas is charged for this whitelisted query — size limits (MaxUltraHonkProofSizeBytes,
+	// MaxUltraHonkPublicInputSizeBytes) and governance-controlled ceilings (MaxAllowedProofOrInputSizeBytes)
+	// serve as the DoS governors, consistent with v28 behavior.
 	if uint64(len(req.GetProof())) > params.MaxUltraHonkProofSizeBytes {
 		return nil, errors.Wrapf(
 			types.ErrProofTooLarge,
@@ -196,11 +229,11 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		if goerrors.Is(err, barretenberg.ErrVerificationFailed) ||
 			goerrors.Is(err, barretenberg.ErrInvalidPublicInputs) ||
 			goerrors.Is(err, barretenberg.ErrInternal) {
-			return &types.ProofVerifyResponse{Verified: false}, nil
+			return &types.ProofVerifyUltraHonkResponse{Verified: false}, nil
 		}
 		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification: %v", err)
 	}
-	return &types.ProofVerifyResponse{Verified: verified}, nil
+	return &types.ProofVerifyUltraHonkResponse{Verified: verified}, nil
 }
 
 // VKey queries a verification key by ID

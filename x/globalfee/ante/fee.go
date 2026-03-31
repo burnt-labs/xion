@@ -104,14 +104,6 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 			}
 		}
 
-		// When the bypass tx provides zero fees, clear the validator-local
-		// min-gas-prices so downstream ante decorators do not reject true
-		// zero-fee bypass transactions (e.g. IBC relayer packets).
-		// When a non-zero fee is provided, keep the original context so
-		// the fee is still validated against the local minimum.
-		if feeCoins.IsZero() {
-			return next(ctx.WithMinGasPrices(sdk.DecCoins{}), tx, simulate)
-		}
 		return next(ctx, tx, simulate)
 	}
 
@@ -217,12 +209,14 @@ func (mfd FeeDecorator) GetBypassMsgTypes(ctx sdk.Context) (res []string) {
 	return
 }
 
-func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) (res uint64) {
+func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) uint64 {
 	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage) {
+		var res uint64
 		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage, &res)
+		return res
 	}
 
-	return
+	return types.DefaultmaxTotalBypassMinFeeMsgGasUsage
 }
 
 // GetMinGasPrice returns a nodes's local minimum gas prices

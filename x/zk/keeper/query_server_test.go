@@ -810,7 +810,7 @@ func TestQueryProofVerify(t *testing.T) {
 			publicInputs: make([]string, len(publicInputs)), // Same count but all empty
 			vkeyID:       validVKeyID,
 			shouldError:  true,
-			errorMsg:     "failed to parse public input",
+			errorMsg:     "not a canonical BN254 scalar field element",
 		},
 		{
 			name:         "wrong vkey for proof",

@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test-cover:
+    name: Coverage
+    runs-on: depot-ubuntu-24.04-8
     steps:
       - uses: actions/checkout@v5
 
@@ -26,15 +27,51 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: false
 
       - name: Install clang and libc++
+        if: env.GIT_DIFF
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
 
       - name: Build Barretenberg wrapper
+        if: env.GIT_DIFF
         run: make barretenberg-build-wrapper
 
-      - name: Build
-        run: go build -v ./...
+      - name: Test with coverage
+        if: env.GIT_DIFF
+        run: make test-cover-ci
 
-      - name: Test
-        run: make test-cover
+  test-race:
+    name: Race detection
+    runs-on: depot-ubuntu-24.04-8
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: technote-space/get-diff-action@v6
+        with:
+          PATTERNS: |
+            **/**.go
+            go.mod
+            go.sum
+
+      - name: Prepare Environment
+        run: |
+          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - name: Install clang and libc++
+        if: env.GIT_DIFF
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+
+      - name: Build Barretenberg wrapper
+        if: env.GIT_DIFF
+        run: make barretenberg-build-wrapper
+
+      - name: Test with race detector
+        if: env.GIT_DIFF
+        run: go test ./... -race -timeout=30m -tags='ledger test_ledger_mock' -ldflags="-w"
