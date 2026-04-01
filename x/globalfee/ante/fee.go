@@ -104,6 +104,15 @@ func (mfd FeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 			}
 		}
 
+		// When the bypass tx provides zero fees and the validator has a non-zero
+		// local min-gas-price configured, clear it so downstream ante decorators
+		// do not reject true zero-fee bypass transactions (e.g. IBC relayer packets).
+		// The guard avoids unnecessarily replacing an already-empty fee context,
+		// which would otherwise corrupt mint inflation accounting on nodes that run
+		// with no local minimum configured.
+		if feeCoins.IsZero() && !ctx.MinGasPrices().IsZero() {
+			return next(ctx.WithMinGasPrices(sdk.DecCoins{}), tx, simulate)
+		}
 		return next(ctx, tx, simulate)
 	}
 
