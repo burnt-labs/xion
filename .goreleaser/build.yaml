@@ -7,9 +7,11 @@ before:
   hooks:
     # Install libc++ for arm64 cross-compilation.
     # Aztec's pre-built barretenberg .a for linux_arm64 is compiled with libc++,
-    # but goreleaser-cross only ships libstdc++. Without this, the linker can't
-    # resolve std::__1::* symbols from the barretenberg static archive.
-    - apt-get update -qq && apt-get install -y -qq libc++-18-dev:arm64 libc++abi-18-dev:arm64 >/dev/null 2>&1
+    # but goreleaser-cross only ships libstdc++. barretenberg-go's CGo LDFLAGS
+    # hardcode -lc++, so the linker must find libc++.a in its default search path.
+    # We install the arm64 multiarch packages and symlink into the cross-linker
+    # sysroot (/usr/aarch64-linux-gnu/lib/) where ld actually searches.
+    - sh -c 'dpkg --add-architecture arm64 2>/dev/null; apt-get update -qq && apt-get install -y -qq libc++-18-dev:arm64 libc++abi-18-dev:arm64 libunwind-18-dev:arm64 >/dev/null 2>&1; mkdir -p /tmp/arm64-libs && cp /usr/lib/llvm-18/lib/libc++.a /usr/lib/llvm-18/lib/libc++abi.a /usr/lib/llvm-18/lib/libunwind.a /tmp/arm64-libs/ 2>/dev/null; true'
 
 # Docs: https://goreleaser.com/customization/build/
 builds:
@@ -45,11 +47,7 @@ builds:
       - -linkmode=external
       - >-
         {{- if eq .Os "linux" -}}
-          {{- if eq .Arch "arm64" -}}
-            -extldflags '-Wl,-z,muldefs -static -lm -lc++ -lc++abi'
-          {{- else -}}
-            -extldflags '-Wl,-z,muldefs -static -lm'
-          {{- end -}}
+          -extldflags '-Wl,-z,muldefs -static -lm'
         {{- end }}
     mod_timestamp: "{{ .CommitTimestamp }}"
     tags:
@@ -66,7 +64,7 @@ builds:
       - -trimpath
     env:
       - CGO_ENABLED=1
-      - CGO_LDFLAGS='-L./dist/lib'
+      - CGO_LDFLAGS='-L./dist/lib -L/tmp/arm64-libs'
       - LIB_PATH=./dist/lib
       - >-
         {{- if eq .Os "darwin" }}MACOSX_DEPLOYMENT_TARGET=10.12{{- end }}
