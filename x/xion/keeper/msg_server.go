@@ -123,7 +123,10 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	}
 
 	for _, out := range msg.Outputs {
-		accAddr := sdk.MustAccAddressFromBech32(out.Address)
+		accAddr, err := sdk.AccAddressFromBech32(out.Address)
+		if err != nil {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid output address %s: %s", out.Address, err)
+		}
 
 		if k.bankKeeper.BlockedAddr(accAddr) {
 			return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", out.Address)
@@ -159,11 +162,11 @@ func (k msgServer) MultiSend(goCtx context.Context, msg *types.MsgMultiSend) (*t
 	return &types.MsgMultiSendResponse{}, nil
 }
 
-// meetsConfiguredMinimums returns true if, for every denom in amt that has a configured
-// minimum in mins, the amount for that denom is greater than or equal to the minimum.
-// Denoms without a configured minimum are not constrained by this check.
-// If no minimums are configured at all, this returns false to maintain backwards compatibility
-// requiring platform minimums to be explicitly set.
+// meetsConfiguredMinimums returns true if every coin in amt has a configured minimum
+// and meets it.  Denoms not present in mins are rejected: the minimums list acts as
+// an explicit allowlist so that unconfigured denoms cannot bypass the minimum check.
+// If no minimums are configured at all, this returns false to maintain backwards
+// compatibility requiring platform minimums to be explicitly set.
 func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
 	// Require that platform minimums be explicitly set (backwards compatibility)
 	if len(mins) == 0 {
@@ -178,7 +181,13 @@ func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
 
 	for _, c := range amt {
 		min, ok := minMap[c.Denom]
-		if ok && !min.IsZero() && c.Amount.LT(min) {
+		if !ok {
+			// Denom has no configured minimum — reject it.
+			// Unconfigured denoms are not permitted when minimums are in use,
+			// preventing bypass by sending only non-listed denominations.
+			return false
+		}
+		if !min.IsZero() && c.Amount.LT(min) {
 			return false
 		}
 	}
@@ -188,6 +197,10 @@ func meetsConfiguredMinimums(amt sdk.Coins, mins sdk.Coins) bool {
 func (k msgServer) SetPlatformPercentage(goCtx context.Context, msg *types.MsgSetPlatformPercentage) (*types.MsgSetPlatformPercentageResponse, error) {
 	if k.GetAuthority() != msg.Authority {
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	if msg.PlatformPercentage > 10000 {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "platform percentage %d exceeds maximum 10000 (100%%)", msg.PlatformPercentage)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -226,13 +239,17 @@ func getPlatformCoins(coins sdk.Coins, percentage sdkmath.Int) sdk.Coins {
 			bigPercentage := percentage.BigInt()
 			bigDivisor := sdkmath.NewInt(10000).BigInt()
 
+			// Ceiling division: add (divisor - 1) before dividing to round up.
 			bigResult := new(big.Int).Mul(bigAmount, bigPercentage)
+			bigResult.Add(bigResult, new(big.Int).Sub(bigDivisor, big.NewInt(1)))
 			bigResult = bigResult.Quo(bigResult, bigDivisor)
 
 			platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, sdkmath.NewIntFromBigInt(bigResult)))
 		} else {
-			// Safe to use normal calculation
-			feeAmount := coin.Amount.Mul(percentage).Quo(sdkmath.NewInt(10000))
+			// Ceiling division: ensures any non-zero output with a non-zero platform
+			// percentage always contributes at least 1 unit of fee, removing the
+			// incentive to split outputs into many small amounts to exploit rounding.
+			feeAmount := coin.Amount.Mul(percentage).Add(sdkmath.NewInt(9999)).Quo(sdkmath.NewInt(10000))
 			platformCoins = platformCoins.Add(sdk.NewCoin(coin.Denom, feeAmount))
 		}
 	}

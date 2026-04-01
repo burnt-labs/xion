@@ -41,3 +41,17 @@ func TestCanonicalizeRSAPublicKeyEncodingInvariant(t *testing.T) {
 	require.Equal(t, pkixHash, pkcs1Hash)
 	require.NotEmpty(t, pkixHash)
 }
+
+func TestParseRSAPublicKeyAcceptsSmallKeys(t *testing.T) {
+	// ParseRSAPublicKey should parse without enforcing minimum key size.
+	// This is needed for genesis/state-loading of legacy keys (e.g. Yahoo s1024).
+	key, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
+	require.NoError(t, err)
+
+	pkixBytes, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	require.NoError(t, err)
+
+	parsed, err := types.ParseRSAPublicKey(pkixBytes)
+	require.NoError(t, err)
+	require.Equal(t, 1024, parsed.N.BitLen())
+}

@@ -145,7 +145,26 @@ func (k msgServer) UpdateAudience(goCtx context.Context, msg *types.MsgUpdateAud
 		}
 
 		k.RemoveAudience(ctx, valFound.Aud)
+		// Remove the old audience's claim so it does not become an orphan.
+		oldAudHash := sha256.Sum256([]byte(valFound.Aud))
+		k.RemoveAudienceClaim(ctx, oldAudHash[:])
 		audience.Aud = msg.NewAud
+	}
+
+	// If the admin is changing, transfer the audience claim to the new admin.
+	// Without this, the old admin retains the claim and could re-create the
+	// audience, while the new admin cannot manage the audience claim.
+	if msg.NewAdmin != msg.Admin {
+		newAdminAddr, err := sdk.AccAddressFromBech32(msg.NewAdmin)
+		if err != nil {
+			return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new admin address (%s)", err)
+		}
+		// Compute the hash for the audience that is being transferred.
+		effectiveAud := audience.Aud
+		audHash := sha256.Sum256([]byte(effectiveAud))
+		// Remove old admin's claim and install the new admin's claim.
+		k.RemoveAudienceClaim(ctx, audHash[:])
+		k.SetAudienceClaim(ctx, audHash[:], newAdminAddr)
 	}
 
 	k.SetAudience(ctx, audience)
@@ -174,6 +193,10 @@ func (k msgServer) DeleteAudience(goCtx context.Context, msg *types.MsgDeleteAud
 		ctx,
 		msg.Aud,
 	)
+
+	// Also remove the audience claim so the name can be re-claimed in the future.
+	audHash := sha256.Sum256([]byte(msg.Aud))
+	k.RemoveAudienceClaim(ctx, audHash[:])
 
 	return &types.MsgDeleteAudienceResponse{}, nil
 }

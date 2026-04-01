@@ -30,6 +30,9 @@ func (gs GenesisState) Validate() error {
 		params = DefaultParams()
 	}
 
+	// Backfill newly-added Groth16 and UltraHonk proof/public-input size params when loading older genesis files.
+	params = params.WithMaxLimitDefaults()
+
 	if err := params.Validate(); err != nil {
 		return err
 	}
@@ -60,7 +63,8 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("vkey '%s' at index %d has empty key_bytes", vkeyWithID.Vkey.Name, i)
 		}
 
-		if err := ValidateVKeyBytes(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes); err != nil {
+		proofSystem := vkeyWithID.Vkey.ProofSystem
+		if err := ValidateVKeyForProofSystem(vkeyWithID.Vkey.KeyBytes, params.MaxVkeySizeBytes, proofSystem); err != nil {
 			return fmt.Errorf("vkey '%s' at index %d has invalid key_bytes: %w", vkeyWithID.Vkey.Name, i, err)
 		}
 	}

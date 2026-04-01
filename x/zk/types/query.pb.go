@@ -213,6 +213,255 @@ func (m *ProofVerifyResponse) GetVerified() bool {
 	return false
 }
 
+// ProofVerifyUltraHonkResponse defines the response structure for UltraHonk
+// proof verification.
+type ProofVerifyUltraHonkResponse struct {
+	// verified indicates whether the proof verification was successful.
+	Verified bool `protobuf:"varint,1,opt,name=verified,proto3" json:"verified,omitempty"`
+}
+
+func (m *ProofVerifyUltraHonkResponse) Reset()         { *m = ProofVerifyUltraHonkResponse{} }
+func (m *ProofVerifyUltraHonkResponse) String() string { return proto.CompactTextString(m) }
+func (*ProofVerifyUltraHonkResponse) ProtoMessage()    {}
+func (*ProofVerifyUltraHonkResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{3}
+}
+func (m *ProofVerifyUltraHonkResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ProofVerifyUltraHonkResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ProofVerifyUltraHonkResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ProofVerifyUltraHonkResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProofVerifyUltraHonkResponse.Merge(m, src)
+}
+func (m *ProofVerifyUltraHonkResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ProofVerifyUltraHonkResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProofVerifyUltraHonkResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ProofVerifyUltraHonkResponse proto.InternalMessageInfo
+
+func (m *ProofVerifyUltraHonkResponse) GetVerified() bool {
+	if m != nil {
+		return m.Verified
+	}
+	return false
+}
+
+// ProofVerifyGnarkResponse defines the response structure for gnark Groth16
+// proof verification.
+type ProofVerifyGnarkResponse struct {
+	// verified indicates whether the proof verification was successful.
+	Verified bool `protobuf:"varint,1,opt,name=verified,proto3" json:"verified,omitempty"`
+}
+
+func (m *ProofVerifyGnarkResponse) Reset()         { *m = ProofVerifyGnarkResponse{} }
+func (m *ProofVerifyGnarkResponse) String() string { return proto.CompactTextString(m) }
+func (*ProofVerifyGnarkResponse) ProtoMessage()    {}
+func (*ProofVerifyGnarkResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{4}
+}
+func (m *ProofVerifyGnarkResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ProofVerifyGnarkResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ProofVerifyGnarkResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ProofVerifyGnarkResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ProofVerifyGnarkResponse.Merge(m, src)
+}
+func (m *ProofVerifyGnarkResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *ProofVerifyGnarkResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ProofVerifyGnarkResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ProofVerifyGnarkResponse proto.InternalMessageInfo
+
+func (m *ProofVerifyGnarkResponse) GetVerified() bool {
+	if m != nil {
+		return m.Verified
+	}
+	return false
+}
+
+// QueryVerifyUltraHonkRequest is the request for ProofVerifyUltraHonk.
+// The verification key is resolved by vkey_name or vkey_id from the store (must
+// be ultrahonk type). Proof and public_inputs are raw binary as produced by
+// Barretenberg (e.g. bb prove).
+type QueryVerifyUltraHonkRequest struct {
+	// proof is the raw UltraHonk proof bytes (e.g. from bb prove -o proof.bin).
+	Proof []byte `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
+	// public_inputs is the raw public inputs binary: concatenated 32-byte
+	// big-endian field elements, as produced by Barretenberg (e.g. bb
+	// write_inputs or the same flow that generates the proof).
+	PublicInputs []byte `protobuf:"bytes,2,opt,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
+	// vkey_name is the unique name of the UltraHonk verification key
+	VkeyName string `protobuf:"bytes,3,opt,name=vkey_name,json=vkeyName,proto3" json:"vkey_name,omitempty"`
+	// vkey_id is the numeric id of the UltraHonk verification key
+	VkeyId uint64 `protobuf:"varint,4,opt,name=vkey_id,json=vkeyId,proto3" json:"vkey_id,omitempty"`
+}
+
+func (m *QueryVerifyUltraHonkRequest) Reset()         { *m = QueryVerifyUltraHonkRequest{} }
+func (m *QueryVerifyUltraHonkRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryVerifyUltraHonkRequest) ProtoMessage()    {}
+func (*QueryVerifyUltraHonkRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{5}
+}
+func (m *QueryVerifyUltraHonkRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVerifyUltraHonkRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVerifyUltraHonkRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVerifyUltraHonkRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVerifyUltraHonkRequest.Merge(m, src)
+}
+func (m *QueryVerifyUltraHonkRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVerifyUltraHonkRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVerifyUltraHonkRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVerifyUltraHonkRequest proto.InternalMessageInfo
+
+func (m *QueryVerifyUltraHonkRequest) GetProof() []byte {
+	if m != nil {
+		return m.Proof
+	}
+	return nil
+}
+
+func (m *QueryVerifyUltraHonkRequest) GetPublicInputs() []byte {
+	if m != nil {
+		return m.PublicInputs
+	}
+	return nil
+}
+
+func (m *QueryVerifyUltraHonkRequest) GetVkeyName() string {
+	if m != nil {
+		return m.VkeyName
+	}
+	return ""
+}
+
+func (m *QueryVerifyUltraHonkRequest) GetVkeyId() uint64 {
+	if m != nil {
+		return m.VkeyId
+	}
+	return 0
+}
+
+// QueryVerifyGnarkRequest is the request for ProofVerifyGnark.
+// The verification key is resolved by vkey_name or vkey_id from the store (must
+// be groth16_gnark type). Proof and public_inputs are gnark native binary
+// format.
+type QueryVerifyGnarkRequest struct {
+	// proof is the gnark native Groth16 proof bytes (serialized groth16.Proof).
+	Proof []byte `protobuf:"bytes,1,opt,name=proof,proto3" json:"proof,omitempty"`
+	// public_inputs is the raw public inputs binary: concatenated 32-byte
+	// big-endian field elements (fr.Element serialization).
+	PublicInputs []byte `protobuf:"bytes,2,opt,name=public_inputs,json=publicInputs,proto3" json:"public_inputs,omitempty"`
+	// vkey_name is the unique name of the gnark verification key
+	VkeyName string `protobuf:"bytes,3,opt,name=vkey_name,json=vkeyName,proto3" json:"vkey_name,omitempty"`
+	// vkey_id is the numeric id of the gnark verification key
+	VkeyId uint64 `protobuf:"varint,4,opt,name=vkey_id,json=vkeyId,proto3" json:"vkey_id,omitempty"`
+}
+
+func (m *QueryVerifyGnarkRequest) Reset()         { *m = QueryVerifyGnarkRequest{} }
+func (m *QueryVerifyGnarkRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryVerifyGnarkRequest) ProtoMessage()    {}
+func (*QueryVerifyGnarkRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa7f6c10cd66eb21, []int{6}
+}
+func (m *QueryVerifyGnarkRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVerifyGnarkRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVerifyGnarkRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVerifyGnarkRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVerifyGnarkRequest.Merge(m, src)
+}
+func (m *QueryVerifyGnarkRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVerifyGnarkRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVerifyGnarkRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVerifyGnarkRequest proto.InternalMessageInfo
+
+func (m *QueryVerifyGnarkRequest) GetProof() []byte {
+	if m != nil {
+		return m.Proof
+	}
+	return nil
+}
+
+func (m *QueryVerifyGnarkRequest) GetPublicInputs() []byte {
+	if m != nil {
+		return m.PublicInputs
+	}
+	return nil
+}
+
+func (m *QueryVerifyGnarkRequest) GetVkeyName() string {
+	if m != nil {
+		return m.VkeyName
+	}
+	return ""
+}
+
+func (m *QueryVerifyGnarkRequest) GetVkeyId() uint64 {
+	if m != nil {
+		return m.VkeyId
+	}
+	return 0
+}
+
 // VKey represents a verification key for ZK proof verification.
 type VKey struct {
 	// key_bytes is the raw bytes of the verification key.
@@ -225,13 +474,15 @@ type VKey struct {
 	CircuitHash string `protobuf:"bytes,4,opt,name=circuit_hash,json=circuitHash,proto3" json:"circuit_hash,omitempty"`
 	// authority is the uploader of the verification key.
 	Authority string `protobuf:"bytes,5,opt,name=authority,proto3" json:"authority,omitempty"`
+	// proof_system identifies the ZK backend: GROTH16 (default) or ULTRA_HONK_ZK.
+	ProofSystem ProofSystem `protobuf:"varint,6,opt,name=proof_system,json=proofSystem,proto3,enum=xion.zk.v1.ProofSystem" json:"proof_system,omitempty"`
 }
 
 func (m *VKey) Reset()         { *m = VKey{} }
 func (m *VKey) String() string { return proto.CompactTextString(m) }
 func (*VKey) ProtoMessage()    {}
 func (*VKey) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{3}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{7}
 }
 func (m *VKey) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -295,6 +546,13 @@ func (m *VKey) GetAuthority() string {
 	return ""
 }
 
+func (m *VKey) GetProofSystem() ProofSystem {
+	if m != nil {
+		return m.ProofSystem
+	}
+	return ProofSystem_PROOF_SYSTEM_UNSPECIFIED
+}
+
 // QueryVKeyRequest is the request type for the Query/VKey RPC method
 type QueryVKeyRequest struct {
 	// id is the unique identifier of the verification key
@@ -305,7 +563,7 @@ func (m *QueryVKeyRequest) Reset()         { *m = QueryVKeyRequest{} }
 func (m *QueryVKeyRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryVKeyRequest) ProtoMessage()    {}
 func (*QueryVKeyRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{4}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{8}
 }
 func (m *QueryVKeyRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -351,7 +609,7 @@ func (m *QueryVKeyResponse) Reset()         { *m = QueryVKeyResponse{} }
 func (m *QueryVKeyResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryVKeyResponse) ProtoMessage()    {}
 func (*QueryVKeyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{5}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{9}
 }
 func (m *QueryVKeyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -398,7 +656,7 @@ func (m *QueryVKeyByNameRequest) Reset()         { *m = QueryVKeyByNameRequest{}
 func (m *QueryVKeyByNameRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryVKeyByNameRequest) ProtoMessage()    {}
 func (*QueryVKeyByNameRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{6}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{10}
 }
 func (m *QueryVKeyByNameRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -447,7 +705,7 @@ func (m *QueryVKeyByNameResponse) Reset()         { *m = QueryVKeyByNameResponse
 func (m *QueryVKeyByNameResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryVKeyByNameResponse) ProtoMessage()    {}
 func (*QueryVKeyByNameResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{7}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{11}
 }
 func (m *QueryVKeyByNameResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -500,7 +758,7 @@ func (m *QueryVKeysRequest) Reset()         { *m = QueryVKeysRequest{} }
 func (m *QueryVKeysRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryVKeysRequest) ProtoMessage()    {}
 func (*QueryVKeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{8}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{12}
 }
 func (m *QueryVKeysRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -548,7 +806,7 @@ func (m *QueryVKeysResponse) Reset()         { *m = QueryVKeysResponse{} }
 func (m *QueryVKeysResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryVKeysResponse) ProtoMessage()    {}
 func (*QueryVKeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{9}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{13}
 }
 func (m *QueryVKeysResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -603,7 +861,7 @@ func (m *VKeyWithID) Reset()         { *m = VKeyWithID{} }
 func (m *VKeyWithID) String() string { return proto.CompactTextString(m) }
 func (*VKeyWithID) ProtoMessage()    {}
 func (*VKeyWithID) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{10}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{14}
 }
 func (m *VKeyWithID) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -656,7 +914,7 @@ func (m *QueryHasVKeyRequest) Reset()         { *m = QueryHasVKeyRequest{} }
 func (m *QueryHasVKeyRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryHasVKeyRequest) ProtoMessage()    {}
 func (*QueryHasVKeyRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{11}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{15}
 }
 func (m *QueryHasVKeyRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -704,7 +962,7 @@ func (m *QueryHasVKeyResponse) Reset()         { *m = QueryHasVKeyResponse{} }
 func (m *QueryHasVKeyResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryHasVKeyResponse) ProtoMessage()    {}
 func (*QueryHasVKeyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{12}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{16}
 }
 func (m *QueryHasVKeyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -756,7 +1014,7 @@ func (m *QueryNextVKeyIDRequest) Reset()         { *m = QueryNextVKeyIDRequest{}
 func (m *QueryNextVKeyIDRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryNextVKeyIDRequest) ProtoMessage()    {}
 func (*QueryNextVKeyIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{13}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{17}
 }
 func (m *QueryNextVKeyIDRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -796,7 +1054,7 @@ func (m *QueryNextVKeyIDResponse) Reset()         { *m = QueryNextVKeyIDResponse
 func (m *QueryNextVKeyIDResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryNextVKeyIDResponse) ProtoMessage()    {}
 func (*QueryNextVKeyIDResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{14}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{18}
 }
 func (m *QueryNextVKeyIDResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -840,7 +1098,7 @@ func (m *QueryParamsRequest) Reset()         { *m = QueryParamsRequest{} }
 func (m *QueryParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryParamsRequest) ProtoMessage()    {}
 func (*QueryParamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{15}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{19}
 }
 func (m *QueryParamsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -879,7 +1137,7 @@ func (m *QueryParamsResponse) Reset()         { *m = QueryParamsResponse{} }
 func (m *QueryParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryParamsResponse) ProtoMessage()    {}
 func (*QueryParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa7f6c10cd66eb21, []int{16}
+	return fileDescriptor_fa7f6c10cd66eb21, []int{20}
 }
 func (m *QueryParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -919,6 +1177,10 @@ func init() {
 	proto.RegisterType((*SnarkJsProof)(nil), "xion.zk.v1.SnarkJsProof")
 	proto.RegisterType((*QueryVerifyRequest)(nil), "xion.zk.v1.QueryVerifyRequest")
 	proto.RegisterType((*ProofVerifyResponse)(nil), "xion.zk.v1.ProofVerifyResponse")
+	proto.RegisterType((*ProofVerifyUltraHonkResponse)(nil), "xion.zk.v1.ProofVerifyUltraHonkResponse")
+	proto.RegisterType((*ProofVerifyGnarkResponse)(nil), "xion.zk.v1.ProofVerifyGnarkResponse")
+	proto.RegisterType((*QueryVerifyUltraHonkRequest)(nil), "xion.zk.v1.QueryVerifyUltraHonkRequest")
+	proto.RegisterType((*QueryVerifyGnarkRequest)(nil), "xion.zk.v1.QueryVerifyGnarkRequest")
 	proto.RegisterType((*VKey)(nil), "xion.zk.v1.VKey")
 	proto.RegisterType((*QueryVKeyRequest)(nil), "xion.zk.v1.QueryVKeyRequest")
 	proto.RegisterType((*QueryVKeyResponse)(nil), "xion.zk.v1.QueryVKeyResponse")
@@ -938,67 +1200,77 @@ func init() {
 func init() { proto.RegisterFile("xion/zk/v1/query.proto", fileDescriptor_fa7f6c10cd66eb21) }
 
 var fileDescriptor_fa7f6c10cd66eb21 = []byte{
-	// 953 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x56, 0xcf, 0x6f, 0x1b, 0x45,
-	0x14, 0xce, 0x3a, 0x8e, 0x13, 0x3f, 0xbb, 0xd0, 0x4e, 0x43, 0x6c, 0x96, 0xb0, 0x76, 0x37, 0x84,
-	0x84, 0x42, 0x76, 0xb1, 0xb9, 0x53, 0x61, 0x2a, 0x12, 0x53, 0xa9, 0x0a, 0x8b, 0x28, 0x12, 0x1c,
-	0xac, 0x59, 0x7b, 0x6a, 0x8f, 0x1c, 0xef, 0x6e, 0x77, 0xc6, 0x96, 0xdd, 0xa8, 0x1c, 0x2a, 0x71,
-	0x07, 0x71, 0xe3, 0xbf, 0xe0, 0xbf, 0xe8, 0xb1, 0x12, 0x17, 0x4e, 0x08, 0x25, 0xfc, 0x21, 0x68,
-	0x7e, 0xac, 0xbd, 0xee, 0xda, 0x40, 0x2f, 0x91, 0xe7, 0xcd, 0xdb, 0xef, 0xfb, 0xde, 0x9b, 0xef,
-	0x3d, 0x05, 0xf6, 0xa6, 0x34, 0x0c, 0xdc, 0xa7, 0x43, 0x77, 0xd2, 0x70, 0x9f, 0x8c, 0x49, 0x3c,
-	0x73, 0xa2, 0x38, 0xe4, 0x21, 0x02, 0x11, 0x77, 0x9e, 0x0e, 0x9d, 0x49, 0xc3, 0xdc, 0xed, 0x87,
-	0xfd, 0x50, 0x86, 0x5d, 0xf1, 0x4b, 0x65, 0x98, 0xfb, 0xfd, 0x30, 0xec, 0x5f, 0x10, 0x17, 0x47,
-	0xd4, 0xc5, 0x41, 0x10, 0x72, 0xcc, 0x69, 0x18, 0x30, 0x7d, 0x7b, 0xb7, 0x1b, 0xb2, 0x51, 0xc8,
-	0x5c, 0x1f, 0x33, 0xa2, 0x80, 0xdd, 0x49, 0xc3, 0x27, 0x1c, 0x37, 0xdc, 0x08, 0xf7, 0x69, 0x20,
-	0x93, 0x75, 0x6e, 0x25, 0xa5, 0x21, 0xc2, 0x31, 0x1e, 0x69, 0x10, 0xfb, 0x14, 0xca, 0x5f, 0x07,
-	0x38, 0x1e, 0x7e, 0xc9, 0xce, 0xe3, 0x30, 0x7c, 0x8c, 0x6e, 0x41, 0x3e, 0xa2, 0x1d, 0x5c, 0x35,
-	0xea, 0x9b, 0xc7, 0x65, 0x6f, 0x33, 0xa2, 0x9f, 0xe9, 0x90, 0x5f, 0xcd, 0x25, 0xa1, 0x96, 0x0e,
-	0x75, 0xab, 0x9b, 0x49, 0xe8, 0x73, 0xfb, 0x47, 0x03, 0xd0, 0x57, 0x42, 0xc4, 0x23, 0x12, 0xd3,
-	0xc7, 0x33, 0x8f, 0x3c, 0x19, 0x13, 0xc6, 0xd1, 0x2e, 0x6c, 0x45, 0x02, 0xb8, 0x6a, 0xd4, 0x8d,
-	0xe3, 0xb2, 0xa7, 0x0e, 0xe8, 0x00, 0x6e, 0x44, 0x63, 0xff, 0x82, 0x76, 0x3b, 0x34, 0x88, 0xc6,
-	0x9c, 0x49, 0xec, 0xa2, 0x57, 0x56, 0xc1, 0xb6, 0x8c, 0xa1, 0x77, 0xa0, 0x38, 0x19, 0x92, 0x59,
-	0x27, 0xc0, 0x23, 0x52, 0xdd, 0xac, 0x1b, 0xc7, 0x45, 0x6f, 0x47, 0x04, 0x1e, 0xe2, 0x11, 0x41,
-	0x15, 0xd8, 0x96, 0x97, 0xb4, 0x57, 0xcd, 0xd7, 0x8d, 0xe3, 0xbc, 0x57, 0x10, 0xc7, 0x76, 0xcf,
-	0x6e, 0xc0, 0x6d, 0x59, 0x49, 0x22, 0x83, 0x45, 0x61, 0xc0, 0x08, 0x32, 0x61, 0x67, 0x22, 0x22,
-	0x94, 0xf4, 0xa4, 0x94, 0x1d, 0x6f, 0x7e, 0xb6, 0x7f, 0x35, 0x20, 0xff, 0xe8, 0x01, 0x99, 0x09,
-	0x46, 0x81, 0xe9, 0xcf, 0x38, 0x61, 0x5a, 0xf0, 0xce, 0x90, 0xcc, 0x5a, 0xe2, 0x8c, 0x10, 0xe4,
-	0xa5, 0x92, 0x9c, 0x54, 0x22, 0x7f, 0xa3, 0x3a, 0x94, 0x7a, 0x84, 0x75, 0x63, 0x1a, 0x89, 0x5e,
-	0x6b, 0x91, 0xe9, 0x10, 0xba, 0x03, 0xe5, 0x2e, 0x8d, 0xbb, 0x63, 0xca, 0x3b, 0x03, 0xcc, 0x06,
-	0x52, 0x6c, 0xd1, 0x2b, 0xe9, 0xd8, 0x19, 0x66, 0x03, 0xb4, 0x0f, 0x45, 0x3c, 0xe6, 0x83, 0x30,
-	0xa6, 0x7c, 0x56, 0xdd, 0x92, 0xf7, 0x8b, 0x80, 0x6d, 0xc3, 0x4d, 0xd5, 0xd6, 0x07, 0x64, 0xde,
-	0xd4, 0x37, 0x20, 0x47, 0x55, 0x19, 0x79, 0x2f, 0x47, 0x7b, 0xf6, 0x3d, 0xb8, 0x95, 0xca, 0xd1,
-	0x15, 0xdf, 0x85, 0xbc, 0x68, 0x89, 0x4c, 0x2b, 0x35, 0x6f, 0x3a, 0x0b, 0xb7, 0x39, 0x22, 0xaf,
-	0x95, 0x7f, 0xf1, 0x67, 0x6d, 0xc3, 0x93, 0x39, 0xf6, 0x47, 0xb0, 0x37, 0x07, 0x68, 0xc9, 0x06,
-	0x27, 0x54, 0x49, 0xd5, 0xc6, 0xa2, 0x6a, 0xfb, 0x1b, 0xa8, 0x64, 0xb2, 0x5f, 0x9f, 0x54, 0x57,
-	0x91, 0x9b, 0x57, 0xf1, 0x7d, 0xaa, 0x0a, 0x96, 0xf0, 0x7f, 0x01, 0xb0, 0x30, 0xb3, 0x86, 0x7d,
-	0xdf, 0x51, 0xce, 0x77, 0x84, 0xf3, 0x1d, 0x35, 0x52, 0xda, 0xf9, 0xce, 0x39, 0xee, 0x27, 0xda,
-	0xbd, 0xd4, 0x97, 0xf6, 0xcf, 0x73, 0x7b, 0x2a, 0x74, 0xad, 0xb7, 0x09, 0x5b, 0x42, 0x0b, 0x93,
-	0x7e, 0x2f, 0x35, 0xf7, 0x5e, 0x15, 0xfc, 0x2d, 0xe5, 0x83, 0xf6, 0x7d, 0x2d, 0x5b, 0xa5, 0xa2,
-	0xd3, 0x25, 0x49, 0x39, 0x29, 0xe9, 0xe8, 0x3f, 0x25, 0x29, 0xc2, 0x25, 0x4d, 0x67, 0x00, 0x0b,
-	0x8e, 0x57, 0x1f, 0x75, 0xde, 0xca, 0xdc, 0xff, 0x78, 0xbf, 0x0f, 0xe0, 0xb6, 0x2c, 0xee, 0x0c,
-	0xb3, 0xb4, 0x4f, 0x56, 0x3d, 0xde, 0xa7, 0xb0, 0xbb, 0x9c, 0xaa, 0x3b, 0xb1, 0x07, 0x05, 0x32,
-	0xa5, 0x8c, 0x33, 0x3d, 0x1e, 0xfa, 0x94, 0x79, 0xa5, 0xaa, 0xb6, 0xca, 0x43, 0x32, 0xe5, 0x02,
-	0xa0, 0x7d, 0x5f, 0xb3, 0xd9, 0x4d, 0x6d, 0x8b, 0xf4, 0x8d, 0x06, 0xaf, 0xc0, 0x76, 0x40, 0xa6,
-	0xbc, 0x33, 0x2f, 0xb0, 0x20, 0x8e, 0xed, 0x9e, 0xbd, 0xab, 0x5f, 0xe5, 0x5c, 0xee, 0xa4, 0x04,
-	0xe9, 0x54, 0x97, 0x93, 0x44, 0x35, 0xca, 0xc7, 0x50, 0x50, 0xbb, 0x4b, 0xfb, 0x00, 0xa5, 0x7b,
-	0xa2, 0x72, 0x75, 0x57, 0x74, 0x5e, 0xf3, 0xb7, 0x02, 0x6c, 0x49, 0x24, 0x44, 0xa0, 0x94, 0x5a,
-	0x0b, 0xc8, 0x4a, 0x7f, 0x9a, 0x5d, 0x5b, 0x66, 0x6d, 0x09, 0x3a, 0xbb, 0x4f, 0xec, 0xb7, 0x9e,
-	0xff, 0xfe, 0xf7, 0x2f, 0xb9, 0x37, 0xd1, 0x0d, 0xbd, 0x54, 0x27, 0x0a, 0x97, 0xea, 0x4d, 0xb2,
-	0x9f, 0xc5, 0x5f, 0xbc, 0x8b, 0xf9, 0xee, 0x9a, 0x5b, 0x8d, 0xfd, 0x9e, 0xc4, 0xb6, 0xd0, 0xbe,
-	0xeb, 0x8f, 0xe3, 0x80, 0xbb, 0xa9, 0xdd, 0x2d, 0x1d, 0xe8, 0x5e, 0xd2, 0xde, 0x33, 0xf4, 0xdc,
-	0x50, 0xf6, 0x51, 0x13, 0x88, 0xec, 0x95, 0x98, 0x4b, 0xc3, 0x6c, 0x1e, 0xfc, 0x6b, 0x8e, 0x66,
-	0xff, 0x50, 0xb2, 0x1f, 0xa2, 0x83, 0x75, 0xec, 0xc2, 0x46, 0xee, 0xa5, 0xf8, 0xfb, 0x0c, 0xf5,
-	0x61, 0x4b, 0x0e, 0x14, 0x5a, 0x5d, 0x52, 0xf2, 0xa2, 0xa6, 0xb5, 0xee, 0x5a, 0x93, 0xd6, 0x24,
-	0xe9, 0xdb, 0xa8, 0xb2, 0x86, 0x14, 0x5d, 0xc2, 0xb6, 0x76, 0x2c, 0xaa, 0x65, 0xb0, 0x96, 0x6d,
-	0x6f, 0xd6, 0xd7, 0x27, 0x68, 0xba, 0x13, 0x49, 0x77, 0x84, 0x0e, 0xd7, 0xd5, 0xa8, 0xcc, 0x9f,
-	0x54, 0xf9, 0x03, 0xc0, 0xc2, 0xd4, 0x2b, 0x3a, 0x9d, 0x99, 0x85, 0x15, 0x9d, 0xce, 0x4e, 0x85,
-	0x7d, 0x24, 0x55, 0xdc, 0x41, 0xb5, 0xb5, 0x9d, 0x26, 0x53, 0x7e, 0x42, 0x7b, 0x68, 0x08, 0x05,
-	0x65, 0xef, 0x15, 0xbe, 0x5d, 0x9a, 0x1c, 0xb3, 0xb6, 0xf6, 0x5e, 0x73, 0xd6, 0x25, 0xa7, 0x89,
-	0xaa, 0x59, 0x4e, 0x35, 0x33, 0xad, 0x7b, 0x2f, 0xae, 0x2c, 0xe3, 0xe5, 0x95, 0x65, 0xfc, 0x75,
-	0x65, 0x19, 0x3f, 0x5d, 0x5b, 0x1b, 0x2f, 0xaf, 0xad, 0x8d, 0x3f, 0xae, 0xad, 0x8d, 0xef, 0x0e,
-	0xfb, 0x94, 0x0f, 0xc6, 0xbe, 0xd3, 0x0d, 0x47, 0xea, 0xeb, 0x93, 0x0b, 0xec, 0x33, 0x05, 0x31,
-	0x15, 0x20, 0x7c, 0x16, 0x11, 0xe6, 0x17, 0xe4, 0x7f, 0x16, 0x9f, 0xfc, 0x13, 0x00, 0x00, 0xff,
-	0xff, 0x54, 0xac, 0xe7, 0xe1, 0xf8, 0x08, 0x00, 0x00,
+	// 1112 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x56, 0xcf, 0x6f, 0x1b, 0x45,
+	0x14, 0xce, 0x3a, 0x8e, 0x9b, 0x3c, 0xbb, 0x25, 0x9d, 0x86, 0x78, 0xd9, 0x06, 0xdb, 0xdd, 0x34,
+	0xc4, 0x0d, 0x64, 0x97, 0x18, 0x89, 0x43, 0x0e, 0x54, 0x84, 0x8a, 0xc4, 0x54, 0xaa, 0xc2, 0x56,
+	0x2d, 0x12, 0x1c, 0xac, 0xb5, 0x3d, 0xb5, 0x47, 0x8e, 0x77, 0xb7, 0x3b, 0x63, 0xcb, 0x6e, 0x54,
+	0x0e, 0x95, 0x90, 0x10, 0x07, 0x04, 0xe2, 0xc2, 0x9f, 0xd4, 0x63, 0x25, 0x24, 0xe0, 0x84, 0x50,
+	0xc2, 0x1f, 0x82, 0xe6, 0xc7, 0xda, 0xbb, 0xb1, 0x17, 0x52, 0x09, 0x89, 0x4b, 0xe4, 0x79, 0xf3,
+	0xe6, 0x7d, 0xdf, 0x7b, 0xfb, 0xde, 0xf7, 0x02, 0xeb, 0x23, 0xe2, 0x7b, 0xf6, 0xb3, 0x9e, 0x3d,
+	0xdc, 0xb3, 0x9f, 0x0e, 0x70, 0x38, 0xb6, 0x82, 0xd0, 0x67, 0x3e, 0x02, 0x6e, 0xb7, 0x9e, 0xf5,
+	0xac, 0xe1, 0x9e, 0xb1, 0xd6, 0xf1, 0x3b, 0xbe, 0x30, 0xdb, 0xfc, 0x97, 0xf4, 0x30, 0x36, 0x3a,
+	0xbe, 0xdf, 0x39, 0xc1, 0xb6, 0x1b, 0x10, 0xdb, 0xf5, 0x3c, 0x9f, 0xb9, 0x8c, 0xf8, 0x1e, 0x55,
+	0xb7, 0x3b, 0x2d, 0x9f, 0xf6, 0x7d, 0x6a, 0x37, 0x5d, 0x8a, 0x65, 0x60, 0x7b, 0xb8, 0xd7, 0xc4,
+	0xcc, 0xdd, 0xb3, 0x03, 0xb7, 0x43, 0x3c, 0xe1, 0xac, 0x7c, 0x8b, 0x31, 0x0e, 0x81, 0x1b, 0xba,
+	0x7d, 0x15, 0xc4, 0x3c, 0x84, 0xc2, 0x43, 0xcf, 0x0d, 0x7b, 0x9f, 0xd1, 0xe3, 0xd0, 0xf7, 0x9f,
+	0xa0, 0xeb, 0x90, 0x0d, 0x48, 0xc3, 0xd5, 0xb5, 0xca, 0x62, 0xb5, 0xe0, 0x2c, 0x06, 0xe4, 0x63,
+	0x65, 0x6a, 0xea, 0x99, 0xc8, 0x74, 0xa0, 0x4c, 0x2d, 0x7d, 0x31, 0x32, 0x7d, 0x62, 0x7e, 0xa3,
+	0x01, 0xfa, 0x9c, 0x93, 0x78, 0x8c, 0x43, 0xf2, 0x64, 0xec, 0xe0, 0xa7, 0x03, 0x4c, 0x19, 0x5a,
+	0x83, 0xa5, 0x80, 0x07, 0xd6, 0xb5, 0x8a, 0x56, 0x2d, 0x38, 0xf2, 0x80, 0x36, 0xe1, 0x6a, 0x30,
+	0x68, 0x9e, 0x90, 0x56, 0x83, 0x78, 0xc1, 0x80, 0x51, 0x11, 0x7b, 0xc5, 0x29, 0x48, 0x63, 0x5d,
+	0xd8, 0xd0, 0x4d, 0x58, 0x19, 0xf6, 0xf0, 0xb8, 0xe1, 0xb9, 0x7d, 0xac, 0x2f, 0x56, 0xb4, 0xea,
+	0x8a, 0xb3, 0xcc, 0x0d, 0x0f, 0xdc, 0x3e, 0x46, 0x45, 0xb8, 0x22, 0x2e, 0x49, 0x5b, 0xcf, 0x56,
+	0xb4, 0x6a, 0xd6, 0xc9, 0xf1, 0x63, 0xbd, 0x6d, 0xee, 0xc1, 0x0d, 0x91, 0x49, 0x44, 0x83, 0x06,
+	0xbe, 0x47, 0x31, 0x32, 0x60, 0x79, 0xc8, 0x2d, 0x04, 0xb7, 0x05, 0x95, 0x65, 0x67, 0x72, 0x36,
+	0xf7, 0x61, 0x23, 0xf6, 0xe4, 0xd1, 0x09, 0x0b, 0xdd, 0x23, 0xdf, 0xeb, 0x5d, 0xea, 0xed, 0x87,
+	0xa0, 0xc7, 0xde, 0x1e, 0xf2, 0x52, 0x5e, 0xea, 0xdd, 0xf7, 0x1a, 0xdc, 0x8c, 0x95, 0x2b, 0x06,
+	0xfa, 0x9a, 0x75, 0xe3, 0xb7, 0xff, 0x45, 0xdd, 0xbe, 0xd3, 0xa0, 0x18, 0x23, 0xa4, 0x32, 0xf9,
+	0x9f, 0xc8, 0xfc, 0xaa, 0x41, 0xf6, 0xf1, 0x7d, 0x3c, 0xe6, 0xcf, 0xb9, 0x43, 0x73, 0xcc, 0x30,
+	0x55, 0xe8, 0xcb, 0x3d, 0x3c, 0x3e, 0xe0, 0x67, 0x84, 0x20, 0x2b, 0xc2, 0x66, 0x44, 0x58, 0xf1,
+	0x1b, 0x55, 0x20, 0xdf, 0xc6, 0xb4, 0x15, 0x92, 0x80, 0x77, 0xbf, 0x42, 0x8c, 0x9b, 0xd0, 0x2d,
+	0x28, 0xb4, 0x48, 0xd8, 0x1a, 0x10, 0xd6, 0xe8, 0xba, 0xb4, 0x2b, 0x90, 0x57, 0x9c, 0xbc, 0xb2,
+	0x1d, 0xb9, 0xb4, 0x8b, 0x36, 0x60, 0xc5, 0x1d, 0xb0, 0xae, 0x1f, 0x12, 0x36, 0xd6, 0x97, 0xc4,
+	0xfd, 0xd4, 0x80, 0xf6, 0xa1, 0x20, 0x0a, 0xd0, 0xa0, 0x63, 0xca, 0x70, 0x5f, 0xcf, 0x55, 0xb4,
+	0xea, 0xb5, 0x5a, 0xd1, 0x9a, 0x8e, 0xb3, 0x25, 0x5a, 0xe2, 0xa1, 0xb8, 0x76, 0xf2, 0xc1, 0xf4,
+	0x60, 0x9a, 0xb0, 0x2a, 0x8b, 0x7c, 0x1f, 0x4f, 0x46, 0xe4, 0x1a, 0x64, 0x88, 0x6c, 0x90, 0xac,
+	0x93, 0x21, 0x6d, 0xf3, 0x2e, 0x5c, 0x8f, 0xf9, 0xa8, 0x5e, 0xda, 0x81, 0x2c, 0xaf, 0x8d, 0x70,
+	0xcb, 0xd7, 0x56, 0xe3, 0x60, 0xdc, 0xef, 0x20, 0xfb, 0xf2, 0x8f, 0xf2, 0x82, 0x23, 0x7c, 0xcc,
+	0xf7, 0x60, 0x7d, 0x12, 0xe0, 0x40, 0x54, 0x3a, 0x82, 0x8a, 0x2a, 0xa6, 0x4d, 0x2b, 0x66, 0x3e,
+	0x8a, 0xbe, 0x7b, 0xcc, 0xfb, 0xf5, 0x41, 0x55, 0x16, 0x99, 0x49, 0x16, 0x5f, 0xc5, 0xb2, 0xa0,
+	0x11, 0xfe, 0xa7, 0x00, 0x53, 0x69, 0x52, 0x61, 0xdf, 0xb1, 0xa4, 0x8e, 0x59, 0x5c, 0xc7, 0x2c,
+	0x29, 0x90, 0x4a, 0xc7, 0xac, 0x63, 0xb7, 0x13, 0x71, 0x77, 0x62, 0x2f, 0xcd, 0x1f, 0x27, 0x62,
+	0x23, 0xa3, 0x2b, 0xbe, 0x35, 0x58, 0xe2, 0x5c, 0xa8, 0x50, 0xaf, 0x7c, 0x6d, 0xfd, 0x22, 0xe1,
+	0x2f, 0x08, 0xeb, 0xd6, 0xef, 0x29, 0xda, 0xd2, 0x15, 0x1d, 0x26, 0x28, 0x65, 0x04, 0xa5, 0xed,
+	0x7f, 0xa5, 0x24, 0x01, 0x13, 0x9c, 0x8e, 0x00, 0xa6, 0x18, 0x17, 0x3f, 0xea, 0xa4, 0x94, 0x99,
+	0x4b, 0x7c, 0xbf, 0x3b, 0x70, 0x43, 0x24, 0x77, 0xe4, 0xd2, 0x78, 0x9f, 0xcc, 0xfb, 0x78, 0x1f,
+	0xc1, 0x5a, 0xd2, 0x55, 0x55, 0x62, 0x1d, 0x72, 0x78, 0x44, 0x28, 0xa3, 0x4a, 0x78, 0xd4, 0x69,
+	0xe6, 0x2b, 0xe9, 0xaa, 0x55, 0x1e, 0xe0, 0x11, 0xe3, 0x01, 0xea, 0xf7, 0x14, 0x9a, 0x59, 0x53,
+	0x6d, 0x11, 0xbf, 0x51, 0xc1, 0x8b, 0x70, 0xc5, 0xc3, 0x23, 0xd6, 0x98, 0x24, 0x98, 0xe3, 0xc7,
+	0x7a, 0xdb, 0x5c, 0x53, 0x5f, 0xe5, 0x58, 0x6c, 0x98, 0x28, 0xd2, 0xa1, 0x4a, 0x27, 0xb2, 0xaa,
+	0x28, 0xef, 0x43, 0x4e, 0x6e, 0x22, 0xd5, 0x07, 0x28, 0x31, 0x40, 0xe2, 0x46, 0x55, 0x45, 0xf9,
+	0xd5, 0x7e, 0x5b, 0x86, 0x25, 0x11, 0x09, 0x61, 0xc8, 0xc7, 0x54, 0x17, 0x95, 0xe2, 0x4f, 0x67,
+	0x97, 0x90, 0x51, 0x9e, 0x99, 0xcd, 0xe4, 0x76, 0x30, 0xdf, 0x7c, 0xf1, 0xcb, 0x5f, 0x3f, 0x65,
+	0xde, 0x40, 0x57, 0xd5, 0x8a, 0x1c, 0xca, 0xb8, 0x3f, 0x6b, 0xb0, 0x36, 0x6f, 0x33, 0xa0, 0xed,
+	0x14, 0xc0, 0x8b, 0x32, 0x6e, 0x54, 0x53, 0x90, 0x67, 0x96, 0x8c, 0xb9, 0x2b, 0x28, 0x6c, 0xef,
+	0x6b, 0x3b, 0xa6, 0x69, 0x37, 0x07, 0xa1, 0xc7, 0xec, 0xd8, 0xce, 0x96, 0x84, 0x76, 0x07, 0xfc,
+	0x59, 0x97, 0x33, 0xf8, 0x56, 0x83, 0xd5, 0x8b, 0x8b, 0x07, 0x6d, 0xa6, 0xd0, 0x8a, 0x8b, 0xb9,
+	0x71, 0x3b, 0x85, 0x52, 0x62, 0x77, 0x99, 0x77, 0x04, 0x9d, 0x4d, 0x4e, 0xa7, 0x94, 0x4a, 0xa7,
+	0x23, 0x50, 0x89, 0xd2, 0xea, 0x8d, 0x59, 0xf4, 0x69, 0xf7, 0x1a, 0x6f, 0xa7, 0xdc, 0x2a, 0xbc,
+	0xdb, 0x02, 0xaf, 0x84, 0x36, 0xe6, 0x80, 0xf1, 0x39, 0xb5, 0x4f, 0x49, 0xfb, 0x39, 0x7a, 0xa1,
+	0xc9, 0x21, 0x93, 0x3a, 0x85, 0xcc, 0xb9, 0x31, 0x13, 0x92, 0x67, 0x6c, 0xfe, 0xa3, 0x8f, 0x42,
+	0x7f, 0x57, 0xa0, 0x6f, 0xa1, 0xcd, 0x34, 0x74, 0x3e, 0x6c, 0xf6, 0x29, 0xff, 0xfb, 0x1c, 0x75,
+	0x60, 0x49, 0xc8, 0x0e, 0x9a, 0x9f, 0x52, 0xd4, 0xf7, 0x46, 0x29, 0xed, 0x5a, 0x81, 0x96, 0x05,
+	0xe8, 0x5b, 0xa8, 0x98, 0x02, 0x8a, 0x4e, 0xe1, 0x8a, 0x9a, 0x6b, 0x54, 0x9e, 0x89, 0x95, 0x14,
+	0x07, 0xa3, 0x92, 0xee, 0x90, 0x6c, 0x30, 0xb4, 0x95, 0x96, 0xa3, 0x94, 0x88, 0x28, 0xcb, 0xaf,
+	0x01, 0xa6, 0xa3, 0x3f, 0xa7, 0xd2, 0x33, 0x8a, 0x31, 0xa7, 0xd2, 0xb3, 0xda, 0x61, 0x6e, 0x0b,
+	0x16, 0xb7, 0x50, 0x39, 0xb5, 0xd2, 0x78, 0xc4, 0x76, 0x49, 0x1b, 0xf5, 0x20, 0x27, 0x45, 0x60,
+	0xce, 0x74, 0x27, 0xf4, 0xc5, 0x28, 0xa7, 0xde, 0x2b, 0xcc, 0x8a, 0xc0, 0x34, 0x90, 0x3e, 0x8b,
+	0x29, 0x95, 0xe5, 0xe0, 0xee, 0xcb, 0xb3, 0x92, 0xf6, 0xea, 0xac, 0xa4, 0xfd, 0x79, 0x56, 0xd2,
+	0x7e, 0x38, 0x2f, 0x2d, 0xbc, 0x3a, 0x2f, 0x2d, 0xfc, 0x7e, 0x5e, 0x5a, 0xf8, 0x72, 0xab, 0x43,
+	0x58, 0x77, 0xd0, 0xb4, 0x5a, 0x7e, 0x5f, 0xbe, 0xde, 0x3d, 0x71, 0x9b, 0x54, 0x86, 0x18, 0xf1,
+	0x20, 0x6c, 0x1c, 0x60, 0xda, 0xcc, 0x89, 0xff, 0xa6, 0x3f, 0xf8, 0x3b, 0x00, 0x00, 0xff, 0xff,
+	0xd6, 0x05, 0x2f, 0x95, 0xec, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1015,6 +1287,14 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error)
+	// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof. The vkey
+	// is resolved by vkey_name or vkey_id from the store and must be of type
+	// ultrahonk.
+	ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyUltraHonkResponse, error)
+	// ProofVerifyGnark verifies a gnark native Groth16 proof (BN254). The vkey
+	// is resolved by vkey_name or vkey_id from the store and must be of type
+	// groth16_gnark.
+	ProofVerifyGnark(ctx context.Context, in *QueryVerifyGnarkRequest, opts ...grpc.CallOption) (*ProofVerifyGnarkResponse, error)
 	// VKey queries a verification key by ID
 	VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -1040,6 +1320,24 @@ func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 func (c *queryClient) ProofVerify(ctx context.Context, in *QueryVerifyRequest, opts ...grpc.CallOption) (*ProofVerifyResponse, error) {
 	out := new(ProofVerifyResponse)
 	err := c.cc.Invoke(ctx, "/xion.zk.v1.Query/ProofVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyUltraHonkResponse, error) {
+	out := new(ProofVerifyUltraHonkResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Query/ProofVerifyUltraHonk", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) ProofVerifyGnark(ctx context.Context, in *QueryVerifyGnarkRequest, opts ...grpc.CallOption) (*ProofVerifyGnarkResponse, error) {
+	out := new(ProofVerifyGnarkResponse)
+	err := c.cc.Invoke(ctx, "/xion.zk.v1.Query/ProofVerifyGnark", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1104,6 +1402,14 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 type QueryServer interface {
 	// ProofVerify verifies a zk proof for email authentication.
 	ProofVerify(context.Context, *QueryVerifyRequest) (*ProofVerifyResponse, error)
+	// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof. The vkey
+	// is resolved by vkey_name or vkey_id from the store and must be of type
+	// ultrahonk.
+	ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyUltraHonkResponse, error)
+	// ProofVerifyGnark verifies a gnark native Groth16 proof (BN254). The vkey
+	// is resolved by vkey_name or vkey_id from the store and must be of type
+	// groth16_gnark.
+	ProofVerifyGnark(context.Context, *QueryVerifyGnarkRequest) (*ProofVerifyGnarkResponse, error)
 	// VKey queries a verification key by ID
 	VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -1124,6 +1430,12 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) ProofVerify(ctx context.Context, req *QueryVerifyRequest) (*ProofVerifyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProofVerify not implemented")
+}
+func (*UnimplementedQueryServer) ProofVerifyUltraHonk(ctx context.Context, req *QueryVerifyUltraHonkRequest) (*ProofVerifyUltraHonkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProofVerifyUltraHonk not implemented")
+}
+func (*UnimplementedQueryServer) ProofVerifyGnark(ctx context.Context, req *QueryVerifyGnarkRequest) (*ProofVerifyGnarkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProofVerifyGnark not implemented")
 }
 func (*UnimplementedQueryServer) VKey(ctx context.Context, req *QueryVKeyRequest) (*QueryVKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VKey not implemented")
@@ -1162,6 +1474,42 @@ func _Query_ProofVerify_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).ProofVerify(ctx, req.(*QueryVerifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_ProofVerifyUltraHonk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyUltraHonkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ProofVerifyUltraHonk(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Query/ProofVerifyUltraHonk",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ProofVerifyUltraHonk(ctx, req.(*QueryVerifyUltraHonkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_ProofVerifyGnark_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyGnarkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ProofVerifyGnark(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.zk.v1.Query/ProofVerifyGnark",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ProofVerifyGnark(ctx, req.(*QueryVerifyGnarkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1282,6 +1630,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProofVerify",
 			Handler:    _Query_ProofVerify_Handler,
+		},
+		{
+			MethodName: "ProofVerifyUltraHonk",
+			Handler:    _Query_ProofVerifyUltraHonk_Handler,
+		},
+		{
+			MethodName: "ProofVerifyGnark",
+			Handler:    _Query_ProofVerifyGnark_Handler,
 		},
 		{
 			MethodName: "VKey",
@@ -1446,6 +1802,170 @@ func (m *ProofVerifyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ProofVerifyUltraHonkResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ProofVerifyUltraHonkResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ProofVerifyUltraHonkResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Verified {
+		i--
+		if m.Verified {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ProofVerifyGnarkResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ProofVerifyGnarkResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ProofVerifyGnarkResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Verified {
+		i--
+		if m.Verified {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVerifyUltraHonkRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVerifyUltraHonkRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVerifyUltraHonkRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.VkeyId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.VkeyId))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.VkeyName) > 0 {
+		i -= len(m.VkeyName)
+		copy(dAtA[i:], m.VkeyName)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.VkeyName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.PublicInputs) > 0 {
+		i -= len(m.PublicInputs)
+		copy(dAtA[i:], m.PublicInputs)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.PublicInputs)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Proof) > 0 {
+		i -= len(m.Proof)
+		copy(dAtA[i:], m.Proof)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Proof)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVerifyGnarkRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVerifyGnarkRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVerifyGnarkRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.VkeyId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.VkeyId))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.VkeyName) > 0 {
+		i -= len(m.VkeyName)
+		copy(dAtA[i:], m.VkeyName)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.VkeyName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.PublicInputs) > 0 {
+		i -= len(m.PublicInputs)
+		copy(dAtA[i:], m.PublicInputs)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.PublicInputs)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Proof) > 0 {
+		i -= len(m.Proof)
+		copy(dAtA[i:], m.Proof)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Proof)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *VKey) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1466,6 +1986,11 @@ func (m *VKey) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.ProofSystem != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.ProofSystem))
+		i--
+		dAtA[i] = 0x30
+	}
 	if len(m.Authority) > 0 {
 		i -= len(m.Authority)
 		copy(dAtA[i:], m.Authority)
@@ -2006,6 +2531,78 @@ func (m *ProofVerifyResponse) Size() (n int) {
 	return n
 }
 
+func (m *ProofVerifyUltraHonkResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Verified {
+		n += 2
+	}
+	return n
+}
+
+func (m *ProofVerifyGnarkResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Verified {
+		n += 2
+	}
+	return n
+}
+
+func (m *QueryVerifyUltraHonkRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Proof)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.PublicInputs)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.VkeyName)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.VkeyId != 0 {
+		n += 1 + sovQuery(uint64(m.VkeyId))
+	}
+	return n
+}
+
+func (m *QueryVerifyGnarkRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Proof)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.PublicInputs)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.VkeyName)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.VkeyId != 0 {
+		n += 1 + sovQuery(uint64(m.VkeyId))
+	}
+	return n
+}
+
 func (m *VKey) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2031,6 +2628,9 @@ func (m *VKey) Size() (n int) {
 	l = len(m.Authority)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.ProofSystem != 0 {
+		n += 1 + sovQuery(uint64(m.ProofSystem))
 	}
 	return n
 }
@@ -2589,6 +3189,484 @@ func (m *ProofVerifyResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *ProofVerifyUltraHonkResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ProofVerifyUltraHonkResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ProofVerifyUltraHonkResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Verified", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Verified = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ProofVerifyGnarkResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ProofVerifyGnarkResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ProofVerifyGnarkResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Verified", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Verified = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVerifyUltraHonkRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVerifyUltraHonkRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVerifyUltraHonkRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proof = append(m.Proof[:0], dAtA[iNdEx:postIndex]...)
+			if m.Proof == nil {
+				m.Proof = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PublicInputs", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PublicInputs = append(m.PublicInputs[:0], dAtA[iNdEx:postIndex]...)
+			if m.PublicInputs == nil {
+				m.PublicInputs = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VkeyName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyId", wireType)
+			}
+			m.VkeyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.VkeyId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVerifyGnarkRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVerifyGnarkRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVerifyGnarkRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proof = append(m.Proof[:0], dAtA[iNdEx:postIndex]...)
+			if m.Proof == nil {
+				m.Proof = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PublicInputs", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PublicInputs = append(m.PublicInputs[:0], dAtA[iNdEx:postIndex]...)
+			if m.PublicInputs == nil {
+				m.PublicInputs = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VkeyName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VkeyId", wireType)
+			}
+			m.VkeyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.VkeyId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *VKey) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2780,6 +3858,25 @@ func (m *VKey) Unmarshal(dAtA []byte) error {
 			}
 			m.Authority = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofSystem", wireType)
+			}
+			m.ProofSystem = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ProofSystem |= ProofSystem(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])

@@ -27,8 +27,15 @@
 # # Assign a role as a Code Owner:
 # /config/ @@maintainer
 
-* @burnt-labs/burnt-engineering/burnt-protocol
+* @burnt-labs/burnt-protocol
 
-.github/ @burnt-labs/burnt-engineering/burnt-devops
-.goreleaser @burnt-labs/burnt-engineering/burnt-devops
-Dockerfile @burnt-labs/burnt-engineering/burnt-devops
+.github/ @burnt-labs/burnt-devops
+.goreleaser @burnt-labs/burnt-devops
+Dockerfile @burnt-labs/burnt-devops
+Makefile @burnt-labs/burnt-devops
+make/ @burnt-labs/burnt-devops
+scripts/ @burnt-labs/burnt-devops
+
+# Coverage requirements and gates must have DevOps sign-off
+.coveragerc @burnt-labs/burnt-devops
+.codecov.yml @burnt-labs/burnt-devops

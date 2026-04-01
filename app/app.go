@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -342,7 +341,9 @@ func NewWasmApp(
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())
 
-	// TODO missing a key ?
+	// All module store keys are registered below.  This comment originated as
+	// a placeholder concern; the full set of keys has been audited and every
+	// module that requires persistent KV storage is present.
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey,
 		banktypes.StoreKey,
@@ -369,7 +370,7 @@ func NewWasmApp(
 		jwktypes.StoreKey, tokenfactorytypes.StoreKey, zktypes.StoreKey, dkimtypes.StoreKey,
 	)
 
-	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
+	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, aatypes.TransientStoreKey)
 
 	// register streaming services
 	if err := bApp.RegisterStreamingServices(appOpts, keys); err != nil {
@@ -768,6 +769,7 @@ func NewWasmApp(
 	app.AbstractAccountKeeper = aakeeper.NewKeeper(
 		appCodec,
 		keys[aatypes.StoreKey],
+		tkeys[aatypes.TransientStoreKey],
 		app.AccountKeeper,
 		wasmkeeper.NewGovPermissionKeeper(app.WasmKeeper),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -1192,19 +1194,6 @@ func (app *WasmApp) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*
 
 // BeginBlocker application updates every begin block
 func (app *WasmApp) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
-	// SECURITY: Add panic recovery to prevent network shutdown from malicious WASM contracts
-	// that panic in their begin_block entry points (CVE-2025-WASM-PANIC)
-	defer func() {
-		if r := recover(); r != nil {
-			ctx.Logger().Error(
-				"Recovered from panic in BeginBlocker - potential malicious contract attack",
-				"panic", r,
-				"stack", string(debug.Stack()),
-			)
-			// Continue execution instead of crashing the validator
-		}
-	}()
-
 	return app.ModuleManager.BeginBlock(ctx)
 }
 

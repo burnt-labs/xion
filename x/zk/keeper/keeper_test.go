@@ -799,7 +799,7 @@ func TestInitGenesis(t *testing.T) {
 
 		// Add a new key and verify it gets ID 101
 		newVKeyBytes := createTestVKeyBytes("new_key")
-		newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key", newVKeyBytes, "New key")
+		newID, err := f.k.AddVKey(f.ctx, f.govModAddr, "new_key", newVKeyBytes, "New key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 		require.Equal(t, uint64(101), newID)
 	})
@@ -931,11 +931,11 @@ func TestExportGenesis(t *testing.T) {
 
 		// Add some vkeys
 		vkey1Bytes := createTestVKeyBytes("key1")
-		id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key")
+		id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		vkey2Bytes := createTestVKeyBytes("key2")
-		id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key")
+		id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		// Export genesis
@@ -963,11 +963,11 @@ func TestExportGenesis(t *testing.T) {
 
 		// Add vkeys
 		vkey1Bytes := createTestVKeyBytes("key1")
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "First key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		vkey2Bytes := createTestVKeyBytes("key2")
-		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key")
+		_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Second key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		// Export genesis
@@ -1016,7 +1016,7 @@ func TestIterateVKeys(t *testing.T) {
 		// Add multiple vkeys
 		for i := 0; i < 5; i++ {
 			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 			require.NoError(t, err)
 		}
 
@@ -1048,7 +1048,7 @@ func TestIterateVKeys(t *testing.T) {
 		// Add multiple vkeys
 		for i := 0; i < 10; i++ {
 			vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+			_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 			require.NoError(t, err)
 		}
 
@@ -1070,7 +1070,7 @@ func TestIterateVKeys(t *testing.T) {
 
 		// Add a vkey
 		vkeyBytes := createTestVKeyBytes("key1")
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkeyBytes, "Key 1", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		// Iterate with error
@@ -1090,7 +1090,7 @@ func TestIterateVKeys(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			name := fmt.Sprintf("key%d", i)
 			vkeyBytes := createTestVKeyBytes(name)
-			id, err := f.k.AddVKey(f.ctx, f.govModAddr, name, vkeyBytes, fmt.Sprintf("Key %d", i))
+			id, err := f.k.AddVKey(f.ctx, f.govModAddr, name, vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 			require.NoError(t, err)
 			expectedIDs[id] = name
 		}
@@ -1177,7 +1177,7 @@ func TestAddVKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, err := f.k.AddVKey(f.ctx, tt.authority, tt.vkeyName, tt.vkeyBytes, tt.description)
+			id, err := f.k.AddVKey(f.ctx, tt.authority, tt.vkeyName, tt.vkeyBytes, tt.description, types.ProofSystem_PROOF_SYSTEM_GROTH16)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -1204,7 +1204,7 @@ func TestGetVKeyByID(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test verification key")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test verification key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1247,7 +1247,7 @@ func TestGetVKeyByName(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1290,7 +1290,7 @@ func TestGetCircomVKeyByName(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Get as CircomVerificationKey
@@ -1307,7 +1307,7 @@ func TestGetCircomVKeyByID(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	t.Run("successfully get circom vkey by ID", func(t *testing.T) {
@@ -1330,7 +1330,7 @@ func TestHasVKey(t *testing.T) {
 
 	// Add test vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1364,12 +1364,12 @@ func TestUpdateVKey(t *testing.T) {
 
 	// Add initial vkey
 	vkeyBytes := createTestVKeyBytes("email_auth")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Original description", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Add user-owned vkey
 	userVkeyBytes := createTestVKeyBytes("user_auth")
-	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_auth", userVkeyBytes, "User description")
+	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_auth", userVkeyBytes, "User description", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1428,7 +1428,7 @@ func TestUpdateVKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := f.k.UpdateVKey(f.ctx, tt.authority, tt.vkeyName, tt.newBytes, tt.description)
+			err := f.k.UpdateVKey(f.ctx, tt.authority, tt.vkeyName, tt.newBytes, tt.description, types.ProofSystem_PROOF_SYSTEM_GROTH16)
 
 			if tt.expectError {
 				require.Error(t, err)
@@ -1450,15 +1450,15 @@ func TestRemoveVKey(t *testing.T) {
 
 	// Add test vkeys
 	vkey1Bytes := createTestVKeyBytes("key1")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	vkey2Bytes := createTestVKeyBytes("key2")
-	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
+	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	userKeyBytes := createTestVKeyBytes("user_key")
-	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_key", userKeyBytes, "User key")
+	_, err = f.k.AddVKey(f.ctx, f.addrs[0].String(), "user_key", userKeyBytes, "User key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -1533,7 +1533,7 @@ func TestListVKeys(t *testing.T) {
 	// Add multiple vkeys
 	for i := 0; i < 3; i++ {
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 	}
 
@@ -1561,17 +1561,17 @@ func TestSequenceIncrement(t *testing.T) {
 
 	// Add multiple vkeys and verify IDs increment
 	vkey1Bytes := createTestVKeyBytes("key1")
-	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1")
+	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), id1)
 
 	vkey2Bytes := createTestVKeyBytes("key2")
-	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
+	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), id2)
 
 	vkey3Bytes := createTestVKeyBytes("key3")
-	id3, err := f.k.AddVKey(f.ctx, f.govModAddr, "key3", vkey3Bytes, "Key 3")
+	id3, err := f.k.AddVKey(f.ctx, f.govModAddr, "key3", vkey3Bytes, "Key 3", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(3), id3)
 }
@@ -1581,13 +1581,13 @@ func TestSequencePersistence(t *testing.T) {
 
 	// Add first vkey
 	vkey1Bytes := createTestVKeyBytes("key1")
-	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1")
+	id1, err := f.k.AddVKey(f.ctx, f.govModAddr, "key1", vkey1Bytes, "Key 1", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), id1)
 
 	// Add second vkey - sequence should increment
 	vkey2Bytes := createTestVKeyBytes("key2")
-	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2")
+	id2, err := f.k.AddVKey(f.ctx, f.govModAddr, "key2", vkey2Bytes, "Key 2", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(2), id2)
 
@@ -1610,7 +1610,7 @@ func TestNameIndexConsistency(t *testing.T) {
 
 	// Add vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Verify both ID and name access return the same vkey
@@ -1630,7 +1630,7 @@ func TestNameIndexAfterRemoval(t *testing.T) {
 
 	// Add vkey
 	vkeyBytes := createTestVKeyBytes("test_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Remove vkey
@@ -1658,7 +1658,7 @@ func TestEmptyName(t *testing.T) {
 	f := SetupTest(t)
 
 	vkeyBytes := createTestVKeyBytes("")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "", vkeyBytes, "Empty name test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "", vkeyBytes, "Empty name test", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 
 	// Empty names should be allowed at keeper level
 	// Validation should happen at message level
@@ -1679,7 +1679,7 @@ func TestVeryLongName(t *testing.T) {
 	}
 
 	vkeyBytes := createTestVKeyBytes(longName)
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, longName, vkeyBytes, "Long name test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, longName, vkeyBytes, "Long name test", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, id, uint64(0))
 
@@ -1695,7 +1695,7 @@ func TestConcurrentAccess(t *testing.T) {
 	// Add multiple vkeys
 	for i := 1; i < 11; i++ {
 		vkeyBytes := createTestVKeyBytes(fmt.Sprintf("key%d", i))
-		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i))
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, fmt.Sprintf("key%d", i), vkeyBytes, fmt.Sprintf("Key %d", i), types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 	}
 
@@ -1720,7 +1720,7 @@ func TestFullVKeyLifecycle(t *testing.T) {
 
 	// 1. Add vkey
 	vkeyBytes := createTestVKeyBytes("lifecycle_key")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "lifecycle_key", vkeyBytes, "Initial version")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "lifecycle_key", vkeyBytes, "Initial version", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 	require.Equal(t, uint64(1), id)
 
@@ -1741,7 +1741,7 @@ func TestFullVKeyLifecycle(t *testing.T) {
 
 	// 5. Update
 	updatedBytes := createTestVKeyBytes("lifecycle_key")
-	err = f.k.UpdateVKey(f.ctx, f.govModAddr, "lifecycle_key", updatedBytes, "Updated version")
+	err = f.k.UpdateVKey(f.ctx, f.govModAddr, "lifecycle_key", updatedBytes, "Updated version", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// 6. Verify update
@@ -1778,7 +1778,7 @@ func TestCircomVKeyConversion(t *testing.T) {
 
 	// Add vkey
 	vkeyBytes := createTestVKeyBytes("circom_test")
-	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_test", vkeyBytes, "Circom test")
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_test", vkeyBytes, "Circom test", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Get as standard VKey
@@ -1811,7 +1811,7 @@ func TestLoadActualVKeyFile(t *testing.T) {
 	vkeyBytes := loadVKeyFromJSON(t, "testdata/email_auth_vkey.json")
 
 	// Add to keeper
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication from file")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "email_auth", vkeyBytes, "Email authentication from file", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Retrieve and verify
@@ -1856,7 +1856,7 @@ func TestUpdateVKeyEmptyAuthorityFallback(t *testing.T) {
 		// Updating with the keeper's authority should work because empty authority
 		// falls back to keeper authority
 		newBytes := createTestVKeyBytes("empty_auth_key")
-		err := f.k.UpdateVKey(f.ctx, f.govModAddr, "empty_auth_key", newBytes, "Updated description")
+		err := f.k.UpdateVKey(f.ctx, f.govModAddr, "empty_auth_key", newBytes, "Updated description", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.NoError(t, err)
 
 		// Verify update
@@ -1873,7 +1873,7 @@ func TestUpdateVKeyEmptyAuthorityFallback(t *testing.T) {
 
 		// Updating with a different authority should fail
 		newBytes := createTestVKeyBytes("empty_auth_key")
-		err = f.k.UpdateVKey(f.ctx, f.addrs[0].String(), "empty_auth_key", newBytes, "Should fail")
+		err = f.k.UpdateVKey(f.ctx, f.addrs[0].String(), "empty_auth_key", newBytes, "Should fail", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid authority")
 	})
@@ -2005,7 +2005,7 @@ func TestAddVKeyExceedsMaxSize(t *testing.T) {
 
 	// Try to add a vkey that exceeds the max size
 	largeVkeyBytes := createTestVKeyBytes("large_key") // This is larger than 100 bytes
-	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "large_key", largeVkeyBytes, "Large key")
+	_, err = f.k.AddVKey(f.ctx, f.govModAddr, "large_key", largeVkeyBytes, "Large key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "exceeds max")
 }
@@ -2015,7 +2015,7 @@ func TestUpdateVKeyExceedsMaxSize(t *testing.T) {
 
 	// First add a vkey with default params
 	vkeyBytes := createTestVKeyBytes("test_key")
-	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key")
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "test_key", vkeyBytes, "Test key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.NoError(t, err)
 
 	// Now set params with a small max vkey size
@@ -2029,7 +2029,7 @@ func TestUpdateVKeyExceedsMaxSize(t *testing.T) {
 
 	// Try to update the vkey with bytes that exceed the max size
 	largeVkeyBytes := createTestVKeyBytes("test_key") // This is larger than 100 bytes
-	err = f.k.UpdateVKey(f.ctx, f.govModAddr, "test_key", largeVkeyBytes, "Updated key")
+	err = f.k.UpdateVKey(f.ctx, f.govModAddr, "test_key", largeVkeyBytes, "Updated key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "exceeds max")
 }
@@ -2085,4 +2085,458 @@ func TestValidateVKeyBytes(t *testing.T) {
 			}
 		})
 	}
+}
+
+// ============================================================================
+// Gnark Integration Tests
+// ============================================================================
+
+// loadGnarkTestdata loads gnark testdata binary files
+func loadGnarkTestdata(t *testing.T) (vkeyBytes, proofBytes, publicInputBytes []byte) {
+	t.Helper()
+
+	vkeyBytes, err := os.ReadFile("testdata/gnark/vkey.bin")
+	require.NoError(t, err, "failed to load gnark vkey.bin")
+
+	proofBytes, err = os.ReadFile("testdata/gnark/proof.bin")
+	require.NoError(t, err, "failed to load gnark proof.bin")
+
+	publicInputBytes, err = os.ReadFile("testdata/gnark/public_input.bin")
+	require.NoError(t, err, "failed to load gnark public_input.bin")
+
+	return vkeyBytes, proofBytes, publicInputBytes
+}
+
+func TestAddGnarkVKey(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	t.Run("successfully add gnark vkey", func(t *testing.T) {
+		id, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_test_key", vkeyBytes, "Gnark Groth16 test key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, id, uint64(1))
+
+		// Verify the vkey was stored correctly
+		storedVKey, err := f.k.GetVKeyByID(f.ctx, id)
+		require.NoError(t, err)
+		require.Equal(t, "gnark_test_key", storedVKey.Name)
+		require.Equal(t, "Gnark Groth16 test key", storedVKey.Description)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, storedVKey.ProofSystem)
+		require.Equal(t, vkeyBytes, storedVKey.KeyBytes)
+	})
+
+	t.Run("fail to add gnark vkey with invalid bytes", func(t *testing.T) {
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "invalid_gnark_key", []byte("invalid binary data"), "Invalid gnark key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+
+	t.Run("fail to add gnark vkey with circom json format", func(t *testing.T) {
+		circomVkeyBytes := createTestVKeyBytes("circom_key")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_as_gnark", circomVkeyBytes, "Circom key as gnark", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+}
+
+func TestUpdateGnarkVKey(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	// Add initial gnark vkey
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_update_test", vkeyBytes, "Original description", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+	require.NoError(t, err)
+
+	t.Run("successfully update gnark vkey", func(t *testing.T) {
+		err := f.k.UpdateVKey(f.ctx, f.govModAddr, "gnark_update_test", vkeyBytes, "Updated description", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Verify the update
+		updated, err := f.k.GetVKeyByName(f.ctx, "gnark_update_test")
+		require.NoError(t, err)
+		require.Equal(t, "Updated description", updated.Description)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, updated.ProofSystem)
+	})
+
+	t.Run("fail to update gnark vkey with invalid bytes", func(t *testing.T) {
+		err := f.k.UpdateVKey(f.ctx, f.govModAddr, "gnark_update_test", []byte("invalid"), "Invalid update", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+}
+
+func TestVerifyGnark(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, proofBytes, publicInputBytes := loadGnarkTestdata(t)
+
+	t.Run("successfully verify gnark proof", func(t *testing.T) {
+		verified, err := f.k.VerifyGnark(f.ctx, proofBytes, vkeyBytes, publicInputBytes)
+		require.NoError(t, err)
+		require.True(t, verified, "valid gnark proof should verify successfully")
+	})
+
+	t.Run("fail verification with invalid proof", func(t *testing.T) {
+		invalidProof := make([]byte, len(proofBytes))
+		copy(invalidProof, proofBytes)
+		// Corrupt the proof by flipping some bytes
+		invalidProof[0] ^= 0xFF
+		invalidProof[10] ^= 0xFF
+
+		verified, err := f.k.VerifyGnark(f.ctx, invalidProof, vkeyBytes, publicInputBytes)
+		// Either returns error or returns false for invalid proof
+		if err == nil {
+			require.False(t, verified, "corrupted proof should not verify")
+		}
+	})
+
+	t.Run("fail verification with wrong public inputs", func(t *testing.T) {
+		// Create completely different public inputs (all zeros)
+		wrongPublicInputs := make([]byte, len(publicInputBytes))
+		// Keep zeros - this is a completely different value
+
+		verified, err := f.k.VerifyGnark(f.ctx, proofBytes, vkeyBytes, wrongPublicInputs)
+		// Either returns error or returns false for wrong inputs
+		if err == nil {
+			require.False(t, verified, "proof with wrong public inputs should not verify")
+		}
+	})
+
+	t.Run("fail with empty proof", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, []byte{}, vkeyBytes, publicInputBytes)
+		require.Error(t, err)
+	})
+
+	t.Run("fail with empty vkey", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, proofBytes, []byte{}, publicInputBytes)
+		require.Error(t, err)
+	})
+
+	t.Run("fail with malformed vkey bytes", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, proofBytes, []byte("not a valid vkey"), publicInputBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark vkey")
+	})
+
+	t.Run("fail with malformed proof bytes", func(t *testing.T) {
+		_, err := f.k.VerifyGnark(f.ctx, []byte("not a valid proof"), vkeyBytes, publicInputBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark proof")
+	})
+}
+
+func TestProofVerifyGnarkQuery(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, proofBytes, publicInputBytes := loadGnarkTestdata(t)
+
+	// Add gnark vkey first
+	id, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_verify_test", vkeyBytes, "Gnark verification test key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+	require.NoError(t, err)
+
+	t.Run("successfully verify gnark proof by vkey name", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_verify_test",
+		}
+
+		resp, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified, "valid gnark proof should verify successfully")
+	})
+
+	t.Run("successfully verify gnark proof by vkey id", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyId:       id,
+		}
+
+		resp, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified, "valid gnark proof should verify successfully")
+	})
+
+	t.Run("fail verification with corrupted proof", func(t *testing.T) {
+		corruptedProof := make([]byte, len(proofBytes))
+		copy(corruptedProof, proofBytes)
+		corruptedProof[0] ^= 0xFF
+		corruptedProof[20] ^= 0xFF
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        corruptedProof,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_verify_test",
+		}
+
+		resp, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		// Either returns error or verified=false
+		if err == nil {
+			require.False(t, resp.Verified, "corrupted proof should not verify")
+		}
+	})
+
+	t.Run("fail with empty request", func(t *testing.T) {
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "empty request")
+	})
+
+	t.Run("fail with empty proof", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        []byte{},
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_verify_test",
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "proof cannot be empty")
+	})
+
+	t.Run("fail with missing vkey identifier", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "either vkey_name or vkey_id must be provided")
+	})
+
+	t.Run("fail with non-existent vkey name", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "non_existent_key",
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("fail with non-existent vkey id", func(t *testing.T) {
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyId:       9999,
+		}
+
+		_, err := f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not found")
+	})
+
+	t.Run("fail when using circom vkey with gnark verifier", func(t *testing.T) {
+		// Add a circom (non-gnark) vkey
+		circomVkeyBytes := createTestVKeyBytes("circom_key")
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_key_for_gnark_test", circomVkeyBytes, "Circom key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.NoError(t, err)
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes,
+			VkeyName:     "circom_key_for_gnark_test",
+		}
+
+		_, err = f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "verification key is not a gnark Groth16 key")
+	})
+}
+
+func TestGnarkVKeyGenesis(t *testing.T) {
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	t.Run("export genesis with gnark vkey", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add gnark vkey
+		id, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_export_key", vkeyBytes, "Gnark export test", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Export genesis
+		exportedGS := f.k.ExportGenesis(f.ctx)
+		require.NotNil(t, exportedGS)
+		require.Len(t, exportedGS.Vkeys, 1)
+
+		// Verify exported vkey has correct proof system
+		exportedVkey := exportedGS.Vkeys[0]
+		require.Equal(t, id, exportedVkey.Id)
+		require.Equal(t, "gnark_export_key", exportedVkey.Vkey.Name)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, exportedVkey.Vkey.ProofSystem)
+		require.Equal(t, vkeyBytes, exportedVkey.Vkey.KeyBytes)
+	})
+
+	t.Run("export genesis preserves gnark vkey bytes", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add gnark vkey
+		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_bytes_key", vkeyBytes, "Gnark bytes test", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Export genesis
+		exportedGS := f.k.ExportGenesis(f.ctx)
+		require.Len(t, exportedGS.Vkeys, 1)
+
+		// Verify the key bytes are exactly preserved
+		require.Equal(t, vkeyBytes, exportedGS.Vkeys[0].Vkey.KeyBytes)
+	})
+
+	t.Run("export genesis with mixed vkey types", func(t *testing.T) {
+		f := SetupTest(t)
+
+		// Add circom vkey
+		circomVkeyBytes := createTestVKeyBytes("circom_key")
+		circomID, err := f.k.AddVKey(f.ctx, f.govModAddr, "circom_mixed_key", circomVkeyBytes, "Circom key", types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.NoError(t, err)
+
+		// Add gnark vkey
+		gnarkID, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_mixed_key", vkeyBytes, "Gnark key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+
+		// Export genesis
+		exportedGS := f.k.ExportGenesis(f.ctx)
+		require.Len(t, exportedGS.Vkeys, 2)
+
+		// Verify both keys are exported with correct proof systems
+		exportedByID := make(map[uint64]types.VKey)
+		for _, vkeyWithID := range exportedGS.Vkeys {
+			exportedByID[vkeyWithID.Id] = vkeyWithID.Vkey
+		}
+
+		circomExported := exportedByID[circomID]
+		require.Equal(t, "circom_mixed_key", circomExported.Name)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16, circomExported.ProofSystem)
+
+		gnarkExported := exportedByID[gnarkID]
+		require.Equal(t, "gnark_mixed_key", gnarkExported.Name)
+		require.Equal(t, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK, gnarkExported.ProofSystem)
+	})
+}
+
+func TestGnarkProofSizeLimits(t *testing.T) {
+	f := SetupTest(t)
+
+	vkeyBytes, proofBytes, publicInputBytes := loadGnarkTestdata(t)
+
+	// Add gnark vkey
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "gnark_size_test", vkeyBytes, "Size test key", types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+	require.NoError(t, err)
+
+	t.Run("fail with proof exceeding max size", func(t *testing.T) {
+		// Set params with a very small max proof size
+		params := types.Params{
+			MaxVkeySizeBytes:         types.DefaultMaxVKeySizeBytes,
+			UploadChunkSize:          types.DefaultUploadChunkSize,
+			UploadChunkGas:           types.DefaultUploadChunkGas,
+			MaxGnarkProofSizeBytes:   10, // Very small limit
+			MaxGnarkPublicInputSizeBytes: types.DefaultMaxGnarkPublicInputSizeBytes,
+		}
+		err := f.k.SetParams(f.ctx, params)
+		require.NoError(t, err)
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes, // Larger than 10 bytes
+			PublicInputs: publicInputBytes,
+			VkeyName:     "gnark_size_test",
+		}
+
+		_, err = f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "proof size")
+	})
+
+	t.Run("fail with public inputs exceeding max size", func(t *testing.T) {
+		// Reset params with small public input limit
+		params := types.Params{
+			MaxVkeySizeBytes:             types.DefaultMaxVKeySizeBytes,
+			UploadChunkSize:              types.DefaultUploadChunkSize,
+			UploadChunkGas:               types.DefaultUploadChunkGas,
+			MaxGnarkProofSizeBytes:       types.DefaultMaxGnarkProofSizeBytes,
+			MaxGnarkPublicInputSizeBytes: 10, // Very small limit
+		}
+		err := f.k.SetParams(f.ctx, params)
+		require.NoError(t, err)
+
+		req := &types.QueryVerifyGnarkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputBytes, // Larger than 10 bytes
+			VkeyName:     "gnark_size_test",
+		}
+
+		_, err = f.queryServer.ProofVerifyGnark(f.ctx, req)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "public inputs size")
+	})
+}
+
+func TestValidateGnarkVKeyBytes(t *testing.T) {
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+
+	t.Run("valid gnark vkey", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(vkeyBytes, 0)
+		require.NoError(t, err)
+	})
+
+	t.Run("empty vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte{}, 0)
+		require.Error(t, err)
+	})
+
+	t.Run("invalid vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte("invalid binary data"), 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark")
+	})
+
+	t.Run("vkey exceeds max size", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(vkeyBytes, 10) // Very small limit
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "exceeds max")
+	})
+
+	t.Run("circom json as gnark vkey fails", func(t *testing.T) {
+		circomVkeyBytes := createTestVKeyBytes("test")
+		err := types.ValidateGnarkVKeyBytes(circomVkeyBytes, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark")
+	})
+}
+
+func TestValidateVKeyForProofSystem(t *testing.T) {
+	vkeyBytes, _, _ := loadGnarkTestdata(t)
+	circomVkeyBytes := createTestVKeyBytes("circom_test")
+
+	t.Run("gnark vkey with gnark proof system", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(vkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.NoError(t, err)
+	})
+
+	t.Run("circom vkey with groth16 proof system", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(circomVkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.NoError(t, err)
+	})
+
+	t.Run("gnark vkey with groth16 proof system fails", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(vkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16)
+		require.Error(t, err)
+	})
+
+	t.Run("circom vkey with gnark proof system fails", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(circomVkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK)
+		require.Error(t, err)
+	})
+
+	t.Run("unspecified defaults to groth16", func(t *testing.T) {
+		err := types.ValidateVKeyForProofSystem(circomVkeyBytes, 0, types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED)
+		require.NoError(t, err)
+	})
 }

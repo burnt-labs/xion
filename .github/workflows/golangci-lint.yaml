@@ -11,7 +11,7 @@ permissions:
 jobs:
   golangci:
     name: main
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04-4
     steps:
       - name: Check out code
         uses: actions/checkout@v5
@@ -23,6 +23,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ steps.go-version.outputs.version }}
+          cache: false
 
       - name: golangci-lint-xiond
         uses: golangci/golangci-lint-action@v8

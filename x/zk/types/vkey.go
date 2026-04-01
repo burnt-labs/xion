@@ -2,17 +2,79 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/big"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/backend/groth16"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	errorsmod "cosmossdk.io/errors"
 )
 
+// bn254FieldPrime is the prime field modulus for the BN254 curve:
+// p = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+var bn254FieldPrime, _ = new(big.Int).SetString("21888242871839275222246405745257275088696311157297823662689037894645226208583", 10)
+
+// checkBN254FieldCoord validates that a single string coordinate is a valid
+// BN254 field element, i.e. 0 <= coord < p.
+func checkBN254FieldCoord(coord, field string) error {
+	n, ok := new(big.Int).SetString(coord, 10)
+	if !ok {
+		return fmt.Errorf("%s: %q is not a valid integer", field, coord)
+	}
+	if n.Sign() < 0 {
+		return fmt.Errorf("%s: coordinate %q is negative", field, coord)
+	}
+	if n.Cmp(bn254FieldPrime) >= 0 {
+		return fmt.Errorf("%s: coordinate %q is >= BN254 field prime", field, coord)
+	}
+	return nil
+}
+
 func ValidateVKeyByteSize(data []byte, maxSizeBytes uint64) error {
 	if maxSizeBytes > 0 && uint64(len(data)) > maxSizeBytes {
 		return errorsmod.Wrapf(ErrVKeyTooLarge, "vkey size %d exceeds max %d", len(data), maxSizeBytes)
+	}
+	return nil
+}
+
+// ValidateVKeyForProofSystem validates vkey bytes for the given proof system.
+// maxSizeBytes is the maximum allowed size (0 = no limit for Groth16; both systems use it when > 0).
+// Callers: msgs use DefaultMaxVKeySizeBytes; keeper uses params.MaxVkeySizeBytes.
+func ValidateVKeyForProofSystem(vkeyBytes []byte, maxSizeBytes uint64, proofSystem ProofSystem) error {
+	if proofSystem == ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
+		proofSystem = ProofSystem_PROOF_SYSTEM_GROTH16
+	}
+	switch proofSystem {
+	case ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK:
+		return barretenberg.ValidateVerificationKeyBytes(vkeyBytes, maxSizeBytes)
+	case ProofSystem_PROOF_SYSTEM_GROTH16:
+		return ValidateVKeyBytes(vkeyBytes, maxSizeBytes)
+	case ProofSystem_PROOF_SYSTEM_GROTH16_GNARK:
+		return ValidateGnarkVKeyBytes(vkeyBytes, maxSizeBytes)
+	default:
+		return fmt.Errorf("proof_system must be %v, %v, or %v, got %v",
+			ProofSystem_PROOF_SYSTEM_GROTH16,
+			ProofSystem_PROOF_SYSTEM_GROTH16_GNARK,
+			ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK,
+			proofSystem)
+	}
+}
+
+// ValidateGnarkVKeyBytes validates that the vkey bytes represent a valid gnark Groth16 VerifyingKey (BN254).
+func ValidateGnarkVKeyBytes(data []byte, maxSizeBytes uint64) error {
+	if err := ValidateVKeyByteSize(data, maxSizeBytes); err != nil {
+		return err
+	}
+	// Attempt to deserialize as gnark groth16.VerifyingKey for BN254
+	vk := groth16.NewVerifyingKey(ecc.BN254)
+	_, err := vk.ReadFrom(bytes.NewReader(data))
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidVKey, "failed to parse gnark BN254 verification key: %v", err)
 	}
 	return nil
 }
@@ -97,6 +159,53 @@ func validateCircomVerificationKey(vk *parser.CircomVerificationKey) error {
 	for i, icPoint := range vk.IC {
 		if len(icPoint) < 2 {
 			return fmt.Errorf("invalid IC[%d]: expected at least 2 coordinates, got %d", i, len(icPoint))
+		}
+	}
+
+	// SEC-21: Validate all G1 and G2 point coordinates are within the BN254 field.
+	// Only the affine (x, y) coordinates are validated; the projective Z-coordinate
+	// at index 2 ("1" or "0") is intentionally skipped.
+	for j, coord := range vk.VkAlpha1[:2] {
+		if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkAlpha1[%d]", j)); err != nil {
+			return err
+		}
+	}
+	// G2 generators (VkBeta2, VkGamma2, VkDelta2) are points on the BN254 G2 curve,
+	// which is defined over Fp2 — a degree-2 extension of the base field. Each
+	// coordinate (x and y) therefore consists of two Fp components: [c0, c1]. Both
+	// components must be valid BN254 field elements, so the inner loop ranges over
+	// all elements in each row. The outer loop is bounded to 2 to skip the
+	// projective Z-row that may be present in extended representations.
+	for i := 0; i < 2 && i < len(vk.VkBeta2); i++ {
+		for j, coord := range vk.VkBeta2[i] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkBeta2[%d][%d]", i, j)); err != nil {
+				return err
+			}
+		}
+	}
+	for i := 0; i < 2 && i < len(vk.VkGamma2); i++ {
+		for j, coord := range vk.VkGamma2[i] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkGamma2[%d][%d]", i, j)); err != nil {
+				return err
+			}
+		}
+	}
+	for i := 0; i < 2 && i < len(vk.VkDelta2); i++ {
+		for j, coord := range vk.VkDelta2[i] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("VkDelta2[%d][%d]", i, j)); err != nil {
+				return err
+			}
+		}
+	}
+	// IC points are G1 affine points serialised as [x, y, z] where z is the
+	// projective Z-coordinate (always "1" for affine, "0" for the point at
+	// infinity). Index 2 is not a BN254 field element in the cryptographic sense,
+	// so [:2] limits validation to only the affine x and y coordinates.
+	for i, icPoint := range vk.IC {
+		for j, coord := range icPoint[:2] {
+			if err := checkBN254FieldCoord(coord, fmt.Sprintf("IC[%d][%d]", i, j)); err != nil {
+				return err
+			}
 		}
 	}
 

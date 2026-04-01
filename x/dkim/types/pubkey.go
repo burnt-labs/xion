@@ -6,23 +6,28 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 )
 
 // ParseRSAPublicKey parses PKIX or PKCS#1-encoded RSA public key bytes.
+// It does NOT enforce a minimum key size; that is done by
+// ValidateDkimPubKeysWithRevocation.
 func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
+	var rsaPub *rsa.PublicKey
+
 	pub, err := x509.ParsePKIXPublicKey(pubKeyBytes)
 	if err == nil {
-		rsaPub, ok := pub.(*rsa.PublicKey)
+		key, ok := pub.(*rsa.PublicKey)
 		if !ok {
 			return nil, ErrNotRSAKey
 		}
-		return rsaPub, nil
-	}
-
-	rsaPub, err := x509.ParsePKCS1PublicKey(pubKeyBytes)
-	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
+		rsaPub = key
+	} else {
+		key, err := x509.ParsePKCS1PublicKey(pubKeyBytes)
+		if err != nil {
+			return nil, errorsmod.Wrapf(ErrInvalidPubKey, "failed to parse public key: %s", err)
+		}
+		rsaPub = key
 	}
 
 	return rsaPub, nil
@@ -34,7 +39,7 @@ func ParseRSAPublicKey(pubKeyBytes []byte) (*rsa.PublicKey, error) {
 // The function:
 //   - Marshals the RSA public key using PKCS#1 via x509.MarshalPKCS1PublicKey to obtain
 //     a stable, canonical byte representation of the key, independent of the original
-//     input encoding (for example, PKIX vs PKCS#1).
+//     input encoding (for example, PKIX vs PKCS#1)
 //   - Hashes those bytes using SHA-256.
 //   - Encodes the resulting 32-byte SHA-256 digest using standard base64 encoding.
 //

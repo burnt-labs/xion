@@ -84,3 +84,15 @@ We are committed to sharing security issues and bugs with the CosmWasm community
 
 We appreciate responsible disclosure and will credit security researchers who help us improve the security of Xion. Recognition will be included in our security bulletins and may be featured in our communications.
 
+## Frequently Raised Non-Issues
+
+The following design decisions are sometimes reported as vulnerabilities but are intentional and will not be changed:
+
+### DKIM public keys stored on-chain
+
+The `x/dkim` module stores RSA public keys on-chain.  These are **public** keys — the same data that any mail server operator publishes in DNS TXT records.  Storing them on-chain enables trustless DKIM verification inside ZK circuits and is a core feature of the Xion email-based account system.  There is no private key material stored anywhere in the module or on-chain state.
+
+### Bank MsgSend platform fee exemption is a governance parameter
+
+The platform fee applied to `MsgSend` transactions can be set to zero for specific addresses (e.g. protocol contracts) via a governance parameter.  This is an intentional administrative mechanism, not a privilege escalation.  Any change to the exemption list requires an on-chain governance vote and is fully auditable in the transaction history.
+

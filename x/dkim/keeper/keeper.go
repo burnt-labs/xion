@@ -160,7 +160,7 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	for ; revokedIter.Valid(); revokedIter.Next() {
 		key, err := revokedIter.Key()
 		if err != nil {
-			continue
+			panic(err)
 		}
 		revokedPubKeys = append(revokedPubKeys, key)
 	}

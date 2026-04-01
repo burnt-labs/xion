@@ -2578,14 +2578,17 @@ func (x *GenesisState) GetRevokedPubkeys() []string {
 	return nil
 }
 
-// IndexRange defines a range of indices [start, end) in the public inputs array.
+// IndexRange defines a range of indices [start, end) in the public inputs
+// array.
 type IndexRange struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// start is the inclusive lower bound of the index range.
 	Start uint64 `protobuf:"varint,1,opt,name=start,proto3" json:"start,omitempty"`
-	End   uint64 `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`
+	// end is the exclusive upper bound of the index range.
+	End uint64 `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`
 }
 
 func (x *IndexRange) Reset() {
@@ -2622,18 +2625,28 @@ func (x *IndexRange) GetEnd() uint64 {
 	return 0
 }
 
-// PublicInputIndices defines the indices for extracting data from public inputs.
+// PublicInputIndices defines the indices for extracting data from public
+// inputs.
 type PublicInputIndices struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MinLength         uint64      `protobuf:"varint,1,opt,name=min_length,json=minLength,proto3" json:"min_length,omitempty"`
-	EmailHashIndex    uint64      `protobuf:"varint,2,opt,name=email_hash_index,json=emailHashIndex,proto3" json:"email_hash_index,omitempty"`
-	DkimDomainRange   *IndexRange `protobuf:"bytes,3,opt,name=dkim_domain_range,json=dkimDomainRange,proto3" json:"dkim_domain_range,omitempty"`
-	DkimHashIndex     uint64      `protobuf:"varint,4,opt,name=dkim_hash_index,json=dkimHashIndex,proto3" json:"dkim_hash_index,omitempty"`
-	TxBytesRange      *IndexRange `protobuf:"bytes,5,opt,name=tx_bytes_range,json=txBytesRange,proto3" json:"tx_bytes_range,omitempty"`
-	EmailHostRange    *IndexRange `protobuf:"bytes,6,opt,name=email_host_range,json=emailHostRange,proto3" json:"email_host_range,omitempty"`
+	// min_length is the minimum required length of the public inputs array.
+	MinLength uint64 `protobuf:"varint,1,opt,name=min_length,json=minLength,proto3" json:"min_length,omitempty"`
+	// email_hash_index is the index of the email hash in the public inputs.
+	EmailHashIndex uint64 `protobuf:"varint,2,opt,name=email_hash_index,json=emailHashIndex,proto3" json:"email_hash_index,omitempty"`
+	// dkim_domain_range is the index range for the DKIM domain in public inputs.
+	DkimDomainRange *IndexRange `protobuf:"bytes,3,opt,name=dkim_domain_range,json=dkimDomainRange,proto3" json:"dkim_domain_range,omitempty"`
+	// dkim_hash_index is the index of the DKIM signature hash in public inputs.
+	DkimHashIndex uint64 `protobuf:"varint,4,opt,name=dkim_hash_index,json=dkimHashIndex,proto3" json:"dkim_hash_index,omitempty"`
+	// tx_bytes_range is the index range for the transaction bytes in public
+	// inputs.
+	TxBytesRange *IndexRange `protobuf:"bytes,5,opt,name=tx_bytes_range,json=txBytesRange,proto3" json:"tx_bytes_range,omitempty"`
+	// email_host_range is the index range for the email host in public inputs.
+	EmailHostRange *IndexRange `protobuf:"bytes,6,opt,name=email_host_range,json=emailHostRange,proto3" json:"email_host_range,omitempty"`
+	// email_subject_range is the index range for the email subject in public
+	// inputs.
 	EmailSubjectRange *IndexRange `protobuf:"bytes,7,opt,name=email_subject_range,json=emailSubjectRange,proto3" json:"email_subject_range,omitempty"`
 }
 
@@ -2717,7 +2730,8 @@ type Params struct {
 	// max_pubkey_size_bytes caps the allowed DKIM public key size (base64
 	// decoded).
 	MaxPubkeySizeBytes uint64 `protobuf:"varint,2,opt,name=max_pubkey_size_bytes,json=maxPubkeySizeBytes,proto3" json:"max_pubkey_size_bytes,omitempty"`
-	// public_input_indices defines the indices for extracting data from public inputs.
+	// public_input_indices defines the indices for extracting data from public
+	// inputs.
 	PublicInputIndices *PublicInputIndices `protobuf:"bytes,3,opt,name=public_input_indices,json=publicInputIndices,proto3" json:"public_input_indices,omitempty"`
 }
 

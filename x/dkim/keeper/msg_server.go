@@ -57,7 +57,7 @@ func (ms msgServer) AddDkimPubKeys(ctx context.Context, msg *types.MsgAddDkimPub
 	// Validate all DKIM public keys before saving
 	if err := types.ValidateDkimPubKeysWithRevocation(ctx, msg.DkimPubkeys, params, func(c context.Context, pubKey string) (bool, error) {
 		return ms.k.RevokedKeys.Has(c, pubKey)
-	}); err != nil {
+	}, true); err != nil {
 		return nil, err
 	}
 
@@ -95,6 +95,11 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	// providing a domain and private key revokes all pubkeys for that domain
 	// that match the private key
 
+	params, err := ms.k.GetParams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var privateKey *rsa.PrivateKey
 	d, _ := pem.Decode(msg.PrivKey)
 	if d == nil {
@@ -120,7 +125,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 		return nil, err
 	}
 
-	iter, err := ms.k.DkimPubKeys.Iterate(ctx, nil)
+	iter, err := ms.k.DkimPubKeys.Iterate(ctx, collections.NewPrefixedPairRange[string, string](msg.Domain))
 	if err != nil {
 		return nil, err
 	}
@@ -132,10 +137,7 @@ func (ms msgServer) RevokeDkimPubKey(ctx context.Context, msg *types.MsgRevokeDk
 	}
 	revoked := false
 	for i := range kvs {
-		if kvs[i].Value.Domain != msg.Domain {
-			continue
-		}
-		pubKeyBytes, err := types.DecodePubKey(kvs[i].Value.PubKey)
+		pubKeyBytes, err := types.DecodePubKeyWithLimit(kvs[i].Value.PubKey, params.MaxPubkeySizeBytes)
 		if err != nil {
 			return nil, err
 		}

@@ -58,6 +58,20 @@ func TestMsgCreateAudience(t *testing.T) {
 			key:       `{"kty":"oct","alg":"HS256","k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow"}`,
 			expectErr: true,
 		},
+		{
+			name:      "kty=oct with RSA algorithm (kty/alg mismatch)",
+			admin:     admin,
+			aud:       "test-audience",
+			key:       `{"kty":"oct","alg":"RS256","k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow"}`,
+			expectErr: true,
+		},
+		{
+			name:      "kty=RSA with EC algorithm (kty/alg mismatch)",
+			admin:     admin,
+			aud:       "test-audience",
+			key:       `{"kty":"RSA","alg":"ES256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw","e":"AQAB"}`,
+			expectErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -204,7 +218,8 @@ func TestMsgCreateAudienceClaim(t *testing.T) {
 func TestMsgDeleteAudienceClaim(t *testing.T) {
 	adminAddr := authtypes.NewModuleAddress(govtypes.ModuleName)
 	admin := adminAddr.String()
-	hash := []byte("test-hash")
+	hash := make([]byte, 32) // valid 32-byte SHA256 hash
+	copy(hash, []byte("test-hash"))
 
 	msg := types.NewMsgDeleteAudienceClaim(adminAddr, hash)
 
@@ -369,6 +384,26 @@ func TestMsgUpdateAudienceValidation(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "kty=oct with RSA algorithm (kty/alg mismatch)",
+			msg: types.MsgUpdateAudience{
+				Admin:    validAdmin,
+				NewAdmin: validNewAdmin,
+				Aud:      "test-audience",
+				Key:      `{"kty":"oct","alg":"RS256","k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow"}`,
+			},
+			wantErr: true,
+		},
+		{
+			name: "kty=RSA with EC algorithm (kty/alg mismatch)",
+			msg: types.MsgUpdateAudience{
+				Admin:    validAdmin,
+				NewAdmin: validNewAdmin,
+				Aud:      "test-audience",
+				Key:      `{"kty":"RSA","alg":"ES256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbIS","e":"AQAB","kid":"test-key"}`,
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -478,4 +513,71 @@ func TestMsgCreateAudienceClaimValidation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMsgCreateAudienceSizeLimits(t *testing.T) {
+	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	validKey := `{"kty":"RSA","use":"sig","kid":"test","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw","e":"AQAB"}`
+
+	t.Run("key exceeding 8KB limit", func(t *testing.T) {
+		oversizedKey := make([]byte, types.MaxJWKKeySize+1)
+		for i := range oversizedKey {
+			oversizedKey[i] = 'a'
+		}
+		msg := types.NewMsgCreateAudience(admin, "test-aud", string(oversizedKey))
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "exceeds maximum")
+	})
+
+	t.Run("aud exceeding 512 byte limit", func(t *testing.T) {
+		oversizedAud := make([]byte, types.MaxAudSize+1)
+		for i := range oversizedAud {
+			oversizedAud[i] = 'a'
+		}
+		msg := types.NewMsgCreateAudience(admin, string(oversizedAud), validKey)
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "exceeds maximum")
+	})
+
+	t.Run("key at exact 8KB limit is accepted for parsing", func(t *testing.T) {
+		// A key of exactly MaxJWKKeySize passes the size check but will fail JWK parsing
+		maxKey := make([]byte, types.MaxJWKKeySize)
+		for i := range maxKey {
+			maxKey[i] = 'a'
+		}
+		msg := types.NewMsgCreateAudience(admin, "test-aud", string(maxKey))
+		err := msg.ValidateBasic()
+		// Should fail on JWK parse, not size limit
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid jwk")
+	})
+
+	t.Run("aud at exact 512 byte limit", func(t *testing.T) {
+		exactAud := make([]byte, types.MaxAudSize)
+		for i := range exactAud {
+			exactAud[i] = 'a'
+		}
+		msg := types.NewMsgCreateAudience(admin, string(exactAud), validKey)
+		err := msg.ValidateBasic()
+		// Should pass size check (valid aud + valid key)
+		require.NoError(t, err)
+	})
+}
+
+func TestMsgUpdateAudienceNewAudSizeLimit(t *testing.T) {
+	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	validKey := `{"kty":"RSA","use":"sig","kid":"test","alg":"RS256","n":"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw","e":"AQAB"}`
+
+	t.Run("new_aud exceeding 512 byte limit", func(t *testing.T) {
+		oversizedAud := make([]byte, types.MaxAudSize+1)
+		for i := range oversizedAud {
+			oversizedAud[i] = 'a'
+		}
+		msg := types.NewMsgUpdateAudience(admin, admin, "test-aud", string(oversizedAud), validKey)
+		err := msg.ValidateBasic()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "new_aud length")
+	})
 }

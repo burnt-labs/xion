@@ -855,6 +855,272 @@ func (m *QueryValidateJWTResponse) GetPrivateClaims() []*PrivateClaim {
 	return nil
 }
 
+// QueryVerifyJWSRequest is the request type for verifying a JWS signature
+type QueryVerifyJWSRequest struct {
+	// The audience identifier
+	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The JWS signature bytes in compact serialization format
+	SigBytes string `protobuf:"bytes,2,opt,name=sig_bytes,json=sigBytes,proto3" json:"sig_bytes,omitempty"`
+}
+
+func (m *QueryVerifyJWSRequest) Reset()         { *m = QueryVerifyJWSRequest{} }
+func (m *QueryVerifyJWSRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryVerifyJWSRequest) ProtoMessage()    {}
+func (*QueryVerifyJWSRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{17}
+}
+func (m *QueryVerifyJWSRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVerifyJWSRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVerifyJWSRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVerifyJWSRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVerifyJWSRequest.Merge(m, src)
+}
+func (m *QueryVerifyJWSRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVerifyJWSRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVerifyJWSRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVerifyJWSRequest proto.InternalMessageInfo
+
+func (m *QueryVerifyJWSRequest) GetAud() string {
+	if m != nil {
+		return m.Aud
+	}
+	return ""
+}
+
+func (m *QueryVerifyJWSRequest) GetSigBytes() string {
+	if m != nil {
+		return m.SigBytes
+	}
+	return ""
+}
+
+// QueryVerifyJWSResponse is the response type for verifying a JWS signature
+type QueryVerifyJWSResponse struct {
+	// The verified payload bytes extracted from the JWS
+	Payload []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+}
+
+func (m *QueryVerifyJWSResponse) Reset()         { *m = QueryVerifyJWSResponse{} }
+func (m *QueryVerifyJWSResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryVerifyJWSResponse) ProtoMessage()    {}
+func (*QueryVerifyJWSResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{18}
+}
+func (m *QueryVerifyJWSResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVerifyJWSResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVerifyJWSResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVerifyJWSResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVerifyJWSResponse.Merge(m, src)
+}
+func (m *QueryVerifyJWSResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVerifyJWSResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVerifyJWSResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVerifyJWSResponse proto.InternalMessageInfo
+
+func (m *QueryVerifyJWSResponse) GetPayload() []byte {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+// QueryDecodeJWTRequest is the request type for decoding a JWT
+type QueryDecodeJWTRequest struct {
+	// The audience identifier
+	Aud string `protobuf:"bytes,1,opt,name=aud,proto3" json:"aud,omitempty"`
+	// The subject
+	Sub string `protobuf:"bytes,2,opt,name=sub,proto3" json:"sub,omitempty"`
+	// The signature bytes (compact JWT)
+	SigBytes string `protobuf:"bytes,3,opt,name=sig_bytes,json=sigBytes,proto3" json:"sig_bytes,omitempty"`
+}
+
+func (m *QueryDecodeJWTRequest) Reset()         { *m = QueryDecodeJWTRequest{} }
+func (m *QueryDecodeJWTRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDecodeJWTRequest) ProtoMessage()    {}
+func (*QueryDecodeJWTRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{19}
+}
+func (m *QueryDecodeJWTRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryDecodeJWTRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryDecodeJWTRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryDecodeJWTRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDecodeJWTRequest.Merge(m, src)
+}
+func (m *QueryDecodeJWTRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryDecodeJWTRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDecodeJWTRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryDecodeJWTRequest proto.InternalMessageInfo
+
+func (m *QueryDecodeJWTRequest) GetAud() string {
+	if m != nil {
+		return m.Aud
+	}
+	return ""
+}
+
+func (m *QueryDecodeJWTRequest) GetSub() string {
+	if m != nil {
+		return m.Sub
+	}
+	return ""
+}
+
+func (m *QueryDecodeJWTRequest) GetSigBytes() string {
+	if m != nil {
+		return m.SigBytes
+	}
+	return ""
+}
+
+// JWTClaim represents a single JWT claim (standard or private)
+type JWTClaim struct {
+	// The claim key
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// The claim value (stringified)
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (m *JWTClaim) Reset()         { *m = JWTClaim{} }
+func (m *JWTClaim) String() string { return proto.CompactTextString(m) }
+func (*JWTClaim) ProtoMessage()    {}
+func (*JWTClaim) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{20}
+}
+func (m *JWTClaim) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *JWTClaim) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_JWTClaim.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *JWTClaim) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_JWTClaim.Merge(m, src)
+}
+func (m *JWTClaim) XXX_Size() int {
+	return m.Size()
+}
+func (m *JWTClaim) XXX_DiscardUnknown() {
+	xxx_messageInfo_JWTClaim.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_JWTClaim proto.InternalMessageInfo
+
+func (m *JWTClaim) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *JWTClaim) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+// QueryDecodeJWTResponse is the response type for decoding a JWT
+type QueryDecodeJWTResponse struct {
+	// All claims from the JWT (standard and private), sorted by key
+	Claims []*JWTClaim `protobuf:"bytes,1,rep,name=claims,proto3" json:"claims,omitempty"`
+}
+
+func (m *QueryDecodeJWTResponse) Reset()         { *m = QueryDecodeJWTResponse{} }
+func (m *QueryDecodeJWTResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDecodeJWTResponse) ProtoMessage()    {}
+func (*QueryDecodeJWTResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6aa237fef6ed9f02, []int{21}
+}
+func (m *QueryDecodeJWTResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryDecodeJWTResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryDecodeJWTResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryDecodeJWTResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDecodeJWTResponse.Merge(m, src)
+}
+func (m *QueryDecodeJWTResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryDecodeJWTResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDecodeJWTResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryDecodeJWTResponse proto.InternalMessageInfo
+
+func (m *QueryDecodeJWTResponse) GetClaims() []*JWTClaim {
+	if m != nil {
+		return m.Claims
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "xion.jwk.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "xion.jwk.v1.QueryParamsResponse")
@@ -873,60 +1139,75 @@ func init() {
 	proto.RegisterType((*QueryValidateJWTRequest)(nil), "xion.jwk.v1.QueryValidateJWTRequest")
 	proto.RegisterType((*PrivateClaim)(nil), "xion.jwk.v1.PrivateClaim")
 	proto.RegisterType((*QueryValidateJWTResponse)(nil), "xion.jwk.v1.QueryValidateJWTResponse")
+	proto.RegisterType((*QueryVerifyJWSRequest)(nil), "xion.jwk.v1.QueryVerifyJWSRequest")
+	proto.RegisterType((*QueryVerifyJWSResponse)(nil), "xion.jwk.v1.QueryVerifyJWSResponse")
+	proto.RegisterType((*QueryDecodeJWTRequest)(nil), "xion.jwk.v1.QueryDecodeJWTRequest")
+	proto.RegisterType((*JWTClaim)(nil), "xion.jwk.v1.JWTClaim")
+	proto.RegisterType((*QueryDecodeJWTResponse)(nil), "xion.jwk.v1.QueryDecodeJWTResponse")
 }
 
 func init() { proto.RegisterFile("xion/jwk/v1/query.proto", fileDescriptor_6aa237fef6ed9f02) }
 
 var fileDescriptor_6aa237fef6ed9f02 = []byte{
-	// 764 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0x4d, 0x4f, 0xdb, 0x4a,
-	0x14, 0x8d, 0xf9, 0x12, 0xdc, 0xc0, 0x13, 0x1a, 0x82, 0x08, 0x7e, 0xbc, 0x00, 0xd6, 0x2b, 0xa0,
-	0x56, 0xf5, 0x10, 0x2a, 0xd1, 0x2d, 0x50, 0xa9, 0x54, 0x5d, 0x54, 0xc1, 0xad, 0x5a, 0x09, 0x55,
-	0x42, 0xe3, 0x64, 0x64, 0x4c, 0x1c, 0xdb, 0x64, 0x6c, 0x43, 0x84, 0xd8, 0x74, 0xd7, 0x5d, 0xd5,
-	0x6e, 0xfb, 0x83, 0x58, 0x22, 0x75, 0xd3, 0x55, 0x55, 0x41, 0x7f, 0x46, 0x17, 0x95, 0x67, 0xc6,
-	0xc4, 0x26, 0x4e, 0x41, 0x6d, 0x17, 0xdd, 0x44, 0xe3, 0x99, 0x73, 0xcf, 0x39, 0x73, 0xe7, 0xde,
-	0xab, 0xc0, 0xcc, 0xb1, 0xed, 0xb9, 0xf8, 0xe0, 0xa8, 0x89, 0xa3, 0x2a, 0x3e, 0x0c, 0x69, 0xbb,
-	0xa3, 0xfb, 0x6d, 0x2f, 0xf0, 0x50, 0x31, 0x3e, 0xd0, 0x0f, 0x8e, 0x9a, 0x7a, 0x54, 0x55, 0x4b,
-	0x96, 0x67, 0x79, 0x7c, 0x1f, 0xc7, 0x2b, 0x01, 0x51, 0xe7, 0x2c, 0xcf, 0xb3, 0x1c, 0x8a, 0x89,
-	0x6f, 0x63, 0xe2, 0xba, 0x5e, 0x40, 0x02, 0xdb, 0x73, 0x99, 0x3c, 0xbd, 0x5b, 0xf7, 0x58, 0xcb,
-	0x63, 0xd8, 0x24, 0x8c, 0x0a, 0x66, 0x1c, 0x55, 0x4d, 0x1a, 0x90, 0x2a, 0xf6, 0x89, 0x65, 0xbb,
-	0x1c, 0x2c, 0xb1, 0xe5, 0xb4, 0x0b, 0x9f, 0xb4, 0x49, 0x2b, 0x61, 0x51, 0xd3, 0x27, 0x24, 0x6c,
-	0xd8, 0xd4, 0xad, 0x53, 0x71, 0xa6, 0x95, 0x00, 0xed, 0xc4, 0xbc, 0x35, 0x1e, 0x60, 0xd0, 0xc3,
-	0x90, 0xb2, 0x40, 0x7b, 0x02, 0x53, 0x99, 0x5d, 0xe6, 0x7b, 0x2e, 0xa3, 0xa8, 0x0a, 0x23, 0x82,
-	0xb8, 0xac, 0x2c, 0x28, 0x2b, 0xc5, 0xb5, 0x29, 0x3d, 0x75, 0x41, 0x5d, 0x80, 0xb7, 0x86, 0xce,
-	0xbe, 0xcc, 0x17, 0x0c, 0x09, 0xd4, 0x30, 0xcc, 0x72, 0xa6, 0x4d, 0x29, 0xfb, 0xc8, 0x21, 0x76,
-	0x4b, 0xca, 0x20, 0x04, 0x43, 0xfb, 0x84, 0xed, 0x73, 0xb6, 0x71, 0x83, 0xaf, 0xb5, 0x67, 0xa0,
-	0xe6, 0x05, 0x48, 0x07, 0xab, 0x30, 0x5c, 0x8f, 0x37, 0xa4, 0x01, 0x35, 0x63, 0x20, 0x1b, 0x22,
-	0x80, 0xda, 0x1a, 0xcc, 0x71, 0xbe, 0x6d, 0x1a, 0xdc, 0xda, 0xc3, 0x0e, 0xfc, 0xd7, 0x27, 0xe6,
-	0x97, 0x6d, 0xac, 0x40, 0x29, 0x73, 0xad, 0x44, 0x7e, 0x12, 0x06, 0x49, 0xd8, 0xe0, 0x3c, 0x63,
-	0x46, 0xbc, 0xd4, 0x6a, 0x30, 0x7d, 0x0d, 0x29, 0x45, 0x1f, 0xc2, 0x68, 0xf2, 0x78, 0x52, 0x77,
-	0x3a, 0x57, 0x57, 0xbe, 0xc0, 0x15, 0x58, 0xbb, 0x07, 0x33, 0xd7, 0xaf, 0xd3, 0x5f, 0xfe, 0x39,
-	0x94, 0x7b, 0xc1, 0xbf, 0xeb, 0x80, 0x48, 0x07, 0x09, 0x60, 0xd3, 0x71, 0x12, 0x07, 0x8f, 0x01,
-	0xba, 0xa5, 0x2c, 0x59, 0x97, 0x74, 0x51, 0xf7, 0x7a, 0x5c, 0xf7, 0xba, 0xe8, 0x28, 0x59, 0xf7,
-	0x7a, 0x8d, 0x58, 0x89, 0x7b, 0x23, 0x15, 0xa9, 0x7d, 0x54, 0xa4, 0xf1, 0x8c, 0x46, 0xae, 0xf1,
-	0xc1, 0x5b, 0x1b, 0x47, 0xdb, 0x19, 0x77, 0x03, 0xdc, 0xdd, 0xf2, 0x8d, 0xee, 0x84, 0x6a, 0xc6,
-	0xde, 0x55, 0x06, 0x1c, 0xe7, 0xfa, 0x1b, 0xfc, 0xf9, 0x0c, 0xa4, 0x35, 0xfe, 0x9a, 0x0c, 0xec,
-	0xca, 0x0c, 0xbc, 0x24, 0x8e, 0xdd, 0x20, 0x01, 0x7d, 0xfa, 0xea, 0x45, 0xdf, 0x2a, 0x8c, 0x77,
-	0x58, 0x68, 0x72, 0xb9, 0x31, 0x23, 0x5e, 0xa2, 0x7f, 0x61, 0x8c, 0xd9, 0xd6, 0x9e, 0xd9, 0x09,
-	0x28, 0x2b, 0x0f, 0xf2, 0xfd, 0x51, 0x66, 0x5b, 0x5b, 0xf1, 0xb7, 0xb6, 0x0e, 0xe3, 0xb5, 0xb6,
-	0x1d, 0x91, 0x40, 0x34, 0x5d, 0x1c, 0xde, 0xa4, 0x9d, 0x84, 0xb0, 0x49, 0x3b, 0xa8, 0x04, 0xc3,
-	0x11, 0x71, 0x42, 0x2a, 0x29, 0xc5, 0x87, 0xf6, 0x5a, 0x66, 0x2c, 0xe3, 0x49, 0x66, 0x6c, 0x03,
-	0xfe, 0xf1, 0x05, 0xe7, 0x1e, 0x6f, 0x61, 0x26, 0xf3, 0x36, 0x9b, 0x1d, 0x7a, 0x29, 0x59, 0x63,
-	0xc2, 0x4f, 0x7d, 0xb1, 0xb5, 0xef, 0x43, 0x30, 0xcc, 0xe9, 0x11, 0x85, 0x11, 0x31, 0x1d, 0xd1,
-	0x7c, 0x26, 0xba, 0x77, 0xf4, 0xaa, 0x0b, 0xfd, 0x01, 0xc2, 0x98, 0x56, 0x7e, 0xf3, 0xe9, 0xdb,
-	0x87, 0x01, 0x84, 0x26, 0xf1, 0xd5, 0x5c, 0x17, 0xc3, 0x16, 0xbd, 0x55, 0x60, 0x22, 0x33, 0x7d,
-	0xd0, 0x52, 0x2f, 0x5b, 0xde, 0x14, 0x54, 0x97, 0x6f, 0xc4, 0x49, 0xf1, 0x65, 0x2e, 0xbe, 0x88,
-	0xe6, 0xbb, 0xe2, 0x49, 0xa9, 0x88, 0x34, 0xe1, 0x93, 0x78, 0x84, 0x9e, 0x22, 0x06, 0xa3, 0x09,
-	0x03, 0x5a, 0xec, 0xcf, 0x9e, 0x18, 0xd0, 0x7e, 0x06, 0x91, 0xda, 0x0b, 0x5c, 0x5b, 0x45, 0xe5,
-	0x5e, 0x6d, 0x7c, 0x42, 0xc2, 0xc6, 0x29, 0x8a, 0xa0, 0x98, 0x6a, 0x7f, 0xf4, 0x7f, 0x7f, 0xd2,
-	0xee, 0x04, 0x52, 0xef, 0xdc, 0x80, 0x92, 0xea, 0x2a, 0x57, 0x2f, 0x21, 0xd4, 0xab, 0x8e, 0xde,
-	0x2b, 0x50, 0x4c, 0xd5, 0x50, 0x9e, 0x70, 0x6f, 0xd9, 0xe7, 0x09, 0xe7, 0x14, 0xa2, 0xb6, 0xce,
-	0x85, 0x57, 0x91, 0xde, 0x15, 0x8e, 0x24, 0x6c, 0xef, 0xe0, 0x28, 0x10, 0x57, 0xc7, 0x27, 0x2c,
-	0x34, 0xe3, 0xdf, 0xa4, 0x47, 0x4e, 0xb7, 0x36, 0xce, 0x2e, 0x2a, 0xca, 0xf9, 0x45, 0x45, 0xf9,
-	0x7a, 0x51, 0x51, 0xde, 0x5d, 0x56, 0x0a, 0xe7, 0x97, 0x95, 0xc2, 0xe7, 0xcb, 0x4a, 0x61, 0x77,
-	0xc9, 0xb2, 0x83, 0xfd, 0xd0, 0xd4, 0xeb, 0x5e, 0x0b, 0x9b, 0x61, 0xdb, 0x0d, 0xee, 0x3b, 0xc4,
-	0x64, 0x82, 0xfe, 0x98, 0x0b, 0x04, 0x1d, 0x9f, 0x32, 0x73, 0x84, 0xff, 0x47, 0x78, 0xf0, 0x23,
-	0x00, 0x00, 0xff, 0xff, 0xc6, 0x7b, 0x57, 0xe4, 0xe1, 0x08, 0x00, 0x00,
+	// 915 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0xcf, 0x6f, 0x1b, 0x45,
+	0x14, 0xf6, 0x3a, 0x8d, 0x6b, 0x3f, 0xb7, 0xa8, 0x9a, 0xba, 0xd4, 0x5d, 0x8a, 0x93, 0x0e, 0xe0,
+	0x44, 0x40, 0x77, 0x6b, 0x83, 0x40, 0xdc, 0xda, 0x80, 0x1a, 0x94, 0x03, 0x72, 0xb7, 0x55, 0x83,
+	0x2a, 0x24, 0x6b, 0xd6, 0x1e, 0x36, 0x6b, 0xaf, 0x77, 0xb7, 0x9e, 0x5d, 0x3b, 0x56, 0x94, 0x0b,
+	0xe2, 0x00, 0x9c, 0x90, 0x22, 0x6e, 0xfc, 0x41, 0x39, 0x46, 0xe2, 0xc2, 0x09, 0xa1, 0x84, 0x3f,
+	0x04, 0xed, 0xcc, 0xac, 0xbd, 0x6b, 0xaf, 0x93, 0x00, 0x39, 0x70, 0xb1, 0xe6, 0xc7, 0x37, 0xdf,
+	0xf7, 0xbd, 0xb7, 0xef, 0xcd, 0x18, 0xee, 0xee, 0xdb, 0x9e, 0xab, 0xf7, 0xc6, 0x7d, 0x7d, 0xd4,
+	0xd0, 0x5f, 0x87, 0x74, 0x38, 0xd1, 0xfc, 0xa1, 0x17, 0x78, 0xa8, 0x1c, 0x6d, 0x68, 0xbd, 0x71,
+	0x5f, 0x1b, 0x35, 0xd4, 0x8a, 0xe5, 0x59, 0x1e, 0x5f, 0xd7, 0xa3, 0x91, 0x80, 0xa8, 0xf7, 0x2d,
+	0xcf, 0xb3, 0x1c, 0xaa, 0x13, 0xdf, 0xd6, 0x89, 0xeb, 0x7a, 0x01, 0x09, 0x6c, 0xcf, 0x65, 0x72,
+	0xf7, 0xfd, 0x8e, 0xc7, 0x06, 0x1e, 0xd3, 0x4d, 0xc2, 0xa8, 0x60, 0xd6, 0x47, 0x0d, 0x93, 0x06,
+	0xa4, 0xa1, 0xfb, 0xc4, 0xb2, 0x5d, 0x0e, 0x96, 0xd8, 0x6a, 0xd2, 0x85, 0x4f, 0x86, 0x64, 0x10,
+	0xb3, 0xa8, 0xc9, 0x1d, 0x12, 0x76, 0x6d, 0xea, 0x76, 0xa8, 0xd8, 0xc3, 0x15, 0x40, 0xcf, 0x22,
+	0xde, 0x16, 0x3f, 0x60, 0xd0, 0xd7, 0x21, 0x65, 0x01, 0xfe, 0x12, 0x6e, 0xa7, 0x56, 0x99, 0xef,
+	0xb9, 0x8c, 0xa2, 0x06, 0x14, 0x04, 0x71, 0x55, 0x59, 0x57, 0x36, 0xcb, 0xcd, 0xdb, 0x5a, 0x22,
+	0x40, 0x4d, 0x80, 0xb7, 0xae, 0x1d, 0xff, 0xb1, 0x96, 0x33, 0x24, 0x10, 0xeb, 0x70, 0x8f, 0x33,
+	0x3d, 0x91, 0xb2, 0x9f, 0x3b, 0xc4, 0x1e, 0x48, 0x19, 0x84, 0xe0, 0xda, 0x1e, 0x61, 0x7b, 0x9c,
+	0xed, 0x86, 0xc1, 0xc7, 0xf8, 0x2b, 0x50, 0xb3, 0x0e, 0x48, 0x07, 0x8f, 0x60, 0xb5, 0x13, 0x2d,
+	0x48, 0x03, 0x6a, 0xca, 0x40, 0xfa, 0x88, 0x00, 0xe2, 0x26, 0xdc, 0xe7, 0x7c, 0xdb, 0x34, 0xb8,
+	0xb4, 0x87, 0x67, 0xf0, 0xf6, 0x92, 0x33, 0xff, 0xda, 0xc6, 0x26, 0x54, 0x52, 0x61, 0xc5, 0xf2,
+	0xb7, 0x60, 0x85, 0x84, 0x5d, 0xce, 0x53, 0x32, 0xa2, 0x21, 0x6e, 0xc1, 0x9d, 0x39, 0xa4, 0x14,
+	0xfd, 0x14, 0x8a, 0xf1, 0xc7, 0x93, 0xba, 0x77, 0x32, 0x75, 0xe5, 0x17, 0x98, 0x82, 0xf1, 0x07,
+	0x70, 0x77, 0x3e, 0x9c, 0xe5, 0xf2, 0xcf, 0xa1, 0xba, 0x08, 0xfe, 0xaf, 0x0e, 0x88, 0x74, 0x10,
+	0x03, 0x9e, 0x38, 0x4e, 0xec, 0xe0, 0x29, 0xc0, 0xac, 0x94, 0x25, 0x6b, 0x5d, 0x13, 0x75, 0xaf,
+	0x45, 0x75, 0xaf, 0x89, 0x8e, 0x92, 0x75, 0xaf, 0xb5, 0x88, 0x15, 0xbb, 0x37, 0x12, 0x27, 0xf1,
+	0xaf, 0x8a, 0x34, 0x9e, 0xd2, 0xc8, 0x34, 0xbe, 0x72, 0x69, 0xe3, 0x68, 0x3b, 0xe5, 0x2e, 0xcf,
+	0xdd, 0x6d, 0x5c, 0xe8, 0x4e, 0xa8, 0xa6, 0xec, 0x4d, 0x33, 0xe0, 0x38, 0xf3, 0xdf, 0xe0, 0xea,
+	0x33, 0x90, 0xd4, 0xf8, 0xdf, 0x64, 0xe0, 0x95, 0xcc, 0xc0, 0x4b, 0xe2, 0xd8, 0x5d, 0x12, 0xd0,
+	0x9d, 0xdd, 0x17, 0x4b, 0xab, 0x30, 0x5a, 0x61, 0xa1, 0xc9, 0xe5, 0x4a, 0x46, 0x34, 0x44, 0x6f,
+	0x41, 0x89, 0xd9, 0x56, 0xdb, 0x9c, 0x04, 0x94, 0x55, 0x57, 0xf8, 0x7a, 0x91, 0xd9, 0xd6, 0x56,
+	0x34, 0xc7, 0x9f, 0xc0, 0x8d, 0xd6, 0xd0, 0x1e, 0x91, 0x40, 0x34, 0x5d, 0x74, 0xbc, 0x4f, 0x27,
+	0x31, 0x61, 0x9f, 0x4e, 0x50, 0x05, 0x56, 0x47, 0xc4, 0x09, 0xa9, 0xa4, 0x14, 0x13, 0xfc, 0x8d,
+	0xcc, 0x58, 0xca, 0x93, 0xcc, 0xd8, 0x63, 0x78, 0xc3, 0x17, 0x9c, 0x6d, 0xde, 0xc2, 0x4c, 0xe6,
+	0xed, 0x5e, 0xfa, 0xd2, 0x4b, 0xc8, 0x1a, 0x37, 0xfd, 0xc4, 0x8c, 0xe1, 0xa7, 0xb2, 0x93, 0x5f,
+	0xd2, 0xa1, 0xfd, 0xed, 0x64, 0x67, 0xf7, 0xf9, 0xf2, 0x78, 0x53, 0xd1, 0xe5, 0xe7, 0xa2, 0x6b,
+	0xc2, 0x9b, 0xf3, 0x3c, 0xd2, 0x63, 0x15, 0xae, 0xfb, 0x64, 0xe2, 0x78, 0xa4, 0x2b, 0xef, 0xaf,
+	0x78, 0x8a, 0xbf, 0x96, 0xda, 0x5f, 0xd0, 0x8e, 0xd7, 0xbd, 0xd2, 0x5c, 0x37, 0xa1, 0xb8, 0xb3,
+	0xfb, 0xe2, 0x9f, 0xe5, 0x79, 0x5b, 0x46, 0x90, 0x70, 0x23, 0x23, 0x78, 0x08, 0x85, 0x54, 0x76,
+	0xd3, 0x55, 0x19, 0x0b, 0x19, 0x12, 0xd4, 0x3c, 0xba, 0x0e, 0xab, 0x9c, 0x09, 0x51, 0x28, 0x88,
+	0x07, 0x07, 0xad, 0xa5, 0x8e, 0x2c, 0xbe, 0x66, 0xea, 0xfa, 0x72, 0x80, 0x70, 0x81, 0xab, 0xdf,
+	0xfd, 0xf6, 0xd7, 0x51, 0x1e, 0xa1, 0x5b, 0xfa, 0xf4, 0xa9, 0x14, 0xef, 0x17, 0xfa, 0x51, 0x81,
+	0x9b, 0xa9, 0x0b, 0x1d, 0xd5, 0x17, 0xd9, 0xb2, 0x1e, 0x16, 0x75, 0xe3, 0x42, 0x9c, 0x14, 0xdf,
+	0xe0, 0xe2, 0x0f, 0xd0, 0xda, 0x4c, 0x3c, 0xee, 0x3e, 0x51, 0x79, 0xfa, 0x41, 0xf4, 0x2a, 0x1d,
+	0x22, 0x06, 0xc5, 0x98, 0x01, 0x3d, 0x58, 0xce, 0x1e, 0x1b, 0xc0, 0xe7, 0x41, 0xa4, 0xf6, 0x3a,
+	0xd7, 0x56, 0x51, 0x75, 0x51, 0x5b, 0x3f, 0x20, 0x61, 0xf7, 0x10, 0x8d, 0xa0, 0x9c, 0xb8, 0x51,
+	0xd1, 0xbb, 0xcb, 0x49, 0x67, 0x97, 0xba, 0xfa, 0xde, 0x05, 0x28, 0xa9, 0xae, 0x72, 0xf5, 0x0a,
+	0x42, 0x8b, 0xea, 0xe8, 0x17, 0x05, 0xca, 0x89, 0xb6, 0xcc, 0x12, 0x5e, 0xbc, 0x49, 0xb2, 0x84,
+	0x33, 0x7a, 0x1b, 0x7f, 0xc6, 0x85, 0x1f, 0x21, 0x6d, 0x26, 0x3c, 0x92, 0xb0, 0x76, 0x6f, 0x1c,
+	0x88, 0xd0, 0xf5, 0x03, 0x16, 0x9a, 0xd1, 0x6f, 0xdc, 0x0a, 0x87, 0x3f, 0xe4, 0x15, 0xf4, 0xbd,
+	0x02, 0xa5, 0x69, 0x23, 0xa2, 0x8c, 0x1c, 0xcf, 0x77, 0xbb, 0xfa, 0xce, 0xb9, 0x18, 0xe9, 0x48,
+	0xe3, 0x8e, 0x36, 0x51, 0x3d, 0xe1, 0x88, 0x83, 0xda, 0xbd, 0x31, 0x9b, 0xfa, 0x99, 0x3a, 0x41,
+	0x3f, 0x29, 0x50, 0x9a, 0x76, 0x53, 0x96, 0x8d, 0xf9, 0xc6, 0xcf, 0xb2, 0xb1, 0xd0, 0x8e, 0xf8,
+	0x63, 0x6e, 0x43, 0x43, 0x1f, 0xce, 0x6c, 0x74, 0x39, 0xe8, 0xbc, 0xb4, 0x6c, 0x3d, 0x3e, 0x3e,
+	0xad, 0x29, 0x27, 0xa7, 0x35, 0xe5, 0xcf, 0xd3, 0x9a, 0xf2, 0xf3, 0x59, 0x2d, 0x77, 0x72, 0x56,
+	0xcb, 0xfd, 0x7e, 0x56, 0xcb, 0xbd, 0xaa, 0x5b, 0x76, 0xb0, 0x17, 0x9a, 0x5a, 0xc7, 0x1b, 0xe8,
+	0x66, 0x38, 0x74, 0x83, 0x87, 0x0e, 0x31, 0x99, 0x20, 0xdf, 0xe7, 0xf4, 0xc1, 0xc4, 0xa7, 0xcc,
+	0x2c, 0xf0, 0x7f, 0xa3, 0x1f, 0xfd, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x71, 0xc7, 0x16, 0xd7, 0x4b,
+	0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -949,8 +1230,12 @@ type QueryClient interface {
 	Audience(ctx context.Context, in *QueryAudienceRequest, opts ...grpc.CallOption) (*QueryAudienceResponse, error)
 	// AudienceAll queries all audiences
 	AudienceAll(ctx context.Context, in *QueryAudienceAllRequest, opts ...grpc.CallOption) (*QueryAudienceAllResponse, error)
-	// Queries a list of ValidateJWT items.
+	// Deprecated: Use DecodeJWT instead, which returns all claims.
 	ValidateJWT(ctx context.Context, in *QueryValidateJWTRequest, opts ...grpc.CallOption) (*QueryValidateJWTResponse, error)
+	// VerifyJWS verifies a compact JWS signature and returns the payload.
+	VerifyJWS(ctx context.Context, in *QueryVerifyJWSRequest, opts ...grpc.CallOption) (*QueryVerifyJWSResponse, error)
+	// DecodeJWT validates a JWT and returns all claims (standard and private).
+	DecodeJWT(ctx context.Context, in *QueryDecodeJWTRequest, opts ...grpc.CallOption) (*QueryDecodeJWTResponse, error)
 }
 
 type queryClient struct {
@@ -997,9 +1282,28 @@ func (c *queryClient) AudienceAll(ctx context.Context, in *QueryAudienceAllReque
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *queryClient) ValidateJWT(ctx context.Context, in *QueryValidateJWTRequest, opts ...grpc.CallOption) (*QueryValidateJWTResponse, error) {
 	out := new(QueryValidateJWTResponse)
 	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Query/ValidateJWT", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) VerifyJWS(ctx context.Context, in *QueryVerifyJWSRequest, opts ...grpc.CallOption) (*QueryVerifyJWSResponse, error) {
+	out := new(QueryVerifyJWSResponse)
+	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Query/VerifyJWS", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) DecodeJWT(ctx context.Context, in *QueryDecodeJWTRequest, opts ...grpc.CallOption) (*QueryDecodeJWTResponse, error) {
+	out := new(QueryDecodeJWTResponse)
+	err := c.cc.Invoke(ctx, "/xion.jwk.v1.Query/DecodeJWT", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1016,8 +1320,12 @@ type QueryServer interface {
 	Audience(context.Context, *QueryAudienceRequest) (*QueryAudienceResponse, error)
 	// AudienceAll queries all audiences
 	AudienceAll(context.Context, *QueryAudienceAllRequest) (*QueryAudienceAllResponse, error)
-	// Queries a list of ValidateJWT items.
+	// Deprecated: Use DecodeJWT instead, which returns all claims.
 	ValidateJWT(context.Context, *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error)
+	// VerifyJWS verifies a compact JWS signature and returns the payload.
+	VerifyJWS(context.Context, *QueryVerifyJWSRequest) (*QueryVerifyJWSResponse, error)
+	// DecodeJWT validates a JWT and returns all claims (standard and private).
+	DecodeJWT(context.Context, *QueryDecodeJWTRequest) (*QueryDecodeJWTResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1038,6 +1346,12 @@ func (*UnimplementedQueryServer) AudienceAll(ctx context.Context, req *QueryAudi
 }
 func (*UnimplementedQueryServer) ValidateJWT(ctx context.Context, req *QueryValidateJWTRequest) (*QueryValidateJWTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateJWT not implemented")
+}
+func (*UnimplementedQueryServer) VerifyJWS(ctx context.Context, req *QueryVerifyJWSRequest) (*QueryVerifyJWSResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyJWS not implemented")
+}
+func (*UnimplementedQueryServer) DecodeJWT(ctx context.Context, req *QueryDecodeJWTRequest) (*QueryDecodeJWTResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DecodeJWT not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1134,6 +1448,42 @@ func _Query_ValidateJWT_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_VerifyJWS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyJWSRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VerifyJWS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.jwk.v1.Query/VerifyJWS",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VerifyJWS(ctx, req.(*QueryVerifyJWSRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_DecodeJWT_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDecodeJWTRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).DecodeJWT(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/xion.jwk.v1.Query/DecodeJWT",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).DecodeJWT(ctx, req.(*QueryDecodeJWTRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "xion.jwk.v1.Query",
@@ -1158,6 +1508,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateJWT",
 			Handler:    _Query_ValidateJWT_Handler,
+		},
+		{
+			MethodName: "VerifyJWS",
+			Handler:    _Query_VerifyJWS_Handler,
+		},
+		{
+			MethodName: "DecodeJWT",
+			Handler:    _Query_DecodeJWT_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1762,6 +2120,191 @@ func (m *QueryValidateJWTResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryVerifyJWSRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVerifyJWSRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVerifyJWSRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.SigBytes) > 0 {
+		i -= len(m.SigBytes)
+		copy(dAtA[i:], m.SigBytes)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.SigBytes)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Aud) > 0 {
+		i -= len(m.Aud)
+		copy(dAtA[i:], m.Aud)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Aud)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVerifyJWSResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVerifyJWSResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVerifyJWSResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Payload) > 0 {
+		i -= len(m.Payload)
+		copy(dAtA[i:], m.Payload)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Payload)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryDecodeJWTRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryDecodeJWTRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryDecodeJWTRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.SigBytes) > 0 {
+		i -= len(m.SigBytes)
+		copy(dAtA[i:], m.SigBytes)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.SigBytes)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Sub) > 0 {
+		i -= len(m.Sub)
+		copy(dAtA[i:], m.Sub)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Sub)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Aud) > 0 {
+		i -= len(m.Aud)
+		copy(dAtA[i:], m.Aud)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Aud)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *JWTClaim) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *JWTClaim) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *JWTClaim) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Value) > 0 {
+		i -= len(m.Value)
+		copy(dAtA[i:], m.Value)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Value)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Key) > 0 {
+		i -= len(m.Key)
+		copy(dAtA[i:], m.Key)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Key)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryDecodeJWTResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryDecodeJWTResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryDecodeJWTResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Claims) > 0 {
+		for iNdEx := len(m.Claims) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Claims[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -2003,6 +2546,89 @@ func (m *QueryValidateJWTResponse) Size() (n int) {
 	_ = l
 	if len(m.PrivateClaims) > 0 {
 		for _, e := range m.PrivateClaims {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryVerifyJWSRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Aud)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.SigBytes)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryVerifyJWSResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Payload)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryDecodeJWTRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Aud)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Sub)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.SigBytes)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *JWTClaim) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Key)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Value)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryDecodeJWTResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Claims) > 0 {
+		for _, e := range m.Claims {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -3551,6 +4177,548 @@ func (m *QueryValidateJWTResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.PrivateClaims = append(m.PrivateClaims, &PrivateClaim{})
 			if err := m.PrivateClaims[len(m.PrivateClaims)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVerifyJWSRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVerifyJWSRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVerifyJWSRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Aud", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Aud = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SigBytes", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SigBytes = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVerifyJWSResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVerifyJWSResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVerifyJWSResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payload", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Payload = append(m.Payload[:0], dAtA[iNdEx:postIndex]...)
+			if m.Payload == nil {
+				m.Payload = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryDecodeJWTRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryDecodeJWTRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryDecodeJWTRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Aud", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Aud = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sub", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sub = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SigBytes", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SigBytes = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *JWTClaim) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: JWTClaim: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: JWTClaim: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Key = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Value = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryDecodeJWTResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryDecodeJWTResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryDecodeJWTResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Claims", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Claims = append(m.Claims, &JWTClaim{})
+			if err := m.Claims[len(m.Claims)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

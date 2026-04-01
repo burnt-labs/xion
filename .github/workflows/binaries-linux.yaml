@@ -8,7 +8,7 @@ on:
 jobs:
   build-binaries:
     name: Build xiond-${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ format('github-{0}', matrix.arch) }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm-4' || 'depot-ubuntu-24.04-4' }}
 
     strategy:
       fail-fast: false
@@ -32,6 +32,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
+          cache: false
 
       - name: Build Linux Binary
         env:

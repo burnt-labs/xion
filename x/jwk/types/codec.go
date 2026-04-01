@@ -11,6 +11,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateAudience{}, "jwk/CreateAudience", nil)
 	cdc.RegisterConcrete(&MsgUpdateAudience{}, "jwk/UpdateAudience", nil)
 	cdc.RegisterConcrete(&MsgDeleteAudience{}, "jwk/DeleteAudience", nil)
+	cdc.RegisterConcrete(&MsgCreateAudienceClaim{}, "jwk/CreateAudienceClaim", nil)
+	cdc.RegisterConcrete(&MsgDeleteAudienceClaim{}, "jwk/DeleteAudienceClaim", nil)
 	// this line is used by starport scaffolding # 2
 }
 
@@ -19,6 +21,8 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgCreateAudience{},
 		&MsgUpdateAudience{},
 		&MsgDeleteAudience{},
+		&MsgCreateAudienceClaim{},
+		&MsgDeleteAudienceClaim{},
 	)
 	// this line is used by starport scaffolding # 3
 

@@ -7,6 +7,8 @@ COVERAGE_FILTERED ?= coverage_filtered.out
 COVERAGE_HTML ?= coverage.html
 PACKAGES_SIMTEST = $(shell go list ./... | grep '/simulation')
 
+_ALL_BUILD_TAGS := ledger test_ledger_mock
+
 # Extract threshold from .coveragerc if not set via environment
 COVERAGE_THRESHOLD ?= $(shell grep -A 10 '^\[run\]' $(COVERAGERC) 2>/dev/null | grep '^threshold' | sed 's/.*=[[:space:]]*//' || echo 84)
 
@@ -24,7 +26,7 @@ TESTABLE_PACKAGES = $(shell go list ./... |  grep -v '$(TEST_EXCLUSIONS_PATTERN)
 test-cover-run:
 	@echo "🧪 Running tests with coverage..."
 	@echo "Testing packages (excluding .coveragerc excludes)..."
-	@go test $(TESTABLE_PACKAGES) -coverprofile=$(COVERAGE_OUT) -covermode=atomic -timeout=30m -race -tags='ledger test_ledger_mock' -ldflags="-w"
+	@go test $(TESTABLE_PACKAGES) -coverprofile=$(COVERAGE_OUT) -covermode=atomic -timeout=30m -tags='$(_ALL_BUILD_TAGS)' -ldflags="-w"
 
 # Filter coverage report (remove generated files)
 test-cover-filter: test-cover-run

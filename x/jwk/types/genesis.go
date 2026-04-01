@@ -3,6 +3,9 @@ package types
 import (
 	"fmt"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,6 +41,39 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for audience")
 		}
 		audienceIndexMap[index] = struct{}{}
+
+		// Validate JWK key format if key is present
+		if elem.Key != "" {
+			// Enforce size limit before parsing to avoid expensive operations on huge inputs.
+			if len(elem.Key) > MaxJWKKeySize {
+				return errorsmod.Wrapf(ErrInvalidJWK, "key size %d exceeds maximum %d bytes for audience %s", len(elem.Key), MaxJWKKeySize, elem.Aud)
+			}
+
+			parsedKey, err := jwk.ParseKey([]byte(elem.Key))
+			if err != nil {
+				return errorsmod.Wrapf(ErrInvalidJWK, "invalid JWK in genesis for audience %s: %s", elem.Aud, err)
+			}
+
+			// Reject symmetric (HMAC) and "none" signature algorithms — these are
+			// disallowed for the same reasons as in MsgCreateAudience/MsgUpdateAudience.
+			var sigAlg jwa.SignatureAlgorithm
+			if err := sigAlg.Accept(parsedKey.Algorithm().String()); err != nil {
+				return errorsmod.Wrapf(ErrInvalidJWK, "invalid algorithm in genesis JWK for audience %s: %s", elem.Aud, err)
+			}
+
+			switch sigAlg {
+			case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
+				return errorsmod.Wrapf(ErrInvalidJWK, "invalid algorithm %s in genesis JWK for audience %s", sigAlg.String(), elem.Aud)
+			}
+
+			if err := ValidateJWKKeySize(parsedKey); err != nil {
+				return errorsmod.Wrapf(ErrInvalidJWK, "invalid key material in genesis JWK for audience %s: %s", elem.Aud, err)
+			}
+
+			if err := validateJWKKeyTypeAlgConsistency(parsedKey, sigAlg); err != nil {
+				return errorsmod.Wrapf(ErrInvalidJWK, "key type/algorithm mismatch in genesis JWK for audience %s: %s", elem.Aud, err)
+			}
+		}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

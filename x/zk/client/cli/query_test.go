@@ -23,8 +23,8 @@ func TestGetQueryCmd(t *testing.T) {
 		cmd := cli.GetQueryCmd()
 		subcommands := cmd.Commands()
 
-		// Should have 6 subcommands
-		require.Len(t, subcommands, 6)
+		// Should have 7 subcommands
+		require.Len(t, subcommands, 7)
 
 		// Verify subcommand names
 		names := make(map[string]bool)
@@ -37,6 +37,7 @@ func TestGetQueryCmd(t *testing.T) {
 		require.True(t, names["vkeys"])
 		require.True(t, names["has-vkey [name]"])
 		require.True(t, names["verify-proof [proof-file]"])
+		require.True(t, names["verify-ultrahonk [proof-file]"])
 		require.True(t, names["params"])
 	})
 
@@ -489,6 +490,129 @@ func TestGetCmdQueryVerifyProofExtended(t *testing.T) {
 }
 
 // ============================================================================
+// GetCmdQueryVerifyUltraHonk Tests
+// ============================================================================
+
+func TestGetCmdQueryVerifyUltraHonk(t *testing.T) {
+	t.Run("returns valid command", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		require.NotNil(t, cmd)
+		require.Equal(t, "verify-ultrahonk [proof-file]", cmd.Use)
+		require.Contains(t, cmd.Short, "UltraHonk")
+		require.Contains(t, cmd.Short, "Barretenberg")
+	})
+
+	t.Run("requires exactly one argument", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		require.NotNil(t, cmd.Args)
+
+		err := cmd.Args(cmd, []string{})
+		require.Error(t, err)
+
+		err = cmd.Args(cmd, []string{"proof.bin", "extra"})
+		require.Error(t, err)
+
+		err = cmd.Args(cmd, []string{"proof.bin"})
+		require.NoError(t, err)
+	})
+
+	t.Run("has vkey-name flag", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		f := cmd.Flags().Lookup("vkey-name")
+		require.NotNil(t, f)
+		require.Contains(t, f.Usage, "UltraHonk")
+	})
+
+	t.Run("has vkey-id flag", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		f := cmd.Flags().Lookup("vkey-id")
+		require.NotNil(t, f)
+	})
+
+	t.Run("has public-inputs-file flag", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		f := cmd.Flags().Lookup("public-inputs-file")
+		require.NotNil(t, f)
+		require.Contains(t, f.Usage, "binary")
+	})
+
+	t.Run("has query flags", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		require.NotNil(t, cmd.Flags().Lookup("node"))
+	})
+
+	t.Run("has long description", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		require.NotEmpty(t, cmd.Long)
+		require.Contains(t, cmd.Long, "UltraHonk")
+		require.Contains(t, cmd.Long, "Barretenberg")
+		require.Contains(t, cmd.Long, "--public-inputs-file")
+	})
+
+	t.Run("has example usage", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		require.NotEmpty(t, cmd.Example)
+		require.Contains(t, cmd.Example, "proof.bin")
+		require.Contains(t, cmd.Example, "verify-ultrahonk")
+	})
+}
+
+func TestGetCmdQueryVerifyUltraHonkExtended(t *testing.T) {
+	t.Run("RunE fails with non-existent proof file", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		require.NoError(t, cmd.Flags().Set("vkey-name", "test"))
+		require.NoError(t, cmd.Flags().Set("public-inputs-file", "/tmp/inputs.bin"))
+
+		cmd.SetArgs([]string{"/non/existent/proof.bin"})
+		err := cmd.Execute()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to read proof file")
+	})
+
+	t.Run("RunE fails without vkey-name or vkey-id", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		tmpDir := t.TempDir()
+		proofFile := filepath.Join(tmpDir, "proof.bin")
+		require.NoError(t, os.WriteFile(proofFile, []byte{0x00, 0x01}, 0o600))
+		inputsFile := filepath.Join(tmpDir, "inputs.bin")
+		require.NoError(t, os.WriteFile(inputsFile, make([]byte, 32), 0o600))
+
+		require.NoError(t, cmd.Flags().Set("public-inputs-file", inputsFile))
+		cmd.SetArgs([]string{proofFile})
+		err := cmd.Execute()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "either --vkey-name or --vkey-id must be specified")
+	})
+
+	t.Run("RunE fails without public-inputs-file", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		tmpDir := t.TempDir()
+		proofFile := filepath.Join(tmpDir, "proof.bin")
+		require.NoError(t, os.WriteFile(proofFile, []byte{0x00, 0x01}, 0o600))
+
+		require.NoError(t, cmd.Flags().Set("vkey-name", "test"))
+		cmd.SetArgs([]string{proofFile})
+		err := cmd.Execute()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "--public-inputs-file must be specified")
+	})
+
+	t.Run("RunE fails with non-existent public-inputs file", func(t *testing.T) {
+		cmd := cli.GetCmdQueryVerifyUltraHonk()
+		tmpDir := t.TempDir()
+		proofFile := filepath.Join(tmpDir, "proof.bin")
+		require.NoError(t, os.WriteFile(proofFile, []byte{0x00, 0x01}, 0o600))
+
+		require.NoError(t, cmd.Flags().Set("vkey-name", "test"))
+		require.NoError(t, cmd.Flags().Set("public-inputs-file", "/non/existent/inputs.bin"))
+		cmd.SetArgs([]string{proofFile})
+		err := cmd.Execute()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to read public inputs file")
+	})
+}
+
+// ============================================================================
 // ParsePublicInputs Tests
 // ============================================================================
 
@@ -711,7 +835,7 @@ func TestVerifyProofFlagInteractions(t *testing.T) {
 
 		cmd.SetArgs([]string{proofFile})
 		err = cmd.Execute()
-		// Should proceed (both set is valid)
+		// Server prefers name when both set; error is from RPC (e.g. vkey not found), not validation
 		require.Error(t, err)
 		require.NotContains(t, err.Error(), "either --vkey-name or --vkey-id must be specified")
 	})
@@ -749,6 +873,11 @@ func TestQueryCommandsIntegration(t *testing.T) {
 		verifyProofCmd, _, err := parentCmd.Find([]string{"verify-proof", "proof.json"})
 		require.NoError(t, err)
 		require.NotNil(t, verifyProofCmd)
+
+		// Find verify-ultrahonk subcommand
+		verifyUltraHonkCmd, _, err := parentCmd.Find([]string{"verify-ultrahonk", "proof.bin"})
+		require.NoError(t, err)
+		require.NotNil(t, verifyUltraHonkCmd)
 	})
 
 	t.Run("subcommands have unique uses", func(t *testing.T) {

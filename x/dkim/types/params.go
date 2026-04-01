@@ -9,6 +9,16 @@ import (
 const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
 
+	// ValidateBasicMaxPubKeySizeBytes is a higher ceiling for ValidateBasic
+	// to allow on-chain params to be meaningful. The message server will
+	// enforce the actual param limits.
+	ValidateBasicMaxPubKeySizeBytes uint64 = 2048
+
+	// MaxDKIMProofSizeBytes caps the proof JSON payload accepted by Authenticate.
+	// A valid Circom Groth16 proof over BN254 is ~350–500 bytes of JSON; 4 KiB
+	// matches the x/zk Groth16 limit and prevents allocator DoS from multi-MB blobs.
+	MaxDKIMProofSizeBytes uint64 = 4 * 1024 // 4 KiB
+
 	// Default public input indices for the Authenticate query
 	DefaultMinPublicInputsLength  uint64 = 88
 	DefaultEmailHashIndex         uint64 = 68
@@ -132,6 +142,10 @@ func (p PublicInputIndices) Validate() error {
 func (p Params) Validate() error {
 	if p.MaxPubkeySizeBytes <= 0 {
 		return errorsmod.Wrap(ErrInvalidParams, "max_pubkey_size_bytes must be positive")
+	}
+
+	if p.VkeyIdentifier == 0 {
+		return errorsmod.Wrap(ErrInvalidParams, "vkey_identifier must be positive")
 	}
 
 	if err := p.PublicInputIndices.Validate(); err != nil {

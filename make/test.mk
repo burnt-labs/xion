@@ -149,6 +149,9 @@ test-zk-email-authenticator:
 test-zk-params-and-vkey-uploads:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKParamsAndVKeyUploads
 
+test-zk-ultrahonk-verify:
+	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKUltraHonkVKeyAndProofVerification
+
 test-zk-add-authenticators:
 	$(MAKE) test-run DIR_NAME=zk TEST_NAME=TestZKAddAuthenticators
 
@@ -372,6 +375,7 @@ test-sim-deterministic: runsim
         test-dkim-governance test-dkim-module \
         test-dkim-pubkey-max-size test-dkim-zk-proof \
         test-dkim-zk-params-and-vkey-uploads \
+        test-zk-params-and-vkey-uploads test-zk-ultrahonk-verify \
         test-indexer-authz-create test-indexer-authz-multiple test-indexer-authz-revoke \
         test-indexer-feegrant-create test-indexer-feegrant-multiple \
         test-indexer-feegrant-periodic test-indexer-feegrant-revoke \
@@ -503,7 +507,9 @@ help-test:
 	@echo "    test-xion-platform-min-direct       Test platform minimum direct transaction"
 	@echo ""
 	@echo "  ZK Module Individual Tests:"
-	@echo "    test-dkim-zk-params-and-vkey-uploads Test ZK params and vkey uploads"
+	@echo "    test-zk-params-and-vkey-uploads     Test ZK params and vkey uploads"
+	@echo "    test-zk-ultrahonk-verify            Test Barretenberg UltraHonk vkey upload and proof verification"
+	@echo "    test-dkim-zk-params-and-vkey-uploads Test DKIM ZK params and vkey uploads"
 	@echo ""
 	@echo "Simulation tests:"
 	@echo "  test-sim                   Run simulation tests"

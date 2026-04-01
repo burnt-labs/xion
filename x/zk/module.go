@@ -26,7 +26,7 @@ import (
 
 const (
 	// ConsensusVersion defines the current x/zk module consensus version.
-	ConsensusVersion = 2
+	ConsensusVersion = 3
 
 // this line is used by starport scaffolding # simapp/module/const
 )
@@ -139,6 +139,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(err)
+	}
+	if err := cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3); err != nil {
 		panic(err)
 	}
 }

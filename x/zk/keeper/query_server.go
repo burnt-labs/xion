@@ -2,9 +2,15 @@ package keeper
 
 import (
 	"context"
+	goerrors "errors"
 	"fmt"
+	"math/big"
+	"strings"
 
+	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -33,6 +39,44 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	if len(req.Proof) == 0 {
 		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
 	}
+	if req.VkeyName == "" && req.VkeyId == 0 {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
+	}
+
+	params, err := q.GetParams(c)
+	if err != nil {
+		return nil, err
+	}
+
+	// No gas is charged for this whitelisted query — size limits (MaxGroth16ProofSizeBytes,
+	// MaxGroth16PublicInputSizeBytes) and governance-controlled ceilings (MaxAllowedProofOrInputSizeBytes)
+	// serve as the DoS governors, consistent with v28 behavior.
+	if uint64(len(req.Proof)) > params.MaxGroth16ProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d > max %d bytes",
+			len(req.Proof),
+			params.MaxGroth16ProofSizeBytes,
+		)
+	}
+
+	// Approximate public-input payload size as total UTF-8 byte length of all provided strings.
+	var publicInputsSize uint64
+	for _, in := range req.PublicInputs {
+		inputSize := uint64(len(in))
+		if publicInputsSize+inputSize < publicInputsSize {
+			return nil, errors.Wrap(types.ErrPublicInputsTooLarge, "public inputs size overflow")
+		}
+		publicInputsSize += inputSize
+	}
+	if publicInputsSize > params.MaxGroth16PublicInputSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrPublicInputsTooLarge,
+			"public inputs size %d > max %d bytes",
+			publicInputsSize,
+			params.MaxGroth16PublicInputSizeBytes,
+		)
+	}
 
 	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
 	if err != nil {
@@ -57,11 +101,231 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	default:
 		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
 	}
+	// Reject any public input that is not a canonical BN254 scalar field element.
+	// circom2gnark's fr.Element.SetBigInt silently reduces values >= p modulo p,
+	// so an input p+x would verify identically to x, enabling proof forgery.
+	if err := validatePublicInputsInScalarField(req.PublicInputs); err != nil {
+		return nil, err
+	}
+
 	verified, err := q.Verify(c, snarkProof, snarkVk, &req.PublicInputs)
 	if err != nil {
 		return nil, err
 	}
 	return &types.ProofVerifyResponse{Verified: verified}, nil
+}
+
+// bn254ScalarFieldPrime is the BN254 scalar field modulus r.
+// All Groth16 public inputs must be strictly less than this value.
+var bn254ScalarFieldPrime, _ = new(big.Int).SetString(
+	"21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+
+// validatePublicInputsInScalarField rejects any public input string whose numeric
+// value is >= the BN254 scalar field prime.  Inputs may be decimal or 0x-prefixed hex,
+// matching the formats accepted by circom2gnark's ConvertPublicInputs.
+func validatePublicInputsInScalarField(inputs []string) error {
+	for i, inp := range inputs {
+		s := inp
+		base := 10
+		if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+			s = s[2:]
+			base = 16
+		}
+		v, ok := new(big.Int).SetString(s, base)
+		if !ok || v.Sign() < 0 || v.Cmp(bn254ScalarFieldPrime) >= 0 {
+			return errors.Wrapf(types.ErrInvalidRequest,
+				"public input[%d] is not a canonical BN254 scalar field element", i)
+		}
+	}
+	return nil
+}
+
+// ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof using a vkey looked up by name or ID.
+func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyUltraHonkRequest) (*types.ProofVerifyUltraHonkResponse, error) {
+	if req == nil {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
+	}
+	if len(req.GetProof()) == 0 {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
+	}
+
+	params, err := q.GetParams(c)
+	if err != nil {
+		return nil, err
+	}
+
+	// No gas is charged for this whitelisted query — size limits (MaxUltraHonkProofSizeBytes,
+	// MaxUltraHonkPublicInputSizeBytes) and governance-controlled ceilings (MaxAllowedProofOrInputSizeBytes)
+	// serve as the DoS governors, consistent with v28 behavior.
+	if uint64(len(req.GetProof())) > params.MaxUltraHonkProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d > max %d bytes",
+			len(req.GetProof()),
+			params.MaxUltraHonkProofSizeBytes,
+		)
+	}
+
+	// UltraHonk public inputs are provided as raw bytes.
+	if uint64(len(req.GetPublicInputs())) > params.MaxUltraHonkPublicInputSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrPublicInputsTooLarge,
+			"public inputs size %d > max %d bytes",
+			len(req.GetPublicInputs()),
+			params.MaxUltraHonkPublicInputSizeBytes,
+		)
+	}
+
+	// Resolve vkey by name or ID (prefer name when both are set, same as Groth16 verify-proof)
+	var vkey types.VKey
+	switch {
+	case req.GetVkeyName() != "":
+		vkey, err = q.GetVKeyByName(c, req.GetVkeyName())
+	case req.GetVkeyId() != 0:
+		vkey, err = q.GetVKeyByID(c, req.GetVkeyId())
+	default:
+		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if vkey.ProofSystem != types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
+		proofSystem := vkey.ProofSystem
+		if proofSystem == 0 {
+			proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+		}
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not an UltraHonk key (proof_system=%v)", proofSystem)
+	}
+
+	publicInputs := req.GetPublicInputs()
+	if len(publicInputs)%barretenberg.FieldElementSize != 0 {
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "public_inputs length %d is not a multiple of %d", len(publicInputs), barretenberg.FieldElementSize)
+	}
+	numChunks := len(publicInputs) / barretenberg.FieldElementSize
+	chunks := make([][]byte, numChunks)
+	for i := 0; i < numChunks; i++ {
+		start := i * barretenberg.FieldElementSize
+		chunks[i] = publicInputs[start : start+barretenberg.FieldElementSize]
+	}
+
+	// Wrap all Barretenberg CGo calls with panic recovery.
+	// A panic in the C++ layer propagates as a Go panic through CGo; while a
+	// true SIGSEGV cannot be caught here, Go-level panics from the CGo wrapper
+	// (e.g. nil-dereference, bounds check) are recoverable and must not crash
+	// the validator.
+	var (
+		resp    *types.ProofVerifyUltraHonkResponse
+		callErr error
+	)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				q.logger.Error("panic during ultrahonk verification", "panic", r)
+				callErr = status.Error(codes.Internal, "internal error during proof verification")
+			}
+		}()
+
+		vk, e := barretenberg.ParseVerificationKey(vkey.KeyBytes)
+		if e != nil {
+			callErr = errors.Wrapf(types.ErrInvalidVKey, "ultrahonk vkey: %v", e)
+			return
+		}
+		defer vk.Close()
+
+		bproof, e := barretenberg.ParseProof(req.GetProof())
+		if e != nil {
+			callErr = errors.Wrapf(types.ErrInvalidRequest, "proof: %v", e)
+			return
+		}
+
+		verifier, e := barretenberg.NewVerifier(vk)
+		if e != nil {
+			callErr = e
+			return
+		}
+		defer verifier.Close()
+
+		verified, e := verifier.VerifyWithBytes(bproof, chunks)
+		if e != nil {
+			if goerrors.Is(e, barretenberg.ErrVerificationFailed) ||
+				goerrors.Is(e, barretenberg.ErrInvalidPublicInputs) ||
+				goerrors.Is(e, barretenberg.ErrInternal) {
+				resp = &types.ProofVerifyUltraHonkResponse{Verified: false}
+				return
+			}
+			callErr = errors.Wrapf(types.ErrInvalidRequest, "verification: %v", e)
+			return
+		}
+		resp = &types.ProofVerifyUltraHonkResponse{Verified: verified}
+	}()
+	if callErr != nil {
+		return nil, callErr
+	}
+	return resp, nil
+}
+
+// ProofVerifyGnark verifies a gnark native Groth16 proof (BN254) using a vkey looked up by name or ID.
+func (q Querier) ProofVerifyGnark(c context.Context, req *types.QueryVerifyGnarkRequest) (*types.ProofVerifyGnarkResponse, error) {
+	if req == nil {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "empty request")
+	}
+	if len(req.GetProof()) == 0 {
+		return nil, errors.Wrap(types.ErrInvalidRequest, "proof cannot be empty")
+	}
+
+	params, err := q.GetParams(c)
+	if err != nil {
+		return nil, err
+	}
+
+	if uint64(len(req.GetProof())) > params.MaxGnarkProofSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrProofTooLarge,
+			"proof size %d > max %d bytes",
+			len(req.GetProof()),
+			params.MaxGnarkProofSizeBytes,
+		)
+	}
+
+	if uint64(len(req.GetPublicInputs())) > params.MaxGnarkPublicInputSizeBytes {
+		return nil, errors.Wrapf(
+			types.ErrPublicInputsTooLarge,
+			"public inputs size %d > max %d bytes",
+			len(req.GetPublicInputs()),
+			params.MaxGnarkPublicInputSizeBytes,
+		)
+	}
+
+	// Resolve vkey by name or ID (prefer name when both are set)
+	var vkey types.VKey
+	switch {
+	case req.GetVkeyName() != "":
+		vkey, err = q.GetVKeyByName(c, req.GetVkeyName())
+	case req.GetVkeyId() != 0:
+		vkey, err = q.GetVKeyByID(c, req.GetVkeyId())
+	default:
+		return nil, errors.Wrap(types.ErrInvalidRequest, "either vkey_name or vkey_id must be provided")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if vkey.ProofSystem != types.ProofSystem_PROOF_SYSTEM_GROTH16_GNARK {
+		proofSystem := vkey.ProofSystem
+		if proofSystem == 0 {
+			proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+		}
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not a gnark Groth16 key (proof_system=%v)", proofSystem)
+	}
+
+	// Verify the proof
+	verified, err := q.VerifyGnark(c, req.GetProof(), vkey.KeyBytes, req.GetPublicInputs())
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.ProofVerifyGnarkResponse{Verified: verified}, nil
 }
 
 // VKey queries a verification key by ID

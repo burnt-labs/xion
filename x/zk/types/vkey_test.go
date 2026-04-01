@@ -3,6 +3,7 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -254,6 +255,56 @@ func TestValidateVKeyBytes(t *testing.T) {
 	})
 }
 
+func TestBN254FieldBoundaryValidation(t *testing.T) {
+	// bn254Prime is p = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+	bn254Prime := "21888242871839275222246405745257275088696311157297823662689037894645226208583"
+	// bn254PrimePlusOne is p+1, which is out of range
+	bn254PrimePlusOne := "21888242871839275222246405745257275088696311157297823662689037894645226208584"
+
+	makeVKey := func(alpha1x string) map[string]interface{} {
+		return map[string]interface{}{
+			"protocol":   "groth16",
+			"curve":      "bn128",
+			"nPublic":    2,
+			"vk_alpha_1": []string{alpha1x, "9383485363053290200918347156157836566562967994039712273449902621266178545958", "1"},
+			"vk_beta_2":  [][]string{{"6375614351688725206403948262868962793625744043794305715222011528459656738731", "4252822878758300859123897981450591353533073413197771768651442665752259397132"}, {"10505242626370262277552901082094356697409835680220590971873171140371331206856", "21847035105528745403288232691147584728191162732299865338377159692350059136679"}, {"1", "0"}},
+			"vk_gamma_2": [][]string{{"10857046999023057135944570762232829481370756359578518086990519993285655852781", "11559732032986387107991004021392285783925812861821192530917403151452391805634"}, {"8495653923123431417604973247489272438418190587263600148770280649306958101930", "4082367875863433681332203403145435568316851327593401208105741076214120093531"}, {"1", "0"}},
+			"vk_delta_2": [][]string{{"15077028419523802218068800711765892220007704101776825737873498462523243974011", "21035432942633023563568649328632676616806345190265721806958729811352423617078"}, {"19557127063776667950420308021890134701214219557891223581756933481287479566633", "846877808733141898933269498060926622823200991369227170080032302022497893186"}, {"1", "0"}},
+			"IC":         [][]string{{"15862126421713956100993553801681385807071251923202096057307112802014733741378", "13108645471998862676498660499963950655089157405079199301326521022095491980050", "1"}, {"21715368734116209877917737472988550416427108747767751044339655343738713294081", "16899680151032020137316253115554651362124948058456073805307693594940894296737", "1"}, {"15262990638665614060530787821677588373695066693663158063982759218486893877667", "2420030994339659044877551774878879579539478107604084928775920288418445748893", "1"}},
+		}
+	}
+
+	t.Run("valid key within field passes", func(t *testing.T) {
+		// Use the known-good validVKeyJSON
+		err := types.ValidateVKeyBytes(validVKeyJSON, types.DefaultMaxVKeySizeBytes)
+		require.NoError(t, err)
+	})
+
+	t.Run("coordinate equal to p fails", func(t *testing.T) {
+		vkey := makeVKey(bn254Prime)
+		data, _ := json.Marshal(vkey)
+		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "BN254 field prime")
+	})
+
+	t.Run("coordinate equal to p+1 fails", func(t *testing.T) {
+		vkey := makeVKey(bn254PrimePlusOne)
+		data, _ := json.Marshal(vkey)
+		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "BN254 field prime")
+	})
+
+	t.Run("negative coordinate fails", func(t *testing.T) {
+		vkey := makeVKey("-1")
+		data, _ := json.Marshal(vkey)
+		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "negative")
+	})
+}
+
 func TestUnmarshalVKey(t *testing.T) {
 	t.Run("valid vkey", func(t *testing.T) {
 		vkey := &types.VKey{
@@ -391,5 +442,78 @@ func TestNewVKeyFromCircom(t *testing.T) {
 		vkey, err := types.NewVKeyFromCircom(nil, "test-vkey", "test description")
 		require.Error(t, err)
 		require.Nil(t, vkey)
+	})
+}
+
+// loadGnarkVKeyTestdata loads gnark vkey testdata binary file
+func loadGnarkVKeyTestdata(t *testing.T) []byte {
+	t.Helper()
+
+	// The testdata is in the keeper package's testdata directory
+	vkeyBytes, err := os.ReadFile("../keeper/testdata/gnark/vkey.bin")
+	require.NoError(t, err, "failed to load gnark vkey.bin")
+
+	return vkeyBytes
+}
+
+func TestValidateGnarkVKeyBytes(t *testing.T) {
+	gnarkVkeyBytes := loadGnarkVKeyTestdata(t)
+
+	t.Run("valid gnark vkey", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(gnarkVkeyBytes, 0)
+		require.NoError(t, err)
+	})
+
+	t.Run("valid gnark vkey with max size limit", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(gnarkVkeyBytes, types.DefaultMaxVKeySizeBytes)
+		require.NoError(t, err)
+	})
+
+	t.Run("empty vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte{}, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+
+	t.Run("nil vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(nil, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+
+	t.Run("invalid binary data", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte("invalid binary data"), 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
+	})
+
+	t.Run("vkey exceeds max size", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(gnarkVkeyBytes, 10) // Very small limit
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrVKeyTooLarge)
+		require.Contains(t, err.Error(), "exceeds max")
+	})
+
+	t.Run("circom JSON as gnark vkey fails", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(validVKeyJSON, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
+	})
+
+	t.Run("random bytes fail", func(t *testing.T) {
+		randomBytes := make([]byte, 364) // Same size as valid vkey
+		for i := range randomBytes {
+			randomBytes[i] = byte(i % 256)
+		}
+		err := types.ValidateGnarkVKeyBytes(randomBytes, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
+	})
+
+	t.Run("truncated vkey fails", func(t *testing.T) {
+		truncated := gnarkVkeyBytes[:len(gnarkVkeyBytes)/2]
+		err := types.ValidateGnarkVKeyBytes(truncated, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
 	})
 }

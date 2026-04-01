@@ -70,6 +70,8 @@ func TestCommandMetadata(t *testing.T) {
 		{"create-audience-claim", cli.CmdCreateAudienceClaim()},
 		{"delete-audience-claim", cli.CmdDeleteAudienceClaim()},
 		{"convert-pem", cli.CmdConvertPemToJSON()},
+		{"decode-jwt", cli.CmdDecodeJWT()},
+		{"verify-jws", cli.CmdVerifyJWS()},
 	}
 	for _, m := range meta {
 		require.NotEmpty(t, m.cmd.Use, m.name)
@@ -104,6 +106,10 @@ func TestArgumentValidation_Table(t *testing.T) {
 		{"delete claim missing", cli.CmdDeleteAudienceClaim, []string{}, true},
 		{"delete claim ok (no ctx)", cli.CmdDeleteAudienceClaim, []string{"aud"}, true},
 		{"convert pem missing", cli.CmdConvertPemToJSON, []string{}, true},
+		{"decode jwt missing", cli.CmdDecodeJWT, []string{"aud"}, true},
+		{"decode jwt ok (no ctx)", cli.CmdDecodeJWT, []string{"aud", "sub", "sig"}, true},
+		{"verify jws missing", cli.CmdVerifyJWS, []string{}, true},
+		{"verify jws ok (no ctx)", cli.CmdVerifyJWS, []string{"aud", "sig"}, true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -695,6 +701,101 @@ func TestCLIRunEHandlerErrorPaths(t *testing.T) {
 	require.Panics(t, func() {
 		_ = updateCmd.RunE(updateCmd, []string{"aud", "key"})
 	}, "Expected panic when no client context")
+}
+
+// Tests for CmdDecodeJWT to bring coverage above 50%
+func TestDecodeJWTCommandMetadata(t *testing.T) {
+	cmd := cli.CmdDecodeJWT()
+	require.Equal(t, "decode-jwt [aud] [sub] [sig-bytes]", cmd.Use)
+	require.NotEmpty(t, cmd.Short)
+
+	// Help should work
+	cmd.SetArgs([]string{"--help"})
+	require.NoError(t, cmd.Execute())
+}
+
+func TestDecodeJWTArgumentValidation(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"no args", []string{}},
+		{"one arg", []string{"aud"}},
+		{"two args", []string{"aud", "sub"}},
+		{"four args", []string{"aud", "sub", "sig", "extra"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := cli.CmdDecodeJWT()
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			require.Error(t, err)
+		})
+	}
+}
+
+func TestDecodeJWTWithMockContext(t *testing.T) {
+	ctx := newMockCtx(t)
+
+	// With proper args and mock context - should succeed (mock RPC)
+	out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdDecodeJWT(), []string{"aud", "sub", "sig"})
+	require.NoError(t, err)
+	require.NotNil(t, out)
+}
+
+func TestDecodeJWTWithEmptyContext(t *testing.T) {
+	empty := newEmptyCtx()
+
+	// Should fail with empty context
+	_, err := clitestutil.ExecTestCLICmd(empty, cli.CmdDecodeJWT(), []string{"aud", "sub", "sig"})
+	require.Error(t, err)
+}
+
+// Tests for CmdVerifyJWS to bring coverage above 50%
+func TestVerifyJWSCommandMetadata(t *testing.T) {
+	cmd := cli.CmdVerifyJWS()
+	require.Equal(t, "verify-jws [aud] [sig-bytes]", cmd.Use)
+	require.NotEmpty(t, cmd.Short)
+
+	// Help should work
+	cmd.SetArgs([]string{"--help"})
+	require.NoError(t, cmd.Execute())
+}
+
+func TestVerifyJWSArgumentValidation(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"no args", []string{}},
+		{"one arg", []string{"aud"}},
+		{"three args", []string{"aud", "sig", "extra"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := cli.CmdVerifyJWS()
+			cmd.SetArgs(tc.args)
+			err := cmd.Execute()
+			require.Error(t, err)
+		})
+	}
+}
+
+func TestVerifyJWSWithMockContext(t *testing.T) {
+	ctx := newMockCtx(t)
+
+	// With proper args and mock context - should succeed (mock RPC)
+	out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdVerifyJWS(), []string{"aud", "sig-bytes"})
+	require.NoError(t, err)
+	require.NotNil(t, out)
+}
+
+func TestVerifyJWSWithEmptyContext(t *testing.T) {
+	empty := newEmptyCtx()
+
+	// Should fail with empty context
+	_, err := clitestutil.ExecTestCLICmd(empty, cli.CmdVerifyJWS(), []string{"aud", "sig-bytes"})
+	require.Error(t, err)
 }
 
 func TestCLIFlagErrorPaths(t *testing.T) {

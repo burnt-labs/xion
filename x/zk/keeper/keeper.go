@@ -1,8 +1,14 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
+	"math/big"
+	"strings"
 
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	"cosmossdk.io/collections"
@@ -96,6 +102,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) {
 	if params == (types.Params{}) {
 		params = types.DefaultParams()
 	}
+
+	// Backfill newly-added Groth16 and UltraHonk proof/public-input size params when upgrading old genesis files.
+	params = params.WithMaxLimitDefaults()
+
 	if err := params.Validate(); err != nil {
 		panic(err)
 	}
@@ -182,11 +192,15 @@ func (k Keeper) GetParams(ctx context.Context) (types.Params, error) {
 		return types.Params{}, err
 	}
 
-	return params, nil
+	// Ensure newly-added fields are always populated with sane defaults.
+	return params.WithMaxLimitDefaults(), nil
 }
 
 // SetParams validates and persists zk module parameters.
 func (k Keeper) SetParams(ctx context.Context, params types.Params) error {
+	// Backfill newly-added max limit params (e.g. Groth16 and UltraHonk) when not provided.
+	params = params.WithMaxLimitDefaults()
+
 	if err := params.Validate(); err != nil {
 		return err
 	}
@@ -199,17 +213,100 @@ func (k Keeper) ensureVKeySize(params types.Params, size int) (uint64, error) {
 	return gasCost, err
 }
 
+// bn254ScalarPrime is the BN254 scalar field modulus r. All Groth16 public inputs
+// must be strictly less than this value — circom2gnark's SetBigInt silently reduces
+// values >= p modulo p, so p+x would verify identically to x.
+var bn254ScalarPrime, _ = new(big.Int).SetString(
+	"21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+
 func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *parser.CircomVerificationKey, inputs *[]string) (bool, error) {
-	gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
-	if err != nil {
-		return false, err
+	// Validate all public inputs are canonical BN254 scalar field elements.
+	// This check must live here so that ALL callers (ProofVerify query, DKIM
+	// Authenticate, and any future callers) are protected — not just the query layer.
+	for i, inp := range *inputs {
+		s := inp
+		base := 10
+		if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+			s = s[2:]
+			base = 16
+		}
+		v, ok := new(big.Int).SetString(s, base)
+		if !ok || v.Sign() < 0 || v.Cmp(bn254ScalarPrime) >= 0 {
+			return false, errors.Wrapf(types.ErrInvalidRequest,
+				"public input[%d] is not a canonical BN254 scalar field element", i)
+		}
 	}
-	return parser.VerifyProof(gnarkProof)
+
+	// Wrap gnark calls with panic recovery — circom2gnark/gnark may panic on
+	// malformed proofs or VKeys that pass JSON parsing but have invalid curve points.
+	var (
+		verified  bool
+		verifyErr error
+	)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				k.logger.Error("panic during groth16 verification", "panic", r)
+				verifyErr = errors.Wrap(types.ErrInvalidRequest, "internal error during proof verification")
+			}
+		}()
+		gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
+		if err != nil {
+			verifyErr = err
+			return
+		}
+		verified, verifyErr = parser.VerifyProof(gnarkProof)
+	}()
+	return verified, verifyErr
 }
 
-// AddVKey adds a new verification key to the store
-// keyBytes should be the raw JSON from SnarkJS
-func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) (uint64, error) {
+// VerifyGnark verifies a gnark native Groth16 proof (BN254) using the provided vkey bytes and public inputs.
+// proofBytes: serialized groth16.Proof (binary, gnark native format)
+// vkeyBytes: serialized groth16.VerifyingKey (binary, gnark native format)
+// publicInputsBytes: serialized public witness (gnark witness binary format)
+//
+// The public inputs must be serialized using gnark's witness.MarshalBinary() on the public part
+// of the witness (obtained via witness.Public()).
+func (k *Keeper) VerifyGnark(ctx context.Context, proofBytes []byte, vkeyBytes []byte, publicInputsBytes []byte) (bool, error) {
+	// Deserialize verification key
+	vk := groth16.NewVerifyingKey(ecc.BN254)
+	if _, err := vk.ReadFrom(bytes.NewReader(vkeyBytes)); err != nil {
+		return false, errors.Wrapf(types.ErrInvalidVKey, "failed to parse gnark vkey: %v", err)
+	}
+
+	// Deserialize proof
+	proof := groth16.NewProof(ecc.BN254)
+	if _, err := proof.ReadFrom(bytes.NewReader(proofBytes)); err != nil {
+		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to parse gnark proof: %v", err)
+	}
+
+	// Create and unmarshal public witness
+	publicWitness, err := witness.New(ecc.BN254.ScalarField())
+	if err != nil {
+		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to create witness: %v", err)
+	}
+
+	if err := publicWitness.UnmarshalBinary(publicInputsBytes); err != nil {
+		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to unmarshal public inputs: %v", err)
+	}
+
+	// Verify the proof
+	if err := groth16.Verify(proof, vk, publicWitness); err != nil {
+		// Verification failed - this is not an error, just means the proof is invalid
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// AddVKey adds a new verification key to the store.
+// keyBytes is Groth16/Circom JSON (proofSystem groth16) or Barretenberg binary (proofSystem ultrahonk).
+// proofSystem should be types.ProofSystem_PROOF_SYSTEM_GROTH16 or types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK; unspecified defaults to groth16.
+func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string, proofSystem types.ProofSystem) (uint64, error) {
+	if proofSystem == types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
+		proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+	}
+
 	// Check if name already exists
 	has, err := k.VKeyNameIndex.Has(ctx, name)
 	if err != nil {
@@ -231,8 +328,8 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 	// charge gas for vkey size
 	ctx.GasMeter().ConsumeGas(gasCost, "zk/AddVKey: vkey size cost")
 
-	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
-		return 0, err
+	if err := types.ValidateVKeyForProofSystem(keyBytes, params.MaxVkeySizeBytes, proofSystem); err != nil {
+		return 0, errors.Wrapf(types.ErrInvalidVKey, "vkey validation: %v", err)
 	}
 
 	// Generate new ID
@@ -247,6 +344,7 @@ func (k Keeper) AddVKey(ctx sdk.Context, authority string, name string, keyBytes
 		Name:        name,
 		Description: description,
 		Authority:   authority,
+		ProofSystem: proofSystem,
 	}
 
 	// Store vkey
@@ -308,8 +406,13 @@ func (k Keeper) GetCircomVKeyByID(ctx context.Context, id uint64) (*parser.Circo
 	return types.UnmarshalVKey(&vkey)
 }
 
-// UpdateVKey updates an existing verification key
-func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string) error {
+// UpdateVKey updates an existing verification key.
+// proofSystem should be types.ProofSystem_PROOF_SYSTEM_GROTH16 or types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK; unspecified defaults to groth16.
+func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBytes []byte, description string, proofSystem types.ProofSystem) error {
+	if proofSystem == types.ProofSystem_PROOF_SYSTEM_UNSPECIFIED {
+		proofSystem = types.ProofSystem_PROOF_SYSTEM_GROTH16
+	}
+
 	// Get existing ID
 	id, err := k.VKeyNameIndex.Get(ctx, name)
 	if err != nil {
@@ -348,8 +451,8 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 	// charge gas for vkey size
 	ctx.GasMeter().ConsumeGas(gasCost, "zk/UpdateVKey: vkey size cost")
 
-	if err := types.ValidateVKeyBytes(keyBytes, params.MaxVkeySizeBytes); err != nil {
-		return err
+	if err := types.ValidateVKeyForProofSystem(keyBytes, params.MaxVkeySizeBytes, proofSystem); err != nil {
+		return errors.Wrapf(types.ErrInvalidVKey, "vkey validation: %v", err)
 	}
 
 	// Update vkey
@@ -358,6 +461,7 @@ func (k Keeper) UpdateVKey(ctx sdk.Context, authority string, name string, keyBy
 		Name:        name,
 		Description: description,
 		Authority:   storedAuthority,
+		ProofSystem: proofSystem,
 	}
 
 	if err := k.VKeys.Set(ctx, id, updatedVKey); err != nil {

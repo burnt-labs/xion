@@ -13,7 +13,18 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
-// types/msgs.go
+// ProofSystemGroth16 and ProofSystemUltraHonk are typed aliases for the ProofSystem enum.
+const (
+	ProofSystemGroth16   = ProofSystem_PROOF_SYSTEM_GROTH16
+	ProofSystemUltraHonk = ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK
+)
+
+const (
+	// MaxVKeyNameLen is the maximum allowed length (in bytes) for a verification key name.
+	MaxVKeyNameLen = 128
+	// MaxVKeyDescLen is the maximum allowed length (in bytes) for a verification key description.
+	MaxVKeyDescLen = 1024
+)
 
 func (m *MsgAddVKey) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
@@ -24,13 +35,30 @@ func (m *MsgAddVKey) ValidateBasic() error {
 		return fmt.Errorf("name cannot be empty")
 	}
 
+	if len(m.Name) > MaxVKeyNameLen {
+		return fmt.Errorf("name length %d bytes exceeds maximum %d bytes", len(m.Name), MaxVKeyNameLen)
+	}
+
+	if len(m.Description) > MaxVKeyDescLen {
+		return fmt.Errorf("description length %d bytes exceeds maximum %d bytes", len(m.Description), MaxVKeyDescLen)
+	}
+
 	if len(m.VkeyBytes) == 0 {
 		return fmt.Errorf("vkey_bytes cannot be empty")
 	}
 
-	// Validate using the parser library
-	if err := ValidateVKeyBytes(m.VkeyBytes, 0); err != nil {
-		return fmt.Errorf("invalid vkey_bytes: %w", err)
+	proofSystem := m.GetProofSystem()
+	if proofSystem != ProofSystem_PROOF_SYSTEM_UNSPECIFIED &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16_GNARK &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
+		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
+	}
+
+	// Apply proof-system aware structural checks at CheckTx time to reduce
+	// malformed-vkey mempool spam while keeping keeper-side validation authoritative.
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, MaxAllowedVKeySizeBytes, proofSystem); err != nil {
+		return err
 	}
 
 	return nil
@@ -46,9 +74,32 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 		return fmt.Errorf("name cannot be empty")
 	}
 
+	if len(m.Name) > MaxVKeyNameLen {
+		return fmt.Errorf("name length %d bytes exceeds maximum %d bytes", len(m.Name), MaxVKeyNameLen)
+	}
+
+	if len(m.Description) > MaxVKeyDescLen {
+		return fmt.Errorf("description length %d bytes exceeds maximum %d bytes", len(m.Description), MaxVKeyDescLen)
+	}
+
 	if len(m.VkeyBytes) == 0 {
 		return fmt.Errorf("vkey_bytes cannot be empty")
 	}
+
+	proofSystem := m.GetProofSystem()
+	if proofSystem != ProofSystem_PROOF_SYSTEM_UNSPECIFIED &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16_GNARK &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
+		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
+	}
+
+	// Apply proof-system aware structural checks at CheckTx time to reduce
+	// malformed-vkey mempool spam while keeping keeper-side validation authoritative.
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, MaxAllowedVKeySizeBytes, proofSystem); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -71,7 +122,8 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 		return fmt.Errorf("invalid authority address: %w", err)
 	}
 
-	return m.Params.Validate()
+	// Backfill newly-added Groth16 and UltraHonk size params for older clients that don't specify them.
+	return m.Params.WithMaxLimitDefaults().Validate()
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.

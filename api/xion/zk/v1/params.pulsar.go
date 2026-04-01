@@ -15,10 +15,16 @@ import (
 )
 
 var (
-	md_Params                     protoreflect.MessageDescriptor
-	fd_Params_max_vkey_size_bytes protoreflect.FieldDescriptor
-	fd_Params_upload_chunk_size   protoreflect.FieldDescriptor
-	fd_Params_upload_chunk_gas    protoreflect.FieldDescriptor
+	md_Params                                        protoreflect.MessageDescriptor
+	fd_Params_max_vkey_size_bytes                    protoreflect.FieldDescriptor
+	fd_Params_upload_chunk_size                      protoreflect.FieldDescriptor
+	fd_Params_upload_chunk_gas                       protoreflect.FieldDescriptor
+	fd_Params_max_groth16_proof_size_bytes           protoreflect.FieldDescriptor
+	fd_Params_max_groth16_public_input_size_bytes    protoreflect.FieldDescriptor
+	fd_Params_max_ultra_honk_proof_size_bytes        protoreflect.FieldDescriptor
+	fd_Params_max_ultra_honk_public_input_size_bytes protoreflect.FieldDescriptor
+	fd_Params_max_gnark_proof_size_bytes             protoreflect.FieldDescriptor
+	fd_Params_max_gnark_public_input_size_bytes      protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -27,6 +33,12 @@ func init() {
 	fd_Params_max_vkey_size_bytes = md_Params.Fields().ByName("max_vkey_size_bytes")
 	fd_Params_upload_chunk_size = md_Params.Fields().ByName("upload_chunk_size")
 	fd_Params_upload_chunk_gas = md_Params.Fields().ByName("upload_chunk_gas")
+	fd_Params_max_groth16_proof_size_bytes = md_Params.Fields().ByName("max_groth16_proof_size_bytes")
+	fd_Params_max_groth16_public_input_size_bytes = md_Params.Fields().ByName("max_groth16_public_input_size_bytes")
+	fd_Params_max_ultra_honk_proof_size_bytes = md_Params.Fields().ByName("max_ultra_honk_proof_size_bytes")
+	fd_Params_max_ultra_honk_public_input_size_bytes = md_Params.Fields().ByName("max_ultra_honk_public_input_size_bytes")
+	fd_Params_max_gnark_proof_size_bytes = md_Params.Fields().ByName("max_gnark_proof_size_bytes")
+	fd_Params_max_gnark_public_input_size_bytes = md_Params.Fields().ByName("max_gnark_public_input_size_bytes")
 }
 
 var _ protoreflect.Message = (*fastReflection_Params)(nil)
@@ -112,6 +124,42 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 			return
 		}
 	}
+	if x.MaxGroth16ProofSizeBytes != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.MaxGroth16ProofSizeBytes)
+		if !f(fd_Params_max_groth16_proof_size_bytes, value) {
+			return
+		}
+	}
+	if x.MaxGroth16PublicInputSizeBytes != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.MaxGroth16PublicInputSizeBytes)
+		if !f(fd_Params_max_groth16_public_input_size_bytes, value) {
+			return
+		}
+	}
+	if x.MaxUltraHonkProofSizeBytes != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.MaxUltraHonkProofSizeBytes)
+		if !f(fd_Params_max_ultra_honk_proof_size_bytes, value) {
+			return
+		}
+	}
+	if x.MaxUltraHonkPublicInputSizeBytes != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.MaxUltraHonkPublicInputSizeBytes)
+		if !f(fd_Params_max_ultra_honk_public_input_size_bytes, value) {
+			return
+		}
+	}
+	if x.MaxGnarkProofSizeBytes != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.MaxGnarkProofSizeBytes)
+		if !f(fd_Params_max_gnark_proof_size_bytes, value) {
+			return
+		}
+	}
+	if x.MaxGnarkPublicInputSizeBytes != uint64(0) {
+		value := protoreflect.ValueOfUint64(x.MaxGnarkPublicInputSizeBytes)
+		if !f(fd_Params_max_gnark_public_input_size_bytes, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -133,6 +181,18 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 		return x.UploadChunkSize != uint64(0)
 	case "xion.zk.v1.Params.upload_chunk_gas":
 		return x.UploadChunkGas != uint64(0)
+	case "xion.zk.v1.Params.max_groth16_proof_size_bytes":
+		return x.MaxGroth16ProofSizeBytes != uint64(0)
+	case "xion.zk.v1.Params.max_groth16_public_input_size_bytes":
+		return x.MaxGroth16PublicInputSizeBytes != uint64(0)
+	case "xion.zk.v1.Params.max_ultra_honk_proof_size_bytes":
+		return x.MaxUltraHonkProofSizeBytes != uint64(0)
+	case "xion.zk.v1.Params.max_ultra_honk_public_input_size_bytes":
+		return x.MaxUltraHonkPublicInputSizeBytes != uint64(0)
+	case "xion.zk.v1.Params.max_gnark_proof_size_bytes":
+		return x.MaxGnarkProofSizeBytes != uint64(0)
+	case "xion.zk.v1.Params.max_gnark_public_input_size_bytes":
+		return x.MaxGnarkPublicInputSizeBytes != uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.Params"))
@@ -155,6 +215,18 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 		x.UploadChunkSize = uint64(0)
 	case "xion.zk.v1.Params.upload_chunk_gas":
 		x.UploadChunkGas = uint64(0)
+	case "xion.zk.v1.Params.max_groth16_proof_size_bytes":
+		x.MaxGroth16ProofSizeBytes = uint64(0)
+	case "xion.zk.v1.Params.max_groth16_public_input_size_bytes":
+		x.MaxGroth16PublicInputSizeBytes = uint64(0)
+	case "xion.zk.v1.Params.max_ultra_honk_proof_size_bytes":
+		x.MaxUltraHonkProofSizeBytes = uint64(0)
+	case "xion.zk.v1.Params.max_ultra_honk_public_input_size_bytes":
+		x.MaxUltraHonkPublicInputSizeBytes = uint64(0)
+	case "xion.zk.v1.Params.max_gnark_proof_size_bytes":
+		x.MaxGnarkProofSizeBytes = uint64(0)
+	case "xion.zk.v1.Params.max_gnark_public_input_size_bytes":
+		x.MaxGnarkPublicInputSizeBytes = uint64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.Params"))
@@ -179,6 +251,24 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 		return protoreflect.ValueOfUint64(value)
 	case "xion.zk.v1.Params.upload_chunk_gas":
 		value := x.UploadChunkGas
+		return protoreflect.ValueOfUint64(value)
+	case "xion.zk.v1.Params.max_groth16_proof_size_bytes":
+		value := x.MaxGroth16ProofSizeBytes
+		return protoreflect.ValueOfUint64(value)
+	case "xion.zk.v1.Params.max_groth16_public_input_size_bytes":
+		value := x.MaxGroth16PublicInputSizeBytes
+		return protoreflect.ValueOfUint64(value)
+	case "xion.zk.v1.Params.max_ultra_honk_proof_size_bytes":
+		value := x.MaxUltraHonkProofSizeBytes
+		return protoreflect.ValueOfUint64(value)
+	case "xion.zk.v1.Params.max_ultra_honk_public_input_size_bytes":
+		value := x.MaxUltraHonkPublicInputSizeBytes
+		return protoreflect.ValueOfUint64(value)
+	case "xion.zk.v1.Params.max_gnark_proof_size_bytes":
+		value := x.MaxGnarkProofSizeBytes
+		return protoreflect.ValueOfUint64(value)
+	case "xion.zk.v1.Params.max_gnark_public_input_size_bytes":
+		value := x.MaxGnarkPublicInputSizeBytes
 		return protoreflect.ValueOfUint64(value)
 	default:
 		if descriptor.IsExtension() {
@@ -206,6 +296,18 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 		x.UploadChunkSize = value.Uint()
 	case "xion.zk.v1.Params.upload_chunk_gas":
 		x.UploadChunkGas = value.Uint()
+	case "xion.zk.v1.Params.max_groth16_proof_size_bytes":
+		x.MaxGroth16ProofSizeBytes = value.Uint()
+	case "xion.zk.v1.Params.max_groth16_public_input_size_bytes":
+		x.MaxGroth16PublicInputSizeBytes = value.Uint()
+	case "xion.zk.v1.Params.max_ultra_honk_proof_size_bytes":
+		x.MaxUltraHonkProofSizeBytes = value.Uint()
+	case "xion.zk.v1.Params.max_ultra_honk_public_input_size_bytes":
+		x.MaxUltraHonkPublicInputSizeBytes = value.Uint()
+	case "xion.zk.v1.Params.max_gnark_proof_size_bytes":
+		x.MaxGnarkProofSizeBytes = value.Uint()
+	case "xion.zk.v1.Params.max_gnark_public_input_size_bytes":
+		x.MaxGnarkPublicInputSizeBytes = value.Uint()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.Params"))
@@ -232,6 +334,18 @@ func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protore
 		panic(fmt.Errorf("field upload_chunk_size of message xion.zk.v1.Params is not mutable"))
 	case "xion.zk.v1.Params.upload_chunk_gas":
 		panic(fmt.Errorf("field upload_chunk_gas of message xion.zk.v1.Params is not mutable"))
+	case "xion.zk.v1.Params.max_groth16_proof_size_bytes":
+		panic(fmt.Errorf("field max_groth16_proof_size_bytes of message xion.zk.v1.Params is not mutable"))
+	case "xion.zk.v1.Params.max_groth16_public_input_size_bytes":
+		panic(fmt.Errorf("field max_groth16_public_input_size_bytes of message xion.zk.v1.Params is not mutable"))
+	case "xion.zk.v1.Params.max_ultra_honk_proof_size_bytes":
+		panic(fmt.Errorf("field max_ultra_honk_proof_size_bytes of message xion.zk.v1.Params is not mutable"))
+	case "xion.zk.v1.Params.max_ultra_honk_public_input_size_bytes":
+		panic(fmt.Errorf("field max_ultra_honk_public_input_size_bytes of message xion.zk.v1.Params is not mutable"))
+	case "xion.zk.v1.Params.max_gnark_proof_size_bytes":
+		panic(fmt.Errorf("field max_gnark_proof_size_bytes of message xion.zk.v1.Params is not mutable"))
+	case "xion.zk.v1.Params.max_gnark_public_input_size_bytes":
+		panic(fmt.Errorf("field max_gnark_public_input_size_bytes of message xion.zk.v1.Params is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: xion.zk.v1.Params"))
@@ -250,6 +364,18 @@ func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protor
 	case "xion.zk.v1.Params.upload_chunk_size":
 		return protoreflect.ValueOfUint64(uint64(0))
 	case "xion.zk.v1.Params.upload_chunk_gas":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "xion.zk.v1.Params.max_groth16_proof_size_bytes":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "xion.zk.v1.Params.max_groth16_public_input_size_bytes":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "xion.zk.v1.Params.max_ultra_honk_proof_size_bytes":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "xion.zk.v1.Params.max_ultra_honk_public_input_size_bytes":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "xion.zk.v1.Params.max_gnark_proof_size_bytes":
+		return protoreflect.ValueOfUint64(uint64(0))
+	case "xion.zk.v1.Params.max_gnark_public_input_size_bytes":
 		return protoreflect.ValueOfUint64(uint64(0))
 	default:
 		if fd.IsExtension() {
@@ -329,6 +455,24 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.UploadChunkGas != 0 {
 			n += 1 + runtime.Sov(uint64(x.UploadChunkGas))
 		}
+		if x.MaxGroth16ProofSizeBytes != 0 {
+			n += 1 + runtime.Sov(uint64(x.MaxGroth16ProofSizeBytes))
+		}
+		if x.MaxGroth16PublicInputSizeBytes != 0 {
+			n += 1 + runtime.Sov(uint64(x.MaxGroth16PublicInputSizeBytes))
+		}
+		if x.MaxUltraHonkProofSizeBytes != 0 {
+			n += 1 + runtime.Sov(uint64(x.MaxUltraHonkProofSizeBytes))
+		}
+		if x.MaxUltraHonkPublicInputSizeBytes != 0 {
+			n += 1 + runtime.Sov(uint64(x.MaxUltraHonkPublicInputSizeBytes))
+		}
+		if x.MaxGnarkProofSizeBytes != 0 {
+			n += 1 + runtime.Sov(uint64(x.MaxGnarkProofSizeBytes))
+		}
+		if x.MaxGnarkPublicInputSizeBytes != 0 {
+			n += 1 + runtime.Sov(uint64(x.MaxGnarkPublicInputSizeBytes))
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -357,6 +501,36 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.MaxGnarkPublicInputSizeBytes != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.MaxGnarkPublicInputSizeBytes))
+			i--
+			dAtA[i] = 0x48
+		}
+		if x.MaxGnarkProofSizeBytes != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.MaxGnarkProofSizeBytes))
+			i--
+			dAtA[i] = 0x40
+		}
+		if x.MaxUltraHonkPublicInputSizeBytes != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.MaxUltraHonkPublicInputSizeBytes))
+			i--
+			dAtA[i] = 0x38
+		}
+		if x.MaxUltraHonkProofSizeBytes != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.MaxUltraHonkProofSizeBytes))
+			i--
+			dAtA[i] = 0x30
+		}
+		if x.MaxGroth16PublicInputSizeBytes != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.MaxGroth16PublicInputSizeBytes))
+			i--
+			dAtA[i] = 0x28
+		}
+		if x.MaxGroth16ProofSizeBytes != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.MaxGroth16ProofSizeBytes))
+			i--
+			dAtA[i] = 0x20
 		}
 		if x.UploadChunkGas != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.UploadChunkGas))
@@ -479,6 +653,120 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
+			case 4:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxGroth16ProofSizeBytes", wireType)
+				}
+				x.MaxGroth16ProofSizeBytes = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.MaxGroth16ProofSizeBytes |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 5:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxGroth16PublicInputSizeBytes", wireType)
+				}
+				x.MaxGroth16PublicInputSizeBytes = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.MaxGroth16PublicInputSizeBytes |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 6:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxUltraHonkProofSizeBytes", wireType)
+				}
+				x.MaxUltraHonkProofSizeBytes = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.MaxUltraHonkProofSizeBytes |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 7:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxUltraHonkPublicInputSizeBytes", wireType)
+				}
+				x.MaxUltraHonkPublicInputSizeBytes = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.MaxUltraHonkPublicInputSizeBytes |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 8:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxGnarkProofSizeBytes", wireType)
+				}
+				x.MaxGnarkProofSizeBytes = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.MaxGnarkProofSizeBytes |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 9:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MaxGnarkPublicInputSizeBytes", wireType)
+				}
+				x.MaxGnarkPublicInputSizeBytes = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.MaxGnarkPublicInputSizeBytes |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -527,6 +815,65 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ProofSystem identifies which ZK backend and wire format a vkey/proof uses.
+type ProofSystem int32
+
+const (
+	// PROOF_SYSTEM_UNSPECIFIED is the default unset value.
+	ProofSystem_PROOF_SYSTEM_UNSPECIFIED ProofSystem = 0
+	// PROOF_SYSTEM_GROTH16 uses BN254 Groth16 proofs in snarkjs/circom format.
+	ProofSystem_PROOF_SYSTEM_GROTH16 ProofSystem = 1
+	// PROOF_SYSTEM_ULTRA_HONK_ZK uses Barretenberg UltraHonk ZK variant
+	// (bb >= 0.87).
+	ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK ProofSystem = 2
+	// PROOF_SYSTEM_GROTH16_GNARK uses BN254 Groth16 proofs in gnark native
+	// format (binary).
+	ProofSystem_PROOF_SYSTEM_GROTH16_GNARK ProofSystem = 3
+)
+
+// Enum value maps for ProofSystem.
+var (
+	ProofSystem_name = map[int32]string{
+		0: "PROOF_SYSTEM_UNSPECIFIED",
+		1: "PROOF_SYSTEM_GROTH16",
+		2: "PROOF_SYSTEM_ULTRA_HONK_ZK",
+		3: "PROOF_SYSTEM_GROTH16_GNARK",
+	}
+	ProofSystem_value = map[string]int32{
+		"PROOF_SYSTEM_UNSPECIFIED":   0,
+		"PROOF_SYSTEM_GROTH16":       1,
+		"PROOF_SYSTEM_ULTRA_HONK_ZK": 2,
+		"PROOF_SYSTEM_GROTH16_GNARK": 3,
+	}
+)
+
+func (x ProofSystem) Enum() *ProofSystem {
+	p := new(ProofSystem)
+	*p = x
+	return p
+}
+
+func (x ProofSystem) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ProofSystem) Descriptor() protoreflect.EnumDescriptor {
+	return file_xion_zk_v1_params_proto_enumTypes[0].Descriptor()
+}
+
+func (ProofSystem) Type() protoreflect.EnumType {
+	return &file_xion_zk_v1_params_proto_enumTypes[0]
+}
+
+func (x ProofSystem) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ProofSystem.Descriptor instead.
+func (ProofSystem) EnumDescriptor() ([]byte, []int) {
+	return file_xion_zk_v1_params_proto_rawDescGZIP(), []int{0}
+}
+
 // Params defines the zk module parameters.
 type Params struct {
 	state         protoimpl.MessageState
@@ -539,6 +886,24 @@ type Params struct {
 	UploadChunkSize uint64 `protobuf:"varint,2,opt,name=upload_chunk_size,json=uploadChunkSize,proto3" json:"upload_chunk_size,omitempty"`
 	// upload_chunk_gas defines the gas cost per upload chunk.
 	UploadChunkGas uint64 `protobuf:"varint,3,opt,name=upload_chunk_gas,json=uploadChunkGas,proto3" json:"upload_chunk_gas,omitempty"`
+	// max_groth16_proof_size_bytes caps the size of a Groth16 proof JSON payload.
+	MaxGroth16ProofSizeBytes uint64 `protobuf:"varint,4,opt,name=max_groth16_proof_size_bytes,json=maxGroth16ProofSizeBytes,proto3" json:"max_groth16_proof_size_bytes,omitempty"`
+	// max_groth16_public_input_size_bytes caps the size of the Groth16 public
+	// inputs. The size is computed as the total UTF-8 byte length of all provided
+	// public input strings.
+	MaxGroth16PublicInputSizeBytes uint64 `protobuf:"varint,5,opt,name=max_groth16_public_input_size_bytes,json=maxGroth16PublicInputSizeBytes,proto3" json:"max_groth16_public_input_size_bytes,omitempty"`
+	// max_ultra_honk_proof_size_bytes caps the size of an UltraHonk proof.
+	MaxUltraHonkProofSizeBytes uint64 `protobuf:"varint,6,opt,name=max_ultra_honk_proof_size_bytes,json=maxUltraHonkProofSizeBytes,proto3" json:"max_ultra_honk_proof_size_bytes,omitempty"`
+	// max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk
+	// public inputs. UltraHonk public inputs are provided as raw bytes.
+	MaxUltraHonkPublicInputSizeBytes uint64 `protobuf:"varint,7,opt,name=max_ultra_honk_public_input_size_bytes,json=maxUltraHonkPublicInputSizeBytes,proto3" json:"max_ultra_honk_public_input_size_bytes,omitempty"`
+	// max_gnark_proof_size_bytes caps the size of a gnark native Groth16 proof
+	// (binary).
+	MaxGnarkProofSizeBytes uint64 `protobuf:"varint,8,opt,name=max_gnark_proof_size_bytes,json=maxGnarkProofSizeBytes,proto3" json:"max_gnark_proof_size_bytes,omitempty"`
+	// max_gnark_public_input_size_bytes caps the size of the gnark Groth16 public
+	// inputs. Public inputs are provided as raw bytes (concatenated 32-byte
+	// big-endian field elements).
+	MaxGnarkPublicInputSizeBytes uint64 `protobuf:"varint,9,opt,name=max_gnark_public_input_size_bytes,json=maxGnarkPublicInputSizeBytes,proto3" json:"max_gnark_public_input_size_bytes,omitempty"`
 }
 
 func (x *Params) Reset() {
@@ -582,6 +947,48 @@ func (x *Params) GetUploadChunkGas() uint64 {
 	return 0
 }
 
+func (x *Params) GetMaxGroth16ProofSizeBytes() uint64 {
+	if x != nil {
+		return x.MaxGroth16ProofSizeBytes
+	}
+	return 0
+}
+
+func (x *Params) GetMaxGroth16PublicInputSizeBytes() uint64 {
+	if x != nil {
+		return x.MaxGroth16PublicInputSizeBytes
+	}
+	return 0
+}
+
+func (x *Params) GetMaxUltraHonkProofSizeBytes() uint64 {
+	if x != nil {
+		return x.MaxUltraHonkProofSizeBytes
+	}
+	return 0
+}
+
+func (x *Params) GetMaxUltraHonkPublicInputSizeBytes() uint64 {
+	if x != nil {
+		return x.MaxUltraHonkPublicInputSizeBytes
+	}
+	return 0
+}
+
+func (x *Params) GetMaxGnarkProofSizeBytes() uint64 {
+	if x != nil {
+		return x.MaxGnarkProofSizeBytes
+	}
+	return 0
+}
+
+func (x *Params) GetMaxGnarkPublicInputSizeBytes() uint64 {
+	if x != nil {
+		return x.MaxGnarkPublicInputSizeBytes
+	}
+	return 0
+}
+
 var File_xion_zk_v1_params_proto protoreflect.FileDescriptor
 
 var file_xion_zk_v1_params_proto_rawDesc = []byte{
@@ -589,8 +996,8 @@ var file_xion_zk_v1_params_proto_rawDesc = []byte{
 	0x61, 0x6d, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0a, 0x78, 0x69, 0x6f, 0x6e, 0x2e,
 	0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x1a, 0x11, 0x61, 0x6d, 0x69, 0x6e, 0x6f, 0x2f, 0x61, 0x6d, 0x69,
 	0x6e, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f, 0x67, 0x6f, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xa5,
-	0x01, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x2d, 0x0a, 0x13, 0x6d, 0x61, 0x78,
+	0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xce,
+	0x04, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x2d, 0x0a, 0x13, 0x6d, 0x61, 0x78,
 	0x5f, 0x76, 0x6b, 0x65, 0x79, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x10, 0x6d, 0x61, 0x78, 0x56, 0x6b, 0x65, 0x79, 0x53,
 	0x69, 0x7a, 0x65, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x2a, 0x0a, 0x11, 0x75, 0x70, 0x6c, 0x6f,
@@ -598,19 +1005,54 @@ var file_xion_zk_v1_params_proto_rawDesc = []byte{
 	0x01, 0x28, 0x04, 0x52, 0x0f, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x43, 0x68, 0x75, 0x6e, 0x6b,
 	0x53, 0x69, 0x7a, 0x65, 0x12, 0x28, 0x0a, 0x10, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x5f, 0x63,
 	0x68, 0x75, 0x6e, 0x6b, 0x5f, 0x67, 0x61, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52, 0x0e,
-	0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x47, 0x61, 0x73, 0x3a, 0x16,
-	0x98, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f, 0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x09, 0x7a, 0x6b, 0x2f,
-	0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x97, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e, 0x78,
-	0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0b, 0x50, 0x61, 0x72, 0x61, 0x6d,
-	0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73, 0x2f,
-	0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x7a, 0x6b,
-	0x2f, 0x76, 0x31, 0x3b, 0x7a, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x5a, 0x58, 0xaa, 0x02,
-	0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x5a, 0x6b, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0a, 0x58, 0x69,
-	0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x58, 0x69, 0x6f, 0x6e, 0x5c,
-	0x5a, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
-	0x61, 0xea, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x5a, 0x6b, 0x3a, 0x3a, 0x56, 0x31,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x47, 0x61, 0x73, 0x12, 0x3e,
+	0x0a, 0x1c, 0x6d, 0x61, 0x78, 0x5f, 0x67, 0x72, 0x6f, 0x74, 0x68, 0x31, 0x36, 0x5f, 0x70, 0x72,
+	0x6f, 0x6f, 0x66, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x04,
+	0x20, 0x01, 0x28, 0x04, 0x52, 0x18, 0x6d, 0x61, 0x78, 0x47, 0x72, 0x6f, 0x74, 0x68, 0x31, 0x36,
+	0x50, 0x72, 0x6f, 0x6f, 0x66, 0x53, 0x69, 0x7a, 0x65, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x4b,
+	0x0a, 0x23, 0x6d, 0x61, 0x78, 0x5f, 0x67, 0x72, 0x6f, 0x74, 0x68, 0x31, 0x36, 0x5f, 0x70, 0x75,
+	0x62, 0x6c, 0x69, 0x63, 0x5f, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x5f,
+	0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x1e, 0x6d, 0x61, 0x78,
+	0x47, 0x72, 0x6f, 0x74, 0x68, 0x31, 0x36, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x49, 0x6e, 0x70,
+	0x75, 0x74, 0x53, 0x69, 0x7a, 0x65, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x43, 0x0a, 0x1f, 0x6d,
+	0x61, 0x78, 0x5f, 0x75, 0x6c, 0x74, 0x72, 0x61, 0x5f, 0x68, 0x6f, 0x6e, 0x6b, 0x5f, 0x70, 0x72,
+	0x6f, 0x6f, 0x66, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x06,
+	0x20, 0x01, 0x28, 0x04, 0x52, 0x1a, 0x6d, 0x61, 0x78, 0x55, 0x6c, 0x74, 0x72, 0x61, 0x48, 0x6f,
+	0x6e, 0x6b, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x53, 0x69, 0x7a, 0x65, 0x42, 0x79, 0x74, 0x65, 0x73,
+	0x12, 0x50, 0x0a, 0x26, 0x6d, 0x61, 0x78, 0x5f, 0x75, 0x6c, 0x74, 0x72, 0x61, 0x5f, 0x68, 0x6f,
+	0x6e, 0x6b, 0x5f, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x5f, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x5f,
+	0x73, 0x69, 0x7a, 0x65, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28, 0x04,
+	0x52, 0x20, 0x6d, 0x61, 0x78, 0x55, 0x6c, 0x74, 0x72, 0x61, 0x48, 0x6f, 0x6e, 0x6b, 0x50, 0x75,
+	0x62, 0x6c, 0x69, 0x63, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x53, 0x69, 0x7a, 0x65, 0x42, 0x79, 0x74,
+	0x65, 0x73, 0x12, 0x3a, 0x0a, 0x1a, 0x6d, 0x61, 0x78, 0x5f, 0x67, 0x6e, 0x61, 0x72, 0x6b, 0x5f,
+	0x70, 0x72, 0x6f, 0x6f, 0x66, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x5f, 0x62, 0x79, 0x74, 0x65, 0x73,
+	0x18, 0x08, 0x20, 0x01, 0x28, 0x04, 0x52, 0x16, 0x6d, 0x61, 0x78, 0x47, 0x6e, 0x61, 0x72, 0x6b,
+	0x50, 0x72, 0x6f, 0x6f, 0x66, 0x53, 0x69, 0x7a, 0x65, 0x42, 0x79, 0x74, 0x65, 0x73, 0x12, 0x47,
+	0x0a, 0x21, 0x6d, 0x61, 0x78, 0x5f, 0x67, 0x6e, 0x61, 0x72, 0x6b, 0x5f, 0x70, 0x75, 0x62, 0x6c,
+	0x69, 0x63, 0x5f, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x5f, 0x73, 0x69, 0x7a, 0x65, 0x5f, 0x62, 0x79,
+	0x74, 0x65, 0x73, 0x18, 0x09, 0x20, 0x01, 0x28, 0x04, 0x52, 0x1c, 0x6d, 0x61, 0x78, 0x47, 0x6e,
+	0x61, 0x72, 0x6b, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x53, 0x69,
+	0x7a, 0x65, 0x42, 0x79, 0x74, 0x65, 0x73, 0x3a, 0x16, 0x98, 0xa0, 0x1f, 0x00, 0xe8, 0xa0, 0x1f,
+	0x01, 0x8a, 0xe7, 0xb0, 0x2a, 0x09, 0x7a, 0x6b, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x2a,
+	0x85, 0x01, 0x0a, 0x0b, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x12,
+	0x1c, 0x0a, 0x18, 0x50, 0x52, 0x4f, 0x4f, 0x46, 0x5f, 0x53, 0x59, 0x53, 0x54, 0x45, 0x4d, 0x5f,
+	0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x18, 0x0a,
+	0x14, 0x50, 0x52, 0x4f, 0x4f, 0x46, 0x5f, 0x53, 0x59, 0x53, 0x54, 0x45, 0x4d, 0x5f, 0x47, 0x52,
+	0x4f, 0x54, 0x48, 0x31, 0x36, 0x10, 0x01, 0x12, 0x1e, 0x0a, 0x1a, 0x50, 0x52, 0x4f, 0x4f, 0x46,
+	0x5f, 0x53, 0x59, 0x53, 0x54, 0x45, 0x4d, 0x5f, 0x55, 0x4c, 0x54, 0x52, 0x41, 0x5f, 0x48, 0x4f,
+	0x4e, 0x4b, 0x5f, 0x5a, 0x4b, 0x10, 0x02, 0x12, 0x1e, 0x0a, 0x1a, 0x50, 0x52, 0x4f, 0x4f, 0x46,
+	0x5f, 0x53, 0x59, 0x53, 0x54, 0x45, 0x4d, 0x5f, 0x47, 0x52, 0x4f, 0x54, 0x48, 0x31, 0x36, 0x5f,
+	0x47, 0x4e, 0x41, 0x52, 0x4b, 0x10, 0x03, 0x42, 0x97, 0x01, 0x0a, 0x0e, 0x63, 0x6f, 0x6d, 0x2e,
+	0x78, 0x69, 0x6f, 0x6e, 0x2e, 0x7a, 0x6b, 0x2e, 0x76, 0x31, 0x42, 0x0b, 0x50, 0x61, 0x72, 0x61,
+	0x6d, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2e, 0x67, 0x69, 0x74, 0x68, 0x75,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x62, 0x75, 0x72, 0x6e, 0x74, 0x2d, 0x6c, 0x61, 0x62, 0x73,
+	0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x78, 0x69, 0x6f, 0x6e, 0x2f, 0x7a,
+	0x6b, 0x2f, 0x76, 0x31, 0x3b, 0x7a, 0x6b, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x58, 0x5a, 0x58, 0xaa,
+	0x02, 0x0a, 0x58, 0x69, 0x6f, 0x6e, 0x2e, 0x5a, 0x6b, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0a, 0x58,
+	0x69, 0x6f, 0x6e, 0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x16, 0x58, 0x69, 0x6f, 0x6e,
+	0x5c, 0x5a, 0x6b, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61,
+	0x74, 0x61, 0xea, 0x02, 0x0c, 0x58, 0x69, 0x6f, 0x6e, 0x3a, 0x3a, 0x5a, 0x6b, 0x3a, 0x3a, 0x56,
+	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -625,9 +1067,11 @@ func file_xion_zk_v1_params_proto_rawDescGZIP() []byte {
 	return file_xion_zk_v1_params_proto_rawDescData
 }
 
+var file_xion_zk_v1_params_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_xion_zk_v1_params_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_xion_zk_v1_params_proto_goTypes = []interface{}{
-	(*Params)(nil), // 0: xion.zk.v1.Params
+	(ProofSystem)(0), // 0: xion.zk.v1.ProofSystem
+	(*Params)(nil),   // 1: xion.zk.v1.Params
 }
 var file_xion_zk_v1_params_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -661,13 +1105,14 @@ func file_xion_zk_v1_params_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_xion_zk_v1_params_proto_rawDesc,
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_xion_zk_v1_params_proto_goTypes,
 		DependencyIndexes: file_xion_zk_v1_params_proto_depIdxs,
+		EnumInfos:         file_xion_zk_v1_params_proto_enumTypes,
 		MessageInfos:      file_xion_zk_v1_params_proto_msgTypes,
 	}.Build()
 	File_xion_zk_v1_params_proto = out.File
