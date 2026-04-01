@@ -433,7 +433,7 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 	})
 
 	t.Run("1024-bit key accepted for message path (Yahoo s1024 compatibility)", func(t *testing.T) {
-		// MinRSAKeyBits is set to 1024 to support legacy providers like Yahoo (s1024 selector).
+		// DefaultMinRSAKeyBits is set to 1024 to support legacy providers like Yahoo (s1024 selector).
 		// 1024-bit keys are low-assurance and expected to be rotated when providers upgrade.
 		smallKey, err := rsa.GenerateKey(rand.Reader, 1024) //nolint:gosec // G403: intentionally testing legacy 1024-bit key
 		require.NoError(t, err)
