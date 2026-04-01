@@ -160,7 +160,8 @@ func (k *Keeper) ExportGenesis(ctx context.Context) *types.GenesisState {
 	for ; revokedIter.Valid(); revokedIter.Next() {
 		key, err := revokedIter.Key()
 		if err != nil {
-			panic(err)
+			k.Logger().Error("skipping corrupt revoked key during genesis export", "error", err)
+			continue
 		}
 		revokedPubKeys = append(revokedPubKeys, key)
 	}

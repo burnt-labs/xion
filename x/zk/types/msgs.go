@@ -13,9 +13,10 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
-// ProofSystemGroth16 and ProofSystemUltraHonk are typed aliases for the ProofSystem enum.
+// Typed aliases for the ProofSystem enum.
 const (
 	ProofSystemGroth16   = ProofSystem_PROOF_SYSTEM_GROTH16
+	ProofSystemGnark     = ProofSystem_PROOF_SYSTEM_GROTH16_GNARK
 	ProofSystemUltraHonk = ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK
 )
 
