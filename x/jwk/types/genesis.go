@@ -65,6 +65,14 @@ func (gs GenesisState) Validate() error {
 			case jwa.HS256, jwa.HS384, jwa.HS512, jwa.NoSignature:
 				return errorsmod.Wrapf(ErrInvalidJWK, "invalid algorithm %s in genesis JWK for audience %s", sigAlg.String(), elem.Aud)
 			}
+
+			if err := ValidateJWKKeySize(parsedKey); err != nil {
+				return errorsmod.Wrapf(ErrInvalidJWK, "invalid key material in genesis JWK for audience %s: %s", elem.Aud, err)
+			}
+
+			if err := validateJWKKeyTypeAlgConsistency(parsedKey, sigAlg); err != nil {
+				return errorsmod.Wrapf(ErrInvalidJWK, "key type/algorithm mismatch in genesis JWK for audience %s: %s", elem.Aud, err)
+			}
 		}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
