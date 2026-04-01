@@ -9,6 +9,8 @@ import (
 
 	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -207,33 +209,60 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		chunks[i] = publicInputs[start : start+barretenberg.FieldElementSize]
 	}
 
-	vk, err := barretenberg.ParseVerificationKey(vkey.KeyBytes)
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidVKey, "ultrahonk vkey: %v", err)
-	}
-	defer vk.Close()
+	// Wrap all Barretenberg CGo calls with panic recovery.
+	// A panic in the C++ layer propagates as a Go panic through CGo; while a
+	// true SIGSEGV cannot be caught here, Go-level panics from the CGo wrapper
+	// (e.g. nil-dereference, bounds check) are recoverable and must not crash
+	// the validator.
+	var (
+		resp    *types.ProofVerifyUltraHonkResponse
+		callErr error
+	)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				q.logger.Error("panic during ultrahonk verification", "panic", r)
+				callErr = status.Error(codes.Internal, "internal error during proof verification")
+			}
+		}()
 
-	proof, err := barretenberg.ParseProof(req.GetProof())
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidRequest, "proof: %v", err)
-	}
-
-	verifier, err := barretenberg.NewVerifier(vk)
-	if err != nil {
-		return nil, err
-	}
-	defer verifier.Close()
-
-	verified, err := verifier.VerifyWithBytes(proof, chunks)
-	if err != nil {
-		if goerrors.Is(err, barretenberg.ErrVerificationFailed) ||
-			goerrors.Is(err, barretenberg.ErrInvalidPublicInputs) ||
-			goerrors.Is(err, barretenberg.ErrInternal) {
-			return &types.ProofVerifyUltraHonkResponse{Verified: false}, nil
+		vk, e := barretenberg.ParseVerificationKey(vkey.KeyBytes)
+		if e != nil {
+			callErr = errors.Wrapf(types.ErrInvalidVKey, "ultrahonk vkey: %v", e)
+			return
 		}
-		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification: %v", err)
+		defer vk.Close()
+
+		bproof, e := barretenberg.ParseProof(req.GetProof())
+		if e != nil {
+			callErr = errors.Wrapf(types.ErrInvalidRequest, "proof: %v", e)
+			return
+		}
+
+		verifier, e := barretenberg.NewVerifier(vk)
+		if e != nil {
+			callErr = e
+			return
+		}
+		defer verifier.Close()
+
+		verified, e := verifier.VerifyWithBytes(bproof, chunks)
+		if e != nil {
+			if goerrors.Is(e, barretenberg.ErrVerificationFailed) ||
+				goerrors.Is(e, barretenberg.ErrInvalidPublicInputs) ||
+				goerrors.Is(e, barretenberg.ErrInternal) {
+				resp = &types.ProofVerifyUltraHonkResponse{Verified: false}
+				return
+			}
+			callErr = errors.Wrapf(types.ErrInvalidRequest, "verification: %v", e)
+			return
+		}
+		resp = &types.ProofVerifyUltraHonkResponse{Verified: verified}
+	}()
+	if callErr != nil {
+		return nil, callErr
 	}
-	return &types.ProofVerifyUltraHonkResponse{Verified: verified}, nil
+	return resp, nil
 }
 
 // VKey queries a verification key by ID
