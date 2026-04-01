@@ -57,7 +57,7 @@ func (m *MsgAddVKey) ValidateBasic() error {
 
 	// Apply proof-system aware structural checks at CheckTx time to reduce
 	// malformed-vkey mempool spam while keeping keeper-side validation authoritative.
-	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, MaxAllowedVKeySizeBytes, proofSystem); err != nil {
 		return err
 	}
 
@@ -96,7 +96,7 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 
 	// Apply proof-system aware structural checks at CheckTx time to reduce
 	// malformed-vkey mempool spam while keeping keeper-side validation authoritative.
-	if err := ValidateVKeyForProofSystem(m.VkeyBytes, DefaultMaxVKeySizeBytes, proofSystem); err != nil {
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, MaxAllowedVKeySizeBytes, proofSystem); err != nil {
 		return err
 	}
 
