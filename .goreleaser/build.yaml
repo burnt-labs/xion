@@ -34,7 +34,9 @@ builds:
         - cmd: mkdir -p {{ .Env.LIB_PATH }}
         # barretenberg-go v0.2.0+ includes lib/ directory in the module, so no download needed.
         # Download pre-built libwasmvm from CosmWasm releases.
-        - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/{{ .Env.WASM_LIB }} -O {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB}}'
+        # Parse wasmvm version directly from go.mod (avoids go list -m which
+        # needs a populated module cache and fails in fresh Docker layers).
+        - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || WASMVM_VERSION=$(grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 2) && wget -q https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/{{ .Env.WASM_LIB }} -O {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }}'
         - cmd: echo Starting build...
     ldflags:
       - -X main.Date={{ .CommitDate }}
