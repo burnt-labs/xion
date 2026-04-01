@@ -91,14 +91,14 @@ func TestMsgAddVKey_ValidateBasic(t *testing.T) {
 		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
 	})
 
-	t.Run("non-empty arbitrary vkey bytes", func(t *testing.T) {
+	t.Run("non-empty arbitrary vkey bytes are rejected", func(t *testing.T) {
 		msg := &types.MsgAddVKey{
 			Authority: validAuthority,
 			Name:      "test-vkey",
 			VkeyBytes: []byte("arbitrary-non-empty-bytes"),
 		}
 		err := msg.ValidateBasic()
-		require.NoError(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -168,6 +168,16 @@ func TestMsgUpdateVKey_ValidateBasic(t *testing.T) {
 		err := msg.ValidateBasic()
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "vkey_bytes cannot be empty")
+	})
+
+	t.Run("non-empty arbitrary vkey bytes are rejected", func(t *testing.T) {
+		msg := &types.MsgUpdateVKey{
+			Authority: validAuthority,
+			Name:      "test-vkey",
+			VkeyBytes: []byte("arbitrary-non-empty-bytes"),
+		}
+		err := msg.ValidateBasic()
+		require.Error(t, err)
 	})
 }
 
