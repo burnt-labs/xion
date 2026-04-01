@@ -237,7 +237,7 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 	// Wrap gnark calls with panic recovery — circom2gnark/gnark may panic on
 	// malformed proofs or VKeys that pass JSON parsing but have invalid curve points.
 	var (
-		verified bool
+		verified  bool
 		verifyErr error
 	)
 	func() {

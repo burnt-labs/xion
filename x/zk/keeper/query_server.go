@@ -9,14 +9,13 @@ import (
 
 	"github.com/burnt-labs/barretenberg-go/barretenberg"
 	"github.com/vocdoni/circom2gnark/parser"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/types/query"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/burnt-labs/xion/x/zk/types"
 )

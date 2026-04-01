@@ -6,15 +6,14 @@ import (
 	"math/big"
 
 	"github.com/vocdoni/circom2gnark/parser"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/burnt-labs/xion/x/dkim/types"
 )
