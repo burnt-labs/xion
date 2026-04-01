@@ -1,0 +1,62 @@
+name: Extract Linux Binaries from Docker Images
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  extract-binaries:
+    name: Extract xiond-${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - linux
+        arch:
+          - amd64
+          - arm64
+
+    steps:
+      - name: Download Docker image tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-${{ matrix.os }}-${{ matrix.arch }}.tar
+          path: ${{ runner.temp }}
+
+      - name: Load Docker image
+        run: docker load < ${{ runner.temp }}/docker-${{ matrix.os }}-${{ matrix.arch }}.tar
+
+      - name: Extract xiond binary from image
+        run: |
+          set -euo pipefail
+
+          # Determine the variant suffix goreleaser expects
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            VARIANT="v8.0"
+          else
+            VARIANT="v1"
+          fi
+
+          # Create the directory structure expected by exec-goreleaser / release.yaml
+          DEST="dist/xiond_${{ matrix.os }}_${{ matrix.arch }}_${VARIANT}/bin"
+          mkdir -p "${DEST}"
+
+          # Copy the binary out of the Docker image
+          CONTAINER=$(docker create "xion:${{ matrix.os }}-${{ matrix.arch }}")
+          docker cp "${CONTAINER}:/usr/bin/xiond" "${DEST}/xiond-${{ matrix.os }}-${{ matrix.arch }}"
+          docker rm "${CONTAINER}"
+
+          # Verify the binary
+          file "${DEST}/xiond-${{ matrix.os }}-${{ matrix.arch }}"
+          chmod +x "${DEST}/xiond-${{ matrix.os }}-${{ matrix.arch }}"
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiond-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/**/xiond-${{ matrix.os }}-${{ matrix.arch }}
+          retention-days: 3
+          if-no-files-found: error
