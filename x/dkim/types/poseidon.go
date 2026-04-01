@@ -197,13 +197,19 @@ func ComputePoseidonHash(pub string) (*big.Int, error) {
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				hashErr = errors.Wrap(sdkError.ErrInvalidRequest, fmt.Sprintf("panic during poseidon hash: %v", r))
+				// Do not expose the recovered panic value in the returned error
+				// to avoid leaking internal details or unbounded error sizes.
+				_ = r
+				hashErr = errors.Wrap(sdkError.ErrInvalidRequest, "panic during poseidon hash")
 			}
 		}()
 		hash, hashErr = poseidon.Hash(pubKeyInputBigInt)
 	}()
 	if hashErr != nil {
-		return nil, errors.Wrap(sdkError.ErrInvalidRequest, hashErr.Error())
+		// hashErr may already be an SDK error (e.g. from the panic recovery
+		// above), so return it directly to avoid double-wrapping, which would
+		// both duplicate error prefixes and break errors.Is checks.
+		return nil, hashErr
 	}
 	return hash, nil
 }

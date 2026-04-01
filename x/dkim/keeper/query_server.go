@@ -311,10 +311,12 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 
 	// Wrap circom2gnark/gnark calls with panic recovery — same risk as the ZK
 	// ProofVerify path: malformed proofs can trigger panics in the gnark library.
+	sdkCtx := sdk.UnwrapSDKContext(c)
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				err = status.Errorf(codes.Internal, "panic during dkim proof verification: %v", r)
+				sdkCtx.Logger().Error("panic during dkim proof verification", "panic", r)
+				err = status.Error(codes.Internal, "internal error during dkim proof verification")
 			}
 		}()
 

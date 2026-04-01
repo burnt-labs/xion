@@ -221,7 +221,8 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				callErr = status.Errorf(codes.Internal, "panic during ultrahonk verification: %v", r)
+				q.logger.Error("panic during ultrahonk verification", "panic", r)
+				callErr = status.Error(codes.Internal, "internal error during proof verification")
 			}
 		}()
 

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -243,7 +242,8 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				verifyErr = fmt.Errorf("panic during groth16 verification: %v", r)
+				k.logger.Error("panic during groth16 verification", "panic", r)
+				verifyErr = errors.Wrap(types.ErrInvalidRequest, "internal error during proof verification")
 			}
 		}()
 		gnarkProof, err := parser.ConvertCircomToGnark(vkey, proof, *inputs)
