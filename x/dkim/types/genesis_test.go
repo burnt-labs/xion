@@ -54,7 +54,6 @@ func TestGenesisState_Validate(t *testing.T) {
 					VkeyIdentifier:     uint64(42),
 					MaxPubkeySizeBytes: types.DefaultMaxPubKeySizeBytes,
 					PublicInputIndices: types.DefaultPublicInputIndices(),
-
 				},
 			},
 			valid: true,

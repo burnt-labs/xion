@@ -6,6 +6,8 @@ import (
 	"math/big"
 
 	"github.com/vocdoni/circom2gnark/parser"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
@@ -307,17 +309,31 @@ func (k Querier) Authenticate(c context.Context, req *types.QueryAuthenticateReq
 		return nil, errors.Wrapf(types.ErrInvalidEmailSubject, "email subject validation failed: %s", emailSubjectFromPublicInputsString)
 	}
 
-	snarkProof, err := parser.UnmarshalCircomProofJSON(req.Proof)
-	if err != nil {
-		return nil, err
-	}
+	// Wrap circom2gnark/gnark calls with panic recovery — same risk as the ZK
+	// ProofVerify path: malformed proofs can trigger panics in the gnark library.
+	sdkCtx := sdk.UnwrapSDKContext(c)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				sdkCtx.Logger().Error("panic during dkim proof verification", "panic", r)
+				err = status.Error(codes.Internal, "internal error during dkim proof verification")
+			}
+		}()
 
-	vkey, err := k.ZkKeeper.GetCircomVKeyByID(c, params.VkeyIdentifier)
-	if err != nil {
-		return nil, err
-	}
+		var snarkProof *parser.CircomProof
+		snarkProof, err = parser.UnmarshalCircomProofJSON(req.Proof)
+		if err != nil {
+			return
+		}
 
-	verified, err = k.ZkKeeper.Verify(c, snarkProof, vkey, &req.PublicInputs)
+		var vkey *parser.CircomVerificationKey
+		vkey, err = k.ZkKeeper.GetCircomVKeyByID(c, params.VkeyIdentifier)
+		if err != nil {
+			return
+		}
+
+		verified, err = k.ZkKeeper.Verify(c, snarkProof, vkey, &req.PublicInputs)
+	}()
 	if err != nil {
 		return nil, err
 	}
