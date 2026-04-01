@@ -63,3 +63,6 @@ release
 
 # Barretenberg
 x/zk/barretenberg/lib/
+
+# Build cache
+.cache/
