@@ -115,11 +115,6 @@ func (q Querier) ProofVerify(c context.Context, req *types.QueryVerifyRequest) (
 	return &types.ProofVerifyResponse{Verified: verified}, nil
 }
 
-// bn254ScalarFieldPrime is the BN254 scalar field modulus r.
-// All Groth16 public inputs must be strictly less than this value.
-var bn254ScalarFieldPrime, _ = new(big.Int).SetString(
-	"21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
-
 // validatePublicInputsInScalarField rejects any public input string whose numeric
 // value is >= the BN254 scalar field prime.  Inputs may be decimal or 0x-prefixed hex,
 // matching the formats accepted by circom2gnark's ConvertPublicInputs.
@@ -132,7 +127,7 @@ func validatePublicInputsInScalarField(inputs []string) error {
 			base = 16
 		}
 		v, ok := new(big.Int).SetString(s, base)
-		if !ok || v.Sign() < 0 || v.Cmp(bn254ScalarFieldPrime) >= 0 {
+		if !ok || v.Sign() < 0 || v.Cmp(bn254ScalarPrime) >= 0 {
 			return errors.Wrapf(types.ErrInvalidRequest,
 				"public input[%d] is not a canonical BN254 scalar field element", i)
 		}

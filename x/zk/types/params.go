@@ -37,11 +37,6 @@ const (
 	// Public inputs are provided as raw bytes (concatenated 32-byte big-endian field elements).
 	DefaultMaxGnarkPublicInputSizeBytes uint64 = 10 * 1024 // 10 KiB
 
-	// ProofVerifyGas is the flat gas cost charged per BN254 proof verification.
-	// BN254 pairing checks are computationally expensive; this cost bounds the
-	// number of verifications an account can submit per block under its gas limit.
-	ProofVerifyGas uint64 = 500_000
-
 	// MinProofOrInputSizeBytes is the minimum value governance may set for any
 	// proof or public-input size parameter (must be at least 1 byte).
 	MinProofOrInputSizeBytes uint64 = 1
