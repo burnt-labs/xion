@@ -6,3 +6,7 @@ client/docs/static/openapi.json linguist-generated=true
 
 # Keep source proto files reviewable
 proto/**/*.proto linguist-generated=false
+
+# Collapse test files in PR diffs (expandable on click)
+*_test.go linguist-documentation=true
+e2e_tests/** linguist-documentation=true
