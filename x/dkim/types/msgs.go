@@ -174,7 +174,7 @@ func ValidateDkimPubKeys(dkimKeys []DkimPubKey, params Params) error {
 
 // ValidateDkimPubKeysWithRevocation validates DKIM keys and optionally checks a revocation lookup.
 // isRevoked should return true if the provided pubkey has been revoked.
-// When enforceMinKeySize is true, additional size validation is applied
+// When enforceMinKeySize is true, keys below MinRSAKeyBits (1024) are rejected
 // (use for message validation). Genesis/state-loading paths should pass false
 // to allow legacy keys such as Yahoo's s1024 selector.
 func ValidateDkimPubKeysWithRevocation(
@@ -197,6 +197,10 @@ func ValidateDkimPubKeysWithRevocation(
 		rsaPubKey, err := ParseRSAPublicKey(pubKeyBytes)
 		if err != nil {
 			return err
+		}
+
+		if enforceMinKeySize && rsaPubKey.N.BitLen() < MinRSAKeyBits {
+			return errors.Wrapf(ErrInvalidPubKey, "RSA key size %d bits is below minimum %d bits", rsaPubKey.N.BitLen(), MinRSAKeyBits)
 		}
 
 		if isRevoked != nil {

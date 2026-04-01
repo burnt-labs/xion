@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -447,6 +448,46 @@ func TestValidateDkimPubKeysWithRevocation(t *testing.T) {
 			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
 		}
 		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil, true)
+		require.NoError(t, err)
+	})
+
+	t.Run("sub-1024-bit key rejected on message path", func(t *testing.T) {
+		// Go 1.24+ rejects rsa.GenerateKey for <1024-bit keys, so construct directly.
+		// A 512-bit modulus (64 bytes, high bit set) produces N.BitLen() == 512.
+		n := new(big.Int).SetBit(new(big.Int), 511, 1) // minimal 512-bit odd number
+		n.SetBit(n, 0, 1)
+		weakPub := &rsa.PublicKey{N: n, E: 65537}
+		pkixBytes, err := x509.MarshalPKIXPublicKey(weakPub)
+		require.NoError(t, err)
+		b64 := base64.StdEncoding.EncodeToString(pkixBytes)
+		key := types.DkimPubKey{
+			Domain:   "example.com",
+			Selector: "weak",
+			PubKey:   b64,
+			Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
+			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+		}
+		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil, true)
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrInvalidPubKey)
+	})
+
+	t.Run("sub-1024-bit key accepted on genesis path (enforceMinKeySize false)", func(t *testing.T) {
+		// Construct a 512-bit RSA public key directly — rsa.GenerateKey refuses <1024 bits in Go 1.24+.
+		n := new(big.Int).SetBit(new(big.Int), 511, 1)
+		n.SetBit(n, 0, 1)
+		weakPub := &rsa.PublicKey{N: n, E: 65537}
+		pkixBytes, err := x509.MarshalPKIXPublicKey(weakPub)
+		require.NoError(t, err)
+		b64 := base64.StdEncoding.EncodeToString(pkixBytes)
+		key := types.DkimPubKey{
+			Domain:   "example.com",
+			Selector: "weak",
+			PubKey:   b64,
+			Version:  types.Version_VERSION_DKIM1_UNSPECIFIED,
+			KeyType:  types.KeyType_KEY_TYPE_RSA_UNSPECIFIED,
+		}
+		err = types.ValidateDkimPubKeysWithRevocation(context.Background(), []types.DkimPubKey{key}, params, nil, false)
 		require.NoError(t, err)
 	})
 }
