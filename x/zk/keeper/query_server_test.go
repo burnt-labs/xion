@@ -1549,6 +1549,8 @@ func TestQueryParams(t *testing.T) {
 		MaxGroth16PublicInputSizeBytes:   types.DefaultMaxGroth16PublicInputSizeBytes,
 		MaxUltraHonkProofSizeBytes:       types.DefaultMaxUltraHonkProofSizeBytes,
 		MaxUltraHonkPublicInputSizeBytes: types.DefaultMaxUltraHonkPublicInputSizeBytes,
+		MaxGnarkProofSizeBytes:           types.DefaultMaxGnarkProofSizeBytes,
+		MaxGnarkPublicInputSizeBytes:     types.DefaultMaxGnarkPublicInputSizeBytes,
 	}
 	err := f.k.Params.Set(f.ctx, customParams)
 	require.NoError(t, err)

@@ -1,10 +1,14 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"math/big"
 	"strings"
 
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/backend/groth16"
+	"github.com/consensys/gnark/backend/witness"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	"cosmossdk.io/collections"
@@ -254,6 +258,45 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 		verified, verifyErr = parser.VerifyProof(gnarkProof)
 	}()
 	return verified, verifyErr
+}
+
+// VerifyGnark verifies a gnark native Groth16 proof (BN254) using the provided vkey bytes and public inputs.
+// proofBytes: serialized groth16.Proof (binary, gnark native format)
+// vkeyBytes: serialized groth16.VerifyingKey (binary, gnark native format)
+// publicInputsBytes: serialized public witness (gnark witness binary format)
+//
+// The public inputs must be serialized using gnark's witness.MarshalBinary() on the public part
+// of the witness (obtained via witness.Public()).
+func (k *Keeper) VerifyGnark(ctx context.Context, proofBytes []byte, vkeyBytes []byte, publicInputsBytes []byte) (bool, error) {
+	// Deserialize verification key
+	vk := groth16.NewVerifyingKey(ecc.BN254)
+	if _, err := vk.ReadFrom(bytes.NewReader(vkeyBytes)); err != nil {
+		return false, errors.Wrapf(types.ErrInvalidVKey, "failed to parse gnark vkey: %v", err)
+	}
+
+	// Deserialize proof
+	proof := groth16.NewProof(ecc.BN254)
+	if _, err := proof.ReadFrom(bytes.NewReader(proofBytes)); err != nil {
+		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to parse gnark proof: %v", err)
+	}
+
+	// Create and unmarshal public witness
+	publicWitness, err := witness.New(ecc.BN254.ScalarField())
+	if err != nil {
+		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to create witness: %v", err)
+	}
+
+	if err := publicWitness.UnmarshalBinary(publicInputsBytes); err != nil {
+		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to unmarshal public inputs: %v", err)
+	}
+
+	// Verify the proof
+	if err := groth16.Verify(proof, vk, publicWitness); err != nil {
+		// Verification failed - this is not an error, just means the proof is invalid
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // AddVKey adds a new verification key to the store.

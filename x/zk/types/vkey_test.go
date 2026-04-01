@@ -3,6 +3,7 @@ package types_test
 import (
 	"encoding/base64"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -441,5 +442,78 @@ func TestNewVKeyFromCircom(t *testing.T) {
 		vkey, err := types.NewVKeyFromCircom(nil, "test-vkey", "test description")
 		require.Error(t, err)
 		require.Nil(t, vkey)
+	})
+}
+
+// loadGnarkVKeyTestdata loads gnark vkey testdata binary file
+func loadGnarkVKeyTestdata(t *testing.T) []byte {
+	t.Helper()
+
+	// The testdata is in the keeper package's testdata directory
+	vkeyBytes, err := os.ReadFile("../keeper/testdata/gnark/vkey.bin")
+	require.NoError(t, err, "failed to load gnark vkey.bin")
+
+	return vkeyBytes
+}
+
+func TestValidateGnarkVKeyBytes(t *testing.T) {
+	gnarkVkeyBytes := loadGnarkVKeyTestdata(t)
+
+	t.Run("valid gnark vkey", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(gnarkVkeyBytes, 0)
+		require.NoError(t, err)
+	})
+
+	t.Run("valid gnark vkey with max size limit", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(gnarkVkeyBytes, types.DefaultMaxVKeySizeBytes)
+		require.NoError(t, err)
+	})
+
+	t.Run("empty vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte{}, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+
+	t.Run("nil vkey bytes", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(nil, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid verification key")
+	})
+
+	t.Run("invalid binary data", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes([]byte("invalid binary data"), 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
+	})
+
+	t.Run("vkey exceeds max size", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(gnarkVkeyBytes, 10) // Very small limit
+		require.Error(t, err)
+		require.ErrorIs(t, err, types.ErrVKeyTooLarge)
+		require.Contains(t, err.Error(), "exceeds max")
+	})
+
+	t.Run("circom JSON as gnark vkey fails", func(t *testing.T) {
+		err := types.ValidateGnarkVKeyBytes(validVKeyJSON, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
+	})
+
+	t.Run("random bytes fail", func(t *testing.T) {
+		randomBytes := make([]byte, 364) // Same size as valid vkey
+		for i := range randomBytes {
+			randomBytes[i] = byte(i % 256)
+		}
+		err := types.ValidateGnarkVKeyBytes(randomBytes, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
+	})
+
+	t.Run("truncated vkey fails", func(t *testing.T) {
+		truncated := gnarkVkeyBytes[:len(gnarkVkeyBytes)/2]
+		err := types.ValidateGnarkVKeyBytes(truncated, 0)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse gnark BN254 verification key")
 	})
 }

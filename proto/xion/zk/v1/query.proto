@@ -26,6 +26,17 @@ service Query {
     };
   }
 
+  // ProofVerifyGnark verifies a gnark native Groth16 proof (BN254). The vkey
+  // is resolved by vkey_name or vkey_id from the store and must be of type
+  // groth16_gnark.
+  rpc ProofVerifyGnark(QueryVerifyGnarkRequest)
+      returns (ProofVerifyGnarkResponse) {
+    option (google.api.http) = {
+      post : "/burnt/xion/zk/v1/verify-gnark"
+      body : "*"
+    };
+  }
+
   // VKey queries a verification key by ID
   rpc VKey(QueryVKeyRequest) returns (QueryVKeyResponse) {
     option (google.api.http).get = "/burnt/xion/zk/v1/vkeys/{id}";
@@ -91,6 +102,13 @@ message ProofVerifyUltraHonkResponse {
   bool verified = 1;
 }
 
+// ProofVerifyGnarkResponse defines the response structure for gnark Groth16
+// proof verification.
+message ProofVerifyGnarkResponse {
+  // verified indicates whether the proof verification was successful.
+  bool verified = 1;
+}
+
 // QueryVerifyUltraHonkRequest is the request for ProofVerifyUltraHonk.
 // The verification key is resolved by vkey_name or vkey_id from the store (must
 // be ultrahonk type). Proof and public_inputs are raw binary as produced by
@@ -105,6 +123,22 @@ message QueryVerifyUltraHonkRequest {
   // vkey_name is the unique name of the UltraHonk verification key
   string vkey_name = 3;
   // vkey_id is the numeric id of the UltraHonk verification key
+  uint64 vkey_id = 4;
+}
+
+// QueryVerifyGnarkRequest is the request for ProofVerifyGnark.
+// The verification key is resolved by vkey_name or vkey_id from the store (must
+// be groth16_gnark type). Proof and public_inputs are gnark native binary
+// format.
+message QueryVerifyGnarkRequest {
+  // proof is the gnark native Groth16 proof bytes (serialized groth16.Proof).
+  bytes proof = 1;
+  // public_inputs is the raw public inputs binary: concatenated 32-byte
+  // big-endian field elements (fr.Element serialization).
+  bytes public_inputs = 2;
+  // vkey_name is the unique name of the gnark verification key
+  string vkey_name = 3;
+  // vkey_id is the numeric id of the gnark verification key
   uint64 vkey_id = 4;
 }
 

@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Query_ProofVerify_FullMethodName          = "/xion.zk.v1.Query/ProofVerify"
 	Query_ProofVerifyUltraHonk_FullMethodName = "/xion.zk.v1.Query/ProofVerifyUltraHonk"
+	Query_ProofVerifyGnark_FullMethodName     = "/xion.zk.v1.Query/ProofVerifyGnark"
 	Query_VKey_FullMethodName                 = "/xion.zk.v1.Query/VKey"
 	Query_VKeyByName_FullMethodName           = "/xion.zk.v1.Query/VKeyByName"
 	Query_VKeys_FullMethodName                = "/xion.zk.v1.Query/VKeys"
@@ -41,6 +42,10 @@ type QueryClient interface {
 	// is resolved by vkey_name or vkey_id from the store and must be of type
 	// ultrahonk.
 	ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyUltraHonkRequest, opts ...grpc.CallOption) (*ProofVerifyUltraHonkResponse, error)
+	// ProofVerifyGnark verifies a gnark native Groth16 proof (BN254). The vkey
+	// is resolved by vkey_name or vkey_id from the store and must be of type
+	// groth16_gnark.
+	ProofVerifyGnark(ctx context.Context, in *QueryVerifyGnarkRequest, opts ...grpc.CallOption) (*ProofVerifyGnarkResponse, error)
 	// VKey queries a verification key by ID
 	VKey(ctx context.Context, in *QueryVKeyRequest, opts ...grpc.CallOption) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -77,6 +82,16 @@ func (c *queryClient) ProofVerifyUltraHonk(ctx context.Context, in *QueryVerifyU
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ProofVerifyUltraHonkResponse)
 	err := c.cc.Invoke(ctx, Query_ProofVerifyUltraHonk_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) ProofVerifyGnark(ctx context.Context, in *QueryVerifyGnarkRequest, opts ...grpc.CallOption) (*ProofVerifyGnarkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProofVerifyGnarkResponse)
+	err := c.cc.Invoke(ctx, Query_ProofVerifyGnark_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +170,10 @@ type QueryServer interface {
 	// is resolved by vkey_name or vkey_id from the store and must be of type
 	// ultrahonk.
 	ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyUltraHonkResponse, error)
+	// ProofVerifyGnark verifies a gnark native Groth16 proof (BN254). The vkey
+	// is resolved by vkey_name or vkey_id from the store and must be of type
+	// groth16_gnark.
+	ProofVerifyGnark(context.Context, *QueryVerifyGnarkRequest) (*ProofVerifyGnarkResponse, error)
 	// VKey queries a verification key by ID
 	VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error)
 	// VKeyByName queries a verification key by name
@@ -182,6 +201,9 @@ func (UnimplementedQueryServer) ProofVerify(context.Context, *QueryVerifyRequest
 }
 func (UnimplementedQueryServer) ProofVerifyUltraHonk(context.Context, *QueryVerifyUltraHonkRequest) (*ProofVerifyUltraHonkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ProofVerifyUltraHonk not implemented")
+}
+func (UnimplementedQueryServer) ProofVerifyGnark(context.Context, *QueryVerifyGnarkRequest) (*ProofVerifyGnarkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProofVerifyGnark not implemented")
 }
 func (UnimplementedQueryServer) VKey(context.Context, *QueryVKeyRequest) (*QueryVKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VKey not implemented")
@@ -254,6 +276,24 @@ func _Query_ProofVerifyUltraHonk_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).ProofVerifyUltraHonk(ctx, req.(*QueryVerifyUltraHonkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_ProofVerifyGnark_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyGnarkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ProofVerifyGnark(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_ProofVerifyGnark_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ProofVerifyGnark(ctx, req.(*QueryVerifyGnarkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -380,6 +420,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProofVerifyUltraHonk",
 			Handler:    _Query_ProofVerifyUltraHonk_Handler,
+		},
+		{
+			MethodName: "ProofVerifyGnark",
+			Handler:    _Query_ProofVerifyGnark_Handler,
 		},
 		{
 			MethodName: "VKey",

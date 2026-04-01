@@ -120,7 +120,7 @@ func TestMsgServer_AddVKey(t *testing.T) {
 		resp, err := f.msgServer.AddVKey(f.ctx, msg)
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "vkey validation")
+		require.Contains(t, err.Error(), "invalid verification key")
 	})
 
 	t.Run("fail with duplicate name", func(t *testing.T) {

@@ -16,6 +16,9 @@ enum ProofSystem {
   // PROOF_SYSTEM_ULTRA_HONK_ZK uses Barretenberg UltraHonk ZK variant
   // (bb >= 0.87).
   PROOF_SYSTEM_ULTRA_HONK_ZK = 2;
+  // PROOF_SYSTEM_GROTH16_GNARK uses BN254 Groth16 proofs in gnark native
+  // format (binary).
+  PROOF_SYSTEM_GROTH16_GNARK = 3;
 }
 
 // Params defines the zk module parameters.
@@ -47,4 +50,13 @@ message Params {
   // max_ultra_honk_public_input_size_bytes caps the size of the UltraHonk
   // public inputs. UltraHonk public inputs are provided as raw bytes.
   uint64 max_ultra_honk_public_input_size_bytes = 7;
+
+  // max_gnark_proof_size_bytes caps the size of a gnark native Groth16 proof
+  // (binary).
+  uint64 max_gnark_proof_size_bytes = 8;
+
+  // max_gnark_public_input_size_bytes caps the size of the gnark Groth16 public
+  // inputs. Public inputs are provided as raw bytes (concatenated 32-byte
+  // big-endian field elements).
+  uint64 max_gnark_public_input_size_bytes = 9;
 }

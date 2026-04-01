@@ -2,11 +2,14 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/big"
 
 	"github.com/burnt-labs/barretenberg-go/barretenberg"
+	"github.com/consensys/gnark-crypto/ecc"
+	"github.com/consensys/gnark/backend/groth16"
 	"github.com/vocdoni/circom2gnark/parser"
 
 	errorsmod "cosmossdk.io/errors"
@@ -51,9 +54,29 @@ func ValidateVKeyForProofSystem(vkeyBytes []byte, maxSizeBytes uint64, proofSyst
 		return barretenberg.ValidateVerificationKeyBytes(vkeyBytes, maxSizeBytes)
 	case ProofSystem_PROOF_SYSTEM_GROTH16:
 		return ValidateVKeyBytes(vkeyBytes, maxSizeBytes)
+	case ProofSystem_PROOF_SYSTEM_GROTH16_GNARK:
+		return ValidateGnarkVKeyBytes(vkeyBytes, maxSizeBytes)
 	default:
-		return fmt.Errorf("proof_system must be %v or %v, got %v", ProofSystem_PROOF_SYSTEM_GROTH16, ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK, proofSystem)
+		return fmt.Errorf("proof_system must be %v, %v, or %v, got %v",
+			ProofSystem_PROOF_SYSTEM_GROTH16,
+			ProofSystem_PROOF_SYSTEM_GROTH16_GNARK,
+			ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK,
+			proofSystem)
 	}
+}
+
+// ValidateGnarkVKeyBytes validates that the vkey bytes represent a valid gnark Groth16 VerifyingKey (BN254).
+func ValidateGnarkVKeyBytes(data []byte, maxSizeBytes uint64) error {
+	if err := ValidateVKeyByteSize(data, maxSizeBytes); err != nil {
+		return err
+	}
+	// Attempt to deserialize as gnark groth16.VerifyingKey for BN254
+	vk := groth16.NewVerifyingKey(ecc.BN254)
+	_, err := vk.ReadFrom(bytes.NewReader(data))
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidVKey, "failed to parse gnark BN254 verification key: %v", err)
+	}
+	return nil
 }
 
 // ValidateVKeyBytes enforces that the vkey bytes represent a valid CircomVerificationKey JSON structure.

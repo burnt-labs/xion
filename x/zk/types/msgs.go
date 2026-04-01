@@ -50,8 +50,15 @@ func (m *MsgAddVKey) ValidateBasic() error {
 	proofSystem := m.GetProofSystem()
 	if proofSystem != ProofSystem_PROOF_SYSTEM_UNSPECIFIED &&
 		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16_GNARK &&
 		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
 		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
+	}
+
+	// Apply proof-system aware structural checks at CheckTx time to reduce
+	// malformed-vkey mempool spam while keeping keeper-side validation authoritative.
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, MaxAllowedVKeySizeBytes, proofSystem); err != nil {
+		return err
 	}
 
 	return nil
@@ -82,8 +89,15 @@ func (m *MsgUpdateVKey) ValidateBasic() error {
 	proofSystem := m.GetProofSystem()
 	if proofSystem != ProofSystem_PROOF_SYSTEM_UNSPECIFIED &&
 		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16 &&
+		proofSystem != ProofSystem_PROOF_SYSTEM_GROTH16_GNARK &&
 		proofSystem != ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK {
 		return fmt.Errorf("unsupported proof_system: %v", proofSystem)
+	}
+
+	// Apply proof-system aware structural checks at CheckTx time to reduce
+	// malformed-vkey mempool spam while keeping keeper-side validation authoritative.
+	if err := ValidateVKeyForProofSystem(m.VkeyBytes, MaxAllowedVKeySizeBytes, proofSystem); err != nil {
+		return err
 	}
 
 	return nil

@@ -91,6 +91,7 @@ func init() {
 	setWhitelistedQuery("/xion.dkim.v1.Query/Authenticate", func() proto.Message { return &dkimtypes.AuthenticateResponse{} })
 	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerify", func() proto.Message { return &zktypes.ProofVerifyResponse{} })
 	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerifyUltraHonk", func() proto.Message { return &zktypes.ProofVerifyUltraHonkResponse{} })
+	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerifyGnark", func() proto.Message { return &zktypes.ProofVerifyGnarkResponse{} })
 }
 
 // ProtoMessageFactory is a function that creates a new proto.Message instance.

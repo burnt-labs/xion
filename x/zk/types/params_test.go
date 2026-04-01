@@ -77,6 +77,24 @@ func TestParamsValidate(t *testing.T) {
 	validParams = types.DefaultParams()
 	validParams.MaxGroth16ProofSizeBytes = types.MaxAllowedProofOrInputSizeBytes
 	require.NoError(t, validParams.Validate())
+
+	// Gnark proof/input params must be positive.
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxGnarkProofSizeBytes = 0
+	require.Error(t, invalidParams.Validate())
+
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxGnarkPublicInputSizeBytes = 0
+	require.Error(t, invalidParams.Validate())
+
+	// Gnark proof/input params must not exceed 512 KiB ceiling.
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxGnarkProofSizeBytes = types.MaxAllowedProofOrInputSizeBytes + 1
+	require.Error(t, invalidParams.Validate())
+
+	invalidParams = types.DefaultParams()
+	invalidParams.MaxGnarkPublicInputSizeBytes = types.MaxAllowedProofOrInputSizeBytes + 1
+	require.Error(t, invalidParams.Validate())
 }
 
 func TestGasCostForSize(t *testing.T) {
@@ -118,6 +136,8 @@ func TestWithMaxLimitDefaults(t *testing.T) {
 		require.Equal(t, types.DefaultMaxGroth16PublicInputSizeBytes, got.MaxGroth16PublicInputSizeBytes)
 		require.Equal(t, types.DefaultMaxUltraHonkProofSizeBytes, got.MaxUltraHonkProofSizeBytes)
 		require.Equal(t, types.DefaultMaxUltraHonkPublicInputSizeBytes, got.MaxUltraHonkPublicInputSizeBytes)
+		require.Equal(t, types.DefaultMaxGnarkProofSizeBytes, got.MaxGnarkProofSizeBytes)
+		require.Equal(t, types.DefaultMaxGnarkPublicInputSizeBytes, got.MaxGnarkPublicInputSizeBytes)
 	})
 
 	t.Run("does not overwrite already-set max limits", func(t *testing.T) {
@@ -126,11 +146,15 @@ func TestWithMaxLimitDefaults(t *testing.T) {
 		params.MaxGroth16PublicInputSizeBytes = 12
 		params.MaxUltraHonkProofSizeBytes = 13
 		params.MaxUltraHonkPublicInputSizeBytes = 14
+		params.MaxGnarkProofSizeBytes = 15
+		params.MaxGnarkPublicInputSizeBytes = 16
 
 		got := params.WithMaxLimitDefaults()
 		require.Equal(t, uint64(11), got.MaxGroth16ProofSizeBytes)
 		require.Equal(t, uint64(12), got.MaxGroth16PublicInputSizeBytes)
 		require.Equal(t, uint64(13), got.MaxUltraHonkProofSizeBytes)
 		require.Equal(t, uint64(14), got.MaxUltraHonkPublicInputSizeBytes)
+		require.Equal(t, uint64(15), got.MaxGnarkProofSizeBytes)
+		require.Equal(t, uint64(16), got.MaxGnarkPublicInputSizeBytes)
 	})
 }
