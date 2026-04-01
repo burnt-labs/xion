@@ -27,8 +27,28 @@ jobs:
 
       - name: Move artifacts
         run: |
+          echo "=== Downloaded artifact contents ==="
+          find ${{ runner.temp }} -name 'xiond-*' -type f
           mkdir -p dist
-          mv ${{ runner.temp }}/*/xiond* dist
+          # Place each binary into the directory structure goreleaser expects:
+          #   dist/xiond_<os>_<arch>_<variant>/bin/xiond-<os>-<arch>
+          for bin in $(find ${{ runner.temp }} -name 'xiond-*' -type f); do
+            filename=$(basename "$bin")
+            # Parse os and arch from filename (e.g. xiond-linux-amd64 → linux, amd64)
+            os=$(echo "$filename" | cut -d- -f2)
+            arch=$(echo "$filename" | cut -d- -f3)
+            case "$arch" in
+              arm64) variant="v8.0" ;;
+              amd64) variant="v1" ;;
+              *)     variant="" ;;
+            esac
+            dest="dist/xiond_${os}_${arch}_${variant}/bin"
+            mkdir -p "$dest"
+            cp "$bin" "$dest/$filename"
+            echo "Placed $filename → $dest/$filename"
+          done
+          echo "=== Final dist layout ==="
+          find dist -type f
 
       - name: Set Go Version
         run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
