@@ -45,7 +45,11 @@ builds:
       - -linkmode=external
       - >-
         {{- if eq .Os "linux" -}}
-          -extldflags '-Wl,-z,muldefs -static -lm'
+          {{- if eq .Arch "arm64" -}}
+            -extldflags '-Wl,-z,muldefs -static -lm -lc++ -lc++abi'
+          {{- else -}}
+            -extldflags '-Wl,-z,muldefs -static -lm'
+          {{- end -}}
         {{- end }}
     mod_timestamp: "{{ .CommitTimestamp }}"
     tags:
