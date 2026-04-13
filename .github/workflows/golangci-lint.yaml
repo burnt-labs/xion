@@ -11,7 +11,7 @@ permissions:
 jobs:
   golangci:
     name: main
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubicloud-standard-4
     steps:
       - name: Check out code
         uses: actions/checkout@v5
