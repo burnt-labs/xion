@@ -7,7 +7,7 @@ on:
 
 jobs:
   apt-install:
-    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubicloud-standard-2-arm' || 'ubicloud-standard-2' }}
 
     strategy:
       fail-fast: false
@@ -40,7 +40,7 @@ jobs:
           xiond version --long
 
   rpm-install:
-    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubicloud-standard-2-arm' || 'ubicloud-standard-2' }}
 
     strategy:
       fail-fast: false
@@ -72,7 +72,7 @@ jobs:
           xiond version --long
 
   apk-install:
-    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubicloud-standard-2-arm' || 'ubicloud-standard-2' }}
 
     strategy:
       fail-fast: false

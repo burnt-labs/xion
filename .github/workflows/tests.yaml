@@ -8,7 +8,7 @@ on:
 jobs:
   test-cover:
     name: Coverage
-    runs-on: depot-ubuntu-24.04-8
+    runs-on: ubicloud-standard-8
     steps:
       - uses: actions/checkout@v5
 
@@ -43,7 +43,7 @@ jobs:
 
   test-race:
     name: Race detection
-    runs-on: depot-ubuntu-24.04-8
+    runs-on: ubicloud-standard-8
     steps:
       - uses: actions/checkout@v5
 
