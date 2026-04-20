@@ -160,7 +160,7 @@ jobs:
     steps:
       - name: Trigger xion-types release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
         run: gh workflow run release.yaml --repo burnt-labs/xion-types -f "release_tag=${TAG_NAME}"
 
@@ -172,7 +172,7 @@ jobs:
     steps:
       - name: Dispatch to xion-assets
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
         run: |
           EVENT_TYPE=$( [[ "$TAG_NAME" == *-rc* ]] && echo "xion-assets-testnet-release-trigger" || echo "xion-assets-mainnet-release-trigger" )
@@ -188,7 +188,7 @@ jobs:
     steps:
       - name: Trigger upgrade workflow
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
           IS_RC: ${{ needs.resolve-tag.outputs.is_rc }}
         run: |
