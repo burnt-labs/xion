@@ -94,6 +94,7 @@ brews:
       - "xiond@{{ .Major }}"
     ids:
       - tgz
+    url_template: "https://github.com/{{ .Env.RELEASE_OWNER }}/{{ .Env.RELEASE_REPO }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     test: |
       system "#{bin}/xiond version"
     commit_author:

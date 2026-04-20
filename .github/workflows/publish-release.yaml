@@ -121,3 +121,43 @@ jobs:
     needs: publish-fury
     uses: ./.github/workflows/verify-installers.yaml
     secrets: inherit
+
+  # Downstream triggers — notify other repos about the new release
+  trigger-types:
+    name: Trigger Types
+    if: github.repository == 'burnt-labs/xion'
+    uses: ./.github/workflows/trigger-types.yaml
+    with:
+      release_tag: ${{ github.event.release.tag_name }}
+    secrets: inherit
+
+  update-chain-registry:
+    name: Update Chain Registry
+    if: github.repository == 'burnt-labs/xion'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch to xion-assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          EVENT_TYPE=$( [[ "$TAG_NAME" == *-rc* ]] && echo "xion-assets-testnet-release-trigger" || echo "xion-assets-mainnet-release-trigger" )
+          gh api repos/burnt-labs/xion-assets/dispatches \
+            -f "event_type=${EVENT_TYPE}" \
+            -f "client_payload[tag_name]=${TAG_NAME}"
+
+  upgrade-testnet:
+    name: Testnet Upgrade PR
+    if: github.repository == 'burnt-labs/xion' && contains(github.event.release.tag_name, '-rc')
+    uses: burnt-labs/xion-testnet-2/.github/workflows/create-release.yml@main
+    with:
+      release_tag: ${{ github.event.release.tag_name }}
+    secrets: inherit
+
+  upgrade-mainnet:
+    name: Mainnet Upgrade PR
+    if: github.repository == 'burnt-labs/xion' && !contains(github.event.release.tag_name, '-rc')
+    uses: burnt-labs/xion-mainnet-1/.github/workflows/create-release.yml@main
+    with:
+      release_tag: ${{ github.event.release.tag_name }}
+    secrets: inherit
