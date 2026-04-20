@@ -2434,10 +2434,10 @@ func TestGnarkProofSizeLimits(t *testing.T) {
 	t.Run("fail with proof exceeding max size", func(t *testing.T) {
 		// Set params with a very small max proof size
 		params := types.Params{
-			MaxVkeySizeBytes:         types.DefaultMaxVKeySizeBytes,
-			UploadChunkSize:          types.DefaultUploadChunkSize,
-			UploadChunkGas:           types.DefaultUploadChunkGas,
-			MaxGnarkProofSizeBytes:   10, // Very small limit
+			MaxVkeySizeBytes:             types.DefaultMaxVKeySizeBytes,
+			UploadChunkSize:              types.DefaultUploadChunkSize,
+			UploadChunkGas:               types.DefaultUploadChunkGas,
+			MaxGnarkProofSizeBytes:       10, // Very small limit
 			MaxGnarkPublicInputSizeBytes: types.DefaultMaxGnarkPublicInputSizeBytes,
 		}
 		err := f.k.SetParams(f.ctx, params)

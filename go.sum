@@ -216,8 +216,8 @@ github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
 github.com/burnt-labs/abstract-account v0.1.5 h1:bZVfT0fR4GDBuAVmdzrpRn8T7gwzPCtRSHBgGeLjezo=
 github.com/burnt-labs/abstract-account v0.1.5/go.mod h1:2V5yhfxfCeIv4E0q6agH/spIpmGiv1DPTUHQ5RK153c=
-github.com/burnt-labs/barretenberg-go v0.2.0 h1:WW7apaMkcYRMQOU4qNkKkeCMj4jlL28hdRsBBoCffvY=
-github.com/burnt-labs/barretenberg-go v0.2.0/go.mod h1:2SJlaxo5WVRzoaT+Di/VlSmIzrvPriLklpXqZXvSusI=
+github.com/burnt-labs/barretenberg-go v0.4.0 h1:z1h5YUsgpGyqgRyFaWijgXl7HHFGpavgveOpk0qXDF0=
+github.com/burnt-labs/barretenberg-go v0.4.0/go.mod h1:2SJlaxo5WVRzoaT+Di/VlSmIzrvPriLklpXqZXvSusI=
 github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0-xion.1 h1:1ibq/o5Yj/uFRRtsYgB+PK2qespl7MQcekb5w+YjDnE=
 github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0-xion.1/go.mod h1:fj/tKdN9BF5cSDHczss0elfJO26WuSMQaMyupsllzR8=
 github.com/burnt-labs/tokenfactory v0.53.4-xion.2 h1:c55X9mQSPj7WfVDixPBBRZDmsyOOT9uXvMBimvotDzw=
