@@ -1,7 +1,12 @@
 name: Publish Release
 
 on:
-  workflow_dispatch: # manual trigger
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to publish (e.g. v29.0.1). Defaults to github.ref_name."
+        required: false
+        type: string
   release: # triggered by release event
     types: [published]
     # Notice:
@@ -16,8 +21,31 @@ permissions:
   contents: write
 
 jobs:
+  resolve-tag:
+    name: Resolve Release Tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      is_rc: ${{ steps.tag.outputs.is_rc }}
+    steps:
+      - name: Determine release tag
+        id: tag
+        run: |
+          TAG="${RELEASE_TAG_INPUT:-${RELEASE_TAG_EVENT:-${REF_NAME}}}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-rc* ]]; then
+            echo "is_rc=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_rc=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          RELEASE_TAG_INPUT: ${{ inputs.release_tag }}
+          RELEASE_TAG_EVENT: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+
   publish-fury:
     name: Publish to Fury
+    needs: resolve-tag
     runs-on: ubicloud-standard-2
 
     steps:
@@ -37,9 +65,10 @@ jobs:
       - name: Download release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
         run: |
           mkdir -p dist
-          gh release download ${{ github.ref_name }} \
+          gh release download "$RELEASE_TAG" \
             --repo ${{ github.repository }} \
             --dir dist \
             --pattern 'xiond*'
@@ -125,21 +154,23 @@ jobs:
   # Downstream triggers — notify other repos about the new release
   trigger-types:
     name: Trigger Types
+    needs: resolve-tag
     if: github.repository == 'burnt-labs/xion'
     uses: ./.github/workflows/trigger-types.yaml
     with:
-      release_tag: ${{ github.event.release.tag_name }}
+      release_tag: ${{ needs.resolve-tag.outputs.tag }}
     secrets: inherit
 
   update-chain-registry:
     name: Update Chain Registry
+    needs: resolve-tag
     if: github.repository == 'burnt-labs/xion'
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch to xion-assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ github.event.release.tag_name }}
+          TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
         run: |
           EVENT_TYPE=$( [[ "$TAG_NAME" == *-rc* ]] && echo "xion-assets-testnet-release-trigger" || echo "xion-assets-mainnet-release-trigger" )
           gh api repos/burnt-labs/xion-assets/dispatches \
@@ -148,16 +179,18 @@ jobs:
 
   upgrade-testnet:
     name: Testnet Upgrade PR
-    if: github.repository == 'burnt-labs/xion' && contains(github.event.release.tag_name, '-rc')
+    needs: resolve-tag
+    if: github.repository == 'burnt-labs/xion' && needs.resolve-tag.outputs.is_rc == 'true'
     uses: burnt-labs/xion-testnet-2/.github/workflows/create-release.yml@main
     with:
-      release_tag: ${{ github.event.release.tag_name }}
+      release_tag: ${{ needs.resolve-tag.outputs.tag }}
     secrets: inherit
 
   upgrade-mainnet:
     name: Mainnet Upgrade PR
-    if: github.repository == 'burnt-labs/xion' && !contains(github.event.release.tag_name, '-rc')
+    needs: resolve-tag
+    if: github.repository == 'burnt-labs/xion' && needs.resolve-tag.outputs.is_rc == 'false'
     uses: burnt-labs/xion-mainnet-1/.github/workflows/create-release.yml@main
     with:
-      release_tag: ${{ github.event.release.tag_name }}
+      release_tag: ${{ needs.resolve-tag.outputs.tag }}
     secrets: inherit
