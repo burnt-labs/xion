@@ -156,10 +156,13 @@ jobs:
     name: Trigger Types
     needs: resolve-tag
     if: github.repository == 'burnt-labs/xion'
-    uses: ./.github/workflows/trigger-types.yaml
-    with:
-      release_tag: ${{ needs.resolve-tag.outputs.tag }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger xion-types release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
+        run: gh workflow run release.yaml --repo burnt-labs/xion-types -f "release_tag=${TAG_NAME}"
 
   update-chain-registry:
     name: Update Chain Registry
