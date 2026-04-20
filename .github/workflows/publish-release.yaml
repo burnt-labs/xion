@@ -142,6 +142,7 @@ jobs:
           done
 
       - name: Run GoReleaser (Fury only)
+        continue-on-error: true
         uses: goreleaser/goreleaser-action@v6
         env:
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
