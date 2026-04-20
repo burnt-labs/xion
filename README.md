@@ -206,3 +206,15 @@ make test-integration-xion-abstract-account
 # Generate dependency visualization
 make draw-deps
 ```
+
+```
+./build/xiond tx zk add-vkey cube ./vkey.bin "Cube circuit" gnark  --from $SATYAM2 --chain-id xion-testnet-2 --node $RPC_URL --gas 283286 --gas-prices 1uxion --gas-adjustment 0.4
+
+```
+./build/xiond tx zk add-vkey cube1 ./vkey.json "Cube circuit" gnark  --from $SATYAM2 --chain-id xion-testnet-2 --node $RPC_URL --gas 283286 --gas-prices 1uxion --gas-adjustment 0.4
+
+./build/xiond q zk verify-proof ./proof.bin  --vkey-name cube --public-inputs ./public_input.bin --node $RPC_URL
+
+./build/xiond q zk has-vkey cube --node $RPC_URL
+
+./build/xiond q zk verify-gnark ./proof.bin  --vkey-name cube --public-inputs-file ./public_input.bin --node $RPC_URL
