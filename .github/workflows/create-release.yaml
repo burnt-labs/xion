@@ -35,19 +35,17 @@ jobs:
     uses: ./.github/workflows/binaries-darwin.yaml
     secrets: inherit
 
-  # Linux binaries are extracted from natively-built Docker images instead of
-  # cross-compiled via goreleaser-cross. This avoids libc++/libstdc++ link
-  # errors with barretenberg-go's arm64 static library.
-  build-docker:
-    name: Build Docker Images
-    uses: ./.github/workflows/docker-build.yaml
+  build-linux:
+    name: Build Linux Binaries
+    uses: ./.github/workflows/binaries-linux.yaml
     secrets: inherit
 
-  extract-linux-binaries:
-    name: Extract Linux Binaries
+  build-docker:
+    name: Build Docker Images
     needs:
-      - build-docker
-    uses: ./.github/workflows/extract-binaries-linux.yaml
+      - build-darwin
+      - build-linux
+    uses: ./.github/workflows/docker-build.yaml
     secrets: inherit
 
   push-docker:
@@ -77,8 +75,6 @@ jobs:
       - lint
       - update-swagger
       - unit-tests
-      - build-darwin
-      - extract-linux-binaries
       - push-docker
       - docker-scout
       - e2e-tests

@@ -21,10 +21,10 @@ test-all: check test-race test-cover
 benchmark:
 	@go test -mod=readonly -bench=. ./...
 
-test-unit:
+test-unit: barretenberg-build-wrapper
 	@version=$(version) go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags="-w" ./...
 
-test-race:
+test-race: barretenberg-build-wrapper
 	@version=$(version) go test -mod=readonly -race -tags='ledger test_ledger_mock' -ldflags="-w" ./...
 
 test-e2e-all: .ensure-docker-image
