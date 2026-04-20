@@ -46,6 +46,11 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         cp -a "${PREBUILT_BINARY}" /go/bin/xiond; \
         chmod a+x /go/bin/xiond; \
     else \
+        WASMVM_VERSION=$(grep 'github.com/CosmWasm/wasmvm' go.mod | cut -d ' ' -f 2); \
+        WASM_ARCH=$([ "${GOARCH}" = "arm64" ] && echo "aarch64" || echo "x86_64"); \
+        mkdir -p /tmp/wasmvm; \
+        curl -sSL "https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.${WASM_ARCH}.a" \
+            -o "/tmp/wasmvm/libwasmvm_muslc.${WASM_ARCH}.a"; \
         goreleaser build \
             --config .goreleaser/build.yaml \
             --snapshot --clean --single-target --skip validate; \
