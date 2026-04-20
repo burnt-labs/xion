@@ -32,6 +32,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryHasVKey(),
 		GetCmdQueryVerifyProof(),
 		GetCmdQueryVerifyUltraHonk(),
+		GetCmdQueryVerifyGnark(),
 		GetCmdQueryParams(),
 	)
 
@@ -309,6 +310,72 @@ $ %s q zk verify-ultrahonk proof.bin --vkey-id 1 --public-inputs-file inputs.bin
 
 	cmd.Flags().String("vkey-name", "", "Name of the UltraHonk verification key to use")
 	cmd.Flags().Uint64("vkey-id", 0, "ID of the UltraHonk verification key to use")
+	cmd.Flags().String("public-inputs-file", "", "Path to binary file containing public inputs (32-byte field elements concatenated)")
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryVerifyGnark verifies a gnark Groth16 proof.
+func GetCmdQueryVerifyGnark() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "verify-gnark [proof-file]",
+		Short: "Verify a gnark Groth16 proof using a stored verification key",
+		Long: `Verify a gnark Groth16 proof using a stored verification key.
+The proof file should contain raw binary proof bytes (from gnark).
+Public inputs must be provided via --public-inputs-file as raw binary (32-byte field elements concatenated).
+You must specify either --vkey-name or --vkey-id (the vkey must be a gnark key).`,
+		Args: cobra.ExactArgs(1),
+		Example: fmt.Sprintf(
+			`$ %s query zk verify-gnark proof.bin --vkey-name my_circuit --public-inputs-file public_input.bin
+$ %s q zk verify-gnark proof.bin --vkey-id 1 --public-inputs-file inputs.bin`,
+			"xiond", "xiond",
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proofBytes, err := os.ReadFile(args[0])
+			if err != nil {
+				return fmt.Errorf("failed to read proof file: %w", err)
+			}
+
+			vkeyName, _ := cmd.Flags().GetString("vkey-name")
+			vkeyID, _ := cmd.Flags().GetUint64("vkey-id")
+			inputsPath, _ := cmd.Flags().GetString("public-inputs-file")
+
+			// At least one of vkey-name or vkey-id (server prefers name when both set)
+			if vkeyName == "" && vkeyID == 0 {
+				return fmt.Errorf("either --vkey-name or --vkey-id must be specified")
+			}
+			if inputsPath == "" {
+				return fmt.Errorf("--public-inputs-file must be specified")
+			}
+
+			publicInputs, err := os.ReadFile(inputsPath)
+			if err != nil {
+				return fmt.Errorf("failed to read public inputs file: %w", err)
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.ProofVerifyGnark(context.Background(), &types.QueryVerifyGnarkRequest{
+				Proof:        proofBytes,
+				PublicInputs: publicInputs,
+				VkeyName:     vkeyName,
+				VkeyId:       vkeyID,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	cmd.Flags().String("vkey-name", "", "Name of the gnark verification key to use")
+	cmd.Flags().Uint64("vkey-id", 0, "ID of the gnark verification key to use")
 	cmd.Flags().String("public-inputs-file", "", "Path to binary file containing public inputs (32-byte field elements concatenated)")
 
 	flags.AddQueryFlagsToCmd(cmd)

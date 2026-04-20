@@ -46,11 +46,30 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         cp -a "${PREBUILT_BINARY}" /go/bin/xiond; \
         chmod a+x /go/bin/xiond; \
     else \
+        # Download wasmvm static library and place in module cache
         WASMVM_VERSION=$(grep 'github.com/CosmWasm/wasmvm' go.mod | cut -d ' ' -f 2); \
         WASM_ARCH=$([ "${GOARCH}" = "arm64" ] && echo "aarch64" || echo "x86_64"); \
+        WASM_LIB="libwasmvm_muslc.${WASM_ARCH}.a"; \
         mkdir -p /tmp/wasmvm; \
-        curl -sSL "https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm_muslc.${WASM_ARCH}.a" \
-            -o "/tmp/wasmvm/libwasmvm_muslc.${WASM_ARCH}.a"; \
+        curl -sSfL "https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/${WASM_LIB}" \
+            -o "/tmp/wasmvm/${WASM_LIB}"; \
+        WASM_MODPATH=$(grep 'github.com/CosmWasm/wasmvm' go.mod | awk '{print $1}'); \
+        WASM_MOD_DIR=$(go mod download -json "${WASM_MODPATH}@${WASMVM_VERSION}" | grep '"Dir"' | cut -d'"' -f4); \
+        chmod -R u+w "${WASM_MOD_DIR}" 2>/dev/null || true; \
+        cp "/tmp/wasmvm/${WASM_LIB}" "${WASM_MOD_DIR}/internal/api/${WASM_LIB}"; \
+        # Fix barretenberg-go LFS pointers (go mod download gets pointer files, not real binaries)
+        BB_VERSION=$(grep 'github.com/burnt-labs/barretenberg-go' go.mod | cut -d ' ' -f 2); \
+        if [ -n "${BB_VERSION}" ]; then \
+            BB_MOD_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@${BB_VERSION}" | grep '"Dir"' | cut -d'"' -f4); \
+            BB_LIB="${BB_MOD_DIR}/lib/linux_${GOARCH}/libbarretenberg.a"; \
+            if [ ! -f "${BB_LIB}" ] || head -1 "${BB_LIB}" 2>/dev/null | grep -q 'git-lfs'; then \
+                echo "Downloading libbarretenberg ${BB_VERSION} for linux/${GOARCH}"; \
+                chmod -R u+w "${BB_MOD_DIR}" 2>/dev/null || true; \
+                mkdir -p "$(dirname "${BB_LIB}")"; \
+                curl -sSfL "https://github.com/burnt-labs/barretenberg-go/releases/download/${BB_VERSION}/libbarretenberg_linux_${GOARCH}.a" \
+                    -o "${BB_LIB}"; \
+            fi; \
+        fi; \
         goreleaser build \
             --config .goreleaser/build.yaml \
             --snapshot --clean --single-target --skip validate; \
