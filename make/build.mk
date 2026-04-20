@@ -85,7 +85,7 @@ barretenberg-build-wrapper:
 	BB_MOD_DIR=$$(go mod download -json "github.com/burnt-labs/barretenberg-go@$$BB_VERSION" | grep '"Dir"' | cut -d'"' -f4); \
 	BB_LIB_DIR="$$BB_MOD_DIR/lib/$(GOOS)_$(GOARCH)"; \
 	BB_LIB_FILE="$$BB_LIB_DIR/libbarretenberg.a"; \
-	if [ -f "$$BB_LIB_FILE" ]; then \
+	if [ -f "$$BB_LIB_FILE" ] && ! head -1 "$$BB_LIB_FILE" 2>/dev/null | grep -q 'git-lfs'; then \
 		echo "--> libbarretenberg $$BB_VERSION already present"; \
 	else \
 		echo "--> Downloading libbarretenberg $$BB_VERSION for $(GOOS)/$(GOARCH)"; \

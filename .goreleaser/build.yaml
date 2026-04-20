@@ -7,9 +7,11 @@ before:
   hooks:
     # Install libc++ for arm64 cross-compilation.
     # Aztec's pre-built barretenberg .a for linux_arm64 is compiled with libc++,
-    # but goreleaser-cross only ships libstdc++. Without this, the linker can't
-    # resolve std::__1::* symbols from the barretenberg static archive.
-    - apt-get update -qq && apt-get install -y -qq libc++-18-dev:arm64 libc++abi-18-dev:arm64 >/dev/null 2>&1
+    # but goreleaser-cross only ships libstdc++. barretenberg-go's CGo LDFLAGS
+    # hardcode -lc++, so the linker must find libc++.a in its default search path.
+    # We install the arm64 multiarch packages and symlink into the cross-linker
+    # sysroot (/usr/aarch64-linux-gnu/lib/) where ld actually searches.
+    - sh -c 'dpkg --add-architecture arm64 2>/dev/null; apt-get update -qq && apt-get install -y -qq libc++-18-dev:arm64 libc++abi-18-dev:arm64 libunwind-18-dev:arm64 >/dev/null 2>&1; mkdir -p /tmp/arm64-libs && cp /usr/lib/llvm-18/lib/libc++.a /usr/lib/llvm-18/lib/libc++abi.a /usr/lib/llvm-18/lib/libunwind.a /tmp/arm64-libs/ 2>/dev/null; true'
 
 # Docs: https://goreleaser.com/customization/build/
 builds:
@@ -30,9 +32,13 @@ builds:
     hooks:
       pre:
         - cmd: mkdir -p {{ .Env.LIB_PATH }}
-        # barretenberg-go v0.2.0+ includes lib/ directory in the module, so no download needed.
         # Download pre-built libwasmvm from CosmWasm releases.
-        - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 1 | xargs -I {} go list -m {} | cut -d " " -f 2 | xargs -I {} wget https://github.com/CosmWasm/wasmvm/releases/download/{}/{{ .Env.WASM_LIB }} -O {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB}}'
+        # Try pre-downloaded copy first (from Dockerfile), fall back to download.
+        # Also copy into the wasmvm module cache so the linker finds it via the module's own -L path.
+        - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || { cp /tmp/wasmvm/{{ .Env.WASM_LIB }} {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} 2>/dev/null || { WASMVM_VERSION=$(grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 2) && curl -sSfL -o {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/{{ .Env.WASM_LIB }}; }; WASM_MODPATH=$(grep "github.com/CosmWasm/wasmvm" go.mod | awk "{print \$1}"); WASM_VER=$(grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 2); WASM_DIR=$(go mod download -json "${WASM_MODPATH}@${WASM_VER}" 2>/dev/null | grep "\"Dir\"" | cut -d"\"" -f4); if [ -n "$WASM_DIR" ]; then chmod -R u+w "$WASM_DIR" 2>/dev/null || true; cp {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} "$WASM_DIR/internal/api/{{ .Env.WASM_LIB }}" 2>/dev/null || true; fi; }'
+        # Fix barretenberg-go LFS pointers: go mod download gets pointer files, not real binaries.
+        # Download the real static library from GitHub releases if needed.
+        - cmd: sh -c 'BB_VER=$(grep "github.com/burnt-labs/barretenberg-go" go.mod | cut -d " " -f 2); [ -z "$BB_VER" ] && exit 0; BB_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@$BB_VER" | grep "\"Dir\"" | cut -d"\"" -f4); BB_LIB="$BB_DIR/lib/{{ .Os }}_{{ .Arch }}/libbarretenberg.a"; if [ -f "$BB_LIB" ] && ! head -1 "$BB_LIB" 2>/dev/null | grep -q "git-lfs"; then echo "libbarretenberg OK"; else echo "Downloading libbarretenberg for {{ .Os }}/{{ .Arch }}"; chmod -R u+w "$BB_DIR" 2>/dev/null || true; mkdir -p "$(dirname $BB_LIB)"; curl -sSfL "https://github.com/burnt-labs/barretenberg-go/releases/download/$BB_VER/libbarretenberg_{{ .Os }}_{{ .Arch }}.a" -o "$BB_LIB"; fi'
         - cmd: echo Starting build...
     ldflags:
       - -X main.Date={{ .CommitDate }}
@@ -62,7 +68,7 @@ builds:
       - -trimpath
     env:
       - CGO_ENABLED=1
-      - CGO_LDFLAGS='-L./dist/lib'
+      - CGO_LDFLAGS='-L./dist/lib -L/tmp/arm64-libs'
       - LIB_PATH=./dist/lib
       - >-
         {{- if eq .Os "darwin" }}MACOSX_DEPLOYMENT_TARGET=10.12{{- end }}

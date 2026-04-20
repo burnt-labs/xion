@@ -31,7 +31,9 @@ jobs:
 
       - name: Install clang and libc++
         if: env.GIT_DIFF
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
 
       - name: Build Barretenberg wrapper
         if: env.GIT_DIFF
@@ -66,7 +68,9 @@ jobs:
 
       - name: Install clang and libc++
         if: env.GIT_DIFF
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
 
       - name: Build Barretenberg wrapper
         if: env.GIT_DIFF
