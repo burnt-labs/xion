@@ -132,7 +132,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           RELEASE_OWNER: ${{ github.repository_owner }}
-          RELEASE_REPO: ${{ github.event.repository.name }}
+          RELEASE_REPO: xion
           SKIP_GITHUB_RELEASE: "true"
           GPG_KEY_ID: ${{ steps.import_pkg_gpg.outputs.keyid }}
           GPG_KEY_PATH: /home/runner/.gnupg/sign.asc
@@ -177,20 +177,21 @@ jobs:
             -f "event_type=${EVENT_TYPE}" \
             -f "client_payload[tag_name]=${TAG_NAME}"
 
-  upgrade-testnet:
-    name: Testnet Upgrade PR
+  upgrade-network:
+    name: Network Upgrade PR
     needs: resolve-tag
-    if: github.repository == 'burnt-labs/xion' && needs.resolve-tag.outputs.is_rc == 'true'
-    uses: burnt-labs/xion-testnet-2/.github/workflows/create-release.yml@main
-    with:
-      release_tag: ${{ needs.resolve-tag.outputs.tag }}
-    secrets: inherit
-
-  upgrade-mainnet:
-    name: Mainnet Upgrade PR
-    needs: resolve-tag
-    if: github.repository == 'burnt-labs/xion' && needs.resolve-tag.outputs.is_rc == 'false'
-    uses: burnt-labs/xion-mainnet-1/.github/workflows/create-release.yml@main
-    with:
-      release_tag: ${{ needs.resolve-tag.outputs.tag }}
-    secrets: inherit
+    if: github.repository == 'burnt-labs/xion'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger upgrade workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
+          IS_RC: ${{ needs.resolve-tag.outputs.is_rc }}
+        run: |
+          if [ "$IS_RC" = "true" ]; then
+            REPO="burnt-labs/xion-testnet-2"
+          else
+            REPO="burnt-labs/xion-mainnet-1"
+          fi
+          gh workflow run create-release.yml --repo "$REPO" -f "release_tag=${TAG_NAME}"
