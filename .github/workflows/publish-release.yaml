@@ -125,6 +125,22 @@ jobs:
       - name: Install syft
         uses: anchore/sbom-action/download-syft@v0
 
+      - name: Purge existing Fury packages (idempotent re-runs)
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
+        run: |
+          VERSION="${RELEASE_TAG#v}"
+          ACCOUNT="burnt"
+          for fmt in deb rpm apk; do
+            echo "Deleting xiond ${VERSION} (${fmt}) from Fury if it exists..."
+            curl -sf -X DELETE \
+              -H "Authorization: Bearer ${FURY_TOKEN}" \
+              "https://push.fury.io/api/v1/repos/${ACCOUNT}/packages/${fmt}/xiond/versions/${VERSION}" \
+              && echo "  ✅ Deleted ${fmt}" \
+              || echo "  ⏭️  Not found or already removed (${fmt})"
+          done
+
       - name: Run GoReleaser (Fury only)
         uses: goreleaser/goreleaser-action@v6
         env:
