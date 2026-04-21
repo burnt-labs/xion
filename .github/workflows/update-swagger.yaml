@@ -7,7 +7,7 @@ on:
 
 jobs:
   main:
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubicloud-standard-2
     permissions:
       contents: write
 

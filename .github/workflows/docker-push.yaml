@@ -14,7 +14,7 @@ env:
 jobs:
   merge:
     name: Create registry manifests
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubicloud-standard-2
     permissions:
       id-token: write
       contents: read

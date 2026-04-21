@@ -1,7 +1,12 @@
 name: Publish Release
 
 on:
-  workflow_dispatch: # manual trigger
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to publish (e.g. v29.0.1). Defaults to github.ref_name."
+        required: false
+        type: string
   release: # triggered by release event
     types: [published]
     # Notice:
@@ -16,9 +21,32 @@ permissions:
   contents: write
 
 jobs:
+  resolve-tag:
+    name: Resolve Release Tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      is_rc: ${{ steps.tag.outputs.is_rc }}
+    steps:
+      - name: Determine release tag
+        id: tag
+        run: |
+          TAG="${RELEASE_TAG_INPUT:-${RELEASE_TAG_EVENT:-${REF_NAME}}}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-rc* ]]; then
+            echo "is_rc=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_rc=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          RELEASE_TAG_INPUT: ${{ inputs.release_tag }}
+          RELEASE_TAG_EVENT: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+
   publish-fury:
     name: Publish to Fury
-    runs-on: depot-ubuntu-24.04
+    needs: resolve-tag
+    runs-on: ubicloud-standard-2
 
     steps:
       - name: Checkout
@@ -37,9 +65,10 @@ jobs:
       - name: Download release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
         run: |
           mkdir -p dist
-          gh release download ${{ github.ref_name }} \
+          gh release download "$RELEASE_TAG" \
             --repo ${{ github.repository }} \
             --dir dist \
             --pattern 'xiond*'
@@ -96,14 +125,14 @@ jobs:
       - name: Install syft
         uses: anchore/sbom-action/download-syft@v0
 
-      - name: Run GoReleaser (Fury only)
+      - name: Run GoReleaser (packages + homebrew)
         uses: goreleaser/goreleaser-action@v6
         env:
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           RELEASE_OWNER: ${{ github.repository_owner }}
-          RELEASE_REPO: ${{ github.event.repository.name }}
+          RELEASE_REPO: xion
           SKIP_GITHUB_RELEASE: "true"
           GPG_KEY_ID: ${{ steps.import_pkg_gpg.outputs.keyid }}
           GPG_KEY_PATH: /home/runner/.gnupg/sign.asc
@@ -116,8 +145,117 @@ jobs:
           version: "~> v2"
           args: release --config .goreleaser/release.yaml --skip=announce,validate
 
+      - name: Upload packages to Gemfury
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+        run: |
+          FAILED=0
+          for pkg in release/*.deb release/*.rpm release/*.apk; do
+            [ -f "$pkg" ] || continue
+            BASENAME=$(basename "$pkg")
+            echo "Uploading ${BASENAME}..."
+            RESPONSE=$(curl -sS -w "\n%{http_code}" \
+              -F "package=@${pkg}" \
+              "https://${FURY_TOKEN}@push.fury.io/burnt/")
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+            if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+              echo "  ✅ ${BASENAME} (HTTP ${HTTP_CODE})"
+            elif [ "$HTTP_CODE" = "409" ]; then
+              echo "  ⏭️  ${BASENAME} already exists (HTTP 409)"
+            else
+              echo "  ❌ ${BASENAME} FAILED (HTTP ${HTTP_CODE})"
+              echo "  Response: ${BODY}"
+              FAILED=1
+            fi
+          done
+          if [ "$FAILED" = "1" ]; then
+            exit 1
+          fi
+
   verify-installers:
     name: Verify Package Installers
-    needs: publish-fury
+    needs: [publish-fury, resolve-tag]
     uses: ./.github/workflows/verify-installers.yaml
+    with:
+      release_tag: ${{ needs.resolve-tag.outputs.tag }}
     secrets: inherit
+
+  # Downstream triggers — dispatch and wait for completion
+  trigger-types:
+    name: Trigger Types
+    needs: resolve-tag
+    if: github.repository == 'burnt-labs/xion'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger and wait for xion-types release
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
+        run: |
+          REPO=burnt-labs/xion-types
+          gh workflow run release.yaml --repo "$REPO" -f "release_tag=${TAG_NAME}"
+          sleep 5
+          RUN_ID=$(gh run list --repo "$REPO" --workflow release.yaml --limit 1 --json databaseId --jq '.[0].databaseId')
+          echo "::notice::Downstream run: https://github.com/${REPO}/actions/runs/${RUN_ID}"
+          if ! gh run watch "$RUN_ID" --repo "$REPO" --exit-status; then
+            echo "::group::Downstream logs"
+            gh run view "$RUN_ID" --repo "$REPO" --log-failed 2>/dev/null || gh run view "$RUN_ID" --repo "$REPO" --log
+            echo "::endgroup::"
+            exit 1
+          fi
+
+  update-chain-registry:
+    name: Update Chain Registry
+    needs: resolve-tag
+    if: github.repository == 'burnt-labs/xion'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch and wait for xion-assets update
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
+        run: |
+          REPO=burnt-labs/xion-assets
+          EVENT_TYPE=$( [[ "$TAG_NAME" == *-rc* ]] && echo "xion-assets-testnet-release-trigger" || echo "xion-assets-mainnet-release-trigger" )
+          WORKFLOW=$( [[ "$TAG_NAME" == *-rc* ]] && echo "update-testnet-chain-registry.yaml" || echo "update-mainnet-chain-registry.yaml" )
+          gh api "repos/${REPO}/dispatches" \
+            -f "event_type=${EVENT_TYPE}" \
+            -f "client_payload[tag_name]=${TAG_NAME}"
+          sleep 5
+          RUN_ID=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" --limit 1 --json databaseId --jq '.[0].databaseId')
+          echo "::notice::Downstream run: https://github.com/${REPO}/actions/runs/${RUN_ID}"
+          if ! gh run watch "$RUN_ID" --repo "$REPO" --exit-status; then
+            echo "::group::Downstream logs"
+            gh run view "$RUN_ID" --repo "$REPO" --log-failed 2>/dev/null || gh run view "$RUN_ID" --repo "$REPO" --log
+            echo "::endgroup::"
+            exit 1
+          fi
+
+  upgrade-network:
+    name: Network Upgrade PR
+    needs: resolve-tag
+    if: github.repository == 'burnt-labs/xion'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger and wait for upgrade workflow
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          TAG_NAME: ${{ needs.resolve-tag.outputs.tag }}
+          IS_RC: ${{ needs.resolve-tag.outputs.is_rc }}
+        run: |
+          if [ "$IS_RC" = "true" ]; then
+            REPO="burnt-labs/xion-testnet-2"
+          else
+            REPO="burnt-labs/xion-mainnet-1"
+          fi
+          gh workflow run create-release.yml --repo "$REPO" -f "release_tag=${TAG_NAME}"
+          sleep 5
+          RUN_ID=$(gh run list --repo "$REPO" --workflow create-release.yml --limit 1 --json databaseId --jq '.[0].databaseId')
+          echo "::notice::Downstream run: https://github.com/${REPO}/actions/runs/${RUN_ID}"
+          if ! gh run watch "$RUN_ID" --repo "$REPO" --exit-status; then
+            echo "::group::Downstream logs"
+            gh run view "$RUN_ID" --repo "$REPO" --log-failed 2>/dev/null || gh run view "$RUN_ID" --repo "$REPO" --log
+            echo "::endgroup::"
+            exit 1
+          fi

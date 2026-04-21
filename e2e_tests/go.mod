@@ -10,7 +10,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// wasmd fork with genesis exports
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.9-xion.1
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.10-xion.1
 	github.com/burnt-labs/xion => ../
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
@@ -41,9 +41,9 @@ require (
 	cosmossdk.io/x/feegrant v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
-	github.com/CosmWasm/wasmd v0.61.8
+	github.com/CosmWasm/wasmd v0.61.10
 	github.com/btcsuite/btcd/btcutil v1.1.6
-	github.com/burnt-labs/abstract-account v0.1.4
+	github.com/burnt-labs/abstract-account v0.1.5
 	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.38.21
 	github.com/cosmos/cosmos-sdk v0.53.6
@@ -121,7 +121,7 @@ require (
 	github.com/btcsuite/btcd v0.25.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
-	github.com/burnt-labs/barretenberg-go v0.2.0 // indirect
+	github.com/burnt-labs/barretenberg-go v0.4.0 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect

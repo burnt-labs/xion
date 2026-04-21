@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-release:
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubicloud-standard-2
 
     steps:
       - name: Checkout
@@ -55,9 +55,24 @@ jobs:
 
       - name: Install syft
         uses: anchore/sbom-action/download-syft@v0
+        with:
+          syft-version: v1.42.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine goreleaser skip flags
+        id: skip-flags
+        run: |
+          SKIP="fury"
+          # When the GitHub release is disabled (non-tag runs), homebrew formula
+          # generation fails because it cannot resolve download URLs.
+          if [ "${SKIP_GITHUB_RELEASE:-}" = "true" ]; then
+            SKIP="fury,homebrew"
+          fi
+          echo "flags=$SKIP" >> "$GITHUB_OUTPUT"
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         env:
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,4 +88,4 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "~> v2"
-          args: release --config .goreleaser/release.yaml --skip=fury
+          args: release --config .goreleaser/release.yaml --skip=${{ steps.skip-flags.outputs.flags }}

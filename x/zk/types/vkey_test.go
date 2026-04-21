@@ -61,8 +61,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unsupported protocol")
 	})
@@ -78,8 +79,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid nPublic")
 	})
@@ -95,8 +97,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid nPublic")
 	})
@@ -112,8 +115,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkAlpha1")
 	})
@@ -129,8 +133,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkBeta2")
 	})
@@ -146,8 +151,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkBeta2")
 	})
@@ -163,8 +169,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkGamma2")
 	})
@@ -180,8 +187,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkGamma2")
 	})
@@ -197,8 +205,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkDelta2")
 	})
@@ -214,8 +223,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid VkDelta2")
 	})
@@ -231,8 +241,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1", "2", "1"}, {"3", "4", "1"}}, // Should be 3 (nPublic + 1)
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid IC length")
 	})
@@ -248,8 +259,9 @@ func TestValidateVKeyBytes(t *testing.T) {
 			"vk_delta_2": [][]string{{"1", "2"}, {"3", "4"}, {"1", "0"}},
 			"IC":         [][]string{{"1"}, {"3", "4", "1"}, {"5", "6", "1"}},
 		}
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid IC")
 	})
@@ -282,24 +294,27 @@ func TestBN254FieldBoundaryValidation(t *testing.T) {
 
 	t.Run("coordinate equal to p fails", func(t *testing.T) {
 		vkey := makeVKey(bn254Prime)
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "BN254 field prime")
 	})
 
 	t.Run("coordinate equal to p+1 fails", func(t *testing.T) {
 		vkey := makeVKey(bn254PrimePlusOne)
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "BN254 field prime")
 	})
 
 	t.Run("negative coordinate fails", func(t *testing.T) {
 		vkey := makeVKey("-1")
-		data, _ := json.Marshal(vkey)
-		err := types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
+		data, err := json.Marshal(vkey)
+		require.NoError(t, err)
+		err = types.ValidateVKeyBytes(data, types.DefaultMaxVKeySizeBytes)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "negative")
 	})

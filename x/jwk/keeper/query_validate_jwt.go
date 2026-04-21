@@ -74,10 +74,8 @@ func (k Keeper) ValidateJWT(goCtx context.Context, req *types.QueryValidateJWTRe
 	//    predicate to ensure exact parity.
 	//
 	// 2. jwt.Settings(jwt.WithCompactOnly(true)) (backstop): the global setting
-	//    is safe here because ValidateJWT is the only jwt.Parse() call site in
-	//    this binary. It uses atomic operations so concurrent calls are fine.
-	//    This guards against future code paths that might call jwt.Parse()
-	//    without the byte check above.
+	//    applies to all jwt.Parse() call sites (ValidateJWT and DecodeJWT).
+	//    It uses atomic operations so concurrent calls are fine.
 	jwt.Settings(jwt.WithCompactOnly(true))
 
 	trimmed := strings.TrimLeftFunc(req.SigBytes, unicode.IsSpace)

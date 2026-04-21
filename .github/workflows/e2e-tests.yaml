@@ -10,7 +10,7 @@ env:
 
 jobs:
   e2e-tests:
-    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm-4' || 'depot-ubuntu-24.04-4' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubicloud-standard-4-arm' || 'ubicloud-standard-4' }}
     strategy:
       fail-fast: false
       matrix:

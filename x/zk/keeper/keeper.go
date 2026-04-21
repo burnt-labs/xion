@@ -268,35 +268,56 @@ func (k *Keeper) Verify(ctx context.Context, proof *parser.CircomProof, vkey *pa
 // The public inputs must be serialized using gnark's witness.MarshalBinary() on the public part
 // of the witness (obtained via witness.Public()).
 func (k *Keeper) VerifyGnark(ctx context.Context, proofBytes []byte, vkeyBytes []byte, publicInputsBytes []byte) (bool, error) {
-	// Deserialize verification key
-	vk := groth16.NewVerifyingKey(ecc.BN254)
-	if _, err := vk.ReadFrom(bytes.NewReader(vkeyBytes)); err != nil {
-		return false, errors.Wrapf(types.ErrInvalidVKey, "failed to parse gnark vkey: %v", err)
-	}
+	// Wrap gnark calls with panic recovery — gnark may panic on malformed
+	// proofs, vkeys, or witnesses that pass initial parsing but hit invalid
+	// curve points during deserialization or pairing. Since ProofVerifyGnark
+	// is Stargate-whitelisted, any CosmWasm contract can reach this code path.
+	var (
+		verified  bool
+		verifyErr error
+	)
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				k.logger.Error("panic during gnark groth16 verification", "panic", r)
+				verifyErr = errors.Wrap(types.ErrInvalidRequest, "internal error during proof verification")
+			}
+		}()
 
-	// Deserialize proof
-	proof := groth16.NewProof(ecc.BN254)
-	if _, err := proof.ReadFrom(bytes.NewReader(proofBytes)); err != nil {
-		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to parse gnark proof: %v", err)
-	}
+		// Deserialize verification key
+		vk := groth16.NewVerifyingKey(ecc.BN254)
+		if _, err := vk.ReadFrom(bytes.NewReader(vkeyBytes)); err != nil {
+			verifyErr = errors.Wrapf(types.ErrInvalidVKey, "failed to parse gnark vkey: %v", err)
+			return
+		}
 
-	// Create and unmarshal public witness
-	publicWitness, err := witness.New(ecc.BN254.ScalarField())
-	if err != nil {
-		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to create witness: %v", err)
-	}
+		// Deserialize proof
+		proof := groth16.NewProof(ecc.BN254)
+		if _, err := proof.ReadFrom(bytes.NewReader(proofBytes)); err != nil {
+			verifyErr = errors.Wrapf(types.ErrInvalidRequest, "failed to parse gnark proof: %v", err)
+			return
+		}
 
-	if err := publicWitness.UnmarshalBinary(publicInputsBytes); err != nil {
-		return false, errors.Wrapf(types.ErrInvalidRequest, "failed to unmarshal public inputs: %v", err)
-	}
+		// Create and unmarshal public witness
+		publicWitness, err := witness.New(ecc.BN254.ScalarField())
+		if err != nil {
+			verifyErr = errors.Wrapf(types.ErrInvalidRequest, "failed to create witness: %v", err)
+			return
+		}
 
-	// Verify the proof
-	if err := groth16.Verify(proof, vk, publicWitness); err != nil {
-		// Verification failed - this is not an error, just means the proof is invalid
-		return false, nil
-	}
+		if err := publicWitness.UnmarshalBinary(publicInputsBytes); err != nil {
+			verifyErr = errors.Wrapf(types.ErrInvalidRequest, "failed to unmarshal public inputs: %v", err)
+			return
+		}
 
-	return true, nil
+		// Verify the proof
+		if err := groth16.Verify(proof, vk, publicWitness); err != nil {
+			// Verification failed - not an error, just means the proof is invalid
+			return
+		}
+		verified = true
+	}()
+	return verified, verifyErr
 }
 
 // AddVKey adds a new verification key to the store.

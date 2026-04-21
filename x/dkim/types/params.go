@@ -9,6 +9,11 @@ import (
 const (
 	DefaultMaxPubKeySizeBytes uint64 = 512
 
+	// DefaultMinRSAKeyBits is the default minimum RSA key size accepted on the message path.
+	// 1024 bits is the floor to support the Yahoo s1024 selector; sub-1024-bit
+	// keys are cryptographically weak and always rejected.
+	DefaultMinRSAKeyBits int = 1024
+
 	// ValidateBasicMaxPubKeySizeBytes is a higher ceiling for ValidateBasic
 	// to allow on-chain params to be meaningful. The message server will
 	// enforce the actual param limits.

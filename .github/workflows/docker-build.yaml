@@ -8,7 +8,7 @@ on:
 jobs:
   build-docker-images:
     name: Build ${{ matrix.os }}/${{ matrix.arch }}
-    runs-on: ${{ matrix.arch == 'arm64' && 'depot-ubuntu-24.04-arm' || 'depot-ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubicloud-standard-4-arm' || 'ubicloud-standard-4' }}
 
     strategy:
       fail-fast: false
@@ -28,8 +28,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Depot
-        uses: depot/setup-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -46,9 +46,8 @@ jobs:
 
       - name: Build Docker Image
         id: build-docker
-        uses: depot/build-push-action@v1
+        uses: docker/build-push-action@v6
         with:
-          project: cp89wgwf7x
           context: .
           target: release
           push: false

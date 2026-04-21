@@ -8,7 +8,7 @@ on:
 jobs:
   test-cover:
     name: Coverage
-    runs-on: depot-ubuntu-24.04-8
+    runs-on: ubicloud-standard-8
     steps:
       - uses: actions/checkout@v5
 
@@ -31,7 +31,9 @@ jobs:
 
       - name: Install clang and libc++
         if: env.GIT_DIFF
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
 
       - name: Build Barretenberg wrapper
         if: env.GIT_DIFF
@@ -43,7 +45,7 @@ jobs:
 
   test-race:
     name: Race detection
-    runs-on: depot-ubuntu-24.04-8
+    runs-on: ubicloud-standard-8
     steps:
       - uses: actions/checkout@v5
 
@@ -66,7 +68,9 @@ jobs:
 
       - name: Install clang and libc++
         if: env.GIT_DIFF
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
 
       - name: Build Barretenberg wrapper
         if: env.GIT_DIFF
