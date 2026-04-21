@@ -125,24 +125,7 @@ jobs:
       - name: Install syft
         uses: anchore/sbom-action/download-syft@v0
 
-      - name: Purge existing Fury packages (idempotent re-runs)
-        env:
-          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
-          RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
-        run: |
-          VERSION="${RELEASE_TAG#v}"
-          ACCOUNT="burnt"
-          for fmt in deb rpm apk; do
-            echo "Deleting xiond ${VERSION} (${fmt}) from Fury if it exists..."
-            curl -sf -X DELETE \
-              -H "Authorization: Bearer ${FURY_TOKEN}" \
-              "https://push.fury.io/api/v1/repos/${ACCOUNT}/packages/${fmt}/xiond/versions/${VERSION}" \
-              && echo "  ✅ Deleted ${fmt}" \
-              || echo "  ⏭️  Not found or already removed (${fmt})"
-          done
-
-      - name: Run GoReleaser (Fury only)
-        continue-on-error: true
+      - name: Run GoReleaser (packages + homebrew)
         uses: goreleaser/goreleaser-action@v6
         env:
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
@@ -161,6 +144,34 @@ jobs:
           distribution: goreleaser-pro
           version: "~> v2"
           args: release --config .goreleaser/release.yaml --skip=announce,validate
+
+      - name: Upload packages to Gemfury
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+        run: |
+          FAILED=0
+          for pkg in release/*.deb release/*.rpm release/*.apk; do
+            [ -f "$pkg" ] || continue
+            BASENAME=$(basename "$pkg")
+            echo "Uploading ${BASENAME}..."
+            RESPONSE=$(curl -sS -w "\n%{http_code}" \
+              -F "package=@${pkg}" \
+              "https://${FURY_TOKEN}@push.fury.io/burnt/")
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+            if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+              echo "  ✅ ${BASENAME} (HTTP ${HTTP_CODE})"
+            elif [ "$HTTP_CODE" = "409" ]; then
+              echo "  ⏭️  ${BASENAME} already exists (HTTP 409)"
+            else
+              echo "  ❌ ${BASENAME} FAILED (HTTP ${HTTP_CODE})"
+              echo "  Response: ${BODY}"
+              FAILED=1
+            fi
+          done
+          if [ "$FAILED" = "1" ]; then
+            exit 1
+          fi
 
   verify-installers:
     name: Verify Package Installers

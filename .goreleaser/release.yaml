@@ -81,10 +81,10 @@ checksum:
 #     cmd: gpg2
 #     #- args: ["-u", "<key id, fingerprint, email, ...>", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
-# Docs: https://goreleaser.com/customization/fury/
-gemfury:
-  - account: burnt
-    disable: "{{ .IsSnapshot }}"
+# Fury uploads handled by workflow step for better error handling
+# furies:
+#   - account: burnt
+#     disable: "{{ .IsSnapshot }}"
 
 # Docs: https://goreleaser.com/customization/homebrew/
 homebrew_casks:
