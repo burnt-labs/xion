@@ -164,8 +164,10 @@ jobs:
 
   verify-installers:
     name: Verify Package Installers
-    needs: publish-fury
+    needs: [publish-fury, resolve-tag]
     uses: ./.github/workflows/verify-installers.yaml
+    with:
+      release_tag: ${{ needs.resolve-tag.outputs.tag }}
     secrets: inherit
 
   # Downstream triggers — dispatch and wait for completion
