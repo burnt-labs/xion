@@ -3,7 +3,16 @@ name: Verify Installers
 # reusable workflow, do not add triggers
 on:
   workflow_call:
+    inputs:
+      release_tag:
+        required: false
+        type: string
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag (e.g. v29.0.1). Defaults to github.ref_name."
+        required: false
+        type: string
 
 jobs:
   apt-install:
@@ -32,7 +41,8 @@ jobs:
       - name: Install xiond
         run: |
           # Convert version: strip 'v' prefix, convert '-rc' to '~rc' for deb
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/~rc/')
+          TAG="${{ inputs.release_tag || github.ref_name }}"
+          VERSION=$(echo "$TAG" | sed 's/^v//' | sed 's/-rc/~rc/')
           sudo apt install -y xiond=${VERSION}
 
       - name: Verify xiond installation
@@ -64,7 +74,8 @@ jobs:
       - name: Install xiond
         run: |
           # Convert version: strip 'v' prefix, convert '-rc' to '~rc', append '-1' for rpm
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/~rc/')
+          TAG="${{ inputs.release_tag || github.ref_name }}"
+          VERSION=$(echo "$TAG" | sed 's/^v//' | sed 's/-rc/~rc/')
           yum install xiond-${VERSION}-1 -y
 
       - name: Verify xiond installation
@@ -96,7 +107,8 @@ jobs:
       - name: Install xiond
         run: |
           # Convert version: strip 'v' prefix, convert '-rc' to '_rc' for alpine
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//' | sed 's/-rc/_rc/')
+          TAG="${{ inputs.release_tag || github.ref_name }}"
+          VERSION=$(echo "$TAG" | sed 's/^v//' | sed 's/-rc/_rc/')
           apk update && apk add xiond=${VERSION}
 
       - name: Verify xiond installation

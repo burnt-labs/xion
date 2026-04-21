@@ -18,10 +18,9 @@ make proto-gen              # Regenerate protobuf types
 Releasing is triggered by **manually running** `create-release.yaml` via `workflow_dispatch`, or by **pushing a tag** matching `v[0-9]+\.[0-9]+\.[0-9]+` (stable) or `v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+` (release candidate).
 
 1. **`create-release.yaml`** — Triggered on tag push. Kicks off the full build pipeline.
-2. **`publish-release.yaml`** — Triggered on `release:published`. Runs GoReleaser (Fury packages, homebrew).
-3. **`release-downstream.yaml`** — Triggered on `release:published`. Calls downstream repos:
+2. **`publish-release.yaml`** — Triggered on `release:published`. Runs GoReleaser (Fury packages, homebrew) and triggers downstream repos:
    - → **`burnt-labs/xion-types`** `release.yaml` — regenerates protobuf types for all languages
-   - → **`burnt-labs/xion-assets`** `update_chain_registry.yaml` — updates chain registry versions
+   - → **`burnt-labs/xion-assets`** — updates chain registry versions (via `repository_dispatch`)
    - → **`burnt-labs/xion-testnet-2`** `create-release.yml` — creates upgrade PR (**rc releases only**)
    - → **`burnt-labs/xion-mainnet-1`** `create-release.yml` — creates upgrade PR (**stable releases only**)
 
