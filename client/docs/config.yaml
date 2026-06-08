@@ -1,8 +1,8 @@
 swagger: "2.0"
 info:
-  title: XION - gRPC Gateway docs
-  description: A REST interface for state queries
-  version: v29.0.0
+  title: Verona - gRPC Gateway docs
+  description: A REST interface for Verona state queries
+  version: v30
 apis:
   - url: ./cosmos/auth/v1beta1/query.swagger.json
     operationIds:
@@ -202,25 +202,25 @@ apis:
         Params: GlobalFeeParams
     tags:
       rename:
-        Query: XionGlobalFee
+        Query: VeronaGlobalFee
   - url: ./xion/jwk/v1/query.swagger.json
     operationIds:
       rename:
         Params: JWKParams
     tags:
       rename:
-        Query: XionJWK
+        Query: VeronaJWK
   - url: ./xion/mint/v1/query.swagger.json
     operationIds:
       rename:
         Params: XionMintParams
     tags:
       rename:
-        Query: XionMint
+        Query: VeronaMint
   - url: ./xion/v1/query.swagger.json
     tags:
       rename:
-        Query: Xion
+        Query: Verona
   - url: ./cosmos/circuit/v1/query.swagger.json
     operationIds:
       rename:
@@ -243,7 +243,7 @@ apis:
         GranterGrants: XionGranterGrants
     tags:
       rename:
-        Query: XionIndexerAuthz
+        Query: VeronaIndexerAuthz
   - url: ./xion/indexer/feegrant/v1/query.swagger.json
     operationIds:
       rename:
@@ -252,7 +252,7 @@ apis:
         AllowancesByGranter: XionAllowancesByGranter
     tags:
       rename:
-        Query: XionIndexerFeegrant
+        Query: VeronaIndexerFeegrant
 
 # not included
 # ./cosmos/app/v1alpha1/query.swagger.json
