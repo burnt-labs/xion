@@ -213,7 +213,7 @@ apis:
   - url: ./xion/mint/v1/query.swagger.json
     operationIds:
       rename:
-        Params: XionMintParams
+        Params: VeronaMintParams
     tags:
       rename:
         Query: VeronaMint
@@ -238,18 +238,18 @@ apis:
   - url: ./xion/indexer/authz/v1/query.swagger.json
     operationIds:
       rename:
-        Grants: XionGrants
-        GranteeGrants: XionGranteeGrants
-        GranterGrants: XionGranterGrants
+        Grants: VeronaGrants
+        GranteeGrants: VeronaGranteeGrants
+        GranterGrants: VeronaGranterGrants
     tags:
       rename:
         Query: VeronaIndexerAuthz
   - url: ./xion/indexer/feegrant/v1/query.swagger.json
     operationIds:
       rename:
-        Allowance: XionAllowance
-        Allowances: XionAllowances
-        AllowancesByGranter: XionAllowancesByGranter
+        Allowance: VeronaAllowance
+        Allowances: VeronaAllowances
+        AllowancesByGranter: VeronaAllowancesByGranter
     tags:
       rename:
         Query: VeronaIndexerFeegrant
