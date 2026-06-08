@@ -1,9 +1,9 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "XION - gRPC Gateway docs",
-        "description": "A REST interface for state queries",
-        "version": "v29.0.0"
+        "title": "Verona - gRPC Gateway docs",
+        "description": "A REST interface for Verona state queries",
+        "version": "v30"
     },
     "paths": {
         "/cosmos/auth/v1beta1/account_info/{address}": {
@@ -25133,7 +25133,7 @@
                     }
                 },
                 "tags": [
-                    "XionGlobalFee"
+                    "VeronaGlobalFee"
                 ]
             }
         },
@@ -25277,7 +25277,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25361,7 +25361,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25438,7 +25438,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25540,7 +25540,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25611,7 +25611,7 @@
                     }
                 },
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25713,7 +25713,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25793,7 +25793,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25853,7 +25853,7 @@
                     }
                 },
                 "tags": [
-                    "XionMint"
+                    "VeronaMint"
                 ]
             }
         },
@@ -25913,7 +25913,7 @@
                     }
                 },
                 "tags": [
-                    "XionMint"
+                    "VeronaMint"
                 ]
             }
         },
@@ -25999,7 +25999,7 @@
                     }
                 },
                 "tags": [
-                    "XionMint"
+                    "VeronaMint"
                 ]
             }
         },
@@ -26565,7 +26565,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerAuthz"
+                    "VeronaIndexerAuthz"
                 ]
             }
         },
@@ -26729,7 +26729,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerAuthz"
+                    "VeronaIndexerAuthz"
                 ]
             }
         },
@@ -26893,7 +26893,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerAuthz"
+                    "VeronaIndexerAuthz"
                 ]
             }
         },
@@ -26996,7 +26996,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerFeegrant"
+                    "VeronaIndexerFeegrant"
                 ]
             }
         },
@@ -27157,7 +27157,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerFeegrant"
+                    "VeronaIndexerFeegrant"
                 ]
             }
         },
@@ -27318,7 +27318,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerFeegrant"
+                    "VeronaIndexerFeegrant"
                 ]
             }
         }
