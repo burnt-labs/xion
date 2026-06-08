@@ -3,7 +3,7 @@
   "info": {
     "title": "Verona - gRPC Gateway docs",
     "description": "A REST interface for Verona state queries",
-    "version": "v29.0.0"
+    "version": "v30"
   },
   "paths": {
     "/cosmos/auth/v1beta1/account_info/{address}": {
