@@ -459,7 +459,9 @@ func NewWasmApp(
 		mintkeeper.WithMintFn(xionkeeper.StakedInflationMintFn(
 			authtypes.FeeCollectorName,
 			minttypes.DefaultInflationCalculationFn,
-			app.BankKeeper, app.AccountKeeper, app.StakingKeeper)))
+			app.BankKeeper, app.AccountKeeper, app.StakingKeeper,
+		)),
+	)
 
 	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
@@ -617,7 +619,8 @@ func NewWasmApp(
 	app.JwkKeeper = jwkkeeper.NewKeeper(
 		appCodec,
 		keys[jwktypes.StoreKey],
-		app.GetSubspace(jwktypes.ModuleName))
+		app.GetSubspace(jwktypes.ModuleName),
+	)
 
 	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
 		appCodec,
@@ -920,7 +923,8 @@ func NewWasmApp(
 					paramsclient.ProposalHandler,
 				},
 			),
-		})
+		},
+	)
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
 
@@ -1028,15 +1032,15 @@ func NewWasmApp(
 	}
 
 	// Configure Indexer
-	app.indexerService = indexer.New(homePath, app.appCodec, authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), app.Logger())
-	if err = app.indexerService.RegisterServices(app.configurator); err != nil {
-		// Log the error but don't panic - indexer is not consensus-critical
-		app.Logger().Error("Failed to register indexer services", "error", err)
-	}
-
 	indexerConfig := indexer.NewConfigFromOptions(appOpts)
 	services := []storetypes.ABCIListener{}
 	if indexerConfig.Enabled {
+		app.indexerService = indexer.New(homePath, app.appCodec, authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), app.Logger())
+		if err = app.indexerService.RegisterServices(app.configurator); err != nil {
+			// Log the error but don't panic - indexer is not consensus-critical
+			app.Logger().Error("Failed to register indexer services", "error", err)
+		}
+
 		// Add listeners to commitmultistore
 		// otherwise the ABCILister attached to the streammanager
 		// will receive block information but empty []ChangeSet
@@ -1300,8 +1304,9 @@ func (app *WasmApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICo
 	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register indexer service routes
-	app.indexerService.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
+	if app.indexerService != nil {
+		app.indexerService.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	}
 	// register swagger API from root so that other applications can override easily
 	if err := RegisterSwaggerAPI(clientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
@@ -1336,10 +1341,11 @@ func (app *WasmApp) Close() error {
 	if err != nil {
 		errs = append(errs, err)
 	}
-
-	err = app.indexerService.Close()
-	if err != nil {
-		errs = append(errs, err)
+	if app.indexerService != nil {
+		err = app.indexerService.Close()
+		if err != nil {
+			errs = append(errs, err)
+		}
 	}
 	return errors.Join(errs...)
 }
