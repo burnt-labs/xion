@@ -521,6 +521,61 @@ func TestAddVeronaDenomMetadataAliases(t *testing.T) {
 	requireAliases("XION", "xion", "verona", "VERONA")
 }
 
+func TestAddVeronaDenomMetadataAliasesAddsMissingMxionUnit(t *testing.T) {
+	gapp := Setup(t)
+	ctx := gapp.NewContext(false)
+
+	gapp.BankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
+		Description: "The native staking token of the Xion network.",
+		Base:        "uxion",
+		Display:     "XION",
+		Name:        "xion",
+		Symbol:      "XION",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "uxion",
+				Exponent: 0,
+				Aliases:  []string{"microxion"},
+			},
+			{
+				Denom:    "XION",
+				Exponent: 6,
+			},
+		},
+	})
+
+	gapp.addVeronaDenomMetadataAliases(ctx)
+
+	metadata, found := gapp.BankKeeper.GetDenomMetaData(ctx, "uxion")
+	require.True(t, found)
+	require.NoError(t, metadata.Validate())
+
+	var mxion *banktypes.DenomUnit
+	for _, unit := range metadata.DenomUnits {
+		if unit.Denom == "mxion" {
+			mxion = unit
+			break
+		}
+	}
+	require.NotNil(t, mxion)
+	require.Equal(t, uint32(3), mxion.Exponent)
+	require.Contains(t, mxion.Aliases, "millixion")
+	require.Contains(t, mxion.Aliases, "mverona")
+	require.Contains(t, mxion.Aliases, "milliverona")
+
+	var xion *banktypes.DenomUnit
+	for _, unit := range metadata.DenomUnits {
+		if unit.Denom == "XION" {
+			xion = unit
+			break
+		}
+	}
+	require.NotNil(t, xion)
+	require.Contains(t, xion.Aliases, "xion")
+	require.Contains(t, xion.Aliases, "verona")
+	require.Contains(t, xion.Aliases, "VERONA")
+}
+
 func countString(values []string, value string) int {
 	count := 0
 	for _, item := range values {

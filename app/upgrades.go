@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -139,6 +140,7 @@ func (app *WasmApp) addVeronaDenomMetadataAliases(ctx sdktypes.Context) {
 			},
 		}
 	}
+	metadata.DenomUnits = ensureXionDenomUnits(metadata.DenomUnits)
 
 	for _, unit := range metadata.DenomUnits {
 		switch unit.Denom {
@@ -147,12 +149,53 @@ func (app *WasmApp) addVeronaDenomMetadataAliases(ctx sdktypes.Context) {
 		case "mxion":
 			unit.Aliases = appendMissingAliases(unit.Aliases, "mverona", "milliverona")
 		case "XION":
-			unit.Aliases = appendMissingAliases(unit.Aliases, "verona", "VERONA")
+			unit.Aliases = appendMissingAliases(unit.Aliases, "xion", "verona", "VERONA")
 		}
 	}
 
 	app.BankKeeper.SetDenomMetaData(ctx, metadata)
 	ctx.Logger().Info("added Verona aliases to uxion denom metadata")
+}
+
+func ensureXionDenomUnits(units []*banktypes.DenomUnit) []*banktypes.DenomUnit {
+	required := []*banktypes.DenomUnit{
+		{
+			Denom:    "uxion",
+			Exponent: 0,
+			Aliases:  []string{"microxion"},
+		},
+		{
+			Denom:    "mxion",
+			Exponent: 3,
+			Aliases:  []string{"millixion"},
+		},
+		{
+			Denom:    "XION",
+			Exponent: 6,
+			Aliases:  []string{"xion"},
+		},
+	}
+
+	for _, requiredUnit := range required {
+		if hasDenomUnit(units, requiredUnit.Denom) {
+			continue
+		}
+		units = append(units, requiredUnit)
+	}
+	slices.SortStableFunc(units, func(a, b *banktypes.DenomUnit) int {
+		return int(a.Exponent) - int(b.Exponent)
+	})
+
+	return units
+}
+
+func hasDenomUnit(units []*banktypes.DenomUnit, denom string) bool {
+	for _, unit := range units {
+		if unit.Denom == denom {
+			return true
+		}
+	}
+	return false
 }
 
 func appendMissingAliases(existing []string, aliases ...string) []string {
