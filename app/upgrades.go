@@ -13,7 +13,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-const UpgradeName = "v30"
+const UpgradeName = "v31"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -98,7 +98,7 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	// 	app.<module>Keeper.InitGenesis(sdkCtx, <module>Genesis)
 	// }
 
-	// v30
+	// v31
 	app.addVeronaDenomMetadataAliases(sdkCtx)
 
 	// Run the migrations for all modules
