@@ -483,6 +483,54 @@ func TestNextUpgradeHandler(t *testing.T) {
 	})
 }
 
+func TestAddVeronaDenomMetadataAliases(t *testing.T) {
+	gapp := Setup(t)
+	ctx := gapp.NewContext(false)
+
+	gapp.addVeronaDenomMetadataAliases(ctx)
+	gapp.addVeronaDenomMetadataAliases(ctx)
+
+	metadata, found := gapp.BankKeeper.GetDenomMetaData(ctx, "uxion")
+	require.True(t, found)
+	require.Equal(t, "uxion", metadata.Base)
+	require.Equal(t, "XION", metadata.Display)
+	require.Equal(t, "xion", metadata.Name)
+	require.Equal(t, "XION", metadata.Symbol)
+	require.NoError(t, metadata.Validate())
+
+	requireAliases := func(denom string, aliases ...string) {
+		t.Helper()
+
+		for _, unit := range metadata.DenomUnits {
+			if unit.Denom != denom {
+				continue
+			}
+
+			for _, alias := range aliases {
+				require.Contains(t, unit.Aliases, alias)
+				require.Equal(t, 1, countString(unit.Aliases, alias), "alias should only be added once")
+			}
+			return
+		}
+
+		require.Failf(t, "missing denom unit", "denom unit %s not found", denom)
+	}
+
+	requireAliases("uxion", "microxion", "uverona", "microverona")
+	requireAliases("mxion", "millixion", "mverona", "milliverona")
+	requireAliases("XION", "xion", "verona", "VERONA")
+}
+
+func countString(values []string, value string) int {
+	count := 0
+	for _, item := range values {
+		if item == value {
+			count++
+		}
+	}
+	return count
+}
+
 func TestIsModuleInitialized(t *testing.T) {
 	gapp := Setup(t)
 	ctx := gapp.NewContext(false)

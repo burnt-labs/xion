@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const UpgradeName = "v30"
@@ -97,6 +98,9 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	// 	app.<module>Keeper.InitGenesis(sdkCtx, <module>Genesis)
 	// }
 
+	// v30
+	app.addVeronaDenomMetadataAliases(sdkCtx)
+
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 	if err != nil {
@@ -105,6 +109,65 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
+}
+
+func (app *WasmApp) addVeronaDenomMetadataAliases(ctx sdktypes.Context) {
+	metadata, found := app.BankKeeper.GetDenomMetaData(ctx, "uxion")
+	if !found {
+		metadata = banktypes.Metadata{
+			Description: "The native staking token of the Xion network.",
+			Base:        "uxion",
+			Display:     "XION",
+			Name:        "xion",
+			Symbol:      "XION",
+			DenomUnits: []*banktypes.DenomUnit{
+				{
+					Denom:    "uxion",
+					Exponent: 0,
+					Aliases:  []string{"microxion"},
+				},
+				{
+					Denom:    "mxion",
+					Exponent: 3,
+					Aliases:  []string{"millixion"},
+				},
+				{
+					Denom:    "XION",
+					Exponent: 6,
+					Aliases:  []string{"xion"},
+				},
+			},
+		}
+	}
+
+	for _, unit := range metadata.DenomUnits {
+		switch unit.Denom {
+		case "uxion":
+			unit.Aliases = appendMissingAliases(unit.Aliases, "uverona", "microverona")
+		case "mxion":
+			unit.Aliases = appendMissingAliases(unit.Aliases, "mverona", "milliverona")
+		case "XION":
+			unit.Aliases = appendMissingAliases(unit.Aliases, "verona", "VERONA")
+		}
+	}
+
+	app.BankKeeper.SetDenomMetaData(ctx, metadata)
+	ctx.Logger().Info("added Verona aliases to uxion denom metadata")
+}
+
+func appendMissingAliases(existing []string, aliases ...string) []string {
+	seen := make(map[string]struct{}, len(existing)+len(aliases))
+	for _, alias := range existing {
+		seen[alias] = struct{}{}
+	}
+	for _, alias := range aliases {
+		if _, ok := seen[alias]; ok {
+			continue
+		}
+		existing = append(existing, alias)
+		seen[alias] = struct{}{}
+	}
+	return existing
 }
 
 // isModuleInitialized checks if a module has been initialized by checking if its params exist.
