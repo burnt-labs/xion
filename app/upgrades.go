@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 
 	storetypes "cosmossdk.io/store/types"
@@ -13,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-const UpgradeName = "v29"
+const UpgradeName = "v30"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -97,17 +96,6 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	// 	<module>Genesis := <module>types.DefaultGenesisState()
 	// 	app.<module>Keeper.InitGenesis(sdkCtx, <module>Genesis)
 	// }
-
-	// Remove testnet audience that contains leaked RSA private key material.
-	// This audience would fail the stricter ValidateGenesis checks added in v29,
-	// blocking any future genesis export/import cycle on testnet-2.
-	const leakedAud = "poc-leaked-private-key"
-	if _, found := app.JwkKeeper.GetAudience(sdkCtx, leakedAud); found {
-		app.JwkKeeper.RemoveAudience(sdkCtx, leakedAud)
-		audHash := sha256.Sum256([]byte(leakedAud))
-		app.JwkKeeper.RemoveAudienceClaim(sdkCtx, audHash[:])
-		sdkCtx.Logger().Info("removed audience with leaked private key material", "aud", leakedAud)
-	}
 
 	// Run the migrations for all modules
 	migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
