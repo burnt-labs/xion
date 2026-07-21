@@ -1,9 +1,9 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "XION - gRPC Gateway docs",
-        "description": "A REST interface for state queries",
-        "version": "v29.0.0"
+        "title": "Verona - gRPC Gateway docs",
+        "description": "A REST interface for Verona state queries",
+        "version": "v30"
     },
     "paths": {
         "/cosmos/auth/v1beta1/account_info/{address}": {
@@ -25133,7 +25133,7 @@
                     }
                 },
                 "tags": [
-                    "XionGlobalFee"
+                    "VeronaGlobalFee"
                 ]
             }
         },
@@ -25277,7 +25277,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25361,7 +25361,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25438,7 +25438,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25540,7 +25540,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25611,7 +25611,7 @@
                     }
                 },
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25713,7 +25713,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25793,7 +25793,7 @@
                     }
                 ],
                 "tags": [
-                    "XionJWK"
+                    "VeronaJWK"
                 ]
             }
         },
@@ -25853,7 +25853,7 @@
                     }
                 },
                 "tags": [
-                    "XionMint"
+                    "VeronaMint"
                 ]
             }
         },
@@ -25913,14 +25913,14 @@
                     }
                 },
                 "tags": [
-                    "XionMint"
+                    "VeronaMint"
                 ]
             }
         },
         "/xion/mint/v1/params": {
             "get": {
                 "summary": "Params returns the total set of minting parameters.",
-                "operationId": "XionMintParams",
+                "operationId": "VeronaMintParams",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -25999,7 +25999,7 @@
                     }
                 },
                 "tags": [
-                    "XionMint"
+                    "VeronaMint"
                 ]
             }
         },
@@ -26396,7 +26396,7 @@
         "/xion/indexer/authz/v1/grants": {
             "get": {
                 "summary": "Returns list of `Authorization`, granted to the grantee by the granter.",
-                "operationId": "XionGrants",
+                "operationId": "VeronaGrants",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -26565,7 +26565,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerAuthz"
+                    "VeronaIndexerAuthz"
                 ]
             }
         },
@@ -26573,7 +26573,7 @@
             "get": {
                 "summary": "GranteeGrants returns a list of `GrantAuthorization` by grantee.",
                 "description": "Since: cosmos-sdk 0.46",
-                "operationId": "XionGranteeGrants",
+                "operationId": "VeronaGranteeGrants",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -26729,7 +26729,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerAuthz"
+                    "VeronaIndexerAuthz"
                 ]
             }
         },
@@ -26737,7 +26737,7 @@
             "get": {
                 "summary": "GranterGrants returns list of `GrantAuthorization`, granted by granter.",
                 "description": "Since: cosmos-sdk 0.46",
-                "operationId": "XionGranterGrants",
+                "operationId": "VeronaGranterGrants",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -26893,14 +26893,14 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerAuthz"
+                    "VeronaIndexerAuthz"
                 ]
             }
         },
         "/xion/indexer/feegrant/v1/allowance/{granter}/{grantee}": {
             "get": {
                 "summary": "Allowance returns granted allowance to the grantee by the granter.",
-                "operationId": "XionAllowance",
+                "operationId": "VeronaAllowance",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -26996,14 +26996,14 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerFeegrant"
+                    "VeronaIndexerFeegrant"
                 ]
             }
         },
         "/xion/indexer/feegrant/v1/allowances/{grantee}": {
             "get": {
                 "summary": "Allowances returns all the grants for the given grantee address.",
-                "operationId": "XionAllowances",
+                "operationId": "VeronaAllowances",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -27157,14 +27157,14 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerFeegrant"
+                    "VeronaIndexerFeegrant"
                 ]
             }
         },
         "/xion/indexer/feegrant/v1/issued/{granter}": {
             "get": {
                 "summary": "AllowancesByGranter returns all the grants given by an address",
-                "operationId": "XionAllowancesByGranter",
+                "operationId": "VeronaAllowancesByGranter",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
@@ -27318,7 +27318,7 @@
                     }
                 ],
                 "tags": [
-                    "XionIndexerFeegrant"
+                    "VeronaIndexerFeegrant"
                 ]
             }
         }
