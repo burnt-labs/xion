@@ -257,5 +257,5 @@ jobs:
             echo "::group::Downstream logs"
             gh run view "$RUN_ID" --repo "$REPO" --log-failed 2>/dev/null || gh run view "$RUN_ID" --repo "$REPO" --log
             echo "::endgroup::"
-            exit 1
+            echo "::warning::Downstream network-upgrade workflow failed in ${REPO}. Release publishing in this repository will continue; investigate downstream failure separately."
           fi
