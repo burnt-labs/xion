@@ -31,9 +31,12 @@ fi
 ASSET="libbarretenberg_${PLATFORM}.a"
 RELEASE_URL="${BARRETENBERG_RELEASE_URL:-https://github.com/burnt-labs/barretenberg-go/releases/download/${BB_VERSION}}"
 DESTINATION_DIR="$(dirname "$DESTINATION")"
+LIB_ROOT="$(dirname "$DESTINATION_DIR")"
+chmod u+w "$LIB_ROOT" 2>/dev/null || true
+chmod -R u+w "$DESTINATION_DIR" 2>/dev/null || true
 mkdir -p "$DESTINATION_DIR"
 
-WORK_DIR="$(mktemp -d "$DESTINATION_DIR/.barretenberg-download.XXXXXX")"
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/barretenberg-download.XXXXXX")"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
 sha256_file() {
@@ -85,7 +88,6 @@ if ! ar t "$DOWNLOADED_ARCHIVE" >/dev/null; then
     exit 1
 fi
 
-chmod -R u+w "$DESTINATION_DIR" 2>/dev/null || true
 INSTALL_CANDIDATE="$DESTINATION_DIR/.libbarretenberg.a.$$.tmp"
 cp "$DOWNLOADED_ARCHIVE" "$INSTALL_CANDIDATE"
 mv -f "$INSTALL_CANDIDATE" "$DESTINATION"
