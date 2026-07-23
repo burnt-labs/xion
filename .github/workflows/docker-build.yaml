@@ -70,4 +70,4 @@ jobs:
           name: ${{ env.DOCKER_FN }}
           path: ${{ runner.temp }}/${{ env.DOCKER_FN }}
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 30

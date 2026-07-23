@@ -68,7 +68,7 @@ ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
 endif
 ifeq ($(LINK_STATICALLY),true)
-	ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
+	ldflags += -linkmode=external -extldflags "-static"
 endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
@@ -85,14 +85,9 @@ barretenberg-build-wrapper:
 	BB_MOD_DIR=$$(go mod download -json "github.com/burnt-labs/barretenberg-go@$$BB_VERSION" | grep '"Dir"' | cut -d'"' -f4); \
 	BB_LIB_DIR="$$BB_MOD_DIR/lib/$(GOOS)_$(GOARCH)"; \
 	BB_LIB_FILE="$$BB_LIB_DIR/libbarretenberg.a"; \
-	if [ -f "$$BB_LIB_FILE" ] && ! head -1 "$$BB_LIB_FILE" 2>/dev/null | grep -q 'git-lfs'; then \
-		echo "--> libbarretenberg $$BB_VERSION already present"; \
-	else \
-		echo "--> Downloading libbarretenberg $$BB_VERSION for $(GOOS)/$(GOARCH)"; \
-		chmod -R u+w "$$BB_MOD_DIR" 2>/dev/null || true; \
-		mkdir -p "$$BB_LIB_DIR"; \
-		curl -sSfL "https://github.com/burnt-labs/barretenberg-go/releases/download/$$BB_VERSION/libbarretenberg_$(GOOS)_$(GOARCH).a" -o "$$BB_LIB_FILE"; \
-	fi
+	BB_LIBC=gnu; \
+	case " $(BUILD_TAGS) " in *" muslc "*) BB_LIBC=musl ;; esac; \
+	./scripts/download-barretenberg.sh "$(GOOS)" "$(GOARCH)" "$$BB_LIB_FILE" "$$BB_LIBC"
 
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/xiond
@@ -123,7 +118,7 @@ build-local:
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
-		build --config .goreleaser/build.yaml --clean --skip validate --single-target
+		build --config .goreleaser/build.yaml --skip validate --single-target
 
 build-linux-arm64 build-linux-amd64 build-darwin-amd64 build-darwin-arm64 build-windows-amd64:
 	$(MAKE) build-local \

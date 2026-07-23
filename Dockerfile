@@ -57,18 +57,13 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         WASM_MOD_DIR=$(go mod download -json "${WASM_MODPATH}@${WASMVM_VERSION}" | grep '"Dir"' | cut -d'"' -f4); \
         chmod -R u+w "${WASM_MOD_DIR}" 2>/dev/null || true; \
         cp "/tmp/wasmvm/${WASM_LIB}" "${WASM_MOD_DIR}/internal/api/${WASM_LIB}"; \
-        # Fix barretenberg-go LFS pointers (go mod download gets pointer files, not real binaries)
+        # Replace the barretenberg-go LFS pointer with the verified musl archive.
         BB_VERSION=$(grep 'github.com/burnt-labs/barretenberg-go' go.mod | cut -d ' ' -f 2); \
         if [ -n "${BB_VERSION}" ]; then \
             BB_MOD_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@${BB_VERSION}" | grep '"Dir"' | cut -d'"' -f4); \
             BB_LIB="${BB_MOD_DIR}/lib/linux_${GOARCH}/libbarretenberg.a"; \
-            if [ ! -f "${BB_LIB}" ] || head -1 "${BB_LIB}" 2>/dev/null | grep -q 'git-lfs'; then \
-                echo "Downloading libbarretenberg ${BB_VERSION} for linux/${GOARCH}"; \
-                chmod -R u+w "${BB_MOD_DIR}" 2>/dev/null || true; \
-                mkdir -p "$(dirname "${BB_LIB}")"; \
-                curl -sSfL "https://github.com/burnt-labs/barretenberg-go/releases/download/${BB_VERSION}/libbarretenberg_linux_${GOARCH}.a" \
-                    -o "${BB_LIB}"; \
-            fi; \
+            BB_LIBC=$([ "${GOARCH}" = "arm64" ] && echo musl || echo gnu); \
+            ./scripts/download-barretenberg.sh linux "${GOARCH}" "${BB_LIB}" "${BB_LIBC}"; \
         fi; \
         goreleaser build \
             --config .goreleaser/build.yaml \
