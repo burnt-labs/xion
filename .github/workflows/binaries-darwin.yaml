@@ -45,5 +45,5 @@ jobs:
         with:
           name: xiond-${{ matrix.os }}-${{ matrix.arch }}
           path: dist/**/xiond-${{ matrix.os }}-${{ matrix.arch }}
-          retention-days: 3
+          retention-days: 30
           if-no-files-found: error
