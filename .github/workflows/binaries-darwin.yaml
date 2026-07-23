@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Check Out Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -29,7 +29,7 @@ jobs:
         run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
@@ -41,7 +41,7 @@ jobs:
           make build-${{ matrix.os }}-${{ matrix.arch }}
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xiond-${{ matrix.os }}-${{ matrix.arch }}
           path: dist/**/xiond-${{ matrix.os }}-${{ matrix.arch }}
