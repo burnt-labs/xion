@@ -1,98 +1,167 @@
 # Security Policy
 
-## Introduction
+This policy covers the XION chain node (`xiond`), its custom Cosmos SDK modules,
+and the abstract account system implemented in this repository.
 
-Security researchers are essential in identifying vulnerabilities that may impact the Xion Network. If you have discovered a security vulnerability in the Xion chain or any repository managed by Burnt Labs, we encourage you to notify us using one of the methods outlined below.
+It supplements the
+[organization-wide policy](https://github.com/burnt-labs/.github/blob/main/SECURITY.md),
+which governs anything not addressed here.
 
-We take all security bugs seriously. If confirmed upon investigation, we will patch it within a reasonable amount of time and release a public security bulletin discussing the impact and credit the discoverer.
+## Reporting a Vulnerability
 
-## Standard Priority Bug
+**Do not open a public GitHub issue for a security vulnerability.**
 
-For a bug that is non-sensitive and/or operational in nature rather than a critical vulnerability, please add it as a [GitHub issue](https://github.com/burnt-labs/xion/issues/new).
+| Type of finding                  | How to report                                         |
+| -------------------------------- | ----------------------------------------------------- |
+| Security vulnerability           | Email [security@burnt.com](mailto:security@burnt.com)  |
+| Non-sensitive or operational bug | Open a [GitHub issue](https://github.com/burnt-labs/xion/issues/new) |
 
-## Critical Bug or Security Issue
+Include the type of vulnerability, affected version, steps to reproduce, impact,
+how an attacker would exploit it, and any known mitigations.
 
-If you're here because you're trying to figure out how to notify us of a security issue, please use one of the following methods:
+We acknowledge receipt within **5 business days** and provide a triage decision
+within **14 days**. Active exploitation, or confirmed attacker awareness of an
+unpatched vulnerability, escalates the issue to Critical handling regardless of
+its original classification.
 
-* **Email**: [security@burnt.com](mailto:security@burnt.com)
+## Proof of Concept Requirements
 
-Please avoid opening public issues on GitHub that contain information about a potential security vulnerability as this makes it difficult to reduce the impact and harm of valid security issues.
+**Reports must include an end-to-end proof of concept.** Severity is assessed on
+demonstrated impact under real-world constraints, not theoretical worst-case
+scenarios.
 
-## Submit Vulnerability Report
+Unit tests using `setupKeeper(t)` or similar harnesses bypass transaction
+encoding, routing, and the ante handler chain, and do not demonstrate on-chain
+exploitability on their own.
 
-When reporting a vulnerability, please include the following details to aid in our assessment:
+The proof of concept should run against a **locally running XION node configured
+with mainnet parameters** — the same setup used by the end-to-end test suite in
+this repository, with the XION ante handler chain, module set, and governance
+configuration matching mainnet. The attack should be executed via standard
+transaction broadcast (`BroadcastTxSync` or equivalent) against that node.
+Simulated environments that model chain state without running a full node do not
+demonstrate exploitability.
 
-- Type of vulnerability
-- Description of the vulnerability
-- Steps to reproduce the issue
-- Impact of the issue
-- Explanation of how an attacker could exploit it
-- Any potential mitigations or workarounds
+## Permissioned Chain Policy
 
-## Coordinated Vulnerability Disclosure Policy
+XION mainnet operates with `code_upload_access: Nobody`. Contract deployment
+requires a governance proposal. **This is a fundamental architectural
+constraint, not a bypass target.**
 
-We ask security researchers to keep vulnerabilities and communications around vulnerability submissions private and confidential until a patch is developed. In addition to this, we ask that you:
+Any attack vector requiring an attacker to deploy a malicious contract on
+mainnet is out of scope, regardless of technical validity. This includes
+amplification attacks via attacker-deployed contracts, exploit chains initiated
+from attacker-deployed contracts, and any scenario beginning with "an attacker
+deploys a contract that...".
 
-- Allow us a reasonable amount of time to correct or address security vulnerabilities
-- Avoid exploiting any vulnerabilities that you discover
-- Demonstrate good faith by not disrupting or degrading Xion's network, data, or services
-- Refrain from testing vulnerabilities on our publicly accessible environments, including but not limited to:
-  - Xion mainnet
-  - Xion testnet
-  - Public-facing applications and services
+## Privileged Actor Policy
 
-## Vulnerability Disclosure Process
+Attacks requiring a privileged party — governance, a module authority, or a
+validator — to take self-destructive or colluding action are classified at
+**Medium at most**, regardless of downstream impact. This includes validators
+supplying unusual inputs, extreme timestamps, delayed responses, or off-spec
+data to consensus rounds. The threat model assumes privileged actors operate
+within the specified protocol parameters.
 
-Xion uses the following disclosure process:
+## Authentication Impact Scope
 
-1. **Initial Report**: Submit your vulnerability report via email or GitHub Security
-2. **Acknowledgment**: We will acknowledge receipt of your report within 48 hours
-3. **Investigation**: Our security team will investigate and confirm the vulnerability
-4. **Assessment**: We will evaluate the vulnerability and inform you of its severity and the estimated time frame for resolution
-5. **Fix Development**: We will develop and test a fix for the vulnerability in private repositories
-6. **Coordination**: For critical issues, we will coordinate with affected parties and the CosmWasm community. Critical vulnerabilities affecting CosmWasm components will be reported to the CosmWasm security team through their non-public channels before public disclosure
-7. **Community Notification**: We notify the community that a security release is coming, to give users and validators time to prepare their systems for the update. Notifications can include Discord messages, tweets, and emails to partners and validators
-8. **Public Disclosure**: After a fix is deployed, we will publish a security bulletin with details and credit. Once releases are available, we notify the community again through the same channels
+Authentication weaknesses whose impact is limited to accounts created after the
+attack is established — and which cannot affect the funds, state, or
+authentication of any account funded and operational before the attack began —
+are capped at **Medium**, regardless of the authentication mechanism involved. A
+High or Critical authentication finding must demonstrate unauthorized impact on
+a pre-existing funded account.
 
-This process can take some time. Every effort will be made to handle the bug in as timely a manner as possible. However, it's important that we follow the process described above to ensure that disclosures are handled consistently and to keep Xion and the projects running on it secure.
+## Out of Scope
 
-Should a security issue require a network upgrade, additional time may be needed to raise a governance proposal and complete the upgrade.
+**Assets**
+
+- Smart contracts — see [`burnt-labs/contracts`](https://github.com/burnt-labs/contracts/blob/main/SECURITY.md)
+- Frontend applications and web properties
+- Third-party infrastructure, RPC providers, and external dependencies
+- Public blockchain RPC, REST, gRPC, and Tendermint RPC endpoints — these expose
+  blockchain state by design and are operated by validators and node operators
+  as a public service
+- Upstream dependencies — vulnerabilities in CosmWasm, the Cosmos SDK, IBC, or
+  the Barretenberg C library are not eligible here; only code originating in
+  this repository is covered
+
+**Vulnerability classes**
+
+- Attacks requiring malicious contract deployment on mainnet
+- Denial of service of any form, including single-transaction resource
+  exhaustion, node crashes, and chain halts recoverable via a software patch,
+  coordinated validator restart, or governance parameter update. Chain halts
+  requiring a hard fork to resolve remain in scope
+- Governance attacks requiring a malicious proposal to pass
+- Theoretical vulnerabilities without a working end-to-end proof of concept
+- Attacks where the attacker's cost to execute exceeds the demonstrable harm to
+  the protocol or its users
+- Findings affecting only deprecated or end-of-life versions, or already
+  remediated in the currently deployed mainnet version, regardless of whether
+  the fix was publicly announced
+- Best practices, gas optimizations, missing events, and informational findings
+
+Reporters are responsible for verifying exploitability against the currently
+deployed version before submission.
 
 ## Severity Characterization
 
-| Severity     | Description                                                             |
-|--------------|-------------------------------------------------------------------------|
-| **CRITICAL** | Immediate threat to critical systems (e.g. funds at risk, network compromise) |
-| **HIGH**     | Significant impact on major functionality or security controls         |
-| **MEDIUM**   | Impacts minor features or exposes non-sensitive data                    |
-| **LOW**      | Minimal impact or informational issues                                  |
+| Severity     | Description                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| **CRITICAL** | Direct, permanent, irrecoverable theft or loss of user funds at protocol scale. Unauthorized minting. Chain halt or consensus failure requiring a hard fork. Complete bypass of abstract account authentication enabling arbitrary transaction authorization |
+| **HIGH**     | Theft or freezing of user funds affecting individual accounts. Significant authentication bypass with demonstrated exploitability |
+| **MEDIUM**   | Limited fund loss or temporary disruption requiring specific preconditions. Attacks requiring privileged-party cooperation. Partial authentication bypass requiring secondary conditions |
+| **LOW**      | Valid, reproducible code-level issue with no direct risk to funds or chain safety, representing a meaningful hardening opportunity. Must include a specific code reference |
 
-## Scope
+Severity is assessed by Burnt Labs based on demonstrated impact under real-world
+constraints. Reports submitted at a severity that does not match the definitions
+above are assessed as written; we do not reclassify or negotiate severity on a
+reporter's behalf.
 
-This security policy applies to:
-- Xion Daemon (xiond)
-- All CosmWasm-related components
-- Smart contract execution environment
-- All modules and dependencies within the Xion blockchain
-- All repositories managed by Burnt Labs for the Xion ecosystem
+## Responsible Disclosure
 
-## Commitment to CosmWasm Community
+- Do not exploit a vulnerability beyond what is necessary to confirm it exists
+- **Do not test against XION mainnet.** Testing that targets live production
+  systems will disqualify the report
+- Do not access, modify, or exfiltrate user data
+- Do not disclose publicly before a fix is confirmed and deployed
 
-We are committed to sharing security issues and bugs with the CosmWasm community. Critical vulnerabilities affecting CosmWasm components will be reported to the CosmWasm security team through their non-public channels before public disclosure.
+## Commitment to the CosmWasm Community
 
-## Recognition
+We are committed to sharing security issues and bugs with the CosmWasm
+community. Critical vulnerabilities affecting CosmWasm components are reported
+to the CosmWasm security team through their non-public channels before public
+disclosure.
 
-We appreciate responsible disclosure and will credit security researchers who help us improve the security of Xion. Recognition will be included in our security bulletins and may be featured in our communications.
+## Safe Harbor
+
+Burnt Labs will not pursue legal action against researchers who report
+vulnerabilities in good faith under this policy, do not exploit beyond what is
+necessary to confirm the finding, do not access or disclose user data, and do
+not disrupt production systems.
+
+Authorization to actively test extends only to assets named in a published Burnt
+Labs bug bounty program. Testing systems outside that scope is not authorized.
+Reporting a vulnerability you encountered incidentally is always welcome.
 
 ## Frequently Raised Non-Issues
 
-The following design decisions are sometimes reported as vulnerabilities but are intentional and will not be changed:
+The following design decisions are sometimes reported as vulnerabilities but are
+intentional and will not be changed.
 
 ### DKIM public keys stored on-chain
 
-The `x/dkim` module stores RSA public keys on-chain.  These are **public** keys — the same data that any mail server operator publishes in DNS TXT records.  Storing them on-chain enables trustless DKIM verification inside ZK circuits and is a core feature of the Xion email-based account system.  There is no private key material stored anywhere in the module or on-chain state.
+The `x/dkim` module stores RSA **public** keys on-chain — the same data any mail
+server operator publishes in DNS TXT records. Storing them on-chain enables
+trustless DKIM verification inside ZK circuits and is a core feature of the XION
+email-based account system. No private key material is stored in the module or
+in on-chain state.
 
 ### Bank MsgSend platform fee exemption is a governance parameter
 
-The platform fee applied to `MsgSend` transactions can be set to zero for specific addresses (e.g. protocol contracts) via a governance parameter.  This is an intentional administrative mechanism, not a privilege escalation.  Any change to the exemption list requires an on-chain governance vote and is fully auditable in the transaction history.
-
+The platform fee applied to `MsgSend` transactions can be set to zero for
+specific addresses (for example, protocol contracts) via a governance parameter.
+This is an intentional administrative mechanism, not a privilege escalation. Any
+change to the exemption list requires an on-chain governance vote and is fully
+auditable in the transaction history.
