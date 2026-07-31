@@ -21,15 +21,21 @@ func TestSetValidatorTimeout(t *testing.T) {
 	require.Equal(t, 2500*time.Millisecond, serverCtx.Config.Consensus.TimeoutCommit)
 }
 
-func TestValidatorTimeoutCommitFlag(t *testing.T) {
+func TestApplyValidatorTimeout(t *testing.T) {
 	tests := map[string]struct {
+		register bool
 		args     []string
 		expected time.Duration
 	}{
+		"ignores commands without the start flag": {
+			expected: tmcfg.DefaultConsensusConfig().TimeoutCommit,
+		},
 		"defaults to one second": {
+			register: true,
 			expected: time.Second,
 		},
 		"accepts a CLI override": {
+			register: true,
 			args:     []string{"--consensus.timeout_commit=2500ms"},
 			expected: 2500 * time.Millisecond,
 		},
@@ -37,13 +43,16 @@ func TestValidatorTimeoutCommitFlag(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			cmd := &cobra.Command{}
-			addModuleInitFlags(cmd)
+			serverCtx := server.NewDefaultContext()
+			serverCtx.Config = tmcfg.DefaultConfig()
+			cmd := &cobra.Command{Use: "test"}
+			require.NoError(t, server.SetCmdServerContext(cmd, serverCtx))
+			if tc.register {
+				addModuleInitFlags(cmd)
+			}
 			require.NoError(t, cmd.Flags().Parse(tc.args))
-
-			timeoutCommit, err := cmd.Flags().GetDuration("consensus.timeout_commit")
-			require.NoError(t, err)
-			require.Equal(t, tc.expected, timeoutCommit)
+			require.NoError(t, applyValidatorTimeout(cmd))
+			require.Equal(t, tc.expected, serverCtx.Config.Consensus.TimeoutCommit)
 		})
 	}
 }

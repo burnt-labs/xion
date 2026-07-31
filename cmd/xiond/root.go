@@ -104,11 +104,9 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			timeoutCommit, err := cmd.Flags().GetDuration("consensus.timeout_commit")
-			if err != nil {
+			if err := applyValidatorTimeout(cmd); err != nil {
 				return err
 			}
-			setValidatorTimeout(server.GetServerContextFromCmd(cmd), timeoutCommit)
 			return nil
 		},
 	}
@@ -136,6 +134,23 @@ func initTendermintConfig() *tmcfg.Config {
 // setValidatorTimeout applies the CLI-only timeout after config.toml is loaded.
 func setValidatorTimeout(serverCtx *server.Context, timeoutCommit time.Duration) {
 	serverCtx.Config.Consensus.TimeoutCommit = timeoutCommit
+}
+
+// applyValidatorTimeout applies the start-only flag after config.toml is loaded.
+// Other commands also run the root PersistentPreRunE, but do not register this
+// flag and must continue without attempting to read it.
+func applyValidatorTimeout(cmd *cobra.Command) error {
+	if cmd.Flags().Lookup("consensus.timeout_commit") == nil {
+		return nil
+	}
+
+	timeoutCommit, err := cmd.Flags().GetDuration("consensus.timeout_commit")
+	if err != nil {
+		return err
+	}
+
+	setValidatorTimeout(server.GetServerContextFromCmd(cmd), timeoutCommit)
+	return nil
 }
 
 // initAppConfig helps to override default appConfig template and configs.
