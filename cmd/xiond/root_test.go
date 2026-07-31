@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -46,6 +47,7 @@ func TestApplyValidatorTimeout(t *testing.T) {
 			serverCtx := server.NewDefaultContext()
 			serverCtx.Config = tmcfg.DefaultConfig()
 			cmd := &cobra.Command{Use: "test"}
+			cmd.SetContext(context.Background())
 			require.NoError(t, server.SetCmdServerContext(cmd, serverCtx))
 			if tc.register {
 				addModuleInitFlags(cmd)
