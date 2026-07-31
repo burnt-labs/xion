@@ -14,19 +14,19 @@ jobs:
     runs-on: ubicloud-standard-4
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set Go Version
         id: go-version
         run: echo "version=$(sed -En 's/^go (.*)$/\1/p' go.mod)" >> $GITHUB_OUTPUT
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ steps.go-version.outputs.version }}
           cache: false
 
       - name: golangci-lint-xiond
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.6.1
           args: --timeout=10m --tests=false
