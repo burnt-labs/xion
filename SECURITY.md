@@ -1,7 +1,11 @@
 # Security Policy
 
 This policy covers the XION chain node (`xiond`), its custom Cosmos SDK modules,
-and the abstract account system implemented in this repository.
+and this repository's integration with the abstract account system. The
+abstract account module and authenticator contract infrastructure are maintained
+in [`burnt-labs/abstract-account`](https://github.com/burnt-labs/abstract-account)
+and are governed by that repository's policy and the published bug bounty
+program.
 
 It supplements the
 [organization-wide policy](https://github.com/burnt-labs/.github/blob/main/SECURITY.md),
@@ -15,6 +19,9 @@ which governs anything not addressed here.
 | -------------------------------- | ----------------------------------------------------- |
 | Security vulnerability           | Email [security@burnt.com](mailto:security@burnt.com)  |
 | Non-sensitive or operational bug | Open a [GitHub issue](https://github.com/burnt-labs/xion/issues/new) |
+
+You may also submit a private report through the repository's
+**Security → Report a vulnerability** tab.
 
 Include the type of vulnerability, affected version, steps to reproduce, impact,
 how an attacker would exploit it, and any known mitigations.
@@ -35,24 +42,25 @@ encoding, routing, and the ante handler chain, and do not demonstrate on-chain
 exploitability on their own.
 
 The proof of concept should run against a **locally running XION node configured
-with mainnet parameters** — the same setup used by the end-to-end test suite in
-this repository, with the XION ante handler chain, module set, and governance
-configuration matching mainnet. The attack should be executed via standard
-transaction broadcast (`BroadcastTxSync` or equivalent) against that node.
-Simulated environments that model chain state without running a full node do not
-demonstrate exploitability.
+with the parameters and module configuration of the currently deployed mainnet
+release**. The attack should be executed via standard transaction broadcast and
+must confirm that the transaction was included in a block and succeeded during
+`DeliverTx`. A `BroadcastTxSync` response alone confirms only `CheckTx` and is
+not sufficient. Simulated environments that model chain state without running a
+full node do not demonstrate exploitability.
 
 ## Permissioned Chain Policy
 
-XION mainnet operates with `code_upload_access: Nobody`. Contract deployment
-requires a governance proposal. **This is a fundamental architectural
-constraint, not a bypass target.**
+XION mainnet operates with `code_upload_access: Nobody`. Uploading new contract
+code requires governance approval. **This is a fundamental architectural
+constraint, not a bypass target.** Instantiating an already-approved code ID is
+governed separately by that code ID's instantiate permission and is not excluded
+by this rule.
 
-Any attack vector requiring an attacker to deploy a malicious contract on
+Any attack vector requiring an attacker to upload new malicious contract code on
 mainnet is out of scope, regardless of technical validity. This includes
-amplification attacks via attacker-deployed contracts, exploit chains initiated
-from attacker-deployed contracts, and any scenario beginning with "an attacker
-deploys a contract that...".
+amplification attacks and exploit chains that depend on attacker-controlled
+bytecode not already approved for mainnet.
 
 ## Privileged Actor Policy
 
@@ -88,7 +96,7 @@ a pre-existing funded account.
 
 **Vulnerability classes**
 
-- Attacks requiring malicious contract deployment on mainnet
+- Attacks requiring the upload of new malicious contract code on mainnet
 - Denial of service of any form, including single-transaction resource
   exhaustion, node crashes, and chain halts recoverable via a software patch,
   coordinated validator restart, or governance parameter update. Chain halts
