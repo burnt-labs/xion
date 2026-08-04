@@ -43,7 +43,7 @@ require (
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/CosmWasm/wasmd v0.61.10
 	github.com/btcsuite/btcd/btcutil v1.1.6
-	github.com/burnt-labs/abstract-account v0.1.6-0.20260804174938-f355d552c686
+	github.com/burnt-labs/abstract-account v0.1.6-0.20260804180335-3066de494cf5
 	github.com/burnt-labs/xion v0.0.0-00010101000000-000000000000
 	github.com/cometbft/cometbft v0.38.21
 	github.com/cosmos/cosmos-sdk v0.53.6

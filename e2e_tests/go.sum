@@ -228,6 +228,8 @@ github.com/burnt-labs/abstract-account v0.1.6-0.20260804173311-9cfd1cf5da4c h1:Q
 github.com/burnt-labs/abstract-account v0.1.6-0.20260804173311-9cfd1cf5da4c/go.mod h1:XNe8ewLeOAGWgyc6vxOeTaVlDdBzBeJkhrAZZamhcm8=
 github.com/burnt-labs/abstract-account v0.1.6-0.20260804174938-f355d552c686 h1:ES/QivqCuyFhrtPmv+sO5t/I9a5HYnEH98jCVzpm+ZU=
 github.com/burnt-labs/abstract-account v0.1.6-0.20260804174938-f355d552c686/go.mod h1:XNe8ewLeOAGWgyc6vxOeTaVlDdBzBeJkhrAZZamhcm8=
+github.com/burnt-labs/abstract-account v0.1.6-0.20260804180335-3066de494cf5 h1:9vqZyAmHDFcTio32EmuAyoQf+9woDECnl/9M9QClaIg=
+github.com/burnt-labs/abstract-account v0.1.6-0.20260804180335-3066de494cf5/go.mod h1:XNe8ewLeOAGWgyc6vxOeTaVlDdBzBeJkhrAZZamhcm8=
 github.com/burnt-labs/barretenberg-go v0.5.5 h1:1WmxHyIfADhD7raigl21KdJcMTi0BzY5dpJhATA95ic=
 github.com/burnt-labs/barretenberg-go v0.5.5/go.mod h1:2SJlaxo5WVRzoaT+Di/VlSmIzrvPriLklpXqZXvSusI=
 github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0-xion.1 h1:1ibq/o5Yj/uFRRtsYgB+PK2qespl7MQcekb5w+YjDnE=
