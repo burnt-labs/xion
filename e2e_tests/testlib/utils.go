@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -549,7 +550,7 @@ func QueryAbstractAccountAddress(
 	salt string,
 ) (sdk.AccAddress, error) {
 	response, err := ExecQuery(t, ctx, tn,
-		"abstract-account", "account-address", sender, "--salt", salt,
+		"abstract-account", "account-address", sender, "--salt", encodeAutoCLIBinaryArg(salt),
 	)
 	if err != nil {
 		return nil, err
@@ -559,6 +560,12 @@ func QueryAbstractAccountAddress(
 		return nil, fmt.Errorf("abstract-account address query returned no address")
 	}
 	return sdk.AccAddressFromBech32(address)
+}
+
+// encodeAutoCLIBinaryArg preserves the literal UTF-8 bytes through AutoCLI's
+// binary flag parser, which accepts file paths, hex, or base64 input.
+func encodeAutoCLIBinaryArg(value string) string {
+	return hex.EncodeToString([]byte(value))
 }
 
 func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
