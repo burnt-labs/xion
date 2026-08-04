@@ -29,8 +29,8 @@ func TestCommandMetadataAndArgs(t *testing.T) {
 			newCmd:      cli.NewRegisterCmd,
 			useContains: "register",
 			short:       "Register an abstract account",
-			validArgs:   [][]string{{}, {"1"}, {"1", "key"}},
-			invalidArgs: [][]string{{"1", "key", "extra"}},
+			validArgs:   [][]string{{"1", "key"}},
+			invalidArgs: [][]string{{}, {"1"}, {"1", "key", "extra"}},
 		},
 		{
 			name:        "add-authenticator",

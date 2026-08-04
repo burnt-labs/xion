@@ -771,7 +771,7 @@ func NewWasmApp(
 		keys[aatypes.StoreKey],
 		tkeys[aatypes.TransientStoreKey],
 		app.AccountKeeper,
-		wasmkeeper.NewGovPermissionKeeper(app.WasmKeeper),
+		wasmkeeper.NewGovPermissionKeeperWithAddressHash(app.WasmKeeper),
 		app.WasmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)

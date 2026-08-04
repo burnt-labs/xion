@@ -53,6 +53,8 @@ var (
 		// Abstract account module
 		cosmos.NewGenesisKV("app_state.abstractaccount.params.allowed_code_ids", []int64{1}),
 		cosmos.NewGenesisKV("app_state.abstractaccount.params.allow_all_code_ids", false),
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.address_derivation_hash", "/AbwIslRcvVK0FvAchT1BXLN9oRFnq3U9Yp2VSRWfbg="),
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.registration_enabled", true),
 
 		// Packet forward middleware
 		// cosmos.NewGenesisKV("app_state.packetfowardmiddleware.params.fee_percentage", "0.0"),
