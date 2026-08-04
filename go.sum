@@ -216,8 +216,8 @@ github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792/go.mod h1:ghJtE
 github.com/btcsuite/winsvc v1.0.0/go.mod h1:jsenWakMcC0zFBFurPLEAyrnc/teJEM1O46fmI40EZs=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
-github.com/burnt-labs/abstract-account v0.1.6-0.20260804170934-d66c4ff79e90 h1:VU/ib9PfIejN0h+vRnDev5TjSgfiaUY1jUoLIyvJgIw=
-github.com/burnt-labs/abstract-account v0.1.6-0.20260804170934-d66c4ff79e90/go.mod h1:XNe8ewLeOAGWgyc6vxOeTaVlDdBzBeJkhrAZZamhcm8=
+github.com/burnt-labs/abstract-account v0.1.6-0.20260804173311-9cfd1cf5da4c h1:QmRcQz3MlAVvgrP7zp0g9q4Jt9wxIynclFiatjmXpQE=
+github.com/burnt-labs/abstract-account v0.1.6-0.20260804173311-9cfd1cf5da4c/go.mod h1:XNe8ewLeOAGWgyc6vxOeTaVlDdBzBeJkhrAZZamhcm8=
 github.com/burnt-labs/barretenberg-go v0.5.5 h1:1WmxHyIfADhD7raigl21KdJcMTi0BzY5dpJhATA95ic=
 github.com/burnt-labs/barretenberg-go v0.5.5/go.mod h1:2SJlaxo5WVRzoaT+Di/VlSmIzrvPriLklpXqZXvSusI=
 github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0-xion.1 h1:1ibq/o5Yj/uFRRtsYgB+PK2qespl7MQcekb5w+YjDnE=

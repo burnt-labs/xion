@@ -541,6 +541,26 @@ func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command 
 	return jsonRes, nil
 }
 
+func QueryAbstractAccountAddress(
+	t *testing.T,
+	ctx context.Context,
+	tn *cosmos.ChainNode,
+	sender string,
+	salt string,
+) (sdk.AccAddress, error) {
+	response, err := ExecQuery(t, ctx, tn,
+		"abstract-account", "account-address", sender, "--salt", salt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	address, ok := response["address"].(string)
+	if !ok || address == "" {
+		return nil, fmt.Errorf("abstract-account address query returned no address")
+	}
+	return sdk.AccAddressFromBech32(address)
+}
+
 func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {
 	jsonRes := make(map[string]interface{})
 	output, _, err := tn.ExecBin(ctx, command...)

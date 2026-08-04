@@ -35,6 +35,7 @@ func TestAppUpgradeNetwork(t *testing.T) {
 	upgradeName := app.UpgradeName
 
 	chainSpec := testlib.XionChainSpec(3, 1)
+	chainSpec.ChainID = "xion-testnet-2"
 	chainSpec.Version = xionFromImageParts[1]
 	chainSpec.Images = []ibc.DockerImage{
 		{
@@ -128,6 +129,7 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	upgradeName := app.UpgradeName
 
 	chainSpec := testlib.XionChainSpec(3, 1)
+	chainSpec.ChainID = "xion-testnet-2"
 	chainSpec.Version = xionFromImageParts[1]
 	chainSpec.Images = []ibc.DockerImage{
 		{

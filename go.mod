@@ -49,7 +49,7 @@ require (
 	github.com/CosmWasm/wasmd v0.61.10
 	github.com/CosmWasm/wasmvm/v3 v3.0.3
 	github.com/btcsuite/btcd/btcutil v1.1.6
-	github.com/burnt-labs/abstract-account v0.1.6-0.20260804170934-d66c4ff79e90
+	github.com/burnt-labs/abstract-account v0.1.6-0.20260804173311-9cfd1cf5da4c
 	github.com/burnt-labs/barretenberg-go v0.5.5
 	github.com/cometbft/cometbft v0.38.21
 	github.com/cosmos/cosmos-db v1.1.3
