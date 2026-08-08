@@ -484,11 +484,19 @@ func TestNextUpgradeHandler(t *testing.T) {
 }
 
 func TestNextStoreUpgradesRemovesIBCWasmStore(t *testing.T) {
-	storeUpgrades := nextStoreUpgrades()
+	storeUpgrades := nextStoreUpgrades(UpgradeName)
 
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)
-	require.Equal(t, []string{"08-wasm"}, storeUpgrades.Deleted)
+	require.Equal(t, []string{removedIBCWasmStoreKey}, storeUpgrades.Deleted)
+}
+
+func TestNextStoreUpgradesDoesNotRemoveIBCWasmStoreForOtherUpgrades(t *testing.T) {
+	storeUpgrades := nextStoreUpgrades("v32")
+
+	require.Empty(t, storeUpgrades.Added)
+	require.Empty(t, storeUpgrades.Renamed)
+	require.Empty(t, storeUpgrades.Deleted)
 }
 
 func TestAddVeronaDenomMetadataAliases(t *testing.T) {
