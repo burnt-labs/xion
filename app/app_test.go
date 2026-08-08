@@ -483,6 +483,14 @@ func TestNextUpgradeHandler(t *testing.T) {
 	})
 }
 
+func TestNextStoreUpgradesRemovesIBCWasmStore(t *testing.T) {
+	storeUpgrades := nextStoreUpgrades()
+
+	require.Empty(t, storeUpgrades.Added)
+	require.Empty(t, storeUpgrades.Renamed)
+	require.Equal(t, []string{"08-wasm"}, storeUpgrades.Deleted)
+}
+
 func TestAddVeronaDenomMetadataAliases(t *testing.T) {
 	gapp := Setup(t)
 	ctx := gapp.NewContext(false)
