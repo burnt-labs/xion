@@ -47,12 +47,11 @@ func TestApplyValidatorTimeout(t *testing.T) {
 			serverCtx := server.NewDefaultContext()
 			serverCtx.Config = tmcfg.DefaultConfig()
 			cmd := &cobra.Command{Use: "test"}
-			cmd.SetContext(context.Background())
-			require.NoError(t, server.SetCmdServerContext(cmd, serverCtx))
+			cmd.SetContext(context.WithValue(context.Background(), server.ServerContextKey, serverCtx))
 			if tc.register {
 				addModuleInitFlags(cmd)
 			}
-			require.NoError(t, cmd.Flags().Parse(tc.args))
+			require.NoError(t, cmd.ParseFlags(tc.args))
 			require.NoError(t, applyValidatorTimeout(cmd))
 			require.Equal(t, tc.expected, serverCtx.Config.Consensus.TimeoutCommit)
 		})
