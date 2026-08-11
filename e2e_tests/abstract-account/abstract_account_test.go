@@ -34,9 +34,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	cometAbciTypes "github.com/cometbft/cometbft/abci/types"
 	cometClient "github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
+	cometTypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
@@ -945,20 +947,9 @@ func receiveEvent(ctx context.Context, eventStream <-chan cometRpcCoreTypes.Resu
 			if !ok {
 				return fmt.Errorf("CometBFT event stream closed before the account emit event arrived")
 			}
-			fmt.Println("event intercepted")
-			contractAddress, ok := event.Events["wasm-account_emit._contract_address"]
-			if !ok {
-				fmt.Println("not desired event")
-				continue
+			if isAccountEmitEvent(event) {
+				return nil
 			}
-			arbData, ok := event.Events["wasm-account_emit.data"]
-			if !ok {
-				fmt.Println("not desired event")
-				continue
-			}
-			fmt.Println(contractAddress)
-			fmt.Println(arbData)
-			return nil
 		case <-ctx.Done():
 			return fmt.Errorf("waiting for account emit event: %w", ctx.Err())
 		case <-timer.C:
@@ -967,15 +958,72 @@ func receiveEvent(ctx context.Context, eventStream <-chan cometRpcCoreTypes.Resu
 	}
 }
 
+func isAccountEmitEvent(event cometRpcCoreTypes.ResultEvent) bool {
+	txEvent, ok := event.Data.(cometTypes.EventDataTx)
+	if !ok {
+		return false
+	}
+
+	for _, txResultEvent := range txEvent.Result.Events {
+		if txResultEvent.Type != "wasm-account_emit" {
+			continue
+		}
+
+		hasContractAddress := false
+		hasData := false
+		for _, attribute := range txResultEvent.Attributes {
+			switch attribute.Key {
+			case "_contract_address":
+				hasContractAddress = true
+			case "data":
+				hasData = true
+			}
+		}
+		if hasContractAddress && hasData {
+			return true
+		}
+	}
+
+	return false
+}
+
 func TestReceiveEvent(t *testing.T) {
 	eventStream := make(chan cometRpcCoreTypes.ResultEvent, 2)
 	eventStream <- cometRpcCoreTypes.ResultEvent{Events: map[string][]string{"unrelated": {"event"}}}
-	eventStream <- cometRpcCoreTypes.ResultEvent{Events: map[string][]string{
-		"wasm-account_emit._contract_address": {"xion1account"},
-		"wasm-account_emit.data":              {"arbitrary_data"},
-	}}
+	eventStream <- cometRpcCoreTypes.ResultEvent{Data: cometTypes.EventDataTx{TxResult: cometAbciTypes.TxResult{
+		Result: cometAbciTypes.ExecTxResult{Events: []cometAbciTypes.Event{{
+			Type: "wasm-account_emit",
+			Attributes: []cometAbciTypes.EventAttribute{
+				{Key: "_contract_address", Value: "xion1account"},
+				{Key: "data", Value: "arbitrary_data"},
+			},
+		}}},
+	}}}
 
 	require.NoError(t, receiveEvent(t.Context(), eventStream))
+}
+
+func TestIsAccountEmitEventRequiresRawAttributes(t *testing.T) {
+	testCases := map[string]cometRpcCoreTypes.ResultEvent{
+		"non-transaction event": {},
+		"different event type": {Data: cometTypes.EventDataTx{TxResult: cometAbciTypes.TxResult{
+			Result: cometAbciTypes.ExecTxResult{Events: []cometAbciTypes.Event{{Type: "message"}}},
+		}}},
+		"missing data attribute": {Data: cometTypes.EventDataTx{TxResult: cometAbciTypes.TxResult{
+			Result: cometAbciTypes.ExecTxResult{Events: []cometAbciTypes.Event{{
+				Type: "wasm-account_emit",
+				Attributes: []cometAbciTypes.EventAttribute{
+					{Key: "_contract_address", Value: "xion1account"},
+				},
+			}}},
+		}}},
+	}
+
+	for name, event := range testCases {
+		t.Run(name, func(t *testing.T) {
+			require.False(t, isAccountEmitEvent(event))
+		})
+	}
 }
 
 func TestReceiveEventStopsOnClosedStream(t *testing.T) {
