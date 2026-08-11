@@ -1047,7 +1047,11 @@ func CosmosChainUpgradeTest(t *testing.T, xion *cosmos.CosmosChain, upgradeConta
 	height, err = chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before upgrade")
 
-	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Second*45)
+	// The three-validator upgrade network can need more than 45 seconds to
+	// produce the remaining blocks on loaded CI runners. Keep this timeout
+	// local to the halt assertion so the test still fails if the chain does not
+	// stop at the scheduled height.
+	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, 90*time.Second)
 	defer timeoutCtxCancel()
 
 	// this should timeout due to chain halt at upgrade height.
