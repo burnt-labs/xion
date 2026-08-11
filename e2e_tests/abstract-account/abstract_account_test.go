@@ -509,6 +509,7 @@ func TestAABasic(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "add-authenticator", aaContractAddr,
 		"--authenticator-id", "1",
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
@@ -736,6 +737,7 @@ func TestAAClientEvent(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "add-authenticator", aaContractAddr,
 		"--authenticator-id", "1",
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
