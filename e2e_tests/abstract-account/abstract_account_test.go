@@ -1,7 +1,6 @@
 package e2e_aa
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -34,11 +33,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
-	cometAbciTypes "github.com/cometbft/cometbft/abci/types"
-	cometClient "github.com/cometbft/cometbft/rpc/client"
-	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
-	cometTypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
@@ -782,18 +776,6 @@ func TestAAClientEvent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
 
-	cometWsClient, err := getCometClient(xion.GetHostRPCAddress()) // Note: add a close function
-	require.NoError(t, err)
-	fmt.Printf("%+v\n", xion.GetNode())
-
-	err = cometWsClient.Start()
-	require.NoError(t, err)
-
-	// eventStream, err := subscribeToEvent(t, ctx, cometTypes.EventTx, cometWsClient)
-	eventStream, err := subscribeToEvent(t, ctx, cometWsClient)
-
-	require.NoError(t, err)
-
 	jsonExecMsgStr, err = testlib.GenerateTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "emit", "arbitrary_data", aaContractAddr,
@@ -817,7 +799,7 @@ func TestAAClientEvent(t *testing.T) {
 
 	rotateFilePath = strings.Split(rotateFile.Name(), "/")
 
-	_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
+	emitTxHash, err := testlib.ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
@@ -825,11 +807,14 @@ func TestAAClientEvent(t *testing.T) {
 		path.Join(xion.GetNode().HomeDir(), rotateFilePath[len(rotateFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
-	require.NoError(t, err) // it's returning an error and it's not throwing
-	fmt.Println("we have thrown a transaction")
+	require.NoError(t, err)
 
-	require.NoError(t, receiveEvent(ctx, eventStream))
-	require.NoError(t, stopClient(ctx, cometWsClient))
+	emitTxDetails, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", emitTxHash)
+	require.NoError(t, err)
+	emitCode, ok := emitTxDetails["code"].(float64)
+	require.True(t, ok)
+	require.Zero(t, emitCode)
+	require.True(t, hasAccountEmitEvent(emitTxDetails, aaContractAddr, "arbitrary_data"))
 }
 
 func TestAAPanic(t *testing.T) {
@@ -928,58 +913,38 @@ func TestAAPanic(t *testing.T) {
 	require.Error(t, err)
 }
 
-func getCometClient(hostAddr string) (cometClient.Client, error) {
-	return rpchttp.New(hostAddr, "/websocket")
-}
-
-func subscribeToEvent(t *testing.T, ctx context.Context, cli cometClient.Client) (<-chan cometRpcCoreTypes.ResultEvent, error) {
-	t.Helper()
-	return cli.Subscribe(ctx, "helpers", "tm.event='Tx'")
-}
-
-func receiveEvent(ctx context.Context, eventStream <-chan cometRpcCoreTypes.ResultEvent) error {
-	timer := time.NewTimer(30 * time.Second)
-	defer timer.Stop()
-
-	for {
-		select {
-		case event, ok := <-eventStream:
-			if !ok {
-				return fmt.Errorf("CometBFT event stream closed before the account emit event arrived")
-			}
-			if isAccountEmitEvent(event) {
-				return nil
-			}
-		case <-ctx.Done():
-			return fmt.Errorf("waiting for account emit event: %w", ctx.Err())
-		case <-timer.C:
-			return fmt.Errorf("timed out waiting for account emit event")
-		}
-	}
-}
-
-func isAccountEmitEvent(event cometRpcCoreTypes.ResultEvent) bool {
-	txEvent, ok := event.Data.(cometTypes.EventDataTx)
+func hasAccountEmitEvent(txDetails map[string]interface{}, expectedContractAddress, expectedData string) bool {
+	events, ok := txDetails["events"].([]interface{})
 	if !ok {
 		return false
 	}
 
-	for _, txResultEvent := range txEvent.Result.Events {
-		if txResultEvent.Type != "wasm-account_emit" {
+	for _, eventValue := range events {
+		event, ok := eventValue.(map[string]interface{})
+		if !ok || event["type"] != "wasm-account_emit" {
 			continue
 		}
 
-		hasContractAddress := false
-		hasData := false
-		for _, attribute := range txResultEvent.Attributes {
-			switch attribute.Key {
+		attributes, ok := event["attributes"].([]interface{})
+		if !ok {
+			continue
+		}
+
+		contractAddress := ""
+		data := ""
+		for _, attributeValue := range attributes {
+			attribute, ok := attributeValue.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			switch attribute["key"] {
 			case "_contract_address":
-				hasContractAddress = true
+				contractAddress, _ = attribute["value"].(string)
 			case "data":
-				hasData = true
+				data, _ = attribute["value"].(string)
 			}
 		}
-		if hasContractAddress && hasData {
+		if contractAddress == expectedContractAddress && data == expectedData {
 			return true
 		}
 	}
@@ -987,66 +952,31 @@ func isAccountEmitEvent(event cometRpcCoreTypes.ResultEvent) bool {
 	return false
 }
 
-func TestReceiveEvent(t *testing.T) {
-	eventStream := make(chan cometRpcCoreTypes.ResultEvent, 2)
-	eventStream <- cometRpcCoreTypes.ResultEvent{Events: map[string][]string{"unrelated": {"event"}}}
-	eventStream <- cometRpcCoreTypes.ResultEvent{Data: cometTypes.EventDataTx{TxResult: cometAbciTypes.TxResult{
-		Result: cometAbciTypes.ExecTxResult{Events: []cometAbciTypes.Event{{
-			Type: "wasm-account_emit",
-			Attributes: []cometAbciTypes.EventAttribute{
-				{Key: "_contract_address", Value: "xion1account"},
-				{Key: "data", Value: "arbitrary_data"},
-			},
-		}}},
-	}}}
-
-	require.NoError(t, receiveEvent(t.Context(), eventStream))
-}
-
-func TestIsAccountEmitEventRequiresRawAttributes(t *testing.T) {
-	testCases := map[string]cometRpcCoreTypes.ResultEvent{
-		"non-transaction event": {},
-		"different event type": {Data: cometTypes.EventDataTx{TxResult: cometAbciTypes.TxResult{
-			Result: cometAbciTypes.ExecTxResult{Events: []cometAbciTypes.Event{{Type: "message"}}},
-		}}},
-		"missing data attribute": {Data: cometTypes.EventDataTx{TxResult: cometAbciTypes.TxResult{
-			Result: cometAbciTypes.ExecTxResult{Events: []cometAbciTypes.Event{{
-				Type: "wasm-account_emit",
-				Attributes: []cometAbciTypes.EventAttribute{
-					{Key: "_contract_address", Value: "xion1account"},
+func TestHasAccountEmitEvent(t *testing.T) {
+	txDetails := map[string]interface{}{
+		"events": []interface{}{
+			map[string]interface{}{"type": "message"},
+			map[string]interface{}{
+				"type": "wasm-account_emit",
+				"attributes": []interface{}{
+					map[string]interface{}{"key": "_contract_address", "value": "xion1account"},
+					map[string]interface{}{"key": "data", "value": "arbitrary_data"},
 				},
-			}}},
-		}}},
+			},
+		},
 	}
 
-	for name, event := range testCases {
-		t.Run(name, func(t *testing.T) {
-			require.False(t, isAccountEmitEvent(event))
-		})
-	}
-}
-
-func TestReceiveEventStopsOnClosedStream(t *testing.T) {
-	eventStream := make(chan cometRpcCoreTypes.ResultEvent)
-	close(eventStream)
-
-	require.EqualError(t, receiveEvent(t.Context(), eventStream), "CometBFT event stream closed before the account emit event arrived")
-}
-
-func TestReceiveEventStopsOnCancelledContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(t.Context())
-	cancel()
-
-	require.ErrorIs(t, receiveEvent(ctx, make(chan cometRpcCoreTypes.ResultEvent)), context.Canceled)
-}
-
-func stopClient(ctx context.Context, cli cometClient.Client) error {
-	if err := cli.UnsubscribeAll(ctx, "helpers"); err != nil {
-		return err
-	}
-
-	if err := cli.Stop(); err != nil {
-		return err
-	}
-	return nil
+	require.True(t, hasAccountEmitEvent(txDetails, "xion1account", "arbitrary_data"))
+	require.False(t, hasAccountEmitEvent(txDetails, "xion1other", "arbitrary_data"))
+	require.False(t, hasAccountEmitEvent(map[string]interface{}{}, "xion1account", "arbitrary_data"))
+	require.False(t, hasAccountEmitEvent(map[string]interface{}{
+		"events": []interface{}{
+			"malformed",
+			map[string]interface{}{"type": "wasm-account_emit"},
+			map[string]interface{}{
+				"type":       "wasm-account_emit",
+				"attributes": []interface{}{"malformed"},
+			},
+		},
+	}, "xion1account", "arbitrary_data"))
 }
