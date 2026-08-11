@@ -792,9 +792,6 @@ func TestAAClientEvent(t *testing.T) {
 
 	require.NoError(t, err)
 
-	doneChan := make(chan struct{})
-	go receiveEvents(t, doneChan, eventStream)
-
 	jsonExecMsgStr, err = testlib.GenerateTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "emit", "arbitrary_data", aaContractAddr,
@@ -829,9 +826,8 @@ func TestAAClientEvent(t *testing.T) {
 	require.NoError(t, err) // it's returning an error and it's not throwing
 	fmt.Println("we have thrown a transaction")
 
-	// wg.Wait()
-	<-doneChan
-	stopClient(ctx, cometWsClient)
+	require.NoError(t, receiveEvent(ctx, eventStream))
+	require.NoError(t, stopClient(ctx, cometWsClient))
 }
 
 func TestAAPanic(t *testing.T) {
@@ -935,13 +931,20 @@ func getCometClient(hostAddr string) (cometClient.Client, error) {
 }
 
 func subscribeToEvent(t *testing.T, ctx context.Context, cli cometClient.Client) (<-chan cometRpcCoreTypes.ResultEvent, error) {
-	return cli.Subscribe(ctx, "helpers", "message.module='wasm' AND message.action='/cosmwasm.wasm.v1.MsgExecuteContract'")
+	t.Helper()
+	return cli.Subscribe(ctx, "helpers", "tm.event='Tx'")
 }
 
-func receiveEvents(t *testing.T, done chan<- struct{}, eventStream <-chan cometRpcCoreTypes.ResultEvent) {
+func receiveEvent(ctx context.Context, eventStream <-chan cometRpcCoreTypes.ResultEvent) error {
+	timer := time.NewTimer(30 * time.Second)
+	defer timer.Stop()
+
 	for {
 		select {
-		case event := <-eventStream:
+		case event, ok := <-eventStream:
+			if !ok {
+				return fmt.Errorf("CometBFT event stream closed before the account emit event arrived")
+			}
 			fmt.Println("event intercepted")
 			contractAddress, ok := event.Events["wasm-account_emit._contract_address"]
 			if !ok {
@@ -955,12 +958,38 @@ func receiveEvents(t *testing.T, done chan<- struct{}, eventStream <-chan cometR
 			}
 			fmt.Println(contractAddress)
 			fmt.Println(arbData)
-			done <- struct{}{}
-			return
-		default:
-			continue
+			return nil
+		case <-ctx.Done():
+			return fmt.Errorf("waiting for account emit event: %w", ctx.Err())
+		case <-timer.C:
+			return fmt.Errorf("timed out waiting for account emit event")
 		}
 	}
+}
+
+func TestReceiveEvent(t *testing.T) {
+	eventStream := make(chan cometRpcCoreTypes.ResultEvent, 2)
+	eventStream <- cometRpcCoreTypes.ResultEvent{Events: map[string][]string{"unrelated": {"event"}}}
+	eventStream <- cometRpcCoreTypes.ResultEvent{Events: map[string][]string{
+		"wasm-account_emit._contract_address": {"xion1account"},
+		"wasm-account_emit.data":              {"arbitrary_data"},
+	}}
+
+	require.NoError(t, receiveEvent(t.Context(), eventStream))
+}
+
+func TestReceiveEventStopsOnClosedStream(t *testing.T) {
+	eventStream := make(chan cometRpcCoreTypes.ResultEvent)
+	close(eventStream)
+
+	require.EqualError(t, receiveEvent(t.Context(), eventStream), "CometBFT event stream closed before the account emit event arrived")
+}
+
+func TestReceiveEventStopsOnCancelledContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	require.ErrorIs(t, receiveEvent(ctx, make(chan cometRpcCoreTypes.ResultEvent)), context.Canceled)
 }
 
 func stopClient(ctx context.Context, cli cometClient.Client) error {
