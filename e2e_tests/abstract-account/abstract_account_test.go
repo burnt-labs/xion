@@ -536,6 +536,7 @@ func TestAABasic(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
+	require.NoError(t, testutil.WaitForBlocks(ctx, 1, xion))
 	updatedContractState, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 1 }}`)
 	require.NoError(t, err)
 
@@ -576,6 +577,7 @@ func TestAABasic(t *testing.T) {
 		"--authenticator-id", "1",
 	)
 	require.NoError(t, err)
+	require.NoError(t, testutil.WaitForBlocks(ctx, 1, xion))
 
 	// validate original key was deleted
 	updatedContractState, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_i_ds":{}}`)
@@ -761,6 +763,7 @@ func TestAAClientEvent(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
+	require.NoError(t, testutil.WaitForBlocks(ctx, 1, xion))
 	updatedContractState, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 1 }}`)
 	require.NoError(t, err)
 
