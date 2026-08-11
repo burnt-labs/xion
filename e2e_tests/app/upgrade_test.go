@@ -18,8 +18,9 @@ import (
 func TestAppUpgradeNetwork(t *testing.T) {
 	t.Parallel()
 
-	// Get the "from" image (latest released version from GitHub releases)
-	xionFromImageParts, err := testlib.GetLatestReleaseImageComponents()
+	// Start from the newest stable binary predating this upgrade. The latest
+	// release may already contain app.UpgradeName and cannot exercise it again.
+	xionFromImageParts, err := testlib.GetUpgradeSourceImageComponents(app.UpgradeName)
 	require.NoError(t, err)
 	require.Len(t, xionFromImageParts, 2, "xionFromImage should have [repository, version] format")
 
@@ -111,8 +112,9 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
-	// Get the "from" image (latest released version from GitHub releases)
-	xionFromImageParts, err := testlib.GetLatestReleaseImageComponents()
+	// Start from the newest stable binary predating this upgrade. The latest
+	// release may already contain app.UpgradeName and cannot exercise it again.
+	xionFromImageParts, err := testlib.GetUpgradeSourceImageComponents(app.UpgradeName)
 	require.NoError(t, err)
 	require.Len(t, xionFromImageParts, 2, "xionFromImage should have [repository, version] format")
 
