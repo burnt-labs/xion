@@ -16,6 +16,8 @@ import (
 
 const UpgradeName = "v31"
 
+const removedIBCWasmStoreKey = "08-wasm"
+
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
@@ -35,19 +37,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
-	// Check which stores already exist (for chains that had v26)
-	// existingStores := app.getExistingStoreNames()
-
-	var storesToAdd []string
-	// if !existingStores[<module>.StoreKey] {
-	// 	storesToAdd = append(storesToAdd, <module>.StoreKey)
-	// }
-
-	storeUpgrades := storetypes.StoreUpgrades{
-		Added:   storesToAdd,
-		Renamed: []storetypes.StoreRename{},
-		Deleted: []string{},
-	}
+	storeUpgrades := nextStoreUpgrades(upgradeInfo.Name)
 	if len(storeUpgrades.Added) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)
 	}
@@ -59,6 +49,18 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 	}
 	storeLoader = upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades)
 	return storeLoader
+}
+
+func nextStoreUpgrades(upgradeName string) storetypes.StoreUpgrades {
+	storeUpgrades := storetypes.StoreUpgrades{
+		Added:   []string{},
+		Renamed: []storetypes.StoreRename{},
+		Deleted: []string{},
+	}
+	if upgradeName == UpgradeName {
+		storeUpgrades.Deleted = []string{removedIBCWasmStoreKey}
+	}
+	return storeUpgrades
 }
 
 // getExistingStoreNames returns a map of store names that already exist in the database.
