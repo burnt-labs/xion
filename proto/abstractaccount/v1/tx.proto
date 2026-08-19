@@ -52,13 +52,13 @@ message MsgRegisterAccount {
     (gogoproto.casttype) = "github.com/CosmWasm/wasmd/x/wasm/types.RawContractMessage"
   ];
 
-  // Funds are coins to be deposited to the contract on instantiattion
+  // Funds are coins to be deposited to the contract on instantiation
   repeated cosmos.base.v1beta1.Coin funds = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 
-  // Salt is an arbinary value to be used in deriving the account address.
+  // Salt is an arbitrary value to be used in deriving the account address.
   // Max 64 bytes.
   bytes salt = 5;
 }

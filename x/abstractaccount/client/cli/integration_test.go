@@ -43,6 +43,12 @@ func TestQueryParamsIntegration(t *testing.T) {
 		// Set proper context with client context
 		paramsCmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
 
+		// Point the query at a port nothing listens on. The flag defaults to
+		// localhost:26657, where a node may actually be running on a dev
+		// machine, which would turn the expected connection error into a
+		// successful query.
+		require.NoError(t, paramsCmd.Flags().Set(flags.FlagNode, "tcp://127.0.0.1:1"))
+
 		// This will still fail because we need a running GRPC server, but it tests more of the execution path
 		err := paramsCmd.RunE(paramsCmd, []string{})
 		require.Error(t, err)
@@ -65,6 +71,10 @@ func TestQueryParamsIntegration(t *testing.T) {
 
 		// Set proper context
 		paramsSubCmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
+
+		// Same hermeticity concern as above: without this, a node listening
+		// on the default local port answers the query and err is nil.
+		require.NoError(t, paramsSubCmd.Flags().Set(flags.FlagNode, "tcp://127.0.0.1:1"))
 
 		// Execute with proper setup but expect connection error
 		err := paramsSubCmd.RunE(paramsSubCmd, []string{})
@@ -134,6 +144,10 @@ func TestParamsCmdExecutionWithClientContext(t *testing.T) {
 
 	// Set proper context
 	paramsCmd.SetContext(context.WithValue(context.Background(), client.ClientContextKey, &clientCtx))
+
+	// See TestQueryParamsIntegration: keep the connection failure deterministic
+	// even when a node is listening on the default local port.
+	require.NoError(t, paramsCmd.Flags().Set(flags.FlagNode, "tcp://127.0.0.1:1"))
 
 	// Execute the command - this should get further in execution than before
 	err := paramsCmd.RunE(paramsCmd, []string{})

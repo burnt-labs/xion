@@ -133,9 +133,9 @@ type MsgRegisterAccount struct {
 	CodeID uint64 `protobuf:"varint,2,opt,name=code_id,json=codeId,proto3" json:"code_id,omitempty"`
 	// Msg is the JSON-encoded instantiate message for the contract
 	Msg github_com_CosmWasm_wasmd_x_wasm_types.RawContractMessage `protobuf:"bytes,3,opt,name=msg,proto3,casttype=github.com/CosmWasm/wasmd/x/wasm/types.RawContractMessage" json:"msg,omitempty"`
-	// Funds are coins to be deposited to the contract on instantiattion
+	// Funds are coins to be deposited to the contract on instantiation
 	Funds github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=funds,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"funds"`
-	// Salt is an arbinary value to be used in deriving the account address.
+	// Salt is an arbitrary value to be used in deriving the account address.
 	// Max 64 bytes.
 	Salt []byte `protobuf:"bytes,5,opt,name=salt,proto3" json:"salt,omitempty"`
 }
