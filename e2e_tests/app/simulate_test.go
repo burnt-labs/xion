@@ -4,14 +4,12 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -118,12 +116,6 @@ func TestAppSimulate(t *testing.T) {
 	audienceQuery, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "jwk", "list-audience")
 	t.Logf("audiences: \n%s", audienceQuery)
 
-	// retrieve the hash
-	codeResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(),
-		"wasm", "code-info", codeIDStr)
-	require.NoError(t, err)
-	t.Logf("code response: %s", codeResp)
-
 	sub := "integration-test-user"
 
 	authenticatorDetails := map[string]interface{}{}
@@ -139,10 +131,8 @@ func TestAppSimulate(t *testing.T) {
 
 	// predict the contract address so it can be verified
 	salt := "0"
-	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
+	predictedAddr, err := testlib.QueryAbstractAccountAddress(t, ctx, xion.GetNode(), xionUser.FormattedAddress(), salt)
 	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	// b64 the contract address to use as the transaction hash
@@ -249,7 +239,7 @@ func TestAppSimulate(t *testing.T) {
 	   "signer_infos": [],
 	   "fee": {
 	     "amount": [],
-	     "gas_limit": "200000",
+	     "gas_limit": "300000",
 	     "payer": "",
 	     "granter": ""
 	   },

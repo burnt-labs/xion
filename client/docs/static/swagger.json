@@ -23774,6 +23774,74 @@
         ]
       }
     },
+    "/abstractaccount/v1/account_address/{sender}": {
+      "get": {
+        "summary": "AccountAddress returns the registered address or predicts the stable\naddress using the module-managed address derivation hash.",
+        "operationId": "AccountAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string"
+                },
+                "registered": {
+                  "type": "boolean"
+                }
+              },
+              "description": "QueryAccountAddressResponse contains the stable address and whether an\nAbstractAccount is already registered for the namespace."
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sender",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "salt",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          }
+        ],
+        "tags": [
+          "AbstractAccount"
+        ]
+      }
+    },
     "/abstractaccount/v1/params": {
       "get": {
         "summary": "Params queries the module's parameters.",
@@ -23789,7 +23857,7 @@
                   "properties": {
                     "allowAllCodeIds": {
                       "type": "boolean",
-                      "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+                      "description": "AllowAllCodeIDs determines whether a Wasm code ID may be selected as the\nfinal implementation for a newly registered AbstractAccount or a\ntop-level raw Wasm migration:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
                     },
                     "allowedCodeIds": {
                       "type": "array",
@@ -23797,7 +23865,7 @@
                         "type": "string",
                         "format": "uint64"
                       },
-                      "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+                      "description": "AllowedCodeIDs is the whitelist for registration implementations and\ntop-level raw Wasm migrations. This is not a wasmd-level policy."
                     },
                     "maxGasBefore": {
                       "type": "string",
@@ -23808,6 +23876,15 @@
                       "type": "string",
                       "format": "uint64",
                       "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+                    },
+                    "registrationEnabled": {
+                      "type": "boolean",
+                      "description": "RegistrationEnabled controls whether new abstract accounts may be\nregistered. Governance can pause registration without changing the\nimmutable address namespace or blocking address queries."
+                    },
+                    "addressDerivationHash": {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "AddressDerivationHash is the immutable 32-byte namespace used only to\nderive predictable AbstractAccount addresses. The caller-selected code ID\nis instantiated directly and does not participate in address derivation.\nAn empty value leaves registration unconfigured."
                     }
                   },
                   "description": "Params defines the parameters for the abstractaccount module."
@@ -46082,7 +46159,7 @@
       "properties": {
         "allowAllCodeIds": {
           "type": "boolean",
-          "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+          "description": "AllowAllCodeIDs determines whether a Wasm code ID may be selected as the\nfinal implementation for a newly registered AbstractAccount or a\ntop-level raw Wasm migration:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
         },
         "allowedCodeIds": {
           "type": "array",
@@ -46090,7 +46167,7 @@
             "type": "string",
             "format": "uint64"
           },
-          "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+          "description": "AllowedCodeIDs is the whitelist for registration implementations and\ntop-level raw Wasm migrations. This is not a wasmd-level policy."
         },
         "maxGasBefore": {
           "type": "string",
@@ -46101,9 +46178,30 @@
           "type": "string",
           "format": "uint64",
           "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+        },
+        "registrationEnabled": {
+          "type": "boolean",
+          "description": "RegistrationEnabled controls whether new abstract accounts may be\nregistered. Governance can pause registration without changing the\nimmutable address namespace or blocking address queries."
+        },
+        "addressDerivationHash": {
+          "type": "string",
+          "format": "byte",
+          "description": "AddressDerivationHash is the immutable 32-byte namespace used only to\nderive predictable AbstractAccount addresses. The caller-selected code ID\nis instantiated directly and does not participate in address derivation.\nAn empty value leaves registration unconfigured."
         }
       },
       "description": "Params defines the parameters for the abstractaccount module."
+    },
+    "abstractaccount.v1.QueryAccountAddressResponse": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "registered": {
+          "type": "boolean"
+        }
+      },
+      "description": "QueryAccountAddressResponse contains the stable address and whether an\nAbstractAccount is already registered for the namespace."
     },
     "abstractaccount.v1.QueryParamsResponse": {
       "type": "object",
@@ -46113,7 +46211,7 @@
           "properties": {
             "allowAllCodeIds": {
               "type": "boolean",
-              "description": "AllowAllCodeIDs determines whether a Wasm code ID can be used to register\nAbstractAccounts:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
+              "description": "AllowAllCodeIDs determines whether a Wasm code ID may be selected as the\nfinal implementation for a newly registered AbstractAccount or a\ntop-level raw Wasm migration:\n- if set to true, any code ID can be used;\n- if set to false, only code IDs whitelisted in the AllowedCodeIDs list can\nbe used."
             },
             "allowedCodeIds": {
               "type": "array",
@@ -46121,7 +46219,7 @@
                 "type": "string",
                 "format": "uint64"
               },
-              "description": "AllowedCodeIDs is the whitelist of Wasm code IDs that can be used to\nregiseter AbstractAccounts."
+              "description": "AllowedCodeIDs is the whitelist for registration implementations and\ntop-level raw Wasm migrations. This is not a wasmd-level policy."
             },
             "maxGasBefore": {
               "type": "string",
@@ -46132,6 +46230,15 @@
               "type": "string",
               "format": "uint64",
               "description": "MaxGasAfter is the maximum amount of gas that can be consumed by the\ncontract call in the after_tx decorator.\n\nMust be greater than zero."
+            },
+            "registrationEnabled": {
+              "type": "boolean",
+              "description": "RegistrationEnabled controls whether new abstract accounts may be\nregistered. Governance can pause registration without changing the\nimmutable address namespace or blocking address queries."
+            },
+            "addressDerivationHash": {
+              "type": "string",
+              "format": "byte",
+              "description": "AddressDerivationHash is the immutable 32-byte namespace used only to\nderive predictable AbstractAccount addresses. The caller-selected code ID\nis instantiated directly and does not participate in address derivation.\nAn empty value leaves registration unconfigured."
             }
           },
           "description": "Params defines the parameters for the abstractaccount module."

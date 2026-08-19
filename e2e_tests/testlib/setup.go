@@ -39,6 +39,7 @@ type TestData struct {
 var (
 	defaultMinGasPrices            = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
 	defaultIbcClientTrustingPeriod = "336h" // 14 days
+	localAddressDerivationHash     = "e2VOlcNezIiL+UJ8UDpJVFV8R27Fa43YH4mJpqfJHNk="
 	DefaultGenesisKVMods           = []cosmos.GenesisKV{
 		// Gov module - short proposals
 		cosmos.NewGenesisKV("app_state.gov.params.voting_period", "10s"),
@@ -57,6 +58,13 @@ var (
 		// Packet forward middleware
 		// cosmos.NewGenesisKV("app_state.packetfowardmiddleware.params.fee_percentage", "0.0"),
 	}
+	CurrentGenesisKVMods = append(
+		append([]cosmos.GenesisKV{}, DefaultGenesisKVMods...),
+		// Preserve the address namespace used by the checked-in xion_account.wasm
+		// proof fixtures. setup_test.go verifies this value against the artifact.
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.address_derivation_hash", localAddressDerivationHash),
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.registration_enabled", true),
+	)
 
 	// DeployerMnemonic is a test mnemonic used across e2e tests
 	DeployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
@@ -120,7 +128,7 @@ func XionLocalChainSpec(t *testing.T, numVals int, numFn int) *interchaintest.Ch
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(DefaultGenesisKVMods)
+	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(CurrentGenesisKVMods)
 	chainSpec.ChainConfig.AdditionalStartArgs = []string{
 		"--consensus.timeout_commit=1s",
 	}
