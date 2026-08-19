@@ -3,7 +3,6 @@ package e2e_jwk
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -21,7 +20,6 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	txsigning "cosmossdk.io/x/tx/signing"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/cosmos/interchaintest/v10"
@@ -164,9 +162,8 @@ func TestJWKJWTAA(t *testing.T) {
 	// predict the contract address so it can be verified
 	salt := "0"
 	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
-	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+	predictedAddr := types.MustAccAddressFromBech32(
+		testlib.QueryAAContractAddress(t, ctx, xion.GetNode(), creatorAddr.String(), salt))
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	// b64 the contract address to use as the transaction hash

@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	"os"
 	"strconv"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/spf13/cobra"
 
@@ -252,27 +250,23 @@ func NewRegisterCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("amount: %s", err)
 			}
-			queryClient := wasmtypes.NewQueryClient(clientCtx)
-
-			codeResp, err := queryClient.Code(
+			// The account address is derived with the module-managed address
+			// derivation hash, not the implementation code's checksum.
+			addrResp, err := aatypes.NewQueryClient(clientCtx).AccountAddress(
 				context.Background(),
-				&wasmtypes.QueryCodeRequest{
-					CodeId: codeID,
+				&aatypes.QueryAccountAddressRequest{
+					Sender: clientCtx.GetFromAddress().String(),
+					Salt:   []byte(salt),
 				},
 			)
 			if err != nil {
 				return err
 			}
-			creatorAddr := clientCtx.GetFromAddress()
-			codeHash, err := hex.DecodeString(codeResp.DataHash.String())
-			if err != nil {
-				return err
-			}
-			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+			predictedAddr := addrResp.Address
 
 			signature, pubKey, err := clientCtx.Keyring.SignByAddress(
 				clientCtx.GetFromAddress(),
-				[]byte(predictedAddr.String()),
+				[]byte(predictedAddr),
 				signMode,
 			)
 			if err != nil {

@@ -82,6 +82,11 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 		// validation checks
 		ante.NewValidateBasicDecorator(),
+		// Validate MsgMigrateContract for AbstractAccounts against AllowedCodeIDs
+		abstractaccount.NewMigrateValidationDecorator(
+			options.AbstractAccountKeeper,
+			options.AccountKeeper,
+		),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),

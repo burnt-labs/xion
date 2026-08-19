@@ -4,14 +4,12 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -140,9 +138,8 @@ func TestAppSimulate(t *testing.T) {
 	// predict the contract address so it can be verified
 	salt := "0"
 	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
-	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+	predictedAddr := types.MustAccAddressFromBech32(
+		testlib.QueryAAContractAddress(t, ctx, xion.GetNode(), creatorAddr.String(), salt))
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	// b64 the contract address to use as the transaction hash
