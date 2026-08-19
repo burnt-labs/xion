@@ -1,9 +1,9 @@
 package testing
 
 import (
-	"testing"
 	"encoding/json"
 	"os"
+	"testing"
 	"time"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
