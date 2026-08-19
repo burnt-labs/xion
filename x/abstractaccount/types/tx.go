@@ -18,12 +18,17 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(m.Sender); err != nil {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid sender address")
 	}
+	// Params is a pointer field; a tx that omits it decodes to nil, and
+	// ValidateBasic runs before any authority check, so this must not panic.
+	if m.Params == nil {
+		return sdkerrors.ErrInvalidRequest.Wrap("params cannot be nil")
+	}
 	return m.Params.Validate()
 }
 
 func (m *MsgUpdateParams) GetSigners() []sdk.AccAddress {
 	// We've already asserted the sender address is valid in ValidateBasic, so we
-	// can safety ignore the error here.
+	// can safely ignore the error here.
 	senderAddr, _ := sdk.AccAddressFromBech32(m.Sender)
 
 	return []sdk.AccAddress{senderAddr}

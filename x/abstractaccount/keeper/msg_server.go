@@ -30,6 +30,11 @@ func (ms msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdatePara
 		return nil, sdkerrors.ErrUnauthorized.Wrapf("sender is not authority: expect %s, found %s", ms.k.authority, req.Sender)
 	}
 
+	// Defense in depth alongside ValidateBasic: Params is dereferenced below.
+	if req.Params == nil {
+		return nil, sdkerrors.ErrInvalidRequest.Wrap("params cannot be nil")
+	}
+
 	currentParams, err := ms.k.GetParams(ctx)
 	if err != nil {
 		return nil, err
