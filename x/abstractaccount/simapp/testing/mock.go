@@ -8,7 +8,6 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 
@@ -18,7 +17,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,7 +24,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/burnt-labs/xion/x/abstractaccount/simapp"
-	poatypes "github.com/burnt-labs/xion/x/abstractaccount/simapp/x/poa/types"
 )
 
 const DefaultBondDenom = "utoken"
@@ -134,19 +131,6 @@ func MakeMockGenesisState(cdc codec.JSONCodec, balances []banktypes.Balance) sim
 		[]banktypes.SendEnabled{},
 	))
 
-	gs[poatypes.ModuleName] = cdc.MustMarshalJSON(&poatypes.GenesisState{
-		Validators: []abci.ValidatorUpdate{
-			{
-				PubKey: tmcrypto.PublicKey{
-					Sum: &tmcrypto.PublicKey_Ed25519{
-						Ed25519: MakeRandomConsensusPubKey().Bytes(),
-					},
-				},
-				Power: 1,
-			},
-		},
-	})
-
 	return gs
 }
 
@@ -158,10 +142,6 @@ func MakeRandomAddress() sdk.AccAddress {
 
 func MakeRandomPubKey() cryptotypes.PubKey {
 	return secp256k1.GenPrivKey().PubKey()
-}
-
-func MakeRandomConsensusPubKey() cryptotypes.PubKey {
-	return ed25519.GenPrivKey().PubKey()
 }
 
 // -------------------------------- AppOptions ---------------------------------

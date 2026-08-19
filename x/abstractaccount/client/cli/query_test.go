@@ -526,3 +526,56 @@ func TestQueryParamsSpecificErrorPaths(t *testing.T) {
 		}
 	})
 }
+
+// TestAccountAddressCmd tests the account-address command creation and structure
+func TestAccountAddressCmd(t *testing.T) {
+	cmd := accountAddressCmd()
+
+	require.NotNil(t, cmd)
+	require.Equal(t, "account-address [sender] --salt [string]", cmd.Use)
+	require.Equal(t, "Query the registered or predicted abstract account address", cmd.Short)
+	require.NotNil(t, cmd.RunE)
+	require.NotNil(t, cmd.Args)
+
+	// Exactly one positional argument is accepted
+	require.Error(t, cmd.Args(cmd, []string{}))
+	require.NoError(t, cmd.Args(cmd, []string{"sender"}))
+	require.Error(t, cmd.Args(cmd, []string{"sender", "extra"}))
+
+	// The salt and query flags are registered
+	require.NotNil(t, cmd.Flags().Lookup(flagSalt))
+	require.NotNil(t, cmd.Flags().Lookup(flags.FlagOutput))
+}
+
+// TestQueryAccountAddressErrorPaths tests the error returns in queryAccountAddress
+func TestQueryAccountAddressErrorPaths(t *testing.T) {
+	t.Run("missing salt flag", func(t *testing.T) {
+		// A command without the salt flag registered fails at flag lookup
+		cmd := &cobra.Command{Use: "account-address"}
+		cmd.SetContext(context.Background())
+
+		err := queryAccountAddress(cmd, []string{"sender"})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "salt")
+	})
+
+	t.Run("query without RPC client", func(t *testing.T) {
+		// With the salt flag registered but no node configured, the function
+		// proceeds to the query call and fails at the offline client
+		cmd := &cobra.Command{Use: "account-address"}
+		cmd.Flags().String(flagSalt, "test-salt", "")
+		cmd.SetContext(context.Background())
+
+		err := queryAccountAddress(cmd, []string{"sender"})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no RPC client is defined in offline mode")
+	})
+
+	t.Run("no context panics", func(t *testing.T) {
+		cmd := &cobra.Command{Use: "account-address"}
+
+		require.Panics(t, func() {
+			_ = queryAccountAddress(cmd, []string{"sender"})
+		})
+	})
+}

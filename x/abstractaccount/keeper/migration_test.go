@@ -34,6 +34,20 @@ func TestMigrator(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, params)
 	})
+
+	t.Run("Migrate2to3 pauses registration pending configuration", func(t *testing.T) {
+		migrator := app.AbstractAccountKeeper.Migrator()
+
+		err := migrator.Migrate2to3(ctx)
+		require.NoError(t, err)
+
+		// Registration stays paused until the chain upgrade configures the
+		// address derivation hash
+		params, err := app.AbstractAccountKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		require.False(t, params.RegistrationEnabled)
+		require.Nil(t, params.AddressDerivationHash)
+	})
 }
 
 func TestMigrationV2Functions(t *testing.T) {
