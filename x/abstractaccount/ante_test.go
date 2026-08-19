@@ -289,7 +289,7 @@ func TestBeforeTx(t *testing.T) {
 				_, _ = decorator.AnteHandle(ctx, tx, tc.simulate, anteTerminator)
 			})
 
-			return
+			continue
 		}
 
 		decorator := makeBeforeTxDecorator(app)
@@ -858,6 +858,69 @@ func TestBeforeTx_UnorderedTx_NonZeroSequenceRejected(t *testing.T) {
 	_, err = decorator.AnteHandle(ctx, txBuilder.GetTx(), false, anteTerminator)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "sequence is not allowed for unordered transactions")
+}
+
+// TestBeforeTx_UnorderedTx_AdvancedAccountSequence verifies that an unordered
+// transaction still verifies after the account's sequence has advanced past
+// zero. Unordered txs are signed with sequence 0 regardless of the account
+// state, so the sign bytes handed to the account contract must be computed
+// with the signature's sequence, not the account's.
+func TestBeforeTx_UnorderedTx_AdvancedAccountSequence(t *testing.T) {
+	app := simapptesting.MakeSimpleMockApp()
+	keybase := keyring.NewInMemory(app.Codec())
+
+	blockTime := time.Now()
+	ctx := app.NewContext(false).WithBlockTime(blockTime).WithChainID(mockChainID)
+
+	acc1, err := makeMockAccount(keybase, "test1", 1)
+	require.NoError(t, err)
+
+	absAcc, err := storeCodeAndRegisterAccount(
+		ctx, app, acc1.GetAddress(), testdata.AccountWasm,
+		&BaseInstantiateMsg{PubKey: acc1.GetPubKey().Bytes()}, sdk.NewCoins(),
+	)
+	require.NoError(t, err)
+
+	// Advance the account sequence past zero, as any ordered tx would have.
+	require.NoError(t, absAcc.SetSequence(7))
+	app.AccountKeeper.SetAccount(ctx, absAcc)
+
+	timeoutTS := blockTime.Add(5 * time.Minute)
+
+	txBuilder := app.TxConfig().NewTxBuilder()
+	require.NoError(t, txBuilder.SetMsgs(banktypes.NewMsgSend(absAcc.GetAddress(), acc1.GetAddress(), sdk.NewCoins())))
+	txBuilder.SetUnordered(true)
+	txBuilder.SetTimeoutTimestamp(timeoutTS)
+
+	emptySig := txsigning.SignatureV2{
+		PubKey:   absAcc.GetPubKey(),
+		Data:     &txsigning.SingleSignatureData{SignMode: signMode, Signature: nil},
+		Sequence: 0,
+	}
+	require.NoError(t, txBuilder.SetSignatures(emptySig))
+
+	// The client signs with sequence 0, the only value permitted for
+	// unordered transactions.
+	signerData := authsigning.SignerData{
+		Address:       absAcc.GetAddress().String(),
+		ChainID:       mockChainID,
+		AccountNumber: absAcc.GetAccountNumber(),
+		Sequence:      0,
+		PubKey:        absAcc.GetPubKey(),
+	}
+	signBytes, err := authsigning.GetSignBytesAdapter(ctx, app.TxConfig().SignModeHandler(), signMode, signerData, txBuilder.GetTx())
+	require.NoError(t, err)
+	sigBytes, _, err := keybase.Sign("test1", signBytes, signMode)
+	require.NoError(t, err)
+	require.NoError(t, txBuilder.SetSignatures(txsigning.SignatureV2{
+		PubKey:   absAcc.GetPubKey(),
+		Data:     &txsigning.SingleSignatureData{SignMode: signMode, Signature: sigBytes},
+		Sequence: 0,
+	}))
+
+	decorator := makeBeforeTxDecorator(app)
+	_, err = decorator.AnteHandle(ctx, txBuilder.GetTx(), false, anteTerminator)
+	require.NoError(t, err)
 }
 
 // Mock types for testing error cases

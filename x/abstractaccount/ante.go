@@ -133,7 +133,7 @@ func (d BeforeTxDecorator) invokeBeforeTx(
 	if err != nil {
 		return err
 	}
-	signBytes, sigBytes, err := prepareCredentials(ctx, tx, signerAcc, sigs[0].Data, d.signModeHandler)
+	signBytes, sigBytes, err := prepareCredentials(ctx, tx, signerAcc, &sigs[0], d.signModeHandler)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (d BeforeTxDecorator) invokeBeforeTx(
 		BeforeTx: &types.BeforeTx{
 			Msgs:    msgAnys,
 			TxBytes: signBytes,
-			// Note that we call this field "cred_bytes" (credental bytes) instead of
+			// Note that we call this field "cred_bytes" (credential bytes) instead of
 			// signature. There is an important reason for this!
 			//
 			// For EOAs, the credential used to prove a tx is authenticated is a
@@ -330,17 +330,23 @@ func IsAbstractAccountTx(ctx sdk.Context, tx sdk.Tx, ak authante.AccountKeeper) 
 
 func prepareCredentials(
 	ctx sdk.Context, tx sdk.Tx, signerAcc sdk.AccountI,
-	sigData txsigning.SignatureData, handler *txsign.HandlerMap,
+	sig *txsigning.SignatureV2, handler *txsign.HandlerMap,
 ) ([]byte, []byte, error) {
 	signerData := authsigning.SignerData{
 		ChainID:       ctx.ChainID(),
 		AccountNumber: signerAcc.GetAccountNumber(),
-		Sequence:      signerAcc.GetSequence(),
-		PubKey:        signerAcc.GetPubKey(),
-		Address:       signerAcc.GetAddress().String(),
+		// Use the sequence carried by the signature, matching the SDK's
+		// SigVerificationDecorator. For ordered txs this equals the account
+		// sequence (enforced in handleAATransaction); for unordered txs it is
+		// always zero (enforced in handleUnorderedTx) even after the account
+		// sequence has advanced, and the sign bytes must reproduce what the
+		// client actually signed.
+		Sequence: sig.Sequence,
+		PubKey:   signerAcc.GetPubKey(),
+		Address:  signerAcc.GetAddress().String(),
 	}
 
-	data, ok := sigData.(*txsigning.SingleSignatureData)
+	data, ok := sig.Data.(*txsigning.SingleSignatureData)
 	if !ok {
 		return nil, nil, types.ErrNotSingleSignature
 	}

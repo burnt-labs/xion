@@ -106,11 +106,6 @@ func prepareTx(
 		return nil, err
 	}
 
-	// if the tx doesn't need to be signed, we can return here
-	if !sign {
-		return txBuilder.GetTx(), nil
-	}
-
 	// round 1: set empty signature
 	sigs := []signing.SignatureV2{}
 
@@ -129,6 +124,12 @@ func prepareTx(
 
 	if err := txBuilder.SetSignatures(sigs...); err != nil {
 		return nil, err
+	}
+
+	// an unsigned tx carries the round-1 empty signature (pubkey set, no
+	// signature bytes), mirroring how the SDK builds txs for simulation.
+	if !sign {
+		return txBuilder.GetTx(), nil
 	}
 
 	// round 2: sign the tx
