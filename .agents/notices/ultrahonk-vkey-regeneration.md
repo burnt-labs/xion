@@ -69,7 +69,8 @@ Nothing breaks at any point, and it is trivially reversible.
 
 ```bash
 xiond tx zk add-vkey <new-name> ./out/vk "<description>" ultrahonk \
-    --from <your-key> --chain-id xion-testnet-2
+    --from <your-key> \
+    --chain-id xion-testnet-2 --node https://rpc.xion-testnet-2.burnt.com:443
 ```
 
 **B — update in place.** Keeps the existing id and name, so consumers need no
@@ -78,7 +79,8 @@ the upgrade and the new one cannot be accepted until the node is on v31.
 
 ```bash
 xiond tx zk update-vkey <name> ./out/vk "<description>" ultrahonk \
-    --from <your-key> --chain-id xion-testnet-2
+    --from <your-key> \
+    --chain-id xion-testnet-2 --node https://rpc.xion-testnet-2.burnt.com:443
 ```
 
 Use B only where a consumer cannot switch names.
@@ -145,9 +147,30 @@ spending the effort.
 To read what is currently registered:
 
 ```bash
-xiond query zk vkeys --node <testnet-rpc> --output json
+xiond query zk vkeys \
+    --node https://rpc.xion-testnet-2.burnt.com:443 --output json
 ```
 
-The fastest way to tell whether a key predates the change: a bb 4.0.4 proof for
-it is 16000 bytes, a bb 5.x proof is 14656. If you still have a proof artifact,
-its size answers the question without regenerating anything.
+`--chain-id` only sets the chain ID a transaction is signed for; it does not
+route anything. Without `--node`, the CLI talks to `tcp://localhost:26657`.
+
+The authoritative check is your own build records: which nargo and `bb` produced
+each key. Failing that, regenerate the circuit with the 5.x toolchain and verify
+a fresh proof against the existing registered key — if it verifies, the key is
+already 5.x.
+
+As a quick triage, a **proof** artifact's size distinguishes the two toolchains:
+
+| Toolchain | Proof size |
+|---|---|
+| bb 4.0.4 | 16000 bytes |
+| bb 5.2.0 | 14656 bytes |
+
+We checked this holds across a roughly 16,000x range of circuit sizes and for
+both 1 and 21 public inputs, on both versions — public inputs are serialized
+into a separate file, so they do not change the proof length. Treat it as a
+signal for these two versions only, not a general version oracle.
+
+**The verification key does not distinguish them.** A vk is 3680 bytes under
+both 4.0.4 and 5.2.0, so checking the file you actually registered tells you
+nothing. Only a proof works for this.
