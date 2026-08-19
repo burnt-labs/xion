@@ -35,7 +35,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	cometClient "github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"

@@ -22,7 +22,7 @@ import (
 
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/testutil"

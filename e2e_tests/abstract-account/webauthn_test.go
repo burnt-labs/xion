@@ -19,7 +19,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	ibctest "github.com/cosmos/interchaintest/v10"
