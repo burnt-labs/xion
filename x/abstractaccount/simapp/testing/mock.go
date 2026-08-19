@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"testing"
 	"encoding/json"
 	"os"
 	"time"
@@ -45,13 +46,15 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 	},
 }
 
-func MakeSimpleMockApp() *simapp.SimApp {
-	app, _ := MakeMockAppWithCleanup([]banktypes.Balance{})
-	return app
+func MakeSimpleMockApp(tb testing.TB) *simapp.SimApp {
+	tb.Helper()
+	return MakeMockApp(tb, []banktypes.Balance{})
 }
 
-func MakeMockApp(balances []banktypes.Balance) *simapp.SimApp {
-	app, _ := MakeMockAppWithCleanup(balances)
+func MakeMockApp(tb testing.TB, balances []banktypes.Balance) *simapp.SimApp {
+	tb.Helper()
+	app, cleanup := MakeMockAppWithCleanup(balances)
+	tb.Cleanup(cleanup)
 	return app
 }
 

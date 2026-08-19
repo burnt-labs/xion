@@ -11,7 +11,7 @@ import (
 )
 
 func TestQueryParams(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	queryServer := keeper.NewQueryServerImpl(app.AbstractAccountKeeper)

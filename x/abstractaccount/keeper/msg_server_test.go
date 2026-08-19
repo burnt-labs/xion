@@ -62,7 +62,7 @@ func TestUpdateParams(t *testing.T) {
 			expErr:    false,
 		},
 	} {
-		app := simapptesting.MakeMockApp([]banktypes.Balance{})
+		app := simapptesting.MakeMockApp(t, []banktypes.Balance{})
 		ctx := app.NewContext(false)
 
 		msgServer := keeper.NewMsgServerImpl(app.AbstractAccountKeeper)
@@ -89,7 +89,7 @@ func TestUpdateParams(t *testing.T) {
 }
 
 func TestUpdateParamsAddressDerivationHash(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 	k := app.AbstractAccountKeeper
 
@@ -118,7 +118,7 @@ func TestUpdateParamsAddressDerivationHash(t *testing.T) {
 }
 
 func TestRegistrationPausePreservesAddressQueries(t *testing.T) {
-	app := simapptesting.MakeMockApp([]banktypes.Balance{{
+	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -204,7 +204,7 @@ func TestRegisterAccount(t *testing.T) {
 			allowedCodeIDs:  []uint64{1, 69, 420},
 		},
 	} {
-		app := simapptesting.MakeMockApp([]banktypes.Balance{
+		app := simapptesting.MakeMockApp(t, []banktypes.Balance{
 			{
 				Address: user.String(),
 				Coins:   userInitialBalance,
@@ -253,7 +253,7 @@ func TestRegisterAccount(t *testing.T) {
 }
 
 func TestRegisterAccountUsesFixedAddressHashAndRegistry(t *testing.T) {
-	app := simapptesting.MakeMockApp([]banktypes.Balance{{
+	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -324,7 +324,7 @@ func TestRegisterAccountUsesFixedAddressHashAndRegistry(t *testing.T) {
 }
 
 func TestRegisterAccountInstantiationFailureIsAtomic(t *testing.T) {
-	app := simapptesting.MakeMockApp([]banktypes.Balance{{
+	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -359,7 +359,7 @@ func TestRegisterAccountInstantiationFailureIsAtomic(t *testing.T) {
 }
 
 func TestRegisterAccountDirectlyInstantiatesCallerSelectedAllowedCodeID(t *testing.T) {
-	app := simapptesting.MakeMockApp([]banktypes.Balance{{
+	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -410,7 +410,7 @@ func TestRegisterAccountAddressDoesNotDependOnCodeID(t *testing.T) {
 	}
 	register := func(t *testing.T, useReflect bool) result {
 		t.Helper()
-		app := simapptesting.MakeMockApp([]banktypes.Balance{{
+		app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
 			Address: user.String(),
 			Coins:   userInitialBalance,
 		}})
@@ -454,7 +454,7 @@ func TestRegisterAccountAddressDoesNotDependOnCodeID(t *testing.T) {
 }
 
 func TestRegisterAccountRejectsInvalidRequestedImplementationsBeforeInstantiation(t *testing.T) {
-	app := simapptesting.MakeMockApp([]banktypes.Balance{{
+	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -502,7 +502,7 @@ func TestRegisterAccountRejectsInvalidRequestedImplementationsBeforeInstantiatio
 }
 
 func TestAccountAddressRecognizesCanonicalPreRegistryAccount(t *testing.T) {
-	app := simapptesting.MakeMockApp([]banktypes.Balance{{
+	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -598,7 +598,7 @@ func mustMarshalReflectInitMsg(t *testing.T, reflectCodeID uint64) []byte {
 // ----------------------------- Additional Tests for 100% Coverage -----------------------------
 
 func TestRegisterAccountErrors(t *testing.T) {
-	app := simapptesting.MakeMockApp([]banktypes.Balance{
+	app := simapptesting.MakeMockApp(t, []banktypes.Balance{
 		{
 			Address: user.String(),
 			Coins:   userInitialBalance,
@@ -612,6 +612,10 @@ func TestRegisterAccountErrors(t *testing.T) {
 	require.NoError(t, err)
 
 	k := app.AbstractAccountKeeper
+	// Store the account code so each subtest fails at the step it targets
+	// rather than tripping the code-existence check first.
+	codeID, err := storeCode(ctx, k.ContractKeeper())
+	require.NoError(t, err)
 	err = k.SetParams(ctx, params)
 	require.NoError(t, err)
 
@@ -626,16 +630,16 @@ func TestRegisterAccountErrors(t *testing.T) {
 
 		_, err = msgServer.RegisterAccount(ctx, &types.MsgRegisterAccount{
 			Sender: "invalid-address",
-			CodeID: 1,
+			CodeID: codeID,
 			Msg:    msgBytes,
 			Funds:  acctRegisterFunds,
 			Salt:   []byte("test"),
 		})
-		require.Error(t, err)
+		require.ErrorContains(t, err, "decoding bech32")
 	})
 
-	// Test case 2: Contract instantiation failure (using invalid code ID that doesn't exist)
-	t.Run("contract instantiation failure", func(t *testing.T) {
+	// Test case 2: code ID outside the allowlist
+	t.Run("code ID not allowed", func(t *testing.T) {
 		msgBytes, err := json.Marshal(&AccountInitMsg{
 			PubKey: simapptesting.MakeRandomPubKey().Bytes(),
 		})
@@ -643,11 +647,26 @@ func TestRegisterAccountErrors(t *testing.T) {
 
 		_, err = msgServer.RegisterAccount(ctx, &types.MsgRegisterAccount{
 			Sender: user.String(),
-			CodeID: 1,
+			CodeID: codeID + 1,
 			Msg:    msgBytes,
 			Funds:  acctRegisterFunds,
 			Salt:   []byte("test"),
 		})
+		require.ErrorIs(t, err, types.ErrNotAllowedCodeID)
+	})
+
+	// Test case 3: contract instantiation failure (init msg the contract
+	// cannot parse)
+	t.Run("contract instantiation failure", func(t *testing.T) {
+		_, err := msgServer.RegisterAccount(ctx, &types.MsgRegisterAccount{
+			Sender: user.String(),
+			CodeID: codeID,
+			Msg:    []byte(`{"not_the_init_msg":{}}`),
+			Funds:  acctRegisterFunds,
+			Salt:   []byte("test"),
+		})
 		require.Error(t, err)
+		require.NotErrorIs(t, err, types.ErrNotAllowedCodeID)
+		require.NotErrorIs(t, err, types.ErrCodeIDNotFound)
 	})
 }

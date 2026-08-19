@@ -23,7 +23,7 @@ import (
 
 func TestIsAbstractAccountTx(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		ctx     = app.NewContext(false)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
@@ -99,7 +99,7 @@ type BaseInstantiateMsg struct {
 
 func TestBeforeTx(t *testing.T) {
 	var (
-		app        = simapptesting.MakeSimpleMockApp()
+		app        = simapptesting.MakeSimpleMockApp(t)
 		keybase    = keyring.NewInMemory(app.Codec())
 		mockAccNum = uint64(12345)
 		mockSeq    = uint64(88888)
@@ -313,7 +313,7 @@ func TestBeforeTx(t *testing.T) {
 
 func TestAfterTx(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
 
@@ -358,7 +358,7 @@ func TestAfterTx(t *testing.T) {
 
 func TestSigVerificationGasConsumer(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
 
@@ -392,7 +392,7 @@ func TestSigVerificationGasConsumer(t *testing.T) {
 
 func TestIsAbstractAccountTx_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		ctx     = app.NewContext(false)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
@@ -424,7 +424,7 @@ func TestIsAbstractAccountTx_ErrorCases(t *testing.T) {
 
 func TestBeforeTx_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
 
@@ -464,7 +464,7 @@ func TestBeforeTx_ErrorCases(t *testing.T) {
 
 func TestAfterTx_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
 
@@ -494,7 +494,7 @@ func TestAfterTx_ErrorCases(t *testing.T) {
 
 func TestIsAbstractAccountTx_MoreCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		ctx     = app.NewContext(false)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
@@ -538,7 +538,7 @@ func TestIsAbstractAccountTx_MoreCases(t *testing.T) {
 
 func TestPrepareCredentials_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
 
@@ -605,7 +605,7 @@ func TestSdkMsgsToAnys(t *testing.T) {
 // replay protection for unordered AbstractAccount transactions.
 func TestBeforeTx_UnorderedTx(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp()
+		app     = simapptesting.MakeSimpleMockApp(t)
 		keybase = keyring.NewInMemory(app.Codec())
 	)
 
@@ -740,7 +740,7 @@ func TestBeforeTx_UnorderedTx(t *testing.T) {
 // TestBeforeTx_UnorderedTx_ReplayRejection verifies that replaying the same
 // unordered nonce (sender + timeout_timestamp) is rejected.
 func TestBeforeTx_UnorderedTx_ReplayRejection(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	keybase := keyring.NewInMemory(app.Codec())
 
 	blockTime := time.Now()
@@ -805,7 +805,7 @@ func TestBeforeTx_UnorderedTx_ReplayRejection(t *testing.T) {
 // TestBeforeTx_UnorderedTx_NonZeroSequenceRejected verifies that unordered
 // transactions with a non-zero sequence field are rejected.
 func TestBeforeTx_UnorderedTx_NonZeroSequenceRejected(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	keybase := keyring.NewInMemory(app.Codec())
 
 	blockTime := time.Now()
@@ -866,7 +866,7 @@ func TestBeforeTx_UnorderedTx_NonZeroSequenceRejected(t *testing.T) {
 // state, so the sign bytes handed to the account contract must be computed
 // with the signature's sequence, not the account's.
 func TestBeforeTx_UnorderedTx_AdvancedAccountSequence(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	keybase := keyring.NewInMemory(app.Codec())
 
 	blockTime := time.Now()

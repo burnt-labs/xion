@@ -283,7 +283,7 @@ func TestAppModuleBasic(t *testing.T) {
 }
 
 func TestAppModule(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	k := app.AbstractAccountKeeper
@@ -307,7 +307,7 @@ func TestAppModule(t *testing.T) {
 }
 
 func TestAppModuleRegisterServices(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	k := app.AbstractAccountKeeper
 	appModule := abstractaccount.NewAppModule(k)
 
@@ -325,7 +325,7 @@ func TestAppModuleRegisterServices(t *testing.T) {
 }
 
 func TestAppModuleInitGenesisInvalid(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	k := app.AbstractAccountKeeper

@@ -13,7 +13,7 @@ import (
 )
 
 func TestMigrateValidationDecorator(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	// Create an AbstractAccount with unique account number
@@ -104,7 +104,7 @@ func TestMigrateValidationDecorator(t *testing.T) {
 }
 
 func TestMigrateValidationDecorator_AllowAllCodeIDs(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	// Create an AbstractAccount with unique account number
@@ -139,7 +139,7 @@ func TestMigrateValidationDecorator_AllowAllCodeIDs(t *testing.T) {
 }
 
 func TestMigrateValidationDecorator_NonMigrateMsg(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	// Set restrictive params

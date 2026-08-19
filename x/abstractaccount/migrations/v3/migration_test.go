@@ -10,7 +10,7 @@ import (
 )
 
 func TestMigrateStoreDisablesRegistrationUntilChainConfiguresAddressHash(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	params, err := app.AbstractAccountKeeper.GetParams(ctx)

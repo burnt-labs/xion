@@ -28,7 +28,7 @@ func TestMigrationTestSuite(t *testing.T) {
 }
 
 func (s *MigrationTestSuite) SetupTest() {
-	s.app = simapptesting.MakeSimpleMockApp()
+	s.app = simapptesting.MakeSimpleMockApp(s.T())
 	s.ctx = s.app.NewContext(false)
 }
 
@@ -139,7 +139,7 @@ func TestMigrateStoreDirect(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := simapptesting.MakeSimpleMockApp()
+			app := simapptesting.MakeSimpleMockApp(t)
 			ctx := app.NewContext(false)
 			storeKey := storetypes.NewKVStoreKey("test-" + tt.name)
 
@@ -209,7 +209,7 @@ func TestMigrateStore_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := simapptesting.MakeSimpleMockApp()
+			app := simapptesting.MakeSimpleMockApp(t)
 			ctx := app.NewContext(false)
 			storeKey := storetypes.NewKVStoreKey("test-edge-" + tt.name)
 
@@ -257,7 +257,7 @@ func TestMigrateStore_EdgeCases(t *testing.T) {
 
 // Benchmark tests
 func BenchmarkMigrateStore(b *testing.B) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(b)
 	ctx := app.NewContext(false)
 	storeKey := storetypes.NewKVStoreKey("benchmark")
 

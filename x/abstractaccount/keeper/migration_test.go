@@ -12,7 +12,7 @@ import (
 )
 
 func TestMigrator(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	t.Run("NewMigrator creates migrator correctly", func(t *testing.T) {
@@ -51,7 +51,7 @@ func TestMigrator(t *testing.T) {
 }
 
 func TestMigrationV2Functions(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp()
+	app := simapptesting.MakeSimpleMockApp(t)
 	ctx := app.NewContext(false)
 
 	t.Run("v2.MigrateStore works with keeper migrator", func(t *testing.T) {
