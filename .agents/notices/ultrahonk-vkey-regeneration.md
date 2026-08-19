@@ -36,15 +36,19 @@ Use **nargo 1.0.0-beta.26** and the **bb 5.2.0** CLI, which ships as
 [aztec-packages v5.2.0 release](https://github.com/AztecProtocol/aztec-packages/releases/tag/v5.2.0).
 
 ```bash
-nargo execute witness
+nargo compile
 bb write_vk -b target/<package>.json -o out
 # out/vk is the file to register
 ```
 
+`bb write_vk` builds the circuit from its own throwaway witness, so `nargo
+compile` is enough — you do not need `nargo execute`, a witness, or a populated
+`Prover.toml` to reissue a key. We confirmed the vk is byte-identical either
+way, and identical again to what `bb prove --write_vk` emits.
+
 Do **not** pass `--verifier_target`. The node verifies with `bb::UltraZKFlavor`,
 which is the CLI default; every other target changes the transcript hash and
-produces keys the chain will reject. (`bb write_vk` and
-`bb prove --write_vk` emit an identical vk — either is fine.)
+produces keys the chain will reject.
 
 ### Registering
 
