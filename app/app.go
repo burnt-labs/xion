@@ -32,9 +32,6 @@ import (
 	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
-	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
@@ -275,7 +272,6 @@ type WasmApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	WasmKeeper            wasmkeeper.Keeper
-	WasmClientKeeper      ibcwasmkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
 	ContractKeeper        *wasmkeeper.PermissionedKeeper
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
@@ -364,7 +360,7 @@ func NewWasmApp(
 		group.StoreKey,
 		// non sdk store keys
 		ibcexported.StoreKey, ibctransfertypes.StoreKey,
-		ibcwasmtypes.StoreKey, wasmtypes.StoreKey, icahosttypes.StoreKey,
+		wasmtypes.StoreKey, icahosttypes.StoreKey,
 		aatypes.StoreKey, icacontrollertypes.StoreKey, globalfee.StoreKey,
 		xiontypes.StoreKey, packetforwardtypes.StoreKey,
 		jwktypes.StoreKey, tokenfactorytypes.StoreKey, zktypes.StoreKey, dkimtypes.StoreKey,
@@ -757,15 +753,6 @@ func NewWasmApp(
 		app.IBCKeeper.ChannelKeeper, // appVersionGetter (or provide an implementation if needed)
 	)
 
-	app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
-		appCodec,
-		runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]),
-		app.IBCKeeper.ClientKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		wasmVM,
-		app.GRPCQueryRouter(),
-	)
-
 	app.AbstractAccountKeeper = aakeeper.NewKeeper(
 		appCodec,
 		keys[aatypes.StoreKey],
@@ -853,9 +840,6 @@ func NewWasmApp(
 	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
-	wasmLightClientModule := ibcwasm.NewLightClientModule(app.WasmClientKeeper, storeProvider)
-	clientKeeper.AddRoute(ibcwasmtypes.ModuleName, &wasmLightClientModule)
-
 	/****  Module Options ****/
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
@@ -897,7 +881,6 @@ func NewWasmApp(
 		xion.NewAppModule(app.XionKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		ibctm.NewAppModule(tmLightClientModule),
-		ibcwasm.NewAppModule(app.WasmClientKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		// ibchooks.NewAppModule(app.AccountKeeper),
@@ -948,7 +931,6 @@ func NewWasmApp(
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
 		icatypes.ModuleName,
-		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		xiontypes.ModuleName,
@@ -973,7 +955,6 @@ func NewWasmApp(
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
 		icatypes.ModuleName,
-		ibcwasmtypes.ModuleName,
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
 		// ibchookstypes.ModuleName,
@@ -1005,7 +986,6 @@ func NewWasmApp(
 		ibctransfertypes.ModuleName,
 		ibcexported.ModuleName,
 		icatypes.ModuleName,
-		ibcwasmtypes.ModuleName,
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
 		aatypes.ModuleName,
@@ -1392,7 +1372,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
-	paramsKeeper.Subspace(ibcwasmtypes.ModuleName)
 	paramsKeeper.Subspace(zktypes.ModuleName)
 	paramsKeeper.Subspace(dkimtypes.ModuleName)
 
