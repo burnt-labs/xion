@@ -363,7 +363,7 @@ func TestJWKAudienceMismatch(t *testing.T) {
 	   "signer_infos": [],
 	   "fee": {
 	     "amount": [],
-	     "gas_limit": "200000",
+	     "gas_limit": "300000",
 	     "payer": "",
 	     "granter": ""
 	   },
@@ -911,7 +911,7 @@ func executeTxWithJWT(
 	   "signer_infos": [],
 	   "fee": {
 	     "amount": [],
-	     "gas_limit": "200000",
+	     "gas_limit": "300000",
 	     "payer": "",
 	     "granter": ""
 	   },

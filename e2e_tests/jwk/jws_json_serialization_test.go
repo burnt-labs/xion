@@ -190,7 +190,7 @@ func TestJWSJSONSerializationRejected(t *testing.T) {
 			},
 			"auth_info": {
 				"signer_infos": [],
-				"fee": {"amount": [], "gas_limit": "200000", "payer": "", "granter": ""},
+				"fee": {"amount": [], "gas_limit": "300000", "payer": "", "granter": ""},
 				"tip": null
 			},
 			"signatures": []
