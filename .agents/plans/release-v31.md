@@ -47,6 +47,26 @@ decoupling future addresses from whatever code they instantiate. Unsupported
 chains stay unconfigured and registration-disabled, and a chain already carrying
 a different hash is rejected rather than silently renamespaced.
 
+## Operational note: registered UltraHonk keys
+
+Barretenberg v5.2.0 changed the UltraHonk transcript, so every verification key
+minted under v5.0.0-rc.1 stops verifying once the node upgrades. This is not
+recoverable by re-submitting the same key — the circuit has to be re-proved and
+the key re-issued with the v5.2.0 `bb` CLI.
+
+Mainnet is unaffected: it holds one verification key, `Zk Email`, and it is
+Groth16.
+
+`xion-testnet-2` holds 11 `PROOF_SYSTEM_ULTRA_HONK_ZK` keys, several of them
+recent:
+
+- `dcap-ultrahonk-v1`
+- `juodzekas_{decrypt,shuffle,peek}_{uh,gk}_v1` (6 keys, the zk-shuffle work)
+- `zkdcap-scratch-{bb500,bb404,phala-resized,hardened}-2026-08-13`
+
+Coordinate with the zk-shuffle and zkDCAP owners before the testnet upgrade so
+they can regenerate and re-register against v5.2.0.
+
 ## Operational note: 08-wasm on testnet
 
 Mainnet has no `08-wasm` light clients, so the store deletion is clean there.
