@@ -71,13 +71,31 @@ they can regenerate and re-register against v5.2.0.
 
 Mainnet has no `08-wasm` light clients, so the store deletion is clean there.
 
-`xion-testnet-2` has four: `08-wasm-11`, `08-wasm-13`, `08-wasm-14`, and
-`08-wasm-15`. Only `08-wasm-15` backs anything live — a Parlia (BSC) client on
-`connection-15` carrying transfer `channel-8` in `STATE_OPEN`, holding 2100
-uxion of escrow and four in-flight packet commitments. The client is stale
-(latest height 196). Removing the module strands that channel, its escrow, and
-those packets permanently. Confirm the BSC integration is not coming back before
-the testnet upgrade, and drain or close the channel first if it is.
+`xion-testnet-2` has four. All four are Parlia light clients for **EVM chain ID
+9999** — a local BSC devnet, not BSC mainnet (56) or testnet (97). They tracked
+between 74 and 196 blocks each, minutes of history, and have not advanced since.
+
+Only `08-wasm-15` backs anything: transfer `channel-8` on `connection-15`, in
+`STATE_OPEN`, holding 2100 uxion of escrow and four unacked packets
+(sequences 2-5). `connection-14`'s `channel-7` never left `STATE_INIT` and its
+escrow is empty; `connection-11` and `connection-13` carry no channels.
+
+**Nothing here is recoverable today, before or after the upgrade.** There is no
+action to take before the testnet upgrade:
+
+- The channel cannot be closed. ICS-20's `OnChanCloseInit` unconditionally
+  returns `"user cannot close channel"`, so `MsgChannelCloseInit` on a transfer
+  channel is always rejected. `OnChanCloseConfirm` would work, but it requires
+  the counterparty to close first and a proof verified by this client.
+- The escrow cannot be refunded. `channel-8` is `ORDER_UNORDERED`, so
+  `MsgTimeout` would refund without closing — but it needs a proof of
+  non-receipt at a counterparty height past the packet timeout, verified against
+  a client frozen at height 196 on a devnet that no longer produces headers.
+
+So the removal strands nothing that is not already stranded. The only mechanism
+that could ever clear it is a migration in an upgrade handler that deletes the
+channel and moves the escrowed coins directly, which is not worth writing for
+2100 uxion on a testnet.
 
 ## Verification
 
