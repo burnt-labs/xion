@@ -74,7 +74,6 @@ func TestAAWebAuthn(t *testing.T) {
 
 	// predict the contract address so it can be verified
 	salt := "0"
-	require.NoError(t, err)
 	predictedAddr, err := testlib.QueryAbstractAccountAddress(t, ctx, xion.GetNode(), deployerAddr.FormattedAddress(), salt)
 	require.NoError(t, err)
 	t.Logf("predicted address: %s", predictedAddr.String())
