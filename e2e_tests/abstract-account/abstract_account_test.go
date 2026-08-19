@@ -780,6 +780,10 @@ func TestAAClientEvent(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "emit", "arbitrary_data", aaContractAddr,
 		"--authenticator-id", "0",
+		// The generated tx carries its own gas limit through to the signed
+		// broadcast, and the default 200000 does not cover the account
+		// contract's sudo call for this message.
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 
