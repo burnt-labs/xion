@@ -360,11 +360,8 @@ make proto-gen-openapi     # Generate OpenAPI specs
 ### Critical Forks
 ```go
 // go.mod replace directives:
-github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.8-xion.2
-  // Reason: Genesis exports for wasmd
-
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0-xion.1
-  // Reason: wasmvm3 support
+github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.14-xion.1
+  // Reason: Genesis exports and the keeper-only fixed address hash for abstract accounts
 
 github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.4-xion.2
   // Reason: wasmvm3 tokenfactory fork
@@ -375,7 +372,7 @@ github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.202108190228
 ```
 
 ### External Dependencies
-- **Abstract Account**: `github.com/burnt-labs/abstract-account v0.1.3`
+- **Abstract Account**: `github.com/burnt-labs/abstract-account v0.1.8`
 - **InterchainTest**: For E2E testing (not in go.mod, used via e2e_tests)
 - **Heighliner**: For Docker image builds
 

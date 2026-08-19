@@ -1,10 +1,12 @@
 package app
 
 import (
+	"encoding/hex"
 	"os"
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
@@ -401,6 +403,24 @@ func TestRegisterUpgradeHandlers(t *testing.T) {
 }
 
 func TestNextUpgradeHandler(t *testing.T) {
+	t.Run("migrates then configures abstract account registration", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
+		fromVM := gapp.ModuleManager.GetVersionMap()
+		fromVM[aatypes.ModuleName] = 2
+
+		vm, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, fromVM)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), vm[aatypes.ModuleName])
+
+		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		expected, err := hex.DecodeString(mainnetAddressDerivationHash)
+		require.NoError(t, err)
+		require.Equal(t, expected, params.AddressDerivationHash)
+		require.True(t, params.RegistrationEnabled)
+	})
+
 	t.Run("runs migrations successfully", func(t *testing.T) {
 		gapp := Setup(t)
 		ctx := gapp.NewContext(false)
@@ -497,6 +517,56 @@ func TestNextStoreUpgradesDoesNotRemoveIBCWasmStoreForOtherUpgrades(t *testing.T
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)
 	require.Empty(t, storeUpgrades.Deleted)
+}
+
+func TestConfigureAbstractAccountAddressDerivation(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		chainID string
+		hashHex string
+	}{
+		{name: "mainnet", chainID: "xion-mainnet-1", hashHex: mainnetAddressDerivationHash},
+		{name: "testnet", chainID: "xion-testnet-2", hashHex: testnetAddressDerivationHash},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			gapp := Setup(t)
+			ctx := gapp.NewContext(false).WithChainID(tc.chainID)
+
+			require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
+			params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+			require.NoError(t, err)
+			expected, err := hex.DecodeString(tc.hashHex)
+			require.NoError(t, err)
+			require.Equal(t, expected, params.AddressDerivationHash)
+			require.True(t, params.RegistrationEnabled)
+
+			// Reapplying the upgrade configuration is idempotent.
+			require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
+		})
+	}
+
+	t.Run("unsupported chain remains disabled", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("localnet")
+
+		require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
+		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		require.Empty(t, params.AddressDerivationHash)
+		require.False(t, params.RegistrationEnabled)
+	})
+
+	t.Run("rejects a conflicting configured namespace", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
+		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		params.AddressDerivationHash = make([]byte, 32)
+		require.NoError(t, gapp.AbstractAccountKeeper.SetParams(ctx, params))
+
+		err = gapp.configureAbstractAccountAddressDerivation(ctx)
+		require.ErrorIs(t, err, aatypes.ErrImmutableAddressHash)
+	})
 }
 
 func TestAddVeronaDenomMetadataAliases(t *testing.T) {

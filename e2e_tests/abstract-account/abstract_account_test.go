@@ -1,10 +1,8 @@
 package e2e_aa
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -34,11 +32,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/require"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
-	cometClient "github.com/cometbft/cometbft/rpc/client"
-	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
-	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 )
 
@@ -129,12 +123,6 @@ func TestAAJWTCLI(t *testing.T) {
 	audienceQuery, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "jwk", "list-audience")
 	t.Logf("audiences: \n%s", audienceQuery)
 
-	// retrieve the hash
-	codeResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(),
-		"wasm", "code-info", codeIDStr)
-	require.NoError(t, err)
-	t.Logf("code response: %s", codeResp)
-
 	sub := "integration-test-user"
 	depositedFunds := fmt.Sprintf("%d%s", 10000, xion.Config().Denom)
 
@@ -151,10 +139,8 @@ func TestAAJWTCLI(t *testing.T) {
 
 	// predict the contract address so it can be verified
 	salt := "0"
-	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
+	predictedAddr, err := testlib.QueryAbstractAccountAddress(t, ctx, xion.GetNode(), xionUser.FormattedAddress(), salt)
 	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	// b64 the contract address to use as the transaction hash
@@ -263,7 +249,7 @@ func TestAAJWTCLI(t *testing.T) {
 		   "signer_infos": [],
 		   "fee": {
 		     "amount": [],
-		     "gas_limit": "200000",
+		     "gas_limit": "300000",
 		     "payer": "",
 		     "granter": ""
 		   },
@@ -519,6 +505,7 @@ func TestAABasic(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "add-authenticator", aaContractAddr,
 		"--authenticator-id", "1",
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
@@ -546,6 +533,7 @@ func TestAABasic(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
+	require.NoError(t, testutil.WaitForBlocks(ctx, 1, xion))
 	updatedContractState, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 1 }}`)
 	require.NoError(t, err)
 
@@ -586,6 +574,7 @@ func TestAABasic(t *testing.T) {
 		"--authenticator-id", "1",
 	)
 	require.NoError(t, err)
+	require.NoError(t, testutil.WaitForBlocks(ctx, 1, xion))
 
 	// validate original key was deleted
 	updatedContractState, err = testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_i_ds":{}}`)
@@ -744,6 +733,7 @@ func TestAAClientEvent(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "add-authenticator", aaContractAddr,
 		"--authenticator-id", "1",
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
@@ -771,6 +761,7 @@ func TestAAClientEvent(t *testing.T) {
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
+	require.NoError(t, testutil.WaitForBlocks(ctx, 1, xion))
 	updatedContractState, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "contract-state", "smart", aaContractAddr, `{"authenticator_by_i_d":{ "id": 1 }}`)
 	require.NoError(t, err)
 
@@ -785,25 +776,14 @@ func TestAAClientEvent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, account["key"], updatedPubKeyMap["Secp256K1"]["pubkey"])
 
-	cometWsClient, err := getCometClient(xion.GetHostRPCAddress()) // Note: add a close function
-	require.NoError(t, err)
-	fmt.Printf("%+v\n", xion.GetNode())
-
-	err = cometWsClient.Start()
-	require.NoError(t, err)
-
-	// eventStream, err := subscribeToEvent(t, ctx, cometTypes.EventTx, cometWsClient)
-	eventStream, err := subscribeToEvent(t, ctx, cometWsClient)
-
-	require.NoError(t, err)
-
-	doneChan := make(chan struct{})
-	go receiveEvents(t, doneChan, eventStream)
-
 	jsonExecMsgStr, err = testlib.GenerateTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "emit", "arbitrary_data", aaContractAddr,
 		"--authenticator-id", "0",
+		// The generated tx carries its own gas limit through to the signed
+		// broadcast, and the default 200000 does not cover the account
+		// contract's sudo call for this message.
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 
@@ -823,7 +803,7 @@ func TestAAClientEvent(t *testing.T) {
 
 	rotateFilePath = strings.Split(rotateFile.Name(), "/")
 
-	_, err = testlib.ExecTx(t, ctx, xion.GetNode(),
+	emitTxHash, err := testlib.ExecTx(t, ctx, xion.GetNode(),
 		xionUser.KeyName(),
 		"xion", "sign",
 		xionUser.KeyName(),
@@ -831,12 +811,14 @@ func TestAAClientEvent(t *testing.T) {
 		path.Join(xion.GetNode().HomeDir(), rotateFilePath[len(rotateFilePath)-1]),
 		"--chain-id", xion.Config().ChainID,
 	)
-	require.NoError(t, err) // it's returning an error and it's not throwing
-	fmt.Println("we have thrown a transaction")
+	require.NoError(t, err)
 
-	// wg.Wait()
-	<-doneChan
-	stopClient(ctx, cometWsClient)
+	emitTxDetails, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "tx", emitTxHash)
+	require.NoError(t, err)
+	emitCode, ok := emitTxDetails["code"].(float64)
+	require.True(t, ok)
+	require.Zero(t, emitCode)
+	require.True(t, hasAccountEmitEvent(emitTxDetails, aaContractAddr, "arbitrary_data"))
 }
 
 func TestAAPanic(t *testing.T) {
@@ -935,46 +917,70 @@ func TestAAPanic(t *testing.T) {
 	require.Error(t, err)
 }
 
-func getCometClient(hostAddr string) (cometClient.Client, error) {
-	return rpchttp.New(hostAddr, "/websocket")
-}
+func hasAccountEmitEvent(txDetails map[string]interface{}, expectedContractAddress, expectedData string) bool {
+	events, ok := txDetails["events"].([]interface{})
+	if !ok {
+		return false
+	}
 
-func subscribeToEvent(t *testing.T, ctx context.Context, cli cometClient.Client) (<-chan cometRpcCoreTypes.ResultEvent, error) {
-	return cli.Subscribe(ctx, "helpers", "message.module='wasm' AND message.action='/cosmwasm.wasm.v1.MsgExecuteContract'")
-}
-
-func receiveEvents(t *testing.T, done chan<- struct{}, eventStream <-chan cometRpcCoreTypes.ResultEvent) {
-	for {
-		select {
-		case event := <-eventStream:
-			fmt.Println("event intercepted")
-			contractAddress, ok := event.Events["wasm-account_emit._contract_address"]
-			if !ok {
-				fmt.Println("not desired event")
-				continue
-			}
-			arbData, ok := event.Events["wasm-account_emit.data"]
-			if !ok {
-				fmt.Println("not desired event")
-				continue
-			}
-			fmt.Println(contractAddress)
-			fmt.Println(arbData)
-			done <- struct{}{}
-			return
-		default:
+	for _, eventValue := range events {
+		event, ok := eventValue.(map[string]interface{})
+		if !ok || event["type"] != "wasm-account_emit" {
 			continue
 		}
+
+		attributes, ok := event["attributes"].([]interface{})
+		if !ok {
+			continue
+		}
+
+		contractAddress := ""
+		data := ""
+		for _, attributeValue := range attributes {
+			attribute, ok := attributeValue.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			switch attribute["key"] {
+			case "_contract_address":
+				contractAddress, _ = attribute["value"].(string)
+			case "data":
+				data, _ = attribute["value"].(string)
+			}
+		}
+		if contractAddress == expectedContractAddress && data == expectedData {
+			return true
+		}
 	}
+
+	return false
 }
 
-func stopClient(ctx context.Context, cli cometClient.Client) error {
-	if err := cli.UnsubscribeAll(ctx, "helpers"); err != nil {
-		return err
+func TestHasAccountEmitEvent(t *testing.T) {
+	txDetails := map[string]interface{}{
+		"events": []interface{}{
+			map[string]interface{}{"type": "message"},
+			map[string]interface{}{
+				"type": "wasm-account_emit",
+				"attributes": []interface{}{
+					map[string]interface{}{"key": "_contract_address", "value": "xion1account"},
+					map[string]interface{}{"key": "data", "value": "arbitrary_data"},
+				},
+			},
+		},
 	}
 
-	if err := cli.Stop(); err != nil {
-		return err
-	}
-	return nil
+	require.True(t, hasAccountEmitEvent(txDetails, "xion1account", "arbitrary_data"))
+	require.False(t, hasAccountEmitEvent(txDetails, "xion1other", "arbitrary_data"))
+	require.False(t, hasAccountEmitEvent(map[string]interface{}{}, "xion1account", "arbitrary_data"))
+	require.False(t, hasAccountEmitEvent(map[string]interface{}{
+		"events": []interface{}{
+			"malformed",
+			map[string]interface{}{"type": "wasm-account_emit"},
+			map[string]interface{}{
+				"type":       "wasm-account_emit",
+				"attributes": []interface{}{"malformed"},
+			},
+		},
+	}, "xion1account", "arbitrary_data"))
 }

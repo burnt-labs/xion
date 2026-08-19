@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -18,7 +17,6 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -132,17 +130,12 @@ func TestAAMultiAuth(t *testing.T) {
 			testlib.IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 		require.NoError(t, err)
 
-		codeResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "code-info", codeIDStr)
-		require.NoError(t, err)
-
 		sub := "multi-auth-user"
 		salt := "multi-auth-salt"
 
 		// Predict contract address
-		creatorAddr := types.AccAddress(xionUser.Address())
-		codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
+		predictedAddr, err := testlib.QueryAbstractAccountAddress(t, ctx, xion.GetNode(), xionUser.FormattedAddress(), salt)
 		require.NoError(t, err)
-		predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 		t.Logf("  Predicted AA address: %s", predictedAddr.String())
 
 		// Create JWT for first authenticator (registration)
@@ -231,7 +224,7 @@ func TestAAMultiAuth(t *testing.T) {
     "signer_infos": [],
     "fee": {
       "amount": [],
-      "gas_limit": "200000",
+      "gas_limit": "300000",
       "payer": "",
       "granter": ""
     },

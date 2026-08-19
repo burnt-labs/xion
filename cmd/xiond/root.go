@@ -100,7 +100,14 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
 
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
+			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig); err != nil {
+				return err
+			}
+
+			if err := applyValidatorTimeout(cmd); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 
@@ -121,19 +128,29 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 // initTendermintConfig helps to override default Tendermint Config values.
 // return tmcfg.DefaultConfig if no custom configuration is required for the application.
 func initTendermintConfig() *tmcfg.Config {
-	cfg := tmcfg.DefaultConfig()
+	return tmcfg.DefaultConfig()
+}
 
-	// Check for consensus.timeout_commit flag
-	if viper.IsSet("consensus.timeout_commit") {
-		timeoutCommitStr := viper.GetString("consensus.timeout_commit")
-		if timeoutCommitStr != "" {
-			if timeoutCommit, err := time.ParseDuration(timeoutCommitStr); err == nil {
-				cfg.Consensus.TimeoutCommit = timeoutCommit
-			}
-		}
+// setValidatorTimeout applies the CLI-only timeout after config.toml is loaded.
+func setValidatorTimeout(serverCtx *server.Context, timeoutCommit time.Duration) {
+	serverCtx.Config.Consensus.TimeoutCommit = timeoutCommit
+}
+
+// applyValidatorTimeout applies the start-only flag after config.toml is loaded.
+// Other commands also run the root PersistentPreRunE, but do not register this
+// flag and must continue without attempting to read it.
+func applyValidatorTimeout(cmd *cobra.Command) error {
+	if cmd.Flags().Lookup("consensus.timeout_commit") == nil {
+		return nil
 	}
 
-	return cfg
+	timeoutCommit, err := cmd.Flags().GetDuration("consensus.timeout_commit")
+	if err != nil {
+		return err
+	}
+
+	setValidatorTimeout(server.GetServerContextFromCmd(cmd), timeoutCommit)
+	return nil
 }
 
 // initAppConfig helps to override default appConfig template and configs.
@@ -174,9 +191,7 @@ func initRootCmd(rootCmd *cobra.Command,
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd) // nolint:staticcheck
 	wasm.AddModuleInitFlags(startCmd)
-
-	// Add consensus timeout_commit flag
-	startCmd.Flags().String("consensus.timeout_commit", "", "How long to wait after committing a block, before starting on the new height (e.g. 1s, 500ms)")
+	startCmd.Flags().Duration("consensus.timeout_commit", time.Second, "How long to wait after committing a block before starting the next height")
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
