@@ -384,15 +384,29 @@ func sudoWithGasLimit(
 	ctx sdk.Context, contractKeeper wasmtypes.ContractOpsKeeper,
 	contractAddr sdk.AccAddress, msg []byte, maxGas gas.Gas,
 ) error {
+	// Cap the child budget by the gas remaining in the tx: any work beyond
+	// that would fail the tx when the parent meter is charged below, so there
+	// is no reason to let the contract burn it first.
+	if remaining := ctx.GasMeter().GasRemaining(); remaining < maxGas {
+		maxGas = remaining
+	}
+
 	cacheCtx, write := ctx.CacheContext()
 	cacheCtx = cacheCtx.WithGasMeter(storetypes.NewGasMeter(maxGas))
+
+	// Charge the parent meter for the child's consumption on every exit —
+	// success, contract error, and out-of-gas panic alike. Without this a tx
+	// that fails in the sudo call would have executed contract code that no
+	// gas meter ever accounted for.
+	defer func() {
+		ctx.GasMeter().ConsumeGas(cacheCtx.GasMeter().GasConsumed(), "sudoWithGasLimit")
+	}()
 
 	if _, err := contractKeeper.Sudo(cacheCtx, contractAddr, msg); err != nil {
 		return err
 	}
 
 	write()
-	ctx.GasMeter().ConsumeGas(cacheCtx.GasMeter().GasConsumed(), "sudoWithGasLimit")
 	// EmitEvents method is deprecated in favor EmitTypedEvent
 	// however, here we're not creating events ourselves, but rather just
 	// forwarding events emitted by another process (contractKeeper.Sudo)
