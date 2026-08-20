@@ -28,6 +28,7 @@ func init() {
 }
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	legacy.RegisterAminoMsg(cdc, &MsgRegisterAccount{}, "abstract-account/MsgRegisterAccount")
 	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "abstract-account/MsgUpdateParams")
 
 	cdc.RegisterConcrete(&NilPubKey{}, "abstract-account/NilPubKey", nil)

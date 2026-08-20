@@ -63,15 +63,8 @@ import (
 const (
 	AppName = "SimApp"
 
-	// A random account I created to serve as the authority for modules, since
-	// this simapp doesn't have a gov module.
-	//
-	// The seed phrase is:
-	//
-	// crumble soon   hockey  pigeon  border   health
-	// human   cotton romance fork    mountain rapid
-	// scan    swarm  basic   subject tornado  genius
-	// parade  stone  coyote  pluck   journey  fatal
+	// A throwaway test account that serves as the authority for modules,
+	// since this simapp doesn't have a gov module.
 	Authority = "cosmos1tqr9a9m9nk0c22uq2c2slundmqhtnrnhwks7x0"
 )
 
