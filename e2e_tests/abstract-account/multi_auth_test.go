@@ -17,8 +17,8 @@ import (
 	txsigning "cosmossdk.io/x/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"

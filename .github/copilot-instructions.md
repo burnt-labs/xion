@@ -62,7 +62,7 @@ Xion is a Cosmos SDK-based blockchain optimized for consumer applications with a
 - The `x/xion` and `x/jwk` modules provide **utility functions** for validation
 - Authorization happens at the **contract level**, not module level
 
-**Security Model**: The Abstract Account dependency (`github.com/burnt-labs/abstract-account`) implements the core AA logic. When working on authentication/authorization features, understand that:
+**Security Model**: The `x/abstractaccount` module implements the core AA logic. When working on authentication/authorization features, understand that:
 1. Modules provide cryptographic validation utilities
 2. Real authentication happens in smart contracts
 3. An attacker cannot bypass AA security by manipulating module queries
@@ -372,7 +372,6 @@ github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.202108190228
 ```
 
 ### External Dependencies
-- **Abstract Account**: `github.com/burnt-labs/abstract-account v0.1.8`
 - **InterchainTest**: For E2E testing (not in go.mod, used via e2e_tests)
 - **Heighliner**: For Docker image builds
 

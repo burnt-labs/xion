@@ -529,6 +529,9 @@ func (s *CLITestSuite) TestNewRegisterCmd() {
 			expectErr: true,
 		},
 		{
+			// The register command now predicts the address through the
+			// module's AccountAddress query, which surfaces a client error
+			// instead of the wasm Code query's panic on a missing node.
 			name:      "valid basic structure (network error path)",
 			ctxGen:    func() client.Context { return s.baseCtx },
 			args:      []string{"1", accounts[0].Name, "--salt=test-salt", "--authenticator=Secp256k1", "--authenticator-id=1"},

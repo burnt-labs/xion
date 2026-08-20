@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -30,6 +29,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/burnt-labs/xion/x/xion/types"
 )
 

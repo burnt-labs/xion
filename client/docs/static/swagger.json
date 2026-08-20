@@ -23785,10 +23785,12 @@
               "type": "object",
               "properties": {
                 "address": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "address is the stable address derived for the namespace."
                 },
                 "registered": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "description": "registered reports whether an AbstractAccount already exists for the\nnamespace."
                 }
               },
               "description": "QueryAccountAddressResponse contains the stable address and whether an\nAbstractAccount is already registered for the namespace."
@@ -23825,12 +23827,14 @@
         "parameters": [
           {
             "name": "sender",
+            "description": "sender is the address registering the account.",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "salt",
+            "description": "salt is the caller-chosen salt the address is derived with.",
             "in": "query",
             "required": false,
             "type": "string",
@@ -23853,6 +23857,7 @@
               "type": "object",
               "properties": {
                 "params": {
+                  "description": "params holds the current module parameters.",
                   "type": "object",
                   "properties": {
                     "allowAllCodeIds": {
@@ -23886,8 +23891,7 @@
                       "format": "byte",
                       "description": "AddressDerivationHash is the immutable 32-byte namespace used only to\nderive predictable AbstractAccount addresses. The caller-selected code ID\nis instantiated directly and does not participate in address derivation.\nAn empty value leaves registration unconfigured."
                     }
-                  },
-                  "description": "Params defines the parameters for the abstractaccount module."
+                  }
                 }
               },
               "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
@@ -46195,10 +46199,12 @@
       "type": "object",
       "properties": {
         "address": {
-          "type": "string"
+          "type": "string",
+          "description": "address is the stable address derived for the namespace."
         },
         "registered": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "registered reports whether an AbstractAccount already exists for the\nnamespace."
         }
       },
       "description": "QueryAccountAddressResponse contains the stable address and whether an\nAbstractAccount is already registered for the namespace."
@@ -46207,6 +46213,7 @@
       "type": "object",
       "properties": {
         "params": {
+          "description": "params holds the current module parameters.",
           "type": "object",
           "properties": {
             "allowAllCodeIds": {
@@ -46240,8 +46247,7 @@
               "format": "byte",
               "description": "AddressDerivationHash is the immutable 32-byte namespace used only to\nderive predictable AbstractAccount addresses. The caller-selected code ID\nis instantiated directly and does not participate in address derivation.\nAn empty value leaves registration unconfigured."
             }
-          },
-          "description": "Params defines the parameters for the abstractaccount module."
+          }
         }
       },
       "description": "QueryParamsResponse is the response type for the Query/Params RPC method."
