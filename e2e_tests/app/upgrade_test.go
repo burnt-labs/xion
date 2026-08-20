@@ -2,6 +2,8 @@ package e2e_app
 
 import (
 	"context"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -33,6 +35,9 @@ func TestAppUpgradeNetwork(t *testing.T) {
 
 	// Use the app's UpgradeName constant to ensure consistency with the upgrade handler
 	upgradeName := app.UpgradeName
+	if releaseContainsUpgrade(xionFromImageParts[1], upgradeName) {
+		t.Skipf("latest release %s already contains upgrade %s", xionFromImageParts[1], upgradeName)
+	}
 
 	chainSpec := testlib.XionChainSpec(3, 1)
 	chainSpec.ChainID = "xion-testnet-2"
@@ -127,6 +132,9 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 
 	// Use the app's UpgradeName constant to ensure consistency with the upgrade handler
 	upgradeName := app.UpgradeName
+	if releaseContainsUpgrade(xionFromImageParts[1], upgradeName) {
+		t.Skipf("latest release %s already contains upgrade %s", xionFromImageParts[1], upgradeName)
+	}
 
 	chainSpec := testlib.XionChainSpec(3, 1)
 	chainSpec.ChainID = "xion-testnet-2"
@@ -193,4 +201,11 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 			TestData:        testlib.DefaultDKIMTestData(),
 		})
 	})
+}
+
+func releaseContainsUpgrade(releaseVersion, upgradeName string) bool {
+	releaseMajorString, _, _ := strings.Cut(strings.TrimPrefix(releaseVersion, "v"), ".")
+	releaseMajor, releaseErr := strconv.Atoi(releaseMajorString)
+	upgradeMajor, upgradeErr := strconv.Atoi(strings.TrimPrefix(upgradeName, "v"))
+	return releaseErr == nil && upgradeErr == nil && releaseMajor >= upgradeMajor
 }
