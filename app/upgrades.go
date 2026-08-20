@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"slices"
 
-	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
-
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -16,6 +14,8 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 const UpgradeName = "v31"
