@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aa "github.com/burnt-labs/xion/x/abstractaccount"
+	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/cometbft/cometbft/abci/types"

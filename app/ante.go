@@ -3,6 +3,8 @@ package app
 import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/burnt-labs/abstract-account/x/abstractaccount"
+	aakeeper "github.com/burnt-labs/abstract-account/x/abstractaccount/keeper"
 
 	ibcante "github.com/cosmos/ibc-go/v10/modules/core/ante"
 	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
@@ -19,8 +21,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
-	"github.com/burnt-labs/xion/x/abstractaccount"
-	aakeeper "github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 )
 
@@ -82,11 +82,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 		// validation checks
 		ante.NewValidateBasicDecorator(),
-		// Validate MsgMigrateContract for AbstractAccounts against AllowedCodeIDs
-		abstractaccount.NewMigrateValidationDecorator(
-			options.AbstractAccountKeeper,
-			options.AccountKeeper,
-		),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),

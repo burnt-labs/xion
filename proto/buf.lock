@@ -3,6 +3,11 @@ version: v1
 deps:
   - remote: buf.build
     owner: burnt-labs
+    repository: abstractaccount
+    commit: 9db2c5638029409d90d27cafad584745
+    digest: shake256:9cb480d93cbd8c4665f2964e95415f2792935d557680180cfc8536eb8f8f944618411b1f06d633610afa36b47985afaaf9a805e4102d33a6c1a9370384505a48
+  - remote: buf.build
+    owner: burnt-labs
     repository: tokenfactory
     commit: 5e4d38acf183470b9e6490c6f0bc8847
     digest: shake256:19708e05dc669c995751b17cfb291aa6d3c58f4d1b5cec511eca8f4d52c4fc40d092ec9dc5565da33344c1094fd866e58aead5932534753264fc6b2a34f3227e

@@ -13,11 +13,8 @@ _ALL_BUILD_TAGS := ledger test_ledger_mock
 COVERAGE_THRESHOLD ?= $(shell grep -A 10 '^\[run\]' $(COVERAGERC) 2>/dev/null | grep '^threshold' | sed 's/.*=[[:space:]]*//' || echo 84)
 
 # Test exclusions - packages to skip during testing
-# (x/abstractaccount/simapp is test scaffolding for the vendored module; it has
-# no tests of its own and is exercised indirectly by the module's tests)
 TEST_EXCLUSIONS := github.com/burnt-labs/xion/api \
-									 github.com/burnt-labs/xion/cmd \
-									 github.com/burnt-labs/xion/x/abstractaccount/simapp
+									 github.com/burnt-labs/xion/cmd
 									 
 TEST_EXCLUSIONS_PATTERN := $(shell echo "$(TEST_EXCLUSIONS)" | sed 's/ /\\|/g')
 

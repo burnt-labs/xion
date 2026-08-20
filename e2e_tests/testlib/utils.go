@@ -121,7 +121,7 @@ func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
     "signer_infos": [],
     "fee": {
       "amount": [],
-      "gas_limit": "300000",
+      "gas_limit": "200000",
       "payer": "",
       "granter": ""
     },
@@ -160,7 +160,7 @@ func RawJSONMsgExecContractRemoveAuthenticator(sender string, contract string, i
     "signer_infos": [],
     "fee": {
       "amount": [],
-      "gas_limit": "300000",
+      "gas_limit": "200000",
       "payer": "",
       "granter": ""
     },
@@ -196,7 +196,7 @@ func RawJSONMsgMigrateContract(sender string, codeID string) []byte {
     "signer_infos": [],
     "fee": {
       "amount": [],
-      "gas_limit": "300000",
+      "gas_limit": "200000",
       "payer": "",
       "granter": ""
     },

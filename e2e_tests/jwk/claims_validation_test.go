@@ -2,6 +2,7 @@ package e2e_jwk
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 
 	"cosmossdk.io/math"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/testutil"
@@ -78,14 +80,18 @@ func TestJWKMissingClaims(t *testing.T) {
 	require.NoError(t, err)
 
 	// Deploy contract from abstract-account module
-	_, err = xion.StoreContract(ctx, xionUser.FormattedAddress(),
+	codeIDStr, err := xion.StoreContract(ctx, xionUser.FormattedAddress(),
 		testlib.IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
+	require.NoError(t, err)
+
+	codeResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "code-info", codeIDStr)
+	require.NoError(t, err)
+	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
 	require.NoError(t, err)
 
 	salt := "0"
 	creatorAddr := types.AccAddress(xionUser.Address())
-	predictedAddr := types.MustAccAddressFromBech32(
-		testlib.QueryAAContractAddress(t, ctx, xion.GetNode(), creatorAddr.String(), salt))
+	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
 	signature := base64.StdEncoding.EncodeToString([]byte(predictedAddr.String()))
 	now := time.Now()
