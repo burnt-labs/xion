@@ -1,6 +1,7 @@
 # Dependabot reads this file from the default branch only. Version updates
-# below target the active release branch; bump target-branch when the next
-# release/v* branch opens. Security-update PRs are disabled in the repo
+# below target the active release branch; the dependabot-target workflow
+# PRs a retarget when a newer release/v* branch appears, so target-branch
+# should not need hand-editing. Security-update PRs are disabled in the repo
 # settings because they can only target the default branch, which merges
 # release branches exclusively — the grouped version updates here cover the
 # same dependencies on the branch where work actually lands.
