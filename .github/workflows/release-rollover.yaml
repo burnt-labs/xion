@@ -23,6 +23,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.merged == true &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
        startsWith(github.event.pull_request.head.ref, 'release/v'))
     runs-on: ubuntu-latest
     steps:
@@ -37,10 +38,10 @@ jobs:
           set -euo pipefail
 
           if [ -n "$MERGED_REF" ]; then
-            case "$MERGED_REF" in
-              release/v[0-9]*) ;;
-              *) echo "not a numeric release branch: $MERGED_REF"; exit 0 ;;
-            esac
+            if ! printf '%s' "$MERGED_REF" | grep -qE '^release/v[0-9]+(\.[0-9]+)*$'; then
+              echo "not a numeric release branch: $MERGED_REF"
+              exit 0
+            fi
             major=${MERGED_REF#release/v}
             major=${major%%.*}
             next="release/v$((major + 1))"
@@ -61,7 +62,7 @@ jobs:
             fi
           fi
 
-          current=$(sed -n 's/^ *target-branch: *//p' .github/dependabot.yml | head -n1)
+          current=$(awk '/^[[:space:]]*target-branch:/ { sub(/^[[:space:]]*target-branch:[[:space:]]*/, ""); print; exit }' .github/dependabot.yml)
           if [ "$current" = "$next" ]; then
             echo "dependabot already targets $next"
             exit 0
@@ -72,7 +73,10 @@ jobs:
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
               commit -am "ci: point dependabot at $next"
           git push -f -u origin automation/dependabot-target
-          gh pr create --base main \
-            --title "ci: point dependabot at $next" \
-            --body "Retargets dependabot version updates from \`$current\` to \`$next\`. Opened by the release-rollover workflow; \`dependabot.yml\` is only read from the default branch, which is why this PR targets \`main\`." \
-            || echo "PR already open; branch updated"
+          if [ "$(gh pr list --head automation/dependabot-target --base main --state open --json number --jq length)" = "0" ]; then
+            gh pr create --base main \
+              --title "ci: point dependabot at $next" \
+              --body "Retargets dependabot version updates from \`$current\` to \`$next\`. Opened by the release-rollover workflow; \`dependabot.yml\` is only read from the default branch, which is why this PR targets \`main\`."
+          else
+            echo "retarget PR already open; branch updated"
+          fi
