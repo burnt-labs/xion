@@ -68,4 +68,4 @@ x/zk/barretenberg/lib/
 .cache/
 
 # Agent working files
-.agents/plans/
+.agents/
