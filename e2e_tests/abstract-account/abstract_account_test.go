@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -34,8 +33,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/require"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	cometClient "github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	cometRpcCoreTypes "github.com/cometbft/cometbft/rpc/core/types"
@@ -152,9 +150,8 @@ func TestAAJWTCLI(t *testing.T) {
 	// predict the contract address so it can be verified
 	salt := "0"
 	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
-	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+	predictedAddr := types.MustAccAddressFromBech32(
+		testlib.QueryAAContractAddress(t, ctx, xion.GetNode(), creatorAddr.String(), salt))
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	// b64 the contract address to use as the transaction hash
@@ -263,7 +260,7 @@ func TestAAJWTCLI(t *testing.T) {
 		   "signer_infos": [],
 		   "fee": {
 		     "amount": [],
-		     "gas_limit": "200000",
+		     "gas_limit": "300000",
 		     "payer": "",
 		     "granter": ""
 		   },
@@ -519,6 +516,7 @@ func TestAABasic(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "add-authenticator", aaContractAddr,
 		"--authenticator-id", "1",
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
@@ -744,6 +742,7 @@ func TestAAClientEvent(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "add-authenticator", aaContractAddr,
 		"--authenticator-id", "1",
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 	require.NoError(t, err)
@@ -804,6 +803,10 @@ func TestAAClientEvent(t *testing.T) {
 		xionUser.KeyName(),
 		"xion", "emit", "arbitrary_data", aaContractAddr,
 		"--authenticator-id", "0",
+		// The generated tx carries its own gas limit through to the signed
+		// broadcast, and the default 200000 does not cover the account
+		// contract's sudo call for this message.
+		"--gas", "400000",
 		"--chain-id", xion.Config().ChainID,
 	)
 

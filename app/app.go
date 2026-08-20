@@ -14,9 +14,6 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	wasmvm "github.com/CosmWasm/wasmvm/v3"
-	aa "github.com/burnt-labs/abstract-account/x/abstractaccount"
-	aakeeper "github.com/burnt-labs/abstract-account/x/abstractaccount/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cast"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory"
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings"
@@ -151,6 +148,9 @@ import (
 
 	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
+	aa "github.com/burnt-labs/xion/x/abstractaccount"
+	aakeeper "github.com/burnt-labs/xion/x/abstractaccount/keeper"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	dkim "github.com/burnt-labs/xion/x/dkim"
 	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
 	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
@@ -771,7 +771,11 @@ func NewWasmApp(
 		keys[aatypes.StoreKey],
 		tkeys[aatypes.TransientStoreKey],
 		app.AccountKeeper,
-		wasmkeeper.NewGovPermissionKeeper(app.WasmKeeper),
+		// we don't really need this strong permission (we don't need to store code
+		// or modify code access config) but wasm module doesn't seem to allow us
+		// to create our own authorization policy
+		wasmkeeper.NewGovPermissionKeeperWithAddressHash(app.WasmKeeper),
+		&app.WasmKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

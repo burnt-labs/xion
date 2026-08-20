@@ -2,6 +2,7 @@ package testlib
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
@@ -39,7 +40,11 @@ type TestData struct {
 var (
 	defaultMinGasPrices            = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
 	defaultIbcClientTrustingPeriod = "336h" // 14 days
-	DefaultGenesisKVMods           = []cosmos.GenesisKV{
+
+	// UpgradeGenesisKVMods configures genesis for chains that boot an older
+	// released image (upgrade tests). It must only reference params that
+	// release already knows about.
+	UpgradeGenesisKVMods = []cosmos.GenesisKV{
 		// Gov module - short proposals
 		cosmos.NewGenesisKV("app_state.gov.params.voting_period", "10s"),
 		cosmos.NewGenesisKV("app_state.gov.params.max_deposit_period", "10s"),
@@ -57,6 +62,16 @@ var (
 		// Packet forward middleware
 		// cosmos.NewGenesisKV("app_state.packetfowardmiddleware.params.fee_percentage", "0.0"),
 	}
+
+	DefaultGenesisKVMods = append(append([]cosmos.GenesisKV{}, UpgradeGenesisKVMods...),
+		// Abstract account registration: derive addresses with the checksum of
+		// the xion_account.wasm test contract so accounts land on the same
+		// addresses as before fixed-hash derivation, keeping the pre-generated
+		// ZK proofs (which are bound to those addresses) valid.
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.address_derivation_hash",
+			base64.StdEncoding.EncodeToString(AccountWasmChecksum())),
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.registration_enabled", true),
+	)
 
 	// DeployerMnemonic is a test mnemonic used across e2e tests
 	DeployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
