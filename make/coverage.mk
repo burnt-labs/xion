@@ -18,7 +18,7 @@ COVERAGE_THRESHOLD ?= $(shell grep -A 10 '^\[run\]' $(COVERAGERC) 2>/dev/null | 
 TEST_EXCLUSIONS := github.com/burnt-labs/xion/api \
 									 github.com/burnt-labs/xion/cmd \
 									 github.com/burnt-labs/xion/x/abstractaccount/simapp
-									 
+
 TEST_EXCLUSIONS_PATTERN := $(shell echo "$(TEST_EXCLUSIONS)" | sed 's/ /\\|/g')
 
 # Get testable packages, excluding configured patterns
