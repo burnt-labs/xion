@@ -1,0 +1,78 @@
+name: release-rollover
+
+# When a release/vN branch merges into main, cut release/v(N+1) from the
+# post-merge main and PR a dependabot.yml retarget so the new branch gets
+# dependency updates from day one. dependabot.yml is only read from the
+# default branch and its target-branch is a static string, which is why the
+# retarget lands on main.
+#
+# workflow_dispatch is the manual fallback: it skips branch creation and
+# just reconciles target-branch to the highest existing release/v* branch.
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rollover:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       startsWith(github.event.pull_request.head.ref, 'release/v'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Cut the next release branch and retarget dependabot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MERGED_REF: ${{ github.event.pull_request.head.ref || '' }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "$MERGED_REF" ]; then
+            case "$MERGED_REF" in
+              release/v[0-9]*) ;;
+              *) echo "not a numeric release branch: $MERGED_REF"; exit 0 ;;
+            esac
+            major=${MERGED_REF#release/v}
+            major=${major%%.*}
+            next="release/v$((major + 1))"
+            if git ls-remote --exit-code --heads origin "$next" > /dev/null; then
+              echo "$next already exists; leaving it untouched"
+            else
+              git push origin "HEAD:refs/heads/$next"
+              echo "created $next from main@$(git rev-parse --short HEAD)"
+            fi
+          else
+            next=$(git ls-remote --heads origin 'release/v*' \
+              | sed 's|.*refs/heads/||' \
+              | grep -E '^release/v[0-9]+(\.[0-9]+)*$' \
+              | sort -V | tail -n1)
+            if [ -z "$next" ]; then
+              echo "no release branches found" >&2
+              exit 0
+            fi
+          fi
+
+          current=$(sed -n 's/^ *target-branch: *//p' .github/dependabot.yml | head -n1)
+          if [ "$current" = "$next" ]; then
+            echo "dependabot already targets $next"
+            exit 0
+          fi
+          sed -i "s|^\( *target-branch:\) .*|\1 $next|" .github/dependabot.yml
+          git switch -c automation/dependabot-target
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -am "ci: point dependabot at $next"
+          git push -f -u origin automation/dependabot-target
+          gh pr create --base main \
+            --title "ci: point dependabot at $next" \
+            --body "Retargets dependabot version updates from \`$current\` to \`$next\`. Opened by the release-rollover workflow; \`dependabot.yml\` is only read from the default branch, which is why this PR targets \`main\`." \
+            || echo "PR already open; branch updated"
