@@ -155,7 +155,7 @@ Developer portals, dashboard frontends, third-party services, and third-party in
 
 #### Websites and Applications Proof of Concept Requirements
 
-All reports must include a proof of concept demonstrating the vulnerability against a production or staging environment. Screenshots or video walkthroughs showing end-to-end exploitation are expected for High and Critical severity reports.
+All reports must include a proof of concept demonstrating the vulnerability against a staging or other non-production environment, consistent with the No Production Testing policy above. Where no staging target exists for the affected system, include a local reproduction and note the limitation in the report. Screenshots or video walkthroughs showing end-to-end exploitation are expected for High and Critical severity reports.
 
 Reports consisting only of automated scanner output without demonstrated exploitability will not be rewarded.
 

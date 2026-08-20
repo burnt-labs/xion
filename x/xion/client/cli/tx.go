@@ -252,7 +252,7 @@ func NewRegisterCmd() *cobra.Command {
 			}
 			creatorAddr := clientCtx.GetFromAddress()
 			predictedAddress, err := queryAccountAddress(
-				context.Background(),
+				cmd.Context(),
 				aatypes.NewQueryClient(clientCtx),
 				creatorAddr,
 				[]byte(salt),

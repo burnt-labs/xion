@@ -36,7 +36,7 @@ builds:
         # Replace the module's LFS pointer with a checksum-verified release
         # archive. Linux/arm64 deliberately selects the separately published
         # musl archive while retaining the module's expected library path.
-        - cmd: sh -c 'BB_VER=$(awk '\''$1 == "github.com/burnt-labs/barretenberg-go" { print $2; exit }'\'' go.mod); BB_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@$BB_VER" | awk -F'\''"'\'' '\''/"Dir"/ { print $4; exit }'\''); ./scripts/download-barretenberg.sh {{ .Os }} {{ .Arch }} "$BB_DIR/lib/{{ .Os }}_{{ .Arch }}/libbarretenberg.a" {{ if and (eq .Os "linux") (eq .Arch "arm64") }}musl{{ else }}gnu{{ end }}'
+        - cmd: sh -c 'BB_VER=$(awk '\''$1 == "github.com/burnt-labs/barretenberg-go" { print $2; exit }'\'' go.mod); BB_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@$BB_VER" | awk -F'\''"'\'' '\''/"Dir"/ { print $4; exit }'\''); [ -n "$BB_DIR" ] || { echo "failed to resolve the barretenberg-go module directory" >&2; exit 1; }; ./scripts/download-barretenberg.sh {{ .Os }} {{ .Arch }} "$BB_DIR/lib/{{ .Os }}_{{ .Arch }}/libbarretenberg.a" {{ if and (eq .Os "linux") (eq .Arch "arm64") }}musl{{ else }}gnu{{ end }}'
         - cmd: echo Starting build...
     ldflags:
       - -X main.Date={{ .CommitDate }}

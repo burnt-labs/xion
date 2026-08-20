@@ -18,7 +18,7 @@ jobs:
 
       - name: Set Go Version
         id: go-version
-        run: echo "version=$(sed -En 's/^go (.*)$/\1/p' go.mod)" >> $GITHUB_OUTPUT
+        run: echo "version=$(sed -En 's/^go (.*)$/\1/p' go.mod)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-go@v7
         with:
