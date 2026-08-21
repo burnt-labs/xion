@@ -49,7 +49,7 @@ func TestAppUpgradeNetwork(t *testing.T) {
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
+	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.UpgradeGenesisKVMods)
 
 	// Build chain starting with the "from" image
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)
@@ -146,7 +146,7 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.DefaultGenesisKVMods)
+	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.UpgradeGenesisKVMods)
 	// Set encoding config for proper message serialization (needed for DKIM and ZKEmail assertions)
 	chainSpec.EncodingConfig = testlib.XionEncodingConfig(t)
 	// Use faster block times to ensure proposals pass within timeout windows
@@ -167,6 +167,13 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	// Create a proposal tracker starting at 2 (since upgrade used proposal 1)
 	proposalTracker := testlib.NewProposalTracker(2)
 	ctx := t.Context()
+
+	// The abstract-account v3 migration leaves registration paused until the
+	// chain configures its address derivation hash; do so before any feature
+	// test registers an abstract account.
+	t.Run("PostUpgrade_EnableAARegistration", func(t *testing.T) {
+		testlib.EnableAARegistration(t, ctx, xion, proposalTracker.NextID())
+	})
 
 	// Run ZKEmail authenticator assertions
 	// NOTE: ZKEmail now seeds its own DKIM record using the proposal tracker

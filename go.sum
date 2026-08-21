@@ -216,14 +216,12 @@ github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792/go.mod h1:ghJtE
 github.com/btcsuite/winsvc v1.0.0/go.mod h1:jsenWakMcC0zFBFurPLEAyrnc/teJEM1O46fmI40EZs=
 github.com/bufbuild/protocompile v0.14.1 h1:iA73zAf/fyljNjQKwYzUHD6AD4R8KMasmwa/FBatYVw=
 github.com/bufbuild/protocompile v0.14.1/go.mod h1:ppVdAIhbr2H8asPk6k4pY7t9zB1OU5DoEw9xY/FUi1c=
-github.com/burnt-labs/abstract-account v0.1.8 h1:tvaIhn0Gt3PPRWQvU6yPDnBT1kntnLMQqrp7zR9G6n0=
-github.com/burnt-labs/abstract-account v0.1.8/go.mod h1:hCT3f3E71OOOWwANJ/j71LlY9SM/m4pBzOKWref2/mc=
 github.com/burnt-labs/barretenberg-go v0.6.0 h1:Yn3G680c1YY8Ri8sfKAj3o2i00a951Jec6GgkfrdIm0=
 github.com/burnt-labs/barretenberg-go v0.6.0/go.mod h1:2SJlaxo5WVRzoaT+Di/VlSmIzrvPriLklpXqZXvSusI=
 github.com/burnt-labs/tokenfactory v0.53.4-xion.2 h1:c55X9mQSPj7WfVDixPBBRZDmsyOOT9uXvMBimvotDzw=
 github.com/burnt-labs/tokenfactory v0.53.4-xion.2/go.mod h1:qxp8BvH6EYuHK/l9ZQrPL4K1/TqyGvtXb7ztKFOwUqw=
-github.com/burnt-labs/wasmd v0.61.14-xion.1 h1:pPi/lGde07QsoPzhXbi8JYGx7/8CnhOAVMJGb8FiiVQ=
-github.com/burnt-labs/wasmd v0.61.14-xion.1/go.mod h1:T61FkmvyR7FUpI0LJ++tqUJwUynRLROgKQVIr4RLKnc=
+github.com/burnt-labs/wasmd v0.61.14-xion.2 h1:NuO1G6D5crXcXAyucKF5Rg/y5PHV0kPW4CSnIIJLDCw=
+github.com/burnt-labs/wasmd v0.61.14-xion.2/go.mod h1:tLxaFGVblk7RO9EEhpzU7824GAn504F39z0F51uBYM8=
 github.com/bytedance/gopkg v0.1.3 h1:TPBSwH8RsouGCBcMBktLt1AymVo2TVsBVCY4b6TnZ/M=
 github.com/bytedance/gopkg v0.1.3/go.mod h1:576VvJ+eJgyCzdjS+c4+77QF3p7ubbtiKARP3TxducM=
 github.com/bytedance/sonic v1.15.0 h1:/PXeWFaR5ElNcVE84U0dOHjiMHQOwNIx3K4ymzh/uSE=

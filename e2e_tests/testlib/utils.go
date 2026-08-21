@@ -438,8 +438,10 @@ func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ct
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, currentBlockHeight, int64(12))
-	// Get a random number from 1 to the (currentBlockHeight - 10)
-	randomHeight := rand.Intn(int(currentBlockHeight)-11) + 2 // we start from 2 because we need at least 2 blocks to run the test
+	// Start from 3: at height 2 the provision minted for the first block is
+	// still being swept out of the fee collector, so mint skips that block and
+	// the fee heuristic below misreads the sweep as accrued fees.
+	randomHeight := rand.Intn(int(currentBlockHeight)-11) + 3
 
 	for i := randomHeight; i < randomHeight+10; i++ {
 		t.Logf("Current random height: %d", i)

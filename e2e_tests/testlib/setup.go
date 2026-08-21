@@ -40,7 +40,11 @@ var (
 	defaultMinGasPrices            = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
 	defaultIbcClientTrustingPeriod = "336h" // 14 days
 	localAddressDerivationHash     = "e2VOlcNezIiL+UJ8UDpJVFV8R27Fa43YH4mJpqfJHNk="
-	DefaultGenesisKVMods           = []cosmos.GenesisKV{
+
+	// UpgradeGenesisKVMods configures genesis for chains that boot an older
+	// released image (upgrade tests). It must only reference params that
+	// release already knows about.
+	UpgradeGenesisKVMods = []cosmos.GenesisKV{
 		// Gov module - short proposals
 		cosmos.NewGenesisKV("app_state.gov.params.voting_period", "10s"),
 		cosmos.NewGenesisKV("app_state.gov.params.max_deposit_period", "10s"),
@@ -65,6 +69,10 @@ var (
 		cosmos.NewGenesisKV("app_state.abstractaccount.params.address_derivation_hash", localAddressDerivationHash),
 		cosmos.NewGenesisKV("app_state.abstractaccount.params.registration_enabled", true),
 	)
+
+	// DefaultGenesisKVMods is the genesis baseline for tests that run only the
+	// current image; upgrade tests must keep to UpgradeGenesisKVMods.
+	DefaultGenesisKVMods = append([]cosmos.GenesisKV{}, UpgradeGenesisKVMods...)
 
 	// DeployerMnemonic is a test mnemonic used across e2e tests
 	DeployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"

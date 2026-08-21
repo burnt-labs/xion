@@ -8,7 +8,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// wasmd fork with genesis exports
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.14-xion.1
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.14-xion.2
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
@@ -46,7 +46,6 @@ require (
 	github.com/CosmWasm/wasmd v0.61.14
 	github.com/CosmWasm/wasmvm/v3 v3.0.7
 	github.com/btcsuite/btcd/btcutil v1.1.6
-	github.com/burnt-labs/abstract-account v0.1.8
 	github.com/burnt-labs/barretenberg-go v0.6.0
 	github.com/cometbft/cometbft v0.38.26
 	github.com/cosmos/cosmos-db v1.1.3
@@ -265,7 +264,7 @@ require (
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/shamaton/msgpack/v2 v2.4.1 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
-	github.com/spf13/pflag v1.0.10 // indirect
+	github.com/spf13/pflag v1.0.10
 	github.com/spiffe/go-spiffe/v2 v2.6.0 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
