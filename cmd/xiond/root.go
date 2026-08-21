@@ -138,12 +138,13 @@ func setValidatorTimeout(serverCtx *server.Context, timeoutCommit time.Duration)
 
 // applyValidatorTimeout applies the start-only flag after config.toml is loaded.
 // Other commands also run the root PersistentPreRunE, but do not register this
-// flag and must continue without attempting to read it. Only an explicitly
-// passed flag applies, so a timeout_commit persisted in config.toml survives
-// a start without the flag.
+// flag and must continue without attempting to read it.
+//
+// The flag's one-second default deliberately overrides whatever config.toml
+// holds: the chain targets one-second blocks, and only an explicit
+// --consensus.timeout_commit on the command line may change that.
 func applyValidatorTimeout(cmd *cobra.Command) error {
-	flag := cmd.Flags().Lookup("consensus.timeout_commit")
-	if flag == nil || !flag.Changed {
+	if cmd.Flags().Lookup("consensus.timeout_commit") == nil {
 		return nil
 	}
 
