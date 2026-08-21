@@ -20,9 +20,12 @@ replace (
 	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 
-	// wasmd v0.61.14 pulls go-ethereum v1.17.x, which drops trie/utils still
-	// needed by cosmos/evm v0.5.0 (via interchaintest)
-	github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.16.8
+	// cosmos/evm still imports go-ethereum trie/utils, which v1.17.x drops;
+	// v1.16.9 is the newest release that keeps it and carries the RLPx and
+	// p2p DoS fixes. One advisory (fixed in v1.17.0) stays open until
+	// cosmos/evm moves off trie/utils.
+	github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.16.9
+
 	// Fix upstream GHSA-h395-qcrw-5vmq vulnerability.
 	// See: https://github.com/cosmos/cosmos-sdk/issues/10409
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.8.1
