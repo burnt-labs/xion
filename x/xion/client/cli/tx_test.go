@@ -511,18 +511,16 @@ func (s *CLITestSuite) TestNewRegisterCmd() {
 		expectPanic bool
 	}{
 		{
-			name:        "missing required arguments",
-			ctxGen:      func() client.Context { return s.baseCtx },
-			args:        []string{},
-			expectErr:   true,
-			expectPanic: true, // production code indexes args[1]
+			name:      "missing required arguments",
+			ctxGen:    func() client.Context { return s.baseCtx },
+			args:      []string{},
+			expectErr: true,
 		},
 		{
-			name:        "missing second argument",
-			ctxGen:      func() client.Context { return s.baseCtx },
-			args:        []string{"1"},
-			expectErr:   true,
-			expectPanic: true, // production code indexes args[1]
+			name:      "missing second argument",
+			ctxGen:    func() client.Context { return s.baseCtx },
+			args:      []string{"1"},
+			expectErr: true,
 		},
 		{
 			name:      "invalid code-id",
@@ -531,11 +529,13 @@ func (s *CLITestSuite) TestNewRegisterCmd() {
 			expectErr: true,
 		},
 		{
-			name:        "valid basic structure (network panic path)",
-			ctxGen:      func() client.Context { return s.baseCtx },
-			args:        []string{"1", accounts[0].Name, "--salt=test-salt", "--authenticator=Secp256k1", "--authenticator-id=1"},
-			expectErr:   true,
-			expectPanic: true,
+			// The register command now predicts the address through the
+			// module's AccountAddress query, which surfaces a client error
+			// instead of the wasm Code query's panic on a missing node.
+			name:      "valid basic structure (network error path)",
+			ctxGen:    func() client.Context { return s.baseCtx },
+			args:      []string{"1", accounts[0].Name, "--salt=test-salt", "--authenticator=Secp256k1", "--authenticator-id=1"},
+			expectErr: true,
 		},
 	}
 

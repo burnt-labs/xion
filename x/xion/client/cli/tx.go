@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,9 +9,7 @@ import (
 	"os"
 	"strconv"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -32,6 +29,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/burnt-labs/xion/x/xion/types"
 )
 
@@ -212,7 +210,7 @@ func NewRegisterCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register [code-id] [keyname] --salt [string] --funds [coins,optional] --authenticator [Seckp256|Jwt,required] --authenticator-id [uint8] --aud [string] --sub [string] --token [string]",
 		Short: "Register an abstract account",
-		Args:  cobra.MaximumNArgs(2),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := cmd.Flags().Set(flags.FlagFrom, args[1]); err != nil {
 				return err
@@ -252,27 +250,20 @@ func NewRegisterCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("amount: %s", err)
 			}
-			queryClient := wasmtypes.NewQueryClient(clientCtx)
-
-			codeResp, err := queryClient.Code(
-				context.Background(),
-				&wasmtypes.QueryCodeRequest{
-					CodeId: codeID,
-				},
+			creatorAddr := clientCtx.GetFromAddress()
+			predictedAddress, err := queryAccountAddress(
+				cmd.Context(),
+				aatypes.NewQueryClient(clientCtx),
+				creatorAddr,
+				[]byte(salt),
 			)
 			if err != nil {
 				return err
 			}
-			creatorAddr := clientCtx.GetFromAddress()
-			codeHash, err := hex.DecodeString(codeResp.DataHash.String())
-			if err != nil {
-				return err
-			}
-			predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 
 			signature, pubKey, err := clientCtx.Keyring.SignByAddress(
 				clientCtx.GetFromAddress(),
-				[]byte(predictedAddr.String()),
+				[]byte(predictedAddress),
 				signMode,
 			)
 			if err != nil {
@@ -329,6 +320,25 @@ func NewRegisterCmd() *cobra.Command {
 	cmd.Flags().String(flagSubject, "", "Principal for the token")
 
 	return cmd
+}
+
+func queryAccountAddress(
+	ctx context.Context,
+	queryClient aatypes.QueryClient,
+	sender sdk.AccAddress,
+	salt []byte,
+) (string, error) {
+	resp, err := queryClient.AccountAddress(ctx, &aatypes.QueryAccountAddressRequest{
+		Sender: sender.String(),
+		Salt:   salt,
+	})
+	if err != nil {
+		return "", err
+	}
+	if resp.Address == "" {
+		return "", fmt.Errorf("abstract account address query returned an empty address")
+	}
+	return resp.Address, nil
 }
 
 func NewAddAuthenticatorCmd() *cobra.Command {
