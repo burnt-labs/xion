@@ -23,17 +23,21 @@ func TestSetValidatorTimeout(t *testing.T) {
 }
 
 func TestApplyValidatorTimeout(t *testing.T) {
+	// configured stands in for a timeout_commit persisted in config.toml; it
+	// must survive unless the flag is explicitly passed.
+	configured := 5 * time.Second
+
 	tests := map[string]struct {
 		register bool
 		args     []string
 		expected time.Duration
 	}{
 		"ignores commands without the start flag": {
-			expected: tmcfg.DefaultConsensusConfig().TimeoutCommit,
+			expected: configured,
 		},
-		"defaults to one second": {
+		"preserves the configured timeout when the flag is not passed": {
 			register: true,
-			expected: time.Second,
+			expected: configured,
 		},
 		"accepts a CLI override": {
 			register: true,
@@ -46,6 +50,7 @@ func TestApplyValidatorTimeout(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			serverCtx := server.NewDefaultContext()
 			serverCtx.Config = tmcfg.DefaultConfig()
+			serverCtx.Config.Consensus.TimeoutCommit = configured
 			cmd := &cobra.Command{Use: "test"}
 			cmd.SetContext(context.WithValue(context.Background(), server.ServerContextKey, serverCtx))
 			if tc.register {

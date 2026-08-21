@@ -23,7 +23,7 @@ jobs:
 
       - name: Prepare Environment
         run: |
-          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
+          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a "$GITHUB_ENV"
 
       - name: Set up Go
         uses: actions/setup-go@v7
@@ -62,7 +62,7 @@ jobs:
 
       - name: Prepare Environment
         run: |
-          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a $GITHUB_ENV
+          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a "$GITHUB_ENV"
 
       - name: Set up Go
         uses: actions/setup-go@v7

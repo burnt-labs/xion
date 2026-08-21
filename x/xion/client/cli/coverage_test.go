@@ -1790,6 +1790,7 @@ func TestQueryAccountAddress(t *testing.T) {
 
 		_, err := queryAccountAddress(context.Background(), queryClient, sender, salt)
 		require.EqualError(t, err, "query failed")
+		queryClient.AssertExpectations(t)
 	})
 
 	t.Run("rejects empty prediction", func(t *testing.T) {
@@ -1803,5 +1804,6 @@ func TestQueryAccountAddress(t *testing.T) {
 
 		_, err := queryAccountAddress(context.Background(), queryClient, sender, salt)
 		require.EqualError(t, err, "abstract account address query returned an empty address")
+		queryClient.AssertExpectations(t)
 	})
 }

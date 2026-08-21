@@ -83,6 +83,10 @@ barretenberg-build-wrapper:
 		exit 0; \
 	fi; \
 	BB_MOD_DIR=$$(go mod download -json "github.com/burnt-labs/barretenberg-go@$$BB_VERSION" | grep '"Dir"' | cut -d'"' -f4); \
+	if [ -z "$$BB_MOD_DIR" ]; then \
+		echo "--> failed to resolve the barretenberg-go module directory" >&2; \
+		exit 1; \
+	fi; \
 	BB_LIB_DIR="$$BB_MOD_DIR/lib/$(GOOS)_$(GOARCH)"; \
 	BB_LIB_FILE="$$BB_LIB_DIR/libbarretenberg.a"; \
 	BB_LIBC=gnu; \
