@@ -1,0 +1,118 @@
+# Another review bot commented on a PR tribunal has already reviewed: rule
+# on the new threads without running the panel again.
+#
+# The panel is not the answer to this event. A review pushes fixes, a push
+# is an event every review bot on the repository answers with fresh
+# comments, and those comments would need another review — the loop this
+# workflow exists to break. One agent, no findings, no commits.
+name: Tribunal dispositions
+on:
+  # Threads are made of review comments, so this is the whole surface: a
+  # body-only review leaves nothing to disposition.
+  pull_request_review_comment:
+    types: [created]
+
+concurrency:
+  # The review's own group, deliberately. A pass queued while a review runs
+  # waits for it, and a review starting cancels the pending pass — that
+  # review dispositions these threads itself, with a panel verdict behind
+  # it. `cancel-in-progress` stays false: cancelling the review instead
+  # would be exactly backwards.
+  group: tribunal-review-${{ github.event.pull_request.number }}
+
+jobs:
+  dispositions:
+    # A fork PR reaches this trigger with secrets, unlike `pull_request`,
+    # and this job checks out the PR head — the clerk has to read the code
+    # a claim is about, and the base branch is not it. So same-repository
+    # only, explicitly, rather than relying on the pass to self-close: the
+    # checkout happens before any of that runs.
+    #
+    # Bot threads only — a human thread stays open whatever the clerk rules.
+    #
+    # Ours are excluded by author, not by the marker being present: another
+    # bot quoting a tribunal marker in its comment is exactly the thread
+    # this pass exists to answer, and a body test skips it. Matching the
+    # login is also what keeps a review from triggering a pass over its own
+    # output.
+    #
+    # Set the TRIBUNAL_BOT_LOGIN variable when posting as an App. Expression
+    # context cannot resolve the App's slug, so the default only excludes
+    # `github-actions[bot]` and tribunal's own disposition reply retriggers
+    # this workflow. The run is a no-op — the thread it answered is resolved,
+    # and `_fetch_threads` drops any thread already carrying our disposition
+    # marker — but it is a wasted run per resolved thread.
+    #
+    # The membership test is written twice because `config.resolve_run`
+    # splits the variable on a comma *or* whitespace, and expressions have no
+    # `replace` to normalise one into the other. Wrapping in commas alone
+    # misses `bot-a, bot-b`, the form an operator is most likely to type;
+    # wrapping in spaces alone misses `bot-a,bot-b`. Both delimiters on both
+    # sides of the login also keep `bot` from matching `bot-a`.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.comment.user.login !=
+        (vars.TRIBUNAL_BOT_LOGIN || 'github-actions[bot]') &&
+      (github.event.comment.user.type == 'Bot' ||
+       contains(format(',{0},', vars.ADDITIONAL_BOT_REVIEWERS),
+                format(',{0},', github.event.comment.user.login)) ||
+       contains(format(' {0} ', vars.ADDITIONAL_BOT_REVIEWERS),
+                format(' {0} ', github.event.comment.user.login)))
+    runs-on: ubicloud-standard-2
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write   # reply to and resolve the threads
+      packages: read         # pull the private container image
+    container:
+      image: ghcr.io/burnt-labs/tribunal:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # The head the comment is about. Checking out the default branch
+          # points the clerk's read tools at code the thread is not about,
+          # so it verifies a claim against a file that may not contain the
+          # line — and dismisses a real finding for not being there.
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Load LLM credentials
+        id: op
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
+        with:
+          # Step outputs, not $GITHUB_ENV: exporting would put the LLM
+          # tokens in the environment of every later step in the job,
+          # including any action added here in future.
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          TRIBUNAL_GH_APP_ID: op://AgentVault/tribunal-github-app/client-id
+          TRIBUNAL_GH_APP_INSTALLATION: op://AgentVault/tribunal-github-app/installation-id
+          TRIBUNAL_GH_APP_KEY: op://AgentVault/tribunal-github-app/private-key
+          ANTHROPIC_AUTH_TOKEN: op://AgentVault/tribunal-llm/anthropic-auth-token
+          ANTHROPIC_BASE_URL: op://AgentVault/tribunal-llm/anthropic-base-url
+          OPENAI_API_KEY: op://AgentVault/tribunal-llm/openai-api-key
+          OPENAI_BASE_URL: op://AgentVault/tribunal-llm/openai-base-url
+          TRIBUNAL_ANTHROPIC_MODEL: op://AgentVault/tribunal-llm/anthropic-model
+          TRIBUNAL_OPENAI_MODEL: op://AgentVault/tribunal-llm/openai-model
+      - name: Disposition prior threads
+        run: tribunal dispositions --pr "$PR"
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Without these the App slug cannot be resolved, so cfg.bot_login
+          # falls back to github-actions[bot] while the review posted its
+          # summary as <slug>[bot] — _is_ours then matches nothing and this
+          # pass silently finds no review to disposition against.
+          TRIBUNAL_GH_APP_ID: ${{ steps.op.outputs.TRIBUNAL_GH_APP_ID }}
+          TRIBUNAL_GH_APP_INSTALLATION: ${{ steps.op.outputs.TRIBUNAL_GH_APP_INSTALLATION }}
+          TRIBUNAL_GH_APP_KEY: ${{ steps.op.outputs.TRIBUNAL_GH_APP_KEY }}
+          ADDITIONAL_BOT_REVIEWERS: ${{ vars.ADDITIONAL_BOT_REVIEWERS }}
+          TRIBUNAL_ROLE_MODELS: ${{ vars.TRIBUNAL_ROLE_MODELS }}
+          ANTHROPIC_AUTH_TOKEN: ${{ steps.op.outputs.ANTHROPIC_AUTH_TOKEN }}
+          ANTHROPIC_BASE_URL: ${{ steps.op.outputs.ANTHROPIC_BASE_URL }}
+          OPENAI_API_KEY: ${{ steps.op.outputs.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ steps.op.outputs.OPENAI_BASE_URL }}
+          TRIBUNAL_ANTHROPIC_MODEL: ${{ steps.op.outputs.TRIBUNAL_ANTHROPIC_MODEL }}
+          TRIBUNAL_OPENAI_MODEL: ${{ steps.op.outputs.TRIBUNAL_OPENAI_MODEL }}

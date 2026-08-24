@@ -1,0 +1,85 @@
+name: Tribunal feedback
+on:
+  # Rejections arrive as a checkbox tick, which GitHub reports as an edit.
+  issue_comment:
+    types: [edited]
+  pull_request_review_comment:
+    types: [edited]
+  # Acceptances arrive as a push: GitHub's Commit suggestion button fires no
+  # event of its own, so the run reads the branch and asks which findings'
+  # suggestions are now in it.
+  #
+  # `pull_request_target`, not `pull_request`, because a fix can now land on
+  # a fork's PR and only this trigger has the token to record that it did.
+  # It is safe here for the reason that makes it dangerous elsewhere: this
+  # job never checks out or runs the PR's code. It checks out the base
+  # branch, runs the published image, and touches the head only through the
+  # API — reading file contents to compare against a suggestion.
+  pull_request_target:
+    types: [synchronize]
+
+concurrency:
+  # One feedback run per pull request. Two quick pushes otherwise start two
+  # runs that both see the same live control before either strikes it, and
+  # both append an accept — the dispose-once invariant is enforced by that
+  # rewrite, so the rewrite cannot race itself. Never cancel: a cancelled
+  # run is a decision nobody recorded.
+  group: tribunal-feedback-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  feedback:
+    # Checkbox edits on tribunal comments, plus every push to any PR —
+    # forks included, since a suggestion committed there is the same signal.
+    # Never tribunal's own comment edits: posting as an App does trigger
+    # workflows, unlike GITHUB_TOKEN, and every re-review rewrites the
+    # summary.
+    if: >-
+      github.event_name == 'pull_request_target' ||
+      (contains(github.event.comment.body, 'tribunal:v1') &&
+       github.event.sender.type != 'Bot')
+    runs-on: ubicloud-standard-2
+    timeout-minutes: 15
+    permissions:
+      contents: write        # append to the data branch
+      pull-requests: write   # read comments, rewrite their controls
+      packages: read
+    container:
+      image: ghcr.io/burnt-labs/tribunal:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # The base branch, which is what the default ref gives a
+      # pull_request_target run. Never add `ref: ...head.sha` here: that is
+      # exactly the combination — a fork's code checked out with the base
+      # repo's secrets — this trigger is notorious for. Nothing in this job
+      # needs the PR's tree; it reads the head through the API.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      # The App authored the finding comments this job strikes through, and
+      # GitHub only lets an author edit their own comment. A rejection is
+      # recorded whether or not the edit lands; a committed suggestion is
+      # not, because the struck control is the only thing that stops the
+      # next push from counting it again. No LLM credentials here: this job
+      # never calls a model, and it has the widest trigger in the system.
+      - name: Load the App identity
+        id: op
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          TRIBUNAL_GH_APP_ID: op://AgentVault/tribunal-github-app/client-id
+          TRIBUNAL_GH_APP_INSTALLATION: op://AgentVault/tribunal-github-app/installation-id
+          TRIBUNAL_GH_APP_KEY: op://AgentVault/tribunal-github-app/private-key
+      - name: Process feedback
+        run: tribunal feedback
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRIBUNAL_GH_APP_ID: ${{ steps.op.outputs.TRIBUNAL_GH_APP_ID }}
+          TRIBUNAL_GH_APP_INSTALLATION: ${{ steps.op.outputs.TRIBUNAL_GH_APP_INSTALLATION }}
+          TRIBUNAL_GH_APP_KEY: ${{ steps.op.outputs.TRIBUNAL_GH_APP_KEY }}
+          ADDITIONAL_BOT_REVIEWERS: ${{ vars.ADDITIONAL_BOT_REVIEWERS }}
+          TRIBUNAL_ROLE_MODELS: ${{ vars.TRIBUNAL_ROLE_MODELS }}

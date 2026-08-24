@@ -1,0 +1,157 @@
+# Adversarial multi-agent review of every pull request, posted by the
+# burnt-tribunal App: one review, each fix offered as a committable
+# GitHub suggestion. Source and documentation: burnt-labs/tribunal.
+#
+# Needs, on this repository: the OP_SERVICE_ACCOUNT_TOKEN secret (every
+# other credential is read from 1Password through it), pull access to the
+# ghcr.io/burnt-labs/tribunal package, and — for the mention trigger —
+# the TRIBUNAL_MENTION variable.
+name: Tribunal review
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # The manual trigger, and the only one GitHub leaves an App.
+  #
+  # There is no re-request arrow to wire up: the reviewer list is closed to
+  # third-party Apps — Copilot is the exception GitHub built for itself —
+  # and a POST to requested_reviewers naming an App is accepted and then
+  # quietly dropped, so no review_requested event ever arrives. A mention in
+  # a comment is what is left, which is why every other review App on a PR
+  # is triggered by one.
+  #
+  # It fires only when vars.TRIBUNAL_MENTION holds the phrase to match
+  # (`@burnt-tribunal`). Unset, no comment can start a run: the alternative
+  # is an empty needle that every comment contains.
+  issue_comment:
+    types: [created]
+
+jobs:
+  review:
+    # Job level, not workflow level. A run cancelled by this group is
+    # cancelled before any `if` is evaluated, so a run this job skips — a
+    # comment that is not a mention, on a busy PR — would join the group
+    # and cancel the review that is doing the work. At job level the
+    # skipped run never joins it.
+    concurrency:
+      group: tribunal-review-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: true
+    # Two events, two shapes of the same question: is this a pull request of
+    # ours, and did somebody ask for a review of it.
+    #
+    # Fork PRs get no secrets on `pull_request`, and tribunal's own fix and
+    # merge branches are not reviewed (its docs PRs are ordinary content
+    # changes and are).
+    #
+    # Dependabot is excluded here, which the source repository's copy does
+    # not do: a grouped bump is a large diff with nothing in it a panel can
+    # judge — the change is a version number, and whether it is safe lives
+    # in the upstream changelog and the test run, not in these lines. Say
+    # the mention phrase on one and it is reviewed like anything else.
+    #
+    # On a mention the gate is who is asking. A public repository lets
+    # anyone comment, and a comment must not be able to spend the panel's
+    # budget, so the run needs an account the project knows — the coarse
+    # test, since `authorAssociation` reports MEMBER for write granted
+    # through a team and never reports COLLABORATOR for it. Bots are
+    # excluded outright: a review App quoting the mention phrase back at us
+    # is a loop, and posting as an App triggers workflows where
+    # GITHUB_TOKEN's writes do not.
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       !startsWith(github.event.pull_request.head.ref, 'tribunal/fix/') &&
+       !startsWith(github.event.pull_request.head.ref, 'tribunal/merge/') &&
+       !startsWith(github.event.pull_request.head.ref, 'dependabot/')) ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       github.event.issue.state == 'open' &&
+       vars.TRIBUNAL_MENTION != '' &&
+       contains(github.event.comment.body, vars.TRIBUNAL_MENTION) &&
+       github.event.comment.user.type != 'Bot' &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+                github.event.comment.author_association))
+    runs-on: ubicloud-standard-8
+    timeout-minutes: 45
+    permissions:
+      contents: write        # push the mediator's conflict resolution
+      pull-requests: write   # post the review and its suggestions
+      packages: read         # pull the private container image
+    container:
+      image: ghcr.io/burnt-labs/tribunal:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # The head the run is about. `pull_request` carries it in the payload;
+      # `issue_comment` carries no head at all — as far as that event is
+      # concerned the comment is on an issue — so it has to be asked for,
+      # and the same answer carries the fork check that `pull_request` gets
+      # from its payload. A mention on a fork's PR reviews nothing: this job
+      # checks out the head and runs agents over it with the repository's
+      # secrets in the environment.
+      - name: Resolve the pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+          PAYLOAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ -n "$PAYLOAD_SHA" ]; then
+            echo "sha=$PAYLOAD_SHA" >> "$GITHUB_OUTPUT"
+            echo "review=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          pr=$(gh pr view "$NUMBER" --repo "$GITHUB_REPOSITORY" \
+                 --json headRefOid,isCrossRepository \
+                 --jq '.headRefOid + " " + (.isCrossRepository | tostring)')
+          if [ "${pr#* }" = "true" ]; then
+            echo "::notice::mentioned on a fork's pull request; not reviewing"
+            echo "review=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "sha=${pr% *}" >> "$GITHUB_OUTPUT"
+          echo "review=true" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v6
+        if: steps.pr.outputs.review == 'true'
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.pr.outputs.sha }}
+      - name: Load LLM credentials
+        id: op
+        if: steps.pr.outputs.review == 'true'
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
+        with:
+          # Step outputs, not $GITHUB_ENV: exporting put the LLM
+          # tokens in the environment of every later step in the job,
+          # including any action added here in future, alongside a
+          # checkout of the code under review.
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANTHROPIC_AUTH_TOKEN: op://AgentVault/tribunal-llm/anthropic-auth-token
+          ANTHROPIC_BASE_URL: op://AgentVault/tribunal-llm/anthropic-base-url
+          OPENAI_API_KEY: op://AgentVault/tribunal-llm/openai-api-key
+          OPENAI_BASE_URL: op://AgentVault/tribunal-llm/openai-base-url
+          TRIBUNAL_ANTHROPIC_MODEL: op://AgentVault/tribunal-llm/anthropic-model
+          TRIBUNAL_OPENAI_MODEL: op://AgentVault/tribunal-llm/openai-model
+          TRIBUNAL_GH_APP_ID: op://AgentVault/tribunal-github-app/client-id
+          TRIBUNAL_GH_APP_INSTALLATION: op://AgentVault/tribunal-github-app/installation-id
+          TRIBUNAL_GH_APP_KEY: op://AgentVault/tribunal-github-app/private-key
+      - name: Review
+        if: steps.pr.outputs.review == 'true'
+        run: tribunal review --pr "$PR"
+        env:
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ADDITIONAL_BOT_REVIEWERS: ${{ vars.ADDITIONAL_BOT_REVIEWERS }}
+          TRIBUNAL_ROLE_MODELS: ${{ vars.TRIBUNAL_ROLE_MODELS }}
+          ANTHROPIC_AUTH_TOKEN: ${{ steps.op.outputs.ANTHROPIC_AUTH_TOKEN }}
+          ANTHROPIC_BASE_URL: ${{ steps.op.outputs.ANTHROPIC_BASE_URL }}
+          OPENAI_API_KEY: ${{ steps.op.outputs.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ steps.op.outputs.OPENAI_BASE_URL }}
+          TRIBUNAL_ANTHROPIC_MODEL: ${{ steps.op.outputs.TRIBUNAL_ANTHROPIC_MODEL }}
+          TRIBUNAL_OPENAI_MODEL: ${{ steps.op.outputs.TRIBUNAL_OPENAI_MODEL }}
+          TRIBUNAL_GH_APP_ID: ${{ steps.op.outputs.TRIBUNAL_GH_APP_ID }}
+          TRIBUNAL_GH_APP_INSTALLATION: ${{ steps.op.outputs.TRIBUNAL_GH_APP_INSTALLATION }}
+          TRIBUNAL_GH_APP_KEY: ${{ steps.op.outputs.TRIBUNAL_GH_APP_KEY }}
