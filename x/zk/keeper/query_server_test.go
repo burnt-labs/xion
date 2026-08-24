@@ -1940,6 +1940,25 @@ func TestQueryProofVerifyUltraHonk_VkeyDigestEcho(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
+	t.Run("malformed public_inputs with a pin is an error, not a verdict", func(t *testing.T) {
+		wrong := make([]byte, sha256.Size)
+		copy(wrong, want[:])
+		wrong[0] ^= 0x01
+
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes[:len(publicInputsBytes)-1],
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: wrong,
+		})
+		// Request validity is independent of pin usage: shape validation runs
+		// before the key-identity gate, so a malformed request is an error
+		// whether or not a pin was sent, and whether or not it would match.
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.ErrorContains(t, err, "not a multiple")
+	})
+
 	// The attack the echo exists to stop is a swap to DIFFERENT VALID key
 	// material under the same name and id. Modelling it needs a second valid
 	// UltraHonk vkey, and testdata/barretenberg ships only one; a bit-flipped

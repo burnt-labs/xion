@@ -195,6 +195,14 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not an UltraHonk key (proof_system=%v)", proofSystem)
 	}
 
+	// Request-shape validation runs ahead of the key-identity gate so that a
+	// malformed request is an error regardless of pin usage: request validity
+	// and the pinned-key verdict are independent questions.
+	publicInputs := req.GetPublicInputs()
+	if len(publicInputs)%barretenberg.FieldElementSize != 0 {
+		return nil, errors.Wrapf(types.ErrInvalidRequest, "public_inputs length %d is not a multiple of %d", len(publicInputs), barretenberg.FieldElementSize)
+	}
+
 	// Key-identity gate, before any Barretenberg work. A vkey NAME is a mutable
 	// binding and an ID's contents are mutable in place (AddVKey is
 	// permissionless; the owner may later UpdateVKey the bytes under the same
@@ -222,10 +230,6 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		}
 	}
 
-	publicInputs := req.GetPublicInputs()
-	if len(publicInputs)%barretenberg.FieldElementSize != 0 {
-		return nil, errors.Wrapf(types.ErrInvalidRequest, "public_inputs length %d is not a multiple of %d", len(publicInputs), barretenberg.FieldElementSize)
-	}
 	numChunks := len(publicInputs) / barretenberg.FieldElementSize
 	chunks := make([][]byte, numChunks)
 	for i := 0; i < numChunks; i++ {
