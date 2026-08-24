@@ -71,18 +71,32 @@ jobs:
         with:
           export-env: false
         env:
-          # Workload Identity, or a service account, and never both — the
-          # action fails the run outright when two methods are configured.
+          # This job wants the App identity and no model credentials — it
+          # never calls a model and has the widest trigger in the system.
+          # Workload Identity has no per-secret selection, so that narrowing
+          # has to come from a narrower environment: point
+          # OP_IDENTITY_ENVIRONMENT_ID at one holding the three
+          # TRIBUNAL_GH_APP_* variables alone.
           #
-          # This job wants the App identity and nothing else, and Workload
-          # Identity has no per-secret selection: it publishes every
-          # variable in the environment it is pointed at. Point it at a
-          # narrower one through OP_IDENTITY_ENVIRONMENT_ID — holding the
-          # three TRIBUNAL_GH_APP_* variables alone — and this job keeps the
-          # credential surface the op:// lines below give it.
+          # One method, whichever this repository is provisioned for, and
+          # OP_WORKLOAD_ID alone decides which. The action refuses two
+          # methods at once, and it refuses a *partial* Workload Identity
+          # configuration just as hard — `getWorkloadIdentityConfig` throws
+          # unless all three of the variables below are set or none of them
+          # are. So every one of the four is blanked by the same switch
+          # rather than merely left to be ignored: a repository that has
+          # OP_INTEGRATION_KEY sitting in its secrets for later would
+          # otherwise fail this step the moment it was added.
+          #
+          # Workload Identity resolves none of the op:// references below.
+          # It exchanges the runner's OIDC token and publishes every
+          # variable of OP_ENVIRONMENT_ID under that variable's own name, so
+          # the environment has to name its variables as the step that
+          # reads them expects. The op:// lines are the service account's
+          # path, and inert under Workload Identity.
           OP_WORKLOAD_ID: ${{ vars.OP_WORKLOAD_ID }}
-          OP_ENVIRONMENT_ID: ${{ vars.OP_IDENTITY_ENVIRONMENT_ID || vars.OP_ENVIRONMENT_ID }}
-          OP_INTEGRATION_KEY: ${{ secrets.OP_INTEGRATION_KEY }}
+          OP_ENVIRONMENT_ID: ${{ vars.OP_WORKLOAD_ID != '' && (vars.OP_IDENTITY_ENVIRONMENT_ID || vars.OP_ENVIRONMENT_ID) || '' }}
+          OP_INTEGRATION_KEY: ${{ vars.OP_WORKLOAD_ID != '' && secrets.OP_INTEGRATION_KEY || '' }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ vars.OP_WORKLOAD_ID == '' && secrets.OP_SERVICE_ACCOUNT_TOKEN || '' }}
           TRIBUNAL_GH_APP_ID: op://AgentVault/tribunal-github-app/client-id
           TRIBUNAL_GH_APP_INSTALLATION: op://AgentVault/tribunal-github-app/installation-id
@@ -95,4 +109,9 @@ jobs:
           TRIBUNAL_GH_APP_INSTALLATION: ${{ steps.op.outputs.TRIBUNAL_GH_APP_INSTALLATION }}
           TRIBUNAL_GH_APP_KEY: ${{ steps.op.outputs.TRIBUNAL_GH_APP_KEY }}
           ADDITIONAL_BOT_REVIEWERS: ${{ vars.ADDITIONAL_BOT_REVIEWERS }}
+          # The login tribunal treats as its own. It is normally the
+          # App's slug, read at runtime; this is the documented fallback
+          # for when that read fails, and without it here the variable
+          # the README asks for reaches only the workflow's `if`.
+          TRIBUNAL_BOT_LOGIN: ${{ vars.TRIBUNAL_BOT_LOGIN }}
           TRIBUNAL_ROLE_MODELS: ${{ vars.TRIBUNAL_ROLE_MODELS }}

@@ -9,7 +9,9 @@
 #     OP_INTEGRATION_KEY — exchanges this job's OIDC token and leaves no
 #     long-lived credential in the repository, which is the shape to prefer
 #     on a public one. A service account token (OP_SERVICE_ACCOUNT_TOKEN)
-#     is the other. Never both: the action fails a run that has two.
+#     is the other. Set OP_WORKLOAD_ID to switch: it is the single variable
+#     every other credential here is gated on, because the action refuses
+#     two methods at once and refuses half of one just as hard.
 #  2. Pull access to the ghcr.io/burnt-labs/tribunal package, which the
 #     container is pulled with this repository's own GITHUB_TOKEN.
 #  3. The TRIBUNAL_MENTION variable, for the mention trigger.
@@ -63,6 +65,15 @@ jobs:
     # excluded outright: a review App quoting the mention phrase back at us
     # is a loop, and posting as an App triggers workflows where
     # GITHUB_TOKEN's writes do not.
+    #
+    # `user.type` alone does not cover that: the accounts in
+    # ADDITIONAL_BOT_REVIEWERS are precisely the machine users GitHub types
+    # as `User`, and one of those added to the org passes the association
+    # test too. They are excluded by login, with the dispositions workflow's
+    # two-delimiter membership test — `resolve_run` splits the variable on a
+    # comma *or* whitespace and expressions have no `replace` to normalise
+    # one into the other, so both forms are checked, and both delimiters on
+    # both sides keep `bot` from matching `bot-a`.
     if: >-
       (github.event_name == 'pull_request' &&
        github.event.pull_request.head.repo.full_name == github.repository &&
@@ -75,6 +86,12 @@ jobs:
        vars.TRIBUNAL_MENTION != '' &&
        contains(github.event.comment.body, vars.TRIBUNAL_MENTION) &&
        github.event.comment.user.type != 'Bot' &&
+       github.event.comment.user.login !=
+         (vars.TRIBUNAL_BOT_LOGIN || 'github-actions[bot]') &&
+       !contains(format(',{0},', vars.ADDITIONAL_BOT_REVIEWERS),
+                 format(',{0},', github.event.comment.user.login)) &&
+       !contains(format(' {0} ', vars.ADDITIONAL_BOT_REVIEWERS),
+                 format(' {0} ', github.event.comment.user.login)) &&
        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
                 github.event.comment.author_association))
     runs-on: ubicloud-standard-8
@@ -84,6 +101,7 @@ jobs:
       contents: write        # push the mediator's conflict resolution
       pull-requests: write   # post the review and its suggestions
       packages: read         # pull the private container image
+      issues: read           # linked issues, for the acceptance section
     container:
       image: ghcr.io/burnt-labs/tribunal:latest
       credentials:
@@ -93,10 +111,12 @@ jobs:
       # The head the run is about. `pull_request` carries it in the payload;
       # `issue_comment` carries no head at all — as far as that event is
       # concerned the comment is on an issue — so it has to be asked for,
-      # and the same answer carries the fork check that `pull_request` gets
-      # from its payload. A mention on a fork's PR reviews nothing: this job
-      # checks out the head and runs agents over it with the repository's
-      # secrets in the environment.
+      # and the same answer carries the two checks `pull_request` gets from
+      # its payload in the `if` above. A mention on a fork's PR reviews
+      # nothing: this job checks out the head and runs agents over it with
+      # the repository's secrets in the environment. And a mention on
+      # tribunal's own fix or merge branch reviews nothing either, for the
+      # same reason the other trigger excludes them.
       - name: Resolve the pull request
         id: pr
         env:
@@ -111,14 +131,22 @@ jobs:
             exit 0
           fi
           pr=$(gh pr view "$NUMBER" --repo "$GITHUB_REPOSITORY" \
-                 --json headRefOid,isCrossRepository \
-                 --jq '.headRefOid + " " + (.isCrossRepository | tostring)')
-          if [ "${pr#* }" = "true" ]; then
+                 --json headRefOid,isCrossRepository,headRefName \
+                 --jq '[.headRefOid, (.isCrossRepository | tostring), .headRefName] | @tsv')
+          IFS=$'\t' read -r sha fork ref <<<"$pr"
+          if [ "$fork" = "true" ]; then
             echo "::notice::mentioned on a fork's pull request; not reviewing"
             echo "review=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "sha=${pr% *}" >> "$GITHUB_OUTPUT"
+          case "$ref" in
+            tribunal/fix/*|tribunal/merge/*)
+              echo "::notice::mentioned on tribunal's own $ref; not reviewing"
+              echo "review=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "review=true" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v6
         if: steps.pr.outputs.review == 'true'
@@ -136,20 +164,25 @@ jobs:
           # checkout of the code under review.
           export-env: false
         env:
-          # Workload Identity, or a service account, and never both — the
-          # action fails the run outright when two methods are configured.
-          # OP_WORKLOAD_ID being set is what decides it, which is why the
-          # token below is blanked rather than merely ignored.
+          # One method, whichever this repository is provisioned for, and
+          # OP_WORKLOAD_ID alone decides which. The action refuses two
+          # methods at once, and it refuses a *partial* Workload Identity
+          # configuration just as hard — `getWorkloadIdentityConfig` throws
+          # unless all three of the variables below are set or none of them
+          # are. So every one of the four is blanked by the same switch
+          # rather than merely left to be ignored: a repository that has
+          # OP_INTEGRATION_KEY sitting in its secrets for later would
+          # otherwise fail this step the moment it was added.
           #
-          # Workload Identity does not resolve the op:// references under
-          # it: it pulls every variable of OP_ENVIRONMENT_ID and publishes
-          # each under its own name. That environment therefore has to name
-          # its variables exactly as the review step reads them below —
-          # ANTHROPIC_AUTH_TOKEN, TRIBUNAL_GH_APP_KEY and the rest. The
-          # op:// lines are what the service-account path uses instead.
+          # Workload Identity resolves none of the op:// references below.
+          # It exchanges the runner's OIDC token and publishes every
+          # variable of OP_ENVIRONMENT_ID under that variable's own name, so
+          # the environment has to name its variables as the step that
+          # reads them expects. The op:// lines are the service account's
+          # path, and inert under Workload Identity.
           OP_WORKLOAD_ID: ${{ vars.OP_WORKLOAD_ID }}
-          OP_ENVIRONMENT_ID: ${{ vars.OP_ENVIRONMENT_ID }}
-          OP_INTEGRATION_KEY: ${{ secrets.OP_INTEGRATION_KEY }}
+          OP_ENVIRONMENT_ID: ${{ vars.OP_WORKLOAD_ID != '' && vars.OP_ENVIRONMENT_ID || '' }}
+          OP_INTEGRATION_KEY: ${{ vars.OP_WORKLOAD_ID != '' && secrets.OP_INTEGRATION_KEY || '' }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ vars.OP_WORKLOAD_ID == '' && secrets.OP_SERVICE_ACCOUNT_TOKEN || '' }}
           ANTHROPIC_AUTH_TOKEN: op://AgentVault/tribunal-llm/anthropic-auth-token
           ANTHROPIC_BASE_URL: op://AgentVault/tribunal-llm/anthropic-base-url
@@ -167,6 +200,11 @@ jobs:
           PR: ${{ github.event.pull_request.number || github.event.issue.number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ADDITIONAL_BOT_REVIEWERS: ${{ vars.ADDITIONAL_BOT_REVIEWERS }}
+          # The login tribunal treats as its own. It is normally the
+          # App's slug, read at runtime; this is the documented fallback
+          # for when that read fails, and without it here the variable
+          # the README asks for reaches only the workflow's `if`.
+          TRIBUNAL_BOT_LOGIN: ${{ vars.TRIBUNAL_BOT_LOGIN }}
           TRIBUNAL_ROLE_MODELS: ${{ vars.TRIBUNAL_ROLE_MODELS }}
           ANTHROPIC_AUTH_TOKEN: ${{ steps.op.outputs.ANTHROPIC_AUTH_TOKEN }}
           ANTHROPIC_BASE_URL: ${{ steps.op.outputs.ANTHROPIC_BASE_URL }}
