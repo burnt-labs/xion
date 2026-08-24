@@ -1889,6 +1889,7 @@ func TestQueryProofVerifyUltraHonk_VkeyDigestEcho(t *testing.T) {
 			VkeyName:     "ultrahonk_circuit",
 		})
 		require.NoError(t, err)
+		require.NotNil(t, resp)
 		require.True(t, resp.Verified)
 		require.Equal(t, want[:], resp.VkeySha256,
 			"a consumer must be able to learn which key answered even without pinning")
@@ -1903,6 +1904,7 @@ func TestQueryProofVerifyUltraHonk_VkeyDigestEcho(t *testing.T) {
 			ExpectedVkeySha256: want[:],
 		})
 		require.NoError(t, err)
+		require.NotNil(t, resp)
 		require.True(t, resp.Verified)
 		require.Equal(t, want[:], resp.VkeySha256)
 	})
@@ -1921,6 +1923,7 @@ func TestQueryProofVerifyUltraHonk_VkeyDigestEcho(t *testing.T) {
 		// The caller asked whether this proof verifies under the key it pinned.
 		// It does not, and that is an answer rather than a malformed request.
 		require.NoError(t, err)
+		require.NotNil(t, resp)
 		require.False(t, resp.Verified)
 		require.Equal(t, want[:], resp.VkeySha256,
 			"the real digest is still returned so the caller can see what it got")
