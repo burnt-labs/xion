@@ -41,6 +41,7 @@ jobs:
     runs-on: ubicloud-standard-2
     timeout-minutes: 15
     permissions:
+      id-token: write        # the OIDC token Workload Identity exchanges
       contents: write        # append to the data branch
       pull-requests: write   # read comments, rewrite their controls
       packages: read
@@ -66,16 +67,23 @@ jobs:
       # never calls a model, and it has the widest trigger in the system.
       - name: Load the App identity
         id: op
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
+        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
         with:
           export-env: false
         env:
-          # Either name: burnt-labs already keeps a 1Password key as
-          # OP_INTEGRATION_KEY, and tribunal's own repository calls the
-          # same thing OP_SERVICE_ACCOUNT_TOKEN. Whichever this
-          # repository is given wins; the action wants a service account
-          # token either way.
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN || secrets.OP_INTEGRATION_KEY }}
+          # Workload Identity, or a service account, and never both — the
+          # action fails the run outright when two methods are configured.
+          #
+          # This job wants the App identity and nothing else, and Workload
+          # Identity has no per-secret selection: it publishes every
+          # variable in the environment it is pointed at. Point it at a
+          # narrower one through OP_IDENTITY_ENVIRONMENT_ID — holding the
+          # three TRIBUNAL_GH_APP_* variables alone — and this job keeps the
+          # credential surface the op:// lines below give it.
+          OP_WORKLOAD_ID: ${{ vars.OP_WORKLOAD_ID }}
+          OP_ENVIRONMENT_ID: ${{ vars.OP_IDENTITY_ENVIRONMENT_ID || vars.OP_ENVIRONMENT_ID }}
+          OP_INTEGRATION_KEY: ${{ secrets.OP_INTEGRATION_KEY }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ vars.OP_WORKLOAD_ID == '' && secrets.OP_SERVICE_ACCOUNT_TOKEN || '' }}
           TRIBUNAL_GH_APP_ID: op://AgentVault/tribunal-github-app/client-id
           TRIBUNAL_GH_APP_INSTALLATION: op://AgentVault/tribunal-github-app/installation-id
           TRIBUNAL_GH_APP_KEY: op://AgentVault/tribunal-github-app/private-key

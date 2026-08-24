@@ -2,11 +2,17 @@
 # burnt-tribunal App: one review, each fix offered as a committable
 # GitHub suggestion. Source and documentation: burnt-labs/tribunal.
 #
-# Needs three things on this repository: a 1Password service account token
-# — as OP_SERVICE_ACCOUNT_TOKEN or OP_INTEGRATION_KEY, whichever name the
-# org shares here, since every other credential is read through it — pull
-# access to the ghcr.io/burnt-labs/tribunal package, and, for the mention
-# trigger, the TRIBUNAL_MENTION variable.
+# Needs three things on this repository:
+#
+#  1. 1Password credentials, in one of the two shapes the action takes.
+#     Workload Identity — vars OP_WORKLOAD_ID and OP_ENVIRONMENT_ID, secret
+#     OP_INTEGRATION_KEY — exchanges this job's OIDC token and leaves no
+#     long-lived credential in the repository, which is the shape to prefer
+#     on a public one. A service account token (OP_SERVICE_ACCOUNT_TOKEN)
+#     is the other. Never both: the action fails a run that has two.
+#  2. Pull access to the ghcr.io/burnt-labs/tribunal package, which the
+#     container is pulled with this repository's own GITHUB_TOKEN.
+#  3. The TRIBUNAL_MENTION variable, for the mention trigger.
 name: Tribunal review
 on:
   pull_request:
@@ -74,6 +80,7 @@ jobs:
     runs-on: ubicloud-standard-8
     timeout-minutes: 45
     permissions:
+      id-token: write        # the OIDC token Workload Identity exchanges
       contents: write        # push the mediator's conflict resolution
       pull-requests: write   # post the review and its suggestions
       packages: read         # pull the private container image
@@ -121,7 +128,7 @@ jobs:
       - name: Load LLM credentials
         id: op
         if: steps.pr.outputs.review == 'true'
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2.0.0
+        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
         with:
           # Step outputs, not $GITHUB_ENV: exporting put the LLM
           # tokens in the environment of every later step in the job,
@@ -129,12 +136,21 @@ jobs:
           # checkout of the code under review.
           export-env: false
         env:
-          # Either name: burnt-labs already keeps a 1Password key as
-          # OP_INTEGRATION_KEY, and tribunal's own repository calls the
-          # same thing OP_SERVICE_ACCOUNT_TOKEN. Whichever this
-          # repository is given wins; the action wants a service account
-          # token either way.
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN || secrets.OP_INTEGRATION_KEY }}
+          # Workload Identity, or a service account, and never both — the
+          # action fails the run outright when two methods are configured.
+          # OP_WORKLOAD_ID being set is what decides it, which is why the
+          # token below is blanked rather than merely ignored.
+          #
+          # Workload Identity does not resolve the op:// references under
+          # it: it pulls every variable of OP_ENVIRONMENT_ID and publishes
+          # each under its own name. That environment therefore has to name
+          # its variables exactly as the review step reads them below —
+          # ANTHROPIC_AUTH_TOKEN, TRIBUNAL_GH_APP_KEY and the rest. The
+          # op:// lines are what the service-account path uses instead.
+          OP_WORKLOAD_ID: ${{ vars.OP_WORKLOAD_ID }}
+          OP_ENVIRONMENT_ID: ${{ vars.OP_ENVIRONMENT_ID }}
+          OP_INTEGRATION_KEY: ${{ secrets.OP_INTEGRATION_KEY }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ vars.OP_WORKLOAD_ID == '' && secrets.OP_SERVICE_ACCOUNT_TOKEN || '' }}
           ANTHROPIC_AUTH_TOKEN: op://AgentVault/tribunal-llm/anthropic-auth-token
           ANTHROPIC_BASE_URL: op://AgentVault/tribunal-llm/anthropic-base-url
           OPENAI_API_KEY: op://AgentVault/tribunal-llm/openai-api-key
