@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/gogoproto/proto"
 
 	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
