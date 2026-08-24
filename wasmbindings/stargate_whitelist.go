@@ -99,7 +99,7 @@ func init() {
 	// record's authority, or hash key_bytes itself, rather than trusting the
 	// binding blindly. Read-only over public registry state.
 	setWhitelistedQuery("/xion.zk.v1.Query/VKey", func() proto.Message { return &zktypes.QueryVKeyResponse{} })
-	setWhitelistedQuery("/xion.zk.v1.Query/VKeyByName", func() proto.Message { return &zktypes.QueryVKeyResponse{} })
+	setWhitelistedQuery("/xion.zk.v1.Query/VKeyByName", func() proto.Message { return &zktypes.QueryVKeyByNameResponse{} })
 }
 
 // ProtoMessageFactory is a function that creates a new proto.Message instance.
