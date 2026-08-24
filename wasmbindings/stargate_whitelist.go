@@ -92,6 +92,14 @@ func init() {
 	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerify", func() proto.Message { return &zktypes.ProofVerifyResponse{} })
 	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerifyUltraHonk", func() proto.Message { return &zktypes.ProofVerifyUltraHonkResponse{} })
 	setWhitelistedQuery("/xion.zk.v1.Query/ProofVerifyGnark", func() proto.Message { return &zktypes.ProofVerifyGnarkResponse{} })
+	// Registry reads. A contract that pins a vkey by name or id cannot otherwise
+	// establish WHICH key answered: AddVKey is permissionless and stores the
+	// caller as the key's authority, so a name can be repointed and an id's
+	// bytes replaced in place by that authority. These let a consumer check the
+	// record's authority, or hash key_bytes itself, rather than trusting the
+	// binding blindly. Read-only over public registry state.
+	setWhitelistedQuery("/xion.zk.v1.Query/VKey", func() proto.Message { return &zktypes.QueryVKeyResponse{} })
+	setWhitelistedQuery("/xion.zk.v1.Query/VKeyByName", func() proto.Message { return &zktypes.QueryVKeyResponse{} })
 }
 
 // ProtoMessageFactory is a function that creates a new proto.Message instance.
