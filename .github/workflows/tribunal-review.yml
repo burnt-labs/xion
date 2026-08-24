@@ -2,10 +2,11 @@
 # burnt-tribunal App: one review, each fix offered as a committable
 # GitHub suggestion. Source and documentation: burnt-labs/tribunal.
 #
-# Needs, on this repository: the OP_SERVICE_ACCOUNT_TOKEN secret (every
-# other credential is read from 1Password through it), pull access to the
-# ghcr.io/burnt-labs/tribunal package, and — for the mention trigger —
-# the TRIBUNAL_MENTION variable.
+# Needs three things on this repository: a 1Password service account token
+# — as OP_SERVICE_ACCOUNT_TOKEN or OP_INTEGRATION_KEY, whichever name the
+# org shares here, since every other credential is read through it — pull
+# access to the ghcr.io/burnt-labs/tribunal package, and, for the mention
+# trigger, the TRIBUNAL_MENTION variable.
 name: Tribunal review
 on:
   pull_request:
@@ -128,7 +129,12 @@ jobs:
           # checkout of the code under review.
           export-env: false
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # Either name: burnt-labs already keeps a 1Password key as
+          # OP_INTEGRATION_KEY, and tribunal's own repository calls the
+          # same thing OP_SERVICE_ACCOUNT_TOKEN. Whichever this
+          # repository is given wins; the action wants a service account
+          # token either way.
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN || secrets.OP_INTEGRATION_KEY }}
           ANTHROPIC_AUTH_TOKEN: op://AgentVault/tribunal-llm/anthropic-auth-token
           ANTHROPIC_BASE_URL: op://AgentVault/tribunal-llm/anthropic-base-url
           OPENAI_API_KEY: op://AgentVault/tribunal-llm/openai-api-key

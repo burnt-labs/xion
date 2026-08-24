@@ -70,7 +70,12 @@ jobs:
         with:
           export-env: false
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # Either name: burnt-labs already keeps a 1Password key as
+          # OP_INTEGRATION_KEY, and tribunal's own repository calls the
+          # same thing OP_SERVICE_ACCOUNT_TOKEN. Whichever this
+          # repository is given wins; the action wants a service account
+          # token either way.
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN || secrets.OP_INTEGRATION_KEY }}
           TRIBUNAL_GH_APP_ID: op://AgentVault/tribunal-github-app/client-id
           TRIBUNAL_GH_APP_INSTALLATION: op://AgentVault/tribunal-github-app/installation-id
           TRIBUNAL_GH_APP_KEY: op://AgentVault/tribunal-github-app/private-key
