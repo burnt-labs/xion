@@ -5,7 +5,10 @@ import (
 	"testing"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
+
+	zktypes "github.com/burnt-labs/xion/x/zk/types"
 )
 
 // TestDeterministicPathsStillAllowed verifies that deterministic query paths remain whitelisted
@@ -142,4 +145,28 @@ func TestGetWhitelistedQueryErrorPaths(t *testing.T) {
 		_, ok := err.(wasmvmtypes.Unknown)
 		require.True(t, ok, "Expected wasmvmtypes.Unknown error type")
 	})
+}
+
+// TestZKRegistryReadResponseTypes pins the whitelisted response types for the
+// x/zk registry reads to the RPCs' declared response types. Protobuf decoding
+// through a wrong but field-compatible type silently drops fields rather than
+// erroring: VKeyByName carries the resolved numeric id in field 2, which does
+// not exist in QueryVKeyResponse, so a contract resolving a name would receive
+// key material with no id and nothing would fail loudly.
+func TestZKRegistryReadResponseTypes(t *testing.T) {
+	wire, err := proto.Marshal(&zktypes.QueryVKeyByNameResponse{Id: 73})
+	require.NoError(t, err)
+
+	msg, err := GetWhitelistedQuery("/xion.zk.v1.Query/VKeyByName")
+	require.NoError(t, err)
+	require.NoError(t, proto.Unmarshal(wire, msg))
+
+	byName, ok := msg.(*zktypes.QueryVKeyByNameResponse)
+	require.True(t, ok, "VKeyByName must decode into QueryVKeyByNameResponse, its declared response type")
+	require.EqualValues(t, 73, byName.Id, "the resolved id must survive decoding")
+
+	msg, err = GetWhitelistedQuery("/xion.zk.v1.Query/VKey")
+	require.NoError(t, err)
+	_, ok = msg.(*zktypes.QueryVKeyResponse)
+	require.True(t, ok, "VKey must decode into QueryVKeyResponse, its declared response type")
 }
