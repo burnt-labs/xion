@@ -12,8 +12,12 @@
 #     is the other. Set OP_WORKLOAD_ID to switch: it is the single variable
 #     every other credential here is gated on, because the action refuses
 #     two methods at once and refuses half of one just as hard.
-#  2. Pull access to the ghcr.io/burnt-labs/tribunal package, which the
-#     container is pulled with this repository's own GITHUB_TOKEN.
+#  2. Pull access to the ghcr.io/burnt-labs/tribunal package. Either the
+#     organisation shares a read:packages credential as the GHCR_READ_TOKEN
+#     secret, which the container credentials below prefer and which covers
+#     every repository at once, or this repository is added by name under
+#     the package's Manage Actions access. Without one of the two the job
+#     fails at container init, before a step runs.
 #  3. The TRIBUNAL_MENTION variable, for the mention trigger.
 name: Tribunal review
 on:
@@ -105,8 +109,16 @@ jobs:
     container:
       image: ghcr.io/burnt-labs/tribunal:latest
       credentials:
+        # GITHUB_TOKEN can pull this package only from the repository the
+        # package is linked to; anywhere else it is refused at the pull,
+        # before a step runs. GHCR_READ_TOKEN — an organisation secret
+        # holding a read:packages token — is what lets every other
+        # repository pull it, present and future, since Actions access is a
+        # list of named repositories with no org-wide grant behind it.
+        # Unset, this is the ambient token and nothing changes. ghcr.io
+        # authenticates on the token alone, so the username stands.
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.GHCR_READ_TOKEN || secrets.GITHUB_TOKEN }}
     steps:
       # The head the run is about. `pull_request` carries it in the payload;
       # `issue_comment` carries no head at all — as far as that event is

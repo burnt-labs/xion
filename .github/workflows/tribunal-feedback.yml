@@ -48,8 +48,16 @@ jobs:
     container:
       image: ghcr.io/burnt-labs/tribunal:latest
       credentials:
+        # GITHUB_TOKEN can pull this package only from the repository the
+        # package is linked to; anywhere else it is refused at the pull,
+        # before a step runs. GHCR_READ_TOKEN — an organisation secret
+        # holding a read:packages token — is what lets every other
+        # repository pull it, present and future, since Actions access is a
+        # list of named repositories with no org-wide grant behind it.
+        # Unset, this is the ambient token and nothing changes. ghcr.io
+        # authenticates on the token alone, so the username stands.
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.GHCR_READ_TOKEN || secrets.GITHUB_TOKEN }}
     steps:
       # The base branch, which is what the default ref gives a
       # pull_request_target run. Never add `ref: ...head.sha` here: that is
