@@ -2,6 +2,7 @@
 package keeper_test
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -1862,4 +1863,118 @@ func TestQueryProofVerifyUltraHonk_WrongInputsReturnsFalse(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.False(t, resp.Verified, "proof with wrong inputs should not verify")
+}
+
+// TestQueryProofVerifyUltraHonk_VkeyDigestEcho covers the key-identity gate.
+//
+// A vkey NAME is a mutable binding and an ID's contents are mutable in place:
+// AddVKey is permissionless, and the owner may later UpdateVKey the bytes under
+// the same name and ID. So `verified` alone never told a consumer that the
+// verification used the key material it reviewed. These cases pin the echo and
+// the optional pin that close that gap.
+func TestQueryProofVerifyUltraHonk_VkeyDigestEcho(t *testing.T) {
+	vkBytes, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+
+	want := sha256.Sum256(vkBytes)
+
+	t.Run("digest is echoed when no pin is sent", func(t *testing.T) {
+		requireRealBarretenberg(t)
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_circuit",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified)
+		require.Equal(t, want[:], resp.VkeySha256,
+			"a consumer must be able to learn which key answered even without pinning")
+	})
+
+	t.Run("matching pin verifies", func(t *testing.T) {
+		requireRealBarretenberg(t)
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes,
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: want[:],
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified)
+		require.Equal(t, want[:], resp.VkeySha256)
+	})
+
+	t.Run("mismatched pin is a false verdict, not an error", func(t *testing.T) {
+		wrong := make([]byte, sha256.Size)
+		copy(wrong, want[:])
+		wrong[0] ^= 0x01
+
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes,
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: wrong,
+		})
+		// The caller asked whether this proof verifies under the key it pinned.
+		// It does not, and that is an answer rather than a malformed request.
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.False(t, resp.Verified)
+		require.Equal(t, want[:], resp.VkeySha256,
+			"the real digest is still returned so the caller can see what it got")
+	})
+
+	t.Run("wrong-length pin is rejected", func(t *testing.T) {
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes,
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: []byte{0xde, 0xad},
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+	})
+
+	t.Run("malformed public_inputs with a pin is an error, not a verdict", func(t *testing.T) {
+		wrong := make([]byte, sha256.Size)
+		copy(wrong, want[:])
+		wrong[0] ^= 0x01
+
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes[:len(publicInputsBytes)-1],
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: wrong,
+		})
+		// Request validity is independent of pin usage: shape validation runs
+		// before the key-identity gate, so a malformed request is an error
+		// whether or not a pin was sent, and whether or not it would match.
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.ErrorContains(t, err, "not a multiple")
+	})
+
+	// The attack the echo exists to stop is a swap to DIFFERENT VALID key
+	// material under the same name and id. Modelling it needs a second valid
+	// UltraHonk vkey, and testdata/barretenberg ships only one; a bit-flipped
+	// copy is rejected by ValidateVKeyForProofSystem as malformed, so it cannot
+	// stand in. The "mismatched pin" case above already pins the security
+	// property (stored digest != caller's pin => verified false), which is what
+	// makes the swap detectable. Add the end-to-end swap case alongside a second
+	// fixture.
+}
+
+// requireRealBarretenberg skips a case that needs a genuine verification verdict.
+// The pin gate runs before any Barretenberg call, so pin-rejection cases do not
+// need this and must keep running under the stub library.
+func requireRealBarretenberg(t *testing.T) {
+	t.Helper()
+	if strings.HasPrefix(barretenberg.Version(), "stub") {
+		t.Skip("stub library does not perform real verification; build the real library to cover this case")
+	}
 }
