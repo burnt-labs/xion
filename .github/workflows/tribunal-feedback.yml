@@ -34,10 +34,30 @@ jobs:
     # Never tribunal's own comment edits: posting as an App does trigger
     # workflows, unlike GITHUB_TOKEN, and every re-review rewrites the
     # summary.
+    #
+    # The marker alone is not a gate: anybody can post a comment carrying it
+    # and then edit it, and that starts a job holding the App key and
+    # `contents: write`. The controls this job acts on live only in comments
+    # tribunal wrote, so the author is checked too — a Bot-typed account,
+    # which nothing but an App can post as, narrowed to tribunal's own login
+    # wherever TRIBUNAL_BOT_LOGIN names it. Unset, an expression cannot
+    # resolve the App's slug, so the type test stands alone rather than a
+    # guessed default silently skipping every rejection. Editing somebody
+    # else's comment takes write access, so what is left through this branch
+    # is the checkbox tick and very little else.
+    #
+    # `issue_comment` also fires on plain issues, which have no pull request
+    # to record a decision against; the review-comment event carries no
+    # `issue` at all and is a pull request by construction.
     if: >-
       github.event_name == 'pull_request_target' ||
       (contains(github.event.comment.body, 'tribunal:v1') &&
-       github.event.sender.type != 'Bot')
+       github.event.comment.user.type == 'Bot' &&
+       (vars.TRIBUNAL_BOT_LOGIN == '' ||
+        github.event.comment.user.login == vars.TRIBUNAL_BOT_LOGIN) &&
+       github.event.sender.type != 'Bot' &&
+       (github.event_name == 'pull_request_review_comment' ||
+        github.event.issue.pull_request))
     runs-on: ubicloud-standard-2
     timeout-minutes: 15
     permissions:
