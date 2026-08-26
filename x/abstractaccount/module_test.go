@@ -7,6 +7,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -17,12 +21,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/require"
 
-	"github.com/burnt-labs/xion/x/abstractaccount/simapp"
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount"
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	"github.com/burnt-labs/xion/x/abstractaccount/testdata"
@@ -42,15 +42,18 @@ func postTerminator(ctx sdk.Context, _ sdk.Tx, _ bool, _ bool) (sdk.Context, err
 	return ctx, nil
 }
 
-func makeBeforeTxDecorator(app *simapp.SimApp) abstractaccount.BeforeTxDecorator {
+func makeBeforeTxDecorator(app *xionapp.WasmApp) abstractaccount.BeforeTxDecorator {
 	return abstractaccount.NewBeforeTxDecorator(app.AbstractAccountKeeper, app.AccountKeeper, app.TxConfig().SignModeHandler())
 }
 
-func makeAfterTxDecorator(app *simapp.SimApp) abstractaccount.AfterTxDecorator {
+func makeAfterTxDecorator(app *xionapp.WasmApp) abstractaccount.AfterTxDecorator {
 	return abstractaccount.NewAfterTxDecorator(app.AbstractAccountKeeper)
 }
 
-func makeMockAccount(keybase keyring.Keyring, uid string, number uint64) (sdk.AccountI, error) {
+// makeMockAccount creates a key in the keybase and a base account for it. The
+// account number is drawn from the app, so the account can be stored next to the
+// ones genesis already created without colliding with them.
+func makeMockAccount(app *xionapp.WasmApp, ctx sdk.Context, keybase keyring.Keyring, uid string) (sdk.AccountI, error) {
 	record, _, err := keybase.NewMnemonic(
 		uid,
 		keyring.English,
@@ -67,7 +70,7 @@ func makeMockAccount(keybase keyring.Keyring, uid string, number uint64) (sdk.Ac
 		return nil, err
 	}
 
-	return authtypes.NewBaseAccount(pk.Address().Bytes(), pk, number, 0), nil
+	return authtypes.NewBaseAccount(pk.Address().Bytes(), pk, app.AccountKeeper.NextAccountNumber(ctx), 0), nil
 }
 
 type Signer struct {
@@ -96,7 +99,7 @@ func (s *Signer) Sequence() uint64 {
 // Logics in this function is mostly copied from:
 // cosmos/cosmos-sdk/x/auth/ante/testutil_test.go/CreateTestTx
 func prepareTx(
-	ctx sdk.Context, app *simapp.SimApp, keybase keyring.Keyring,
+	ctx sdk.Context, app *xionapp.WasmApp, keybase keyring.Keyring,
 	msgs []sdk.Msg, signers []Signer, chainID string,
 	sign bool,
 ) (authsigning.Tx, error) {
@@ -174,7 +177,7 @@ func prepareTx(
 }
 
 func storeCodeAndRegisterAccount(
-	ctx sdk.Context, app *simapp.SimApp, senderAddr sdk.AccAddress,
+	ctx sdk.Context, app *xionapp.WasmApp, senderAddr sdk.AccAddress,
 	_ []byte, msg interface{}, funds sdk.Coins,
 ) (*types.AbstractAccount, error) {
 	k := app.AbstractAccountKeeper
@@ -283,7 +286,7 @@ func TestAppModuleBasic(t *testing.T) {
 }
 
 func TestAppModule(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	k := app.AbstractAccountKeeper
@@ -307,7 +310,7 @@ func TestAppModule(t *testing.T) {
 }
 
 func TestAppModuleRegisterServices(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	k := app.AbstractAccountKeeper
 	appModule := abstractaccount.NewAppModule(k)
 
@@ -325,7 +328,7 @@ func TestAppModuleRegisterServices(t *testing.T) {
 }
 
 func TestAppModuleInitGenesisInvalid(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	k := app.AbstractAccountKeeper

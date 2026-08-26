@@ -7,17 +7,18 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
-	"github.com/stretchr/testify/require"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	wasmtestdata "github.com/CosmWasm/wasmd/x/wasm/keeper/testdata"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/stretchr/testify/require"
 
-	"github.com/burnt-labs/xion/x/abstractaccount/simapp"
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	"cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	"github.com/burnt-labs/xion/x/abstractaccount/testdata"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
@@ -28,9 +29,11 @@ type AccountInitMsg struct {
 }
 
 var (
-	user                  = simapptesting.MakeRandomAddress()
-	userInitialBalance    = sdk.NewCoins(sdk.NewCoin(simapptesting.DefaultBondDenom, math.NewInt(123456)))
-	acctRegisterFunds     = sdk.NewCoins(sdk.NewCoin(simapptesting.DefaultBondDenom, math.NewInt(88888)))
+	// the abstract account keeper takes the gov module account as its authority
+	authority             = authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	user                  = xionapp.RandomAccAddress()
+	userInitialBalance    = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(123456)))
+	acctRegisterFunds     = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(88888)))
 	addressDerivationHash = bytes.Repeat([]byte{0xA5}, wasmtypes.ContractAddrLen)
 )
 
@@ -51,18 +54,18 @@ func TestUpdateParams(t *testing.T) {
 		},
 		{
 			desc:      "invalid params",
-			sender:    simapp.Authority,
+			sender:    authority,
 			newParams: &types.Params{MaxGasBefore: 88888, MaxGasAfter: 0},
 			expErr:    true,
 		},
 		{
 			desc:      "sender is authority and params are valid",
-			sender:    simapp.Authority,
+			sender:    authority,
 			newParams: &types.Params{MaxGasBefore: 88888, MaxGasAfter: 99999},
 			expErr:    false,
 		},
 	} {
-		app := simapptesting.MakeMockApp(t, []banktypes.Balance{})
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		msgServer := keeper.NewMsgServerImpl(app.AbstractAccountKeeper)
@@ -89,7 +92,7 @@ func TestUpdateParams(t *testing.T) {
 }
 
 func TestUpdateParamsAddressDerivationHash(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 	k := app.AbstractAccountKeeper
 
@@ -97,7 +100,7 @@ func TestUpdateParamsAddressDerivationHash(t *testing.T) {
 
 	invalidHash := types.DefaultParams()
 	invalidHash.AddressDerivationHash = []byte("too-short")
-	_, err := msgServer.UpdateParams(ctx, &types.MsgUpdateParams{Sender: simapp.Authority, Params: invalidHash})
+	_, err := msgServer.UpdateParams(ctx, &types.MsgUpdateParams{Sender: authority, Params: invalidHash})
 	require.ErrorIs(t, err, types.ErrInvalidAddressDerivationHash)
 
 	configured, err := types.NewParamsWithAddressDerivationHash(
@@ -108,17 +111,17 @@ func TestUpdateParamsAddressDerivationHash(t *testing.T) {
 		addressDerivationHash,
 	)
 	require.NoError(t, err)
-	_, err = msgServer.UpdateParams(ctx, &types.MsgUpdateParams{Sender: simapp.Authority, Params: configured})
+	_, err = msgServer.UpdateParams(ctx, &types.MsgUpdateParams{Sender: authority, Params: configured})
 	require.NoError(t, err)
 
 	changedHash := *configured
 	changedHash.AddressDerivationHash = bytes.Repeat([]byte{0xB6}, wasmtypes.ContractAddrLen)
-	_, err = msgServer.UpdateParams(ctx, &types.MsgUpdateParams{Sender: simapp.Authority, Params: &changedHash})
+	_, err = msgServer.UpdateParams(ctx, &types.MsgUpdateParams{Sender: authority, Params: &changedHash})
 	require.ErrorIs(t, err, types.ErrImmutableAddressHash)
 }
 
 func TestRegistrationPausePreservesAddressQueries(t *testing.T) {
-	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
+	app := xionapp.SetupWithBalances(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -145,7 +148,7 @@ func TestRegistrationPausePreservesAddressQueries(t *testing.T) {
 	paused := *params
 	paused.RegistrationEnabled = false
 	_, err = msgServer.UpdateParams(ctx, &types.MsgUpdateParams{
-		Sender: simapp.Authority,
+		Sender: authority,
 		Params: &paused,
 	})
 	require.NoError(t, err)
@@ -174,7 +177,7 @@ func TestRegistrationPausePreservesAddressQueries(t *testing.T) {
 	resumed := paused
 	resumed.RegistrationEnabled = true
 	_, err = msgServer.UpdateParams(ctx, &types.MsgUpdateParams{
-		Sender: simapp.Authority,
+		Sender: authority,
 		Params: &resumed,
 	})
 	require.NoError(t, err)
@@ -204,7 +207,7 @@ func TestRegisterAccount(t *testing.T) {
 			allowedCodeIDs:  []uint64{1, 69, 420},
 		},
 	} {
-		app := simapptesting.MakeMockApp(t, []banktypes.Balance{
+		app := xionapp.SetupWithBalances(t, []banktypes.Balance{
 			{
 				Address: user.String(),
 				Coins:   userInitialBalance,
@@ -253,7 +256,7 @@ func TestRegisterAccount(t *testing.T) {
 }
 
 func TestRegisterAccountUsesFixedAddressHashAndRegistry(t *testing.T) {
-	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
+	app := xionapp.SetupWithBalances(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -286,7 +289,7 @@ func TestRegisterAccountUsesFixedAddressHashAndRegistry(t *testing.T) {
 	require.Equal(t, predicted.String(), before.Address)
 	require.False(t, before.Registered)
 
-	msgBytes, err := json.Marshal(&AccountInitMsg{PubKey: simapptesting.MakeRandomPubKey().Bytes()})
+	msgBytes, err := json.Marshal(&AccountInitMsg{PubKey: xionapp.RandomPubKey().Bytes()})
 	require.NoError(t, err)
 	res, err := keeper.NewMsgServerImpl(k).RegisterAccount(ctx, &types.MsgRegisterAccount{
 		Sender: user.String(),
@@ -324,7 +327,7 @@ func TestRegisterAccountUsesFixedAddressHashAndRegistry(t *testing.T) {
 }
 
 func TestRegisterAccountInstantiationFailureIsAtomic(t *testing.T) {
-	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
+	app := xionapp.SetupWithBalances(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -359,7 +362,7 @@ func TestRegisterAccountInstantiationFailureIsAtomic(t *testing.T) {
 }
 
 func TestRegisterAccountDirectlyInstantiatesCallerSelectedAllowedCodeID(t *testing.T) {
-	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
+	app := xionapp.SetupWithBalances(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -410,7 +413,7 @@ func TestRegisterAccountAddressDoesNotDependOnCodeID(t *testing.T) {
 	}
 	register := func(t *testing.T, useReflect bool) result {
 		t.Helper()
-		app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
+		app := xionapp.SetupWithBalances(t, []banktypes.Balance{{
 			Address: user.String(),
 			Coins:   userInitialBalance,
 		}})
@@ -454,7 +457,7 @@ func TestRegisterAccountAddressDoesNotDependOnCodeID(t *testing.T) {
 }
 
 func TestRegisterAccountRejectsInvalidRequestedImplementationsBeforeInstantiation(t *testing.T) {
-	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
+	app := xionapp.SetupWithBalances(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -502,7 +505,7 @@ func TestRegisterAccountRejectsInvalidRequestedImplementationsBeforeInstantiatio
 }
 
 func TestAccountAddressRecognizesCanonicalPreRegistryAccount(t *testing.T) {
-	app := simapptesting.MakeMockApp(t, []banktypes.Balance{{
+	app := xionapp.SetupWithBalances(t, []banktypes.Balance{{
 		Address: user.String(),
 		Coins:   userInitialBalance,
 	}})
@@ -518,7 +521,7 @@ func TestAccountAddressRecognizesCanonicalPreRegistryAccount(t *testing.T) {
 	require.NoError(t, k.SetParams(ctx, params))
 
 	salt := []byte("historical-account")
-	msgBytes, err := json.Marshal(&AccountInitMsg{PubKey: simapptesting.MakeRandomPubKey().Bytes()})
+	msgBytes, err := json.Marshal(&AccountInitMsg{PubKey: xionapp.RandomPubKey().Bytes()})
 	require.NoError(t, err)
 	address, _, err := k.ContractKeeper().Instantiate2WithAddressHash(
 		ctx,
@@ -557,7 +560,7 @@ func storeCode(ctx sdk.Context, contractKeeper wasmtypes.ContractOpsKeeper) (uin
 
 func registerAccount(ctx sdk.Context, msgServer types.MsgServer, codeID uint64) (sdk.AccAddress, error) {
 	msgBytes, err := json.Marshal(&AccountInitMsg{
-		PubKey: simapptesting.MakeRandomPubKey().Bytes(),
+		PubKey: xionapp.RandomPubKey().Bytes(),
 	})
 	if err != nil {
 		return nil, err
@@ -579,7 +582,7 @@ func registerAccount(ctx sdk.Context, msgServer types.MsgServer, codeID uint64) 
 
 func mustMarshalAccountInitMsg(t *testing.T) []byte {
 	t.Helper()
-	msgBytes, err := json.Marshal(&AccountInitMsg{PubKey: simapptesting.MakeRandomPubKey().Bytes()})
+	msgBytes, err := json.Marshal(&AccountInitMsg{PubKey: xionapp.RandomPubKey().Bytes()})
 	require.NoError(t, err)
 
 	return msgBytes
@@ -598,7 +601,7 @@ func mustMarshalReflectInitMsg(t *testing.T, reflectCodeID uint64) []byte {
 // ----------------------------- Additional Tests for 100% Coverage -----------------------------
 
 func TestRegisterAccountErrors(t *testing.T) {
-	app := simapptesting.MakeMockApp(t, []banktypes.Balance{
+	app := xionapp.SetupWithBalances(t, []banktypes.Balance{
 		{
 			Address: user.String(),
 			Coins:   userInitialBalance,
@@ -624,7 +627,7 @@ func TestRegisterAccountErrors(t *testing.T) {
 	// Test case 1: Invalid sender address
 	t.Run("invalid sender address", func(t *testing.T) {
 		msgBytes, err := json.Marshal(&AccountInitMsg{
-			PubKey: simapptesting.MakeRandomPubKey().Bytes(),
+			PubKey: xionapp.RandomPubKey().Bytes(),
 		})
 		require.NoError(t, err)
 
@@ -641,7 +644,7 @@ func TestRegisterAccountErrors(t *testing.T) {
 	// Test case 2: code ID outside the allowlist
 	t.Run("code ID not allowed", func(t *testing.T) {
 		msgBytes, err := json.Marshal(&AccountInitMsg{
-			PubKey: simapptesting.MakeRandomPubKey().Bytes(),
+			PubKey: xionapp.RandomPubKey().Bytes(),
 		})
 		require.NoError(t, err)
 

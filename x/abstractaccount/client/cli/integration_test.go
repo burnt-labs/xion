@@ -8,21 +8,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/burnt-labs/xion/x/abstractaccount/simapp"
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	xionapp "github.com/burnt-labs/xion/app"
 	cli "github.com/burnt-labs/xion/x/abstractaccount/client/cli"
 )
 
 // TestQueryParamsIntegration tests the queryParams function with a real client context
 func TestQueryParamsIntegration(t *testing.T) {
-	// Create mock app with cleanup
-	_, cleanup := simapptesting.MakeMockAppWithCleanup([]banktypes.Balance{})
-	defer cleanup()
-
-	// Create encoding config
-	encCfg := simapp.MakeEncodingConfig()
+	encCfg := xionapp.MakeEncodingConfig(t)
 
 	// Create client context
 	clientCtx := client.Context{}.
@@ -86,10 +79,6 @@ func TestQueryParamsIntegration(t *testing.T) {
 
 // TestQueryCmdStructureIntegration tests the full command structure with proper client context
 func TestQueryCmdStructureIntegration(t *testing.T) {
-	// Create mock app
-	_, cleanup := simapptesting.MakeMockAppWithCleanup([]banktypes.Balance{})
-	defer cleanup()
-
 	// Test that the command structure works with proper client context
 	queryCmd := cli.GetQueryCmd()
 	require.NotNil(t, queryCmd)
@@ -120,12 +109,7 @@ func TestQueryCmdStructureIntegration(t *testing.T) {
 
 // TestParamsCmdExecutionWithClientContext tests params command execution with client context
 func TestParamsCmdExecutionWithClientContext(t *testing.T) {
-	// Create mock app
-	_, cleanup := simapptesting.MakeMockAppWithCleanup([]banktypes.Balance{})
-	defer cleanup()
-
-	// Create encoding config
-	encCfg := simapp.MakeEncodingConfig()
+	encCfg := xionapp.MakeEncodingConfig(t)
 
 	// Create client context
 	clientCtx := client.Context{}.
