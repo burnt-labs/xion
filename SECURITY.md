@@ -51,7 +51,7 @@ Burnt Labs notifies downstream consumers before a security fix becomes publicly 
 
 ### How and when
 
-Recipients are added to the draft GitHub Security Advisory for the affected repository before it is published. Where a recipient cannot be reached that way, Burnt Labs emails the contact address registered with [security@burnt.com](mailto:security@burnt.com).
+Recipients are added to the draft GitHub Security Advisory for the affected repository before it is published. Where a recipient cannot be reached that way, Burnt Labs emails the contact address that the recipient registered with [security@burnt.com](mailto:security@burnt.com).
 
 Notice is a minimum of seven days before the fix becomes publicly visible. The exception is a vulnerability under active exploitation: Burnt Labs ships the fix first and notifies as quickly as it can, because attackers already have what the notice would give them.
 
