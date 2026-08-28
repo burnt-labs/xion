@@ -7,7 +7,7 @@ GOVULNCHECK_ALLOWLIST ?= .github/govulncheck-allowlist.txt
 # toolchain would otherwise see a different set from CI and from this
 # repository's allowlist.
 GOVULNCHECK_TOOLCHAIN := go$(shell sed -En 's/^go (.*)$$/\1/p' go.mod)
-GOVULNCHECK_GATE := GOTOOLCHAIN=$(GOVULNCHECK_TOOLCHAIN) PATH="$(shell go env GOPATH)/bin:$$PATH" python3 scripts/govulncheck-gate.py
+GOVULNCHECK_GATE := GOTOOLCHAIN=$(GOVULNCHECK_TOOLCHAIN) PATH="$(shell go env GOPATH)/bin:$$PATH" scripts/govulncheck-gate.sh
 
 vulncheck-tools:
 	go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
