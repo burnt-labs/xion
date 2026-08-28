@@ -37,6 +37,30 @@ Keep vulnerability details private until Burnt Labs confirms a fix or mitigation
 
 If a security issue requires a network upgrade, additional time may be needed to raise a governance proposal and complete the upgrade.
 
+## Downstream Notification
+
+Coordinated disclosure sets out what a reporter owes Burnt Labs. This section sets out what Burnt Labs owes the people running its code.
+
+A fix landing in a public repository is disclosure, whether or not an advisory has been published alongside it. Anyone watching the repository can derive the vulnerability from the patch, and every unpatched deployment is exposed from that moment rather than from the announcement. Burnt Labs therefore notifies downstream consumers before a fix becomes publicly visible, not after.
+
+### Who is notified
+
+- Validators and node operators running XION mainnet or testnet, for any issue affecting the chain.
+- Teams that have registered a security contact for an in-scope Burnt Labs repository. [`burnt-labs/abstract-account`](https://github.com/burnt-labs/abstract-account) and [`burnt-labs/barretenberg-go`](https://github.com/burnt-labs/barretenberg-go) are both used outside this repository.
+- The CosmWasm security team, through their non-public channels, for critical vulnerabilities affecting CosmWasm components.
+
+### How and when
+
+Notification goes out through the GitHub Security Advisory for the affected repository, by adding recipients to the draft advisory before it is published. Where a recipient is not reachable that way, Burnt Labs emails the security contact they have registered.
+
+Advance notice is a minimum of seven days before the fix becomes publicly visible. The exception is a vulnerability under active exploitation, where Burnt Labs will ship the fix first and notify as quickly as it can — the calculation changes once attackers already have what the notification would give them.
+
+Where remediation requires a network upgrade, notification precedes the governance proposal. A proposal to upgrade is itself a disclosure that something is worth upgrading for.
+
+### Registering a security contact
+
+Teams building on an in-scope repository can register by emailing [security@burnt.com](mailto:security@burnt.com) with the repository they consume and a contact address. Registration does not affect whether an issue gets fixed. It determines whether you hear about the fix before everyone else does.
+
 ## Safe Harbor
 
 Good-faith research within this policy is authorized. Do not exploit beyond confirmation, do not access or disclose user data, do not disrupt production systems, and stop testing immediately if you accidentally access data or systems you did not intend to access.
@@ -213,7 +237,3 @@ The platform fee applied to `MsgSend` transactions can be set to zero for specif
 ## Recognition
 
 We appreciate responsible disclosure and will credit security researchers who help improve XION security. Recognition may be included in GitHub Security Advisories, release notes, and public security bulletins after coordinated disclosure.
-
-## CosmWasm Community Coordination
-
-Critical vulnerabilities affecting CosmWasm components will be reported to the CosmWasm security team through their non-public channels before public disclosure.
