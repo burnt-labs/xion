@@ -39,29 +39,27 @@ If a security issue requires a network upgrade, additional time may be needed to
 
 ## Downstream Notification
 
-Coordinated disclosure sets out what a reporter owes Burnt Labs. This section sets out what Burnt Labs owes the people running its code.
+Burnt Labs notifies downstream consumers before a security fix becomes publicly visible, not after. A fix in a public repository is itself a disclosure: the vulnerability can be derived from the patch, and every unpatched deployment is exposed from that moment rather than from the announcement.
 
-A fix appearing in a public repository is disclosure, whether or not an advisory has been published alongside it. Anyone watching the repository can derive the vulnerability from the patch, and every unpatched deployment is exposed from that moment rather than from the announcement. Burnt Labs therefore notifies downstream consumers before a fix becomes publicly visible, not after.
-
-"Publicly visible" means the earliest moment the patch can be read by anyone outside the embargo, whichever comes first: a commit pushed to a public branch, a pull request opened against a public repository, a tagged release, or a published advisory. It is not the merge. Security fixes are therefore developed on the private fork attached to a draft GitHub Security Advisory, and the public pull request is opened only once the notice period below has run or the active-exploitation exception applies.
+"Publicly visible" means the earliest point at which the patch can be read by anyone outside the embargo, whichever comes first: a commit pushed to a public branch, a pull request opened against a public repository, a tagged release, or a published advisory. It is not the merge. Security fixes are therefore developed in the temporary private fork attached to a draft GitHub Security Advisory, and the public pull request is opened only after the notice period below has run, or under the active exploitation exception.
 
 ### Who is notified
 
-- Validators and node operators running XION mainnet or testnet, for any issue affecting the chain.
+- Validators and node operators running XION mainnet or XION testnet, for any issue affecting the chain.
 - Teams that have registered a security contact for an in-scope Burnt Labs repository. [`burnt-labs/abstract-account`](https://github.com/burnt-labs/abstract-account) and [`burnt-labs/barretenberg-go`](https://github.com/burnt-labs/barretenberg-go) are both used outside this repository.
 - The CosmWasm security team, through their non-public channels, for critical vulnerabilities affecting CosmWasm components.
 
 ### How and when
 
-Notification goes out through the GitHub Security Advisory for the affected repository, by adding recipients to the draft advisory before it is published. Where a recipient cannot be reached that way, Burnt Labs emails the contact address that recipient registered with [security@burnt.com](mailto:security@burnt.com).
+Recipients are added to the draft GitHub Security Advisory for the affected repository before it is published. Where a recipient cannot be reached that way, Burnt Labs emails the contact address registered with [security@burnt.com](mailto:security@burnt.com).
 
-Advance notice is a minimum of seven days before the fix becomes publicly visible. The exception is a vulnerability under active exploitation, where Burnt Labs will ship the fix first and notify as quickly as it can — the calculation changes once attackers already have what the notification would give them.
+Notice is a minimum of seven days before the fix becomes publicly visible. The exception is a vulnerability under active exploitation: Burnt Labs ships the fix first and notifies as quickly as it can, because attackers already have what the notice would give them.
 
-Where remediation requires a network upgrade, notification precedes the governance proposal. A proposal to upgrade is itself a disclosure that something is worth upgrading for.
+Where remediation requires a network upgrade, notification precedes the governance proposal. The proposal is itself a disclosure that an upgrade is worth making.
 
 ### Registering a security contact
 
-Anyone the section above commits us to notifying can register: validators and node operators running XION mainnet or XION testnet, and teams building on an in-scope repository. Email [security@burnt.com](mailto:security@burnt.com) with a contact address and what you run — the network, for a validator or node operator; the repository you consume, for a team building on one. Registration does not affect whether an issue gets fixed. It determines whether you hear about the fix before everyone else does.
+Validators, node operators, and teams building on an in-scope repository can register by emailing [security@burnt.com](mailto:security@burnt.com) with a contact address and either the network they run or the repository they consume. Registration does not affect whether an issue is fixed. It determines whether the contact hears about the fix before it becomes public.
 
 ## Safe Harbor
 
