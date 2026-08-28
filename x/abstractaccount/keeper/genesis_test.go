@@ -5,14 +5,16 @@ import (
 	"testing"
 	"time"
 
-	storetypes "cosmossdk.io/store/types"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	abci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/burnt-labs/xion/x/abstractaccount/simapp"
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	abci "github.com/cometbft/cometbft/abci/types"
+
+	storetypes "cosmossdk.io/store/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	xionapp "github.com/burnt-labs/xion/app"
 	abstractaccountkeeper "github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
 )
@@ -21,7 +23,7 @@ import (
 var mockParams = &types.Params{AllowAllCodeIDs: true, AllowedCodeIDs: nil, MaxGasBefore: 2000000, MaxGasAfter: 2000000} // mockNextAccountID = uint64(1) // Use actual default next account ID
 
 func TestInitGenesis(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Use custom params for this test
@@ -40,7 +42,7 @@ func TestInitGenesis(t *testing.T) {
 }
 
 func TestExportGenesis(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// The mock app initializes with default values, so let's get what it actually has
@@ -56,7 +58,7 @@ func TestExportGenesis(t *testing.T) {
 }
 
 func TestExportGenesisPanic(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Create a fresh keeper with no params set to trigger panic
@@ -75,7 +77,7 @@ func TestExportGenesisPanic(t *testing.T) {
 
 // TestInitGenesisErrorHandling tests error paths in InitGenesis
 func TestInitGenesisErrorHandling(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	t.Run("SetParams error triggers panic", func(t *testing.T) {
@@ -116,7 +118,7 @@ func TestInitGenesisErrorHandling(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				freshApp := simapptesting.MakeSimpleMockApp(t)
+				freshApp := xionapp.Setup(t)
 				freshCtx := freshApp.NewContext(false)
 
 				params := &types.Params{MaxGasBefore: tc.maxGasBefore, MaxGasAfter: tc.maxGasAfter}
@@ -139,7 +141,7 @@ func TestInitGenesisErrorHandling(t *testing.T) {
 
 	t.Run("InitGenesis with zero gas values triggers panic", func(t *testing.T) {
 		// Test that zero gas values cause a panic (separate test case)
-		freshApp := simapptesting.MakeSimpleMockApp(t)
+		freshApp := xionapp.Setup(t)
 		freshCtx := freshApp.NewContext(false)
 
 		zeroParams := &types.Params{MaxGasBefore: 0, MaxGasAfter: 0}
@@ -154,7 +156,7 @@ func TestInitGenesisErrorHandling(t *testing.T) {
 
 // TestExportGenesisErrorHandling tests error paths in ExportGenesis
 func TestExportGenesisErrorHandling(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	t.Run("ExportGenesis with uninitialized state", func(t *testing.T) {
@@ -214,7 +216,7 @@ func TestExportGenesisErrorHandling(t *testing.T) {
 
 	t.Run("ExportGenesis GetParams error triggers panic", func(t *testing.T) {
 		// Create a fresh app with uninitialized store to trigger GetParams error
-		freshApp := simapptesting.MakeSimpleMockApp(t)
+		freshApp := xionapp.Setup(t)
 		freshCtx := freshApp.NewContext(false)
 
 		// Don't initialize genesis state - this might cause GetParams to fail
@@ -243,7 +245,7 @@ func TestExportGenesisErrorHandling(t *testing.T) {
 // TestGenesisRoundTrip tests the complete workflow of Init -> Export -> Init
 func TestGenesisRoundTrip(t *testing.T) {
 	// First app: Initialize with specific values
-	app1 := simapptesting.MakeSimpleMockApp(t)
+	app1 := xionapp.Setup(t)
 	ctx1 := app1.NewContext(false).WithBlockTime(time.Now())
 
 	originalParams, err := types.NewParamsWithAddressDerivationHash(
@@ -256,7 +258,7 @@ func TestGenesisRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	originalNextAccountID := uint64(333333)
 	originalGs := types.NewGenesisState(originalNextAccountID, originalParams)
-	sender := simapptesting.MakeRandomAddress()
+	sender := xionapp.RandomAccAddress()
 	salt := []byte("exported-salt")
 	require.NoError(t, app1.AbstractAccountKeeper.SetParams(ctx1, originalParams))
 	accountAddress, err := app1.AbstractAccountKeeper.PredictAccountAddress(ctx1, sender, salt)
@@ -277,7 +279,7 @@ func TestGenesisRoundTrip(t *testing.T) {
 	exportedGs := app1.AbstractAccountKeeper.ExportGenesis(ctx1)
 
 	// Second app: Initialize with exported values
-	app2 := simapptesting.MakeSimpleMockApp(t)
+	app2 := xionapp.Setup(t)
 	ctx2 := app2.NewContext(false).WithBlockTime(time.Now())
 	installedAddress = installAbstractAccountContract(t, app2, ctx2, originalParams.AddressDerivationHash, sender, salt)
 	require.Equal(t, accountAddress, installedAddress)
@@ -300,14 +302,14 @@ func TestGenesisRoundTrip(t *testing.T) {
 }
 
 func TestInitGenesisRejectsNonAbstractAccountMapping(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
-	ordinaryAddress := simapptesting.MakeRandomAddress()
+	ordinaryAddress := xionapp.RandomAccAddress()
 	app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccountWithAddress(ctx, ordinaryAddress))
 
 	gs := types.NewGenesisState(1, mockParams)
 	gs.AccountAddresses = []*types.AccountAddress{{
-		Sender:  simapptesting.MakeRandomAddress().String(),
+		Sender:  xionapp.RandomAccAddress().String(),
 		Salt:    []byte("invalid-registry-entry"),
 		Address: ordinaryAddress.String(),
 	}}
@@ -319,7 +321,7 @@ func TestInitGenesisRejectsNonAbstractAccountMapping(t *testing.T) {
 }
 
 func TestInitGenesisRejectsAbstractAccountAtWrongDerivedAddress(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 	params, err := types.NewParamsWithAddressDerivationHash(
 		true,
@@ -330,10 +332,10 @@ func TestInitGenesisRejectsAbstractAccountAtWrongDerivedAddress(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	sender := simapptesting.MakeRandomAddress()
+	sender := xionapp.RandomAccAddress()
 	salt := []byte("wrong-namespace")
-	wrongAddress := simapptesting.MakeRandomAddress()
-	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(wrongAddress.String(), 1, 0))
+	wrongAddress := xionapp.RandomAccAddress()
+	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(wrongAddress.String(), app.AccountKeeper.NextAccountNumber(ctx), 0))
 	require.NoError(t, app.AbstractAccountKeeper.SetParams(ctx, params))
 	predicted, err := app.AbstractAccountKeeper.PredictAccountAddress(ctx, sender, salt)
 	require.NoError(t, err)
@@ -353,7 +355,7 @@ func TestInitGenesisRejectsAbstractAccountAtWrongDerivedAddress(t *testing.T) {
 }
 
 func TestInitGenesisRejectsAbstractAccountWithoutWasmContract(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 	params, err := types.NewParamsWithAddressDerivationHash(
 		true,
@@ -364,12 +366,12 @@ func TestInitGenesisRejectsAbstractAccountWithoutWasmContract(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	sender := simapptesting.MakeRandomAddress()
+	sender := xionapp.RandomAccAddress()
 	salt := []byte("missing-wasm-contract")
 	require.NoError(t, app.AbstractAccountKeeper.SetParams(ctx, params))
 	address, err := app.AbstractAccountKeeper.PredictAccountAddress(ctx, sender, salt)
 	require.NoError(t, err)
-	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(address.String(), 1, 0))
+	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(address.String(), app.AccountKeeper.NextAccountNumber(ctx), 0))
 	require.False(t, app.WasmKeeper.HasContractInfo(ctx, address))
 
 	gs := types.NewGenesisState(1, params)
@@ -387,7 +389,7 @@ func TestInitGenesisRejectsAbstractAccountWithoutWasmContract(t *testing.T) {
 
 func installAbstractAccountContract(
 	t *testing.T,
-	app *simapp.SimApp,
+	app *xionapp.WasmApp,
 	ctx sdk.Context,
 	addressHash []byte,
 	sender sdk.AccAddress,
@@ -420,7 +422,7 @@ func installAbstractAccountContract(
 func TestGetParamsErrorPaths(t *testing.T) {
 	t.Run("GetParams behavior with fresh keeper", func(t *testing.T) {
 		// Create a fresh app without initializing genesis to test empty store
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// Check what actually happens with GetParams on uninitialized store
@@ -442,7 +444,7 @@ func TestGetParamsErrorPaths(t *testing.T) {
 
 	t.Run("GetParams with valid params", func(t *testing.T) {
 		// Test successful GetParams after proper initialization
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		params, err := app.AbstractAccountKeeper.GetParams(ctx)
@@ -457,7 +459,7 @@ func TestGetParamsErrorPaths(t *testing.T) {
 
 // TestSetParamsErrorPaths tests error conditions in SetParams function
 func TestSetParamsErrorPaths(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	t.Run("SetParams with invalid params triggers validation error", func(t *testing.T) {
@@ -519,7 +521,7 @@ func TestSetParamsErrorPaths(t *testing.T) {
 // TestKeeperErrorHandlingIntegration tests error scenarios across keeper functions
 func TestKeeperErrorHandlingIntegration(t *testing.T) {
 	t.Run("GetParams after failed SetParams", func(t *testing.T) {
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// First, try to set invalid params (should fail)
@@ -542,7 +544,7 @@ func TestKeeperErrorHandlingIntegration(t *testing.T) {
 	})
 
 	t.Run("GetParams after successful SetParams", func(t *testing.T) {
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// Set valid params
@@ -559,7 +561,7 @@ func TestKeeperErrorHandlingIntegration(t *testing.T) {
 
 	t.Run("ExportGenesis after GetParams error", func(t *testing.T) {
 		// Test ExportGenesis when GetParams fails (should trigger panic)
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// First check if GetParams actually fails
@@ -581,7 +583,7 @@ func TestKeeperErrorHandlingIntegration(t *testing.T) {
 // TestCodecErrorPaths tests error conditions in marshal/unmarshal operations
 func TestCodecErrorPaths(t *testing.T) {
 	t.Run("GetParams unmarshal error simulation", func(t *testing.T) {
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// First set valid params to have something in the store
@@ -601,7 +603,7 @@ func TestCodecErrorPaths(t *testing.T) {
 	})
 
 	t.Run("SetParams marshal operation", func(t *testing.T) {
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// Test that valid params can be marshaled and set
@@ -623,7 +625,7 @@ func TestCodecErrorPaths(t *testing.T) {
 func TestCompleteErrorCoverage(t *testing.T) {
 	t.Run("ExportGenesis panic path with GetParams error", func(t *testing.T) {
 		// This test confirms the panic behavior in ExportGenesis when GetParams fails
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// First check if GetParams actually fails on uninitialized store
@@ -650,7 +652,7 @@ func TestCompleteErrorCoverage(t *testing.T) {
 
 	t.Run("InitGenesis SetParams error path already covered", func(t *testing.T) {
 		// This confirms our earlier test covers the InitGenesis panic path
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		invalidParams := &types.Params{MaxGasBefore: 0, MaxGasAfter: 0}
@@ -664,7 +666,7 @@ func TestCompleteErrorCoverage(t *testing.T) {
 
 	t.Run("Multiple error scenarios", func(t *testing.T) {
 		// Test various error combinations
-		app := simapptesting.MakeSimpleMockApp(t)
+		app := xionapp.Setup(t)
 		ctx := app.NewContext(false)
 
 		// 1. Check GetParams behavior on empty store
@@ -683,7 +685,6 @@ func TestCompleteErrorCoverage(t *testing.T) {
 		// 3. Check GetParams after failed SetParams
 		_, err = app.AbstractAccountKeeper.GetParams(ctx)
 		// This may or may not error depending on default initialization
-
 		// 4. Test ExportGenesis behavior
 		// Only test panic if we know GetParams will fail
 		if err != nil {

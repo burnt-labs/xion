@@ -3,27 +3,26 @@ package abstractaccount_test
 import (
 	"testing"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 func TestMigrateValidationDecorator(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Create an AbstractAccount with unique account number
-	absAccAddr := simapptesting.MakeRandomAddress()
-	absAcc := types.NewAbstractAccount(absAccAddr.String(), 100, 0)
+	absAccAddr := xionapp.RandomAccAddress()
+	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
 	app.AccountKeeper.SetAccount(ctx, absAcc)
 
 	// Create a regular account (non-AA) - use NewAccountWithAddress to let it assign account num
-	regularAccAddr := simapptesting.MakeRandomAddress()
-	unknownAccAddr := simapptesting.MakeRandomAddress()
+	regularAccAddr := xionapp.RandomAccAddress()
+	unknownAccAddr := xionapp.RandomAccAddress()
 	regularAcc := app.AccountKeeper.NewAccountWithAddress(ctx, regularAccAddr)
 	app.AccountKeeper.SetAccount(ctx, regularAcc)
 
@@ -104,12 +103,12 @@ func TestMigrateValidationDecorator(t *testing.T) {
 }
 
 func TestMigrateValidationDecorator_AllowAllCodeIDs(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Create an AbstractAccount with unique account number
-	absAccAddr := simapptesting.MakeRandomAddress()
-	absAcc := types.NewAbstractAccount(absAccAddr.String(), 200, 0)
+	absAccAddr := xionapp.RandomAccAddress()
+	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
 	app.AccountKeeper.SetAccount(ctx, absAcc)
 
 	// Set params to allow all code IDs
@@ -139,7 +138,7 @@ func TestMigrateValidationDecorator_AllowAllCodeIDs(t *testing.T) {
 }
 
 func TestMigrateValidationDecorator_NonMigrateMsg(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Set restrictive params
@@ -155,8 +154,8 @@ func TestMigrateValidationDecorator_NonMigrateMsg(t *testing.T) {
 
 	// A non-migrate message should pass through
 	msg := &wasmtypes.MsgExecuteContract{
-		Sender:   simapptesting.MakeRandomAddress().String(),
-		Contract: simapptesting.MakeRandomAddress().String(),
+		Sender:   xionapp.RandomAccAddress().String(),
+		Contract: xionapp.RandomAccAddress().String(),
 		Msg:      []byte("{}"),
 	}
 

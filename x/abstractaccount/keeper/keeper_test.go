@@ -3,17 +3,18 @@ package keeper_test
 import (
 	"testing"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/stretchr/testify/require"
 
 	storetypes "cosmossdk.io/store/types"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 func TestNewKeeper(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 
 	// Test normal creation (already works from the app)
 	require.NotNil(t, app.AbstractAccountKeeper)
@@ -44,7 +45,7 @@ func TestNewKeeper(t *testing.T) {
 }
 
 func TestGetAndIncrementNextAccountID(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	id := app.AbstractAccountKeeper.GetAndIncrementNextAccountID(ctx)
@@ -55,7 +56,7 @@ func TestGetAndIncrementNextAccountID(t *testing.T) {
 }
 
 func TestSignerAddress(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Test getting signer address when not set (should return empty address)
@@ -63,7 +64,7 @@ func TestSignerAddress(t *testing.T) {
 	require.Equal(t, 0, len(signerAddr))
 
 	// Test setting and getting signer address
-	testAddr := simapptesting.MakeRandomAddress()
+	testAddr := xionapp.RandomAccAddress()
 	app.AbstractAccountKeeper.SetSignerAddress(ctx, testAddr)
 
 	retrievedAddr := app.AbstractAccountKeeper.GetSignerAddress(ctx)
@@ -77,7 +78,7 @@ func TestSignerAddress(t *testing.T) {
 }
 
 func TestMigration(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Test migration
@@ -87,7 +88,7 @@ func TestMigration(t *testing.T) {
 }
 
 func TestSetParamsError(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	// Test with invalid params (MaxGasAfter = 0 while MaxGasBefore > 0)

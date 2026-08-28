@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +16,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount"
 	"github.com/burnt-labs/xion/x/abstractaccount/testdata"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
@@ -23,16 +24,16 @@ import (
 
 func TestIsAbstractAccountTx(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
+		app     = xionapp.Setup(t)
 		ctx     = app.NewContext(false)
-		keybase = keyring.NewInMemory(app.Codec())
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	// we create two mock accounts: 1, a BaseAccount, 2, an AbstractAccount
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
-	acc2, err := makeMockAccount(keybase, "test2", 2)
+	acc2, err := makeMockAccount(app, ctx, keybase, "test2")
 	acc2 = types.NewAbstractAccountFromAccount(acc2)
 	require.NoError(t, err)
 
@@ -99,8 +100,8 @@ type BaseInstantiateMsg struct {
 
 func TestBeforeTx(t *testing.T) {
 	var (
-		app        = simapptesting.MakeSimpleMockApp(t)
-		keybase    = keyring.NewInMemory(app.Codec())
+		app        = xionapp.Setup(t)
+		keybase    = keyring.NewInMemory(app.AppCodec())
 		mockAccNum = uint64(12345)
 		mockSeq    = uint64(88888)
 	)
@@ -108,10 +109,10 @@ func TestBeforeTx(t *testing.T) {
 	ctx := app.NewContext(false).WithBlockTime(time.Now()).WithChainID(mockChainID)
 
 	// create two mock accounts
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
-	acc2, err := makeMockAccount(keybase, "test2", 2)
+	acc2, err := makeMockAccount(app, ctx, keybase, "test2")
 	require.NoError(t, err)
 
 	// register the AbstractAccount
@@ -313,14 +314,14 @@ func TestBeforeTx(t *testing.T) {
 
 func TestAfterTx(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
-		keybase = keyring.NewInMemory(app.Codec())
+		app     = xionapp.Setup(t)
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	ctx := app.NewContext(false).WithBlockTime(time.Now()).WithChainID(mockChainID)
 
 	// create a mock account
-	acc, err := makeMockAccount(keybase, "test1", 1)
+	acc, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	// register the AbstractAccount
@@ -358,12 +359,13 @@ func TestAfterTx(t *testing.T) {
 
 func TestSigVerificationGasConsumer(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
-		keybase = keyring.NewInMemory(app.Codec())
+		app     = xionapp.Setup(t)
+		ctx     = app.NewContext(false)
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	// create mock account
-	acc, err := makeMockAccount(keybase, "test1", 1)
+	acc, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	// test with NilPubKey - should not consume gas
@@ -392,13 +394,13 @@ func TestSigVerificationGasConsumer(t *testing.T) {
 
 func TestIsAbstractAccountTx_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
+		app     = xionapp.Setup(t)
 		ctx     = app.NewContext(false)
-		keybase = keyring.NewInMemory(app.Codec())
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	// create mock accounts
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	app.AccountKeeper.SetAccount(ctx, acc1)
@@ -424,14 +426,14 @@ func TestIsAbstractAccountTx_ErrorCases(t *testing.T) {
 
 func TestBeforeTx_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
-		keybase = keyring.NewInMemory(app.Codec())
+		app     = xionapp.Setup(t)
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	ctx := app.NewContext(false).WithBlockTime(time.Now()).WithChainID(mockChainID)
 
 	// create mock account
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	// register the AbstractAccount
@@ -464,14 +466,14 @@ func TestBeforeTx_ErrorCases(t *testing.T) {
 
 func TestAfterTx_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
-		keybase = keyring.NewInMemory(app.Codec())
+		app     = xionapp.Setup(t)
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	ctx := app.NewContext(false).WithBlockTime(time.Now()).WithChainID(mockChainID)
 
 	// create mock account
-	acc, err := makeMockAccount(keybase, "test1", 1)
+	acc, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	// test when no signer address is stored (non-AA tx)
@@ -494,16 +496,16 @@ func TestAfterTx_ErrorCases(t *testing.T) {
 
 func TestIsAbstractAccountTx_MoreCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
+		app     = xionapp.Setup(t)
 		ctx     = app.NewContext(false)
-		keybase = keyring.NewInMemory(app.Codec())
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	// create mock accounts
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
-	acc2, err := makeMockAccount(keybase, "test2", 2)
+	acc2, err := makeMockAccount(app, ctx, keybase, "test2")
 	require.NoError(t, err)
 
 	app.AccountKeeper.SetAccount(ctx, acc1)
@@ -538,14 +540,14 @@ func TestIsAbstractAccountTx_MoreCases(t *testing.T) {
 
 func TestPrepareCredentials_ErrorCases(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
-		keybase = keyring.NewInMemory(app.Codec())
+		app     = xionapp.Setup(t)
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	ctx := app.NewContext(false).WithBlockTime(time.Now()).WithChainID(mockChainID)
 
 	// create mock account
-	acc, err := makeMockAccount(keybase, "test1", 1)
+	acc, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	// create a tx with multi-signature data (not single signature)
@@ -605,15 +607,15 @@ func TestSdkMsgsToAnys(t *testing.T) {
 // replay protection for unordered AbstractAccount transactions.
 func TestBeforeTx_UnorderedTx(t *testing.T) {
 	var (
-		app     = simapptesting.MakeSimpleMockApp(t)
-		keybase = keyring.NewInMemory(app.Codec())
+		app     = xionapp.Setup(t)
+		keybase = keyring.NewInMemory(app.AppCodec())
 	)
 
 	blockTime := time.Now()
 	ctx := app.NewContext(false).WithBlockTime(blockTime).WithChainID(mockChainID)
 
 	// create a signing key and register it as an AbstractAccount
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	absAcc, err := storeCodeAndRegisterAccount(
@@ -626,7 +628,7 @@ func TestBeforeTx_UnorderedTx(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	acc2, err := makeMockAccount(keybase, "test2", 2)
+	acc2, err := makeMockAccount(app, ctx, keybase, "test2")
 	require.NoError(t, err)
 
 	msg := banktypes.NewMsgSend(absAcc.GetAddress(), acc2.GetAddress(), sdk.NewCoins())
@@ -641,11 +643,11 @@ func TestBeforeTx_UnorderedTx(t *testing.T) {
 	}
 
 	for _, tc := range []struct {
-		desc              string
-		timeoutTimestamp  time.Time
-		simulate          bool
-		expOk             bool
-		expErrContains    string
+		desc             string
+		timeoutTimestamp time.Time
+		simulate         bool
+		expOk            bool
+		expErrContains   string
 	}{
 		{
 			desc:             "valid unordered tx",
@@ -740,13 +742,13 @@ func TestBeforeTx_UnorderedTx(t *testing.T) {
 // TestBeforeTx_UnorderedTx_ReplayRejection verifies that replaying the same
 // unordered nonce (sender + timeout_timestamp) is rejected.
 func TestBeforeTx_UnorderedTx_ReplayRejection(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
-	keybase := keyring.NewInMemory(app.Codec())
+	app := xionapp.Setup(t)
+	keybase := keyring.NewInMemory(app.AppCodec())
 
 	blockTime := time.Now()
 	ctx := app.NewContext(false).WithBlockTime(blockTime).WithChainID(mockChainID)
 
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	absAcc, err := storeCodeAndRegisterAccount(
@@ -805,13 +807,13 @@ func TestBeforeTx_UnorderedTx_ReplayRejection(t *testing.T) {
 // TestBeforeTx_UnorderedTx_NonZeroSequenceRejected verifies that unordered
 // transactions with a non-zero sequence field are rejected.
 func TestBeforeTx_UnorderedTx_NonZeroSequenceRejected(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
-	keybase := keyring.NewInMemory(app.Codec())
+	app := xionapp.Setup(t)
+	keybase := keyring.NewInMemory(app.AppCodec())
 
 	blockTime := time.Now()
 	ctx := app.NewContext(false).WithBlockTime(blockTime).WithChainID(mockChainID)
 
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	absAcc, err := storeCodeAndRegisterAccount(
@@ -866,13 +868,13 @@ func TestBeforeTx_UnorderedTx_NonZeroSequenceRejected(t *testing.T) {
 // state, so the sign bytes handed to the account contract must be computed
 // with the signature's sequence, not the account's.
 func TestBeforeTx_UnorderedTx_AdvancedAccountSequence(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
-	keybase := keyring.NewInMemory(app.Codec())
+	app := xionapp.Setup(t)
+	keybase := keyring.NewInMemory(app.AppCodec())
 
 	blockTime := time.Now()
 	ctx := app.NewContext(false).WithBlockTime(blockTime).WithChainID(mockChainID)
 
-	acc1, err := makeMockAccount(keybase, "test1", 1)
+	acc1, err := makeMockAccount(app, ctx, keybase, "test1")
 	require.NoError(t, err)
 
 	absAcc, err := storeCodeAndRegisterAccount(
