@@ -41,7 +41,9 @@ If a security issue requires a network upgrade, additional time may be needed to
 
 Coordinated disclosure sets out what a reporter owes Burnt Labs. This section sets out what Burnt Labs owes the people running its code.
 
-A fix landing in a public repository is disclosure, whether or not an advisory has been published alongside it. Anyone watching the repository can derive the vulnerability from the patch, and every unpatched deployment is exposed from that moment rather than from the announcement. Burnt Labs therefore notifies downstream consumers before a fix becomes publicly visible, not after.
+A fix appearing in a public repository is disclosure, whether or not an advisory has been published alongside it. Anyone watching the repository can derive the vulnerability from the patch, and every unpatched deployment is exposed from that moment rather than from the announcement. Burnt Labs therefore notifies downstream consumers before a fix becomes publicly visible, not after.
+
+"Publicly visible" means the earliest moment the patch can be read by anyone outside the embargo, whichever comes first: a commit pushed to a public branch, a pull request opened against a public repository, a tagged release, or a published advisory. It is not the merge. Security fixes are therefore developed on the private fork attached to a draft GitHub Security Advisory, and the public pull request is opened only once the notice period below has run or the active-exploitation exception applies.
 
 ### Who is notified
 
@@ -51,7 +53,7 @@ A fix landing in a public repository is disclosure, whether or not an advisory h
 
 ### How and when
 
-Notification goes out through the GitHub Security Advisory for the affected repository, by adding recipients to the draft advisory before it is published. Where a recipient is not reachable that way, Burnt Labs emails the security contact they have registered.
+Notification goes out through the GitHub Security Advisory for the affected repository, by adding recipients to the draft advisory before it is published. Where a recipient cannot be reached that way, Burnt Labs emails the contact address that recipient registered with [security@burnt.com](mailto:security@burnt.com).
 
 Advance notice is a minimum of seven days before the fix becomes publicly visible. The exception is a vulnerability under active exploitation, where Burnt Labs will ship the fix first and notify as quickly as it can — the calculation changes once attackers already have what the notification would give them.
 
