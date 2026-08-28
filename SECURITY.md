@@ -61,7 +61,7 @@ Where remediation requires a network upgrade, notification precedes the governan
 
 ### Registering a security contact
 
-Teams building on an in-scope repository can register by emailing [security@burnt.com](mailto:security@burnt.com) with the repository they consume and a contact address. Registration does not affect whether an issue gets fixed. It determines whether you hear about the fix before everyone else does.
+Anyone the section above commits us to notifying can register: validators and node operators running XION mainnet or XION testnet, and teams building on an in-scope repository. Email [security@burnt.com](mailto:security@burnt.com) with a contact address and what you run — the network, for a validator or node operator; the repository you consume, for a team building on one. Registration does not affect whether an issue gets fixed. It determines whether you hear about the fix before everyone else does.
 
 ## Safe Harbor
 
