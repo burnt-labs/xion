@@ -7,11 +7,11 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	storetypes "cosmossdk.io/store/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/burnt-labs/xion/x/abstractaccount/simapp"
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	xionapp "github.com/burnt-labs/xion/app"
 	v2 "github.com/burnt-labs/xion/x/abstractaccount/migrations/v2"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
 )
@@ -20,7 +20,7 @@ type MigrationTestSuite struct {
 	suite.Suite
 
 	ctx sdk.Context
-	app *simapp.SimApp
+	app *xionapp.WasmApp
 }
 
 func TestMigrationTestSuite(t *testing.T) {
@@ -28,7 +28,7 @@ func TestMigrationTestSuite(t *testing.T) {
 }
 
 func (s *MigrationTestSuite) SetupTest() {
-	s.app = simapptesting.MakeSimpleMockApp(s.T())
+	s.app = xionapp.Setup(s.T())
 	s.ctx = s.app.NewContext(false)
 }
 
@@ -139,7 +139,7 @@ func TestMigrateStoreDirect(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := simapptesting.MakeSimpleMockApp(t)
+			app := xionapp.Setup(t)
 			ctx := app.NewContext(false)
 			storeKey := storetypes.NewKVStoreKey("test-" + tt.name)
 
@@ -209,7 +209,7 @@ func TestMigrateStore_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app := simapptesting.MakeSimpleMockApp(t)
+			app := xionapp.Setup(t)
 			ctx := app.NewContext(false)
 			storeKey := storetypes.NewKVStoreKey("test-edge-" + tt.name)
 
@@ -257,7 +257,7 @@ func TestMigrateStore_EdgeCases(t *testing.T) {
 
 // Benchmark tests
 func BenchmarkMigrateStore(b *testing.B) {
-	app := simapptesting.MakeSimpleMockApp(b)
+	app := xionapp.Setup(b)
 	ctx := app.NewContext(false)
 	storeKey := storetypes.NewKVStoreKey("benchmark")
 

@@ -6,13 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	storetypes "cosmossdk.io/store/types"
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 func TestMigrator(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	t.Run("NewMigrator creates migrator correctly", func(t *testing.T) {
@@ -51,7 +52,7 @@ func TestMigrator(t *testing.T) {
 }
 
 func TestMigrationV2Functions(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	t.Run("v2.MigrateStore works with keeper migrator", func(t *testing.T) {

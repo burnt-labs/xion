@@ -5,12 +5,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	simapptesting "github.com/burnt-labs/xion/x/abstractaccount/simapp/testing"
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 func TestMigrateStoreDisablesRegistrationUntilChainConfiguresAddressHash(t *testing.T) {
-	app := simapptesting.MakeSimpleMockApp(t)
+	app := xionapp.Setup(t)
 	ctx := app.NewContext(false)
 
 	params, err := app.AbstractAccountKeeper.GetParams(ctx)
