@@ -175,11 +175,19 @@ func TestSignerAddressGasIsIndependentOfTxSize(t *testing.T) {
 		return ctx.GasMeter().GasConsumed() - before
 	}
 
-	small := gasFor([]byte("tx"))
-	require.Greater(t, small, storetypes.Gas(0),
-		"sanity check: recording the AA signer should consume gas")
-	large := gasFor(bytes.Repeat([]byte{0xAB}, 16*1024))
+	// Establish a baseline from the smallest transaction, and confirm the write
+	// is actually metered — comparing two figures that are both zero would prove
+	// nothing.
+	baseline := gasFor([]byte("tx"))
+	require.Greater(t, baseline, storetypes.Gas(0),
+		"recording the AA signer must consume gas, otherwise the comparisons below are vacuous")
 
-	require.Equal(t, small, large,
-		"recording the AA signer must cost the same for a 2-byte and a 16KiB tx")
+	// Sweep several orders of magnitude rather than a single large case: a key
+	// that embeds any part of the transaction shows up as growth across the
+	// sweep, including a partial or truncated one that a two-point check could
+	// straddle.
+	for _, size := range []int{1 << 10, 1 << 14, 1 << 16} {
+		require.Equal(t, baseline, gasFor(bytes.Repeat([]byte{0xAB}, size)),
+			"recording the AA signer must cost the same for a 2-byte and a %d-byte tx", size)
+	}
 }
