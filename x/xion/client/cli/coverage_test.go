@@ -35,11 +35,16 @@ import (
 
 // shared test constants to avoid duplication (goconst) and clarify intent
 const (
-	testValidBech32Addr = "xion1234567890abcdef1234567890abcdef12345678"
 	// test-only static token value; not a credential. #nosec G101
 	// nolint: gosec
 	testJWTToken = "test-jwt-token"
 )
+
+// testValidBech32Addr is a genuinely parseable account address, derived under
+// whichever bech32 prefix is configured for the test binary. It was previously a
+// hard-coded literal that looked address-shaped but carried both the wrong
+// prefix and an invalid checksum, which went unnoticed while nothing parsed it.
+var testValidBech32Addr = sdk.AccAddress(bytes.Repeat([]byte{0x01}, 20)).String()
 
 // Helper functions to create test data
 func createTempJSONFile(content string) (string, func(), error) {
