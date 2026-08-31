@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
@@ -30,8 +31,31 @@ func NewMigrateValidationDecorator(aak keeper.Keeper, ak authante.AccountKeeper)
 func (d MigrateValidationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	var params *types.Params
 
-	for _, msg := range tx.GetMsgs() {
-		migrateMsg, ok := msg.(*wasmtypes.MsgMigrateContract)
+	// Inspect nested executions as well as the top-level messages. authz
+	// dispatches the contents of a MsgExec through the message router with the
+	// granter as signer, so a grantee holding a MsgMigrateContract
+	// authorization from an abstract account could otherwise migrate it past
+	// this check by wrapping the migration.
+	//
+	// The queue grows as nested executions are unpacked, which also covers a
+	// MsgExec nested inside another MsgExec. The messages are already
+	// materialised by the tx decoder, so this only walks cached values.
+	queue := append([]sdk.Msg(nil), tx.GetMsgs()...)
+
+	for i := 0; i < len(queue); i++ {
+		if execMsg, ok := queue[i].(*authz.MsgExec); ok {
+			nestedMsgs, err := execMsg.GetMessages()
+			if err != nil {
+				// Fail closed: an execution we cannot inspect must not pass.
+				return ctx, err
+			}
+
+			queue = append(queue, nestedMsgs...)
+
+			continue
+		}
+
+		migrateMsg, ok := queue[i].(*wasmtypes.MsgMigrateContract)
 		if !ok {
 			continue
 		}
