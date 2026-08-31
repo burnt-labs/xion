@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 
@@ -206,24 +207,48 @@ func (k Keeper) SetNextAccountID(ctx sdk.Context, id uint64) {
 
 // ------------------------------- SignerAddress -------------------------------
 
+// signerAddressKey scopes the signer marker to the transaction currently being
+// executed.
+//
+// The transient store is block-scoped: it is only cleared by Commit, not between
+// transactions. BaseApp flushes the AnteHandler's writes as soon as the ante
+// chain succeeds, independently of whether message execution later fails, while
+// the PostHandler runs against the runMsgs branch that is discarded when it does.
+// Under a single fixed key a transaction that passed ante and then failed would
+// leave its signer behind, and the next transaction in the same block would read
+// it and invoke that account's after_tx hook. Qualifying the key with the
+// transaction keeps the marker private to the transaction that wrote it.
+//
+// The transaction is identified by a digest rather than its raw bytes: gaskv
+// charges WriteCostPerByte over the length of the key, so embedding the bytes
+// themselves would add gas proportional to transaction size to every abstract
+// account transaction — thousands of units for the large JWT and ZK proof
+// payloads this module exists to serve. The digest keeps that cost constant.
+func signerAddressKey(ctx sdk.Context) []byte {
+	digest := sha256.Sum256(ctx.TxBytes())
+
+	key := make([]byte, 0, len(types.KeySignerAddress)+sha256.Size)
+	key = append(key, types.KeySignerAddress...)
+
+	return append(key, digest[:]...)
+}
+
 func (k Keeper) GetSignerAddress(ctx sdk.Context) sdk.AccAddress {
 	store := ctx.TransientStore(k.transientStoreKey)
 
-	return sdk.AccAddress(store.Get(types.KeySignerAddress))
+	return sdk.AccAddress(store.Get(signerAddressKey(ctx)))
 }
 
-// SetSignerAddress stores the AA signer in the transient store.
-// The transient store is backed by a CacheMultiStore that is discarded
-// atomically if the tx fails — including PostHandle errors — ensuring stale
-// signer addresses can never persist to the next tx in the block.
+// SetSignerAddress stores the AA signer for the current transaction, so that the
+// PostHandler knows whether to call after_tx.
 func (k Keeper) SetSignerAddress(ctx sdk.Context, signerAddr sdk.AccAddress) {
 	store := ctx.TransientStore(k.transientStoreKey)
-	store.Set(types.KeySignerAddress, signerAddr)
+	store.Set(signerAddressKey(ctx), signerAddr)
 }
 
 func (k Keeper) DeleteSignerAddress(ctx sdk.Context) {
 	store := ctx.TransientStore(k.transientStoreKey)
-	store.Delete(types.KeySignerAddress)
+	store.Delete(signerAddressKey(ctx))
 }
 
 // ------------------------------- Migration -------------------------------
