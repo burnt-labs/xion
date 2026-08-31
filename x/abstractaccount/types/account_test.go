@@ -1,12 +1,15 @@
 package types_test
 
 import (
-	types "github.com/burnt-labs/xion/x/abstractaccount/types"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-	"github.com/stretchr/testify/require"
-	"testing"
+
+	types "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 func TestAmino(t *testing.T) {

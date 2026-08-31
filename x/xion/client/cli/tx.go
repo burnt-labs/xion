@@ -338,6 +338,9 @@ func queryAccountAddress(
 	if resp.Address == "" {
 		return "", fmt.Errorf("abstract account address query returned an empty address")
 	}
+	if _, err := sdk.AccAddressFromBech32(resp.Address); err != nil {
+		return "", fmt.Errorf("abstract account address query returned an invalid address %q: %w", resp.Address, err)
+	}
 	return resp.Address, nil
 }
 

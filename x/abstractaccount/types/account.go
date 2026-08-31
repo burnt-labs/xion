@@ -1,13 +1,15 @@
-// NOTE TO MYSELF: do not confuse the following two interface types! They are
-// identical but Go compiler doesn't consider them the same:
-// - cosmos/cosmos-sdk/crypto/types.PubKey
-// - cometbft/cometbft/crypto.PubKey
+// Two distinct public-key interfaces are in play here. They declare identical
+// method sets, but the Go compiler treats them as separate types, so a value
+// satisfying one does not substitute for the other:
+//   - github.com/cosmos/cosmos-sdk/crypto/types.PubKey
+//   - github.com/cometbft/cometbft/crypto.PubKey
 
 package types
 
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/cosmos/gogoproto/proto"
 
@@ -80,6 +82,13 @@ func (acc *AbstractAccount) SetSequence(seq uint64) error {
 func (acc *AbstractAccount) Validate() error {
 	if len(acc.Address) == 0 {
 		return errors.New("address cannot be empty")
+	}
+
+	// GetAddress discards the parse error and yields a nil address for a
+	// malformed string, so reject it here instead of letting decode and genesis
+	// paths admit an account that silently has no address.
+	if _, err := sdk.AccAddressFromBech32(acc.Address); err != nil {
+		return fmt.Errorf("invalid address %q: %w", acc.Address, err)
 	}
 
 	return nil

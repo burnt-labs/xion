@@ -553,6 +553,14 @@ func (s *AbstractAccountTypesTestSuite) TestAbstractAccountFunctionality() {
 		err = emptyAccount.Validate()
 		s.Require().Error(err)
 		s.Require().Contains(err.Error(), "address cannot be empty")
+
+		// A malformed address must be rejected too: GetAddress discards the
+		// parse error and would hand back a nil address instead.
+		malformedAccount := types.NewAbstractAccount("not-a-bech32-address", 1, 1)
+		err = malformedAccount.Validate()
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "invalid address")
+		s.Require().Nil(malformedAccount.GetAddress())
 	})
 }
 
