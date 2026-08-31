@@ -6,6 +6,11 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+
 	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"
@@ -165,4 +170,161 @@ func TestMigrateValidationDecorator_NonMigrateMsg(t *testing.T) {
 
 	_, err = decorator.AnteHandle(ctx, tx, false, anteTerminator)
 	require.NoError(t, err)
+}
+
+// TestMigrateValidationDecorator_AuthzWrapped checks that a migration wrapped in
+// an authz MsgExec is held to the same AllowedCodeIDs rule as a top-level one.
+//
+// authz dispatches the contents of MsgExec through the message router with the
+// granter as signer, so inspecting only tx.GetMsgs() would let a grantee migrate
+// an abstract account to an excluded code ID.
+func TestMigrateValidationDecorator_AuthzWrapped(t *testing.T) {
+	app := xionapp.Setup(t)
+	ctx := app.NewContext(false)
+
+	absAccAddr := xionapp.RandomAccAddress()
+	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
+	app.AccountKeeper.SetAccount(ctx, absAcc)
+
+	grantee := xionapp.RandomAccAddress()
+
+	params, err := types.NewParams(false, []uint64{1, 2}, 1000000, 1000000)
+	require.NoError(t, err)
+	require.NoError(t, app.AbstractAccountKeeper.SetParams(ctx, params))
+
+	decorator := abstractaccount.NewMigrateValidationDecorator(
+		app.AbstractAccountKeeper,
+		app.AccountKeeper,
+	)
+
+	migrateTo := func(codeID uint64) *wasmtypes.MsgMigrateContract {
+		return &wasmtypes.MsgMigrateContract{
+			Sender:   absAccAddr.String(),
+			Contract: absAccAddr.String(),
+			CodeID:   codeID,
+			Msg:      []byte("{}"),
+		}
+	}
+
+	for _, tc := range []struct {
+		desc   string
+		build  func() sdk.Msg
+		expErr bool
+	}{
+		{
+			desc: "authz-wrapped migration to a disallowed code ID is rejected",
+			build: func() sdk.Msg {
+				exec := authz.NewMsgExec(grantee, []sdk.Msg{migrateTo(999)})
+				return &exec
+			},
+			expErr: true,
+		},
+		{
+			desc: "authz-wrapped migration to an allowed code ID passes",
+			build: func() sdk.Msg {
+				exec := authz.NewMsgExec(grantee, []sdk.Msg{migrateTo(1)})
+				return &exec
+			},
+			expErr: false,
+		},
+		{
+			desc: "doubly nested authz-wrapped migration is still rejected",
+			build: func() sdk.Msg {
+				inner := authz.NewMsgExec(grantee, []sdk.Msg{migrateTo(999)})
+				outer := authz.NewMsgExec(grantee, []sdk.Msg{&inner})
+				return &outer
+			},
+			expErr: true,
+		},
+		{
+			desc: "authz-wrapped unrelated message passes",
+			build: func() sdk.Msg {
+				exec := authz.NewMsgExec(grantee, []sdk.Msg{&wasmtypes.MsgExecuteContract{
+					Sender:   absAccAddr.String(),
+					Contract: absAccAddr.String(),
+					Msg:      []byte("{}"),
+				}})
+				return &exec
+			},
+			expErr: false,
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			txBuilder := app.TxConfig().NewTxBuilder()
+			require.NoError(t, txBuilder.SetMsgs(tc.build()))
+
+			_, err := decorator.AnteHandle(ctx, txBuilder.GetTx(), false, anteTerminator)
+
+			if tc.expErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), types.ErrNotAllowedCodeID.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestMigrateValidationDecorator_UninspectableExec covers the fail-closed branch:
+// when a nested execution cannot be unpacked the decorator must reject the
+// transaction rather than wave through messages it was unable to read.
+//
+// An Any assembled without going through the codec carries no cached value, so
+// MsgExec.GetMessages cannot recover an sdk.Msg from it — the same shape a
+// malformed or unknown nested message takes.
+func TestMigrateValidationDecorator_UninspectableExec(t *testing.T) {
+	app := xionapp.Setup(t)
+	ctx := app.NewContext(false)
+
+	absAccAddr := xionapp.RandomAccAddress()
+	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
+	app.AccountKeeper.SetAccount(ctx, absAcc)
+
+	grantee := xionapp.RandomAccAddress()
+
+	params, err := types.NewParams(false, []uint64{1, 2}, 1000000, 1000000)
+	require.NoError(t, err)
+	require.NoError(t, app.AbstractAccountKeeper.SetParams(ctx, params))
+
+	decorator := abstractaccount.NewMigrateValidationDecorator(
+		app.AbstractAccountKeeper,
+		app.AccountKeeper,
+	)
+
+	opaqueExec := func() *authz.MsgExec {
+		return &authz.MsgExec{
+			Grantee: grantee.String(),
+			Msgs: []*codectypes.Any{{
+				TypeUrl: "/cosmwasm.wasm.v1.MsgMigrateContract",
+				Value:   []byte("not a decodable MsgMigrateContract"),
+			}},
+		}
+	}
+
+	for _, tc := range []struct {
+		desc  string
+		build func() sdk.Msg
+	}{
+		{
+			desc:  "top-level execution that cannot be unpacked",
+			build: func() sdk.Msg { return opaqueExec() },
+		},
+		{
+			desc: "nested execution that cannot be unpacked",
+			build: func() sdk.Msg {
+				outer := authz.NewMsgExec(grantee, []sdk.Msg{opaqueExec()})
+				return &outer
+			},
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			txBuilder := app.TxConfig().NewTxBuilder()
+			require.NoError(t, txBuilder.SetMsgs(tc.build()))
+
+			_, err := decorator.AnteHandle(ctx, txBuilder.GetTx(), false, anteTerminator)
+
+			require.Error(t, err, "an execution the decorator cannot read must be rejected")
+			require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
+		})
+	}
 }
