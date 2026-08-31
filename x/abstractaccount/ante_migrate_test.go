@@ -6,7 +6,9 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	xionapp "github.com/burnt-labs/xion/app"
@@ -259,6 +261,70 @@ func TestMigrateValidationDecorator_AuthzWrapped(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+// TestMigrateValidationDecorator_UninspectableExec covers the fail-closed branch:
+// when a nested execution cannot be unpacked the decorator must reject the
+// transaction rather than wave through messages it was unable to read.
+//
+// An Any assembled without going through the codec carries no cached value, so
+// MsgExec.GetMessages cannot recover an sdk.Msg from it — the same shape a
+// malformed or unknown nested message takes.
+func TestMigrateValidationDecorator_UninspectableExec(t *testing.T) {
+	app := xionapp.Setup(t)
+	ctx := app.NewContext(false)
+
+	absAccAddr := xionapp.RandomAccAddress()
+	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
+	app.AccountKeeper.SetAccount(ctx, absAcc)
+
+	grantee := xionapp.RandomAccAddress()
+
+	params, err := types.NewParams(false, []uint64{1, 2}, 1000000, 1000000)
+	require.NoError(t, err)
+	require.NoError(t, app.AbstractAccountKeeper.SetParams(ctx, params))
+
+	decorator := abstractaccount.NewMigrateValidationDecorator(
+		app.AbstractAccountKeeper,
+		app.AccountKeeper,
+	)
+
+	opaqueExec := func() *authz.MsgExec {
+		return &authz.MsgExec{
+			Grantee: grantee.String(),
+			Msgs: []*codectypes.Any{{
+				TypeUrl: "/cosmwasm.wasm.v1.MsgMigrateContract",
+				Value:   []byte("not a decodable MsgMigrateContract"),
+			}},
+		}
+	}
+
+	for _, tc := range []struct {
+		desc  string
+		build func() sdk.Msg
+	}{
+		{
+			desc:  "top-level execution that cannot be unpacked",
+			build: func() sdk.Msg { return opaqueExec() },
+		},
+		{
+			desc: "nested execution that cannot be unpacked",
+			build: func() sdk.Msg {
+				outer := authz.NewMsgExec(grantee, []sdk.Msg{opaqueExec()})
+				return &outer
+			},
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			txBuilder := app.TxConfig().NewTxBuilder()
+			require.NoError(t, txBuilder.SetMsgs(tc.build()))
+
+			_, err := decorator.AnteHandle(ctx, txBuilder.GetTx(), false, anteTerminator)
+
+			require.Error(t, err, "an execution the decorator cannot read must be rejected")
+			require.ErrorIs(t, err, sdkerrors.ErrInvalidRequest)
 		})
 	}
 }
