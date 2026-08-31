@@ -7,9 +7,9 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	storetypes "cosmossdk.io/store/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
