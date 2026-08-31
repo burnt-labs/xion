@@ -176,8 +176,9 @@ func TestSignerAddressGasIsIndependentOfTxSize(t *testing.T) {
 	}
 
 	small := gasFor([]byte("tx"))
+	require.Greater(t, small, storetypes.Gas(0),
+		"sanity check: recording the AA signer should consume gas")
 	large := gasFor(bytes.Repeat([]byte{0xAB}, 16*1024))
 
 	require.Equal(t, small, large,
 		"recording the AA signer must cost the same for a 2-byte and a 16KiB tx")
-}
