@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -150,4 +151,33 @@ func cacheContext(ctx sdk.Context) (sdk.Context, storetypes.CacheMultiStore) {
 	msCache := ctx.MultiStore().CacheMultiStore()
 
 	return ctx.WithMultiStore(msCache), msCache
+}
+
+// TestSignerAddressGasIsIndependentOfTxSize pins the gas cost of recording the
+// AA signer to a constant.
+//
+// gaskv charges TransientGasConfig.WriteCostPerByte over the length of the key,
+// so a key that embeds the raw transaction would make every abstract account
+// transaction pay gas proportional to its own size — worst exactly for the large
+// JWT and ZK proof payloads this module serves.
+func TestSignerAddressGasIsIndependentOfTxSize(t *testing.T) {
+	app := xionapp.Setup(t)
+	signer := sdk.AccAddress([]byte("abstract_account_sig"))
+
+	gasFor := func(txBytes []byte) storetypes.Gas {
+		ctx := app.NewContext(false).
+			WithTxBytes(txBytes).
+			WithGasMeter(storetypes.NewInfiniteGasMeter())
+
+		before := ctx.GasMeter().GasConsumed()
+		app.AbstractAccountKeeper.SetSignerAddress(ctx, signer)
+
+		return ctx.GasMeter().GasConsumed() - before
+	}
+
+	small := gasFor([]byte("tx"))
+	large := gasFor(bytes.Repeat([]byte{0xAB}, 16*1024))
+
+	require.Equal(t, small, large,
+		"recording the AA signer must cost the same for a 2-byte and a 16KiB tx")
 }

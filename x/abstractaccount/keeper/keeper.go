@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 
@@ -215,15 +216,21 @@ func (k Keeper) SetNextAccountID(ctx sdk.Context, id uint64) {
 // the PostHandler runs against the runMsgs branch that is discarded when it does.
 // Under a single fixed key a transaction that passed ante and then failed would
 // leave its signer behind, and the next transaction in the same block would read
-// it and invoke that account's after_tx hook. Keying by tx bytes keeps the marker
-// private to the transaction that wrote it.
+// it and invoke that account's after_tx hook. Qualifying the key with the
+// transaction keeps the marker private to the transaction that wrote it.
+//
+// The transaction is identified by a digest rather than its raw bytes: gaskv
+// charges WriteCostPerByte over the length of the key, so embedding the bytes
+// themselves would add gas proportional to transaction size to every abstract
+// account transaction — thousands of units for the large JWT and ZK proof
+// payloads this module exists to serve. The digest keeps that cost constant.
 func signerAddressKey(ctx sdk.Context) []byte {
-	txBytes := ctx.TxBytes()
+	digest := sha256.Sum256(ctx.TxBytes())
 
-	key := make([]byte, 0, len(types.KeySignerAddress)+len(txBytes))
+	key := make([]byte, 0, len(types.KeySignerAddress)+sha256.Size)
 	key = append(key, types.KeySignerAddress...)
 
-	return append(key, txBytes...)
+	return append(key, digest[:]...)
 }
 
 func (k Keeper) GetSignerAddress(ctx sdk.Context) sdk.AccAddress {
