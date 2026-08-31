@@ -6,6 +6,8 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/stretchr/testify/require"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	storetypes "cosmossdk.io/store/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
@@ -100,4 +102,52 @@ func TestSetParamsError(t *testing.T) {
 
 	err := app.AbstractAccountKeeper.SetParams(ctx, invalidParams)
 	require.Error(t, err)
+}
+
+// TestSignerAddressIsScopedToTx guards against a stale AA signer leaking from a
+// transaction that passed the AnteHandler but failed message execution into a
+// later transaction in the same block.
+//
+// This mirrors BaseApp's runTx sequencing. The transient store is block-scoped —
+// Commit is what clears it — and ante writes are flushed as soon as the ante
+// chain succeeds, whereas the PostHandler's cleanup lives in the runMsgs branch
+// that is thrown away when message execution fails.
+func TestSignerAddressIsScopedToTx(t *testing.T) {
+	app := xionapp.Setup(t)
+	blockCtx := app.NewContext(false)
+
+	aaSigner := sdk.AccAddress([]byte("abstract_account_sig"))
+
+	tx1 := blockCtx.WithTxBytes([]byte("tx-one"))
+	tx2 := blockCtx.WithTxBytes([]byte("tx-two"))
+
+	// tx1 is an AA tx: the AnteHandler records the signer, and BaseApp commits
+	// that write to the block store once the ante chain succeeds.
+	anteCtx, anteCache := cacheContext(tx1)
+	app.AbstractAccountKeeper.SetSignerAddress(anteCtx, aaSigner)
+	anteCache.Write()
+
+	// tx1's messages fail. The PostHandler still runs, but against the runMsgs
+	// branch, which is discarded — so its DeleteSignerAddress never lands.
+	msgCtx, msgCache := cacheContext(tx1)
+	require.Equal(t, aaSigner, app.AbstractAccountKeeper.GetSignerAddress(msgCtx),
+		"the failing tx's own post handling should still see its signer")
+	app.AbstractAccountKeeper.DeleteSignerAddress(msgCtx)
+	_ = msgCache // messages failed, so the branch is never written back
+
+	// tx2 is an unrelated, non-AA tx later in the same block. It must not observe
+	// tx1's signer, or its PostHandler would sudo after_tx on tx1's account.
+	require.Nil(t, app.AbstractAccountKeeper.GetSignerAddress(tx2),
+		"a stale AA signer must not leak into a later tx in the same block")
+
+	// The signer also must not leak back through the shared block context.
+	require.Nil(t, app.AbstractAccountKeeper.GetSignerAddress(blockCtx),
+		"the block context must not expose a per-tx signer")
+}
+
+// cacheContext branches ctx the way BaseApp.cacheTxContext does.
+func cacheContext(ctx sdk.Context) (sdk.Context, storetypes.CacheMultiStore) {
+	msCache := ctx.MultiStore().CacheMultiStore()
+
+	return ctx.WithMultiStore(msCache), msCache
 }
