@@ -182,3 +182,4 @@ func TestSignerAddressGasIsIndependentOfTxSize(t *testing.T) {
 
 	require.Equal(t, small, large,
 		"recording the AA signer must cost the same for a 2-byte and a 16KiB tx")
+}
