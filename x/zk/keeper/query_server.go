@@ -139,9 +139,12 @@ func validatePublicInputsInScalarField(inputs []string) error {
 
 // validateUltraHonkPublicInputsCanonical rejects any 32-byte big-endian public
 // input whose numeric value is >= the BN254 scalar field prime. Barretenberg
+// builds the field elements with many_from_buffer<uint256_t>, which reduces a
+// value >= the prime instead of rejecting it, so without this gate a proof over
+// X would verify just as well against any alias X + k*r.
 func validateUltraHonkPublicInputsCanonical(publicInputs []byte) error {
 	for i := 0; i+barretenberg.FieldElementSize <= len(publicInputs); i += barretenberg.FieldElementSize {
-		if new(big.Int).SetBytes(publicInputs[i : i+barretenberg.FieldElementSize]).Cmp(bn254ScalarPrime) >= 0 {
+		if new(big.Int).SetBytes(publicInputs[i:i+barretenberg.FieldElementSize]).Cmp(bn254ScalarPrime) >= 0 {
 			return errors.Wrapf(types.ErrInvalidRequest,
 				"public input[%d] is not a canonical BN254 scalar field element",
 				i/barretenberg.FieldElementSize)
