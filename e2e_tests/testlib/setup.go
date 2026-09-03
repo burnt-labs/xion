@@ -238,8 +238,15 @@ func OsmosisChainSpec(numVals int, numFn int) *interchaintest.ChainSpec {
 			NoHostMount:    false,
 			Images: []ibc.DockerImage{
 				{
-					Repository: "ghcr.io/strangelove-ventures/heighliner/osmosis",
-					Version:    "latest",
+					// heighliner moved from strangelove-ventures to amygdala-labs.
+					// GitHub redirects the repository, but ghcr package namespaces
+					// do not, so the old path started refusing anonymous pulls and
+					// this chain's containers failed before any assertion ran.
+					//
+					// Pinned rather than "latest": the counterparty version is part
+					// of what this test exercises, so it should move in a commit.
+					Repository: "ghcr.io/amygdala-labs/heighliner/osmosis",
+					Version:    "v29.0.1",
 					UIDGID:     "1025:1025",
 				},
 			},
