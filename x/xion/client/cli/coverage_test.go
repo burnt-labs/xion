@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"testing"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -34,11 +35,16 @@ import (
 
 // shared test constants to avoid duplication (goconst) and clarify intent
 const (
-	testValidBech32Addr = "xion1234567890abcdef1234567890abcdef12345678"
 	// test-only static token value; not a credential. #nosec G101
 	// nolint: gosec
 	testJWTToken = "test-jwt-token"
 )
+
+// testValidBech32Addr is a genuinely parseable account address, derived under
+// whichever bech32 prefix is configured for the test binary. It was previously a
+// hard-coded literal that looked address-shaped but carried both the wrong
+// prefix and an invalid checksum, which went unnoticed while nothing parsed it.
+var testValidBech32Addr = sdk.AccAddress(bytes.Repeat([]byte{0x01}, 20)).String()
 
 // Helper functions to create test data
 func createTempJSONFile(content string) (string, func(), error) {
@@ -67,6 +73,34 @@ func createTempJSONFile(content string) (string, func(), error) {
 // Mock structures
 type MockQueryClient struct {
 	mock.Mock
+}
+
+type mockAbstractAccountQueryClient struct {
+	mock.Mock
+}
+
+func (m *mockAbstractAccountQueryClient) Params(
+	ctx context.Context,
+	req *aatypes.QueryParamsRequest,
+	opts ...grpc.CallOption,
+) (*aatypes.QueryParamsResponse, error) {
+	args := m.Called(ctx, req, opts)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*aatypes.QueryParamsResponse), args.Error(1)
+}
+
+func (m *mockAbstractAccountQueryClient) AccountAddress(
+	ctx context.Context,
+	req *aatypes.QueryAccountAddressRequest,
+	opts ...grpc.CallOption,
+) (*aatypes.QueryAccountAddressResponse, error) {
+	args := m.Called(ctx, req, opts)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*aatypes.QueryAccountAddressResponse), args.Error(1)
 }
 
 func (m *MockQueryClient) Account(ctx context.Context, req *authtypes.QueryAccountRequest, opts ...grpc.CallOption) (*authtypes.QueryAccountResponse, error) {
@@ -1374,11 +1408,11 @@ func TestNewRegisterCmd(t *testing.T) {
 		cmd := NewRegisterCmd()
 
 		// Test valid arguments
-		require.NoError(t, cmd.Args(cmd, []string{}))
-		require.NoError(t, cmd.Args(cmd, []string{"1"}))
 		require.NoError(t, cmd.Args(cmd, []string{"1", "keyname"}))
 
-		// Test invalid arguments (too many)
+		// Test invalid argument counts
+		require.Error(t, cmd.Args(cmd, []string{}))
+		require.Error(t, cmd.Args(cmd, []string{"1"}))
 		require.Error(t, cmd.Args(cmd, []string{"1", "keyname", "extra"}))
 	})
 
@@ -1728,5 +1762,53 @@ func TestNewRegisterCmd(t *testing.T) {
 				// Each should error for different reasons (parsing, validation, etc.)
 			})
 		}
+	})
+}
+
+func TestQueryAccountAddress(t *testing.T) {
+	sender := sdk.AccAddress(bytes.Repeat([]byte{0x42}, 20))
+	salt := []byte("stable-address")
+
+	t.Run("returns module prediction", func(t *testing.T) {
+		queryClient := new(mockAbstractAccountQueryClient)
+		queryClient.On(
+			"AccountAddress",
+			mock.Anything,
+			&aatypes.QueryAccountAddressRequest{Sender: sender.String(), Salt: salt},
+			[]grpc.CallOption(nil),
+		).Return(&aatypes.QueryAccountAddressResponse{Address: testValidBech32Addr}, nil).Once()
+
+		address, err := queryAccountAddress(context.Background(), queryClient, sender, salt)
+		require.NoError(t, err)
+		require.Equal(t, testValidBech32Addr, address)
+		queryClient.AssertExpectations(t)
+	})
+
+	t.Run("propagates query failure", func(t *testing.T) {
+		queryClient := new(mockAbstractAccountQueryClient)
+		queryClient.On(
+			"AccountAddress",
+			mock.Anything,
+			&aatypes.QueryAccountAddressRequest{Sender: sender.String(), Salt: salt},
+			[]grpc.CallOption(nil),
+		).Return(nil, fmt.Errorf("query failed")).Once()
+
+		_, err := queryAccountAddress(context.Background(), queryClient, sender, salt)
+		require.EqualError(t, err, "query failed")
+		queryClient.AssertExpectations(t)
+	})
+
+	t.Run("rejects empty prediction", func(t *testing.T) {
+		queryClient := new(mockAbstractAccountQueryClient)
+		queryClient.On(
+			"AccountAddress",
+			mock.Anything,
+			&aatypes.QueryAccountAddressRequest{Sender: sender.String(), Salt: salt},
+			[]grpc.CallOption(nil),
+		).Return(&aatypes.QueryAccountAddressResponse{}, nil).Once()
+
+		_, err := queryAccountAddress(context.Background(), queryClient, sender, salt)
+		require.EqualError(t, err, "abstract account address query returned an empty address")
+		queryClient.AssertExpectations(t)
 	})
 }

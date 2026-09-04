@@ -127,7 +127,16 @@ func NewWasmAppWithCustomOptions(t *testing.T, isCheckTx bool, options SetupOpti
 }
 
 // Setup initializes a new WasmApp. A Nop logger is set in WasmApp.
-func Setup(t *testing.T, opts ...wasmkeeper.Option) *WasmApp {
+func Setup(t testing.TB, opts ...wasmkeeper.Option) *WasmApp {
+	t.Helper()
+
+	return SetupWithBalances(t, nil, opts...)
+}
+
+// SetupWithBalances initializes a new WasmApp whose genesis carries a base
+// account for every supplied balance, funded with it. The validator is bonded
+// from a separate genesis account, so callers are free to pick any denom.
+func SetupWithBalances(t testing.TB, balances []banktypes.Balance, opts ...wasmkeeper.Option) *WasmApp {
 	t.Helper()
 
 	privVal := mock.NewPV()
@@ -138,17 +147,26 @@ func Setup(t *testing.T, opts ...wasmkeeper.Option) *WasmApp {
 	validator := cmttypes.NewValidator(pubKey, 1)
 	valSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{validator})
 
-	// generate genesis account
+	// generate genesis account. it delegates to the validator, so it has to come
+	// first and hold the bond denom whatever the caller asked for
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-	balance := banktypes.Balance{
+	genAccs := []authtypes.GenesisAccount{acc}
+	genBalances := []banktypes.Balance{{
 		Address: acc.GetAddress().String(),
 		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000000000))),
-	}
-	chainID := "testing"
-	app := SetupWithGenesisValSet(t, valSet, []authtypes.GenesisAccount{acc}, chainID, opts, balance)
+	}}
 
-	return app
+	for _, balance := range balances {
+		addr, err := sdk.AccAddressFromBech32(balance.Address)
+		require.NoError(t, err)
+
+		genAccs = append(genAccs, authtypes.NewBaseAccountWithAddress(addr))
+		genBalances = append(genBalances, balance)
+	}
+
+	chainID := "testing"
+	return SetupWithGenesisValSet(t, valSet, genAccs, chainID, opts, genBalances...)
 }
 
 // SetupWithGenesisValSet initializes a new WasmApp with a validator set and genesis accounts
@@ -156,7 +174,7 @@ func Setup(t *testing.T, opts ...wasmkeeper.Option) *WasmApp {
 // of one consensus engine unit in the default token of the WasmApp from first genesis
 // account. A Nop logger is set in WasmApp.
 func SetupWithGenesisValSet(
-	t *testing.T,
+	t testing.TB,
 	valSet *cmttypes.ValidatorSet,
 	genAccs []authtypes.GenesisAccount,
 	chainID string,
@@ -263,6 +281,16 @@ func initAccountWithCoins(app *WasmApp, ctx sdk.Context, addr sdk.AccAddress, co
 	if err != nil {
 		panic(err)
 	}
+}
+
+// RandomAccAddress returns the address of a freshly generated secp256k1 key.
+func RandomAccAddress() sdk.AccAddress {
+	return sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+}
+
+// RandomPubKey returns the public half of a freshly generated secp256k1 key.
+func RandomPubKey() cryptotypes.PubKey {
+	return secp256k1.GenPrivKey().PubKey()
 }
 
 var emptyWasmOptions []wasmkeeper.Option
@@ -401,6 +429,6 @@ func GenesisStateWithValSet(
 	// update total supply
 	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
 	genesisState[banktypes.ModuleName] = codec.MustMarshalJSON(bankGenesis)
-	println(string(genesisState[banktypes.ModuleName]))
+
 	return genesisState, nil
 }

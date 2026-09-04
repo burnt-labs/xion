@@ -39,7 +39,12 @@ type TestData struct {
 var (
 	defaultMinGasPrices            = sdk.DecCoins{sdk.NewDecCoin("uxion", math.ZeroInt())}
 	defaultIbcClientTrustingPeriod = "336h" // 14 days
-	DefaultGenesisKVMods           = []cosmos.GenesisKV{
+	localAddressDerivationHash     = "e2VOlcNezIiL+UJ8UDpJVFV8R27Fa43YH4mJpqfJHNk="
+
+	// UpgradeGenesisKVMods configures genesis for chains that boot an older
+	// released image (upgrade tests). It must only reference params that
+	// release already knows about.
+	UpgradeGenesisKVMods = []cosmos.GenesisKV{
 		// Gov module - short proposals
 		cosmos.NewGenesisKV("app_state.gov.params.voting_period", "10s"),
 		cosmos.NewGenesisKV("app_state.gov.params.max_deposit_period", "10s"),
@@ -57,6 +62,17 @@ var (
 		// Packet forward middleware
 		// cosmos.NewGenesisKV("app_state.packetfowardmiddleware.params.fee_percentage", "0.0"),
 	}
+	CurrentGenesisKVMods = append(
+		append([]cosmos.GenesisKV{}, DefaultGenesisKVMods...),
+		// Preserve the address namespace used by the checked-in xion_account.wasm
+		// proof fixtures. setup_test.go verifies this value against the artifact.
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.address_derivation_hash", localAddressDerivationHash),
+		cosmos.NewGenesisKV("app_state.abstractaccount.params.registration_enabled", true),
+	)
+
+	// DefaultGenesisKVMods is the genesis baseline for tests that run only the
+	// current image; upgrade tests must keep to UpgradeGenesisKVMods.
+	DefaultGenesisKVMods = append([]cosmos.GenesisKV{}, UpgradeGenesisKVMods...)
 
 	// DeployerMnemonic is a test mnemonic used across e2e tests
 	DeployerMnemonic = "decorate corn happy degree artist trouble color mountain shadow hazard canal zone hunt unfold deny glove famous area arrow cup under sadness salute item"
@@ -120,7 +136,7 @@ func XionLocalChainSpec(t *testing.T, numVals int, numFn int) *interchaintest.Ch
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(DefaultGenesisKVMods)
+	chainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(CurrentGenesisKVMods)
 	chainSpec.ChainConfig.AdditionalStartArgs = []string{
 		"--consensus.timeout_commit=1s",
 	}
@@ -222,8 +238,15 @@ func OsmosisChainSpec(numVals int, numFn int) *interchaintest.ChainSpec {
 			NoHostMount:    false,
 			Images: []ibc.DockerImage{
 				{
-					Repository: "ghcr.io/strangelove-ventures/heighliner/osmosis",
-					Version:    "latest",
+					// heighliner moved from strangelove-ventures to amygdala-labs.
+					// GitHub redirects the repository, but ghcr package namespaces
+					// do not, so the old path started refusing anonymous pulls and
+					// this chain's containers failed before any assertion ran.
+					//
+					// Pinned rather than "latest": the counterparty version is part
+					// of what this test exercises, so it should move in a commit.
+					Repository: "ghcr.io/amygdala-labs/heighliner/osmosis",
+					Version:    "v29.0.1",
 					UIDGID:     "1025:1025",
 				},
 			},
