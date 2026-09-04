@@ -8,35 +8,11 @@
 # inherited. Regenerate with `make vulncheck-report` after any dependency or
 # toolchain change, and delete what no longer appears.
 #
-# Baseline taken on release/v31 at e9f40f4, under the go1.25.8 toolchain that
-# go.mod pins. The standard library set below moves whenever that directive
-# does, which is the point: it is a running bill for staying behind.
-
-# --- Go standard library ---------------------------------------------------
-# go.mod pins go 1.25.8 and every one of these is fixed by go 1.25.13. They are
-# a toolchain bump, not nineteen separate problems. Tracked in DO-487.
-GO-2026-4865  # html/template, fixed in go1.25.9
-GO-2026-4869  # archive/tar, fixed in go1.25.9
-GO-2026-4870  # crypto/tls, fixed in go1.25.9
-GO-2026-4918  # net/http, fixed in go1.25.10
-GO-2026-4946  # crypto/x509, fixed in go1.25.9
-GO-2026-4947  # crypto/x509, fixed in go1.25.9
-GO-2026-4971  # net, fixed in go1.25.10
-GO-2026-4980  # html/template, fixed in go1.25.10
-GO-2026-4982  # html/template, fixed in go1.25.10
-GO-2026-5026  # net/http, fixed in go1.25.13
-GO-2026-5037  # crypto/x509, fixed in go1.25.11
-GO-2026-5039  # net/textproto, fixed in go1.25.11
-GO-2026-5856  # crypto/tls, fixed in go1.25.12
-GO-2026-5972  # encoding/asn1, fixed in go1.25.13
-GO-2026-6088  # encoding/xml, fixed in go1.25.13
-GO-2026-6089  # net/http, fixed in go1.25.13
-GO-2026-6090  # crypto/tls, fixed in go1.25.13
-GO-2026-6091  # html/template, fixed in go1.25.13
-GO-2026-6218  # net/url, fixed in go1.25.13
+# Baseline retaken on release/v31 under the go1.25.14 toolchain that go.mod
+# pins. Standard library findings move whenever that directive does, so this
+# file has to be regenerated alongside any toolchain bump.
 
 # --- Dependencies with a fix available -------------------------------------
-GO-2026-5970  # golang.org/x/text v0.37.0, fixed in v0.39.0. Tracked in DO-487.
 GO-2026-4508  # go-ethereum v1.16.9, fixed in v1.17.0. e2e only. The replace in
               # e2e_tests/go.mod documents why: v1.17.x drops trie/utils, which
               # cosmos/evm still imports. Reopens when cosmos/evm moves off it.
