@@ -1,0 +1,42 @@
+name: Vulnerability Scan
+
+# reusable workflow, do not add triggers
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    name: govulncheck
+    runs-on: ubicloud-standard-4
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Prepare Environment
+        run: |
+          sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod | tee -a "$GITHUB_ENV"
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false
+
+      - name: Install clang and libc++
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome*.list
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+
+      # Both modules link the Barretenberg wrapper, and govulncheck has to
+      # build them to trace which symbols are actually reachable.
+      - name: Build Barretenberg wrapper
+        run: make barretenberg-build-wrapper
+
+      # Writes its report to the job summary, and fails only on advisories that
+      # are reachable and absent from .github/govulncheck-allowlist.txt.
+      - name: Scan for reachable vulnerabilities
+        run: make vulncheck

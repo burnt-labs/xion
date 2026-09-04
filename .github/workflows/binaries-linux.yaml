@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Check Out Code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -29,7 +29,7 @@ jobs:
         run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
@@ -40,10 +40,33 @@ jobs:
         run: |
           make build-${{ matrix.os }}-${{ matrix.arch }}
 
+      - name: Verify Linux Binary
+        run: |
+          mapfile -t binaries < <(find dist -type f -name 'xiond-${{ matrix.os }}-${{ matrix.arch }}')
+          if [ "${#binaries[@]}" -ne 1 ]; then
+            echo "Expected exactly one binary, found ${#binaries[@]}"
+            printf '%s\n' "${binaries[@]}"
+            exit 1
+          fi
+
+          binary="${binaries[0]}"
+          file "$binary"
+          "$binary" version --long
+
+          if readelf -l "$binary" | grep -q INTERP; then
+            echo "$binary unexpectedly has an ELF interpreter"
+            exit 1
+          fi
+          if readelf -d "$binary" 2>&1 | grep -q NEEDED; then
+            echo "$binary unexpectedly has dynamic dependencies"
+            exit 1
+          fi
+          file "$binary" | grep -q 'statically linked'
+
       - name: Upload Binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: xiond-${{ matrix.os }}-${{ matrix.arch }}
           path: dist/**/xiond-${{ matrix.os }}-${{ matrix.arch }}
-          retention-days: 3
+          retention-days: 30
           if-no-files-found: error

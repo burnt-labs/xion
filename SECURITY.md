@@ -37,6 +37,30 @@ Keep vulnerability details private until Burnt Labs confirms a fix or mitigation
 
 If a security issue requires a network upgrade, additional time may be needed to raise a governance proposal and complete the upgrade.
 
+## Downstream Notification
+
+Burnt Labs notifies downstream consumers before a security fix becomes publicly visible, not after. A fix in a public repository is itself a disclosure: the vulnerability can be derived from the patch, and every unpatched deployment is exposed from that moment rather than from the announcement.
+
+"Publicly visible" means the earliest point at which the patch can be read by anyone outside the embargo, whichever comes first: a commit pushed to a public branch, a pull request opened against a public repository, a tagged release, or a published advisory. It is not the merge. Security fixes are therefore developed in the temporary private fork attached to a draft GitHub Security Advisory, and the public pull request is opened only after the notice period below has run, or under the active exploitation exception.
+
+### Who is notified
+
+- Validators and node operators running XION mainnet or XION testnet, for any issue affecting the chain.
+- Teams that have registered a security contact for an in-scope Burnt Labs repository. [`burnt-labs/abstract-account`](https://github.com/burnt-labs/abstract-account) and [`burnt-labs/barretenberg-go`](https://github.com/burnt-labs/barretenberg-go) are both used outside this repository.
+- The CosmWasm security team, through their non-public channels, for critical vulnerabilities affecting CosmWasm components.
+
+### How and when
+
+Recipients are added to the draft GitHub Security Advisory for the affected repository before it is published. Where a recipient cannot be reached that way, Burnt Labs emails the contact address that the recipient registered with [security@burnt.com](mailto:security@burnt.com).
+
+Notice is a minimum of seven days before the fix becomes publicly visible. The exception is a vulnerability under active exploitation: Burnt Labs ships the fix first and notifies as quickly as it can, because attackers already have what the notice would give them.
+
+Where remediation requires a network upgrade, notification precedes the governance proposal. The proposal is itself a disclosure that an upgrade is worth making.
+
+### Registering a security contact
+
+Validators, node operators, and teams building on an in-scope repository can register by emailing [security@burnt.com](mailto:security@burnt.com) with a contact address and either the network they run or the repository they consume. Registration does not affect whether an issue is fixed. It determines whether the contact hears about the fix before it becomes public.
+
 ## Safe Harbor
 
 Good-faith research within this policy is authorized. Do not exploit beyond confirmation, do not access or disclose user data, do not disrupt production systems, and stop testing immediately if you accidentally access data or systems you did not intend to access.
@@ -155,7 +179,7 @@ Developer portals, dashboard frontends, third-party services, and third-party in
 
 #### Websites and Applications Proof of Concept Requirements
 
-All reports must include a proof of concept demonstrating the vulnerability against a production or staging environment. Screenshots or video walkthroughs showing end-to-end exploitation are expected for High and Critical severity reports.
+All reports must include a proof of concept demonstrating the vulnerability against a staging or other non-production environment, consistent with the No Production Testing policy above. Where no staging target exists for the affected system, include a local reproduction and note the limitation in the report. Screenshots or video walkthroughs showing end-to-end exploitation are expected for High and Critical severity reports.
 
 Reports consisting only of automated scanner output without demonstrated exploitability will not be rewarded.
 
@@ -213,7 +237,3 @@ The platform fee applied to `MsgSend` transactions can be set to zero for specif
 ## Recognition
 
 We appreciate responsible disclosure and will credit security researchers who help improve XION security. Recognition may be included in GitHub Security Advisories, release notes, and public security bulletins after coordinated disclosure.
-
-## CosmWasm Community Coordination
-
-Critical vulnerabilities affecting CosmWasm components will be reported to the CosmWasm security team through their non-public channels before public disclosure.

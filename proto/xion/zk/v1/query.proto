@@ -100,6 +100,20 @@ message ProofVerifyResponse {
 message ProofVerifyUltraHonkResponse {
   // verified indicates whether the proof verification was successful.
   bool verified = 1;
+  // vkey_sha256 is SHA-256 over the exact stored verification-key bytes that
+  // were used for this verification.
+  //
+  // A vkey NAME is a mutable binding and an ID's contents are mutable in place:
+  // AddVKey is permissionless, and the key's owner may later UpdateVKey the
+  // bytes under the same name and ID. A consumer that reviewed specific key
+  // material therefore cannot establish, from `verified` alone, that this
+  // verification used that material. Echoing the digest lets the consumer
+  // compare against a pin it derived offline from the reviewed artifact, in the
+  // same response that reports the verdict.
+  //
+  // Always populated on success, so a consumer may treat an absent value as a
+  // server too old to enforce `expected_vkey_sha256` and fail closed.
+  bytes vkey_sha256 = 2;
 }
 
 // ProofVerifyGnarkResponse defines the response structure for gnark Groth16
@@ -124,6 +138,15 @@ message QueryVerifyUltraHonkRequest {
   string vkey_name = 3;
   // vkey_id is the numeric id of the UltraHonk verification key
   uint64 vkey_id = 4;
+  // expected_vkey_sha256, when set, must equal SHA-256 over the resolved
+  // verification key's stored bytes, or verification fails with
+  // verified = false. Must be empty or exactly 32 bytes.
+  //
+  // This makes the key-identity check atomic with the verdict: the consumer
+  // does not have to read the key back in a second query and hope nothing
+  // changed in between. Empty preserves the prior behaviour exactly, so
+  // existing callers are unaffected.
+  bytes expected_vkey_sha256 = 5;
 }
 
 // QueryVerifyGnarkRequest is the request for ProofVerifyGnark.
