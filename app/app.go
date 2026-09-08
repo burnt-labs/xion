@@ -143,6 +143,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
 	"github.com/burnt-labs/xion/indexer"
 	owasm "github.com/burnt-labs/xion/wasmbindings"
 	aa "github.com/burnt-labs/xion/x/abstractaccount"
@@ -328,6 +329,12 @@ func NewWasmApp(
 
 	std.RegisterLegacyAminoCodec(legacyAmino)
 	std.RegisterInterfaces(interfaceRegistry)
+
+	// The 08-wasm light client module is gone, but chains that ran it still hold
+	// its client records in the IBC core store. Register the concrete types so
+	// those records keep decoding; no route or keeper is wired, so the clients
+	// are readable but inert. See app/legacy/ibcwasm.
+	legacyibcwasm.RegisterInterfaces(interfaceRegistry)
 
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 

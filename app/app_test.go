@@ -1,12 +1,12 @@
 package app
 
 import (
+	"bytes"
 	"encoding/hex"
 	"os"
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
@@ -14,6 +14,8 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 
 	dbm "github.com/cosmos/cosmos-db"
+	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
@@ -26,6 +28,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 var emptyWasmOpts []wasmkeeper.Option
@@ -517,6 +522,53 @@ func TestNextStoreUpgradesDoesNotRemoveIBCWasmStoreForOtherUpgrades(t *testing.T
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)
 	require.Empty(t, storeUpgrades.Deleted)
+}
+
+// TestExportGenesisWithLegacyIBCWasmClient covers the reason app/legacy/ibcwasm
+// exists. Removing the 08-wasm module drops its store but not the client records
+// core IBC holds, and chains that ran it — xion-testnet-2 has four — still carry
+// them. Every one of these calls unmarshals through the interface registry and
+// panics or errors if the concrete type is unregistered.
+func TestExportGenesisWithLegacyIBCWasmClient(t *testing.T) {
+	const clientID = "08-wasm-15"
+
+	gapp := Setup(t)
+	ctx := gapp.NewContext(false)
+	clientKeeper := gapp.IBCKeeper.ClientKeeper
+
+	height := clienttypes.NewHeight(0, 196)
+	clientState := &legacyibcwasm.ClientState{
+		Data:         []byte("wasm client state payload"),
+		Checksum:     bytes.Repeat([]byte{0x01}, 32),
+		LatestHeight: height,
+	}
+	consensusState := &legacyibcwasm.ConsensusState{Data: []byte("wasm consensus state payload")}
+
+	clientKeeper.SetClientState(ctx, clientID, clientState)
+	clientKeeper.SetClientConsensusState(ctx, clientID, height, consensusState)
+	// A chain still holding 08-wasm-15 has handed out at least 16 client ids.
+	clientKeeper.SetNextClientSequence(ctx, 16)
+
+	genClients := clientKeeper.GetAllGenesisClients(ctx)
+	require.Contains(t, genClients, clienttypes.NewIdentifiedClientState(clientID, clientState))
+
+	genConsensus := clientKeeper.GetAllConsensusStates(ctx)
+	var found bool
+	for _, cs := range genConsensus {
+		if cs.ClientId == clientID {
+			found = true
+			require.Len(t, cs.ConsensusStates, 1)
+			require.Equal(t, height, cs.ConsensusStates[0].Height)
+		}
+	}
+	require.True(t, found, "expected exported consensus states for %s", clientID)
+
+	// The full 02-client genesis must also validate: allowed_clients is "*" on
+	// testnet-2, and validation re-checks each client state against its
+	// identifier prefix.
+	genesisState := ibcclient.ExportGenesis(ctx, clientKeeper)
+	genesisState.Params = clienttypes.NewParams(clienttypes.AllowAllClients)
+	require.NoError(t, genesisState.Validate())
 }
 
 func TestConfigureAbstractAccountAddressDerivation(t *testing.T) {
