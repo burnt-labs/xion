@@ -36,8 +36,12 @@ func (cs ClientState) Validate() error {
 		return errors.New("wasm client state data cannot be empty")
 	}
 
+	if len(cs.Checksum) == 0 {
+		return errors.New("wasm client state checksum cannot be empty")
+	}
+
 	if len(cs.Checksum) != checksumLen {
-		return fmt.Errorf("wasm client state checksum: expected %d bytes, got %d", checksumLen, len(cs.Checksum))
+		return fmt.Errorf("wasm client state checksum: expected length of %d bytes, got %d", checksumLen, len(cs.Checksum))
 	}
 
 	return nil

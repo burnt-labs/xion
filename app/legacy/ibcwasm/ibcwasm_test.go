@@ -138,12 +138,12 @@ func TestClientStateValidate(t *testing.T) {
 		{
 			name:        "empty checksum",
 			clientState: ibcwasm.ClientState{Data: []byte("payload")},
-			expErr:      "expected 32 bytes, got 0",
+			expErr:      "checksum cannot be empty",
 		},
 		{
 			name:        "short checksum",
 			clientState: ibcwasm.ClientState{Data: []byte("payload"), Checksum: checksum[:16]},
-			expErr:      "expected 32 bytes, got 16",
+			expErr:      "expected length of 32 bytes, got 16",
 		},
 	}
 
