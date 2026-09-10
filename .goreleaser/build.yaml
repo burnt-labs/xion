@@ -5,13 +5,10 @@ project_name: xiond
 # Docs: https://goreleaser.com/customization/hooks/
 before:
   hooks:
-    # Install libc++ for arm64 cross-compilation.
-    # Aztec's pre-built barretenberg .a for linux_arm64 is compiled with libc++,
-    # but goreleaser-cross only ships libstdc++. barretenberg-go's CGo LDFLAGS
-    # hardcode -lc++, so the linker must find libc++.a in its default search path.
-    # We install the arm64 multiarch packages and symlink into the cross-linker
-    # sysroot (/usr/aarch64-linux-gnu/lib/) where ld actually searches.
-    - sh -c 'dpkg --add-architecture arm64 2>/dev/null; apt-get update -qq && apt-get install -y -qq libc++-18-dev:arm64 libc++abi-18-dev:arm64 libunwind-18-dev:arm64 >/dev/null 2>&1; mkdir -p /tmp/arm64-libs && cp /usr/lib/llvm-18/lib/libc++.a /usr/lib/llvm-18/lib/libc++abi.a /usr/lib/llvm-18/lib/libunwind.a /tmp/arm64-libs/ 2>/dev/null; true'
+    # All Linux/arm64 CGo compilation and final linking use the same pinned Zig
+    # musl toolchain. Installing it for every target keeps multi-target builds
+    # deterministic; non-arm64 targets continue to use their existing compilers.
+    - ./scripts/install-zig.sh /opt/zig-0.14.1
 
 # Docs: https://goreleaser.com/customization/build/
 builds:
@@ -36,9 +33,10 @@ builds:
         # Try pre-downloaded copy first (from Dockerfile), fall back to download.
         # Also copy into the wasmvm module cache so the linker finds it via the module's own -L path.
         - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || { cp /tmp/wasmvm/{{ .Env.WASM_LIB }} {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} 2>/dev/null || { WASMVM_VERSION=$(grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 2) && curl -sSfL -o {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/{{ .Env.WASM_LIB }}; }; WASM_MODPATH=$(grep "github.com/CosmWasm/wasmvm" go.mod | awk "{print \$1}"); WASM_VER=$(grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 2); WASM_DIR=$(go mod download -json "${WASM_MODPATH}@${WASM_VER}" 2>/dev/null | grep "\"Dir\"" | cut -d"\"" -f4); if [ -n "$WASM_DIR" ]; then chmod -R u+w "$WASM_DIR" 2>/dev/null || true; cp {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} "$WASM_DIR/internal/api/{{ .Env.WASM_LIB }}" 2>/dev/null || true; fi; }'
-        # Fix barretenberg-go LFS pointers: go mod download gets pointer files, not real binaries.
-        # Download the real static library from GitHub releases if needed.
-        - cmd: sh -c 'BB_VER=$(grep "github.com/burnt-labs/barretenberg-go" go.mod | cut -d " " -f 2); [ -z "$BB_VER" ] && exit 0; BB_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@$BB_VER" | grep "\"Dir\"" | cut -d"\"" -f4); BB_LIB="$BB_DIR/lib/{{ .Os }}_{{ .Arch }}/libbarretenberg.a"; if [ -f "$BB_LIB" ] && ! head -1 "$BB_LIB" 2>/dev/null | grep -q "git-lfs"; then echo "libbarretenberg OK"; else echo "Downloading libbarretenberg for {{ .Os }}/{{ .Arch }}"; chmod -R u+w "$BB_DIR" 2>/dev/null || true; mkdir -p "$(dirname $BB_LIB)"; curl -sSfL "https://github.com/burnt-labs/barretenberg-go/releases/download/$BB_VER/libbarretenberg_{{ .Os }}_{{ .Arch }}.a" -o "$BB_LIB"; fi'
+        # Replace the module's LFS pointer with a checksum-verified release
+        # archive. Linux/arm64 deliberately selects the separately published
+        # musl archive while retaining the module's expected library path.
+        - cmd: sh -c 'BB_VER=$(awk '\''$1 == "github.com/burnt-labs/barretenberg-go" { print $2; exit }'\'' go.mod); BB_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@$BB_VER" | awk -F'\''"'\'' '\''/"Dir"/ { print $4; exit }'\''); [ -n "$BB_DIR" ] || { echo "failed to resolve the barretenberg-go module directory" >&2; exit 1; }; ./scripts/download-barretenberg.sh {{ .Os }} {{ .Arch }} "$BB_DIR/lib/{{ .Os }}_{{ .Arch }}/libbarretenberg.a" {{ if and (eq .Os "linux") (eq .Arch "arm64") }}musl{{ else }}gnu{{ end }}'
         - cmd: echo Starting build...
     ldflags:
       - -X main.Date={{ .CommitDate }}
@@ -51,7 +49,7 @@ builds:
       - -linkmode=external
       - >-
         {{- if eq .Os "linux" -}}
-          -extldflags '-Wl,-z,muldefs -static -lm'
+          -extldflags '-static -lm'
         {{- end }}
     mod_timestamp: "{{ .CommitTimestamp }}"
     tags:
@@ -68,7 +66,7 @@ builds:
       - -trimpath
     env:
       - CGO_ENABLED=1
-      - CGO_LDFLAGS='-L./dist/lib -L/tmp/arm64-libs'
+      - CGO_LDFLAGS='-L./dist/lib'
       - LIB_PATH=./dist/lib
       - >-
         {{- if eq .Os "darwin" }}MACOSX_DEPLOYMENT_TARGET=10.12{{- end }}
@@ -86,7 +84,7 @@ builds:
         {{- end }}
         {{- if eq .Os "linux" }}
           {{- if eq .Arch "amd64" }}CC=x86_64-linux-gnu-gcc{{- end }}
-          {{- if eq .Arch "arm64" }}CC=aarch64-linux-gnu-gcc{{- end }}
+          {{- if eq .Arch "arm64" }}CC=/opt/zig-0.14.1/bin/aarch64-linux-musl-zig-cc{{- end }}
         {{- end }}
         {{- if eq .Os "windows" }}
           {{- if eq .Arch "amd64" }}CC=x86_64-w64-mingw32-gcc{{- end }}
@@ -99,12 +97,9 @@ builds:
         {{- end }}
         {{- if eq .Os "linux" }}
           {{- if eq .Arch "amd64" }}CXX=x86_64-linux-gnu-g++{{- end }}
-          {{- if eq .Arch "arm64" }}CXX=aarch64-linux-gnu-g++{{- end }}
+          {{- if eq .Arch "arm64" }}CXX=/opt/zig-0.14.1/bin/aarch64-linux-musl-zig-c++{{- end }}
         {{- end }}
         {{- if eq .Os "windows" }}
           {{- if eq .Arch "amd64" }}CXX=x86_64-w64-mingw32-g++{{- end }}
           {{- if eq .Arch "arm64" }}CXX=/llvm-mingw/bin/aarch64-w64-mingw32-g++{{- end }}
         {{- end }}
-
-
-

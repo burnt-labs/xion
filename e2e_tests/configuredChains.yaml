@@ -12,7 +12,7 @@ osmosis:
   gas-adjustment: 1.3
   trusting-period: 336h
   images:
-    - repository: ghcr.io/strangelove-ventures/heighliner/osmosis
+    - repository: ghcr.io/amygdala-labs/heighliner/osmosis
       version: v28.0.0
       uid-gid: 1025:1025
   no-host-mount: false

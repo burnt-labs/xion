@@ -15,7 +15,7 @@ import (
 	"cosmossdk.io/math"
 	txsigning "cosmossdk.io/x/tx/signing"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"

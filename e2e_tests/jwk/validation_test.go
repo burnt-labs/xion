@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -17,8 +16,7 @@ import (
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
 	txsigning "cosmossdk.io/x/tx/signing"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -98,14 +96,9 @@ func TestJWKInvalidSignature(t *testing.T) {
 		testlib.IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
-	codeResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "wasm", "code-info", codeIDStr)
-	require.NoError(t, err)
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
-	require.NoError(t, err)
-
 	salt := "0"
-	creatorAddr := types.AccAddress(xionUser.Address())
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
+	predictedAddr, err := testlib.QueryAbstractAccountAddress(t, ctx, xion.GetNode(), xionUser.FormattedAddress(), salt)
+	require.NoError(t, err)
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	// Create authenticator config
@@ -235,7 +228,7 @@ func TestJWKInvalidSignature(t *testing.T) {
 	   "signer_infos": [],
 	   "fee": {
 	     "amount": [],
-	     "gas_limit": "200000",
+	     "gas_limit": "300000",
 	     "payer": "",
 	     "granter": ""
 	   },

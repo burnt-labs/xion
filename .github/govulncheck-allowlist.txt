@@ -1,0 +1,37 @@
+# Advisories that govulncheck reports as reachable and that we have decided not
+# to block the build on. Anything reachable and not listed here fails CI, so a
+# new advisory -- the case this file exists for -- stops a pull request until
+# somebody looks at it.
+#
+# Every entry needs a reason. An entry with a fix available is debt, not a
+# decision: say where it is tracked so the line can be deleted rather than
+# inherited. Regenerate with `make vulncheck-report` after any dependency or
+# toolchain change, and delete what no longer appears.
+#
+# Baseline retaken on release/v31 under the go1.25.14 toolchain that go.mod
+# pins. Standard library findings move whenever that directive does, so this
+# file has to be regenerated alongside any toolchain bump.
+
+# --- Dependencies with a fix available -------------------------------------
+GO-2026-4508  # go-ethereum v1.16.9, fixed in v1.17.0. e2e only. The replace in
+              # e2e_tests/go.mod documents why: v1.17.x drops trie/utils, which
+              # cosmos/evm still imports. Reopens when cosmos/evm moves off it.
+
+# --- No fix available ------------------------------------------------------
+# Upstream has published no fixed version. Listed so the exposure is a recorded
+# decision rather than a silent one.
+GO-2023-1821  # cosmos-sdk x/crisis does not halt the chain. Informational
+              # Cosmos advisory against a module we run with default params.
+GO-2023-1881  # cosmos-sdk x/crisis does not charge ConstantFee. As above.
+GO-2024-2584  # cosmos-sdk slashing evasion. No fixed version published.
+GO-2026-4513  # shamaton/msgpack v2.4.1 denial of service. Transitive, reached
+              # only through decoding paths that do not take untrusted input.
+GO-2026-4740  # shamaton/msgpack v2.4.1 denial of service. As above.
+GO-2026-5932  # golang.org/x/crypto/openpgp is unmaintained by design.
+GO-2026-4883  # docker/docker v28.5.2. e2e only -- interchaintest drives local
+              # containers in CI, not anything reachable from the chain.
+GO-2026-4887  # docker/docker v28.5.2. As above.
+GO-2025-3684  # cosmos/evm partial precompile state writes. e2e only, and the
+              # advisory carries no symbol data, so govulncheck calls it
+              # reachable on import alone. interchaintest imports only
+              # cosmos/evm/crypto -- nothing from x/vm or the precompiles.

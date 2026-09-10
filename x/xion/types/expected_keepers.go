@@ -3,12 +3,12 @@ package types // noalias
 import (
 	"context"
 
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
-
 	"cosmossdk.io/math"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 // BankKeeper defines the contract needed to be fulfilled for banking and supply

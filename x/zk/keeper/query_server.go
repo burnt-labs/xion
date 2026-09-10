@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	goerrors "errors"
 	"fmt"
 	"math/big"
@@ -135,6 +137,22 @@ func validatePublicInputsInScalarField(inputs []string) error {
 	return nil
 }
 
+// validateUltraHonkPublicInputsCanonical rejects any 32-byte big-endian public
+// input whose numeric value is >= the BN254 scalar field prime. Barretenberg
+// builds the field elements with many_from_buffer<uint256_t>, which reduces a
+// value >= the prime instead of rejecting it, so without this gate a proof over
+// X would verify just as well against any alias X + k*r.
+func validateUltraHonkPublicInputsCanonical(publicInputs []byte) error {
+	for i := 0; i+barretenberg.FieldElementSize <= len(publicInputs); i += barretenberg.FieldElementSize {
+		if new(big.Int).SetBytes(publicInputs[i:i+barretenberg.FieldElementSize]).Cmp(bn254ScalarPrime) >= 0 {
+			return errors.Wrapf(types.ErrInvalidRequest,
+				"public input[%d] is not a canonical BN254 scalar field element",
+				i/barretenberg.FieldElementSize)
+		}
+	}
+	return nil
+}
+
 // ProofVerifyUltraHonk verifies an UltraHonk (Barretenberg) proof using a vkey looked up by name or ID.
 func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyUltraHonkRequest) (*types.ProofVerifyUltraHonkResponse, error) {
 	if req == nil {
@@ -193,10 +211,46 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		return nil, errors.Wrapf(types.ErrInvalidRequest, "verification key is not an UltraHonk key (proof_system=%v)", proofSystem)
 	}
 
+	// Request-shape validation runs ahead of the key-identity gate so that a
+	// malformed request is an error regardless of pin usage: request validity
+	// and the pinned-key verdict are independent questions.
 	publicInputs := req.GetPublicInputs()
 	if len(publicInputs)%barretenberg.FieldElementSize != 0 {
 		return nil, errors.Wrapf(types.ErrInvalidRequest, "public_inputs length %d is not a multiple of %d", len(publicInputs), barretenberg.FieldElementSize)
 	}
+
+	// Reject any public input that is not a canonical BN254 scalar field element.
+	if err := validateUltraHonkPublicInputsCanonical(publicInputs); err != nil {
+		return nil, err
+	}
+
+	// Key-identity gate, before any Barretenberg work. A vkey NAME is a mutable
+	// binding and an ID's contents are mutable in place (AddVKey is
+	// permissionless; the owner may later UpdateVKey the bytes under the same
+	// name and ID), so a consumer that reviewed specific key material cannot
+	// establish from `verified` alone that this call used that material.
+	// Checking the caller's pin here, and echoing the digest below, makes the
+	// identity check atomic with the verdict.
+	vkeySum := sha256.Sum256(vkey.KeyBytes)
+	if expected := req.GetExpectedVkeySha256(); len(expected) != 0 {
+		if len(expected) != sha256.Size {
+			return nil, errors.Wrapf(
+				types.ErrInvalidRequest,
+				"expected_vkey_sha256 must be %d bytes, got %d",
+				sha256.Size,
+				len(expected),
+			)
+		}
+		// A mismatch is a verdict, not a malformed request: the caller asked
+		// whether this proof verifies under the key it pinned, and it does not.
+		if !bytes.Equal(expected, vkeySum[:]) {
+			return &types.ProofVerifyUltraHonkResponse{
+				Verified:   false,
+				VkeySha256: vkeySum[:],
+			}, nil
+		}
+	}
+
 	numChunks := len(publicInputs) / barretenberg.FieldElementSize
 	chunks := make([][]byte, numChunks)
 	for i := 0; i < numChunks; i++ {
@@ -246,13 +300,13 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 			if goerrors.Is(e, barretenberg.ErrVerificationFailed) ||
 				goerrors.Is(e, barretenberg.ErrInvalidPublicInputs) ||
 				goerrors.Is(e, barretenberg.ErrInternal) {
-				resp = &types.ProofVerifyUltraHonkResponse{Verified: false}
+				resp = &types.ProofVerifyUltraHonkResponse{Verified: false, VkeySha256: vkeySum[:]}
 				return
 			}
 			callErr = errors.Wrapf(types.ErrInvalidRequest, "verification: %v", e)
 			return
 		}
-		resp = &types.ProofVerifyUltraHonkResponse{Verified: verified}
+		resp = &types.ProofVerifyUltraHonkResponse{Verified: verified, VkeySha256: vkeySum[:]}
 	}()
 	if callErr != nil {
 		return nil, callErr

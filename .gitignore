@@ -66,3 +66,6 @@ x/zk/barretenberg/lib/
 
 # Build cache
 .cache/
+
+# Agent working files
+.agents/

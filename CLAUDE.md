@@ -40,6 +40,7 @@ Releasing is triggered by **manually running** `create-release.yaml` via `workfl
 | `trigger-types.yaml` | Calls xion-types release workflow |
 | `update-swagger.yaml` | Update OpenAPI/Swagger specifications |
 | `docker-scout.yaml` | Docker image vulnerability scanning |
+| `govulncheck.yaml` | Go dependency scanning, gated on reachable advisories |
 | `verify-installers.yaml` | Verify release installers and artifacts |
 
 ### CI Workflows

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"bytes"
+	"encoding/hex"
 	"os"
 	"testing"
 
@@ -12,6 +14,8 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 
 	dbm "github.com/cosmos/cosmos-db"
+	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
@@ -24,6 +28,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 var emptyWasmOpts []wasmkeeper.Option
@@ -401,6 +408,24 @@ func TestRegisterUpgradeHandlers(t *testing.T) {
 }
 
 func TestNextUpgradeHandler(t *testing.T) {
+	t.Run("migrates then configures abstract account registration", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
+		fromVM := gapp.ModuleManager.GetVersionMap()
+		fromVM[aatypes.ModuleName] = 2
+
+		vm, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, fromVM)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), vm[aatypes.ModuleName])
+
+		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		expected, err := hex.DecodeString(mainnetAddressDerivationHash)
+		require.NoError(t, err)
+		require.Equal(t, expected, params.AddressDerivationHash)
+		require.True(t, params.RegistrationEnabled)
+	})
+
 	t.Run("runs migrations successfully", func(t *testing.T) {
 		gapp := Setup(t)
 		ctx := gapp.NewContext(false)
@@ -481,6 +506,222 @@ func TestNextUpgradeHandler(t *testing.T) {
 		require.True(t, zkInitialized, "zk module should be initialized")
 		require.True(t, dkimInitialized, "dkim module should be initialized")
 	})
+}
+
+func TestNextStoreUpgradesRemovesIBCWasmStore(t *testing.T) {
+	storeUpgrades := nextStoreUpgrades(UpgradeName)
+
+	require.Empty(t, storeUpgrades.Added)
+	require.Empty(t, storeUpgrades.Renamed)
+	require.Equal(t, []string{removedIBCWasmStoreKey}, storeUpgrades.Deleted)
+}
+
+func TestNextStoreUpgradesDoesNotRemoveIBCWasmStoreForOtherUpgrades(t *testing.T) {
+	storeUpgrades := nextStoreUpgrades("v32")
+
+	require.Empty(t, storeUpgrades.Added)
+	require.Empty(t, storeUpgrades.Renamed)
+	require.Empty(t, storeUpgrades.Deleted)
+}
+
+// TestExportGenesisWithLegacyIBCWasmClient covers the reason app/legacy/ibcwasm
+// exists. Removing the 08-wasm module drops its store but not the client records
+// core IBC holds, and chains that ran it — xion-testnet-2 has four — still carry
+// them. Every one of these calls unmarshals through the interface registry and
+// panics or errors if the concrete type is unregistered.
+func TestExportGenesisWithLegacyIBCWasmClient(t *testing.T) {
+	const clientID = "08-wasm-15"
+
+	gapp := Setup(t)
+	ctx := gapp.NewContext(false)
+	clientKeeper := gapp.IBCKeeper.ClientKeeper
+
+	height := clienttypes.NewHeight(0, 196)
+	clientState := &legacyibcwasm.ClientState{
+		Data:         []byte("wasm client state payload"),
+		Checksum:     bytes.Repeat([]byte{0x01}, 32),
+		LatestHeight: height,
+	}
+	consensusState := &legacyibcwasm.ConsensusState{Data: []byte("wasm consensus state payload")}
+
+	clientKeeper.SetClientState(ctx, clientID, clientState)
+	clientKeeper.SetClientConsensusState(ctx, clientID, height, consensusState)
+	// A chain still holding 08-wasm-15 has handed out at least 16 client ids.
+	clientKeeper.SetNextClientSequence(ctx, 16)
+
+	genClients := clientKeeper.GetAllGenesisClients(ctx)
+	require.Contains(t, genClients, clienttypes.NewIdentifiedClientState(clientID, clientState))
+
+	genConsensus := clientKeeper.GetAllConsensusStates(ctx)
+	var found bool
+	for _, cs := range genConsensus {
+		if cs.ClientId == clientID {
+			found = true
+			require.Len(t, cs.ConsensusStates, 1)
+			require.Equal(t, height, cs.ConsensusStates[0].Height)
+		}
+	}
+	require.True(t, found, "expected exported consensus states for %s", clientID)
+
+	// The full 02-client genesis must also validate: allowed_clients is "*" on
+	// testnet-2, and validation re-checks each client state against its
+	// identifier prefix.
+	genesisState := ibcclient.ExportGenesis(ctx, clientKeeper)
+	genesisState.Params = clienttypes.NewParams(clienttypes.AllowAllClients)
+	require.NoError(t, genesisState.Validate())
+}
+
+func TestConfigureAbstractAccountAddressDerivation(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		chainID string
+		hashHex string
+	}{
+		{name: "mainnet", chainID: "xion-mainnet-1", hashHex: mainnetAddressDerivationHash},
+		{name: "testnet", chainID: "xion-testnet-2", hashHex: testnetAddressDerivationHash},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			gapp := Setup(t)
+			ctx := gapp.NewContext(false).WithChainID(tc.chainID)
+
+			require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
+			params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+			require.NoError(t, err)
+			expected, err := hex.DecodeString(tc.hashHex)
+			require.NoError(t, err)
+			require.Equal(t, expected, params.AddressDerivationHash)
+			require.True(t, params.RegistrationEnabled)
+
+			// Reapplying the upgrade configuration is idempotent.
+			require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
+		})
+	}
+
+	t.Run("unsupported chain remains disabled", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("localnet")
+
+		require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
+		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		require.Empty(t, params.AddressDerivationHash)
+		require.False(t, params.RegistrationEnabled)
+	})
+
+	t.Run("rejects a conflicting configured namespace", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
+		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		params.AddressDerivationHash = make([]byte, 32)
+		require.NoError(t, gapp.AbstractAccountKeeper.SetParams(ctx, params))
+
+		err = gapp.configureAbstractAccountAddressDerivation(ctx)
+		require.ErrorIs(t, err, aatypes.ErrImmutableAddressHash)
+	})
+}
+
+func TestAddVeronaDenomMetadataAliases(t *testing.T) {
+	gapp := Setup(t)
+	ctx := gapp.NewContext(false)
+
+	gapp.addVeronaDenomMetadataAliases(ctx)
+	gapp.addVeronaDenomMetadataAliases(ctx)
+
+	metadata, found := gapp.BankKeeper.GetDenomMetaData(ctx, "uxion")
+	require.True(t, found)
+	require.Equal(t, "uxion", metadata.Base)
+	require.Equal(t, "XION", metadata.Display)
+	require.Equal(t, "xion", metadata.Name)
+	require.Equal(t, "XION", metadata.Symbol)
+	require.NoError(t, metadata.Validate())
+
+	requireAliases := func(denom string, aliases ...string) {
+		t.Helper()
+
+		for _, unit := range metadata.DenomUnits {
+			if unit.Denom != denom {
+				continue
+			}
+
+			for _, alias := range aliases {
+				require.Contains(t, unit.Aliases, alias)
+				require.Equal(t, 1, countString(unit.Aliases, alias), "alias should only be added once")
+			}
+			return
+		}
+
+		require.Failf(t, "missing denom unit", "denom unit %s not found", denom)
+	}
+
+	requireAliases("uxion", "microxion", "uverona", "microverona")
+	requireAliases("mxion", "millixion", "mverona", "milliverona")
+	requireAliases("XION", "xion", "verona", "VERONA")
+}
+
+func TestAddVeronaDenomMetadataAliasesAddsMissingMxionUnit(t *testing.T) {
+	gapp := Setup(t)
+	ctx := gapp.NewContext(false)
+
+	gapp.BankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
+		Description: "The native staking token of the Xion network.",
+		Base:        "uxion",
+		Display:     "XION",
+		Name:        "xion",
+		Symbol:      "XION",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "uxion",
+				Exponent: 0,
+				Aliases:  []string{"microxion"},
+			},
+			{
+				Denom:    "XION",
+				Exponent: 6,
+			},
+		},
+	})
+
+	gapp.addVeronaDenomMetadataAliases(ctx)
+
+	metadata, found := gapp.BankKeeper.GetDenomMetaData(ctx, "uxion")
+	require.True(t, found)
+	require.NoError(t, metadata.Validate())
+
+	var mxion *banktypes.DenomUnit
+	for _, unit := range metadata.DenomUnits {
+		if unit.Denom == "mxion" {
+			mxion = unit
+			break
+		}
+	}
+	require.NotNil(t, mxion)
+	require.Equal(t, uint32(3), mxion.Exponent)
+	require.Contains(t, mxion.Aliases, "millixion")
+	require.Contains(t, mxion.Aliases, "mverona")
+	require.Contains(t, mxion.Aliases, "milliverona")
+
+	var xion *banktypes.DenomUnit
+	for _, unit := range metadata.DenomUnits {
+		if unit.Denom == "XION" {
+			xion = unit
+			break
+		}
+	}
+	require.NotNil(t, xion)
+	require.Contains(t, xion.Aliases, "xion")
+	require.Contains(t, xion.Aliases, "verona")
+	require.Contains(t, xion.Aliases, "VERONA")
+}
+
+func countString(values []string, value string) int {
+	count := 0
+	for _, item := range values {
+		if item == value {
+			count++
+		}
+	}
+	return count
 }
 
 func TestIsModuleInitialized(t *testing.T) {

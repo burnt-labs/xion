@@ -72,7 +72,7 @@ func TestIBCUpgrade(t *testing.T) {
 	xionChainSpec.Version = xionVersionFrom
 
 	// Add additional genesis modifications for IBC test
-	xionChainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(append(testlib.DefaultGenesisKVMods,
+	xionChainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(append(testlib.UpgradeGenesisKVMods,
 		// Globalfee - specific to IBC tests
 		cosmos.NewGenesisKV("app_state.globalfee.params.minimum_gas_prices", []map[string]string{{"denom": "uxion", "amount": "0"}}),
 	))
