@@ -22,7 +22,7 @@ replace (
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
 	// wasmvm3 tokenfactory fork
-	github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.4-xion.2
+	github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.4-xion.3
 
 	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
