@@ -34,6 +34,19 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: false
 
+      - name: Configure access to private Go modules
+        env:
+          PRIVATE_MODULES_TOKEN: ${{ secrets.PRIVATE_MODULES_TOKEN }}
+        run: |
+          if [ -z "${PRIVATE_MODULES_TOKEN}" ]; then
+            echo "PRIVATE_MODULES_TOKEN is not set; it needs read access to burnt-labs/wasmd_priv and burnt-labs/wasmvm_priv" >&2
+            exit 1
+          fi
+          # make build-local mounts ~/.netrc read-only into the goreleaser container.
+          umask 077
+          printf 'machine github.com\nlogin x-access-token\npassword %s\n' "${PRIVATE_MODULES_TOKEN}" > "${HOME}/.netrc"
+          echo "GOPRIVATE=github.com/burnt-labs/wasmd_priv,github.com/burnt-labs/wasmvm_priv" >> "${GITHUB_ENV}"
+
       - name: Build darwin Binary
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
