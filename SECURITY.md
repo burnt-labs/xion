@@ -134,10 +134,10 @@ demonstrate unauthorized impact on a pre-existing funded account.
 
 XION mainnet operates with `code_upload_access: Nobody`. Uploading new contract
 code requires governance approval. An attack that depends on uploading
-attacker-controlled contract code or instantiating a new attacker-controlled
-contract on mainnet is out of scope. A finding in a contract already deployed on
-mainnet is not excluded by this rule; prior approval of a code ID alone does not
-make attacker deployment part of the authorized threat model.
+attacker-controlled contract code to mainnet is out of scope. A finding that is
+exploitable through code already approved for mainnet is not excluded by this
+rule, including when the proof of concept instantiates or controls a new
+contract from an approved code ID.
 
 ## Privileged Actor Policy
 
