@@ -162,7 +162,10 @@ for this repository:
   design
 - Upstream dependency code. Burnt-maintained fork deltas are covered only under
   the separately listed fork repositories in the canonical program
-- Third-party contracts deployed on XION
+- Smart-contract findings. Governance-deployed core protocol contracts are
+  covered only under the
+  [Core Protocol Contracts](https://github.com/burnt-labs/bug-bounty/blob/main/programs/contracts.md)
+  program; third-party contracts deployed on XION are out of scope
 - Attacks requiring new malicious contract code to be uploaded to mainnet
 - Governance attacks requiring a malicious proposal to pass
 - Denial of service recoverable through a software patch, coordinated validator
