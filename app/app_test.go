@@ -1,6 +1,7 @@
 package app
 
 import (
+	"maps"
 	"os"
 	"testing"
 
@@ -443,9 +444,7 @@ func TestNextUpgradeHandler(t *testing.T) {
 
 		// Use empty version map to simulate fresh state
 		emptyVM := make(map[string]uint64)
-		for k, v := range gapp.ModuleManager.GetVersionMap() {
-			emptyVM[k] = v
-		}
+		maps.Copy(emptyVM, gapp.ModuleManager.GetVersionMap())
 
 		upgradeInfo := upgradetypes.Plan{
 			Name:   UpgradeName,
