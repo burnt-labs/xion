@@ -57,7 +57,17 @@ func EnableAARegistration(t *testing.T, ctx context.Context, xion *cosmos.Cosmos
 
 	var params aatypes.Params
 	require.NoError(t, xion.Config().EncodingConfig.Codec.UnmarshalJSON(paramsJSON, &params))
-	params.AddressDerivationHash = AccountWasmChecksum()
+	// The derivation hash is immutable once configured, so a chain whose
+	// upgrade already set a different one (xion-testnet-2, xion-mainnet-1)
+	// cannot take the fixture hash, and the proposal below would fail. Say
+	// so here rather than as a proposal that never passes.
+	want := AccountWasmChecksum()
+	if params.RegistrationConfigured() {
+		require.Equalf(t, want, params.AddressDerivationHash,
+			"chain %s already has address derivation hash %X; the e2e fixtures need %X. Run this test on an unconfigured chain ID",
+			xion.Config().ChainID, params.AddressDerivationHash, want)
+	}
+	params.AddressDerivationHash = want
 	params.RegistrationEnabled = true
 
 	msg := &aatypes.MsgUpdateParams{
