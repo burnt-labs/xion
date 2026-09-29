@@ -9,11 +9,8 @@ replace (
 
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
-	// wasmd fork with genesis exports and private security patches
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd_priv v0.61.15-rc-xion.1
-
-	// wasmvm private security fork
-	github.com/CosmWasm/wasmvm/v3 => github.com/burnt-labs/wasmvm_priv/v3 v3.0.8-rc.2
+	// wasmd fork with genesis exports
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.15-0.20260929231932-1bfd60b44f76
 	github.com/burnt-labs/xion => ../
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
@@ -92,7 +89,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
-	github.com/CosmWasm/wasmvm/v3 v3.0.8-rc.2 // indirect
+	github.com/CosmWasm/wasmvm/v3 v3.0.8 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.33.0 // indirect
