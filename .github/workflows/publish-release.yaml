@@ -23,8 +23,6 @@ permissions:
 jobs:
   resolve-tag:
     name: Resolve Release Tag
-    # Publishing (Gemfury, Homebrew, downstream repos) only ever runs from the public repo.
-    if: github.repository == 'burnt-labs/xion'
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
@@ -48,7 +46,6 @@ jobs:
   publish-fury:
     name: Publish to Fury
     needs: resolve-tag
-    if: github.repository == 'burnt-labs/xion'
     runs-on: ubicloud-standard-2
 
     steps:

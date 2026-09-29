@@ -46,8 +46,17 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         cp -a "${PREBUILT_BINARY}" /go/bin/xiond; \
         chmod a+x /go/bin/xiond; \
     else \
-        # libwasmvm is staged by the goreleaser build hook from the wasmvm module
-        # that go.mod resolves (including its replace), not from public releases.
+        # Download wasmvm static library and place in module cache
+        WASMVM_VERSION=$(grep 'github.com/CosmWasm/wasmvm' go.mod | cut -d ' ' -f 2); \
+        WASM_ARCH=$([ "${GOARCH}" = "arm64" ] && echo "aarch64" || echo "x86_64"); \
+        WASM_LIB="libwasmvm_muslc.${WASM_ARCH}.a"; \
+        mkdir -p /tmp/wasmvm; \
+        curl -sSfL "https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/${WASM_LIB}" \
+            -o "/tmp/wasmvm/${WASM_LIB}"; \
+        WASM_MODPATH=$(grep 'github.com/CosmWasm/wasmvm' go.mod | awk '{print $1}'); \
+        WASM_MOD_DIR=$(go mod download -json "${WASM_MODPATH}@${WASMVM_VERSION}" | grep '"Dir"' | cut -d'"' -f4); \
+        chmod -R u+w "${WASM_MOD_DIR}" 2>/dev/null || true; \
+        cp "/tmp/wasmvm/${WASM_LIB}" "${WASM_MOD_DIR}/internal/api/${WASM_LIB}"; \
         # Replace the barretenberg-go LFS pointer with the verified musl archive.
         BB_VERSION=$(grep 'github.com/burnt-labs/barretenberg-go' go.mod | cut -d ' ' -f 2); \
         if [ -n "${BB_VERSION}" ]; then \

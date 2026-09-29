@@ -25,39 +25,10 @@ jobs:
           pattern: xiond-*
           merge-multiple: true
 
-      # upload-artifact keeps the path below the first wildcard, so each binary
-      # arrives nested (xiond_<os>_<arch>_<variant>/bin/xiond-<os>-<arch>), and
-      # merge-multiple puts those trees directly under runner.temp. Place every
-      # binary where the prebuilt builder in .goreleaser/release.yaml reads it,
-      # whatever depth it arrived at, and fail before GoReleaser if a target is
-      # missing.
       - name: Move artifacts
-        env:
-          ARTIFACT_DIR: ${{ runner.temp }}
         run: |
-          set -euo pipefail
-          declare -A VARIANTS=(
-            ["linux_amd64"]="v1"
-            ["linux_arm64"]="v8.0"
-            ["darwin_amd64"]="v1"
-            ["darwin_arm64"]="v8.0"
-          )
-          for platform in linux_amd64 linux_arm64 darwin_amd64 darwin_arm64; do
-            os="${platform%%_*}"
-            arch="${platform##*_}"
-            name="xiond-${os}-${arch}"
-            mapfile -t found < <(find "$ARTIFACT_DIR" -type f -name "$name")
-            if [ "${#found[@]}" -ne 1 ]; then
-              echo "Expected exactly one $name artifact, found ${#found[@]}" >&2
-              printf '%s\n' "${found[@]}" >&2
-              exit 1
-            fi
-            dest="dist/xiond_${platform}_${VARIANTS[$platform]}/bin"
-            mkdir -p "$dest"
-            cp "${found[0]}" "$dest/$name"
-            chmod +x "$dest/$name"
-          done
-          find dist -type f
+          mkdir -p dist
+          mv ${{ runner.temp }}/*/xiond* dist
 
       - name: Set Go Version
         run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
