@@ -160,4 +160,7 @@ jobs:
     name: Docker Scout
     needs: build-heighliner
     uses: ./.github/workflows/docker-scout.yaml
+    with:
+      image-name: heighliner
+      image-tag: heighliner
     secrets: inherit
