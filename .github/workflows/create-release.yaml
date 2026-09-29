@@ -1,8 +1,10 @@
 name: Create Release
-# Run for new release tags only
+# Private security release: build the Linux binaries and attach them, with
+# SHA-256 checksums, to a draft GitHub release in this repository. Nothing is
+# pushed anywhere else (no Docker registries, Homebrew or package repositories).
+# A draft release does not fire the release "published" event.
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - 'v[0-9]+\.[0-9]+\.[0-9]+'
@@ -13,70 +15,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # CI checks run in parallel with builds — they don't block each other,
-  # but both must pass before the release is created.
-  lint:
-    name: Golang CI Lint
-    uses: ./.github/workflows/golangci-lint.yaml
-    secrets: inherit
-
-  update-swagger:
-    name: Update Swagger
-    uses: ./.github/workflows/update-swagger.yaml
-    secrets: inherit
-
-  unit-tests:
-    name: Go Unit Tests
-    uses: ./.github/workflows/tests.yaml
-    secrets: inherit
-
-  build-darwin:
-    name: Build Darwin Binaries
-    uses: ./.github/workflows/binaries-darwin.yaml
-    secrets: inherit
-
   build-linux:
     name: Build Linux Binaries
     uses: ./.github/workflows/binaries-linux.yaml
     secrets: inherit
 
-  build-docker:
-    name: Build Docker Images
-    needs:
-      - build-darwin
-      - build-linux
-    uses: ./.github/workflows/docker-build.yaml
-    secrets: inherit
-
-  push-docker:
-    name: Push Docker Images
-    needs:
-      - build-docker
-    uses: ./.github/workflows/docker-push.yaml
-    secrets: inherit
-
-  docker-scout:
-    name: Docker Scout
-    needs:
-      - build-docker
-    uses: ./.github/workflows/docker-scout.yaml
-    secrets: inherit
-
-  e2e-tests:
-    name: E2E tests
-    needs:
-      - build-docker
-    uses: ./.github/workflows/e2e-tests.yaml
-    secrets: inherit
-
   create-release:
-    name: Create GitHub Release
-    needs:
-      - lint
-      - update-swagger
-      - unit-tests
-      - push-docker
-      - docker-scout
-      - e2e-tests
-    uses: ./.github/workflows/exec-goreleaser.yaml
-    secrets: inherit
+    name: Create Draft GitHub Release
+    needs: build-linux
+    runs-on: ubicloud-standard-2
+    permissions:
+      contents: write
+    steps:
+      - name: Download binaries
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: xiond-linux-*
+          merge-multiple: true
+
+      - name: Collect binaries and checksums
+        run: |
+          mkdir -p release
+          find dist -type f -name 'xiond-linux-*' -exec cp {} release/ \;
+          test -f release/xiond-linux-amd64
+          test -f release/xiond-linux-arm64
+          chmod +x release/xiond-linux-*
+          cd release
+          sha256sum xiond-linux-* > "xiond-${GITHUB_REF_NAME}-checksums.txt"
+          cat "xiond-${GITHUB_REF_NAME}-checksums.txt"
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" release/* \
+            --repo "${GITHUB_REPOSITORY}" \
+            --draft \
+            --prerelease \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "Private security release build of ${GITHUB_SHA}. Linux amd64 and arm64 binaries with SHA-256 checksums. Do not publish this release or share the binaries beyond the validator set before disclosure."
