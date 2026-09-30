@@ -69,3 +69,6 @@ x/zk/barretenberg/lib/
 
 # Agent working files
 .agents/
+
+# Private module credentials for local goreleaser/docker builds
+.netrc

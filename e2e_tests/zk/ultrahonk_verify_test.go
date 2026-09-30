@@ -2,6 +2,7 @@ package e2e_zk
 
 import (
 	"context"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -142,11 +143,14 @@ func TestZKUltraHonkVKeyAndProofVerification(t *testing.T) {
 
 	// Optional negative case: wrong public inputs yield verified == false (not an error)
 	t.Run("wrong_public_inputs_returns_false", func(t *testing.T) {
-		wrongInputs := make([]byte, len(publicInputsBytes))
-		copy(wrongInputs, publicInputsBytes)
-		if len(wrongInputs) > 0 {
-			wrongInputs[0] ^= 0xff // flip bits so verification fails
-		}
+		// The mutated input must stay a canonical BN254 scalar field element.
+		// ProofVerifyUltraHonk rejects any 32-byte chunk >= the scalar prime as
+		// an invalid request, which is a different path from a wrong-but-canonical
+		// input verifying false. Flipping the leading byte, as this case used to,
+		// yields a value >= r and turns this into an error case instead.
+		r, okPrime := new(big.Int).SetString("21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+		require.True(t, okPrime)
+		wrongInputs := new(big.Int).Sub(r, big.NewInt(1)).FillBytes(make([]byte, len(publicInputsBytes)))
 		err := node.WriteFile(ctx, wrongInputs, "wrong_inputs.bin")
 		require.NoError(t, err)
 		wrongInputsPath := filepath.Join(node.HomeDir(), "wrong_inputs.bin")
