@@ -24,8 +24,8 @@ if [[ -z "$BB_VERSION" ]]; then
 fi
 
 PLATFORM="${GOOS_TARGET}_${GOARCH_TARGET}"
-if [[ "$PLATFORM" == "linux_arm64" && "$LIBC_VARIANT" == "musl" ]]; then
-    PLATFORM="linux_arm64_musl"
+if [[ "$GOOS_TARGET" == "linux" && "$LIBC_VARIANT" == "musl" ]]; then
+    PLATFORM="${PLATFORM}_musl"
 fi
 
 ASSET="libbarretenberg_${PLATFORM}.a"
@@ -62,8 +62,8 @@ fi
 if [[ -f "$DESTINATION" ]]; then
     CURRENT_SHA256="$(sha256_file "$DESTINATION")"
     if [[ "$CURRENT_SHA256" == "$EXPECTED_SHA256" ]] && ar t "$DESTINATION" >/dev/null; then
-        if [[ "$PLATFORM" == "linux_arm64_musl" && "$(basename "$DESTINATION_DIR")" == "linux_arm64" ]]; then
-            MUSL_DESTINATION_DIR="$(dirname "$DESTINATION_DIR")/linux_arm64_musl"
+        if [[ "$PLATFORM" == *_musl && "$(basename "$DESTINATION_DIR")" == "${PLATFORM%_musl}" ]]; then
+            MUSL_DESTINATION_DIR="$(dirname "$DESTINATION_DIR")/$PLATFORM"
             MUSL_DESTINATION="$MUSL_DESTINATION_DIR/libbarretenberg.a"
             mkdir -p "$MUSL_DESTINATION_DIR"
             if [[ ! -f "$MUSL_DESTINATION" ]] || \
@@ -96,11 +96,11 @@ INSTALL_CANDIDATE="$DESTINATION_DIR/.libbarretenberg.a.$$.tmp"
 cp "$DOWNLOADED_ARCHIVE" "$INSTALL_CANDIDATE"
 mv -f "$INSTALL_CANDIDATE" "$DESTINATION"
 
-# barretenberg-go releases that know about the muslc build tag use a sibling
-# linux_arm64_musl directory. Populate it as well so this downloader works
-# during the transition from the legacy linux_arm64 link file.
-if [[ "$PLATFORM" == "linux_arm64_musl" && "$(basename "$DESTINATION_DIR")" == "linux_arm64" ]]; then
-    MUSL_DESTINATION_DIR="$(dirname "$DESTINATION_DIR")/linux_arm64_musl"
+# barretenberg-go links the muslc build tag from a sibling linux_<arch>_musl
+# directory. Populate it as well when the caller passed the plain
+# linux_<arch> path.
+if [[ "$PLATFORM" == *_musl && "$(basename "$DESTINATION_DIR")" == "${PLATFORM%_musl}" ]]; then
+    MUSL_DESTINATION_DIR="$(dirname "$DESTINATION_DIR")/$PLATFORM"
     MUSL_DESTINATION="$MUSL_DESTINATION_DIR/libbarretenberg.a"
     mkdir -p "$MUSL_DESTINATION_DIR"
     MUSL_INSTALL_CANDIDATE="$MUSL_DESTINATION_DIR/.libbarretenberg.a.$$.tmp"
