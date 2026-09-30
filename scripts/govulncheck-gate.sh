@@ -21,10 +21,11 @@ set -Eeuo pipefail
 
 usage() {
 	cat >&2 <<'EOF'
-usage: govulncheck-gate.sh --name NAME --allowlist FILE [--dir DIR] [--test] [--report-only]
+usage: govulncheck-gate.sh --name NAME --allowlist FILE [--allowlist FILE ...] [--dir DIR] [--test] [--report-only]
 
   --name         label used in the report
-  --allowlist    file of GO-YYYY-NNNN identifiers, # comments ignored
+  --allowlist    file of GO-YYYY-NNNN identifiers, # comments ignored; repeat
+                 to combine files, so an exception can be scoped to one scan
   --dir          module directory to scan (default: .)
   --test         include test files, needed for test-only modules
   --report-only  print the report without failing on new findings
@@ -34,7 +35,7 @@ EOF
 
 DIR="."
 NAME=""
-ALLOWLIST=""
+ALLOWLISTS=()
 scan=(-scan symbol -format json)
 REPORT_ONLY=""
 
@@ -42,14 +43,15 @@ while [[ $# -gt 0 ]]; do
 	case "$1" in
 	--dir) DIR="${2:-}"; shift 2 ;;
 	--name) NAME="${2:-}"; shift 2 ;;
-	--allowlist) ALLOWLIST="${2:-}"; shift 2 ;;
+	--allowlist) ALLOWLISTS+=("${2:-}"); shift 2 ;;
 	--test) scan+=(-test); shift ;;
 	--report-only) REPORT_ONLY="1"; shift ;;
 	*) usage ;;
 	esac
 done
 
-[[ -n "$NAME" && -n "$ALLOWLIST" ]] || usage
+[[ -n "$NAME" && ${#ALLOWLISTS[@]} -gt 0 ]] || usage
+ALLOWLIST_NAMES="${ALLOWLISTS[*]}"
 
 workdir=$(mktemp -d)
 trap 'rm -rf "$workdir"' EXIT
@@ -63,11 +65,10 @@ if [[ $status -ne 0 && $status -ne 3 ]]; then
 	exit "$status"
 fi
 
-allow='[]'
-if [[ -f "$ALLOWLIST" ]]; then
-	allow=$({ grep -oE '^GO-[0-9]{4}-[0-9]+' "$ALLOWLIST" || true; } |
-		jq -R -s 'split("\n") | map(select(length > 0))')
-fi
+allow=$(for list in "${ALLOWLISTS[@]}"; do
+	[[ -f "$list" ]] || continue
+	grep -oE '^GO-[0-9]{4}-[0-9]+' "$list" || true
+done | jq -R -s 'split("\n") | map(select(length > 0)) | unique')
 
 # govulncheck -format json emits concatenated objects, which jq reads as a
 # stream; -s collects them so findings can be cross-referenced with summaries.
@@ -134,6 +135,6 @@ blocking=$(jq -r '.blocking | join(", ")' <<<"$result")
 if [[ -n "$blocking" && -z "$REPORT_ONLY" ]]; then
 	count=$(jq -r '.blocking | length' <<<"$result")
 	echo >&2
-	echo "$NAME: $count reachable advisory(ies) not in $ALLOWLIST: $blocking" >&2
+	echo "$NAME: $count reachable advisory(ies) not in $ALLOWLIST_NAMES: $blocking" >&2
 	exit 1
 fi

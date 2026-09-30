@@ -7,11 +7,8 @@ replace (
 
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
-	// wasmd fork with genesis exports and private security patches
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd_priv v0.61.15-rc-xion.1
-
-	// wasmvm private security fork
-	github.com/CosmWasm/wasmvm/v3 => github.com/burnt-labs/wasmvm_priv/v3 v3.0.8-rc.2
+	// wasmd fork with genesis exports
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.15-0.20260929231932-1bfd60b44f76
 
 	// coinbase moved the rosetta-sdk-go/types package to mesh-sdk-go/types
 	github.com/coinbase/rosetta-sdk-go/types => github.com/coinbase/mesh-sdk-go/types v1.0.0
@@ -47,7 +44,7 @@ require (
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/CosmWasm/wasmd v0.61.14
-	github.com/CosmWasm/wasmvm/v3 v3.0.8-rc.2
+	github.com/CosmWasm/wasmvm/v3 v3.0.8
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/burnt-labs/barretenberg-go v0.6.0
 	github.com/cometbft/cometbft v0.38.26

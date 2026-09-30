@@ -25,13 +25,6 @@ GORELEASER_RELEASE ?= false
 GORELEASER_SKIP_FLAGS ?= ""
 XION_IMAGE ?= xiond:local
 
-# Private Go modules (wasmd_priv, wasmvm_priv) need credentials inside the
-# goreleaser container. Put a ~/.netrc-style file at ./.netrc (gitignored) or
-# in $HOME and it is mounted read-only; GOPRIVATE keeps these off the proxy.
-GOPRIVATE ?= github.com/burnt-labs/wasmd_priv,github.com/burnt-labs/wasmvm_priv
-NETRC_FILE ?= $(firstword $(wildcard $(CURDIR)/.netrc $(HOME)/.netrc))
-NETRC_MOUNT := $(if $(NETRC_FILE),--volume $(NETRC_FILE):/root/.netrc:ro,)
-
 # Build tags processing
 build_tags = netgo
 ifeq ($(LEDGER_ENABLED),true)
@@ -114,8 +107,6 @@ endif
 build-all:
 	$(DOCKER) run --rm \
 		--env NODISTDIR=false \
-		--env GOPRIVATE=$(GOPRIVATE) \
-		$(NETRC_MOUNT) \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
@@ -128,8 +119,6 @@ build-local:
 		--env GOARCH=$(GOARCH) \
 		--env NODISTDIR=true \
 		--env GORELEASER_KEY=$(GORELEASER_KEY) \
-		--env GOPRIVATE=$(GOPRIVATE) \
-		$(NETRC_MOUNT) \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \

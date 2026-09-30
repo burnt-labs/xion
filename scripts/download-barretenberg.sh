@@ -30,6 +30,10 @@ fi
 
 ASSET="libbarretenberg_${PLATFORM}.a"
 RELEASE_URL="${BARRETENBERG_RELEASE_URL:-https://github.com/burnt-labs/barretenberg-go/releases/download/${BB_VERSION}}"
+# The expected digests are committed next to this script. Nothing fetched at
+# build time is trusted to say what the archive should hash to: a release's
+# assets can be replaced together with any checksum file published beside them.
+CHECKSUMS_FILE="${BARRETENBERG_CHECKSUMS_FILE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/barretenberg-checksums.txt}"
 DESTINATION_DIR="$(dirname "$DESTINATION")"
 LIB_ROOT="$(dirname "$DESTINATION_DIR")"
 chmod u+w "$LIB_ROOT" 2>/dev/null || true
@@ -47,11 +51,11 @@ sha256_file() {
     fi
 }
 
-curl --fail --location --retry 5 --retry-all-errors \
-    --output "$WORK_DIR/checksums.txt" "$RELEASE_URL/checksums.txt"
-EXPECTED_SHA256="$(awk -v asset="$ASSET" '$2 == asset { print $1; exit }' "$WORK_DIR/checksums.txt")"
+EXPECTED_SHA256="$(awk -v version="$BB_VERSION" -v asset="$ASSET" \
+    '$1 == version && $3 == asset { print $2; exit }' "$CHECKSUMS_FILE")"
 if [[ ! "$EXPECTED_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
-    echo "$ASSET is missing from $BB_VERSION checksums.txt" >&2
+    echo "No committed SHA-256 for $ASSET at barretenberg-go $BB_VERSION in $CHECKSUMS_FILE." >&2
+    echo "Add it (see the header of that file) before building against this version." >&2
     exit 1
 fi
 

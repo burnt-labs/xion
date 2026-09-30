@@ -37,6 +37,7 @@ jobs:
         run: make barretenberg-build-wrapper
 
       # Writes its report to the job summary, and fails only on advisories that
-      # are reachable and absent from .github/govulncheck-allowlist.txt.
+      # are reachable and absent from the allowlists: .github/govulncheck-allowlist.txt
+      # for both scans, plus .github/govulncheck-allowlist-e2e.txt for e2e_tests only.
       - name: Scan for reachable vulnerabilities
         run: make vulncheck
