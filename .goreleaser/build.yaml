@@ -9,6 +9,8 @@ before:
     # musl toolchain. Installing it for every target keeps multi-target builds
     # deterministic; non-arm64 targets continue to use their existing compilers.
     - ./scripts/install-zig.sh /opt/zig-0.14.1
+    # barretenberg-go links -lc++; the goreleaser-cross image has no libc++.
+    - ./scripts/install-libcxx.sh
 
 # Docs: https://goreleaser.com/customization/build/
 builds:
