@@ -46,7 +46,7 @@ require (
 	github.com/CosmWasm/wasmd v0.61.14
 	github.com/CosmWasm/wasmvm/v3 v3.0.8
 	github.com/btcsuite/btcd/btcutil v1.1.6
-	github.com/burnt-labs/barretenberg-go v0.6.0
+	github.com/burnt-labs/barretenberg-go v0.6.1
 	github.com/cometbft/cometbft v0.38.26
 	github.com/cosmos/cosmos-db v1.1.3
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
