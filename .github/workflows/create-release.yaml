@@ -51,6 +51,12 @@ jobs:
     uses: ./.github/workflows/tests.yaml
     secrets: inherit
 
+  vulncheck:
+    name: Vulnerability Scan
+    needs: check-ref
+    uses: ./.github/workflows/govulncheck.yaml
+    secrets: inherit
+
   build-darwin:
     name: Build Darwin Binaries
     needs: check-ref
@@ -78,6 +84,7 @@ jobs:
       - lint
       - update-swagger
       - unit-tests
+      - vulncheck
       - docker-scout
       - e2e-tests
     uses: ./.github/workflows/docker-push.yaml
@@ -103,6 +110,7 @@ jobs:
       - lint
       - update-swagger
       - unit-tests
+      - vulncheck
       - push-docker
       - docker-scout
       - e2e-tests
