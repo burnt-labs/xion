@@ -24,11 +24,6 @@ ENV COMMIT=${COMMIT} \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH} 
 
-# Install libc++ (barretenberg static lib is built against libc++)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libc++-dev libc++abi-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 # Set the workdir
 WORKDIR /go/src/github.com/burnt-labs/xion
 
@@ -62,8 +57,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         if [ -n "${BB_VERSION}" ]; then \
             BB_MOD_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@${BB_VERSION}" | grep '"Dir"' | cut -d'"' -f4); \
             BB_LIB="${BB_MOD_DIR}/lib/linux_${GOARCH}/libbarretenberg.a"; \
-            BB_LIBC=$([ "${GOARCH}" = "arm64" ] && echo musl || echo gnu); \
-            ./scripts/download-barretenberg.sh linux "${GOARCH}" "${BB_LIB}" "${BB_LIBC}"; \
+            ./scripts/download-barretenberg.sh linux "${GOARCH}" "${BB_LIB}" musl; \
         fi; \
         goreleaser build \
             --config .goreleaser/build.yaml \

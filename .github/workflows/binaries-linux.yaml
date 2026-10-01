@@ -38,7 +38,14 @@ jobs:
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
         run: |
-          make build-${{ matrix.os }}-${{ matrix.arch }}
+          set -o pipefail
+          make build-${{ matrix.os }}-${{ matrix.arch }} 2>&1 | tee "${RUNNER_TEMP}/build.log"
+          # A glibc static link "succeeds" with calls that still need glibc's
+          # shared libraries at runtime; the musl build must have none.
+          if grep -q 'statically linked applications requires' "${RUNNER_TEMP}/build.log"; then
+            echo "::error::static link still depends on shared libraries at runtime"
+            exit 1
+          fi
 
       - name: Verify Linux Binary
         run: |
@@ -62,6 +69,13 @@ jobs:
             exit 1
           fi
           file "$binary" | grep -q 'statically linked'
+
+          # musl sizes new threads from PT_GNU_STACK (its own default is 128 KiB).
+          stack=$(readelf -lW "$binary" | awk '$1 == "GNU_STACK" { print $6; exit }')
+          if [ -z "$stack" ] || [ $((stack)) -lt $((8 * 1024 * 1024)) ]; then
+            echo "$binary requests a ${stack:-default} stack; expected at least 8 MiB"
+            exit 1
+          fi
 
       - name: Upload Binary
         uses: actions/upload-artifact@v7

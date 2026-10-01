@@ -5,9 +5,9 @@ project_name: xiond
 # Docs: https://goreleaser.com/customization/hooks/
 before:
   hooks:
-    # All Linux/arm64 CGo compilation and final linking use the same pinned Zig
-    # musl toolchain. Installing it for every target keeps multi-target builds
-    # deterministic; non-arm64 targets continue to use their existing compilers.
+    # All Linux CGo compilation and final linking (amd64 and arm64) use the same
+    # pinned Zig musl toolchain, so both Linux binaries are fully static musl
+    # builds with the C++ runtime Zig bundles. Darwin uses osxcross.
     - ./scripts/install-zig.sh /opt/zig-0.14.1
 
 # Docs: https://goreleaser.com/customization/build/
@@ -34,9 +34,8 @@ builds:
         # Also copy into the wasmvm module cache so the linker finds it via the module's own -L path.
         - cmd: sh -c '[ "{{ .Os }}" = "windows" ] || { cp /tmp/wasmvm/{{ .Env.WASM_LIB }} {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} 2>/dev/null || { WASMVM_VERSION=$(grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 2) && curl -sSfL -o {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/{{ .Env.WASM_LIB }}; }; WASM_MODPATH=$(grep "github.com/CosmWasm/wasmvm" go.mod | awk "{print \$1}"); WASM_VER=$(grep "github.com/CosmWasm/wasmvm" go.mod | cut -d " " -f 2); WASM_DIR=$(go mod download -json "${WASM_MODPATH}@${WASM_VER}" 2>/dev/null | grep "\"Dir\"" | cut -d"\"" -f4); if [ -n "$WASM_DIR" ]; then chmod -R u+w "$WASM_DIR" 2>/dev/null || true; cp {{ .Env.LIB_PATH }}/{{ .Env.WASM_LIB }} "$WASM_DIR/internal/api/{{ .Env.WASM_LIB }}" 2>/dev/null || true; fi; }'
         # Replace the module's LFS pointer with a checksum-verified release
-        # archive. Linux/arm64 deliberately selects the separately published
-        # musl archive while retaining the module's expected library path.
-        - cmd: sh -c 'BB_VER=$(awk '\''$1 == "github.com/burnt-labs/barretenberg-go" { print $2; exit }'\'' go.mod); BB_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@$BB_VER" | awk -F'\''"'\'' '\''/"Dir"/ { print $4; exit }'\''); [ -n "$BB_DIR" ] || { echo "failed to resolve the barretenberg-go module directory" >&2; exit 1; }; ./scripts/download-barretenberg.sh {{ .Os }} {{ .Arch }} "$BB_DIR/lib/{{ .Os }}_{{ .Arch }}/libbarretenberg.a" {{ if and (eq .Os "linux") (eq .Arch "arm64") }}musl{{ else }}gnu{{ end }}'
+        # archive. Linux selects the separately published musl archive.
+        - cmd: sh -c 'BB_VER=$(awk '\''$1 == "github.com/burnt-labs/barretenberg-go" { print $2; exit }'\'' go.mod); BB_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@$BB_VER" | awk -F'\''"'\'' '\''/"Dir"/ { print $4; exit }'\''); [ -n "$BB_DIR" ] || { echo "failed to resolve the barretenberg-go module directory" >&2; exit 1; }; ./scripts/download-barretenberg.sh {{ .Os }} {{ .Arch }} "$BB_DIR/lib/{{ .Os }}_{{ .Arch }}/libbarretenberg.a" {{ if eq .Os "linux" }}musl{{ else }}gnu{{ end }}'
         - cmd: echo Starting build...
     ldflags:
       - -X main.Date={{ .CommitDate }}
@@ -49,7 +48,7 @@ builds:
       - -linkmode=external
       - >-
         {{- if eq .Os "linux" -}}
-          -extldflags '-static -lm'
+          -extldflags '-static -lm -Wl,-z,stack-size=8388608'
         {{- end }}
     mod_timestamp: "{{ .CommitTimestamp }}"
     tags:
@@ -83,7 +82,7 @@ builds:
           {{- if eq .Arch "arm64" }}CC=oa64-clang{{- end }}
         {{- end }}
         {{- if eq .Os "linux" }}
-          {{- if eq .Arch "amd64" }}CC=x86_64-linux-gnu-gcc{{- end }}
+          {{- if eq .Arch "amd64" }}CC=/opt/zig-0.14.1/bin/x86_64-linux-musl-zig-cc{{- end }}
           {{- if eq .Arch "arm64" }}CC=/opt/zig-0.14.1/bin/aarch64-linux-musl-zig-cc{{- end }}
         {{- end }}
         {{- if eq .Os "windows" }}
@@ -96,7 +95,7 @@ builds:
           {{- if eq .Arch "arm64" }}CXX=oa64-clang++{{- end }}
         {{- end }}
         {{- if eq .Os "linux" }}
-          {{- if eq .Arch "amd64" }}CXX=x86_64-linux-gnu-g++{{- end }}
+          {{- if eq .Arch "amd64" }}CXX=/opt/zig-0.14.1/bin/x86_64-linux-musl-zig-c++{{- end }}
           {{- if eq .Arch "arm64" }}CXX=/opt/zig-0.14.1/bin/aarch64-linux-musl-zig-c++{{- end }}
         {{- end }}
         {{- if eq .Os "windows" }}

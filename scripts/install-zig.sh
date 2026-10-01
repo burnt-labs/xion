@@ -97,7 +97,17 @@ cat > "$INSTALL_DIR/bin/aarch64-linux-musl-zig-c++" <<'EOF'
 #!/usr/bin/env sh
 exec "$(dirname "$0")/../zig" c++ -target aarch64-linux-musl "$@"
 EOF
+cat > "$INSTALL_DIR/bin/x86_64-linux-musl-zig-cc" <<'EOF'
+#!/usr/bin/env sh
+exec "$(dirname "$0")/../zig" cc -target x86_64-linux-musl "$@"
+EOF
+cat > "$INSTALL_DIR/bin/x86_64-linux-musl-zig-c++" <<'EOF'
+#!/usr/bin/env sh
+exec "$(dirname "$0")/../zig" c++ -target x86_64-linux-musl "$@"
+EOF
 chmod +x "$INSTALL_DIR/bin/aarch64-linux-musl-zig-cc" \
-    "$INSTALL_DIR/bin/aarch64-linux-musl-zig-c++"
+    "$INSTALL_DIR/bin/aarch64-linux-musl-zig-c++" \
+    "$INSTALL_DIR/bin/x86_64-linux-musl-zig-cc" \
+    "$INSTALL_DIR/bin/x86_64-linux-musl-zig-c++"
 
 echo "$INSTALL_DIR/bin"
