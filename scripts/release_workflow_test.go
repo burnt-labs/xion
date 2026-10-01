@@ -147,6 +147,13 @@ func TestReleaseArtifactsRequired(t *testing.T) {
 		"xiond_darwin_amd64_v1/bin/xiond-darwin-amd64",
 		"xiond_darwin_arm64_v8.0/bin/xiond-darwin-arm64",
 	}
+	// The binary jobs build to dist/<os>_<arch>/xiond_<os>_<arch>_<variant>/bin/
+	// and upload dist/**/xiond-<os>-<arch>, so the artifact root is dist/ and
+	// merge-multiple extracts each binary under runner.temp/<os>_<arch>/.
+	downloaded := func(name string) string {
+		parts := strings.SplitN(strings.TrimPrefix(name, "xiond_"), "_", 3)
+		return filepath.Join(parts[0]+"_"+parts[1], name)
+	}
 	runCase := func(t *testing.T, bad string, empty bool) {
 		t.Helper()
 		work := t.TempDir()
@@ -155,7 +162,7 @@ func TestReleaseArtifactsRequired(t *testing.T) {
 			if name == bad && !empty {
 				continue
 			}
-			path := filepath.Join(input, "artifacts", name)
+			path := filepath.Join(input, downloaded(name))
 			if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 				t.Fatal(err)
 			}
