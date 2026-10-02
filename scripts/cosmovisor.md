@@ -21,15 +21,18 @@ All inputs are Dockerfile `ARG` defaults and are checked before use:
 | `COSMOVISOR_COMMIT` | `642a9c00b69ae3c9cb866a251eb32116de416c55` (cosmos/cosmos-sdk) | source URL |
 | `COSMOVISOR_SOURCE_SHA256` | SHA256 of `https://codeload.github.com/cosmos/cosmos-sdk/tar.gz/<commit>` | `sha256sum -c` before extraction |
 | `COSMOVISOR_PATCH_SHA256` | SHA256 of `cosmovisor-patches/0001-decode-db-backend-output.patch` | `sha256sum -c` before `git apply` |
+| `COSMOVISOR_GOLEVELDB_PATCH_SHA256` | SHA256 of `cosmovisor-patches/0002-pin-goleveldb.patch` | `sha256sum -c` before `git apply` |
 | `COSMOVISOR_BUILD_IMAGE` | `golang:1.26.8-bookworm`, pinned by digest | image digest |
 
 The module `tools/cosmovisor` is built with `GOWORK=off GOTOOLCHAIN=local
 -mod=readonly`, after `go mod verify`, using upstream's own `go.mod`/`go.sum`
-unchanged. Xion's own modules and toolchain are not involved.
+with one change, `0002-pin-goleveldb.patch` (below). Xion's own modules and
+toolchain are not involved.
 
 The release image records the inputs as labels:
-`io.burnt.cosmovisor.revision`, `io.burnt.cosmovisor.source-sha256` and
-`io.burnt.cosmovisor.patch-sha256`.
+`io.burnt.cosmovisor.revision`, `io.burnt.cosmovisor.source-sha256`,
+`io.burnt.cosmovisor.patch-sha256` and
+`io.burnt.cosmovisor.goleveldb-patch-sha256`.
 
 ## Version reporting
 
@@ -37,7 +40,7 @@ A source build reports `cosmovisor version: (devel)`; the upstream v1.7.3
 tarball reports the same. The exact revision is in the image labels above, and
 `go version -m /usr/bin/cosmovisor` shows the module build information.
 
-## The patch
+## The patches
 
 `0001-decode-db-backend-output.patch` changes only `tools/cosmovisor/scanner.go`
 and adds `dbbackend.go` with its test. When the daemon exits before cosmovisor
@@ -50,6 +53,14 @@ patch decodes the value strictly and leaves backend validation to `NewDB`.
 
 Twice approved carrying this narrow downstream patch rather than waiting for an
 upstream fix (DO-519, 2026-10-02).
+
+`0002-pin-goleveldb.patch` changes only `tools/cosmovisor/go.mod` and `go.sum`.
+Upstream resolves `github.com/syndtr/goleveldb` to `126854af5e6d`, the revision
+Xion's own `go.mod` replaces because store queries fail with it. The fallback
+above opens Xion's blockstore with that library, so the patch applies the same
+`replace` to `v1.0.1-0.20210819022825-2ae1ddf74ef7` and adds its two `go.sum`
+hashes (plus the `go.mod` hashes of the older dependencies it pulls in). The
+cosmos-sdk root `go.mod` carries the same replacement.
 
 ## Behaviour changes from v1.7.3
 
@@ -77,10 +88,18 @@ COSMOVISOR_TEST_IMAGE=xion:linux-amd64 COSMOVISOR_TEST_PLATFORM=linux/amd64 \
 - `TestCosmovisorRealStateFallback`: produces blocks with real xiond, stops it,
   and checks that cosmovisor switches the binary only when the stored height
   has reached the upgrade height, then that the upgraded node produces blocks.
-- `TestCosmovisorPatchChecksum` (no image needed) keeps the pinned patch hash in
-  step with the patch file and limits the patch to the three reviewed files.
+- `TestCosmovisorPatchChecksum` (no image needed) keeps each pinned patch hash
+  in step with its patch file and limits each patch to its reviewed files.
+- `TestCosmovisorGoleveldbPin` (no image needed) requires
+  `0002-pin-goleveldb.patch` to pin the goleveldb version Xion's `go.mod`
+  replaces to; the image test also checks the binary's build information for it.
+- `TestCosmovisorImageTestsRunInCI` (no image needed) requires
+  `.github/workflows/docker-build.yaml` to run this suite against each
+  architecture's freshly loaded image, before the image is saved.
 
-Without `COSMOVISOR_TEST_IMAGE` the two image tests skip.
+Without `COSMOVISOR_TEST_IMAGE` the two image tests skip. CI sets it in the
+`Test cosmovisor in the image` step of the image build, on native amd64 and
+arm64 runners.
 
 ## Updating
 
@@ -94,6 +113,11 @@ Without `COSMOVISOR_TEST_IMAGE` the two image tests skip.
    label and `TestCosmovisorPatchChecksum`. Otherwise regenerate the patch
    against the new source, run upstream's tests on it, and update
    `COSMOVISOR_PATCH_SHA256`.
+   Regenerate `0002-pin-goleveldb.patch` against the new source
+   (`go mod edit -replace` to the version Xion's `go.mod` pins, then add only
+   the `go.sum` lines `go mod tidy` adds) and update
+   `COSMOVISOR_GOLEVELDB_PATCH_SHA256`, or delete it with its ARG and label once
+   upstream resolves to a working goleveldb.
 4. If `tools/cosmovisor/go.mod` needs a newer Go, update
    `COSMOVISOR_BUILD_IMAGE` to a matching `golang` image pinned by digest.
 5. Build the release image for linux/amd64 and linux/arm64, run the tests

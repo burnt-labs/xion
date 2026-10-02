@@ -12,11 +12,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"sigs.k8s.io/yaml"
 )
 
 // Container integration tests for the cosmovisor shipped in the release image.
@@ -27,7 +30,26 @@ import (
 //
 // See scripts/cosmovisor.md.
 
-const cosmovisorPatchPath = "cosmovisor-patches/0001-decode-db-backend-output.patch"
+// cosmovisorPatches maps each downstream patch to the Dockerfile ARG that pins
+// its SHA256, the image label that records it, and the upstream files it may
+// touch.
+var cosmovisorPatches = []struct {
+	path, arg, label string
+	files            []string
+}{
+	{
+		path:  "cosmovisor-patches/0001-decode-db-backend-output.patch",
+		arg:   "COSMOVISOR_PATCH_SHA256",
+		label: "io.burnt.cosmovisor.patch-sha256",
+		files: []string{"tools/cosmovisor/scanner.go", "tools/cosmovisor/dbbackend.go", "tools/cosmovisor/dbbackend_test.go"},
+	},
+	{
+		path:  "cosmovisor-patches/0002-pin-goleveldb.patch",
+		arg:   "COSMOVISOR_GOLEVELDB_PATCH_SHA256",
+		label: "io.burnt.cosmovisor.goleveldb-patch-sha256",
+		files: []string{"tools/cosmovisor/go.mod", "tools/cosmovisor/go.sum"},
+	},
+}
 
 var containerSeq atomic.Int64
 
@@ -164,7 +186,11 @@ func dockerfileCosmovisorArgs(t *testing.T) map[string]string {
 	for _, m := range re.FindAllStringSubmatch(string(b), -1) {
 		args[m[1]] = m[2]
 	}
-	for _, k := range []string{"COSMOVISOR_COMMIT", "COSMOVISOR_SOURCE_SHA256", "COSMOVISOR_PATCH_SHA256", "COSMOVISOR_BUILD_IMAGE"} {
+	required := []string{"COSMOVISOR_COMMIT", "COSMOVISOR_SOURCE_SHA256", "COSMOVISOR_BUILD_IMAGE"}
+	for _, p := range cosmovisorPatches {
+		required = append(required, p.arg)
+	}
+	for _, k := range required {
 		if args[k] == "" {
 			t.Fatalf("Dockerfile has no default for %s", k)
 		}
@@ -172,17 +198,25 @@ func dockerfileCosmovisorArgs(t *testing.T) map[string]string {
 	return args
 }
 
-// TestCosmovisorPatchChecksum keeps the Dockerfile's pinned patch hash in step
-// with the patch file, so an edited patch cannot ship without review.
+// TestCosmovisorPatchChecksum keeps the Dockerfile's pinned patch hashes in
+// step with the patch files, so an edited patch cannot ship without review.
 func TestCosmovisorPatchChecksum(t *testing.T) {
-	b, err := os.ReadFile(cosmovisorPatchPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sum := sha256.Sum256(b)
 	args := dockerfileCosmovisorArgs(t)
-	if got := hex.EncodeToString(sum[:]); got != args["COSMOVISOR_PATCH_SHA256"] {
-		t.Fatalf("sha256(%s) = %s, Dockerfile pins %s", cosmovisorPatchPath, got, args["COSMOVISOR_PATCH_SHA256"])
+	for _, p := range cosmovisorPatches {
+		b, err := os.ReadFile(p.path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		sum := sha256.Sum256(b)
+		if got := hex.EncodeToString(sum[:]); got != args[p.arg] {
+			t.Errorf("sha256(%s) = %s, Dockerfile %s pins %s", p.path, got, p.arg, args[p.arg])
+		}
+		// Each patch may touch only its reviewed upstream files.
+		for _, m := range regexp.MustCompile(`(?m)^diff --git a/(\S+) b/(\S+)$`).FindAllStringSubmatch(string(b), -1) {
+			if !slices.Contains(p.files, m[1]) || m[1] != m[2] {
+				t.Errorf("%s touches %s", p.path, m[1])
+			}
+		}
 	}
 	if !regexp.MustCompile(`^[0-9a-f]{40}$`).MatchString(args["COSMOVISOR_COMMIT"]) {
 		t.Errorf("COSMOVISOR_COMMIT %q is not a full commit SHA", args["COSMOVISOR_COMMIT"])
@@ -193,15 +227,42 @@ func TestCosmovisorPatchChecksum(t *testing.T) {
 	if !regexp.MustCompile(`@sha256:[0-9a-f]{64}$`).MatchString(args["COSMOVISOR_BUILD_IMAGE"]) {
 		t.Errorf("COSMOVISOR_BUILD_IMAGE %q is not pinned by digest", args["COSMOVISOR_BUILD_IMAGE"])
 	}
-	// The patch may touch only the three reviewed upstream files.
-	allowed := map[string]bool{
-		"tools/cosmovisor/scanner.go":        true,
-		"tools/cosmovisor/dbbackend.go":      true,
-		"tools/cosmovisor/dbbackend_test.go": true,
+}
+
+const goleveldbModule = "github.com/syndtr/goleveldb"
+
+// xionGoleveldbPin returns the goleveldb version Xion's go.mod replaces to.
+func xionGoleveldbPin(t *testing.T) string {
+	t.Helper()
+	gomod, err := os.ReadFile(filepath.Join("..", "go.mod"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	for _, m := range regexp.MustCompile(`(?m)^diff --git a/(\S+) b/(\S+)$`).FindAllStringSubmatch(string(b), -1) {
-		if !allowed[m[1]] || m[1] != m[2] {
-			t.Errorf("patch touches %s", m[1])
+	q := regexp.QuoteMeta(goleveldbModule)
+	m := regexp.MustCompile(`(?m)^\s*` + q + ` => ` + q + ` (\S+)$`).FindSubmatch(gomod)
+	if m == nil {
+		t.Fatalf("go.mod has no %s replacement", goleveldbModule)
+	}
+	return string(m[1])
+}
+
+// TestCosmovisorGoleveldbPin keeps the cosmovisor build on the goleveldb
+// revision Xion itself pins: the revision upstream resolves to breaks store
+// queries, and the patched fallback reads Xion's blockstore with it.
+func TestCosmovisorGoleveldbPin(t *testing.T) {
+	const module = goleveldbModule
+	want := xionGoleveldbPin(t)
+	patch, err := os.ReadFile(cosmovisorPatches[1].path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range []string{
+		"+replace " + module + " => " + module + " " + want + "\n",
+		"+" + module + " " + want + " h1:",
+		"+" + module + " " + want + "/go.mod h1:",
+	} {
+		if !strings.Contains(string(patch), line) {
+			t.Errorf("%s lacks %q (go.mod pins %s %s)", cosmovisorPatches[1].path, line, module, want)
 		}
 	}
 }
@@ -230,11 +291,14 @@ func TestCosmovisorOperatorImage(t *testing.T) {
 			t.Errorf("image runtime contract changed: user %q, workdir %q, cmd %q", cfg.User, cfg.WorkingDir, cfg.Cmd)
 		}
 		args := dockerfileCosmovisorArgs(t)
-		for label, arg := range map[string]string{
+		labels := map[string]string{
 			"io.burnt.cosmovisor.revision":      "COSMOVISOR_COMMIT",
 			"io.burnt.cosmovisor.source-sha256": "COSMOVISOR_SOURCE_SHA256",
-			"io.burnt.cosmovisor.patch-sha256":  "COSMOVISOR_PATCH_SHA256",
-		} {
+		}
+		for _, p := range cosmovisorPatches {
+			labels[p.label] = p.arg
+		}
+		for label, arg := range labels {
 			if cfg.Labels[label] != args[arg] {
 				t.Errorf("label %s = %q, want %s %q", label, cfg.Labels[label], arg, args[arg])
 			}
@@ -268,6 +332,8 @@ echo cosmovisor=$(test -x /usr/bin/cosmovisor && echo yes || echo no)
 			"\tmod\tcosmossdk.io/tools/cosmovisor\t(devel)",
 			"\tbuild\tCGO_ENABLED=0\n",
 			"\tbuild\tGOARCH=" + arch + "\n",
+			// The blockstore fallback links the goleveldb Xion pins.
+			"\t=>\t" + goleveldbModule + "\t" + xionGoleveldbPin(t) + "\t",
 		} {
 			if !strings.Contains(string(info), want) {
 				t.Errorf("build info lacks %q:\n%s", want, info)
@@ -552,5 +618,61 @@ func TestCosmovisorRealStateFallback(t *testing.T) {
 	}
 	if !strings.Contains(got["restart.path"], "/cosmovisor/upgrades/smoke/bin/xiond") && !strings.Contains(got["restart.path"], "/cosmovisor/current/bin/xiond") {
 		t.Errorf("restarted node ran %q, want the upgraded binary", got["restart.path"])
+	}
+}
+
+// TestCosmovisorImageTestsRunInCI fails if the image build stops running the
+// cosmovisor image tests against each architecture's freshly loaded image.
+func TestCosmovisorImageTestsRunInCI(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", ".github", "workflows", "docker-build.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var workflow struct {
+		Jobs map[string]scoutJob `json:"jobs"`
+	}
+	if err := yaml.Unmarshal(data, &workflow); err != nil {
+		t.Fatal(err)
+	}
+	job, ok := workflow.Jobs["build-docker-images"]
+	if !ok {
+		t.Fatal("missing build-docker-images job")
+	}
+	if canBypass(job.If, job.ContinueOnError) {
+		t.Fatal("image build job can be skipped")
+	}
+	if got := job.Strategy.Matrix["arch"]; fmt.Sprint(got) != "[amd64 arm64]" {
+		t.Errorf("matrix arch = %v, want [amd64 arm64]", got)
+	}
+	build, test, save := -1, -1, -1
+	for i, step := range job.Steps {
+		switch {
+		case strings.HasPrefix(step.Uses, "docker/build-push-action@"):
+			build = i
+			if step.With["load"] != true || step.With["tags"] != "xion:${{ matrix.os }}-${{ matrix.arch }}" {
+				t.Errorf("image build step does not load xion:<os>-<arch>: %v", step.With)
+			}
+		case step.Name == "Test cosmovisor in the image":
+			test = i
+			if canBypass(step.If, step.ContinueOnError) {
+				t.Error("cosmovisor image test step can be bypassed")
+			}
+			for k, want := range map[string]string{
+				"COSMOVISOR_TEST_IMAGE":    "xion:${{ matrix.os }}-${{ matrix.arch }}",
+				"COSMOVISOR_TEST_PLATFORM": "${{ matrix.os }}/${{ matrix.arch }}",
+			} {
+				if step.Env[k] != want {
+					t.Errorf("test step env %s = %q, want %q", k, step.Env[k], want)
+				}
+			}
+			if !strings.Contains(step.Run, "./scripts") || !strings.Contains(step.Run, "-run '^TestCosmovisor'") {
+				t.Errorf("test step does not run the TestCosmovisor suite: %q", step.Run)
+			}
+		case step.Name == "Save Docker Image":
+			save = i
+		}
+	}
+	if build < 0 || test < 0 || save < 0 || build >= test || test >= save {
+		t.Errorf("want build (%d) < cosmovisor test (%d) < save (%d)", build, test, save)
 	}
 }

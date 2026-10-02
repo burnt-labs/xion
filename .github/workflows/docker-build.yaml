@@ -59,6 +59,20 @@ jobs:
             VERSION=${{ github.ref_name }}
             PREBUILT_BINARY=${{ env.PREBUILT_BINARY }}
 
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      # Runs on the native runner for each architecture, against the image
+      # just loaded. See scripts/cosmovisor.md.
+      - name: Test cosmovisor in the image
+        env:
+          COSMOVISOR_TEST_IMAGE: xion:${{ matrix.os }}-${{ matrix.arch }}
+          COSMOVISOR_TEST_PLATFORM: ${{ matrix.os }}/${{ matrix.arch }}
+        run: go test -count=1 -timeout 20m -v ./scripts -run '^TestCosmovisor'
+
       - name: Save Docker Image
         working-directory: ${{ runner.temp }}
         run: |

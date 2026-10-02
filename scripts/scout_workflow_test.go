@@ -11,11 +11,13 @@ import (
 )
 
 type scoutStep struct {
-	Name            string         `json:"name"`
-	Uses            string         `json:"uses"`
-	If              string         `json:"if"`
-	ContinueOnError any            `json:"continue-on-error"`
-	With            map[string]any `json:"with"`
+	Name            string            `json:"name"`
+	Uses            string            `json:"uses"`
+	If              string            `json:"if"`
+	ContinueOnError any               `json:"continue-on-error"`
+	With            map[string]any    `json:"with"`
+	Env             map[string]string `json:"env"`
+	Run             string            `json:"run"`
 }
 
 type scoutJob struct {
