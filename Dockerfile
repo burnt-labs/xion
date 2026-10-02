@@ -8,6 +8,55 @@ ARG ALPINE_IMAGE="docker.io/library/alpine"
 ARG ALPINE_VERSION="3.24.2"
 ARG ALPINE_DIGEST="sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6"
 
+# cosmovisor is built from pinned upstream source instead of the release
+# tarball, whose bundled dependencies carry fixable HIGH/CRITICAL CVEs. See
+# scripts/cosmovisor.md for provenance, the patch and the update procedure.
+# COSMOVISOR_COMMIT: cosmos/cosmos-sdk commit; COSMOVISOR_SOURCE_SHA256: SHA256
+# of its codeload tarball; COSMOVISOR_PATCH_SHA256: SHA256 of
+# scripts/cosmovisor-patches/0001-decode-db-backend-output.patch.
+ARG COSMOVISOR_COMMIT="642a9c00b69ae3c9cb866a251eb32116de416c55"
+ARG COSMOVISOR_SOURCE_SHA256="0f830f7bb3834d201ea8542a47b18cea1c113911eabdaa1d1f5e04b6f5ebf0dc"
+ARG COSMOVISOR_PATCH_SHA256="896134c6af70b6baf167052c57e418e97a075bb4ae31ebbb7c8563ba8c7b6242"
+ARG COSMOVISOR_BUILD_IMAGE="docker.io/library/golang:1.26.8-bookworm@sha256:a688600ca24f8a4d3ca77f95b0dd40704a9fc787c826660eb7ba0b641b8b175d"
+
+# --------------------------------------------------------
+# cosmovisor builder (release image only)
+# --------------------------------------------------------
+FROM --platform=$BUILDPLATFORM ${COSMOVISOR_BUILD_IMAGE} AS cosmovisor-builder
+
+# Always set by buildkit
+ARG TARGETOS
+ARG TARGETARCH
+
+ARG COSMOVISOR_COMMIT
+ARG COSMOVISOR_SOURCE_SHA256
+ARG COSMOVISOR_PATCH_SHA256
+
+COPY scripts/cosmovisor-patches/0001-decode-db-backend-output.patch /patches/
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    set -eux; \
+    case "${TARGETOS}/${TARGETARCH}" in \
+        linux/amd64|linux/arm64) ;; \
+        *) echo "unsupported cosmovisor platform ${TARGETOS}/${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    echo "${COSMOVISOR_PATCH_SHA256}  /patches/0001-decode-db-backend-output.patch" | sha256sum -c -; \
+    mkdir -p /src /out; \
+    curl -fsSL -o /tmp/cosmos-sdk.tar.gz \
+        "https://codeload.github.com/cosmos/cosmos-sdk/tar.gz/${COSMOVISOR_COMMIT}"; \
+    echo "${COSMOVISOR_SOURCE_SHA256}  /tmp/cosmos-sdk.tar.gz" | sha256sum -c -; \
+    tar -xzf /tmp/cosmos-sdk.tar.gz -C /src --strip-components=1; \
+    rm /tmp/cosmos-sdk.tar.gz; \
+    cd /src; \
+    git apply --check -p1 /patches/0001-decode-db-backend-output.patch; \
+    git apply -p1 /patches/0001-decode-db-backend-output.patch; \
+    cd /src/tools/cosmovisor; \
+    export GOWORK=off GOTOOLCHAIN=local GOFLAGS=-mod=readonly; \
+    go mod verify; \
+    CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" \
+        go build -trimpath -buildvcs=false -o /out/cosmovisor ./cmd/cosmovisor;
+
 # --------------------------------------------------------
 # Builder
 # --------------------------------------------------------
@@ -99,27 +148,18 @@ ARG TARGETARCH
 USER root:root
 
 COPY --from=builder /go/bin/xiond /usr/bin/xiond
+COPY --from=cosmovisor-builder /out/cosmovisor /usr/bin/cosmovisor
 
-# cosmovisor release and the SHA256 of each linux tarball, from the release's
-# SHA256SUMS-cosmovisor-<version>.txt.
-ARG COSMOVISOR_VERSION="v1.7.3"
-ARG COSMOVISOR_SHA256_AMD64="3df6ef38cf976b00d226f391dc6866b8dc4040fc2f1b4a780d248f6e1cc9332e"
-ARG COSMOVISOR_SHA256_ARM64="ff27992e1356fbcb858a604455ad28a9727415c3e35b947a4fdb30d8f91295cd"
+ARG COSMOVISOR_COMMIT
+ARG COSMOVISOR_SOURCE_SHA256
+ARG COSMOVISOR_PATCH_SHA256
+LABEL io.burnt.cosmovisor.revision="${COSMOVISOR_COMMIT}" \
+      io.burnt.cosmovisor.source-sha256="${COSMOVISOR_SOURCE_SHA256}" \
+      io.burnt.cosmovisor.patch-sha256="${COSMOVISOR_PATCH_SHA256}"
 
-# Add tools and cosmovisor
+# Add tools
 RUN set -euxo pipefail; \
     apk add --no-cache bash openssl curl htop jq lz4 tini; \
-    case "${TARGETARCH}" in \
-        amd64) COSMOVISOR_SHA256="${COSMOVISOR_SHA256_AMD64}" ;; \
-        arm64) COSMOVISOR_SHA256="${COSMOVISOR_SHA256_ARM64}" ;; \
-        *) echo "no cosmovisor checksum for ${TARGETARCH}" >&2; exit 1 ;; \
-    esac; \
-    COSMOVISOR_TGZ="cosmovisor-${COSMOVISOR_VERSION}-linux-${TARGETARCH}.tar.gz"; \
-    curl -sSfL -o "/tmp/${COSMOVISOR_TGZ}" \
-        "https://github.com/cosmos/cosmos-sdk/releases/download/cosmovisor%2F${COSMOVISOR_VERSION}/${COSMOVISOR_TGZ}"; \
-    echo "${COSMOVISOR_SHA256}  /tmp/${COSMOVISOR_TGZ}" | sha256sum -c -; \
-    tar -xzf "/tmp/${COSMOVISOR_TGZ}" -C /usr/bin cosmovisor; \
-    rm "/tmp/${COSMOVISOR_TGZ}"; \
     cosmovisor version --help >/dev/null;
 
 # Add xiond users and groups
