@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Release tag to publish (e.g. v29.0.1). Defaults to github.ref_name."
+        description: "Release tag to publish (e.g. v29.0.1). Defaults to github.ref_name; must be a vX.Y.Z or vX.Y.Z-rcN tag."
         required: false
         type: string
+      packages_only:
+        description: "Republish the apt/yum/apk packages only: skip the xion-types, xion-assets and network-upgrade dispatches."
+        required: false
+        type: boolean
+        default: false
   release: # triggered by release event
     types: [published]
     # Notice:
@@ -32,6 +37,10 @@ jobs:
         id: tag
         run: |
           TAG="${RELEASE_TAG_INPUT:-${RELEASE_TAG_EVENT:-${REF_NAME}}}"
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
+            echo "::error::Publish Release needs a release tag (vX.Y.Z or vX.Y.Z-rcN), not '${TAG}'"
+            exit 1
+          fi
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           if [[ "$TAG" == *-rc* ]]; then
             echo "is_rc=true" >> "$GITHUB_OUTPUT"
@@ -49,9 +58,12 @@ jobs:
     runs-on: ubicloud-standard-2
 
     steps:
+      # Package the release tag itself, not the branch a manual run was
+      # dispatched from.
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: refs/tags/${{ needs.resolve-tag.outputs.tag }}
           fetch-depth: 0
 
       - name: Set Go Version
@@ -125,9 +137,18 @@ jobs:
       - name: Install syft
         uses: anchore/sbom-action/download-syft@v0
 
-      - name: Run GoReleaser (packages + homebrew)
+      # An rc tag can share the release commit (v31.0.1-rc1 and v31.0.1 on
+      # 3ef408a), and left to itself GoReleaser takes the highest-sorting tag
+      # on HEAD, which is the rc. Pin it to the tag being published.
+      #
+      # Homebrew is always skipped here. Create Release already opened the cask
+      # PR from the release's own tarballs; the archives this job re-packs from
+      # the downloaded binaries hash differently, so a cask written here would
+      # point at checksums no release asset has.
+      - name: Run GoReleaser (packages)
         uses: goreleaser/goreleaser-action@v7
         env:
+          GORELEASER_CURRENT_TAG: ${{ needs.resolve-tag.outputs.tag }}
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
@@ -143,15 +164,46 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: "~> v2"
-          args: release --config .goreleaser/release.yaml --skip=announce,validate
+          args: release --config .goreleaser/release.yaml --skip=announce,validate,homebrew
 
+      # Upload exactly the six packages of the release being published. Gemfury
+      # answers 409 for a version it already has, so packages built for any
+      # other tag would otherwise pass here unnoticed.
       - name: Upload packages to Gemfury
         env:
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
         run: |
-          FAILED=0
+          VERSION="${RELEASE_TAG#v}"
+          EXPECTED=()
+          declare -A WANTED=()
+          for arch in amd64 arm64; do
+            for fmt in deb rpm apk; do
+              pkg="release/xiond_${VERSION}_linux_${arch}.${fmt}"
+              EXPECTED+=("$pkg")
+              WANTED["$pkg"]=1
+            done
+          done
+          BAD=0
+          for pkg in "${EXPECTED[@]}"; do
+            if ! test -s "$pkg"; then
+              echo "::error::Missing package for ${RELEASE_TAG}: $pkg"
+              BAD=1
+            fi
+          done
           for pkg in release/*.deb release/*.rpm release/*.apk; do
             [ -f "$pkg" ] || continue
+            if [ -z "${WANTED[$pkg]:-}" ]; then
+              echo "::error::Package not built for ${RELEASE_TAG}: $pkg"
+              BAD=1
+            fi
+          done
+          if [ "$BAD" = "1" ]; then
+            exit 1
+          fi
+
+          FAILED=0
+          for pkg in "${EXPECTED[@]}"; do
             BASENAME=$(basename "$pkg")
             echo "Uploading ${BASENAME}..."
             RESPONSE=$(curl -sS -w "\n%{http_code}" \
@@ -185,7 +237,7 @@ jobs:
   trigger-types:
     name: Trigger Types
     needs: resolve-tag
-    if: github.repository == 'burnt-labs/xion'
+    if: github.repository == 'burnt-labs/xion' && !inputs.packages_only
     runs-on: ubuntu-latest
     steps:
       - name: Trigger and wait for xion-types release
@@ -208,7 +260,7 @@ jobs:
   update-chain-registry:
     name: Update Chain Registry
     needs: resolve-tag
-    if: github.repository == 'burnt-labs/xion'
+    if: github.repository == 'burnt-labs/xion' && !inputs.packages_only
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch and wait for xion-assets update
@@ -235,7 +287,7 @@ jobs:
   upgrade-network:
     name: Network Upgrade PR
     needs: resolve-tag
-    if: github.repository == 'burnt-labs/xion'
+    if: github.repository == 'burnt-labs/xion' && !inputs.packages_only
     runs-on: ubuntu-latest
     steps:
       - name: Trigger and wait for upgrade workflow

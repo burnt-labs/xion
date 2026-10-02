@@ -22,13 +22,15 @@ A manual run must target an existing release tag, never a branch: `check-ref` re
 `create-release.yaml` ends with a **draft** GitHub release. Publishing that draft fires `publish-release.yaml`, and the downstream dispatches below wait for it. The Homebrew update does not: the GoReleaser run inside `create-release.yaml` (`exec-goreleaser.yaml`) already opens the `burnt-labs/homebrew-xion` cask PR for a stable tag (`skip_upload: auto` skips it for an rc).
 
 1. **`create-release.yaml`** — Triggered on tag push. Kicks off the full build pipeline.
-2. **`publish-release.yaml`** — Triggered on `release:published`. Runs GoReleaser (Fury packages, homebrew) and triggers downstream repos:
+2. **`publish-release.yaml`** — Triggered on `release:published`. Runs GoReleaser for the Fury packages only (never Homebrew) and triggers downstream repos:
    - → **`burnt-labs/xion-types`** `release.yaml` — regenerates protobuf types for all languages
    - → **`burnt-labs/xion-assets`** — updates chain registry versions (via `repository_dispatch`)
    - → **`burnt-labs/xion-testnet-2`** `create-release.yml` — creates upgrade PR (**rc releases only**)
    - → **`burnt-labs/xion-mainnet-1`** `create-release.yml` — creates upgrade PR (**stable releases only**)
 
-**Homebrew** (`burnt-labs/homebrew-xion`) is updated automatically by GoReleaser via `HOMEBREW_TAP_TOKEN` — it pushes a branch and creates a PR in homebrew-xion.
+**Homebrew** (`burnt-labs/homebrew-xion`) is updated automatically by GoReleaser in `create-release.yaml` via `HOMEBREW_TAP_TOKEN` — it pushes a branch and creates a PR in homebrew-xion with the release tarballs' checksums. `publish-release.yaml` skips Homebrew: it re-packs the binaries, so its archives hash differently from the release assets.
+
+To republish only the apt/yum/apk packages for a release that is already out (for example after a failed Gemfury upload), dispatch `publish-release.yaml` with `packages_only`; it builds from the release tag itself and skips every downstream dispatch: `gh workflow run publish-release.yaml -R burnt-labs/xion --ref main -f release_tag=v31.0.1 -f packages_only=true`.
 
 ### Reusable Workflows (called by other jobs)
 

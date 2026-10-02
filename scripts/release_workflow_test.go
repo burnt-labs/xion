@@ -12,8 +12,11 @@ import (
 )
 
 type releaseStep struct {
-	Name string `json:"name"`
-	Run  string `json:"run"`
+	Name string         `json:"name"`
+	Uses string         `json:"uses"`
+	Run  string         `json:"run"`
+	With map[string]any `json:"with"`
+	Env  map[string]any `json:"env"`
 }
 
 type releaseJob struct {
@@ -201,5 +204,185 @@ func TestReleaseArtifactsRequired(t *testing.T) {
 	for _, name := range files {
 		t.Run("missing_"+name, func(t *testing.T) { runCase(t, name, false) })
 		t.Run("empty_"+name, func(t *testing.T) { runCase(t, name, true) })
+	}
+}
+
+// The Fury job builds the deb/rpm/apk packages. An rc tag can sit on the
+// release commit (v31.0.1-rc1 and v31.0.1 on 3ef408a), and GoReleaser picks
+// the highest-sorting tag on HEAD by itself, which is the rc, so the job must
+// check out and name the resolved tag explicitly.
+func TestPublishFuryPackagesResolvedTag(t *testing.T) {
+	jobs := readReleaseWorkflow(t, "publish-release.yaml")
+	fury, ok := jobs["publish-fury"]
+	if !ok {
+		t.Fatal("missing publish-fury job")
+	}
+	if !slices.Contains(releaseNeeds(t, fury), "resolve-tag") {
+		t.Fatal("publish-fury does not wait for the resolved tag")
+	}
+	const tag = "${{ needs.resolve-tag.outputs.tag }}"
+	checkout, _ := releaseStepByName(t, fury, "Checkout")
+	if ref, _ := checkout.With["ref"].(string); ref != "refs/tags/"+tag {
+		t.Fatalf("publish-fury checks out %q, not the resolved release tag", ref)
+	}
+	if depth := checkout.With["fetch-depth"]; depth != float64(0) {
+		t.Fatalf("publish-fury needs full history for GoReleaser, got fetch-depth %v", depth)
+	}
+	goreleaser, _ := releaseStepByName(t, fury, "Run GoReleaser (packages)")
+	if cur, _ := goreleaser.Env["GORELEASER_CURRENT_TAG"].(string); cur != tag {
+		t.Fatalf("GoReleaser current tag is %q, not the resolved release tag", cur)
+	}
+}
+
+func TestPublishResolveTagGuard(t *testing.T) {
+	jobs := readReleaseWorkflow(t, "publish-release.yaml")
+	step, _ := releaseStepByName(t, jobs["resolve-tag"], "Determine release tag")
+	cases := []struct {
+		input, event, ref string
+		want, rc          string
+	}{
+		{"", "v31.0.1", "v31.0.1", "v31.0.1", "false"},
+		{"", "v31.0.2-rc2", "v31.0.2-rc2", "v31.0.2-rc2", "true"},
+		{"v31.0.1", "", "release/v31", "v31.0.1", "false"},
+		{"", "", "release/v31", "", ""},
+		{"v31.0", "", "release/v31", "", ""},
+		{"v31.0.1;exit 0", "", "release/v31", "", ""},
+	}
+	for _, c := range cases {
+		t.Run(c.input+"|"+c.event+"|"+c.ref, func(t *testing.T) {
+			out := filepath.Join(t.TempDir(), "output")
+			cmd := exec.Command("bash", "-e", "-o", "pipefail", "-c", step.Run)
+			cmd.Env = append(os.Environ(),
+				"RELEASE_TAG_INPUT="+c.input,
+				"RELEASE_TAG_EVENT="+c.event,
+				"REF_NAME="+c.ref,
+				"GITHUB_OUTPUT="+out,
+			)
+			output, err := cmd.CombinedOutput()
+			if c.want == "" {
+				if err == nil {
+					t.Fatalf("accepted a non-release tag: %s", output)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("rejected %s: %v: %s", c.want, err, output)
+			}
+			b, err := os.ReadFile(out)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := string(b); got != "tag="+c.want+"\nis_rc="+c.rc+"\n" {
+				t.Fatalf("outputs %q", got)
+			}
+		})
+	}
+}
+
+// Gemfury answers 409 for a version it already has, so the upload step must
+// refuse anything but the resolved tag's six packages before uploading.
+func TestPublishFuryUploadsOnlyResolvedVersion(t *testing.T) {
+	jobs := readReleaseWorkflow(t, "publish-release.yaml")
+	step, _ := releaseStepByName(t, jobs["publish-fury"], "Upload packages to Gemfury")
+	if tag, _ := step.Env["RELEASE_TAG"].(string); tag != "${{ needs.resolve-tag.outputs.tag }}" {
+		t.Fatalf("upload step checks against %q, not the resolved release tag", tag)
+	}
+	pkgs := func(version string) []string {
+		var out []string
+		for _, arch := range []string{"amd64", "arm64"} {
+			for _, f := range []string{"deb", "rpm", "apk"} {
+				out = append(out, "xiond_"+version+"_linux_"+arch+"."+f)
+			}
+		}
+		return out
+	}
+	cases := []struct {
+		name, tag string
+		files     []string
+		empty     string
+		wantErr   string
+	}{
+		{"rc built for stable tag", "v31.0.1", pkgs("31.0.1-rc1"), "", "Missing package for v31.0.1"},
+		{"extra rc package", "v31.0.1", append(pkgs("31.0.1"), "xiond_31.0.1-rc1_linux_amd64.deb"), "", "Package not built for v31.0.1"},
+		{"one missing", "v31.0.1", pkgs("31.0.1")[1:], "", "Missing package for v31.0.1"},
+		{"one empty", "v31.0.1", pkgs("31.0.1"), "xiond_31.0.1_linux_arm64.apk", "Missing package for v31.0.1"},
+		{"stable", "v31.0.1", pkgs("31.0.1"), "", ""},
+		{"rc", "v31.0.2-rc2", pkgs("31.0.2-rc2"), "", ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			work := t.TempDir()
+			if err := os.MkdirAll(filepath.Join(work, "release"), 0755); err != nil {
+				t.Fatal(err)
+			}
+			for _, f := range c.files {
+				contents := []byte("package fixture\n")
+				if f == c.empty {
+					contents = nil
+				}
+				if err := os.WriteFile(filepath.Join(work, "release", f), contents, 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			// A stub curl records each upload and answers 201, so the test
+			// never reaches Gemfury.
+			bin := filepath.Join(work, "bin")
+			if err := os.MkdirAll(bin, 0755); err != nil {
+				t.Fatal(err)
+			}
+			log := filepath.Join(work, "uploads")
+			stub := "#!/usr/bin/env bash\nfor a in \"$@\"; do case \"$a\" in package=@*) echo \"${a#package=@}\" >> " + log + ";; esac; done\nprintf 'ok\\n201'\n"
+			if err := os.WriteFile(filepath.Join(bin, "curl"), []byte(stub), 0755); err != nil {
+				t.Fatal(err)
+			}
+			cmd := exec.Command("bash", "-e", "-c", step.Run)
+			cmd.Dir = work
+			cmd.Env = append(os.Environ(), "PATH="+bin+":"+os.Getenv("PATH"), "RELEASE_TAG="+c.tag, "FURY_TOKEN=test")
+			output, err := cmd.CombinedOutput()
+			uploads, _ := os.ReadFile(log)
+			if c.wantErr != "" {
+				if err == nil || !strings.Contains(string(output), c.wantErr) {
+					t.Fatalf("want failure %q, err=%v: %s", c.wantErr, err, output)
+				}
+				if len(uploads) != 0 {
+					t.Fatalf("uploaded before refusing: %s", uploads)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("rejected complete packages: %v: %s", err, output)
+			}
+			var want []string
+			for _, f := range pkgs(strings.TrimPrefix(c.tag, "v")) {
+				want = append(want, "release/"+f)
+			}
+			got := strings.Fields(string(uploads))
+			slices.Sort(got)
+			slices.Sort(want)
+			if !slices.Equal(got, want) {
+				t.Fatalf("uploaded %v, want %v", got, want)
+			}
+		})
+	}
+}
+
+// A packages-only dispatch republishes to Gemfury without re-firing the
+// downstream release automation; a published release still runs all of it.
+// Neither touches the Homebrew tap, which Create Release already updated.
+func TestPublishPackagesOnlySkipsDownstream(t *testing.T) {
+	jobs := readReleaseWorkflow(t, "publish-release.yaml")
+	for _, name := range []string{"trigger-types", "update-chain-registry", "upgrade-network"} {
+		j, ok := jobs[name]
+		if !ok {
+			t.Fatalf("missing job %s", name)
+		}
+		if j.If != "github.repository == 'burnt-labs/xion' && !inputs.packages_only" {
+			t.Errorf("%s runs on a packages-only dispatch: if=%q", name, j.If)
+		}
+	}
+	goreleaser, _ := releaseStepByName(t, jobs["publish-fury"], "Run GoReleaser (packages)")
+	args, _ := goreleaser.With["args"].(string)
+	if !strings.HasSuffix(args, "--skip=announce,validate,homebrew") {
+		t.Fatalf("GoReleaser in publish-fury does not always skip Homebrew: %q", args)
 	}
 }
