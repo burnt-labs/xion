@@ -37,6 +37,19 @@ jobs:
     uses: ./.github/workflows/docker-build.yaml
     secrets: inherit
 
+  # Same fixable HIGH/CRITICAL gate the release runs, on the images just
+  # built. It logs in to Docker Hub, so it is skipped where those secrets are
+  # not available (fork and Dependabot PRs); the release gate still applies.
+  docker-scout:
+    name: Docker Scout
+    needs: build-docker
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       github.actor != 'dependabot[bot]')
+    uses: ./.github/workflows/docker-scout.yaml
+    secrets: inherit
+
   e2e-tests:
     name: E2E tests
     needs:

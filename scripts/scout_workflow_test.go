@@ -128,3 +128,60 @@ func TestScoutArchitectureContract(t *testing.T) {
 		t.Errorf("matrix arch = %v, want [amd64 arm64]", got)
 	}
 }
+
+// TestScoutRunsOnPullRequests fails if Build and Test stops scanning the
+// images it builds, which would leave the first Scout run to the release.
+func TestScoutRunsOnPullRequests(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", ".github", "workflows", "build-test.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var workflow struct {
+		Jobs map[string]struct {
+			Needs           any    `json:"needs"`
+			If              string `json:"if"`
+			Uses            string `json:"uses"`
+			Secrets         any    `json:"secrets"`
+			ContinueOnError any    `json:"continue-on-error"`
+		} `json:"jobs"`
+	}
+	if err := yaml.Unmarshal(data, &workflow); err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for name, job := range workflow.Jobs {
+		if job.Uses != "./.github/workflows/docker-scout.yaml" {
+			continue
+		}
+		names = append(names, name)
+		needs := job.Needs
+		if s, ok := needs.(string); ok {
+			needs = []any{s}
+		}
+		if list, _ := needs.([]any); !slices.Contains(list, any("build-docker")) {
+			t.Errorf("%s needs = %v, want build-docker", name, job.Needs)
+		}
+		if job.Secrets != "inherit" {
+			t.Errorf("%s secrets = %v, want inherit (Docker Hub login)", name, job.Secrets)
+		}
+		if job.ContinueOnError != nil && job.ContinueOnError != false {
+			t.Errorf("%s can continue on error", name)
+		}
+		// Only the documented fork/Dependabot skip is allowed.
+		for _, want := range []string{
+			"github.event_name != 'pull_request'",
+			"github.event.pull_request.head.repo.full_name == github.repository",
+			"github.actor != 'dependabot[bot]'",
+		} {
+			if !strings.Contains(job.If, want) {
+				t.Errorf("%s if = %q, missing %q", name, job.If, want)
+			}
+		}
+		if strings.Contains(job.If, "always()") || strings.Contains(job.If, "failure()") {
+			t.Errorf("%s if = %q runs regardless of the build", name, job.If)
+		}
+	}
+	if len(names) != 1 {
+		t.Fatalf("got %d docker-scout.yaml callers in build-test.yaml, want 1", len(names))
+	}
+}
