@@ -2,7 +2,11 @@
 
 ARG GORELEASER_IMAGE="ghcr.io/goreleaser/goreleaser-cross"
 ARG GORELEASER_VERSION="v1.25.3"
-ARG ALPINE_VERSION="3.20"
+# Docker Official Image, pinned by digest (multi-arch index). The
+# ghcr.io/linuxcontainers mirror stops at 3.20, which is past end of support.
+ARG ALPINE_IMAGE="docker.io/library/alpine"
+ARG ALPINE_VERSION="3.24.2"
+ARG ALPINE_DIGEST="sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6"
 
 # --------------------------------------------------------
 # Builder
@@ -23,11 +27,6 @@ ENV COMMIT=${COMMIT} \
     VERSION=${VERSION} \
     GOOS=${TARGETOS} \
     GOARCH=${TARGETARCH} 
-
-# Install libc++ (barretenberg static lib is built against libc++)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libc++-dev libc++abi-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Set the workdir
 WORKDIR /go/src/github.com/burnt-labs/xion
@@ -62,8 +61,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         if [ -n "${BB_VERSION}" ]; then \
             BB_MOD_DIR=$(go mod download -json "github.com/burnt-labs/barretenberg-go@${BB_VERSION}" | grep '"Dir"' | cut -d'"' -f4); \
             BB_LIB="${BB_MOD_DIR}/lib/linux_${GOARCH}/libbarretenberg.a"; \
-            BB_LIBC=$([ "${GOARCH}" = "arm64" ] && echo musl || echo gnu); \
-            ./scripts/download-barretenberg.sh linux "${GOARCH}" "${BB_LIB}" "${BB_LIBC}"; \
+            ./scripts/download-barretenberg.sh linux "${GOARCH}" "${BB_LIB}" musl; \
         fi; \
         goreleaser build \
             --config .goreleaser/build.yaml \
@@ -75,7 +73,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # --------------------------------------------------------
 # Heighliner image
 # --------------------------------------------------------
-FROM ghcr.io/linuxcontainers/alpine:${ALPINE_VERSION} AS heighliner
+FROM ${ALPINE_IMAGE}:${ALPINE_VERSION}@${ALPINE_DIGEST} AS heighliner
 
 COPY --from=builder /go/bin/xiond /usr/bin/xiond
 
@@ -102,11 +100,27 @@ USER root:root
 
 COPY --from=builder /go/bin/xiond /usr/bin/xiond
 
+# cosmovisor release and the SHA256 of each linux tarball, from the release's
+# SHA256SUMS-cosmovisor-<version>.txt.
+ARG COSMOVISOR_VERSION="v1.7.3"
+ARG COSMOVISOR_SHA256_AMD64="3df6ef38cf976b00d226f391dc6866b8dc4040fc2f1b4a780d248f6e1cc9332e"
+ARG COSMOVISOR_SHA256_ARM64="ff27992e1356fbcb858a604455ad28a9727415c3e35b947a4fdb30d8f91295cd"
+
 # Add tools and cosmovisor
 RUN set -euxo pipefail; \
     apk add --no-cache bash openssl curl htop jq lz4 tini; \
-    curl -sSL https://github.com/cosmos/cosmos-sdk/releases/download/cosmovisor%2Fv1.5.0/cosmovisor-v1.5.0-linux-${TARGETARCH}.tar.gz \
-    | tar -xz -C /usr/bin;
+    case "${TARGETARCH}" in \
+        amd64) COSMOVISOR_SHA256="${COSMOVISOR_SHA256_AMD64}" ;; \
+        arm64) COSMOVISOR_SHA256="${COSMOVISOR_SHA256_ARM64}" ;; \
+        *) echo "no cosmovisor checksum for ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    COSMOVISOR_TGZ="cosmovisor-${COSMOVISOR_VERSION}-linux-${TARGETARCH}.tar.gz"; \
+    curl -sSfL -o "/tmp/${COSMOVISOR_TGZ}" \
+        "https://github.com/cosmos/cosmos-sdk/releases/download/cosmovisor%2F${COSMOVISOR_VERSION}/${COSMOVISOR_TGZ}"; \
+    echo "${COSMOVISOR_SHA256}  /tmp/${COSMOVISOR_TGZ}" | sha256sum -c -; \
+    tar -xzf "/tmp/${COSMOVISOR_TGZ}" -C /usr/bin cosmovisor; \
+    rm "/tmp/${COSMOVISOR_TGZ}"; \
+    cosmovisor version --help >/dev/null;
 
 # Add xiond users and groups
 RUN set -euxo pipefail; \
