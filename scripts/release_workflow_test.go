@@ -228,7 +228,7 @@ func TestPublishFuryPackagesResolvedTag(t *testing.T) {
 	if depth := checkout.With["fetch-depth"]; depth != float64(0) {
 		t.Fatalf("publish-fury needs full history for GoReleaser, got fetch-depth %v", depth)
 	}
-	goreleaser, _ := releaseStepByName(t, fury, "Run GoReleaser (packages + homebrew)")
+	goreleaser, _ := releaseStepByName(t, fury, "Run GoReleaser (packages)")
 	if cur, _ := goreleaser.Env["GORELEASER_CURRENT_TAG"].(string); cur != tag {
 		t.Fatalf("GoReleaser current tag is %q, not the resolved release tag", cur)
 	}
@@ -367,8 +367,8 @@ func TestPublishFuryUploadsOnlyResolvedVersion(t *testing.T) {
 }
 
 // A packages-only dispatch republishes to Gemfury without re-firing the
-// downstream release automation or the Homebrew tap; a published release
-// still runs all of it.
+// downstream release automation; a published release still runs all of it.
+// Neither touches the Homebrew tap, which Create Release already updated.
 func TestPublishPackagesOnlySkipsDownstream(t *testing.T) {
 	jobs := readReleaseWorkflow(t, "publish-release.yaml")
 	for _, name := range []string{"trigger-types", "update-chain-registry", "upgrade-network"} {
@@ -380,9 +380,9 @@ func TestPublishPackagesOnlySkipsDownstream(t *testing.T) {
 			t.Errorf("%s runs on a packages-only dispatch: if=%q", name, j.If)
 		}
 	}
-	goreleaser, _ := releaseStepByName(t, jobs["publish-fury"], "Run GoReleaser (packages + homebrew)")
+	goreleaser, _ := releaseStepByName(t, jobs["publish-fury"], "Run GoReleaser (packages)")
 	args, _ := goreleaser.With["args"].(string)
-	if !strings.Contains(args, "inputs.packages_only && 'announce,validate,homebrew' || 'announce,validate'") {
-		t.Fatalf("GoReleaser does not skip Homebrew on a packages-only dispatch: %q", args)
+	if !strings.HasSuffix(args, "--skip=announce,validate,homebrew") {
+		t.Fatalf("GoReleaser in publish-fury does not always skip Homebrew: %q", args)
 	}
 }
