@@ -121,7 +121,7 @@ func RawJSONMsgSend(t *testing.T, from, to, denom string) []byte {
     "signer_infos": [],
     "fee": {
       "amount": [],
-      "gas_limit": "200000",
+      "gas_limit": "300000",
       "payer": "",
       "granter": ""
     },
@@ -160,7 +160,7 @@ func RawJSONMsgExecContractRemoveAuthenticator(sender string, contract string, i
     "signer_infos": [],
     "fee": {
       "amount": [],
-      "gas_limit": "200000",
+      "gas_limit": "300000",
       "payer": "",
       "granter": ""
     },
@@ -196,7 +196,7 @@ func RawJSONMsgMigrateContract(sender string, codeID string) []byte {
     "signer_infos": [],
     "fee": {
       "amount": [],
-      "gas_limit": "200000",
+      "gas_limit": "300000",
       "payer": "",
       "granter": ""
     },
@@ -438,8 +438,10 @@ func VerifyMintModuleTestRandomBlocks(t *testing.T, xion *cosmos.CosmosChain, ct
 	currentBlockHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, currentBlockHeight, int64(12))
-	// Get a random number from 1 to the (currentBlockHeight - 10)
-	randomHeight := rand.Intn(int(currentBlockHeight)-11) + 2 // we start from 2 because we need at least 2 blocks to run the test
+	// Start from 3: at height 2 the provision minted for the first block is
+	// still being swept out of the fee collector, so mint skips that block and
+	// the fee heuristic below misreads the sweep as accrued fees.
+	randomHeight := rand.Intn(int(currentBlockHeight)-11) + 3
 
 	for i := randomHeight; i < randomHeight+10; i++ {
 		t.Logf("Current random height: %d", i)
@@ -539,6 +541,28 @@ func ExecQuery(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command 
 	require.NoError(t, json.Unmarshal(output, &jsonRes))
 
 	return jsonRes, nil
+}
+
+func QueryAbstractAccountAddress(
+	t *testing.T,
+	ctx context.Context,
+	tn *cosmos.ChainNode,
+	sender string,
+	salt string,
+) (sdk.AccAddress, error) {
+	// account-address uses the module's manual Cobra string flag and converts
+	// it to []byte verbatim, matching the register command. Do not encode it.
+	response, err := ExecQuery(t, ctx, tn,
+		"abstract-account", "account-address", sender, "--salt", salt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	address, ok := response["address"].(string)
+	if !ok || address == "" {
+		return nil, fmt.Errorf("abstract-account address query returned no address")
+	}
+	return sdk.AccAddressFromBech32(address)
 }
 
 func ExecBin(t *testing.T, ctx context.Context, tn *cosmos.ChainNode, command ...string) (map[string]interface{}, error) {

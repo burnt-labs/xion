@@ -17,6 +17,10 @@ make proto-gen              # Regenerate protobuf types
 
 Releasing is triggered by **manually running** `create-release.yaml` via `workflow_dispatch`, or by **pushing a tag** matching `v[0-9]+\.[0-9]+\.[0-9]+` (stable) or `v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+` (release candidate).
 
+A manual run must target an existing release tag, never a branch: `check-ref` rejects any ref that is not a `vX.Y.Z` or `vX.Y.Z-rcN` tag before anything is built or published. For example (do not run this as a test, it builds and pushes a release): `gh workflow run create-release.yaml -R burnt-labs/xion --ref v31.0.2-rc2`.
+
+`create-release.yaml` ends with a **draft** GitHub release. Publishing that draft fires `publish-release.yaml`, and the downstream dispatches below wait for it. The Homebrew update does not: the GoReleaser run inside `create-release.yaml` (`exec-goreleaser.yaml`) already opens the `burnt-labs/homebrew-xion` cask PR for a stable tag (`skip_upload: auto` skips it for an rc).
+
 1. **`create-release.yaml`** — Triggered on tag push. Kicks off the full build pipeline.
 2. **`publish-release.yaml`** — Triggered on `release:published`. Runs GoReleaser (Fury packages, homebrew) and triggers downstream repos:
    - → **`burnt-labs/xion-types`** `release.yaml` — regenerates protobuf types for all languages
@@ -40,6 +44,7 @@ Releasing is triggered by **manually running** `create-release.yaml` via `workfl
 | `trigger-types.yaml` | Calls xion-types release workflow |
 | `update-swagger.yaml` | Update OpenAPI/Swagger specifications |
 | `docker-scout.yaml` | Docker image vulnerability scanning |
+| `govulncheck.yaml` | Go dependency scanning, gated on reachable advisories |
 | `verify-installers.yaml` | Verify release installers and artifacts |
 
 ### CI Workflows

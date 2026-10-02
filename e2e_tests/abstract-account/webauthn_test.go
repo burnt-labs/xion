@@ -3,7 +3,6 @@ package e2e_aa
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -18,8 +17,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	ibctest "github.com/cosmos/interchaintest/v10"
@@ -37,7 +35,7 @@ func init() {
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 }
 
-func setupChain(t *testing.T) (*cosmos.CosmosChain, ibc.Wallet, []byte, string, error) {
+func setupChain(t *testing.T) (*cosmos.CosmosChain, ibc.Wallet, string, error) {
 	ctx := t.Context()
 	xion := testlib.BuildXionChain(t)
 
@@ -60,16 +58,7 @@ func setupChain(t *testing.T) (*cosmos.CosmosChain, ibc.Wallet, []byte, string, 
 		testlib.IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
-	// retrieve the hash
-	codeResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(),
-		"wasm", "code-info", codeIDStr)
-	require.NoError(t, err)
-	t.Logf("code response: %s", codeResp)
-
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
-	require.NoError(t, err)
-
-	return xion, deployerAddr, codeHash, codeIDStr, nil
+	return xion, deployerAddr, codeIDStr, nil
 }
 
 func TestAAWebAuthn(t *testing.T) {
@@ -80,14 +69,13 @@ func TestAAWebAuthn(t *testing.T) {
 		t.Skip("skipping in short mode")
 	}
 
-	xion, deployerAddr, codeHash, codeIDStr, err := setupChain(t)
+	xion, deployerAddr, codeIDStr, err := setupChain(t)
 	require.NoError(t, err)
 
 	// predict the contract address so it can be verified
 	salt := "0"
-	creatorAddr := types.AccAddress(deployerAddr.Address())
+	predictedAddr, err := testlib.QueryAbstractAccountAddress(t, ctx, xion.GetNode(), deployerAddr.FormattedAddress(), salt)
 	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	authenticatorDetails := map[string]interface{}{}
@@ -181,7 +169,7 @@ func TestAAWebAuthn(t *testing.T) {
 	   "signer_infos": [],
 	   "fee": {
 	     "amount": [],
-	     "gas_limit": "200000",
+	     "gas_limit": "300000",
 	     "payer": "",
 	     "granter": ""
 	   },

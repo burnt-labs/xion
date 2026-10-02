@@ -17,6 +17,11 @@ jobs:
     uses: ./.github/workflows/golangci-lint.yaml
     secrets: inherit
 
+  vulncheck:
+    name: Vulnerability Scan
+    uses: ./.github/workflows/govulncheck.yaml
+    secrets: inherit
+
   update-swagger:
     name: Update Swagger
     uses: ./.github/workflows/update-swagger.yaml
@@ -36,6 +41,7 @@ jobs:
     name: E2E tests
     needs:
       - lint
+      - vulncheck
       - update-swagger
       - unit-tests
       - build-docker

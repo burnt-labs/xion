@@ -9,7 +9,6 @@ deps:
   - buf.build/googleapis/googleapis
   - buf.build/tendermint/tendermint
   - buf.build/protocolbuffers/wellknowntypes
-  - buf.build/burnt-labs/abstractaccount
   - buf.build/burnt-labs/tokenfactory
 breaking:
   use:

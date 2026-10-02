@@ -1,98 +1,216 @@
-# Security Policy
+# XION Security Policy
 
-## Introduction
+This repository is the XION chain-node asset in the
+[Blockchain / DLT bug bounty program](https://github.com/burnt-labs/bug-bounty/blob/main/programs/blockchain.md).
+This file adds repository-specific reporting and coordination details. The
+published [`burnt-labs/bug-bounty`](https://github.com/burnt-labs/bug-bounty)
+program is canonical for scope, severity, eligibility, exclusions, rewards, and
+testing authorization; where the documents differ, the program terms govern.
 
-Security researchers are essential in identifying vulnerabilities that may impact the Xion Network. If you have discovered a security vulnerability in the Xion chain or any repository managed by Burnt Labs, we encourage you to notify us using one of the methods outlined below.
+Do **not** open public GitHub issues, pull requests, discussions, or comments
+containing vulnerability details.
 
-We take all security bugs seriously. If confirmed upon investigation, we will patch it within a reasonable amount of time and release a public security bulletin discussing the impact and credit the discoverer.
+## Reporting a Vulnerability
 
-## Standard Priority Bug
+Use GitHub Private Vulnerability Reporting:
 
-For a bug that is non-sensitive and/or operational in nature rather than a critical vulnerability, please add it as a [GitHub issue](https://github.com/burnt-labs/xion/issues/new).
+- [Report a vulnerability in `burnt-labs/xion`](https://github.com/burnt-labs/xion/security/advisories/new)
 
-## Critical Bug or Security Issue
+If GitHub private reporting is unavailable, email
+[security@burnt.com](mailto:security@burnt.com) with a minimal, non-public
+report.
 
-If you're here because you're trying to figure out how to notify us of a security issue, please use one of the following methods:
+## Report Requirements
 
-* **Email**: [security@burnt.com](mailto:security@burnt.com)
+Include as much of the following as possible:
 
-Please avoid opening public issues on GitHub that contain information about a potential security vulnerability as this makes it difficult to reduce the impact and harm of valid security issues.
+- Affected component, branch, tag or commit, and deployed environment
+- Vulnerability type and concise summary
+- End-to-end reproduction steps and proof of concept
+- Exploit preconditions and assumptions
+- Demonstrated impact
+- Suggested severity and rationale
+- Intended disclosure timeline, if any
 
-## Submit Vulnerability Report
+Automated scanner output without a demonstrated exploit path is not sufficient.
 
-When reporting a vulnerability, please include the following details to aid in our assessment:
+## Response Targets
 
-- Type of vulnerability
-- Description of the vulnerability
-- Steps to reproduce the issue
-- Impact of the issue
-- Explanation of how an attacker could exploit it
-- Any potential mitigations or workarounds
+We aim to acknowledge reports within **5 business days** and provide a triage
+decision within **14 days**.
 
-## Coordinated Vulnerability Disclosure Policy
+Active exploitation, or confirmed attacker awareness of an unpatched
+vulnerability, escalates the issue to Critical **response handling** —
+prioritization, coordination, and disclosure timing — regardless of its
+original classification. That escalation does not change the finding's severity
+assessment or reward eligibility.
 
-We ask security researchers to keep vulnerabilities and communications around vulnerability submissions private and confidential until a patch is developed. In addition to this, we ask that you:
+## Coordinated Disclosure
 
-- Allow us a reasonable amount of time to correct or address security vulnerabilities
-- Avoid exploiting any vulnerabilities that you discover
-- Demonstrate good faith by not disrupting or degrading Xion's network, data, or services
-- Refrain from testing vulnerabilities on our publicly accessible environments, including but not limited to:
-  - Xion mainnet
-  - Xion testnet
-  - Public-facing applications and services
+Keep vulnerability details private until Burnt Labs confirms a fix or mitigation
+has been deployed and disclosure is coordinated. Where appropriate, Burnt Labs
+will publish a GitHub Security Advisory and credit finders, reporters, analysts,
+and remediation contributors using GitHub advisory credits.
 
-## Vulnerability Disclosure Process
+If a security issue requires a network upgrade, additional time may be needed to
+raise a governance proposal and complete the upgrade.
 
-Xion uses the following disclosure process:
+## Downstream Notification
 
-1. **Initial Report**: Submit your vulnerability report via email or GitHub Security
-2. **Acknowledgment**: We will acknowledge receipt of your report within 48 hours
-3. **Investigation**: Our security team will investigate and confirm the vulnerability
-4. **Assessment**: We will evaluate the vulnerability and inform you of its severity and the estimated time frame for resolution
-5. **Fix Development**: We will develop and test a fix for the vulnerability in private repositories
-6. **Coordination**: For critical issues, we will coordinate with affected parties and the CosmWasm community. Critical vulnerabilities affecting CosmWasm components will be reported to the CosmWasm security team through their non-public channels before public disclosure
-7. **Community Notification**: We notify the community that a security release is coming, to give users and validators time to prepare their systems for the update. Notifications can include Discord messages, tweets, and emails to partners and validators
-8. **Public Disclosure**: After a fix is deployed, we will publish a security bulletin with details and credit. Once releases are available, we notify the community again through the same channels
+Burnt Labs notifies downstream consumers before a security fix becomes publicly
+visible. A fix in a public repository is itself a disclosure: the vulnerability
+can be derived from the patch, and every unpatched deployment is exposed from
+that moment rather than from a later announcement.
 
-This process can take some time. Every effort will be made to handle the bug in as timely a manner as possible. However, it's important that we follow the process described above to ensure that disclosures are handled consistently and to keep Xion and the projects running on it secure.
+"Publicly visible" means the earliest point at which the patch can be read by
+anyone outside the embargo — a commit pushed to a public branch, a public pull
+request, a tagged release, or a published advisory. Security fixes are developed
+in the temporary private fork attached to a draft GitHub Security Advisory. A
+public pull request is opened only after the notice period below has run, or
+under the active-exploitation exception.
 
-Should a security issue require a network upgrade, additional time may be needed to raise a governance proposal and complete the upgrade.
+### Who Is Notified
 
-## Severity Characterization
+- Validators and node operators running XION mainnet or XION testnet, for issues
+  affecting the chain
+- Teams that registered a security contact for an in-scope Burnt Labs
+  repository
+- The CosmWasm security team, through non-public channels, for critical issues
+  affecting CosmWasm components
 
-| Severity     | Description                                                             |
-|--------------|-------------------------------------------------------------------------|
-| **CRITICAL** | Immediate threat to critical systems (e.g. funds at risk, network compromise) |
-| **HIGH**     | Significant impact on major functionality or security controls         |
-| **MEDIUM**   | Impacts minor features or exposes non-sensitive data                    |
-| **LOW**      | Minimal impact or informational issues                                  |
+### How and When
 
-## Scope
+Recipients are added to the draft GitHub Security Advisory before publication.
+Where a recipient cannot be reached that way, Burnt Labs emails the contact
+address registered with [security@burnt.com](mailto:security@burnt.com).
 
-This security policy applies to:
-- Xion Daemon (xiond)
-- All CosmWasm-related components
-- Smart contract execution environment
-- All modules and dependencies within the Xion blockchain
-- All repositories managed by Burnt Labs for the Xion ecosystem
+Notice is a minimum of seven days before the fix becomes publicly visible. The
+exception is a vulnerability under active exploitation: Burnt Labs ships the fix
+first and notifies as quickly as it can. Where remediation requires a network
+upgrade, notification precedes the governance proposal.
 
-## Commitment to CosmWasm Community
+Validators, node operators, and teams building on an in-scope repository can
+register a security contact by emailing
+[security@burnt.com](mailto:security@burnt.com) with a contact address and the
+network or repository they operate.
 
-We are committed to sharing security issues and bugs with the CosmWasm community. Critical vulnerabilities affecting CosmWasm components will be reported to the CosmWasm security team through their non-public channels before public disclosure.
+## Scope, Severity, and Rewards
 
-## Recognition
+The canonical Blockchain / DLT program lists every eligible repository and the
+fork-delta rule for Burnt-maintained dependencies. Scope applies to the current
+mainnet release. Findings affecting only deprecated versions, or already
+remediated in the currently deployed release, are not eligible.
 
-We appreciate responsible disclosure and will credit security researchers who help us improve the security of Xion. Recognition will be included in our security bulletins and may be featured in our communications.
+Only **High** and **Critical** findings are reward eligible. Burnt Labs does not
+publish reward amounts. The canonical program governs KYC, duplicate handling,
+severity assessment, and all other reward terms.
+
+## Proof of Concept
+
+An end-to-end proof of concept is required. Unit tests using `setupKeeper(t)` or
+similar harnesses bypass transaction encoding, routing, the ante handler chain,
+and block execution; they do not demonstrate on-chain exploitability on their
+own.
+
+Run the proof of concept against a locally running XION node configured with
+mainnet parameters, the XION ante handler chain, module set, and governance
+configuration. Execute the attack through standard transaction broadcast.
+Broadcast acceptance alone is not sufficient: show inclusion in a block, the
+successful execution result, and the resulting state change or security impact.
+For chain-halt or consensus-failure findings, instead show the triggering
+transaction or input sequence, the height or round at which progress stops or
+diverges, and the observed halt or failure condition; block inclusion and
+successful execution are not required when the failure prevents them.
+
+## Authentication Impact Scope
+
+Authentication weaknesses whose impact is limited to accounts created after the
+attack is established — and which cannot affect the funds, state, or
+authentication of an account funded and operational before the attack began —
+are capped at **Medium**. A High or Critical authentication finding must
+demonstrate unauthorized impact on a pre-existing funded account.
+
+## Permissioned Chain Policy
+
+XION mainnet operates with `code_upload_access: Nobody`. Uploading new contract
+code requires governance approval. An attack that depends on uploading
+attacker-controlled contract code to mainnet is out of scope. A finding that is
+exploitable through code already approved for mainnet is not excluded by this
+rule, including when the proof of concept instantiates or controls a new
+contract from an approved code ID.
+
+## Privileged Actor Policy
+
+Findings are classified at **Medium at most** when the attack must begin with
+control of governance, a module authority, validator or operator credentials,
+or another privileged role — or requires that holder to cooperate — and the
+demonstrated impact depends on that holder acting self-destructively, outside
+normal operation, or in collusion while using authority the role already has.
+This includes validators deliberately supplying unusual inputs, extreme
+timestamps, delayed responses, or off-spec data to consensus rounds.
+
+The cap does not apply when a flaw lets an attacker who starts without that
+privilege obtain it or bypass its authorization check, or lets a legitimately
+held limited role exercise authority that role was not granted. Those
+findings are assessed by demonstrated impact. This policy does not authorize
+researchers to acquire or exercise production privileges they do not
+legitimately control, or to test with production privileges they do control.
+
+## Repository-Specific Exclusions
+
+In addition to the canonical program exclusions, the following are out of scope
+for this repository:
+
+- Third-party infrastructure, RPC providers, and external dependencies
+- Public RPC, REST, gRPC, and Tendermint RPC endpoints that expose chain state by
+  design
+- Upstream dependency code. Burnt-maintained fork deltas are covered only under
+  the separately listed fork repositories in the canonical program
+- Smart-contract findings. Governance-deployed core protocol contracts are
+  covered only under the
+  [Core Protocol Contracts](https://github.com/burnt-labs/bug-bounty/blob/main/programs/contracts.md)
+  program; third-party contracts deployed on XION are out of scope
+- Attacks requiring new malicious contract code to be uploaded to mainnet
+- Governance attacks requiring a malicious proposal to pass
+- Denial of service recoverable through a software patch, coordinated validator
+  restart, or governance parameter update. A chain halt requiring a hard fork
+  remains in scope under the canonical Critical definition
+- Theoretical findings without a working end-to-end proof of concept
+- Attacks whose execution cost exceeds the demonstrated harm
+- Best practices, gas optimizations, missing events, and informational findings
+
+## Responsible Disclosure and Safe Harbor
+
+Do not test against XION mainnet, public XION testnets, public RPC
+infrastructure, or other production systems. Use a locally running node or
+infrastructure you control. Do not access or disclose user data, disrupt
+services, or exploit beyond what is necessary to confirm the finding.
+
+Naming this repository as an asset establishes eligibility, not permission to
+test a production deployment. Good-faith research within the authorized local or
+researcher-controlled environments is covered by the canonical program's safe
+harbor. Reporting a vulnerability encountered incidentally is always welcome.
 
 ## Frequently Raised Non-Issues
 
-The following design decisions are sometimes reported as vulnerabilities but are intentional and will not be changed:
+The following design decisions are intentional.
 
-### DKIM public keys stored on-chain
+### DKIM Public Keys Stored On-Chain
 
-The `x/dkim` module stores RSA public keys on-chain.  These are **public** keys — the same data that any mail server operator publishes in DNS TXT records.  Storing them on-chain enables trustless DKIM verification inside ZK circuits and is a core feature of the Xion email-based account system.  There is no private key material stored anywhere in the module or on-chain state.
+The `x/dkim` module stores RSA public keys on-chain — the same data that a mail
+server operator publishes in DNS TXT records. Storing them on-chain enables
+trustless DKIM verification inside ZK circuits. No private key material is
+stored in the module or on-chain state.
 
-### Bank MsgSend platform fee exemption is a governance parameter
+### Bank `MsgSend` Platform-Fee Exemption
 
-The platform fee applied to `MsgSend` transactions can be set to zero for specific addresses (e.g. protocol contracts) via a governance parameter.  This is an intentional administrative mechanism, not a privilege escalation.  Any change to the exemption list requires an on-chain governance vote and is fully auditable in the transaction history.
+The platform fee applied to `MsgSend` transactions can be set to zero for
+specific addresses, such as protocol contracts, through a governance parameter.
+This is an intentional administrative mechanism. Changing the exemption list
+requires an on-chain governance vote and is auditable in transaction history.
 
+## Recognition
+
+Burnt Labs credits researchers who help improve XION security. Recognition may
+be included in GitHub Security Advisories, release notes, and public security
+bulletins after coordinated disclosure.

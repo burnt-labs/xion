@@ -1,0 +1,22 @@
+syntax = "proto3";
+package abstractaccount.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/abstractaccount/types";
+
+// EventAccountRegistered is emitted when an AbstractAccount is registered.
+message EventAccountRegistered {
+  // creator is the address that requested the account registration.
+  string creator       = 1;
+  // CodeID is the caller-selected implementation active after registration.
+  uint64 code_id       = 2 [(gogoproto.customname) = "CodeID"];
+  // contract_addr is the address of the newly instantiated account contract.
+  string contract_addr = 3;
+  // account_number is the account number assigned to the new account.
+  uint64 account_number = 4;
+  reserved 5;
+  // address_derivation_hash is the fixed hash used to derive the account's
+  // address.
+  bytes address_derivation_hash = 6 [(gogoproto.customname) = "AddressDerivationHash"];
+}

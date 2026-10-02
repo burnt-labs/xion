@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ $# -lt 3 || $# -gt 4 ]]; then
+    echo "Usage: $0 <goos> <goarch> <destination> [gnu|musl]" >&2
+    exit 1
+fi
+
+GOOS_TARGET="$1"
+GOARCH_TARGET="$2"
+DESTINATION="$3"
+LIBC_VARIANT="${4:-gnu}"
+
+if [[ "$LIBC_VARIANT" != "gnu" && "$LIBC_VARIANT" != "musl" ]]; then
+    echo "Unsupported libc variant: $LIBC_VARIANT" >&2
+    exit 1
+fi
+
+BB_VERSION="$(awk '$1 == "github.com/burnt-labs/barretenberg-go" { print $2; exit }' go.mod)"
+if [[ -z "$BB_VERSION" ]]; then
+    echo "github.com/burnt-labs/barretenberg-go is not present in go.mod" >&2
+    exit 1
+fi
+
+PLATFORM="${GOOS_TARGET}_${GOARCH_TARGET}"
+if [[ "$GOOS_TARGET" == "linux" && "$LIBC_VARIANT" == "musl" ]]; then
+    PLATFORM="${PLATFORM}_musl"
+fi
+
+ASSET="libbarretenberg_${PLATFORM}.a"
+RELEASE_URL="${BARRETENBERG_RELEASE_URL:-https://github.com/burnt-labs/barretenberg-go/releases/download/${BB_VERSION}}"
+# The expected digests are committed next to this script. Nothing fetched at
+# build time is trusted to say what the archive should hash to: a release's
+# assets can be replaced together with any checksum file published beside them.
+CHECKSUMS_FILE="${BARRETENBERG_CHECKSUMS_FILE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/barretenberg-checksums.txt}"
+DESTINATION_DIR="$(dirname "$DESTINATION")"
+LIB_ROOT="$(dirname "$DESTINATION_DIR")"
+chmod u+w "$LIB_ROOT" 2>/dev/null || true
+chmod -R u+w "$DESTINATION_DIR" 2>/dev/null || true
+mkdir -p "$DESTINATION_DIR"
+
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/barretenberg-download.XXXXXX")"
+trap 'rm -rf "$WORK_DIR"' EXIT
+
+sha256_file() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$1" | awk '{ print $1 }'
+    else
+        shasum -a 256 "$1" | awk '{ print $1 }'
+    fi
+}
+
+EXPECTED_SHA256="$(awk -v version="$BB_VERSION" -v asset="$ASSET" \
+    '$1 == version && $3 == asset { print $2; exit }' "$CHECKSUMS_FILE")"
+if [[ ! "$EXPECTED_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+    echo "No committed SHA-256 for $ASSET at barretenberg-go $BB_VERSION in $CHECKSUMS_FILE." >&2
+    echo "Add it (see the header of that file) before building against this version." >&2
+    exit 1
+fi
+
+if [[ -f "$DESTINATION" ]]; then
+    CURRENT_SHA256="$(sha256_file "$DESTINATION")"
+    if [[ "$CURRENT_SHA256" == "$EXPECTED_SHA256" ]] && ar t "$DESTINATION" >/dev/null; then
+        if [[ "$PLATFORM" == *_musl && "$(basename "$DESTINATION_DIR")" == "${PLATFORM%_musl}" ]]; then
+            MUSL_DESTINATION_DIR="$(dirname "$DESTINATION_DIR")/$PLATFORM"
+            MUSL_DESTINATION="$MUSL_DESTINATION_DIR/libbarretenberg.a"
+            mkdir -p "$MUSL_DESTINATION_DIR"
+            if [[ ! -f "$MUSL_DESTINATION" ]] || \
+                [[ "$(sha256_file "$MUSL_DESTINATION")" != "$EXPECTED_SHA256" ]] || \
+                ! ar t "$MUSL_DESTINATION" >/dev/null; then
+                MUSL_INSTALL_CANDIDATE="$MUSL_DESTINATION_DIR/.libbarretenberg.a.$$.tmp"
+                cp "$DESTINATION" "$MUSL_INSTALL_CANDIDATE"
+                mv -f "$MUSL_INSTALL_CANDIDATE" "$MUSL_DESTINATION"
+            fi
+        fi
+        echo "$ASSET already installed at $DESTINATION"
+        exit 0
+    fi
+fi
+
+DOWNLOADED_ARCHIVE="$WORK_DIR/$ASSET"
+curl --fail --location --retry 5 --retry-all-errors \
+    --output "$DOWNLOADED_ARCHIVE" "$RELEASE_URL/$ASSET"
+if [[ "$(sha256_file "$DOWNLOADED_ARCHIVE")" != "$EXPECTED_SHA256" ]]; then
+    echo "SHA-256 mismatch for $ASSET" >&2
+    exit 1
+fi
+
+if ! ar t "$DOWNLOADED_ARCHIVE" >/dev/null; then
+    echo "$ASSET is not a valid static archive" >&2
+    exit 1
+fi
+
+INSTALL_CANDIDATE="$DESTINATION_DIR/.libbarretenberg.a.$$.tmp"
+cp "$DOWNLOADED_ARCHIVE" "$INSTALL_CANDIDATE"
+mv -f "$INSTALL_CANDIDATE" "$DESTINATION"
+
+# barretenberg-go links the muslc build tag from a sibling linux_<arch>_musl
+# directory. Populate it as well when the caller passed the plain
+# linux_<arch> path.
+if [[ "$PLATFORM" == *_musl && "$(basename "$DESTINATION_DIR")" == "${PLATFORM%_musl}" ]]; then
+    MUSL_DESTINATION_DIR="$(dirname "$DESTINATION_DIR")/$PLATFORM"
+    MUSL_DESTINATION="$MUSL_DESTINATION_DIR/libbarretenberg.a"
+    mkdir -p "$MUSL_DESTINATION_DIR"
+    MUSL_INSTALL_CANDIDATE="$MUSL_DESTINATION_DIR/.libbarretenberg.a.$$.tmp"
+    cp "$DOWNLOADED_ARCHIVE" "$MUSL_INSTALL_CANDIDATE"
+    mv -f "$MUSL_INSTALL_CANDIDATE" "$MUSL_DESTINATION"
+fi
+
+echo "Installed $ASSET ($EXPECTED_SHA256) at $DESTINATION"

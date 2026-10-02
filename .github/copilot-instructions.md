@@ -62,10 +62,10 @@ Xion is a Cosmos SDK-based blockchain optimized for consumer applications with a
 - The `x/xion` and `x/jwk` modules provide **utility functions** for validation
 - Authorization happens at the **contract level**, not module level
 
-**Security Model**: The Abstract Account dependency (`github.com/burnt-labs/abstract-account`) implements the core AA logic. When working on authentication/authorization features, understand that:
+**Security Model**: The `x/abstractaccount` module implements the core AA logic. When working on authentication/authorization features:
 1. Modules provide cryptographic validation utilities
-2. Real authentication happens in smart contracts
-3. An attacker cannot bypass AA security by manipulating module queries
+2. Account contracts perform signature checks for their own transactions
+3. Do not assume either layer is sufficient. For any change to AA, `x/xion`, `x/jwk`, `x/zk` or `x/dkim` (including queries), trace who the caller is, what object is being authorized, and which contract or module consumes the result, and verify each check in code
 
 ## Build System
 
@@ -291,16 +291,18 @@ const MinRSAKeyBits = 2048
 
 **Files**: `x/dkim/types/pubkey.go:12-52`, `x/dkim/types/genesis.go:90-92`
 
-### 4. WebAuthn Security Model (x/xion)
-**CRITICAL**: WebAuthn validation functions are **utilities**, NOT authentication.
+### 4. WebAuthn Validation in x/xion
+WebAuthn validation functions are **utilities**; they are not an authentication decision on their own.
 
 ```go
-// These are SAFE despite client-controlled params:
+// Client-controlled parameters reach these functions:
 // - WebAuthNVerifyRegister
 // - WebAuthNVerifyAuthenticate
-
-// Why? Real authorization happens in Abstract Account contracts.
-// See x/xion/keeper/grpc_query.go for detailed security documentation.
+//
+// The design relies on Abstract Account contracts to make the authorization
+// decision. When reviewing changes here or in a caller, verify that the
+// caller actually does, rather than assuming it.
+// See x/xion/keeper/grpc_query.go for the documented reasoning.
 ```
 
 **Files**: `x/xion/README.md:29-62`, `x/xion/keeper/grpc_query.go`
@@ -360,11 +362,8 @@ make proto-gen-openapi     # Generate OpenAPI specs
 ### Critical Forks
 ```go
 // go.mod replace directives:
-github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.8-xion.2
-  // Reason: Genesis exports for wasmd
-
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => github.com/burnt-labs/ibc-go/modules/light-clients/08-wasm/v10 v10.5.0-xion.1
-  // Reason: wasmvm3 support
+github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.14-xion.1
+  // Reason: Genesis exports and the keeper-only fixed address hash for abstract accounts
 
 github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.4-xion.2
   // Reason: wasmvm3 tokenfactory fork
@@ -375,7 +374,6 @@ github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.202108190228
 ```
 
 ### External Dependencies
-- **Abstract Account**: `github.com/burnt-labs/abstract-account v0.1.3`
 - **InterchainTest**: For E2E testing (not in go.mod, used via e2e_tests)
 - **Heighliner**: For Docker image builds
 

@@ -1,0 +1,26 @@
+syntax = "proto3";
+package abstractaccount.v1;
+
+import "abstractaccount/v1/params.proto";
+
+option go_package = "github.com/burnt-labs/xion/x/abstractaccount/types";
+
+// GenesisState defines the genesis state of the abstractaccount module.
+message GenesisState {
+  // params defines the module parameters.
+  Params params          = 1;
+  // next_account_id is the identifier assigned to the next registered account.
+  uint64 next_account_id = 2;
+  // account_addresses is the exported sender/salt address registry.
+  repeated AccountAddress account_addresses = 3;
+}
+
+// AccountAddress is an exported sender/salt registry entry.
+message AccountAddress {
+  // sender is the address that registered the account.
+  string sender = 1;
+  // salt is the caller-chosen salt the address was derived with.
+  bytes salt = 2;
+  // address is the derived account address.
+  string address = 3;
+}

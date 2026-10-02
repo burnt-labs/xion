@@ -65,18 +65,22 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: "e2e_tests/go.mod"
           cache: false
 
+      - name: Install clang and libc++
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+
       - name: Download docker image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}
           pattern: docker-${{ matrix.os }}-${{ matrix.arch }}.tar

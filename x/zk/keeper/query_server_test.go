@@ -2,7 +2,9 @@
 package keeper_test
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1845,13 +1847,15 @@ func TestQueryProofVerifyUltraHonk_WrongInputsReturnsFalse(t *testing.T) {
 	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
 	require.NoError(t, err)
 
-	// Wrong public inputs: correct count (must match vkey's expected public input count)
-	// but with incorrect values. The testdata vkey expects 2 public inputs (64 bytes total).
-	// We provide 2 field elements all set to 0xff so the count is correct but values are wrong.
+	// Wrong public inputs: canonical values (each < r, here r-1) with an
+	// incorrect value. All-0xff inputs are now rejected as non-canonical
+	// before reaching the verifier, so use r-1 to test the wrong-value path.
+	r, ok := new(big.Int).SetString("21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+	require.True(t, ok)
+	wrongVal := new(big.Int).Sub(r, big.NewInt(1)).FillBytes(make([]byte, barretenberg.FieldElementSize))
 	wrongInputs := make([]byte, 2*barretenberg.FieldElementSize)
-	for i := range wrongInputs {
-		wrongInputs[i] = 0xff
-	}
+	copy(wrongInputs[:barretenberg.FieldElementSize], wrongVal)
+	copy(wrongInputs[barretenberg.FieldElementSize:], wrongVal)
 
 	req := &types.QueryVerifyUltraHonkRequest{
 		Proof:        proofBytes,
@@ -1862,4 +1866,201 @@ func TestQueryProofVerifyUltraHonk_WrongInputsReturnsFalse(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.False(t, resp.Verified, "proof with wrong inputs should not verify")
+}
+
+// TestQueryProofVerifyUltraHonk_NonCanonicalPublicInputRejected guards against
+// public-input malleability: barretenberg's many_from_buffer<uint256_t> silently
+// reduces values >= r modulo r, so without this gate a proof over X would verify
+// with any alias X+k*r. Inputs >= r must be rejected as invalid requests, while
+// canonical inputs (even wrong ones) must still reach the verifier.
+func TestQueryProofVerifyUltraHonk_NonCanonicalPublicInputRejected(t *testing.T) {
+	vkBytes, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+
+	r, ok := new(big.Int).SetString("21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+	require.True(t, ok)
+
+	original := new(big.Int).SetBytes(publicInputsBytes)
+	require.Equal(t, int64(5), original.Int64(), "expected test vector public input to be 5")
+
+	submit := func(t *testing.T, inputs []byte) (*types.ProofVerifyUltraHonkResponse, error) {
+		t.Helper()
+		return f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: inputs,
+			VkeyName:     "ultrahonk_circuit",
+		})
+	}
+
+	t.Run("original canonical input still verifies", func(t *testing.T) {
+		requireRealBarretenberg(t)
+		resp, err := submit(t, publicInputsBytes)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified)
+	})
+
+	t.Run("malleated input 5+r is rejected as invalid request", func(t *testing.T) {
+		malleated := new(big.Int).Add(original, r)
+		resp, err := submit(t, malleated.FillBytes(make([]byte, barretenberg.FieldElementSize)))
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "not a canonical BN254 scalar field element")
+	})
+
+	t.Run("malleated input 5+2r is rejected as invalid request", func(t *testing.T) {
+		malleated := new(big.Int).Add(original, new(big.Int).Lsh(r, 1))
+		resp, err := submit(t, malleated.FillBytes(make([]byte, barretenberg.FieldElementSize)))
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "not a canonical BN254 scalar field element")
+	})
+
+	t.Run("all-0xff input is rejected as invalid request", func(t *testing.T) {
+		maxInput := make([]byte, barretenberg.FieldElementSize)
+		for i := range maxInput {
+			maxInput[i] = 0xff
+		}
+		resp, err := submit(t, maxInput)
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "not a canonical BN254 scalar field element")
+	})
+
+	t.Run("non-canonical chunk after canonical chunk is rejected", func(t *testing.T) {
+		inputs := make([]byte, 2*barretenberg.FieldElementSize)
+		copy(inputs, publicInputsBytes)
+		copy(inputs[barretenberg.FieldElementSize:], new(big.Int).SetUint64(1).FillBytes(make([]byte, barretenberg.FieldElementSize)))
+		inputs[barretenberg.FieldElementSize] = 0xff // second chunk >= r
+		resp, err := submit(t, inputs)
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.Contains(t, err.Error(), "public input[1] is not a canonical BN254 scalar field element")
+	})
+
+	t.Run("canonical r-1 still reaches verifier and yields false verdict", func(t *testing.T) {
+		requireRealBarretenberg(t)
+		rMinus1 := new(big.Int).Sub(r, big.NewInt(1))
+		resp, err := submit(t, rMinus1.FillBytes(make([]byte, barretenberg.FieldElementSize)))
+		require.NoError(t, err, "canonical inputs must not error, even when wrong")
+		require.NotNil(t, resp)
+		require.False(t, resp.Verified)
+	})
+}
+
+// TestQueryProofVerifyUltraHonk_VkeyDigestEcho covers the key-identity gate.
+//
+// A vkey NAME is a mutable binding and an ID's contents are mutable in place:
+// AddVKey is permissionless, and the owner may later UpdateVKey the bytes under
+// the same name and ID. So `verified` alone never told a consumer that the
+// verification used the key material it reviewed. These cases pin the echo and
+// the optional pin that close that gap.
+func TestQueryProofVerifyUltraHonk_VkeyDigestEcho(t *testing.T) {
+	vkBytes, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+
+	want := sha256.Sum256(vkBytes)
+
+	t.Run("digest is echoed when no pin is sent", func(t *testing.T) {
+		requireRealBarretenberg(t)
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proofBytes,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_circuit",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified)
+		require.Equal(t, want[:], resp.VkeySha256,
+			"a consumer must be able to learn which key answered even without pinning")
+	})
+
+	t.Run("matching pin verifies", func(t *testing.T) {
+		requireRealBarretenberg(t)
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes,
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: want[:],
+		})
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified)
+		require.Equal(t, want[:], resp.VkeySha256)
+	})
+
+	t.Run("mismatched pin is a false verdict, not an error", func(t *testing.T) {
+		wrong := make([]byte, sha256.Size)
+		copy(wrong, want[:])
+		wrong[0] ^= 0x01
+
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes,
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: wrong,
+		})
+		// The caller asked whether this proof verifies under the key it pinned.
+		// It does not, and that is an answer rather than a malformed request.
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.False(t, resp.Verified)
+		require.Equal(t, want[:], resp.VkeySha256,
+			"the real digest is still returned so the caller can see what it got")
+	})
+
+	t.Run("wrong-length pin is rejected", func(t *testing.T) {
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes,
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: []byte{0xde, 0xad},
+		})
+		require.Error(t, err)
+		require.Nil(t, resp)
+	})
+
+	t.Run("malformed public_inputs with a pin is an error, not a verdict", func(t *testing.T) {
+		wrong := make([]byte, sha256.Size)
+		copy(wrong, want[:])
+		wrong[0] ^= 0x01
+
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:              proofBytes,
+			PublicInputs:       publicInputsBytes[:len(publicInputsBytes)-1],
+			VkeyName:           "ultrahonk_circuit",
+			ExpectedVkeySha256: wrong,
+		})
+		// Request validity is independent of pin usage: shape validation runs
+		// before the key-identity gate, so a malformed request is an error
+		// whether or not a pin was sent, and whether or not it would match.
+		require.Error(t, err)
+		require.Nil(t, resp)
+		require.ErrorContains(t, err, "not a multiple")
+	})
+
+	// The attack the echo exists to stop is a swap to DIFFERENT VALID key
+	// material under the same name and id. Modelling it needs a second valid
+	// UltraHonk vkey, and testdata/barretenberg ships only one; a bit-flipped
+	// copy is rejected by ValidateVKeyForProofSystem as malformed, so it cannot
+	// stand in. The "mismatched pin" case above already pins the security
+	// property (stored digest != caller's pin => verified false), which is what
+	// makes the swap detectable. Add the end-to-end swap case alongside a second
+	// fixture.
+}
+
+// requireRealBarretenberg skips a case that needs a genuine verification verdict.
+// The pin gate runs before any Barretenberg call, so pin-rejection cases do not
+// need this and must keep running under the stub library.
+func requireRealBarretenberg(t *testing.T) {
+	t.Helper()
+	if strings.HasPrefix(barretenberg.Version(), "stub") {
+		t.Skip("stub library does not perform real verification; build the real library to cover this case")
+	}
 }

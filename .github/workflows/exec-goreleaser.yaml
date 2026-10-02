@@ -14,34 +14,47 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}
           pattern: xiond-*
           merge-multiple: true
 
+      # GoReleaser picks these up as prebuilt binaries (.goreleaser/release.yaml),
+      # so a missing or empty one has to stop the run before any signing key is
+      # imported.
       - name: Move artifacts
         run: |
           mkdir -p dist
-          mv ${{ runner.temp }}/*/xiond* dist
+          mv "${{ runner.temp }}"/*/xiond* dist
+          for bin in \
+            dist/xiond_linux_amd64_v1/bin/xiond-linux-amd64 \
+            dist/xiond_linux_arm64_v8.0/bin/xiond-linux-arm64 \
+            dist/xiond_darwin_amd64_v1/bin/xiond-darwin-amd64 \
+            dist/xiond_darwin_arm64_v8.0/bin/xiond-darwin-arm64; do
+            if ! test -s "$bin"; then
+              echo "::error::Missing prebuilt binary: $bin"
+              exit 1
+            fi
+          done
 
       - name: Set Go Version
         run: sed -En 's/^go (.*)$/GO_VERSION=\1/p' go.mod >> $GITHUB_ENV
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version: stable
           cache: false
 
       - name: Import package signing GPG key
         id: import_pkg_gpg
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}

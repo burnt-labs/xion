@@ -66,3 +66,9 @@ x/zk/barretenberg/lib/
 
 # Build cache
 .cache/
+
+# Agent working files
+.agents/
+
+# Private module credentials for local goreleaser/docker builds
+.netrc

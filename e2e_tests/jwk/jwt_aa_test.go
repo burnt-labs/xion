@@ -3,7 +3,6 @@ package e2e_jwk
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -21,8 +20,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 
 	txsigning "cosmossdk.io/x/tx/signing"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	aatypes "github.com/burnt-labs/abstract-account/x/abstractaccount/types"
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/testutil"
@@ -142,12 +140,6 @@ func TestJWKJWTAA(t *testing.T) {
 		testlib.IntegrationTestPath("testdata", "contracts", "account_updatable-aarch64.wasm"))
 	require.NoError(t, err)
 
-	// retrieve the hash
-	codeResp, err := testlib.ExecQuery(t, ctx, xion.GetNode(),
-		"wasm", "code-info", codeIDStr)
-	require.NoError(t, err)
-	t.Logf("code response: %s", codeResp)
-
 	sub := "integration-test-user"
 
 	authenticatorDetails := map[string]interface{}{}
@@ -163,10 +155,8 @@ func TestJWKJWTAA(t *testing.T) {
 
 	// predict the contract address so it can be verified
 	salt := "0"
-	creatorAddr := types.AccAddress(xionUser.Address())
-	codeHash, err := hex.DecodeString(codeResp["checksum"].(string))
+	predictedAddr, err := testlib.QueryAbstractAccountAddress(t, ctx, xion.GetNode(), xionUser.FormattedAddress(), salt)
 	require.NoError(t, err)
-	predictedAddr := wasmkeeper.BuildContractAddressPredictable(codeHash, creatorAddr, []byte(salt), []byte{})
 	t.Logf("predicted address: %s", predictedAddr.String())
 
 	// b64 the contract address to use as the transaction hash
@@ -273,7 +263,7 @@ func TestJWKJWTAA(t *testing.T) {
 	   "signer_infos": [],
 	   "fee": {
 	     "amount": [],
-	     "gas_limit": "200000",
+	     "gas_limit": "300000",
 	     "payer": "",
 	     "granter": ""
 	   },

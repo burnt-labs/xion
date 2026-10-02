@@ -1,0 +1,22 @@
+# Expected SHA-256 of every Barretenberg static archive the build downloads.
+# scripts/download-barretenberg.sh trusts these values and nothing fetched at
+# build time: release assets can be replaced, and a checksum file published next
+# to them can be replaced along with them.
+#
+# Format: <barretenberg-go version> <sha256> <release asset>
+#
+# When go.mod moves to a new barretenberg-go version, add its archives here in
+# the same change. Take the digests from a download you have verified, and check
+# them against the release's own asset digests
+# (gh release view <version> -R burnt-labs/barretenberg-go --json assets).
+v0.6.0 a3bbd0ecbb8f3c426cec114ea8f08ac6038fe4e470bbd03ee56e890b00b6c7a0 libbarretenberg_darwin_amd64.a
+v0.6.0 daf3a755e6cd2e0928d10be76b242123bd5978adf65c7d3f208880140d22f3fc libbarretenberg_darwin_arm64.a
+v0.6.0 f4a44906b6e78182dd2183aebc705e7c1d14b79acdfd6ee1b821e8f40f12a798 libbarretenberg_linux_amd64.a
+v0.6.0 7fc43a2e68f67d7b7793505af53915a314a707fd4e15fae9e5e5ddec9af60788 libbarretenberg_linux_arm64.a
+v0.6.0 6fd77090638508ed30dce2bcc6add2365cf69dc46906937f0d340c9faad4d421 libbarretenberg_linux_arm64_musl.a
+v0.6.1 551c1b9540adac40c6f4884aa3f7c50d7bf4519d5506767e819c32767091eeec libbarretenberg_darwin_amd64.a
+v0.6.1 8db6edc472a35b798eb245987f4a3b54cb87ff3da5f3503e410d45c8cdc9810d libbarretenberg_darwin_arm64.a
+v0.6.1 f4a44906b6e78182dd2183aebc705e7c1d14b79acdfd6ee1b821e8f40f12a798 libbarretenberg_linux_amd64.a
+v0.6.1 892b54ced28e0ab0f5691b368e4f77abc4331a9c553b0a10a52349b27150e0f3 libbarretenberg_linux_amd64_musl.a
+v0.6.1 7fc43a2e68f67d7b7793505af53915a314a707fd4e15fae9e5e5ddec9af60788 libbarretenberg_linux_arm64.a
+v0.6.1 6fd77090638508ed30dce2bcc6add2365cf69dc46906937f0d340c9faad4d421 libbarretenberg_linux_arm64_musl.a

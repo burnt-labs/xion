@@ -13,30 +13,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A manual run from a branch would hand the branch name to GoReleaser as the
+  # release tag, and from the default branch would also push `latest`. Every
+  # other job waits on this check.
+  check-ref:
+    name: Check release tag
+    runs-on: ubicloud-standard-2
+    steps:
+      - name: Require a release tag ref
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$REF_TYPE" != "tag" ] || ! [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]]; then
+            echo "::error::Create Release runs only on a release tag (vX.Y.Z or vX.Y.Z-rcN), not ${REF_TYPE} '${REF_NAME}'"
+            exit 1
+          fi
+
   # CI checks run in parallel with builds — they don't block each other,
-  # but both must pass before the release is created.
+  # but all of them must pass before any image is pushed or the release is
+  # created.
   lint:
     name: Golang CI Lint
+    needs: check-ref
     uses: ./.github/workflows/golangci-lint.yaml
     secrets: inherit
 
   update-swagger:
     name: Update Swagger
+    needs: check-ref
     uses: ./.github/workflows/update-swagger.yaml
     secrets: inherit
 
   unit-tests:
     name: Go Unit Tests
+    needs: check-ref
     uses: ./.github/workflows/tests.yaml
+    secrets: inherit
+
+  vulncheck:
+    name: Vulnerability Scan
+    needs: check-ref
+    uses: ./.github/workflows/govulncheck.yaml
     secrets: inherit
 
   build-darwin:
     name: Build Darwin Binaries
+    needs: check-ref
     uses: ./.github/workflows/binaries-darwin.yaml
     secrets: inherit
 
   build-linux:
     name: Build Linux Binaries
+    needs: check-ref
     uses: ./.github/workflows/binaries-linux.yaml
     secrets: inherit
 
@@ -48,10 +77,16 @@ jobs:
     uses: ./.github/workflows/docker-build.yaml
     secrets: inherit
 
+  # Publishes the semver-tagged images, so it waits for every release check.
   push-docker:
     name: Push Docker Images
     needs:
-      - build-docker
+      - lint
+      - update-swagger
+      - unit-tests
+      - vulncheck
+      - docker-scout
+      - e2e-tests
     uses: ./.github/workflows/docker-push.yaml
     secrets: inherit
 
@@ -75,6 +110,7 @@ jobs:
       - lint
       - update-swagger
       - unit-tests
+      - vulncheck
       - push-docker
       - docker-scout
       - e2e-tests
