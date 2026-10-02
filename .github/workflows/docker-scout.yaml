@@ -68,5 +68,7 @@ jobs:
         with:
           command: cves
           only-fixed: true
+          only-severities: critical,high
+          exit-code: true
           platform: ${{ matrix.os }}/${{ matrix.arch }}
           image: ${{ env.SCOUT_IMAGE }}
