@@ -1,0 +1,125 @@
+diff --git a/tools/cosmovisor/dbbackend.go b/tools/cosmovisor/dbbackend.go
+new file mode 100644
+index 0000000..758eb24
+--- /dev/null
++++ b/tools/cosmovisor/dbbackend.go
+@@ -0,0 +1,48 @@
++package cosmovisor
++
++import (
++	"errors"
++	"fmt"
++	"strings"
++
++	dbm "github.com/cometbft/cometbft-db"
++	"github.com/pelletier/go-toml/v2"
++)
++
++// parseDBBackend extracts the db_backend value from the output of
++// `<daemon> config get config db_backend`. Newer SDK versions print the value
++// TOML-encoded (e.g. "goleveldb" with quotes and a trailing newline), older
++// ones may print it bare. The result is only syntactically validated:
++// dbm.NewDB remains responsible for rejecting unknown or unbuilt backends.
++func parseDBBackend(out []byte) (dbm.BackendType, error) {
++	value := strings.Trim(string(out), " \t\r\n")
++	if value == "" {
++		return "", errors.New("empty db_backend value")
++	}
++	if strings.ContainsAny(value, "\r\n") {
++		return "", errors.New("db_backend output spans multiple lines")
++	}
++
++	if q := value[0]; q == '"' || q == '\'' {
++		if len(value) < 2 || value[len(value)-1] != q {
++			return "", errors.New("unterminated quoted db_backend value")
++		}
++		var doc struct {
++			V string `toml:"v"`
++		}
++		if err := toml.Unmarshal([]byte("v = "+value), &doc); err != nil {
++			return "", fmt.Errorf("decode quoted db_backend value: %w", err)
++		}
++		value = doc.V
++	}
++
++	if value == "" {
++		return "", errors.New("empty db_backend value")
++	}
++	for _, r := range value {
++		if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '_' {
++			return "", fmt.Errorf("invalid character %q in db_backend value", r)
++		}
++	}
++	return dbm.BackendType(value), nil
++}
+diff --git a/tools/cosmovisor/dbbackend_test.go b/tools/cosmovisor/dbbackend_test.go
+new file mode 100644
+index 0000000..1cdb783
+--- /dev/null
++++ b/tools/cosmovisor/dbbackend_test.go
+@@ -0,0 +1,48 @@
++package cosmovisor
++
++import (
++	"testing"
++
++	dbm "github.com/cometbft/cometbft-db"
++)
++
++func TestParseDBBackend(t *testing.T) {
++	cases := []struct {
++		name    string
++		input   string
++		want    dbm.BackendType
++		wantErr bool
++	}{
++		{"quoted-newline", "\"goleveldb\"\n", "goleveldb", false},
++		{"quoted", "\"goleveldb\"", "goleveldb", false},
++		{"literal", "'pebbledb'\n", "pebbledb", false},
++		{"bare", "goleveldb\n", "goleveldb", false},
++		{"whitespace", "  \"rocksdb\"  \r\n", "rocksdb", false},
++		{"empty", "", "", true},
++		{"newline", "\n", "", true},
++		{"empty-quoted", "\"\"\n", "", true},
++		{"space-in-token", "\"go leveldb\"", "", true},
++		{"command-error", "Error: unknown key\n", "", true},
++		{"extra-line", "\"goleveldb\"\nWARN extra line\n", "", true},
++		{"unterminated", "\"goleveldb", "", true},
++		{"escaped-newline", "\"go\\nleveldb\"", "", true},
++		{"unknown-token", "future_backend_2", "future_backend_2", false},
++	}
++	for _, tc := range cases {
++		t.Run(tc.name, func(t *testing.T) {
++			got, err := parseDBBackend([]byte(tc.input))
++			if tc.wantErr {
++				if err == nil {
++					t.Fatalf("parseDBBackend(%q) succeeded with %q", tc.input, got)
++				}
++				return
++			}
++			if err != nil {
++				t.Fatalf("parseDBBackend(%q): %v", tc.input, err)
++			}
++			if got != tc.want {
++				t.Fatalf("got %q, want %q", got, tc.want)
++			}
++		})
++	}
++}
+diff --git a/tools/cosmovisor/scanner.go b/tools/cosmovisor/scanner.go
+index 930421b..241b76e 100644
+--- a/tools/cosmovisor/scanner.go
++++ b/tools/cosmovisor/scanner.go
+@@ -204,7 +204,11 @@ func (fw *fileWatcher) checkHeight() (int64, error) {
+ 		if err != nil {
+ 			result = []byte("goleveldb") // set default value, old version may not have config command
+ 		}
+-		blockStoreDB, err := dbm.NewDB("blockstore", dbm.BackendType(result), filepath.Join(fw.daemonHome, "data"))
++		backend, err := parseDBBackend(result)
++		if err != nil {
++			return 0, fmt.Errorf("parse db_backend output %q: %w", result, err)
++		}
++		blockStoreDB, err := dbm.NewDB("blockstore", backend, filepath.Join(fw.daemonHome, "data"))
+ 		if err != nil {
+ 			return 0, err
+ 		}
