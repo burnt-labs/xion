@@ -243,10 +243,10 @@ func TestPublishResolveTagGuard(t *testing.T) {
 	}{
 		{"", "v31.0.1", "v31.0.1", "v31.0.1", "false"},
 		{"", "v31.0.2-rc2", "v31.0.2-rc2", "v31.0.2-rc2", "true"},
-		{"v31.0.1", "", "release/v32", "v31.0.1", "false"},
-		{"", "", "release/v32", "", ""},
-		{"v31.0", "", "release/v32", "", ""},
-		{"v31.0.1;exit 0", "", "release/v32", "", ""},
+		{"v31.0.1", "", "release/v31", "v31.0.1", "false"},
+		{"", "", "release/v31", "", ""},
+		{"v31.0", "", "release/v31", "", ""},
+		{"v31.0.1;exit 0", "", "release/v31", "", ""},
 	}
 	for _, c := range cases {
 		t.Run(c.input+"|"+c.event+"|"+c.ref, func(t *testing.T) {
