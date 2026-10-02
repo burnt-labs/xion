@@ -30,7 +30,7 @@ A manual run must target an existing release tag, never a branch: `check-ref` re
 
 **Homebrew** (`burnt-labs/homebrew-xion`) is updated automatically by GoReleaser via `HOMEBREW_TAP_TOKEN` — it pushes a branch and creates a PR in homebrew-xion.
 
-To republish only the apt/yum/apk packages for a release that is already out (for example after a failed Gemfury upload), dispatch `publish-release.yaml` with `packages_only`; it builds from the release tag itself and skips Homebrew and every downstream dispatch: `gh workflow run publish-release.yaml -R burnt-labs/xion --ref release/v31 -f release_tag=v31.0.1 -f packages_only=true`.
+To republish only the apt/yum/apk packages for a release that is already out (for example after a failed Gemfury upload), dispatch `publish-release.yaml` with `packages_only`; it builds from the release tag itself and skips Homebrew and every downstream dispatch: `gh workflow run publish-release.yaml -R burnt-labs/xion --ref main -f release_tag=v31.0.1 -f packages_only=true`.
 
 ### Reusable Workflows (called by other jobs)
 
