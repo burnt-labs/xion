@@ -105,6 +105,14 @@ homebrew_casks:
     commit_msg_template: "Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
     homepage: "https://xion.burnt.com/"
     description: "Xiond is the Cosmos SDK based blockchain cli/daemon for the Xion Network."
+    # xiond is not notarized, so macOS kills a quarantined copy on launch.
+    # Docs: https://goreleaser.com/customization/publish/homebrew_casks/#signing-and-notarizing
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/xiond"]
+          end
     skip_upload: auto
     repository:
       owner: burnt-labs
