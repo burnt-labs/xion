@@ -137,12 +137,11 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 	}
 
 	chainSpec := testlib.XionChainSpec(3, 1)
-	// Keep the default local chain ID. On xion-testnet-2 the v31 handler fixes
-	// the testnet address derivation hash, which is immutable once set, so
-	// EnableAARegistration could not install the fixture contract's checksum
-	// that the pre-generated ZK proofs are bound to. On an unconfigured chain
-	// the handler leaves registration paused, which is the path the feature
-	// checks below exercise. TestAppUpgradeNetwork covers the testnet path.
+	// Keep the default local chain ID. The pre-generated ZK proofs are bound
+	// to the fixture contract's checksum, which EnableAARegistration installs
+	// as the address derivation hash. That hash is immutable once set, so a
+	// chain whose history configured another one (xion-testnet-2 after v31)
+	// could not take it. TestAppUpgradeNetwork covers the testnet chain ID.
 	chainSpec.Version = xionFromImageParts[1]
 	chainSpec.Images = []ibc.DockerImage{
 		{
