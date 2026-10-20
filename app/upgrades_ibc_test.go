@@ -51,5 +51,8 @@ func TestNextUpgradeHandlerMovesIBCSendSequences(t *testing.T) {
 		alias, found := gapp.IBCKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channel)
 		require.True(t, found)
 		require.Equal(t, client, alias)
+		counterparty, found := gapp.IBCKeeper.ClientV2Keeper.GetClientCounterparty(ctx, channel)
+		require.True(t, found)
+		require.Equal(t, "channel-0", counterparty.ClientId)
 	}
 }
