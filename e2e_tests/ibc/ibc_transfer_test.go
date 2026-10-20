@@ -507,9 +507,9 @@ func TestIBCTransfer(t *testing.T) {
 		require.Equal(t, expectedIBCBalance, finalIBCBalance,
 			"IBC balance should increase by exactly transfer amount (no double-spend)")
 
-		// Verify sender balance decreased (plus fees)
-		require.True(t, finalXionBalance.LT(initialXionBalance.Sub(transferAmount)),
-			"Sender balance should decrease")
+		// Gas prices are zero on this chain, so only the transferred amount is deducted.
+		require.Equal(t, initialXionBalance.Sub(transferAmount), finalXionBalance,
+			"Sender balance should decrease by exactly the transfer amount")
 
 		t.Log("  ✓ Packet processed once")
 		t.Log("  ✓ Sequence number incremented")
