@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	storetypes "cosmossdk.io/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"

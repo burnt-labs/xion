@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/relayer"
-	"github.com/cosmos/interchaintest/v10/testreporter"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/relayer"
+	"github.com/cosmos/interchaintest/v11/testreporter"
+	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -101,13 +101,19 @@ func TestIBCTransfer(t *testing.T) {
 	xionUser := xionUsers[0]
 	osmosisUser := osmosisUsers[0]
 
+	err := r.StartRelayer(ctx, rep.RelayerExecReporter(t), testPath)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, r.StopRelayer(ctx, rep.RelayerExecReporter(t)))
+	}()
+
 	// Wait for relayer to fully initialize and establish connections
 	// Relayer needs time to:
 	// - Discover chains and query their states
 	// - Establish websocket connections
 	// - Query and cache channel/client information
 	// - Start packet monitoring loops
-	err := testutil.WaitForBlocks(ctx, 5, xionChain, osmosisChain)
+	err = testutil.WaitForBlocks(ctx, 5, xionChain, osmosisChain)
 	require.NoError(t, err)
 
 	t.Run("ValidIBCTransfer", func(t *testing.T) {
@@ -230,10 +236,10 @@ func TestIBCTransfer(t *testing.T) {
 		require.NotEmpty(t, denom.Path(), "Path should not be empty")
 		t.Log("  ✓ Original denom verified")
 
-		// Verify the path format is correct (port/channel)
-		expectedPath := channels[0].Counterparty.PortID + "/" + channels[0].Counterparty.ChannelID
+		// Path includes both the channel trace and the base denom.
+		expectedPath := channels[0].Counterparty.PortID + "/" + channels[0].Counterparty.ChannelID + "/" + xionChain.Config().Denom
 		require.Equal(t, expectedPath, denom.Path(),
-			"Path should match port/channel format")
+			"Path should match port/channel/base-denom format")
 		t.Log("  ✓ Channel path correct")
 
 		// Verify the denom has the expected prefix

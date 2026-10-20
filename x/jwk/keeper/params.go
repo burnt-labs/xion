@@ -8,22 +8,25 @@ import (
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.GetTimeOffset(ctx), k.GetDeploymentGas(ctx))
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return types.DefaultParams()
+	}
+	var params types.Params
+	k.cdc.MustUnmarshal(bz, &params)
+	return params
 }
 
 // SetParams set the params
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramspace.SetParamSet(ctx, &params)
+	ctx.KVStore(k.storeKey).Set(types.ParamsKey, k.cdc.MustMarshal(&params))
 }
 
 func (k Keeper) GetTimeOffset(ctx sdk.Context) uint64 {
-	var to uint64
-	k.paramspace.Get(ctx, types.ParamStoreKeyTimeOffset, &to)
-	return to
+	return k.GetParams(ctx).TimeOffset
 }
 
 func (k Keeper) GetDeploymentGas(ctx sdk.Context) uint64 {
-	var dg uint64
-	k.paramspace.Get(ctx, types.ParamStoreKeyDeploymentGas, &dg)
-	return dg
+	return k.GetParams(ctx).DeploymentGas
 }

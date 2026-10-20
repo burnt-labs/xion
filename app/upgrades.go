@@ -5,15 +5,19 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	storetypes "cosmossdk.io/store/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 const UpgradeName = "v32"
+
+// Kept mounted for the v32 globalfee/jwk migrations; delete in the next upgrade.
+const legacyParamsStoreKey = "params"
+
+var removedStoreKeys = []string{"group", "nft", "circuit", "crisis"}
 
 // checksumAccountCode is a code whose accounts were registered, before the
 // (sender, salt) registry existed, at addresses derived from the code's
@@ -62,11 +66,14 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 	return storeLoader
 }
 
-func nextStoreUpgrades(_ string) storetypes.StoreUpgrades {
+func nextStoreUpgrades(upgradeName string) storetypes.StoreUpgrades {
 	storeUpgrades := storetypes.StoreUpgrades{
 		Added:   []string{},
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
+	}
+	if upgradeName == UpgradeName {
+		storeUpgrades.Deleted = removedStoreKeys
 	}
 	return storeUpgrades
 }

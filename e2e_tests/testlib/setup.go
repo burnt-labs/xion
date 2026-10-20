@@ -8,17 +8,19 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
+	"github.com/stretchr/testify/require"
+
+	interchaintest "github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testreporter"
+	"github.com/cosmos/interchaintest/v11/testutil"
 
 	"cosmossdk.io/math"
-	interchaintest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testreporter"
-	"github.com/cosmos/interchaintest/v10/testutil"
-	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
 	xionapp "github.com/burnt-labs/xion/app"
 )

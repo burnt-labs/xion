@@ -10,8 +10,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	storetypes "cosmossdk.io/store/types"
-
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
@@ -335,7 +334,7 @@ func TestInitGenesisRejectsAbstractAccountAtWrongDerivedAddress(t *testing.T) {
 	sender := xionapp.RandomAccAddress()
 	salt := []byte("wrong-namespace")
 	wrongAddress := xionapp.RandomAccAddress()
-	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(wrongAddress.String(), app.AccountKeeper.NextAccountNumber(ctx), 0))
+	app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(wrongAddress.String(), 0, 0)))
 	require.NoError(t, app.AbstractAccountKeeper.SetParams(ctx, params))
 	predicted, err := app.AbstractAccountKeeper.PredictAccountAddress(ctx, sender, salt)
 	require.NoError(t, err)
@@ -371,7 +370,7 @@ func TestInitGenesisRejectsAbstractAccountWithoutWasmContract(t *testing.T) {
 	require.NoError(t, app.AbstractAccountKeeper.SetParams(ctx, params))
 	address, err := app.AbstractAccountKeeper.PredictAccountAddress(ctx, sender, salt)
 	require.NoError(t, err)
-	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(address.String(), app.AccountKeeper.NextAccountNumber(ctx), 0))
+	app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(address.String(), 0, 0)))
 	require.False(t, app.WasmKeeper.HasContractInfo(ctx, address))
 
 	gs := types.NewGenesisState(1, params)

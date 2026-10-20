@@ -84,7 +84,7 @@ type MockMintStakingKeeper struct {
 	mock.Mock
 }
 
-func (m *MockMintStakingKeeper) TotalBondedTokens(ctx context.Context) (math.Int, error) {
+func (m *MockMintStakingKeeper) TotalValidatorPower(ctx context.Context) (math.Int, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(math.Int), args.Error(1)
 }
@@ -551,7 +551,7 @@ func TestStakedInflationMintFn_ExecutionErrorPaths(t *testing.T) {
 				bankKeeper.On("BurnCoins", mock.Anything, authtypes.FeeCollectorName, mock.Anything).Return(nil)
 
 				// Mock staking keeper
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
@@ -575,14 +575,14 @@ func TestStakedInflationMintFn_ExecutionErrorPaths(t *testing.T) {
 				// Mock burn error
 				bankKeeper.On("BurnCoins", mock.Anything, authtypes.FeeCollectorName, mock.Anything).Return(errors.New("insufficient funds"))
 
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
 			expectErr: true,
 		},
 		{
-			name: "Staking keeper TotalBondedTokens returns error",
+			name: "Staking keeper TotalValidatorPower returns error",
 			setupMocks: func() (*MockMintBankKeeper, *MockMintAccountKeeper, *MockMintStakingKeeper) {
 				bankKeeper := &MockMintBankKeeper{}
 				accountKeeper := &MockMintAccountKeeper{}
@@ -596,7 +596,7 @@ func TestStakedInflationMintFn_ExecutionErrorPaths(t *testing.T) {
 				bankKeeper.On("GetBalance", mock.Anything, mock.Anything, "stake").Return(sdk.NewInt64Coin("stake", 100))
 
 				// Mock staking keeper error
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.ZeroInt(), errors.New("staking error"))
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.ZeroInt(), errors.New("staking error"))
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
@@ -668,7 +668,7 @@ func TestStakedInflationMintFn_CodePathCoverage(t *testing.T) {
 				// Small balance (less than needed amount)
 				bankKeeper.On("GetBalance", mock.Anything, mock.Anything, "stake").Return(sdk.NewInt64Coin("stake", 100))
 
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
@@ -691,7 +691,7 @@ func TestStakedInflationMintFn_CodePathCoverage(t *testing.T) {
 				// Mock burn operation
 				bankKeeper.On("BurnCoins", mock.Anything, feeCollectorName, mock.Anything).Return(nil)
 
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},

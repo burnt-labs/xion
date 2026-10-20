@@ -83,15 +83,6 @@ apis:
     tags:
       rename:
         Query: Gov
-  - url: ./cosmos/group/v1/query.swagger.json
-    operationIds:
-      rename:
-        Params: GroupParams
-        Proposal: GroupProposal
-        TallyResult: GroupTallyResult
-    tags:
-      rename:
-        Query: Group
   - url: ./cosmos/mint/v1beta1/query.swagger.json
     operationIds:
       rename:
@@ -103,21 +94,6 @@ apis:
     tags:
       rename:
         Query: Mint
-  - url: ./cosmos/nft/v1beta1/query.swagger.json
-    operationIds:
-      rename:
-        Params: NftParams
-        Balance: NftBalance
-    tags:
-      rename:
-        Query: Nft
-  - url: ./cosmos/params/v1beta1/query.swagger.json
-    operationIds:
-      rename:
-        Params: Params
-    tags:
-      rename:
-        Query: Params
   - url: ./cosmos/slashing/v1beta1/query.swagger.json
     operationIds:
       rename:
@@ -221,13 +197,6 @@ apis:
     tags:
       rename:
         Query: Verona
-  - url: ./cosmos/circuit/v1/query.swagger.json
-    operationIds:
-      rename:
-        Params: CircuitParams
-    tags:
-      rename:
-        Query: Circuit
   - url: ./abstractaccount/v1/query.swagger.json
     operationIds:
       rename:

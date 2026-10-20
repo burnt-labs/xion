@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,19 +64,19 @@ func SubmitAndPassProposal(
 	_, err = chain.SubmitProposal(ctx, proposer.KeyName(), proposal)
 	require.NoError(t, err)
 
-	prop, err := chain.GovQueryProposal(ctx, proposalID)
+	prop, err := chain.GovQueryProposalV1(ctx, proposalID)
 	require.NoError(t, err)
-	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
+	require.Equal(t, govv1.StatusVotingPeriod, prop.Status)
 
-	err = chain.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
+	err = chain.VoteOnProposalAllValidators(ctx, prop.Id, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := chain.GovQueryProposal(ctx, proposalID)
+		proposalInfo, err := chain.GovQueryProposalV1(ctx, proposalID)
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
+			if proposalInfo.Status == govv1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal %d to enter voting status PASSED, current status: %s", proposalID, proposalInfo.Status)
@@ -87,12 +87,9 @@ func SubmitAndPassProposal(
 	afterVoteHeight, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height after voting on proposal")
 
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, afterVoteHeight, prop.ProposalId, govv1beta1.StatusPassed)
+	_, err = cosmos.PollForProposalStatusV1(ctx, chain, height, afterVoteHeight, prop.Id, govv1.StatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
-	// Wait for proposal execution
-	height, err = chain.Height(ctx)
-	require.NoError(t, err, "error fetching height after proposal passed")
-	err = testutil.WaitForBlocks(ctx, int(height+4), chain)
-	return err
+	// Wait for proposal execution. WaitForBlocks takes a delta, not a target height.
+	return testutil.WaitForBlocks(ctx, 4, chain)
 }

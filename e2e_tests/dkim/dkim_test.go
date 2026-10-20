@@ -18,10 +18,10 @@ import (
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
 	"github.com/icza/dyno"
 	"github.com/stretchr/testify/require"
 )
@@ -146,20 +146,20 @@ func TestDKIMPubKeyMaxSize(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("Submitted oversized DKIM proposal tx: %v", submitHash)
 
-	prop, err := xion.GovQueryProposal(ctx, proposalID)
+	prop, err := xion.GovQueryProposalV1(ctx, proposalID)
 	require.NoError(t, err)
-	require.Equal(t, proposalID, prop.ProposalId)
-	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
+	require.Equal(t, proposalID, prop.Id)
+	require.Equal(t, govv1.StatusVotingPeriod, prop.Status)
 
-	err = xion.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
+	err = xion.VoteOnProposalAllValidators(ctx, prop.Id, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	startHeight, err := xion.Height(ctx)
 	require.NoError(t, err)
 
-	failedProp, err := cosmos.PollForProposalStatus(ctx, xion, startHeight, startHeight+15, proposalID, govv1beta1.StatusFailed)
+	failedProp, err := cosmos.PollForProposalStatusV1(ctx, xion, startHeight, startHeight+15, proposalID, govv1.StatusFailed)
 	require.NoError(t, err, "proposal should fail due to oversized pubkey")
-	require.Equal(t, proposalID, failedProp.ProposalId, "polled proposal mismatch")
+	require.Equal(t, proposalID, failedProp.Id, "polled proposal mismatch")
 }
 
 func queryDkimParams(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain) types.Params {
@@ -259,9 +259,9 @@ func TestDKIMRevokedKeyCannotBeReadded(t *testing.T) {
 	readdProposalID := proposalTracker.NextID()
 	err = submitAndVoteProposalWithGas(t, ctx, xion, chainUser, []cosmos.ProtoMessage{readdMsg}, readdProposalID)
 	require.NoError(t, err)
-	propInfo, err := xion.GovQueryProposal(ctx, readdProposalID)
+	propInfo, err := xion.GovQueryProposalV1(ctx, readdProposalID)
 	require.NoError(t, err)
-	require.Equal(t, govv1beta1.StatusFailed, propInfo.Status, "proposal should be rejected due to revoked key")
+	require.Equal(t, govv1.StatusFailed, propInfo.Status, "proposal should be rejected due to revoked key")
 }
 
 // submitAndPassProposalWithGas submits a proposal,
@@ -290,21 +290,21 @@ func submitAndVoteProposalWithGas(
 		return err
 	}
 
-	propInfo, err := chain.GovQueryProposal(ctx, proposalID)
+	propInfo, err := chain.GovQueryProposalV1(ctx, proposalID)
 	if err != nil {
 		return err
 	}
-	require.Equal(t, propInfo.Status, govv1beta1.StatusVotingPeriod)
+	require.Equal(t, propInfo.Status, govv1.StatusVotingPeriod)
 
-	err = chain.VoteOnProposalAllValidators(ctx, propInfo.ProposalId, cosmos.ProposalVoteYes)
+	err = chain.VoteOnProposalAllValidators(ctx, propInfo.Id, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := chain.GovQueryProposal(ctx, proposalID)
+		proposalInfo, err := chain.GovQueryProposalV1(ctx, proposalID)
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status != govv1beta1.StatusVotingPeriod {
+			if proposalInfo.Status != govv1.StatusVotingPeriod {
 				return true
 			}
 			t.Logf("Waiting for proposal %d to reach PASSED, current status: %s", proposalID, proposalInfo.Status)

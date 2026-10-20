@@ -121,6 +121,10 @@ xiond tx gov submit-proposal [proposal.json]
 }
 ```
 
+### Adding Authenticators
+
+`xiond tx xion add-authenticator` supports direct, legacy Amino JSON, direct-aux and EIP-191 signing. Textual signing is unavailable with Cosmos SDK 0.55.
+
 ## Integration with Other Modules
 
 ### Abstract Accounts

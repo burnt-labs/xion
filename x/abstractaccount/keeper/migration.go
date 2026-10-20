@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v2 "github.com/burnt-labs/xion/x/abstractaccount/migrations/v2"

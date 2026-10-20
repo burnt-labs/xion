@@ -1,31 +1,49 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"fmt"
 
-	v1 "github.com/burnt-labs/xion/x/jwk/migrations/v1"
-	v3 "github.com/burnt-labs/xion/x/jwk/migrations/v3"
+	corestore "cosmossdk.io/core/store"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
-// Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	jwkSubspace paramtypes.Subspace
+	k            Keeper
+	legacyParams corestore.KVStoreService
+	amino        *codec.LegacyAmino
 }
 
-// NewMigrator returns a new Migrator.
-func NewMigrator(jwkSubspace paramtypes.Subspace) Migrator {
-	return Migrator{jwkSubspace}
+func NewMigrator(k Keeper, legacyParams corestore.KVStoreService, amino *codec.LegacyAmino) Migrator {
+	return Migrator{k: k, legacyParams: legacyParams, amino: amino}
 }
 
-// Migrate1To2 migrates from version 1 to 2
-func (m Migrator) Migrate1To2(ctx sdk.Context) error {
-	return v1.MigrateStore(ctx, m.jwkSubspace)
-}
-
-// Migrate2To3 migrates from version 2 to 3.
-// It corrects the TimeOffset param that was set to 30_000 (30 microseconds)
-// by Migrate1To2 instead of the correct 30_000_000_000 (30 seconds in nanoseconds).
-func (m Migrator) Migrate2To3(ctx sdk.Context) error {
-	return v3.MigrateStore(ctx, m.jwkSubspace)
+func (m Migrator) Migrate3To4(ctx sdk.Context) error {
+	params := types.DefaultParams()
+	store := m.legacyParams.OpenKVStore(ctx)
+	for _, field := range []struct {
+		key   string
+		value *uint64
+	}{
+		{"jwk/TimeOffset", &params.TimeOffset},
+		{"jwk/DeploymentGas", &params.DeploymentGas},
+	} {
+		bz, err := store.Get([]byte(field.key))
+		if err != nil {
+			return fmt.Errorf("read %s: %w", field.key, err)
+		}
+		if bz != nil {
+			if err := m.amino.UnmarshalJSON(bz, field.value); err != nil {
+				return fmt.Errorf("decode %s: %w", field.key, err)
+			}
+		}
+	}
+	if err := params.Validate(); err != nil {
+		return err
+	}
+	m.k.SetParams(ctx, params)
+	return nil
 }

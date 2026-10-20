@@ -18,7 +18,7 @@ SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 
 # Docker and goreleaser configuration
 GORELEASER_CROSS_IMAGE := $(if $(GORELEASER_KEY),ghcr.io/goreleaser/goreleaser-cross-pro,ghcr.io/goreleaser/goreleaser-cross)
-GORELEASER_CROSS_VERSION ?= v1.25.3
+GORELEASER_CROSS_VERSION ?= v1.26.5
 GORELEASER_IMAGE ?= $(GORELEASER_CROSS_IMAGE)
 GORELEASER_VERSION ?= $(GORELEASER_CROSS_VERSION)
 GORELEASER_RELEASE ?= false

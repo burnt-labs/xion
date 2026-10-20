@@ -10,16 +10,14 @@ import (
 
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk"
-	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 // Test module functions that need coverage
@@ -58,19 +56,8 @@ func TestRegisterServices(t *testing.T) {
 	k, _ := setupKeeperForGenesis(t)
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace like in setupKeeperForGenesis
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
-	// Create AppModule with proper subspace
-	appModule := jwk.NewAppModule(cdc, k, paramStore)
+	storeKey := storetypes.NewKVStoreKey("params")
+	appModule := jwk.NewAppModule(cdc, k, sdkruntime.NewKVStoreService(storeKey), codec.NewLegacyAmino())
 
 	// Test success case - mock configurator that returns no error
 	mockCfgSuccess := &testConfigurator{

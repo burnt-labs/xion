@@ -16,12 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	ibctest "github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/testutil"
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
-	txsigning "cosmossdk.io/x/tx/signing"
+	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types"

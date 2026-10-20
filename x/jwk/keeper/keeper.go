@@ -3,39 +3,37 @@ package keeper
 import (
 	"fmt"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		paramspace paramtypes.Subspace
+		cdc       codec.BinaryCodec
+		storeKey  storetypes.StoreKey
+		authority string
 	}
 )
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
+	authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		paramspace: ps,
+		cdc:       cdc,
+		storeKey:  storeKey,
+		authority: authority,
 	}
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

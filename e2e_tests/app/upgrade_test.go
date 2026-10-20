@@ -8,13 +8,20 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
+)
+
+// Non-default globalfee and jwk values, so the post-upgrade equality check fails if the v32
+// migrations fall back to defaults instead of reading the legacy params store.
+var upgradeGenesisKVMods = append(append([]cosmos.GenesisKV{}, testlib.UpgradeGenesisKVMods...),
+	cosmos.NewGenesisKV("app_state.globalfee.params.max_total_bypass_min_fee_msg_gas_usage", "2000000"),
+	cosmos.NewGenesisKV("app_state.jwk.params.time_offset", "60000000000"),
 )
 
 func TestAppUpgradeNetwork(t *testing.T) {
@@ -49,7 +56,7 @@ func TestAppUpgradeNetwork(t *testing.T) {
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.UpgradeGenesisKVMods)
+	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(upgradeGenesisKVMods)
 
 	// Build chain starting with the "from" image
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)
@@ -150,7 +157,7 @@ func TestAppUpgradeNetworkWithFeatures(t *testing.T) {
 			UIDGID:     "1000:1000",
 		},
 	}
-	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(testlib.UpgradeGenesisKVMods)
+	chainSpec.ModifyGenesis = testlib.WithZKFixtureAccount(cosmos.ModifyGenesis(upgradeGenesisKVMods), 12)
 	// Set encoding config for proper message serialization (needed for DKIM and ZKEmail assertions)
 	chainSpec.EncodingConfig = testlib.XionEncodingConfig(t)
 	// Use faster block times to ensure proposals pass within timeout windows

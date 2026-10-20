@@ -14,7 +14,7 @@ import (
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
-	txsigning "cosmossdk.io/x/tx/signing"
+	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
@@ -26,10 +26,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	ibctest "github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -43,7 +43,7 @@ func TestZKAddAuthenticators(t *testing.T) {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
-	xion := testlib.BuildXionChain(t)
+	xion := buildZKEmailChain(t, 11)
 	proposalTracker := testlib.NewProposalTracker(1)
 
 	fundAmount := math.NewInt(1_000_000_000_000)

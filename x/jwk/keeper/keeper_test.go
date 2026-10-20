@@ -5,14 +5,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/burnt-labs/xion/x/jwk/keeper"
 	"github.com/burnt-labs/xion/x/jwk/types"
@@ -20,62 +21,20 @@ import (
 
 func setupKeeper(t testing.TB) (keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient_test")
 
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
 	// Create codec
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		paramStore,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-
-	// Initialize with default params
-	k.SetParams(ctx.Ctx, types.DefaultParams())
 
 	return k, ctx.Ctx
-}
-
-func TestNewKeeper(t *testing.T) {
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-
-	// Test with param subspace that doesn't have key table
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
-	k := keeper.NewKeeper(cdc, storeKey, paramStore)
-	require.NotNil(t, k)
-
-	// Test with fresh param subspace for key table test
-	freshParamStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		"fresh_module",
-	)
-	paramStoreWithKeyTable := freshParamStore.WithKeyTable(types.ParamKeyTable())
-	k2 := keeper.NewKeeper(cdc, storeKey, paramStoreWithKeyTable)
-	require.NotNil(t, k2)
 }
 
 func TestKeeperLogger(t *testing.T) {

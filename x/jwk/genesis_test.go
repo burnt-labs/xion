@@ -5,15 +5,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/jwk/keeper"
@@ -22,26 +20,17 @@ import (
 
 func setupKeeperForGenesis(t testing.TB) (keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient_test")
 
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
 	// Create codec
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		paramStore,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	return k, ctx.Ctx

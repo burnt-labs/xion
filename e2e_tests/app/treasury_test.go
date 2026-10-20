@@ -13,12 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/gogoproto/proto"
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	ibctest "github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 
 	"cosmossdk.io/math"
-	"cosmossdk.io/x/feegrant"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	codecTypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"

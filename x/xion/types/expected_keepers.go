@@ -57,6 +57,6 @@ type AbstractAccountKeeper interface {
 }
 
 type StakingKeeper interface {
-	TotalBondedTokens(ctx context.Context) (math.Int, error)
+	TotalValidatorPower(ctx context.Context) (math.Int, error)
 	BondedRatio(ctx context.Context) (math.LegacyDec, error)
 }

@@ -17,12 +17,11 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 
 	dbm "github.com/cosmos/cosmos-db"
-	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcclient "github.com/cosmos/ibc-go/v11/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"cosmossdk.io/math"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -30,11 +29,13 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
 	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
+	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 )
 
 var emptyWasmOpts []wasmkeeper.Option
@@ -57,7 +58,6 @@ func TestWasmdExport(t *testing.T) {
 	newGapp := NewWasmApp(
 		log.NewLogger(os.Stdout),
 		db,
-		nil,
 		true,
 		simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
 		emptyWasmOpts,
@@ -119,14 +119,6 @@ func TestAppGetters(t *testing.T) {
 	// Test GetKey()
 	storeKey := gapp.GetKey("bank")
 	require.NotNil(t, storeKey)
-
-	// Test GetTKey()
-	tkey := gapp.GetTKey(paramstypes.TStoreKey)
-	require.NotNil(t, tkey)
-
-	// Test GetSubspace()
-	subspace := gapp.GetSubspace("bank")
-	require.NotNil(t, subspace)
 
 	// Test SimulationManager()
 	simManager := gapp.SimulationManager()
@@ -421,6 +413,42 @@ func TestNextUpgradeHandler(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("migrates legacy x/params values into globalfee and jwk", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
+		fromVM := gapp.ModuleManager.GetVersionMap()
+		fromVM[globalfeetypes.ModuleName] = 2
+		fromVM[jwktypes.ModuleName] = 3
+
+		globalFeeParams := globalfeetypes.DefaultParams()
+		globalFeeParams.MinimumGasPrices = sdk.NewDecCoins(
+			sdk.NewDecCoinFromDec("ibc/F082B65C88E4B6D5EF1DB243CDA1D331D002759E938A0F5CD3FFDC5D53B3E349", math.LegacyMustNewDecFromStr("0.005")),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyMustNewDecFromStr("0.001")),
+		)
+		jwkParams := jwktypes.Params{TimeOffset: 30000000000, DeploymentGas: 10000}
+		legacyParams := ctx.KVStore(gapp.GetKey(legacyParamsStoreKey))
+		for key, value := range map[string]interface{}{
+			"globalfee/MinimumGasPricesParam":           globalFeeParams.MinimumGasPrices,
+			"globalfee/BypassMinFeeMsgTypes":            globalFeeParams.BypassMinFeeMsgTypes,
+			"globalfee/MaxTotalBypassMinFeeMsgGasUsage": globalFeeParams.MaxTotalBypassMinFeeMsgGasUsage,
+			"jwk/TimeOffset":                            jwkParams.TimeOffset,
+			"jwk/DeploymentGas":                         jwkParams.DeploymentGas,
+		} {
+			bz, err := gapp.LegacyAmino().MarshalJSON(value)
+			require.NoError(t, err)
+			legacyParams.Set([]byte(key), bz)
+		}
+
+		vm, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, fromVM)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), vm[globalfeetypes.ModuleName])
+		require.Equal(t, uint64(4), vm[jwktypes.ModuleName])
+		migratedGlobalFeeParams, err := gapp.GlobalFeeKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		require.Equal(t, globalFeeParams, migratedGlobalFeeParams)
+		require.Equal(t, jwkParams, gapp.JwkKeeper.GetParams(ctx))
+	})
+
 	t.Run("refuses when the code's checksum is not the pinned one", func(t *testing.T) {
 		gapp := Setup(t)
 		ctx := gapp.NewContext(false).WithChainID("backfill-mismatch")
@@ -478,7 +506,7 @@ func TestNextUpgradeHandler(t *testing.T) {
 			}},
 		})
 		require.NoError(t, err)
-		gapp.AccountKeeper.SetAccount(ctx, aatypes.NewAbstractAccount(address.String(), gapp.AccountKeeper.NextAccountNumber(ctx), 0))
+		gapp.AccountKeeper.SetAccount(ctx, gapp.AccountKeeper.NewAccount(ctx, aatypes.NewAbstractAccount(address.String(), 0, 0)))
 
 		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
 		require.NoError(t, err)
@@ -570,8 +598,16 @@ func TestNextUpgradeHandler(t *testing.T) {
 	})
 }
 
-func TestNextStoreUpgradesChangesNoStores(t *testing.T) {
+func TestNextStoreUpgradesRemovesRetiredModuleStores(t *testing.T) {
 	storeUpgrades := nextStoreUpgrades(UpgradeName)
+
+	require.Empty(t, storeUpgrades.Added)
+	require.Empty(t, storeUpgrades.Renamed)
+	require.Equal(t, []string{"group", "nft", "circuit", "crisis"}, storeUpgrades.Deleted)
+}
+
+func TestNextStoreUpgradesKeepsStoresForOtherUpgrades(t *testing.T) {
+	storeUpgrades := nextStoreUpgrades("v31")
 
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)

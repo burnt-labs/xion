@@ -5,23 +5,17 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	feegranttypes "cosmossdk.io/x/feegrant"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 var (
-	// ParamStoreKeyMinGasPrices store key
-	ParamStoreKeyMinGasPrices                    = []byte("MinimumGasPricesParam")
-	ParamStoreKeyBypassMinFeeMsgTypes            = []byte("BypassMinFeeMsgTypes")
-	ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage = []byte("MaxTotalBypassMinFeeMsgGasUsage")
-
 	// DefaultMinGasPrices is set at runtime to the staking token with zero amount i.e. "0uxion"
 	// see DefaultZeroGlobalFee method in xion/x/globalfee/ante/fee.go.
 	DefaultMinGasPrices = sdk.DecCoins{}
@@ -53,10 +47,6 @@ func DefaultParams() Params {
 	}
 }
 
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
 // ValidateBasic performs basic validation.
 func (p Params) ValidateBasic() error {
 	if err := validateMinimumGasPrices(p.MinimumGasPrices); err != nil {
@@ -68,21 +58,6 @@ func (p Params) ValidateBasic() error {
 	}
 
 	return validateMaxTotalBypassMinFeeMsgGasUsage(p.MaxTotalBypassMinFeeMsgGasUsage)
-}
-
-// ParamSetPairs returns the parameter set pairs.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(
-			ParamStoreKeyMinGasPrices, &p.MinimumGasPrices, validateMinimumGasPrices,
-		),
-		paramtypes.NewParamSetPair(
-			ParamStoreKeyBypassMinFeeMsgTypes, &p.BypassMinFeeMsgTypes, validateBypassMinFeeMsgTypes,
-		),
-		paramtypes.NewParamSetPair(
-			ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage, &p.MaxTotalBypassMinFeeMsgGasUsage, validateMaxTotalBypassMinFeeMsgGasUsage,
-		),
-	}
 }
 
 func validateMinimumGasPrices(i interface{}) error {
