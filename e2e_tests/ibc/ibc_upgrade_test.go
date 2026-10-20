@@ -14,7 +14,6 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/cosmos/interchaintest/v11/conformance"
-	"github.com/cosmos/interchaintest/v11/relayer"
 	"github.com/cosmos/interchaintest/v11/testutil"
 
 	"github.com/cosmos/interchaintest/v11"
@@ -81,11 +80,10 @@ func TestIBCUpgrade(t *testing.T) {
 		relayerName = "relayer"
 	)
 
-	// Get a relayer instance
+	// Keep the default history window so restarts do not replay the initial handshake.
 	rf := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.StartupFlags("-b", "100"),
 	)
 
 	r := rf.Build(t, client, network)

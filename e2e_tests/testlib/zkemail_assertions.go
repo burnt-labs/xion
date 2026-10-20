@@ -13,7 +13,6 @@ import (
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
-	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	dkimTypes "github.com/burnt-labs/xion/x/dkim/types"
@@ -22,6 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	govModule "github.com/cosmos/cosmos-sdk/x/gov/types"
+	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 	ibctest "github.com/cosmos/interchaintest/v11"
 	"github.com/cosmos/interchaintest/v11/chain/cosmos"
 	"github.com/cosmos/interchaintest/v11/ibc"

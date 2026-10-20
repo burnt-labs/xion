@@ -19,9 +19,9 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
+	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 	ibctest "github.com/cosmos/interchaintest/v11"
 	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/golang-jwt/jwt/v5"

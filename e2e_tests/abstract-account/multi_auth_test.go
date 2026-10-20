@@ -14,8 +14,8 @@ import (
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
-	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
