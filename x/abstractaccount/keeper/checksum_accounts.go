@@ -20,9 +20,10 @@ import (
 type ChecksumAccountBackfill struct {
 	// Registered entries written to the (sender, salt) registry.
 	Registered int
-	// Skipped contracts: not an abstract account, no recognised authenticator in
-	// the INIT message, an address that does not derive from the code checksum,
-	// or a (sender, salt) slot that is already taken.
+	// Skipped contracts instantiated with the code: not an abstract account, no
+	// recognised authenticator in the INIT message, an address that does not
+	// derive from the code checksum, or a (sender, salt) slot that is already
+	// taken.
 	Skipped int
 }
 
@@ -33,7 +34,11 @@ type ChecksumAccountBackfill struct {
 // fixed-hash address as unregistered, and RegisterAccount would accept a second
 // account for the same (sender, salt).
 //
-// Every contract instantiated with codeID is visited. Its salt is recovered
+// Every contract instantiated with codeID is visited, including one that has
+// since migrated to another code: migration drops a contract from its old
+// code's by-code index, but its address still derives from codeID's checksum
+// and migration writes no registry entry. So the walk covers every contract on
+// chain and selects by the code of the INIT history entry. Its salt is recovered
 // from the authenticator in its INIT message (see checksumAccountSalt), and an
 // entry is written only when the contract is an abstract account, its address
 // equals the instantiate2 address of (checksum, creator, salt) and the slot is
@@ -57,14 +62,24 @@ func (k Keeper) BackfillChecksumAccountAddresses(
 		)
 	}
 
-	var contracts []sdk.AccAddress
-	k.vk.IterateContractsByCode(ctx, codeID, func(address sdk.AccAddress) bool {
-		contracts = append(contracts, address)
+	// Collect first and write afterwards: the store must not be written while
+	// it is being iterated.
+	type candidate struct {
+		address sdk.AccAddress
+		creator string
+		initMsg []byte
+	}
+	var candidates []candidate
+	k.vk.IterateContractInfo(ctx, func(address sdk.AccAddress, info wasmtypes.ContractInfo) bool {
+		init, found := contractInitEntry(k.vk.GetContractHistory(ctx, address))
+		if found && init.CodeID == codeID {
+			candidates = append(candidates, candidate{address: address, creator: info.Creator, initMsg: init.Msg})
+		}
 		return false
 	})
 
-	for _, address := range contracts {
-		if k.backfillChecksumAccount(ctx, codeID, checksum, address) {
+	for _, c := range candidates {
+		if k.backfillChecksumAccount(ctx, checksum, c.address, c.creator, c.initMsg) {
 			result.Registered++
 		} else {
 			result.Skipped++
@@ -76,22 +91,19 @@ func (k Keeper) BackfillChecksumAccountAddresses(
 
 func (k Keeper) backfillChecksumAccount(
 	ctx sdk.Context,
-	codeID uint64,
 	checksum []byte,
 	address sdk.AccAddress,
+	creatorAddress string,
+	initMsg []byte,
 ) bool {
 	if !k.IsAbstractAccount(ctx, address) {
 		return false
 	}
-	init, found := contractInitEntry(k.vk.GetContractHistory(ctx, address))
-	if !found || init.CodeID != codeID {
-		return false
-	}
-	salt, ok := checksumAccountSalt(init.Msg)
+	salt, ok := checksumAccountSalt(initMsg)
 	if !ok {
 		return false
 	}
-	creator, err := sdk.AccAddressFromBech32(k.vk.GetContractInfo(ctx, address).Creator)
+	creator, err := sdk.AccAddressFromBech32(creatorAddress)
 	if err != nil {
 		return false
 	}

@@ -191,7 +191,7 @@ func TestBackfillChecksumAccountAddressesSkipsWhatItCannotVerify(t *testing.T) {
 	other := xionapp.RandomAccAddress()
 	k.SetAccountAddress(f.ctx, creator, takenSalt, other)
 
-	// Instantiated with another code, then migrated to this one.
+	// Instantiated with another code, then migrated to this one: not visited.
 	otherCodeID, _, err := k.ContractKeeper().Create(f.ctx, user, accountWasm(), nil)
 	require.NoError(t, err)
 	migratedSalt := sha256Of([]byte("migrated"))
@@ -205,7 +205,7 @@ func TestBackfillChecksumAccountAddressesSkipsWhatItCannotVerify(t *testing.T) {
 
 	result, err := k.BackfillChecksumAccountAddresses(f.ctx, f.codeID, f.checksum)
 	require.NoError(t, err)
-	require.Equal(t, keeper.ChecksumAccountBackfill{Skipped: 5}, result)
+	require.Equal(t, keeper.ChecksumAccountBackfill{Skipped: 4}, result)
 
 	for _, salt := range [][]byte{fixedHashSalt, plainSalt, sha256Of([]byte("pubkey-only")), migratedSalt} {
 		_, found := k.GetAccountAddress(f.ctx, creator, salt)
@@ -214,6 +214,38 @@ func TestBackfillChecksumAccountAddressesSkipsWhatItCannotVerify(t *testing.T) {
 	taken, found := k.GetAccountAddress(f.ctx, creator, takenSalt)
 	require.True(t, found)
 	require.Equal(t, other, taken)
+}
+
+// A contract instantiated with the code and since migrated to another one is
+// no longer in the code's by-code index, but its address still derives from
+// the code's checksum, so it is registered all the same.
+func TestBackfillChecksumAccountAddressesRegistersAnAccountThatMigratedAway(t *testing.T) {
+	f := newChecksumAccountFixture(t)
+	k := f.app.AbstractAccountKeeper
+	creator := xionapp.RandomAccAddress()
+
+	newCodeID, _, err := k.ContractKeeper().Create(f.ctx, user, accountWasm(), nil)
+	require.NoError(t, err)
+	salt := sha256Of([]byte(testPubkey))
+	address := wasmkeeper.BuildContractAddressPredictable(f.checksum, creator, salt, nil)
+	f.importAccount(t, address, creator, f.codeID, secp256k1InitMsg(testPubkey), true, wasmtypes.ContractCodeHistoryEntry{
+		Operation: wasmtypes.ContractCodeHistoryOperationTypeMigrate,
+		CodeID:    newCodeID,
+		Updated:   &wasmtypes.AbsoluteTxPosition{BlockHeight: 2, TxIndex: 1},
+		Msg:       []byte(`{}`),
+	})
+	f.app.WasmKeeper.IterateContractsByCode(f.ctx, f.codeID, func(sdk.AccAddress) bool {
+		t.Fatal("the migrated account is still indexed under its INIT code")
+		return true
+	})
+
+	result, err := k.BackfillChecksumAccountAddresses(f.ctx, f.codeID, f.checksum)
+	require.NoError(t, err)
+	require.Equal(t, keeper.ChecksumAccountBackfill{Registered: 1}, result)
+
+	registered, found := k.GetAccountAddress(f.ctx, creator, salt)
+	require.True(t, found)
+	require.Equal(t, address, registered)
 }
 
 func TestBackfillChecksumAccountAddressesIsIdempotent(t *testing.T) {
