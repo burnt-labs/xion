@@ -11,9 +11,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
 
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
@@ -93,15 +93,15 @@ func EnableAARegistration(t *testing.T, ctx context.Context, xion *cosmos.Cosmos
 	_, err = xion.SubmitProposal(ctx, "validator", proposal)
 	require.NoError(t, err)
 
-	prop, err := xion.GovQueryProposal(ctx, proposalID)
+	prop, err := xion.GovQueryProposalV1(ctx, proposalID)
 	require.NoError(t, err)
-	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
+	require.Equal(t, govv1.StatusVotingPeriod, prop.Status)
 
-	require.NoError(t, xion.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes))
+	require.NoError(t, xion.VoteOnProposalAllValidators(ctx, prop.Id, cosmos.ProposalVoteYes))
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, proposalID)
-		return err == nil && proposalInfo.Status == govv1beta1.StatusPassed
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, proposalID)
+		return err == nil && proposalInfo.Status == govv1.StatusPassed
 	}, time.Second*30, time.Second, "enable-registration proposal %d did not pass", proposalID)
 
 	require.Eventuallyf(t, func() bool {

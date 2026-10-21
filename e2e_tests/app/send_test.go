@@ -9,16 +9,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	ibctest "github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/testutil"
 
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
@@ -104,11 +104,11 @@ func TestAppSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+			if proposalInfo.Status == govv1.StatusVotingPeriod {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
@@ -120,11 +120,11 @@ func TestAppSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
+			if proposalInfo.Status == govv1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
@@ -181,11 +181,11 @@ func TestAppSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+			if proposalInfo.Status == govv1.StatusVotingPeriod {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
@@ -197,11 +197,11 @@ func TestAppSendPlatformFee(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
+			if proposalInfo.Status == govv1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)

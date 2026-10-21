@@ -10,10 +10,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 
 	"cosmossdk.io/math"
 
@@ -43,6 +43,30 @@ func TestGenesisExportImport(t *testing.T) {
 	// Phase 1: Create initial chain with complex state
 	t.Log("\n📦 Phase 1: Creating initial chain with complex state")
 	chainSpec := testlib.XionLocalChainSpec(t, 1, 0)
+	// Historical passed proposals must remain decodable after x/params removal.
+	legacyProposal := json.RawMessage(`{
+		"id": "1",
+		"status": "PROPOSAL_STATUS_PASSED",
+		"messages": [{
+			"@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+			"authority": "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc",
+			"content": {
+				"@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+				"title": "Legacy minimum gas prices",
+				"description": "Passed before the SDK upgrade",
+				"changes": [{
+					"subspace": "globalfee",
+					"key": "MinimumGasPricesParam",
+					"value": "[{\"denom\":\"uxion\",\"amount\":\"0.001\"}]"
+				}]
+			}
+		}]
+	}`)
+	genesisMods := append([]cosmos.GenesisKV{}, testlib.CurrentGenesisKVMods...)
+	chainSpec.ModifyGenesis = cosmos.ModifyGenesis(append(genesisMods,
+		cosmos.NewGenesisKV("app_state.gov.starting_proposal_id", "2"),
+		cosmos.NewGenesisKV("app_state.gov.proposals", []json.RawMessage{legacyProposal}),
+	))
 	xion := testlib.BuildXionChainWithSpec(t, chainSpec)
 
 	fundAmount := math.NewInt(10_000_000_000)
@@ -116,7 +140,7 @@ func TestGenesisExportImport(t *testing.T) {
 	})
 
 	// Phase 3: Export genesis
-	var exportedGenesisPath string
+	exportedGenesisPath := filepath.Join(t.TempDir(), "exported-genesis.json")
 	t.Run("ExportGenesis", func(t *testing.T) {
 		t.Log("\n💾 Phase 3: Exporting genesis state")
 
@@ -125,25 +149,16 @@ func TestGenesisExportImport(t *testing.T) {
 		require.NoError(t, err, "Getting block height should succeed")
 		t.Logf("Current block height: %d", height)
 
-		// Export genesis using the xiond command
-		// Note: We export at current height (forZeroHeight=false) to preserve validator state
-		node := xion.GetNode()
-		stdout, stderr, err := node.ExecBin(ctx,
-			"export",
-			"--for-zero-height=false",
-			"--height", fmt.Sprintf("%d", height),
-		)
-		// Export may fail if not all nodes support it, log but don't fail test
-		if err != nil {
-			t.Logf("Export command error: %v", err)
-			t.Logf("Stderr: %s", string(stderr))
-			t.Skip("Genesis export may not be fully supported in this build")
-			return
-		}
+		// Stop the node to release the database lock before exporting.
+		require.NoError(t, xion.StopAllNodes(ctx))
+		defer func() {
+			require.NoError(t, xion.StartAllNodes(ctx), "Restarting the original chain should succeed")
+		}()
+		state, err := xion.ExportState(ctx, height)
+		require.NoError(t, err, "Exporting genesis should succeed")
+		stdout := []byte(state)
 
 		// Save exported genesis to temporary file
-		tempDir := t.TempDir()
-		exportedGenesisPath = filepath.Join(tempDir, "exported-genesis.json")
 		err = os.WriteFile(exportedGenesisPath, stdout, 0o644)
 		require.NoError(t, err, "Writing exported genesis should succeed")
 
@@ -166,11 +181,6 @@ func TestGenesisExportImport(t *testing.T) {
 	// For now, we'll validate the export structure and document the import process
 	t.Run("ValidateExportedGenesis", func(t *testing.T) {
 		t.Log("\n✅ Phase 4: Validating exported genesis structure")
-
-		if exportedGenesisPath == "" {
-			t.Skip("No genesis export available to validate")
-			return
-		}
 
 		genesisData, err := os.ReadFile(exportedGenesisPath)
 		require.NoError(t, err, "Reading exported genesis should succeed")
@@ -199,6 +209,22 @@ func TestGenesisExportImport(t *testing.T) {
 			require.Contains(t, appState, module, "Genesis should contain %s module", module)
 			t.Logf("✓ Found module: %s", module)
 		}
+
+		govState := appState["gov"].(map[string]interface{})
+		proposals := govState["proposals"].([]interface{})
+		require.Len(t, proposals, 1)
+		proposal := proposals[0].(map[string]interface{})
+		require.Equal(t, "1", proposal["id"])
+		require.Equal(t, "PROPOSAL_STATUS_PASSED", proposal["status"])
+		messages := proposal["messages"].([]interface{})
+		require.Len(t, messages, 1)
+		legacyMessage := messages[0].(map[string]interface{})
+		require.Equal(t, "/cosmos.gov.v1.MsgExecLegacyContent", legacyMessage["@type"])
+		content := legacyMessage["content"].(map[string]interface{})
+		var expectedProposal map[string]interface{}
+		require.NoError(t, json.Unmarshal(legacyProposal, &expectedProposal))
+		expectedMessage := expectedProposal["messages"].([]interface{})[0].(map[string]interface{})
+		require.Equal(t, expectedMessage["content"], content, "Legacy proposal content should survive export")
 
 		// Validate xion module state
 		xionModule, ok := appState["xion"].(map[string]interface{})

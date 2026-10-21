@@ -102,6 +102,12 @@ e2e_tests/
 
 ## Running Tests
 
+The E2E module targets Cosmos SDK v0.55, CometBFT v0.40 and interchaintest v11.
+The upgrade tests use `app.UpgradeName` and compare globalfee and JWK params before
+and after the upgrade. Fee-whitelist changes use governance `MsgUpdateParams`.
+Governance queries and status polling use the gov v1 service; SDK v0.55 no longer
+registers the gov v1beta1 query service.
+
 ### Quick Start
 
 ```bash
@@ -164,7 +170,7 @@ go test -v ./e2e_tests/mint/... -coverprofile=mint_e2e.out
 - **Memory**: 4-8GB available RAM
 - **CPU**: 2+ cores recommended
 - **Disk**: 5-10GB temporary storage
-- **Go**: 1.21+
+- **Go**: 1.26.10+
 
 ### Time Requirements
 - **Individual test**: 2-5 minutes
