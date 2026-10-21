@@ -11,9 +11,9 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/store/snapshots"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
+	"cosmossdk.io/log/v2"
+	"github.com/cosmos/cosmos-sdk/store/v2/snapshots"
+	snapshottypes "github.com/cosmos/cosmos-sdk/store/v2/snapshots/types"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -27,7 +27,7 @@ func TestNewWasmAppRejectsInvalidWasmConfig(t *testing.T) {
 	}
 
 	message := panicMessage(t, func() {
-		NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, opts, nil)
+		NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), true, opts, nil)
 	})
 	require.Contains(t, message, "error while reading wasm config")
 }
@@ -40,7 +40,7 @@ func TestNewWasmAppRejectsUnusableHome(t *testing.T) {
 	opts := simtestutil.AppOptionsMap{flags.FlagHome: home}
 
 	require.Panics(t, func() {
-		NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, opts, nil)
+		NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), true, opts, nil)
 	})
 }
 
@@ -93,7 +93,6 @@ func TestCloseReportsSnapshotStoreFailure(t *testing.T) {
 	gapp := NewWasmApp(
 		log.NewNopLogger(),
 		dbm.NewMemDB(),
-		nil,
 		true,
 		simtestutil.AppOptionsMap{flags.FlagHome: t.TempDir()},
 		nil,

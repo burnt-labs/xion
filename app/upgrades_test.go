@@ -12,8 +12,8 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"cosmossdk.io/log/v2"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -54,7 +54,7 @@ func TestRegisterUpgradeHandlersUpgradeInfoOnDisk(t *testing.T) {
 		writeUpgradeInfo(t, home, "{not json")
 
 		message := panicMessage(t, func() {
-			NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.AppOptionsMap{flags.FlagHome: home}, nil)
+			NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), true, simtestutil.AppOptionsMap{flags.FlagHome: home}, nil)
 		})
 		require.Contains(t, message, "failed to read upgrade info from disk")
 	})
@@ -63,7 +63,7 @@ func TestRegisterUpgradeHandlersUpgradeInfoOnDisk(t *testing.T) {
 		home := t.TempDir()
 		writeUpgradeInfo(t, home, pendingUpgrade)
 
-		gapp := NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.AppOptionsMap{flags.FlagHome: home}, nil)
+		gapp := NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), true, simtestutil.AppOptionsMap{flags.FlagHome: home}, nil)
 		require.True(t, gapp.UpgradeKeeper.HasHandler(UpgradeName))
 		require.False(t, gapp.UpgradeKeeper.IsSkipHeight(100))
 	})
@@ -76,7 +76,7 @@ func TestRegisterUpgradeHandlersUpgradeInfoOnDisk(t *testing.T) {
 			server.FlagUnsafeSkipUpgrades: []int{100},
 		}
 
-		gapp := NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, opts, nil)
+		gapp := NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), true, opts, nil)
 		require.True(t, gapp.UpgradeKeeper.HasHandler(UpgradeName))
 		require.True(t, gapp.UpgradeKeeper.IsSkipHeight(100))
 	})

@@ -19,8 +19,8 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -243,7 +243,7 @@ func TestReIndex_RebuildsIndexFromChainState(t *testing.T) {
 
 	// the app is created by the command itself; populate its check state with
 	// one grant and one allowance so the re-index has something to copy
-	appCreator := func(logger log.Logger, db dbm.DB, _ io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	appCreator := func(logger log.Logger, db dbm.DB, appOpts servertypes.AppOptions) servertypes.Application {
 		memDB, ok := db.(*dbm.MemDB)
 		require.True(t, ok)
 

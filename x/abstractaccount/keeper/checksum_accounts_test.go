@@ -100,7 +100,7 @@ func (f checksumAccountFixture) importAccount(
 	require.NoError(t, err)
 
 	if abstract {
-		f.app.AccountKeeper.SetAccount(f.ctx, types.NewAbstractAccount(address.String(), f.app.AccountKeeper.NextAccountNumber(f.ctx), 0))
+		f.app.AccountKeeper.SetAccount(f.ctx, f.app.AccountKeeper.NewAccount(f.ctx, types.NewAbstractAccount(address.String(), 0, 0)))
 	} else {
 		f.app.AccountKeeper.SetAccount(f.ctx, f.app.AccountKeeper.NewAccountWithAddress(f.ctx, address))
 	}

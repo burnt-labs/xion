@@ -1,10 +1,6 @@
 package types
 
-import (
-	"fmt"
-
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-)
+import "fmt"
 
 // Feeabs params default values .
 const (
@@ -12,35 +8,6 @@ const (
 	DefaultChainName            = "feeappd-t1"
 	DefaultContractAddress      = ""
 )
-
-// Parameter keys store keys.
-var (
-	KeyOsmosisQueryTwapPath         = []byte("OsmosisQueryTwapPath")
-	KeyNativeIbcedInOsmosis         = []byte("NativeIbcedInOsmosis")
-	KeyChainName                    = []byte("ChainName")
-	KeyIbcTransferChannel           = []byte("IbcTransferChannel")
-	KeyIbcQueryIcqChannel           = []byte("IbcQueryIcqChannel")
-	KeyOsmosisCrosschainSwapAddress = []byte("OsmosisCrosschainSwapAddress")
-
-	_ paramtypes.ParamSet = &Params{}
-)
-
-// ParamTable for lockup module.
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
-// Implements params.ParamSet.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyOsmosisQueryTwapPath, &p.OsmosisQueryTwapPath, validateString),
-		paramtypes.NewParamSetPair(KeyNativeIbcedInOsmosis, &p.NativeIbcedInOsmosis, validateString),
-		paramtypes.NewParamSetPair(KeyChainName, &p.ChainName, validateString),
-		paramtypes.NewParamSetPair(KeyIbcTransferChannel, &p.IbcTransferChannel, validateString),
-		paramtypes.NewParamSetPair(KeyIbcQueryIcqChannel, &p.IbcQueryIcqChannel, validateString),
-		paramtypes.NewParamSetPair(KeyOsmosisCrosschainSwapAddress, &p.OsmosisCrosschainSwapAddress, validateString),
-	}
-}
 
 // Validate also validates params info.
 func (p Params) Validate() error {

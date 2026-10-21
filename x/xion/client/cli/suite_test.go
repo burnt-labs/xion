@@ -9,14 +9,13 @@ import (
 
 	rpcclientmock "github.com/cometbft/cometbft/rpc/client/mock"
 
-	feegrant "cosmossdk.io/x/feegrant/module"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	testutilmod "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 )

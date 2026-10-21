@@ -33,11 +33,10 @@ docs_dir="$client_dir/docs"
 # Define dependencies
 deps="github.com/cosmos/cosmos-sdk
 github.com/cosmos/cosmos-proto
-github.com/cosmos/ibc-go/v10
+github.com/cosmos/ibc-go/v11
 github.com/CosmWasm/wasmd
 github.com/gogo/protobuf
 github.com/cosmos/gogoproto
-github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10
 github.com/strangelove-ventures/tokenfactory
 "
 

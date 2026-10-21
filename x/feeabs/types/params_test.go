@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 func Test_ParamString(t *testing.T) {
@@ -41,11 +39,6 @@ func Test_ParamString(t *testing.T) {
 			assert.Equal(tt, tc.expected, actual)
 		})
 	}
-}
-
-func TestParamKeyTable(t *testing.T) {
-	table := ParamKeyTable()
-	require.NotNil(t, table)
 }
 
 func TestParamsValidate(t *testing.T) {
@@ -227,48 +220,10 @@ func TestParamsValidateDefensiveProgramming(t *testing.T) {
 	}
 }
 
-func TestParamsParamSetPairs(t *testing.T) {
-	params := DefaultParams()
-	pairs := params.ParamSetPairs()
-
-	require.Len(t, pairs, 6)
-
-	// Check that all expected keys are present
-	expectedKeys := [][]byte{
-		KeyOsmosisQueryTwapPath,
-		KeyNativeIbcedInOsmosis,
-		KeyChainName,
-		KeyIbcTransferChannel,
-		KeyIbcQueryIcqChannel,
-		KeyOsmosisCrosschainSwapAddress,
-	}
-
-	for i, pair := range pairs {
-		require.Equal(t, expectedKeys[i], pair.Key)
-		require.NotNil(t, pair.Value)
-		require.NotNil(t, pair.ValidatorFn)
-	}
-}
-
 func TestDefaultConstants(t *testing.T) {
 	require.Equal(t, "/osmosis.twap.v1beta1.Query/ArithmeticTwapToNow", DefaultOsmosisQueryTwapPath)
 	require.Equal(t, "feeappd-t1", DefaultChainName)
 	require.Equal(t, "", DefaultContractAddress)
-}
-
-func TestParamKeys(t *testing.T) {
-	// Test that all param keys are properly defined
-	require.Equal(t, []byte("OsmosisQueryTwapPath"), KeyOsmosisQueryTwapPath)
-	require.Equal(t, []byte("NativeIbcedInOsmosis"), KeyNativeIbcedInOsmosis)
-	require.Equal(t, []byte("ChainName"), KeyChainName)
-	require.Equal(t, []byte("IbcTransferChannel"), KeyIbcTransferChannel)
-	require.Equal(t, []byte("IbcQueryIcqChannel"), KeyIbcQueryIcqChannel)
-	require.Equal(t, []byte("OsmosisCrosschainSwapAddress"), KeyOsmosisCrosschainSwapAddress)
-}
-
-func TestParamsImplementsParamSet(t *testing.T) {
-	// Test that Params implements paramtypes.ParamSet
-	var _ paramtypes.ParamSet = &Params{}
 }
 
 func TestParamsValidateComprehensive(t *testing.T) {
@@ -514,27 +469,7 @@ func TestValidateStringEdgeCases(t *testing.T) {
 	}
 }
 
-// Test to achieve near 100% coverage by testing validation through ParamSetPairs
-func TestParamsValidateViaParamSetPairs(t *testing.T) {
-	t.Run("test validation through param set pairs", func(t *testing.T) {
-		params := DefaultParams()
-		pairs := params.ParamSetPairs()
-
-		// Test that each param set pair's validation function works
-		for i, pair := range pairs {
-			t.Run(fmt.Sprintf("pair_%d", i), func(t *testing.T) {
-				// Test with valid string value
-				err := pair.ValidatorFn("test-string")
-				require.NoError(t, err)
-
-				// Test with invalid non-string value to trigger error path
-				err = pair.ValidatorFn(123)
-				require.Error(t, err)
-				require.Contains(t, err.Error(), "invalid parameter type string")
-			})
-		}
-	})
-
+func TestParamsValidateConfigurations(t *testing.T) {
 	// Additional test to ensure we cover all validation branches
 	t.Run("exhaust all validation paths", func(t *testing.T) {
 		// Test a variety of Params configurations to ensure

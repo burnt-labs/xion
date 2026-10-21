@@ -874,7 +874,6 @@ func TestAddAuthenticatorCmdExecutionPaths(t *testing.T) {
 		flags.SignModeDirect,
 		flags.SignModeLegacyAminoJSON,
 		flags.SignModeDirectAux,
-		flags.SignModeTextual,
 		flags.SignModeEIP191,
 		"", // Default case
 	}

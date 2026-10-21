@@ -16,7 +16,6 @@ import (
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
-	signing2 "cosmossdk.io/x/tx/signing"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -28,6 +27,7 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	signing2 "github.com/cosmos/cosmos-sdk/x/tx/signing"
 
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/burnt-labs/xion/x/xion/types"
@@ -370,8 +370,6 @@ func NewAddAuthenticatorCmd() *cobra.Command {
 				signMode = signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON
 			case flags.SignModeDirectAux:
 				signMode = signing.SignMode_SIGN_MODE_DIRECT_AUX
-			case flags.SignModeTextual:
-				signMode = signing.SignMode_SIGN_MODE_TEXTUAL
 			case flags.SignModeEIP191:
 				signMode = signing.SignMode_SIGN_MODE_EIP_191
 			}

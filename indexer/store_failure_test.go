@@ -12,9 +12,10 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/collections/corecompat"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantv2 "github.com/cosmos/cosmos-sdk/x/feegrant/migrations/v2"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -149,7 +150,7 @@ func TestFeeGrantHandlerHandleUpdate_Errors(t *testing.T) {
 
 	granter := sdk.AccAddress([]byte("granter_address_____"))
 	grantee := sdk.AccAddress([]byte("grantee_address_____"))
-	key := feegrant.FeeAllowanceKey(granter, grantee)
+	key := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 	t.Run("has failure on delete is returned", func(t *testing.T) {
 		store.failHas = true
@@ -235,7 +236,7 @@ func TestSafeFeeGrantHandlerUpdate_StoreFailures(t *testing.T) {
 	granteeStr, err := addrCodec.BytesToString(grantee)
 	require.NoError(t, err)
 	grant := newBasicAllowance(t, granterStr, granteeStr)
-	key := feegrant.FeeAllowanceKey(granter, grantee)
+	key := feegrantv2.FeeAllowanceKey(granter, grantee)
 	grantBz, err := cdc.Marshal(&grant)
 	require.NoError(t, err)
 

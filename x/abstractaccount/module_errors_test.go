@@ -104,7 +104,7 @@ func TestMigrateValidationDecorator_ParamsMissing(t *testing.T) {
 	decorator := abstractaccount.NewMigrateValidationDecorator(app.AbstractAccountKeeper, app.AccountKeeper)
 
 	absAccAddr := xionapp.RandomAccAddress()
-	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0))
+	app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(absAccAddr.String(), 0, 0)))
 	deleteModuleParams(app, ctx)
 
 	txBuilder := app.TxConfig().NewTxBuilder()

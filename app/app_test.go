@@ -17,12 +17,11 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 
 	dbm "github.com/cosmos/cosmos-db"
-	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcclient "github.com/cosmos/ibc-go/v11/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"cosmossdk.io/math"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -30,7 +29,7 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
 	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"
@@ -59,7 +58,6 @@ func TestWasmdExport(t *testing.T) {
 	newGapp := NewWasmApp(
 		log.NewLogger(os.Stdout),
 		db,
-		nil,
 		true,
 		simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
 		emptyWasmOpts,
@@ -123,12 +121,7 @@ func TestAppGetters(t *testing.T) {
 	require.NotNil(t, storeKey)
 
 	// Test GetTKey()
-	tkey := gapp.GetTKey(paramstypes.TStoreKey)
-	require.NotNil(t, tkey)
-
-	// Test GetSubspace()
-	subspace := gapp.GetSubspace("bank")
-	require.NotNil(t, subspace)
+	require.NotNil(t, gapp.GetTKey(aatypes.TransientStoreKey))
 
 	// Test SimulationManager()
 	simManager := gapp.SimulationManager()
@@ -436,7 +429,7 @@ func TestNextUpgradeHandler(t *testing.T) {
 			sdk.NewDecCoinFromDec("uxion", math.LegacyMustNewDecFromStr("0.001")),
 		)
 		jwkParams := jwktypes.Params{TimeOffset: 30000000000, DeploymentGas: 10000}
-		legacyParams := ctx.KVStore(gapp.GetKey(paramstypes.StoreKey))
+		legacyParams := ctx.KVStore(gapp.GetKey(legacyParamsStoreKey))
 		for key, value := range map[string]interface{}{
 			"globalfee/MinimumGasPricesParam":           globalFeeParams.MinimumGasPrices,
 			"globalfee/BypassMinFeeMsgTypes":            globalFeeParams.BypassMinFeeMsgTypes,
@@ -516,7 +509,7 @@ func TestNextUpgradeHandler(t *testing.T) {
 			}},
 		})
 		require.NoError(t, err)
-		gapp.AccountKeeper.SetAccount(ctx, aatypes.NewAbstractAccount(address.String(), gapp.AccountKeeper.NextAccountNumber(ctx), 0))
+		gapp.AccountKeeper.SetAccount(ctx, gapp.AccountKeeper.NewAccount(ctx, aatypes.NewAbstractAccount(address.String(), 0, 0)))
 
 		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
 		require.NoError(t, err)

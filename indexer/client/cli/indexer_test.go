@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,7 +11,7 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -23,7 +22,7 @@ import (
 )
 
 // Mock app creator for testing - matches AppCreator type
-var mockAppCreator servertypes.AppCreator = func(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+var mockAppCreator servertypes.AppCreator = func(logger log.Logger, db dbm.DB, appOpts servertypes.AppOptions) servertypes.Application {
 	// Return nil for testing - the ReIndex function will fail but we can test the setup
 	return nil
 }

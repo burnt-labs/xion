@@ -5,15 +5,17 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	storetypes "cosmossdk.io/store/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 const UpgradeName = "v32"
+
+// Kept mounted for the v32 globalfee/jwk migrations; delete in the next upgrade.
+const legacyParamsStoreKey = "params"
 
 var removedStoreKeys = []string{"group", "nft", "circuit", "crisis"}
 

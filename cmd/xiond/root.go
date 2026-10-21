@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"io"
 	"os"
 	"time"
 
@@ -18,7 +17,7 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -54,7 +53,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	cfg.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	cfg.Seal()
 
-	tempApp := app.NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, simtestutil.NewAppOptionsWithFlagHome(tempDir()), []wasmkeeper.Option{})
+	tempApp := app.NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), false, simtestutil.NewAppOptionsWithFlagHome(tempDir()), []wasmkeeper.Option{})
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
 		Codec:             tempApp.AppCodec(),
@@ -255,7 +254,6 @@ func txCommand(manager module.BasicManager) *cobra.Command {
 func newApp(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
@@ -266,7 +264,7 @@ func newApp(
 	}
 
 	return app.NewWasmApp(
-		logger, db, traceStore, true,
+		logger, db, true,
 		appOpts,
 		wasmOpts,
 		baseappOptions...,
@@ -277,7 +275,6 @@ func newApp(
 func appExport(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
 	jailAllowedAddrs []string,
@@ -303,7 +300,6 @@ func appExport(
 	wasmApp = app.NewWasmApp(
 		logger,
 		db,
-		traceStore,
 		height == -1,
 		appOpts,
 		emptyWasmOpts,

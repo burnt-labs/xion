@@ -9,7 +9,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -78,6 +78,10 @@ func (*mintRunBankKeeper) SendCoinsFromAccountToModule(context.Context, sdk.AccA
 	return nil
 }
 
+func (b *mintRunBankKeeper) GetSupply(_ context.Context, denom string) sdk.Coin {
+	return sdk.NewCoin(denom, math.ZeroInt())
+}
+
 func (*mintRunBankKeeper) IsSendEnabledCoins(context.Context, ...sdk.Coin) error { return nil }
 
 func (*mintRunBankKeeper) BlockedAddr(sdk.AccAddress) bool { return false }
@@ -114,6 +118,10 @@ type mintRunStakingKeeper struct {
 }
 
 func (s mintRunStakingKeeper) TotalBondedTokens(context.Context) (math.Int, error) {
+	return s.bonded, s.bondedErr
+}
+
+func (s mintRunStakingKeeper) TotalValidatorPower(context.Context) (math.Int, error) {
 	return s.bonded, s.bondedErr
 }
 

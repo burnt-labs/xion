@@ -13,8 +13,7 @@ import (
 
 	db "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
@@ -22,6 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
 
 func setupTestCodec() codec.Codec {

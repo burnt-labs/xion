@@ -12,8 +12,8 @@ import (
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 
 	"cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"

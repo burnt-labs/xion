@@ -19,7 +19,7 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
-	feegrant "cosmossdk.io/x/feegrant/module"
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
