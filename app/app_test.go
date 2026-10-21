@@ -17,12 +17,11 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 
 	dbm "github.com/cosmos/cosmos-db"
-	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcclient "github.com/cosmos/ibc-go/v11/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"cosmossdk.io/math"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -31,6 +30,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
 	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"

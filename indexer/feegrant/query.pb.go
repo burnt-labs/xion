@@ -5,7 +5,7 @@ package feegrant
 
 import (
 	context "context"
-	feegrant "cosmossdk.io/x/feegrant"
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	query "github.com/cosmos/cosmos-sdk/types/query"

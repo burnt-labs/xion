@@ -8,15 +8,15 @@ import (
 
 	"cosmossdk.io/core/gas"
 	"cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
-	txsign "cosmossdk.io/x/tx/signing"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	txsign "github.com/cosmos/cosmos-sdk/x/tx/signing"
 
 	"github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	"github.com/burnt-labs/xion/x/abstractaccount/types"

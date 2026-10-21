@@ -19,8 +19,6 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
-	feegrant "cosmossdk.io/x/feegrant/module"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
@@ -29,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authz "github.com/cosmos/cosmos-sdk/x/authz/module"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )

@@ -12,15 +12,15 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/collections/corecompat"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
 	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
