@@ -5,7 +5,11 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	channelv11 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/migrations/v11"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -123,12 +127,34 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	}
 
 	// v32
+	if err := app.migrateIBCChannelsToV11(sdkCtx); err != nil {
+		return nil, fmt.Errorf("migrate ibc channels to v11: %w", err)
+	}
 	if err := app.backfillChecksumAccountAddresses(sdkCtx); err != nil {
 		return nil, fmt.Errorf("backfill checksum account addresses: %w", err)
 	}
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
+}
+
+// migrateIBCChannelsToV11 moves every channel's NextSequenceSend to the ibc-go v11 key and sets the
+// IBC v2 aliases. ibc-go v11 keeps core at consensus version 8, so RunMigrations never runs it, and
+// without it SendPacket fails on every pre-existing channel. Skipped when no v1 key
+// (nextSequenceSend/ports/...) is left, because rerunning it would overwrite the moved sequences with
+// zero; v2 keys (nextSequenceSend//<channel>) share the outer prefix, so match the v1 shape.
+func (app *WasmApp) migrateIBCChannelsToV11(ctx sdktypes.Context) error {
+	key := app.GetKey(ibcexported.StoreKey)
+	v1Prefix := []byte(channelv11.KeyNextSeqSendPrefix + "/" + channelv11.KeyPortPrefix + "/")
+	it := storetypes.KVStorePrefixIterator(ctx.KVStore(key), v1Prefix)
+	hasLegacy := it.Valid()
+	if err := it.Close(); err != nil {
+		return err
+	}
+	if !hasLegacy {
+		return nil
+	}
+	return channelv11.MigrateStore(ctx, runtime.NewKVStoreService(key), app.appCodec, app.IBCKeeper)
 }
 
 // backfillChecksumAccountAddresses registers the (sender, salt) entries of the
