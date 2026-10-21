@@ -50,8 +50,10 @@ Xion is a Cosmos SDK-based blockchain optimized for consumer applications with a
    - Platform fee integration
    - Location: `x/globalfee/`
 
-7. **x/feeabs** - Fee abstraction for gas payments in multiple denoms
-   - Location: `x/feeabs/`
+Retired modules keep only the types that state still references, under `app/legacy/` (no keeper, no Msg server, no routes):
+- `app/legacy/feeabs` - fee abstraction (removed in v20); its messages appear in historical gov proposals
+- `app/legacy/ibcwasm` - IBC 08-wasm light client types
+- `app/legacy/params` - x/params `ParameterChangeProposal`
 
 ### Abstract Account Architecture
 
@@ -332,7 +334,7 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 proto/xion/
 ├── dkim/v1/         # DKIM module protos
 ├── jwk/v1/          # JWK module protos
-├── feeabs/v1beta1/  # Fee abstraction protos
+├── feeabs/v1beta1/  # Retired fee abstraction protos (Go types in app/legacy/feeabs)
 ├── v1/              # Core xion module protos
 ├── indexer/         # Indexer protos
 └── zk/v1/           # ZK proofs protos
