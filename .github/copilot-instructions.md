@@ -7,11 +7,11 @@ Xion is a Cosmos SDK-based blockchain optimized for consumer applications with a
 ## Project Architecture
 
 ### Core Technology Stack
-- **Language**: Go 1.25.3
-- **Framework**: Cosmos SDK v0.50+
+- **Language**: Go 1.26.10
+- **Framework**: Cosmos SDK v0.55 (no x/params, x/group, x/nft, x/circuit, x/crisis; module params are keeper-owned with `MsgUpdateParams`)
 - **Smart Contracts**: CosmWasm v3.0+ (wasmvm/v3)
-- **Consensus**: CometBFT
-- **IBC**: v10 with wasm light clients support
+- **Consensus**: CometBFT v0.40
+- **IBC**: ibc-go v11 (pinned to a main-branch commit; 08-wasm light client removed, its types stay decodable via `app/legacy/ibcwasm`)
 - **Database**: LevelDB (pinned to specific version)
 
 ### Custom Modules (x/)
@@ -362,10 +362,10 @@ make proto-gen-openapi     # Generate OpenAPI specs
 ### Critical Forks
 ```go
 // go.mod replace directives:
-github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.61.14-xion.1
+github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.70.4-xion.2
   // Reason: Genesis exports and the keeper-only fixed address hash for abstract accounts
 
-github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.53.4-xion.2
+github.com/strangelove-ventures/tokenfactory => github.com/burnt-labs/tokenfactory v0.55.0-xion.1
   // Reason: wasmvm3 tokenfactory fork
 
 // Pinned for stability:
@@ -520,7 +520,7 @@ make test-jwk-all
 
 Before asking for help, verify:
 
-1. **Go version**: `go version` should show `1.25.3`
+1. **Go version**: `go version` should show `1.26.10` or newer
 2. **Docker running**: `docker ps` succeeds
 3. **Dependencies updated**: `go mod download`
 4. **Clean build**: `make clean && make install`

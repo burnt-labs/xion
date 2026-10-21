@@ -75,7 +75,7 @@ func ReIndex(appCreator servertypes.AppCreator, defaultNodeHome string) *cobra.C
 
 			logger := log.NewLogger(cmd.OutOrStdout(), log.LevelOption(zerolog.ErrorLevel))
 
-			app := appCreator(logger, db, nil, serverCtx.Viper)
+			app := appCreator(logger, db, serverCtx.Viper)
 			wasmApp := app.(*xionapp.WasmApp)
 
 			authzHandler := wasmApp.IndexerService().AuthzHandler()

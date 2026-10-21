@@ -44,7 +44,7 @@ func StakedInflationMintFn(feeCollectorName string, ic minttypes.InflationCalcul
 		}
 		minter.Inflation = ic(ctx, minter, params, bondedRatio)
 
-		bondedTokenSupply, err := stakingKeeper.TotalBondedTokens(ctx)
+		bondedTokenSupply, err := stakingKeeper.TotalValidatorPower(ctx)
 		if err != nil {
 			return err
 		}

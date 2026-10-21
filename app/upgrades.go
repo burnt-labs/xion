@@ -14,6 +14,9 @@ import (
 
 const UpgradeName = "v32"
 
+// Kept mounted for the v32 globalfee/jwk migrations; delete in the next upgrade.
+const legacyParamsStoreKey = "params"
+
 var removedStoreKeys = []string{"group", "nft", "circuit", "crisis"}
 
 // checksumAccountCode is a code whose accounts were registered, before the

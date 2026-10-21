@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/xion/types"
 )
@@ -19,7 +18,6 @@ import (
 type Keeper struct {
 	cdc                codec.BinaryCodec
 	storeKey           storetypes.StoreKey
-	paramSpace         paramtypes.Subspace
 	bankKeeper         types.BankKeeper
 	accountKeeper      types.AccountKeeper
 	ContractOpsKeeper  wasmtypes.ContractOpsKeeper
@@ -33,7 +31,6 @@ type Keeper struct {
 
 func NewKeeper(cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
-	paramSpace paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
 	wasmOpsKeeper wasmtypes.ContractOpsKeeper,
@@ -44,7 +41,6 @@ func NewKeeper(cdc codec.BinaryCodec,
 	return Keeper{
 		storeKey:           key,
 		cdc:                cdc,
-		paramSpace:         paramSpace,
 		bankKeeper:         bankKeeper,
 		accountKeeper:      accountKeeper,
 		ContractOpsKeeper:  wasmOpsKeeper,

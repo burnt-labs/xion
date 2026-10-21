@@ -5,10 +5,10 @@ package feegrant
 
 import (
 	context "context"
-	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	query "github.com/cosmos/cosmos-sdk/types/query"
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
