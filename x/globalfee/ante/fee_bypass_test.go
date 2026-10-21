@@ -10,12 +10,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee/ante"
+	"github.com/burnt-labs/xion/x/globalfee/keeper"
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
@@ -23,22 +24,15 @@ import (
 // MsgSend, with the given global fee params stored (nil leaves the params unset).
 func newBypassDecorator(t *testing.T, params *types.Params) (ante.FeeDecorator, sdk.Context) {
 	t.Helper()
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	testCtx := testutil.DefaultContextWithDB(t, storeKey, tkey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, storeKey, storetypes.NewTransientStoreKey("transient"))
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 	if params != nil {
-		subspace.SetParamSet(testCtx.Ctx, params)
+		require.NoError(t, k.SetParams(testCtx.Ctx, *params))
 	}
 
-	decorator := ante.NewFeeDecorator(subspace, func(sdk.Context) string { return testStakingDenom })
+	decorator := ante.NewFeeDecorator(&k, func(sdk.Context) string { return testStakingDenom })
 	return decorator, testCtx.Ctx
 }
 

@@ -2,37 +2,33 @@ package e2e_xion
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	"github.com/stretchr/testify/require"
 
-	xiontypes "github.com/burnt-labs/xion/x/xion/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	abcitypes "github.com/cometbft/cometbft/abci/types"
-	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
-
-	"github.com/cosmos/cosmos-sdk/types"
 	ibctest "github.com/cosmos/interchaintest/v10"
-
-	"cosmossdk.io/math"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/interchaintest/v10/testutil"
-
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/stretchr/testify/require"
+	"github.com/cosmos/interchaintest/v10/testutil"
+
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 )
 
 func init() {
@@ -41,9 +37,6 @@ func init() {
 	config := types.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 }
-
-// TODO:
-// param change test (in the upcoming interchain v10 upgrade)
 
 func TestXionMinFeeDefault(t *testing.T) {
 	if testing.Short() {
@@ -283,7 +276,7 @@ func testMultiDenomFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionF
 
 	// Create and Fund User Wallets
 	t.Log("creating and funding user accounts")
-	fundAmount := math.NewInt(100_000_000)
+	fundAmount := math.NewInt(1_000_000_000)
 	users := ibctest.GetAndFundTestUsers(t, ctx, "default", fundAmount, xion)
 	xionUser := users[0]
 	currentHeight, _ := xion.Height(ctx)
@@ -402,130 +395,36 @@ func testMultiDenomFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionF
 	require.Equal(t, balance, math.NewInt(10))
 
 	// step 3: upgrade minimum through governance
-	rawValueBz, err := formatJSON(tfDenom)
-	require.NoError(t, err)
-
-	paramChangeJSON := paramsutils.ParamChangeProposalJSON{
-		Title:       "add token to globalfee",
-		Description: ".",
-		Changes: paramsutils.ParamChangesJSON{
-			paramsutils.ParamChangeJSON{
-				Subspace: "globalfee",
-				Key:      "MinimumGasPricesParam",
-				Value:    rawValueBz,
-			},
+	params := globalfeetypes.Params{
+		MinimumGasPrices: types.NewDecCoins(
+			types.NewDecCoinFromDec(tfDenom, math.LegacyMustNewDecFromStr("0.005")),
+			types.NewDecCoinFromDec("uxion", math.LegacyMustNewDecFromStr("0.025")),
+		),
+		BypassMinFeeMsgTypes:            globalfeetypes.DefaultBypassMinFeeMsgTypes,
+		MaxTotalBypassMinFeeMsgGasUsage: globalfeetypes.DefaultmaxTotalBypassMinFeeMsgGasUsage,
+	}
+	err = testlib.SubmitAndPassProposal(t, ctx, xion, xionUser, []cosmos.ProtoMessage{
+		&globalfeetypes.MsgUpdateParams{
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			Params:    params,
 		},
-		Deposit: "10000000uxion",
-	}
-
-	content, err := json.Marshal(paramChangeJSON)
+	}, "add token to globalfee", ".", "", uint64(proposalID+1))
 	require.NoError(t, err)
-
-	hash := sha256.Sum256(content)
-	proposalFilename := fmt.Sprintf("%x.json", hash)
-	err = xion.GetNode().WriteFile(ctx, content, proposalFilename)
-	require.NoError(t, err)
-
-	proposalPath := filepath.Join(xion.GetNode().HomeDir(), proposalFilename)
-
-	command := []string{
-		"gov", "submit-legacy-proposal",
-		"param-change",
-		proposalPath,
-		"--gas",
-		"2500000",
-		"--chain-id",
-		xion.Config().ChainID,
-	}
-
-	txHash, err := testlib.ExecTx(t, ctx, xion.GetNode(), xionUser.KeyName(), command...)
-	require.NoError(t, err)
-	t.Logf("Platform percentage change proposal submitted with ID %s in transaction %s", paramChangeTx.ProposalID, paramChangeTx.TxHash)
-
-	txRes, err := xion.GetTransaction(txHash)
-	require.NoError(t, err)
-
-	evtSubmitProp := "submit_proposal"
-	paramProposalIDRaw, ok := txProposal(txRes.Events, evtSubmitProp, "proposal_id")
-	require.True(t, ok)
-	paramProposalID, err := strconv.Atoi(paramProposalIDRaw)
-	require.NoError(t, err)
-
-	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(paramProposalID))
-		if err != nil {
-			require.NoError(t, err)
-		} else {
-			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
-				return true
-			}
-			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
-		}
-		return false
-	}, time.Second*11, time.Second, "failed to reach status VOTING after 11s")
-
-	err = xion.VoteOnProposalAllValidators(ctx, uint64(paramProposalID), cosmos.ProposalVoteYes)
-	require.NoError(t, err)
-
-	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(paramProposalID))
-		if err != nil {
-			require.NoError(t, err)
-		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
-				return true
-			}
-			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
-		}
-		return false
-	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
 	// Wait for a few blocks to ensure the proposal changes take effect
 	currentHeight, err = xion.Height(ctx)
 	require.NoError(t, err)
 	testutil.WaitForBlocks(ctx, int(currentHeight)+3, xion)
 
+	storedParams, err := testlib.ExecQuery(t, ctx, xion.GetNode(), "globalfee", "params")
+	require.NoError(t, err)
+	paramsJSON, err := json.Marshal(storedParams)
+	require.NoError(t, err)
+	var actualParams globalfeetypes.Params
+	require.NoError(t, cdc.UnmarshalJSON(paramsJSON, &actualParams))
+	require.Equal(t, params, actualParams)
+
 	assert(t, ctx, xion, xionUser, recipientKeyAddress, fundAmount)
-}
-
-func txProposal(events []abcitypes.Event, eventType, attrKey string) (string, bool) {
-	for _, event := range events {
-		if event.Type != eventType {
-			continue
-		}
-		for _, attr := range event.Attributes {
-			if attr.Key == attrKey {
-				return attr.Value, true
-			}
-
-			// tendermint < v0.37-alpha returns base64 encoded strings in events.
-			key, err := base64.StdEncoding.DecodeString(attr.Key)
-			if err != nil {
-				continue
-			}
-			if string(key) == attrKey {
-				value, err := base64.StdEncoding.DecodeString(attr.Value)
-				if err != nil {
-					continue
-				}
-				return string(value), true
-			}
-		}
-	}
-	return "", false
-}
-
-type DenomAmount struct {
-	Denom  string `json:"denom"`
-	Amount string `json:"amount"`
-}
-
-func formatJSON(tfDenom string) ([]byte, error) {
-	data := []DenomAmount{
-		{Denom: tfDenom, Amount: "0.005000000000000000"},
-		{Denom: "uxion", Amount: "0.025000000000000000"},
-	}
-	return json.Marshal(data)
 }
 
 // TestXionPlatformMinDirect verifies that MsgSetPlatformMinimum

@@ -11,6 +11,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -18,7 +19,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee/client/cli"
 	"github.com/burnt-labs/xion/x/globalfee/keeper"
@@ -59,9 +59,8 @@ func (a AppModuleBasic) ValidateGenesis(marshaler codec.JSONCodec, _ client.TxEn
 	return nil
 }
 
-func (a AppModuleBasic) RegisterInterfaces(_ codectypes.InterfaceRegistry) {
-	// No interfaces to register for globalfee module
-	_ = noOp
+func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
 
 func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {
@@ -90,14 +89,15 @@ func (a AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-func (a AppModuleBasic) RegisterLegacyAminoCodec(_ *codec.LegacyAmino) {
-	// No legacy amino codec registration needed for globalfee module
-	_ = noOp
+func (a AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
 }
 
 type AppModule struct {
 	AppModuleBasic
-	globalfeeSubspace paramstypes.Subspace
+	keeper       keeper.Keeper
+	legacyParams corestore.KVStoreService
+	legacyAmino  *codec.LegacyAmino
 }
 
 func (a AppModule) IsOnePerModuleType() {
@@ -110,36 +110,35 @@ func (a AppModule) IsAppModule() {
 	_ = noOp
 }
 
-// NewAppModule constructor
-func NewAppModule(globalfeeSubspace paramstypes.Subspace) *AppModule {
-	if !globalfeeSubspace.HasKeyTable() {
-		globalfeeSubspace = globalfeeSubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
-	return &AppModule{globalfeeSubspace: globalfeeSubspace}
+func NewAppModule(_ codec.Codec, k keeper.Keeper, legacyParams corestore.KVStoreService, legacyAmino *codec.LegacyAmino) *AppModule {
+	return &AppModule{keeper: k, legacyParams: legacyParams, legacyAmino: legacyAmino}
 }
 
 func (a AppModule) InitGenesis(ctx sdk.Context, marshaler codec.JSONCodec, message json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	marshaler.MustUnmarshalJSON(message, &genesisState)
 
-	a.globalfeeSubspace.SetParamSet(ctx, &genesisState.Params)
+	if err := a.keeper.SetParams(ctx, genesisState.Params); err != nil {
+		panic(err)
+	}
 	return nil
 }
 
 func (a AppModule) ExportGenesis(ctx sdk.Context, marshaler codec.JSONCodec) json.RawMessage {
-	var genState types.GenesisState
-	a.globalfeeSubspace.GetParamSet(ctx, &genState.Params)
-	return marshaler.MustMarshalJSON(&genState)
+	params, err := a.keeper.GetParams(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return marshaler.MustMarshalJSON(&types.GenesisState{Params: params})
 }
 
 func (a AppModule) RegisterServices(cfg module.Configurator) {
-	// inline creation of GrpcQuerier to avoid potential build tag / symbol resolution issues during linting
-	types.RegisterQueryServer(cfg.QueryServer(), GrpcQuerier{paramSource: a.globalfeeSubspace})
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(a.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(a.keeper))
 
-	m := keeper.NewMigrator(a.globalfeeSubspace)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
-		panic(fmt.Sprintf("failed to migrate x/globalfee from version 1 to 2: %v", err))
+	m := keeper.NewMigrator(a.keeper, a.legacyParams, a.legacyAmino)
+	if err := cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/globalfee from version 2 to 3: %v", err))
 	}
 }
 
@@ -148,5 +147,5 @@ func (a AppModule) RegisterServices(cfg module.Configurator) {
 // introduced by the module. To avoid wrong/empty versions, the initial version
 // should be set to 1.
 func (a AppModule) ConsensusVersion() uint64 {
-	return 2
+	return 3
 }

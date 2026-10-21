@@ -15,11 +15,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk"
-	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 // Test module functions that need coverage
@@ -58,19 +57,8 @@ func TestRegisterServices(t *testing.T) {
 	k, _ := setupKeeperForGenesis(t)
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace like in setupKeeperForGenesis
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
-	// Create AppModule with proper subspace
-	appModule := jwk.NewAppModule(cdc, k, paramStore)
+	storeKey := storetypes.NewKVStoreKey("params")
+	appModule := jwk.NewAppModule(cdc, k, sdkruntime.NewKVStoreService(storeKey), codec.NewLegacyAmino())
 
 	// Test success case - mock configurator that returns no error
 	mockCfgSuccess := &testConfigurator{
@@ -96,13 +84,13 @@ func TestRegisterServices(t *testing.T) {
 		appModule.RegisterServices(mockCfgError)
 	})
 
-	// The v2->v3 registration is reported separately from the v1->v2 one
+	// The v3->v4 registration names its versions in the panic
 	mockCfgSecondError := &testConfigurator{
 		msgServer:       &mockGrpcServer{},
 		queryServer:     &mockGrpcServer{},
-		failFromVersion: 2,
+		failFromVersion: 3,
 	}
-	require.PanicsWithValue(t, "failed to migrate x/jwk from v2 to v3: mock migration error from version 2", func() {
+	require.PanicsWithValue(t, "failed to migrate x/jwk from v3 to v4: mock migration error from version 3", func() {
 		appModule.RegisterServices(mockCfgSecondError)
 	})
 

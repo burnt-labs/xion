@@ -13,10 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	aa "github.com/burnt-labs/xion/x/abstractaccount"
-	"github.com/burnt-labs/xion/x/globalfee"
 )
 
 func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
@@ -36,7 +34,7 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 			IBCKeeper:             app.IBCKeeper,
 			NodeConfig:            &wasmtypes.NodeConfig{},
 			TXCounterStoreService: runtime.NewKVStoreService(app.keys[wasmtypes.StoreKey]),
-			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
+			GlobalFeeKeeper:       &app.GlobalFeeKeeper,
 			StakingKeeper:         app.StakingKeeper,
 			CircuitKeeper:         &app.CircuitKeeper,
 		}
@@ -97,15 +95,15 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 		require.Contains(t, err.Error(), "wasm config is required for ante builder")
 	})
 
-	// Test 6: empty GlobalFeeSubspace
-	t.Run("empty global fee subspace", func(t *testing.T) {
+	// Test 6: nil GlobalFeeKeeper
+	t.Run("nil global fee keeper", func(t *testing.T) {
 		opts := baseOptions()
-		opts.GlobalFeeSubspace = paramtypes.Subspace{} // Empty subspace with no name
+		opts.GlobalFeeKeeper = nil
 
 		handler, err := NewAnteHandler(opts)
 		require.Error(t, err)
 		require.Nil(t, handler)
-		require.Contains(t, err.Error(), "globalfee param store is required for AnteHandler")
+		require.Contains(t, err.Error(), "globalfee keeper is required for AnteHandler")
 	})
 
 	// Test 7: nil TXCounterStoreService

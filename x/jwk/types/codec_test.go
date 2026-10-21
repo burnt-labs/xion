@@ -93,3 +93,24 @@ func TestCodecRegistration(t *testing.T) {
 	require.Equal(t, msg.Aud, decoded.Aud)
 	require.Equal(t, msg.Key, decoded.Key)
 }
+
+func TestUpdateParamsCodec(t *testing.T) {
+	msg := &MsgUpdateParams{Authority: "authority", Params: NewParams(45_000_000_000, 20_000)}
+	amino := codec.NewLegacyAmino()
+	RegisterLegacyAminoCodec(amino)
+	bz, err := amino.MarshalJSON(msg)
+	require.NoError(t, err)
+	require.Contains(t, string(bz), `"type":"jwk/MsgUpdateParams"`)
+	var aminoDecoded MsgUpdateParams
+	require.NoError(t, amino.UnmarshalJSON(bz, &aminoDecoded))
+	require.Equal(t, msg, &aminoDecoded)
+
+	registry := cdctypes.NewInterfaceRegistry()
+	RegisterInterfaces(registry)
+	cdc := codec.NewProtoCodec(registry)
+	bz, err = cdc.MarshalInterface(msg)
+	require.NoError(t, err)
+	var decoded sdk.Msg
+	require.NoError(t, cdc.UnmarshalInterface(bz, &decoded))
+	require.Equal(t, msg, decoded)
+}

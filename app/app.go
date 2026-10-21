@@ -153,6 +153,7 @@ import (
 	dkimkeeper "github.com/burnt-labs/xion/x/dkim/keeper"
 	dkimtypes "github.com/burnt-labs/xion/x/dkim/types"
 	"github.com/burnt-labs/xion/x/globalfee"
+	globalfeekeeper "github.com/burnt-labs/xion/x/globalfee/keeper"
 	"github.com/burnt-labs/xion/x/jwk"
 	jwkkeeper "github.com/burnt-labs/xion/x/jwk/keeper"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -279,6 +280,7 @@ type WasmApp struct {
 
 	XionKeeper         xionkeeper.Keeper
 	JwkKeeper          jwkkeeper.Keeper
+	GlobalFeeKeeper    globalfeekeeper.Keeper
 	TokenFactoryKeeper tokenfactorykeeper.Keeper
 	DkimKeeper         dkimkeeper.Keeper
 	ZkKeeper           zkkeeper.Keeper
@@ -620,7 +622,14 @@ func NewWasmApp(
 	app.JwkKeeper = jwkkeeper.NewKeeper(
 		appCodec,
 		keys[jwktypes.StoreKey],
-		app.GetSubspace(jwktypes.ModuleName))
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	app.GlobalFeeKeeper = globalfeekeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[globalfee.StoreKey]),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	app.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
 		appCodec,
@@ -885,8 +894,8 @@ func NewWasmApp(
 		circuit.NewAppModule(appCodec, app.CircuitKeeper),
 		// non sdk modules
 		tokenfactory.NewAppModule(app.TokenFactoryKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(tokenfactorytypes.ModuleName)),
-		jwk.NewAppModule(appCodec, app.JwkKeeper, app.GetSubspace(jwktypes.ModuleName)),
-		globalfee.NewAppModule(app.GetSubspace(globalfee.ModuleName)),
+		jwk.NewAppModule(appCodec, app.JwkKeeper, runtime.NewKVStoreService(keys[paramstypes.StoreKey]), legacyAmino),
+		globalfee.NewAppModule(appCodec, app.GlobalFeeKeeper, runtime.NewKVStoreService(keys[paramstypes.StoreKey]), legacyAmino),
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		aa.NewAppModule(app.AbstractAccountKeeper),
 		xion.NewAppModule(app.XionKeeper),
@@ -1149,7 +1158,7 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, nodeConfig wasmtype
 			IBCKeeper:             app.IBCKeeper,
 			NodeConfig:            &nodeConfig,
 			TXCounterStoreService: runtime.NewKVStoreService(txCounterStoreKey),
-			GlobalFeeSubspace:     app.GetSubspace(globalfee.ModuleName),
+			GlobalFeeKeeper:       &app.GlobalFeeKeeper,
 			StakingKeeper:         app.StakingKeeper,
 			CircuitKeeper:         &app.CircuitKeeper,
 		},
@@ -1377,9 +1386,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(govtypes.ModuleName)
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(tokenfactorytypes.ModuleName)
-	paramsKeeper.Subspace(globalfee.ModuleName)
 	paramsKeeper.Subspace(xiontypes.ModuleName)
-	paramsKeeper.Subspace(jwktypes.ModuleName)
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(aatypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)

@@ -35,6 +35,8 @@ import (
 	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
 	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
+	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 )
 
 var emptyWasmOpts []wasmkeeper.Option
@@ -419,6 +421,42 @@ func TestNextUpgradeHandler(t *testing.T) {
 
 		_, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
 		require.NoError(t, err)
+	})
+
+	t.Run("migrates legacy x/params values into globalfee and jwk", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
+		fromVM := gapp.ModuleManager.GetVersionMap()
+		fromVM[globalfeetypes.ModuleName] = 2
+		fromVM[jwktypes.ModuleName] = 3
+
+		globalFeeParams := globalfeetypes.DefaultParams()
+		globalFeeParams.MinimumGasPrices = sdk.NewDecCoins(
+			sdk.NewDecCoinFromDec("ibc/F082B65C88E4B6D5EF1DB243CDA1D331D002759E938A0F5CD3FFDC5D53B3E349", math.LegacyMustNewDecFromStr("0.005")),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyMustNewDecFromStr("0.001")),
+		)
+		jwkParams := jwktypes.Params{TimeOffset: 30000000000, DeploymentGas: 10000}
+		legacyParams := ctx.KVStore(gapp.GetKey(paramstypes.StoreKey))
+		for key, value := range map[string]interface{}{
+			"globalfee/MinimumGasPricesParam":           globalFeeParams.MinimumGasPrices,
+			"globalfee/BypassMinFeeMsgTypes":            globalFeeParams.BypassMinFeeMsgTypes,
+			"globalfee/MaxTotalBypassMinFeeMsgGasUsage": globalFeeParams.MaxTotalBypassMinFeeMsgGasUsage,
+			"jwk/TimeOffset":                            jwkParams.TimeOffset,
+			"jwk/DeploymentGas":                         jwkParams.DeploymentGas,
+		} {
+			bz, err := gapp.LegacyAmino().MarshalJSON(value)
+			require.NoError(t, err)
+			legacyParams.Set([]byte(key), bz)
+		}
+
+		vm, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, fromVM)
+		require.NoError(t, err)
+		require.Equal(t, uint64(3), vm[globalfeetypes.ModuleName])
+		require.Equal(t, uint64(4), vm[jwktypes.ModuleName])
+		migratedGlobalFeeParams, err := gapp.GlobalFeeKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		require.Equal(t, globalFeeParams, migratedGlobalFeeParams)
+		require.Equal(t, jwkParams, gapp.JwkKeeper.GetParams(ctx))
 	})
 
 	t.Run("refuses when the code's checksum is not the pinned one", func(t *testing.T) {

@@ -2,10 +2,15 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 )
+
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	RegisterCodec(cdc)
+}
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateAudience{}, "jwk/CreateAudience", nil)
@@ -13,7 +18,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDeleteAudience{}, "jwk/DeleteAudience", nil)
 	cdc.RegisterConcrete(&MsgCreateAudienceClaim{}, "jwk/CreateAudienceClaim", nil)
 	cdc.RegisterConcrete(&MsgDeleteAudienceClaim{}, "jwk/DeleteAudienceClaim", nil)
-	// this line is used by starport scaffolding # 2
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "jwk/MsgUpdateParams")
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -23,6 +28,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgDeleteAudience{},
 		&MsgCreateAudienceClaim{},
 		&MsgDeleteAudienceClaim{},
+		&MsgUpdateParams{},
 	)
 	// this line is used by starport scaffolding # 3
 
