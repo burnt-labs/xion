@@ -62,6 +62,15 @@ func StakedInflationMintFn(feeCollectorName string, ic minttypes.InflationCalcul
 			// if the fee collector has not collected enough fees to meet the
 			// staking incentive goals, mint enough to meet.
 			mintedCoin = neededCoin.Sub(collectedFeeCoin)
+			if params.MaxSupply.IsPositive() {
+				totalSupply := bankKeeper.GetSupply(ctx, params.MintDenom).Amount
+				if totalSupply.Add(mintedCoin.Amount).GT(params.MaxSupply) {
+					mintedCoin.Amount = params.MaxSupply.Sub(totalSupply)
+					if mintedCoin.Amount.IsNegative() {
+						mintedCoin.Amount = math.ZeroInt()
+					}
+				}
+			}
 			mintedCoins := sdk.NewCoins(mintedCoin)
 
 			err := k.MintCoins(ctx, mintedCoins)
