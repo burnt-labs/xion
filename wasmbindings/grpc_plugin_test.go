@@ -6,6 +6,7 @@ import (
 	"time"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/gogoproto/proto"
@@ -15,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	wasmbinding "github.com/burnt-labs/xion/wasmbindings"
@@ -157,4 +159,43 @@ func (suite *GrpcTestSuite) TestAuthzGrpcQuerier() {
 			}
 		})
 	}
+}
+
+func TestAllWhitelistedPathsHaveRoutes(t *testing.T) {
+	app := xionapp.Setup(t)
+	paths := wasmbinding.WhitelistedQueryPaths()
+	require.NotEmpty(t, paths)
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			require.NotNil(t, app.GRPCQueryRouter().Route(path), "whitelisted query must be registered")
+		})
+	}
+}
+
+func TestGovV1ParamsQueries(t *testing.T) {
+	app := xionapp.Setup(t)
+	ctx := app.NewContext(true)
+	expected, err := app.GovKeeper.Params.Get(ctx)
+	require.NoError(t, err)
+	request, err := proto.Marshal(&govtypesv1.QueryParamsRequest{})
+	require.NoError(t, err)
+	const path = "/cosmos.gov.v1.Query/Params"
+
+	t.Run("stargate", func(t *testing.T) {
+		querier := wasmbinding.StargateQuerier(*app.GRPCQueryRouter(), app.AppCodec())
+		response, err := querier(ctx, &wasmvmtypes.StargateQuery{Path: path, Data: request})
+		require.NoError(t, err)
+		var decoded govtypesv1.QueryParamsResponse
+		require.NoError(t, app.AppCodec().UnmarshalJSON(response, &decoded))
+		require.Equal(t, &expected, decoded.Params)
+	})
+
+	t.Run("grpc", func(t *testing.T) {
+		querier := wasmbinding.GrpcQuerier(*app.GRPCQueryRouter())
+		response, err := querier(ctx, &wasmvmtypes.GrpcQuery{Path: path, Data: request})
+		require.NoError(t, err)
+		decoded, ok := response.(*govtypesv1.QueryParamsResponse)
+		require.True(t, ok, "expected a gov v1 params response")
+		require.Equal(t, &expected, decoded.Params)
+	})
 }
