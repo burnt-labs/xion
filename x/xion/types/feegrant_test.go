@@ -600,6 +600,7 @@ func (m *MockFailingAllowance) Reset()                                          
 func (m *MockFailingAllowance) String() string                                         { return "MockFailingAllowance" }
 func (m *MockFailingAllowance) ProtoMessage()                                          {}
 func (m *MockFailingAllowance) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error { return nil }
+
 func (m *MockFailingAllowance) GetAllowance() (feegrant.FeeAllowanceI, error) {
 	if m.shouldFail {
 		return nil, fmt.Errorf("mock allowance failure")

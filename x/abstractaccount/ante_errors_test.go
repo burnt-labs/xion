@@ -8,9 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 	protov2 "google.golang.org/protobuf/proto"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txsigning "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -177,7 +178,7 @@ func TestBeforeTx_UnencodableMsgRejected(t *testing.T) {
 	ctx := app.NewContext(false).WithBlockTime(time.Now()).WithChainID(mockChainID)
 
 	signer := xionapp.RandomAccAddress()
-	app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(signer.String(), app.AccountKeeper.NextAccountNumber(ctx), 0))
+	app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(signer.String(), 0, 0)))
 
 	_, err := makeBeforeTxDecorator(app).AnteHandle(ctx, unencodableMsgTx{signer: signer}, false, anteTerminator)
 	require.EqualError(t, err, "cannot encode message")

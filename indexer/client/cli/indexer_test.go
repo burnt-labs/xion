@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -23,7 +22,7 @@ import (
 )
 
 // Mock app creator for testing - matches AppCreator type
-var mockAppCreator servertypes.AppCreator = func(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+var mockAppCreator servertypes.AppCreator = func(logger log.Logger, db dbm.DB, appOpts servertypes.AppOptions) servertypes.Application {
 	// Return nil for testing - the ReIndex function will fail but we can test the setup
 	return nil
 }

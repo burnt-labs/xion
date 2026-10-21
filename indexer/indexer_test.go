@@ -26,6 +26,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantv2 "github.com/cosmos/cosmos-sdk/x/feegrant/migrations/v2"
 
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
 	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
@@ -374,7 +375,7 @@ func TestFeeGrantHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	// Build key using feegrant format
-	key := feegrant.FeeAllowanceKey(granter, grantee)
+	key := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 	pair := &storetypes.StoreKVPair{
 		Key:    key,
@@ -660,7 +661,7 @@ func TestStreamService(t *testing.T) {
 	feeGrantValue, err := cdc.Marshal(&feeGrant)
 	require.NoError(t, err)
 
-	feegrantKey := feegrant.FeeAllowanceKey(granter, grantee)
+	feegrantKey := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 	changeSet = []*storetypes.StoreKVPair{
 		{
@@ -784,4 +785,30 @@ func TestRegisterServices(t *testing.T) {
 
 	// This will panic but demonstrates the function is accessible
 	_ = service.RegisterServices(nil)
+}
+
+func TestParseFeeAllowanceKey(t *testing.T) {
+	for _, size := range []int{20, 32} {
+		granter := sdk.AccAddress(make([]byte, size))
+		grantee := sdk.AccAddress(make([]byte, size))
+		granter[0], grantee[0] = 1, 2
+		key := feegrantv2.FeeAllowanceKey(granter, grantee)
+		gotGranter, gotGrantee, err := parseFeeAllowanceKey(key)
+		require.NoError(t, err)
+		require.Equal(t, granter, gotGranter)
+		require.Equal(t, grantee, gotGrantee)
+	}
+
+	for _, key := range [][]byte{
+		nil,
+		{0x01, 1, 1, 1, 2},
+		{0x00},
+		{0x00, 0xff, 1, 1, 2},
+		{0x00, 1, 1, 0xff, 2},
+		{0x00, 1, 1, 1, 2, 3},
+		{0x00, 0, 1, 2},
+	} {
+		_, _, err := parseFeeAllowanceKey(key)
+		require.Error(t, err, "key %x", key)
+	}
 }

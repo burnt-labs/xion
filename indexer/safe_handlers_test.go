@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantv2 "github.com/cosmos/cosmos-sdk/x/feegrant/migrations/v2"
 )
 
 func TestSafeAuthzHandlerUpdate_Delete(t *testing.T) {
@@ -157,7 +158,7 @@ func TestSafeFeeGrantHandlerUpdate_Delete(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create key for the grant using FeeAllowanceKey
-	key := feegrant.FeeAllowanceKey(granter, grantee)
+	key := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 	// Test successful delete
 	pair := &storetypes.StoreKVPair{
@@ -202,7 +203,7 @@ func TestSafeFeeGrantHandlerUpdate_Create(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create key for the grant using FeeAllowanceKey
-	key := feegrant.FeeAllowanceKey(granter, grantee)
+	key := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 	// Test successful create/update
 	pair := &storetypes.StoreKVPair{
@@ -234,7 +235,7 @@ func TestSafeFeeGrantHandlerUpdate_InvalidValue(t *testing.T) {
 	grantee := sdk.AccAddress([]byte("grantee_address_____"))
 
 	// Create key for the grant using FeeAllowanceKey
-	key := feegrant.FeeAllowanceKey(granter, grantee)
+	key := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 	// Test with corrupted/invalid value (should not error, just log warning)
 	pair := &storetypes.StoreKVPair{
@@ -420,7 +421,7 @@ func TestSafeFeeGrantHandlerUpdate_KeyParsing(t *testing.T) {
 	}{
 		{
 			name: "valid key",
-			key: feegrant.FeeAllowanceKey(
+			key: feegrantv2.FeeAllowanceKey(
 				sdk.AccAddress("granter_____________"),
 				sdk.AccAddress("grantee_____________"),
 			),
@@ -507,7 +508,7 @@ func TestSafeHandlers_ConcurrentAccess(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			granter := sdk.AccAddress([]byte("granter" + hex.EncodeToString([]byte{byte(i)})))
 			grantee := sdk.AccAddress([]byte("grantee" + hex.EncodeToString([]byte{byte(i)})))
-			key := feegrant.FeeAllowanceKey(granter, grantee)
+			key := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 			pair := &storetypes.StoreKVPair{
 				Key:    key,
@@ -524,7 +525,7 @@ func TestSafeHandlers_ConcurrentAccess(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			granter := sdk.AccAddress([]byte("granter" + hex.EncodeToString([]byte{byte(i)})))
 			grantee := sdk.AccAddress([]byte("grantee" + hex.EncodeToString([]byte{byte(i)})))
-			key := feegrant.FeeAllowanceKey(granter, grantee)
+			key := feegrantv2.FeeAllowanceKey(granter, grantee)
 
 			pair := &storetypes.StoreKVPair{
 				Key:    key,

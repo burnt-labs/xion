@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -239,7 +240,7 @@ func TestInitGenesisRejectsMalformedRegistryEntries(t *testing.T) {
 		// The genesis params leave address derivation unconfigured, so the
 		// registry entry cannot be checked against a predicted address.
 		address := xionapp.RandomAccAddress()
-		app.AccountKeeper.SetAccount(ctx, types.NewAbstractAccount(address.String(), app.AccountKeeper.NextAccountNumber(ctx), 0))
+		app.AccountKeeper.SetAccount(ctx, app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(address.String(), 0, 0)))
 		gs := types.NewGenesisState(1, types.DefaultParams())
 		gs.AccountAddresses = []*types.AccountAddress{{
 			Sender:  sender.String(),
@@ -375,7 +376,7 @@ func TestRegisterAccountRejectsOccupiedPredictedAddress(t *testing.T) {
 	// the (sender, salt) slot was never written to the registry.
 	predicted, err := k.PredictAccountAddress(f.ctx, user, salt)
 	require.NoError(t, err)
-	f.app.AccountKeeper.SetAccount(f.ctx, types.NewAbstractAccount(predicted.String(), f.app.AccountKeeper.NextAccountNumber(f.ctx), 0))
+	f.app.AccountKeeper.SetAccount(f.ctx, f.app.AccountKeeper.NewAccount(f.ctx, types.NewAbstractAccount(predicted.String(), 0, 0)))
 
 	_, err = msgServer.RegisterAccount(f.ctx, f.registerMsg(t, salt))
 	require.ErrorIs(t, err, types.ErrAccountAlreadyRegistered)

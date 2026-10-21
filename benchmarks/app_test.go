@@ -35,7 +35,7 @@ import (
 )
 
 func setup(db dbm.DB, withGenesis bool, _ uint, _ ...wasmkeeper.Option) (*app.WasmApp, app.GenesisState) { //nolint:unparam
-	wasmApp := app.NewWasmApp(log.NewLogger(os.Stdout), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
+	wasmApp := app.NewWasmApp(log.NewLogger(os.Stdout), db, true, simtestutil.EmptyAppOptions{}, nil)
 
 	if withGenesis {
 		return wasmApp, app.NewDefaultGenesisState(wasmApp.AppCodec(), wasmApp.BasicModuleManager)

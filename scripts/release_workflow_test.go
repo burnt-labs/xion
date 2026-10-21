@@ -166,14 +166,14 @@ func TestReleaseArtifactsRequired(t *testing.T) {
 				continue
 			}
 			path := filepath.Join(input, downloaded(name))
-			if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 				t.Fatal(err)
 			}
 			contents := []byte("presence-check fixture\n")
 			if name == bad {
 				contents = nil
 			}
-			if err := os.WriteFile(path, contents, 0600); err != nil {
+			if err := os.WriteFile(path, contents, 0o600); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -312,7 +312,7 @@ func TestPublishFuryUploadsOnlyResolvedVersion(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			work := t.TempDir()
-			if err := os.MkdirAll(filepath.Join(work, "release"), 0755); err != nil {
+			if err := os.MkdirAll(filepath.Join(work, "release"), 0o755); err != nil {
 				t.Fatal(err)
 			}
 			for _, f := range c.files {
@@ -320,19 +320,19 @@ func TestPublishFuryUploadsOnlyResolvedVersion(t *testing.T) {
 				if f == c.empty {
 					contents = nil
 				}
-				if err := os.WriteFile(filepath.Join(work, "release", f), contents, 0600); err != nil {
+				if err := os.WriteFile(filepath.Join(work, "release", f), contents, 0o600); err != nil {
 					t.Fatal(err)
 				}
 			}
 			// A stub curl records each upload and answers 201, so the test
 			// never reaches Gemfury.
 			bin := filepath.Join(work, "bin")
-			if err := os.MkdirAll(bin, 0755); err != nil {
+			if err := os.MkdirAll(bin, 0o755); err != nil {
 				t.Fatal(err)
 			}
 			log := filepath.Join(work, "uploads")
 			stub := "#!/usr/bin/env bash\nfor a in \"$@\"; do case \"$a\" in package=@*) echo \"${a#package=@}\" >> " + log + ";; esac; done\nprintf 'ok\\n201'\n"
-			if err := os.WriteFile(filepath.Join(bin, "curl"), []byte(stub), 0755); err != nil {
+			if err := os.WriteFile(filepath.Join(bin, "curl"), []byte(stub), 0o755); err != nil {
 				t.Fatal(err)
 			}
 			cmd := exec.Command("bash", "-e", "-c", step.Run)

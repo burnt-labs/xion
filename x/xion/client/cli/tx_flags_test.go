@@ -15,6 +15,8 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
+	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -22,7 +24,6 @@ import (
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
-	feegrant "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )

@@ -788,7 +788,7 @@ func (s *CLITestSuite) TestNewAddAuthenticatorCmd_RunESignModes() {
 	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 1)
 	contractAddr := accounts[0].Address.String()
 	// modes to exercise each switch branch + default
-	modes := []string{"", flags.SignModeDirect, flags.SignModeLegacyAminoJSON, flags.SignModeDirectAux, flags.SignModeTextual, flags.SignModeEIP191}
+	modes := []string{"", flags.SignModeDirect, flags.SignModeLegacyAminoJSON, flags.SignModeDirectAux, flags.SignModeEIP191}
 
 	for _, mode := range modes {
 		// capture

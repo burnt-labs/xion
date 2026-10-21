@@ -20,6 +20,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 
 	"cosmossdk.io/log/v2"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -32,7 +33,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/indexer"
@@ -243,7 +243,7 @@ func TestReIndex_RebuildsIndexFromChainState(t *testing.T) {
 
 	// the app is created by the command itself; populate its check state with
 	// one grant and one allowance so the re-index has something to copy
-	appCreator := func(logger log.Logger, db dbm.DB, _ io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	appCreator := func(logger log.Logger, db dbm.DB, appOpts servertypes.AppOptions) servertypes.Application {
 		memDB, ok := db.(*dbm.MemDB)
 		require.True(t, ok)
 

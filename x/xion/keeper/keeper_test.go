@@ -12,7 +12,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/xion/types"
 )
@@ -143,26 +142,15 @@ func TestKeeper_Logger(t *testing.T) {
 func TestNewKeeper(t *testing.T) {
 	// Test that NewKeeper creates a properly initialized Keeper
 	key := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey("transient_test")
 
 	// Create codec
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-
-	// Create param subspace
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		key,
-		tkey,
-		types.ModuleName,
-	)
 
 	testAuthority := "test_authority"
 
 	keeper := NewKeeper(
 		cdc,
 		key,
-		paramStore,
 		nil, // bankKeeper
 		nil, // accountKeeper
 		nil, // wasmOpsKeeper
