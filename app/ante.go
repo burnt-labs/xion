@@ -16,12 +16,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/burnt-labs/xion/x/abstractaccount"
 	aakeeper "github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
+	globalfeekeeper "github.com/burnt-labs/xion/x/globalfee/keeper"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -32,7 +32,7 @@ type HandlerOptions struct {
 	IBCKeeper             *keeper.Keeper
 	NodeConfig            *wasmTypes.NodeConfig
 	TXCounterStoreService corestoretypes.KVStoreService
-	GlobalFeeSubspace     paramtypes.Subspace
+	GlobalFeeKeeper       *globalfeekeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
 	CircuitKeeper         *circuitkeeper.Keeper
@@ -54,8 +54,8 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.NodeConfig == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm config is required for ante builder")
 	}
-	if options.GlobalFeeSubspace.Name() == "" {
-		return nil, errorsmod.Wrap(sdkerrors.ErrNotFound, "globalfee param store is required for AnteHandler")
+	if options.GlobalFeeKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "globalfee keeper is required for AnteHandler")
 	}
 	if options.TXCounterStoreService == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm store service is required for ante builder")
@@ -72,7 +72,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// this changes the minGasFees,
 		// and must occur before gas fee checks
-		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, func(context sdk.Context) string {
+		globalfeeante.NewFeeDecorator(options.GlobalFeeKeeper, func(context sdk.Context) string {
 			bondDenom, err := options.StakingKeeper.BondDenom(context)
 			if err != nil {
 				panic(err)

@@ -10,9 +10,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/burnt-labs/xion/x/globalfee"
+	"github.com/burnt-labs/xion/x/globalfee/keeper"
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
@@ -30,18 +29,14 @@ import (
 var _ sdk.AnteDecorator = FeeDecorator{}
 
 type FeeDecorator struct {
-	GlobalMinFeeParamSource globalfee.ParamSource
-	StakingKeeperBondDenom  func(sdk.Context) string
+	Keeper                 *keeper.Keeper
+	StakingKeeperBondDenom func(sdk.Context) string
 }
 
-func NewFeeDecorator(globalfeeSubspace paramtypes.Subspace, stakingKeeperDenom func(sdk.Context) string) FeeDecorator {
-	if !globalfeeSubspace.HasKeyTable() {
-		panic("global fee paramspace was not set up via module")
-	}
-
+func NewFeeDecorator(k *keeper.Keeper, stakingKeeperDenom func(sdk.Context) string) FeeDecorator {
 	return FeeDecorator{
-		GlobalMinFeeParamSource: globalfeeSubspace,
-		StakingKeeperBondDenom:  stakingKeeperDenom,
+		Keeper:                 k,
+		StakingKeeperBondDenom: stakingKeeperDenom,
 	}
 }
 
@@ -162,16 +157,12 @@ func (mfd FeeDecorator) GetTxFeeRequired(ctx sdk.Context, tx sdk.FeeTx) (sdk.Dec
 // GetGlobalFee returns the global fees for a given fee tx's gas
 // (might also return 0denom if globalMinGasPrice is 0)
 // sorted in ascending order.
-// Note that ParamStoreKeyMinGasPrices type requires coins sorted.
 func (mfd FeeDecorator) GetGlobalFee(ctx sdk.Context) (sdk.DecCoins, error) {
-	var (
-		globalMinGasPrices sdk.DecCoins
-		err                error
-	)
-
-	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMinGasPrices) {
-		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMinGasPrices, &globalMinGasPrices)
+	params, err := mfd.Keeper.GetParams(ctx)
+	if err != nil {
+		return nil, err
 	}
+	globalMinGasPrices := params.MinimumGasPrices
 
 	// global fee is empty set, set global fee to 0uxion
 	if len(globalMinGasPrices) == 0 {
@@ -210,22 +201,20 @@ func (mfd FeeDecorator) ContainsOnlyBypassMinFeeMsgs(ctx sdk.Context, msgs []sdk
 	return true
 }
 
-func (mfd FeeDecorator) GetBypassMsgTypes(ctx sdk.Context) (res []string) {
-	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyBypassMinFeeMsgTypes) {
-		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyBypassMinFeeMsgTypes, &res)
+func (mfd FeeDecorator) GetBypassMsgTypes(ctx sdk.Context) []string {
+	params, err := mfd.Keeper.GetParams(ctx)
+	if err != nil {
+		return nil
 	}
-
-	return
+	return params.BypassMinFeeMsgTypes
 }
 
 func (mfd FeeDecorator) GetMaxTotalBypassMinFeeMsgGasUsage(ctx sdk.Context) uint64 {
-	if mfd.GlobalMinFeeParamSource.Has(ctx, types.ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage) {
-		var res uint64
-		mfd.GlobalMinFeeParamSource.Get(ctx, types.ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage, &res)
-		return res
+	params, err := mfd.Keeper.GetParams(ctx)
+	if err != nil {
+		return types.DefaultmaxTotalBypassMinFeeMsgGasUsage
 	}
-
-	return types.DefaultmaxTotalBypassMinFeeMsgGasUsage
+	return params.MaxTotalBypassMinFeeMsgGasUsage
 }
 
 // GetMinGasPrice returns a nodes's local minimum gas prices

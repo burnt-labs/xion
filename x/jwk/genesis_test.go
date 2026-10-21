@@ -13,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/jwk/keeper"
@@ -22,26 +21,17 @@ import (
 
 func setupKeeperForGenesis(t testing.TB) (keeper.Keeper, sdk.Context) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient_test")
 
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
 	// Create codec
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		paramStore,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	return k, ctx.Ctx
@@ -95,6 +85,19 @@ func TestInitGenesis(t *testing.T) {
 	require.Len(t, allAudiences, 2)
 }
 
+func TestInitGenesisInvalidParams(t *testing.T) {
+	k, ctx := setupKeeperForGenesis(t)
+	before := types.NewParams(45_000_000_000, 20_000)
+	require.NoError(t, k.SetParams(ctx, before))
+	genState := types.DefaultGenesis()
+	genState.Params.DeploymentGas = 0
+
+	require.Panics(t, func() {
+		jwk.InitGenesis(ctx, k, *genState)
+	})
+	require.Equal(t, before, k.GetParams(ctx))
+}
+
 func TestExportGenesis(t *testing.T) {
 	k, ctx := setupKeeperForGenesis(t)
 
@@ -105,7 +108,7 @@ func TestExportGenesis(t *testing.T) {
 		DeploymentGas: 2000000,
 		TimeOffset:    2000,
 	}
-	k.SetParams(ctx, customParams)
+	require.NoError(t, k.SetParams(ctx, customParams))
 
 	audiences := []types.Audience{
 		{
@@ -147,7 +150,7 @@ func TestGenesisRoundTrip(t *testing.T) {
 		DeploymentGas: 3000000,
 		TimeOffset:    3000,
 	}
-	k1.SetParams(ctx1, originalParams)
+	require.NoError(t, k1.SetParams(ctx1, originalParams))
 
 	originalAudiences := []types.Audience{
 		{

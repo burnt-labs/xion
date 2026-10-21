@@ -10,12 +10,13 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	corestore "cosmossdk.io/core/store"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk/client/cli"
 	"github.com/burnt-labs/xion/x/jwk/keeper"
@@ -47,7 +48,7 @@ func (AppModuleBasic) Name() string {
 
 // RegisterLegacyAminoCodec registers the amino codec for the module, which is used to marshal and unmarshal structs to/from []byte in order to persist them in the module's KVStore
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterCodec(cdc)
+	types.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers a module's interface types and their concrete implementations as proto.Message
@@ -92,8 +93,9 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper      keeper.Keeper
-	jwkSubspace paramstypes.Subspace
+	keeper       keeper.Keeper
+	legacyParams corestore.KVStoreService
+	legacyAmino  *codec.LegacyAmino
 }
 
 func (am AppModule) IsOnePerModuleType() {
@@ -109,12 +111,14 @@ func (am AppModule) IsAppModule() {
 func NewAppModule(
 	cdc codec.Codec,
 	keeper keeper.Keeper,
-	jwkSubspace paramstypes.Subspace,
+	legacyParams corestore.KVStoreService,
+	legacyAmino *codec.LegacyAmino,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
-		jwkSubspace:    jwkSubspace,
+		legacyParams:   legacyParams,
+		legacyAmino:    legacyAmino,
 	}
 }
 
@@ -125,12 +129,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	// Register migrations
-	m := keeper.NewMigrator(am.jwkSubspace)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1To2); err != nil {
-		panic(fmt.Sprintf("failed to migrate x/jwk from v1 to v2: %v", err))
-	}
-	if err := cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2To3); err != nil {
-		panic(fmt.Sprintf("failed to migrate x/jwk from v2 to v3: %v", err))
+	m := keeper.NewMigrator(am.keeper, am.legacyParams, am.legacyAmino)
+	if err := cfg.RegisterMigration(types.ModuleName, 3, m.Migrate3To4); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/jwk from v3 to v4: %v", err))
 	}
 }
 
@@ -152,4 +153,4 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion is a sequence number for state-breaking change of the module. It should be incremented on each consensus-breaking change introduced by the module. To avoid wrong/empty versions, the initial version should be set to 1
-func (AppModule) ConsensusVersion() uint64 { return 3 }
+func (AppModule) ConsensusVersion() uint64 { return 4 }

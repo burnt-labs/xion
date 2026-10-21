@@ -270,9 +270,6 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	// setup tests with default global fee i.e. "0uxion" and empty local min gas prices
 	feeDecorator, _ := s.SetupTestGlobalFeeStoreAndMinGasPrice([]sdk.DecCoin{}, globalfeeParamsEmpty, noBondDenom)
 
-	// set a subspace that doesn't have the stakingtypes.KeyBondDenom key registered
-	// feeDecorator.StakingSubspace = s.app.GetSubspace(globfeetypes.ModuleName)
-
 	// check that an error is returned when staking bond denom is empty
 	_, err := feeDecorator.GetTxFeeRequired(s.ctx, nil)
 	s.Require().Equal(err.Error(), "empty staking bond denomination")
@@ -315,20 +312,6 @@ func (s *IntegrationTestSuite) TestGetTxFeeRequired() {
 	res, err = feeDecorator.GetTxFeeRequired(ctx, tx)
 	s.Require().NoError(err)
 	s.Require().True(res.Equal(globalFee))
-}
-
-// TestNewFeeDecoratorPanic tests the panic condition in NewFeeDecorator
-func (s *IntegrationTestSuite) TestNewFeeDecoratorPanic() {
-	// Test panic when globalfeeSubspace doesn't have key table
-	s.Run("panic when no key table", func() {
-		// Create a subspace without setting up the key table
-		subspaceWithoutKeyTable := s.app.GetSubspace("non-existent-module")
-
-		// This should panic because HasKeyTable() returns false
-		s.Require().Panics(func() {
-			xionfeeante.NewFeeDecorator(subspaceWithoutKeyTable, bondDenom)
-		})
-	})
 }
 
 // TestAnteHandleEdgeCases tests edge cases to achieve 100% coverage

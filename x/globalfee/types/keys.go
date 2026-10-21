@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName is the name of the this module
 	ModuleName = "globalfee"
@@ -8,3 +10,5 @@ const (
 
 	QuerierRoute = ModuleName
 )
+
+var ParamsKey = collections.NewPrefix(0)

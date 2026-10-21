@@ -12,12 +12,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee/ante"
+	"github.com/burnt-labs/xion/x/globalfee/keeper"
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
@@ -25,45 +26,13 @@ const (
 	testStakingDenom = "stake"
 )
 
-func TestNewFeeDecorator(t *testing.T) {
-	// Create a test subspace without key table
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
-	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
-
-	// Test with subspace that doesn't have key table - should panic
-	require.Panics(t, func() {
-		ante.NewFeeDecorator(subspace, stakingDenomFunc)
-	})
-
-	// Test with subspace that has key table
-	subspaceWithKeyTable := subspace.WithKeyTable(types.ParamKeyTable())
-	decorator := ante.NewFeeDecorator(subspaceWithKeyTable, stakingDenomFunc)
-	require.NotNil(t, decorator)
-}
-
 func TestFeeDecoratorMethods(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Set params with global fees
 	params := types.Params{
@@ -71,11 +40,11 @@ func TestFeeDecoratorMethods(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{"/ibc.core.channel.v1.MsgRecvPacket"},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Test GetGlobalFee
 	globalFees, err := decorator.GetGlobalFee(ctx.Ctx)
@@ -127,17 +96,11 @@ func TestGetMinGasPrice(t *testing.T) {
 
 func TestGetGlobalFeeEmptyParams(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Set params with empty global fees (should use default zero fee)
 	params := types.Params{
@@ -145,11 +108,11 @@ func TestGetGlobalFeeEmptyParams(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Test GetGlobalFee with empty params (should return default zero fee)
 	globalFees, err := decorator.GetGlobalFee(ctx.Ctx)
@@ -162,17 +125,11 @@ func TestGetGlobalFeeEmptyParams(t *testing.T) {
 
 func TestDefaultZeroGlobalFeeError(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Set params
 	params := types.Params{
@@ -180,14 +137,14 @@ func TestDefaultZeroGlobalFeeError(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	// Test with empty bond denom (should error)
 	emptyBondDenomFunc := func(ctx sdk.Context) string {
 		return ""
 	}
 
-	decorator := ante.NewFeeDecorator(subspace, emptyBondDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, emptyBondDenomFunc)
 
 	// Test DefaultZeroGlobalFee with empty bond denom
 	_, err := decorator.DefaultZeroGlobalFee(ctx.Ctx)
@@ -202,21 +159,15 @@ func TestDefaultZeroGlobalFeeError(t *testing.T) {
 
 func TestContainsOnlyBypassMinFeeMsgsEdgeCases(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Test with empty messages slice
 	emptyMsgs := []sdk.Msg{}
@@ -225,7 +176,7 @@ func TestContainsOnlyBypassMinFeeMsgsEdgeCases(t *testing.T) {
 
 	// Test with default bypass messages types - use actual params that include bypass types
 	params := types.DefaultParams()
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	// Verify default bypass types exist
 	bypassTypes := decorator.GetBypassMsgTypes(ctx.Ctx)
@@ -242,12 +193,12 @@ func TestContainsOnlyBypassMinFeeMsgsEdgeCases(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{"/xion.v1.MsgSend"},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &customParams)
+	require.NoError(t, k.SetParams(ctx.Ctx, customParams))
 
 	// Test edge case: ensure that the function correctly identifies bypass vs non-bypass
 	// by checking the behavior with default params
 	defaultParams := types.DefaultParams()
-	subspace.SetParamSet(ctx.Ctx, &defaultParams)
+	require.NoError(t, k.SetParams(ctx.Ctx, defaultParams))
 
 	// Verify that bypass types are properly configured (using actual default types)
 	bypassTypes = decorator.GetBypassMsgTypes(ctx.Ctx)
@@ -294,21 +245,15 @@ func (m *mockMsg) XXX_MessageName() string { return m.typeURL }
 
 func TestContainsOnlyBypassMinFeeMsgsWithMessages(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Test with mixed messages - some bypass, some not
 	// Since we can't easily create real protobuf messages that match the bypass types,
@@ -320,7 +265,7 @@ func TestContainsOnlyBypassMinFeeMsgsWithMessages(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{}, // Empty bypass list - no messages will be bypassed
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	// Test with messages when bypass list is empty - should return false for any messages
 	nonBypassMsgs := []sdk.Msg{
@@ -344,7 +289,7 @@ func TestContainsOnlyBypassMinFeeMsgsWithMessages(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{"//cosmos.bank.v1beta1.MsgSend"}, // Use the actual format that sdk.MsgTypeURL returns
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	// Create mock messages with proper protobuf-style type URLs
 	mixedMsgs := []sdk.Msg{
@@ -360,7 +305,7 @@ func TestContainsOnlyBypassMinFeeMsgsWithMessages(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{"//cosmos.bank.v1beta1.MsgSend", "//cosmos.bank.v1beta1.MsgMultiSend"}, // Use the actual format that sdk.MsgTypeURL returns
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	allBypassMsgs := []sdk.Msg{
 		&mockMsg{typeURL: "/cosmos.bank.v1beta1.MsgSend"},      // This is bypass
@@ -428,25 +373,19 @@ func (m mockTx) GetSignaturesV2() ([]signing.SignatureV2, error) { return nil, n
 
 func TestAnteHandle(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Set params
 	params := types.DefaultParams()
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
 
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Mock next handler
 	nextCalled := false
@@ -538,7 +477,7 @@ func TestAnteHandle(t *testing.T) {
 	emptyBondDenomFunc := func(ctx sdk.Context) string {
 		return ""
 	}
-	errorDecorator := ante.NewFeeDecorator(subspace, emptyBondDenomFunc)
+	errorDecorator := ante.NewFeeDecorator(&k, emptyBondDenomFunc)
 
 	errorFeeTx := mockFeeTx{
 		gas:   100000,
@@ -555,17 +494,11 @@ func TestAnteHandle(t *testing.T) {
 
 func TestAnteHandle_BypassGasCap(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Set params with non-empty global fees, bypass types, and a small gas cap
 	params := types.Params{
@@ -573,10 +506,10 @@ func TestAnteHandle_BypassGasCap(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{"/test.Msg"},
 		MaxTotalBypassMinFeeMsgGasUsage: 100,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Next handler captures the context to inspect MinGasPrices
 	var capturedCtx sdk.Context
@@ -627,26 +560,20 @@ func TestAnteHandle_BypassGasCap(t *testing.T) {
 // and a high gas limit (representing large/expensive txs) requires fees even for bypass types.
 func TestAnteHandle_BypassGasCap_DefaultCapAndLargeGas(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Start from defaults, then override bypass types to a local test type
 	params := types.DefaultParams()
 	params.BypassMinFeeMsgTypes = []string{"/test.Msg"}
 	// Keep the default cap (1,000,000)
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Next handler captures MinGasPrices for assertions
 	var capturedCtx sdk.Context
@@ -698,17 +625,11 @@ func TestAnteHandle_BypassGasCap_DefaultCapAndLargeGas(t *testing.T) {
 // the combination of local min gas prices and global fees (max per denom).
 func TestAnteHandle_BypassOverCap_CombinesLocalAndGlobalFees(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Configure both global fees and local min gas prices, keep a modest cap
 	params := types.Params{
@@ -716,10 +637,10 @@ func TestAnteHandle_BypassOverCap_CombinesLocalAndGlobalFees(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{"/test.Msg"},
 		MaxTotalBypassMinFeeMsgGasUsage: 10_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Local min gas price higher than global to exercise MaxCoins path
 	localMin := sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))} // 0.002
@@ -756,29 +677,23 @@ func TestAnteHandle_BypassOverCap_CombinesLocalAndGlobalFees(t *testing.T) {
 
 func TestGetTxFeeRequired(t *testing.T) {
 	// Create test context
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	stakingDenomFunc := func(ctx sdk.Context) string {
 		return "stake"
 	}
 
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	// Test case 1: Error case - empty bond denom
 	emptyBondDenomFunc := func(ctx sdk.Context) string {
 		return ""
 	}
-	emptyDecorator := ante.NewFeeDecorator(subspace, emptyBondDenomFunc)
+	emptyDecorator := ante.NewFeeDecorator(&k, emptyBondDenomFunc)
 
 	payer := sdk.AccAddress([]byte("test-payer-address"))
 	feeTx := mockFeeTx{
@@ -798,7 +713,7 @@ func TestGetTxFeeRequired(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	// Set local min gas prices higher than global fees
 	localFees := sdk.DecCoins{sdk.NewDecCoinFromDec("uxion", math.LegacyNewDecWithPrec(2, 3))}
@@ -897,17 +812,11 @@ func TestCombinedFeeRequirementEdgeCases(t *testing.T) {
 
 func TestAnteHandle_BypassWithAllowedFeeDenom(t *testing.T) {
 	// Test that bypass messages with fees in allowed denominations pass
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Set params with non-zero global fees (so denom validation is enforced)
 	params := types.Params{
@@ -915,10 +824,10 @@ func TestAnteHandle_BypassWithAllowedFeeDenom(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return testStakingDenom }
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	nextCalled := false
 	nextHandler := func(c sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
@@ -945,17 +854,11 @@ func TestAnteHandle_BypassWithAllowedFeeDenom(t *testing.T) {
 
 func TestAnteHandle_BypassGetGlobalFeeError(t *testing.T) {
 	// Test that when GetGlobalFee fails during bypass fee validation, error is returned
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	// Set params with empty global fees (will use DefaultZeroGlobalFee)
 	params := types.Params{
@@ -963,11 +866,11 @@ func TestAnteHandle_BypassGetGlobalFeeError(t *testing.T) {
 		BypassMinFeeMsgTypes:            []string{},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	// Use empty bond denom to make GetGlobalFee fail via DefaultZeroGlobalFee
 	emptyBondDenomFunc := func(ctx sdk.Context) string { return "" }
-	decorator := ante.NewFeeDecorator(subspace, emptyBondDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, emptyBondDenomFunc)
 
 	nextCalled := false
 	nextHandler := func(c sdk.Context, tx sdk.Tx, simulate bool) (sdk.Context, error) {
@@ -991,4 +894,26 @@ func TestAnteHandle_BypassGetGlobalFeeError(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "empty staking bond denomination")
 	require.False(t, nextCalled)
+}
+
+func TestFeeDecoratorParamFallbacks(t *testing.T) {
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
+	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey).Ctx
+	service := runtime.NewKVStoreService(storeKey)
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), service, "authority")
+	decorator := ante.NewFeeDecorator(&k, func(sdk.Context) string { return testStakingDenom })
+
+	fees, err := decorator.GetGlobalFee(ctx)
+	require.NoError(t, err)
+	require.Equal(t, testStakingDenom, fees[0].Denom)
+	require.True(t, fees.IsZero())
+	require.Equal(t, types.DefaultBypassMinFeeMsgTypes, decorator.GetBypassMsgTypes(ctx))
+	require.Equal(t, types.DefaultmaxTotalBypassMinFeeMsgGasUsage, decorator.GetMaxTotalBypassMinFeeMsgGasUsage(ctx))
+
+	require.NoError(t, service.OpenKVStore(ctx).Set(types.ParamsKey.Bytes(), []byte{0xff}))
+	_, err = decorator.GetGlobalFee(ctx)
+	require.Error(t, err)
+	require.Nil(t, decorator.GetBypassMsgTypes(ctx))
+	require.Equal(t, types.DefaultmaxTotalBypassMinFeeMsgGasUsage, decorator.GetMaxTotalBypassMinFeeMsgGasUsage(ctx))
 }

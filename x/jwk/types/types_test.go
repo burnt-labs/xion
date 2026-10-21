@@ -50,11 +50,6 @@ func TestJWKParams(t *testing.T) {
 	require.Equal(t, uint64(10_000), defaultParams.DeploymentGas)
 	require.Equal(t, uint64(30_000_000_000), defaultParams.TimeOffset)
 
-	// Test ParamSetPairs
-	pairs := defaultParams.ParamSetPairs()
-	require.NotNil(t, pairs)
-	require.Len(t, pairs, 2)
-
 	// Test Validate
 	err := defaultParams.Validate()
 	require.NoError(t, err)
@@ -74,10 +69,6 @@ func TestJWKParams(t *testing.T) {
 	}
 	err = invalidParams2.Validate()
 	require.Error(t, err)
-
-	// Test ParamKeyTable
-	keyTable := types.ParamKeyTable()
-	require.NotNil(t, keyTable)
 }
 
 func TestJWKCodec(t *testing.T) {

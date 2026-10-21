@@ -158,33 +158,6 @@ func Test_validateMaxTotalBypassMinFeeMsgGasUsage(t *testing.T) {
 	}
 }
 
-func TestParamSetPairs(t *testing.T) {
-	params := DefaultParams()
-	pairs := params.ParamSetPairs()
-	require.Len(t, pairs, 3)
-
-	// Check each param set pair
-	expectedKeys := [][]byte{
-		ParamStoreKeyMinGasPrices,
-		ParamStoreKeyBypassMinFeeMsgTypes,
-		ParamStoreKeyMaxTotalBypassMinFeeMsgGasUsage,
-	}
-
-	for i, pair := range pairs {
-		require.Equal(t, expectedKeys[i], pair.Key)
-		require.NotNil(t, pair.Value)
-		require.NotNil(t, pair.ValidatorFn)
-	}
-}
-
-func TestParamKeyTable(t *testing.T) {
-	table := ParamKeyTable()
-	require.NotNil(t, table)
-
-	// Test that the table is properly constructed
-	require.NotNil(t, table)
-}
-
 func TestValidateBasic(t *testing.T) {
 	tests := map[string]struct {
 		params    Params
