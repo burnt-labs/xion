@@ -321,6 +321,14 @@ func NewWasmApp(
 
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 
+	// Restore the aggregate block-gas meter. SDK v0.54+ leaves it disabled by
+	// default (NewBaseApp initializes disableBlockGasMeter=true; SDK v0.53.8
+	// left it enabled), while the stock NoOp-mempool ProcessProposal accepts a
+	// proposal without an aggregate check — so without this, a block executes
+	// unbounded when Block.MaxGas is finite. Sequential execution only; the
+	// Block-STM runner path panics if the meter is enabled.
+	baseAppOptions = append(baseAppOptions, baseapp.EnableBlockGasMeter())
+
 	bApp := baseapp.NewBaseApp(appName, logger, db, txConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
