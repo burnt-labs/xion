@@ -187,18 +187,6 @@ func TestAppModuleBasic_GetQueryCmd(t *testing.T) {
 	require.Equal(t, types.ModuleName, cmd.Use)
 }
 
-func TestAppModule_RegisterInvariants(t *testing.T) {
-	appModule, _ := setupModule(t)
-
-	// Should not panic (it's a no-op)
-	require.NotPanics(t, func() {
-		appModule.RegisterInvariants(nil)
-	})
-
-	// Call it directly to ensure coverage
-	appModule.RegisterInvariants(nil)
-}
-
 func TestAppModule_QuerierRoute(t *testing.T) {
 	appModule, _ := setupModule(t)
 

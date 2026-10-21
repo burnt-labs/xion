@@ -15,6 +15,8 @@ import (
 
 const UpgradeName = "v32"
 
+var removedStoreKeys = []string{"group", "nft", "circuit", "crisis"}
+
 // checksumAccountCode is a code whose accounts were registered, before the
 // (sender, salt) registry existed, at addresses derived from the code's
 // checksum rather than from the address derivation hash.
@@ -62,11 +64,14 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 	return storeLoader
 }
 
-func nextStoreUpgrades(_ string) storetypes.StoreUpgrades {
+func nextStoreUpgrades(upgradeName string) storetypes.StoreUpgrades {
 	storeUpgrades := storetypes.StoreUpgrades{
 		Added:   []string{},
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
+	}
+	if upgradeName == UpgradeName {
+		storeUpgrades.Deleted = removedStoreKeys
 	}
 	return storeUpgrades
 }

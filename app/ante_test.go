@@ -36,7 +36,6 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 			TXCounterStoreService: runtime.NewKVStoreService(app.keys[wasmtypes.StoreKey]),
 			GlobalFeeKeeper:       &app.GlobalFeeKeeper,
 			StakingKeeper:         app.StakingKeeper,
-			CircuitKeeper:         &app.CircuitKeeper,
 		}
 	}
 
@@ -115,17 +114,6 @@ func TestNewAnteHandler_AllValidationErrors(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, handler)
 		require.Contains(t, err.Error(), "wasm store service is required for ante builder")
-	})
-
-	// Test 8: nil CircuitKeeper
-	t.Run("nil circuit keeper", func(t *testing.T) {
-		opts := baseOptions()
-		opts.CircuitKeeper = nil
-
-		handler, err := NewAnteHandler(opts)
-		require.Error(t, err)
-		require.Nil(t, handler)
-		require.Contains(t, err.Error(), "circuit keeper is required for ante builder")
 	})
 
 	// Test 9: Success case - valid configuration

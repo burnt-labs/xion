@@ -17,7 +17,6 @@ import (
 	tmcfg "github.com/cometbft/cometbft/config"
 
 	dbm "github.com/cosmos/cosmos-db"
-	rosettaCmd "github.com/cosmos/rosetta/cmd"
 
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
@@ -38,7 +37,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	"github.com/burnt-labs/xion/app"
@@ -188,12 +186,9 @@ func initRootCmd(rootCmd *cobra.Command,
 	)
 	// add indexer
 	rootCmd.AddCommand(indexercli.Indexer(newApp, app.DefaultNodeHome))
-	// add rosetta
-	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
-	crisis.AddModuleInitFlags(startCmd) // nolint:staticcheck
 	wasm.AddModuleInitFlags(startCmd)
 	startCmd.Flags().Duration("consensus.timeout_commit", time.Second, "How long to wait after committing a block before starting the next height")
 }
