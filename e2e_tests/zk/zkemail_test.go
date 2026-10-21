@@ -5,6 +5,7 @@ import (
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
 )
 
 // TestZKEmailAuthenticator tests the full ZKEmail authenticator flow.
@@ -19,7 +20,7 @@ func TestZKEmailAuthenticator(t *testing.T) {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount("xion", "xionpub")
 
-	xion := testlib.BuildXionChain(t)
+	xion := buildZKEmailChain(t, 12)
 
 	t.Parallel()
 
@@ -32,4 +33,11 @@ func TestZKEmailAuthenticator(t *testing.T) {
 		User:            nil, // Will use DeployerMnemonic for pre-generated proofs
 		ProposalTracker: proposalTracker,
 	})
+}
+
+func buildZKEmailChain(t *testing.T, accountNumber uint64) *cosmos.CosmosChain {
+	t.Helper()
+	spec := testlib.XionLocalChainSpec(t, 3, 1)
+	spec.ModifyGenesis = testlib.WithZKFixtureAccount(spec.ModifyGenesis, accountNumber)
+	return testlib.BuildXionChainWithSpec(t, spec)
 }
