@@ -1,20 +1,12 @@
 package e2e_ibc
 
 import (
-	"crypto/sha256"
-	"encoding/json"
 	"fmt"
-	"path/filepath"
-	"strconv"
 	"testing"
-	"time"
 
-	"cosmossdk.io/math"
-	"github.com/burnt-labs/xion/e2e_tests/testlib"
-	abcitypes "github.com/cometbft/cometbft/abci/types"
-	"github.com/cosmos/cosmos-sdk/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	interchaintest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
@@ -22,8 +14,15 @@ import (
 	"github.com/cosmos/interchaintest/v10/relayer"
 	"github.com/cosmos/interchaintest/v10/testreporter"
 	"github.com/cosmos/interchaintest/v10/testutil"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
+
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/burnt-labs/xion/e2e_tests/testlib"
+	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 // TestIBCMinFeeMultiDenom tests that IBC-transferred tokens can be used for gas fees
@@ -130,83 +129,20 @@ func TestIBCMinFeeMultiDenom(t *testing.T) {
 	require.True(t, xionUserBalNew.Equal(amount), "got: %d, wanted: %d", xionUserBalNew, expectedBal)
 
 	// step 3: upgrade minimum through governance
-	rawValueBz, err := formatJSON(dstIbcDenom)
-	require.NoError(t, err)
-
-	paramChangeJSON := paramsutils.ParamChangeProposalJSON{
-		Title:       "add token to globalfee",
-		Description: ".",
-		Changes: paramsutils.ParamChangesJSON{
-			paramsutils.ParamChangeJSON{
-				Subspace: "globalfee",
-				Key:      "MinimumGasPricesParam",
-				Value:    rawValueBz,
+	err = testlib.SubmitAndPassProposal(t, ctx, chain, xionUser, []cosmos.ProtoMessage{
+		&globalfeetypes.MsgUpdateParams{
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+			Params: globalfeetypes.Params{
+				MinimumGasPrices: types.NewDecCoins(
+					types.NewDecCoinFromDec(dstIbcDenom, math.LegacyMustNewDecFromStr("0.024")),
+					types.NewDecCoinFromDec("uxion", math.LegacyMustNewDecFromStr("0.025")),
+				),
+				BypassMinFeeMsgTypes:            globalfeetypes.DefaultBypassMinFeeMsgTypes,
+				MaxTotalBypassMinFeeMsgGasUsage: globalfeetypes.DefaultmaxTotalBypassMinFeeMsgGasUsage,
 			},
 		},
-		Deposit: "10000000uxion",
-	}
-
-	content, err := json.Marshal(paramChangeJSON)
+	}, "add token to globalfee", ".", "", 1)
 	require.NoError(t, err)
-
-	hash := sha256.Sum256(content)
-	proposalFilename := fmt.Sprintf("%x.json", hash)
-	err = chain.GetNode().WriteFile(ctx, content, proposalFilename)
-	require.NoError(t, err)
-
-	proposalPath := filepath.Join(chain.GetNode().HomeDir(), proposalFilename)
-
-	command := []string{
-		"gov", "submit-legacy-proposal",
-		"param-change",
-		proposalPath,
-		"--gas",
-		"2500000",
-		"--chain-id",
-		chain.Config().ChainID,
-	}
-
-	txHash, err := testlib.ExecTx(t, ctx, chain.GetNode(), xionUser.KeyName(), command...)
-	require.NoError(t, err)
-	t.Logf("Submitted governance proposal with tx Hash: %s", txHash)
-
-	txRes, err := chain.GetTransaction(txHash)
-	require.NoError(t, err)
-
-	evtSubmitProp := "submit_proposal"
-	paramProposalIDRaw, ok := txProposal(txRes.Events, evtSubmitProp, "proposal_id")
-	require.True(t, ok)
-	paramProposalID, err := strconv.Atoi(paramProposalIDRaw)
-	require.NoError(t, err)
-
-	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := chain.GovQueryProposal(ctx, uint64(paramProposalID))
-		if err != nil {
-			require.NoError(t, err)
-		} else {
-			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
-				return true
-			}
-			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
-		}
-		return false
-	}, time.Second*11, time.Second, "failed to reach status VOTING after 11s")
-
-	err = chain.VoteOnProposalAllValidators(ctx, uint64(paramProposalID), cosmos.ProposalVoteYes)
-	require.NoError(t, err)
-
-	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := chain.GovQueryProposal(ctx, uint64(paramProposalID))
-		if err != nil {
-			require.NoError(t, err)
-		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
-				return true
-			}
-			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
-		}
-		return false
-	}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
 	// Wait for a few blocks to ensure the proposal changes take effect
 	currentHeight, err = chain.Height(ctx)
@@ -250,29 +186,4 @@ func TestIBCMinFeeMultiDenom(t *testing.T) {
 		recipientKeyAddress, fmt.Sprintf("%d%s", 100, chain.Config().Denom),
 	)
 	require.NoError(t, err)
-}
-
-// formatJSON formats the IBC denom for the governance proposal
-func formatJSON(ibcDenom string) (json.RawMessage, error) {
-	// Note: Cosmos SDK requires denominations to be sorted lexicographically
-	// IBC denoms (ibc/...) come before native denoms (uxion) alphabetically
-	value := []map[string]string{
-		{"denom": ibcDenom, "amount": "0.024"},
-		{"denom": "uxion", "amount": "0.025"},
-	}
-	return json.Marshal(value)
-}
-
-// txProposal extracts a value from transaction events
-func txProposal(events []abcitypes.Event, eventType, key string) (string, bool) {
-	for _, event := range events {
-		if event.Type == eventType {
-			for _, attr := range event.Attributes {
-				if attr.Key == key {
-					return attr.Value, true
-				}
-			}
-		}
-	}
-	return "", false
 }
