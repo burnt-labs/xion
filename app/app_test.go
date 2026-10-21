@@ -608,8 +608,16 @@ func TestNextUpgradeHandler(t *testing.T) {
 	})
 }
 
-func TestNextStoreUpgradesChangesNoStores(t *testing.T) {
+func TestNextStoreUpgradesRemovesRetiredModuleStores(t *testing.T) {
 	storeUpgrades := nextStoreUpgrades(UpgradeName)
+
+	require.Empty(t, storeUpgrades.Added)
+	require.Empty(t, storeUpgrades.Renamed)
+	require.Equal(t, []string{"group", "nft", "circuit", "crisis"}, storeUpgrades.Deleted)
+}
+
+func TestNextStoreUpgradesKeepsStoresForOtherUpgrades(t *testing.T) {
+	storeUpgrades := nextStoreUpgrades("v31")
 
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)
