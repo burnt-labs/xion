@@ -19,15 +19,15 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authTx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/protocol/webauthncbor"
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
@@ -1003,7 +1003,7 @@ func GetAAContractAddress(t *testing.T, txDetails map[string]interface{}) string
 
 // Constants for chain upgrade testing
 const (
-	HaltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future (must exceed voting_period of 10s)
+	HaltHeightDelta    = int64(20) // blocks until the upgrade height; must outlast the 10s voting_period even with 1s blocks
 	BlocksAfterUpgrade = uint64(10)
 	Authority          = "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc" // Governance authority address
 )
@@ -1058,14 +1058,14 @@ func CosmosChainUpgradeTest(t *testing.T, xion *cosmos.CosmosChain, upgradeConta
 	_, err = chain.SubmitProposal(ctx, validatorKeyName, proposal)
 	require.NoError(t, err)
 
-	prop, err := chain.GovQueryProposal(ctx, 1)
+	prop, err := chain.GovQueryProposalV1(ctx, 1)
 	require.NoError(t, err)
-	require.Equal(t, govv1beta1.StatusVotingPeriod, prop.Status)
+	require.Equal(t, govv1.StatusVotingPeriod, prop.Status)
 
-	err = chain.VoteOnProposalAllValidators(ctx, prop.ProposalId, cosmos.ProposalVoteYes)
+	err = chain.VoteOnProposalAllValidators(ctx, prop.Id, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+HaltHeightDelta, prop.ProposalId, govv1beta1.StatusPassed)
+	_, err = cosmos.PollForProposalStatusV1(ctx, chain, height, height+HaltHeightDelta, prop.Id, govv1.StatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	height, err = chain.Height(ctx)

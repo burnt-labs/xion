@@ -12,10 +12,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	ibctest "github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 
 	"cosmossdk.io/math"
 
@@ -24,7 +24,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
@@ -174,11 +174,11 @@ func testMinimumFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionFn) 
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+			if proposalInfo.Status == govv1.StatusVotingPeriod {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
@@ -190,11 +190,11 @@ func testMinimumFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionFn) 
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
+			if proposalInfo.Status == govv1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
@@ -320,11 +320,11 @@ func testMultiDenomFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionF
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+			if proposalInfo.Status == govv1.StatusVotingPeriod {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
@@ -336,11 +336,11 @@ func testMultiDenomFee(t *testing.T, xion *cosmos.CosmosChain, assert assertionF
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
+			if proposalInfo.Status == govv1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
@@ -538,12 +538,12 @@ func TestXionPlatformMinDirect(t *testing.T) {
 
 		// Wait for proposal to reach voting period
 		require.Eventuallyf(t, func() bool {
-			proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+			proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 			if err != nil {
 				t.Logf("Error querying proposal: %v", err)
 				return false
 			}
-			return proposalInfo.Status == govv1beta1.StatusVotingPeriod
+			return proposalInfo.Status == govv1.StatusVotingPeriod
 		}, time.Second*11, time.Second, "failed to reach status VOTING after 11s")
 
 		// Vote on proposal
@@ -552,12 +552,12 @@ func TestXionPlatformMinDirect(t *testing.T) {
 
 		// Wait for proposal to pass
 		require.Eventuallyf(t, func() bool {
-			proposalInfo, err := xion.GovQueryProposal(ctx, uint64(proposalID))
+			proposalInfo, err := xion.GovQueryProposalV1(ctx, uint64(proposalID))
 			if err != nil {
 				t.Logf("Error querying proposal: %v", err)
 				return false
 			}
-			return proposalInfo.Status == govv1beta1.StatusPassed
+			return proposalInfo.Status == govv1.StatusPassed
 		}, time.Second*11, time.Second, "failed to reach status PASSED after 11s")
 
 		// Wait for execution

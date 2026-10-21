@@ -4,23 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 
 	"cosmossdk.io/math"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/interchaintest/v10/conformance"
-	"github.com/cosmos/interchaintest/v10/relayer"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/interchaintest/v11/conformance"
+	"github.com/cosmos/interchaintest/v11/testutil"
 
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testreporter"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -33,35 +32,17 @@ func TestIBCUpgrade(t *testing.T) {
 
 	t.Parallel()
 
-	// Get the "from" image (current version in repo)
-	xionFromImage, err := testlib.GetGHCRPackageNameCurrentRepo()
+	xionFromImageParts, err := testlib.GetLatestReleaseImageComponents()
 	require.NoError(t, err)
+	require.Len(t, xionFromImageParts, 2)
 
-	// Parse the from image to extract repository and version
-	xionFromImageParts := strings.SplitN(xionFromImage, ":", 2)
-	require.GreaterOrEqual(t, len(xionFromImageParts), 2, "xionFromImage should have repository:tag format")
-
-	xionVersionFrom := xionFromImageParts[1]
-
-	// Get the "to" image (local image) which is where we want to upgrade to
-	// For upgrade tests, we use the GHCR repository because interchaintest's UpgradeVersion
-	// doesn't update c.cfg.Images[0].Repository, only the version. When pullImages runs,
-	// it uses c.cfg.Images[0] which has the original GHCR repository.
-	// In CI, the local image is also tagged with the GHCR path for this purpose.
 	xionToImageParts, err := testlib.GetXionImageTagComponents()
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(xionToImageParts), 2, "xionToImage should have repository:tag format")
+	require.Len(t, xionToImageParts, 2)
 
-	// Use GHCR repository for upgrade (matches how the image is tagged in CI)
-	xionImageTo := testlib.GHCRRepository
+	xionImageTo := xionToImageParts[0]
 	xionVersionTo := xionToImageParts[1]
-
-	// Use "recent" as upgrade name for local builds, otherwise use version-based name
-	xionUpgradeName := "recent"
-	if xionVersionTo != "local" {
-		// For non-local builds, use version as upgrade name (e.g., "v20")
-		xionUpgradeName = xionVersionTo
-	}
+	xionUpgradeName := app.UpgradeName
 
 	// Constants for the test
 	haltHeightDelta := int64(9) // how many blocks after current height to upgrade
@@ -69,7 +50,13 @@ func TestIBCUpgrade(t *testing.T) {
 
 	// Create chain specs using helper functions
 	xionChainSpec := testlib.XionChainSpec(3, 1)
-	xionChainSpec.Version = xionVersionFrom
+	xionChainSpec.Version = xionFromImageParts[1]
+	xionChainSpec.Images = []ibc.DockerImage{{
+		Repository: xionFromImageParts[0],
+		Version:    xionFromImageParts[1],
+		UIDGID:     "1000:1000",
+	}}
+	xionChainSpec.EncodingConfig = testlib.XionEncodingConfig(t)
 
 	// Add additional genesis modifications for IBC test
 	xionChainSpec.ChainConfig.ModifyGenesis = cosmos.ModifyGenesis(append(testlib.UpgradeGenesisKVMods,
@@ -84,7 +71,7 @@ func TestIBCUpgrade(t *testing.T) {
 		osmosisChainSpec,
 	})
 
-	client, network := interchaintest.DockerSetup(t)
+	client, network := testlib.DockerSetup(t)
 
 	chain, counterpartyChain := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
 
@@ -93,11 +80,10 @@ func TestIBCUpgrade(t *testing.T) {
 		relayerName = "relayer"
 	)
 
-	// Get a relayer instance
+	// Keep the default history window so restarts do not replay the initial handshake.
 	rf := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
-		relayer.StartupFlags("-b", "100"),
 	)
 
 	r := rf.Build(t, client, network)
@@ -162,11 +148,11 @@ func TestIBCUpgrade(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := chain.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := chain.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusVotingPeriod {
+			if proposalInfo.Status == govv1.StatusVotingPeriod {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status VOTING, current status: %s", proposalInfo.Status)
@@ -178,11 +164,11 @@ func TestIBCUpgrade(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := chain.GovQueryProposal(ctx, uint64(proposalID))
+		proposalInfo, err := chain.GovQueryProposalV1(ctx, uint64(proposalID))
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta1.StatusPassed {
+			if proposalInfo.Status == govv1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal to enter voting status PASSED, current status: %s", proposalInfo.Status)
@@ -215,7 +201,7 @@ func TestIBCUpgrade(t *testing.T) {
 	err = chain.VoteOnProposalAllValidators(ctx, propId, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
-	_, err = cosmos.PollForProposalStatus(ctx, chain, height, height+haltHeightDelta, propId, govv1beta1.StatusPassed)
+	_, err = cosmos.PollForProposalStatusV1(ctx, chain, height, height+haltHeightDelta, propId, govv1.StatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	height, err = chain.Height(ctx)

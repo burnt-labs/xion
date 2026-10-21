@@ -9,8 +9,8 @@ import (
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	xiontypes "github.com/burnt-labs/xion/x/xion/types"
 	"github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/stretchr/testify/require"
 )
 
