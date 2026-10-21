@@ -1144,6 +1144,13 @@ func (app *WasmApp) GetKey(storeKey string) *storetypes.KVStoreKey {
 	return app.keys[storeKey]
 }
 
+// GetTKey returns the TransientStoreKey for the provided store key.
+//
+// NOTE: This is solely to be used for testing purposes.
+func (app *WasmApp) GetTKey(storeKey string) *storetypes.TransientStoreKey {
+	return app.tkeys[storeKey]
+}
+
 // SimulationManager implements the SimulationApp interface
 func (app *WasmApp) SimulationManager() *module.SimulationManager {
 	return app.sm

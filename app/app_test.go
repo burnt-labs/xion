@@ -120,6 +120,9 @@ func TestAppGetters(t *testing.T) {
 	storeKey := gapp.GetKey("bank")
 	require.NotNil(t, storeKey)
 
+	// Test GetTKey()
+	require.NotNil(t, gapp.GetTKey(aatypes.TransientStoreKey))
+
 	// Test SimulationManager()
 	simManager := gapp.SimulationManager()
 	require.NotNil(t, simManager)

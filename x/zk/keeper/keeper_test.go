@@ -42,6 +42,14 @@ type TestFixture struct {
 
 func SetupTest(t *testing.T) *TestFixture {
 	t.Helper()
+	return setupFixture(t, nil)
+}
+
+// setupFixture builds the keeper fixture. When wrap is non-nil it decorates the
+// store service the keeper is constructed with, which lets tests inject store
+// failures without touching the keeper itself.
+func setupFixture(t *testing.T, wrap func(store.KVStoreService) store.KVStoreService) *TestFixture {
+	t.Helper()
 	f := new(TestFixture)
 	require := require.New(t)
 
@@ -54,6 +62,9 @@ func SetupTest(t *testing.T) *TestFixture {
 
 	key := storetypes.NewKVStoreKey(types.ModuleName)
 	storeService := runtime.NewKVStoreService(key)
+	if wrap != nil {
+		storeService = wrap(storeService)
+	}
 	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
 
 	f.ctx = testCtx.Ctx

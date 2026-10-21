@@ -1,6 +1,8 @@
 package wasmbinding
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -229,4 +231,40 @@ func TestSetupKeysWithValidFile(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resultKey)
 	require.IsType(t, &rsa.PrivateKey{}, resultKey)
+}
+
+// ecPrivateKeyPEM returns a PEM block jwk parses successfully but that cannot
+// be exported as an RSA private key.
+func ecPrivateKeyPEM(t *testing.T) []byte {
+	t.Helper()
+	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	require.NoError(t, err)
+	der, err := x509.MarshalECPrivateKey(ecKey)
+	require.NoError(t, err)
+	return pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: der})
+}
+
+func TestSetupPublicKeys_NonRSAKey(t *testing.T) {
+	keyFile := filepath.Join(t.TempDir(), "ec_key.pem")
+	require.NoError(t, os.WriteFile(keyFile, ecPrivateKeyPEM(t), 0o600))
+
+	_, _, err := SetupPublicKeys(keyFile)
+	require.Error(t, err)
+}
+
+func TestSetupKeys_NonRSAKey(t *testing.T) {
+	tempDir := t.TempDir()
+	keysDir := filepath.Join(tempDir, "keys")
+	require.NoError(t, os.MkdirAll(keysDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(keysDir, "jwtRS256.key"), ecPrivateKeyPEM(t), 0o600))
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+	require.NoError(t, os.Chdir(tempDir))
+
+	_, err = SetupKeys()
+	require.Error(t, err)
 }
