@@ -1088,6 +1088,11 @@ func CosmosChainUpgradeTest(t *testing.T, xion *cosmos.CosmosChain, upgradeConta
 	require.NoError(t, err)
 	t.Logf("mint parameters: %+v \n", queryRes) // confirming mint params before the upgrade
 
+	globalFeeBefore, err := ExecQuery(t, ctx, chain.GetNode(), "globalfee", "params")
+	require.NoError(t, err)
+	jwkBefore, err := ExecQuery(t, ctx, chain.GetNode(), "jwk", "params")
+	require.NoError(t, err)
+
 	// bring down nodes to prepare for upgrade
 	err = chain.StopAllNodes(ctx)
 	require.NoError(t, err, "error stopping node(s)")
@@ -1105,16 +1110,15 @@ func CosmosChainUpgradeTest(t *testing.T, xion *cosmos.CosmosChain, upgradeConta
 	err = testutil.WaitForBlocks(timeoutCtx, int(BlocksAfterUpgrade), chain)
 	require.NoError(t, err, "chain did not produce blocks after upgrade")
 
-	// check that the upgrade set the params
-	paramsModResp, err := ExecQuery(t, ctx, chain.GetNode(),
-		"params", "subspace", "jwk", "TimeOffset")
+	globalFeeParams, err := ExecQuery(t, ctx, chain.GetNode(), "globalfee", "params")
 	require.NoError(t, err)
-	t.Logf("jwk params response: %v", paramsModResp)
+	require.Equal(t, globalFeeBefore, globalFeeParams, "globalfee params must survive the upgrade")
 
 	jwkParams, err := ExecQuery(t, ctx, chain.GetNode(),
 		"jwk", "params")
 	require.NoError(t, err)
 	t.Logf("jwk params response: %v", jwkParams)
+	require.Equal(t, jwkBefore, jwkParams, "jwk params must survive the upgrade")
 
 	tokenFactoryParams, err := ExecQuery(t, ctx, chain.GetNode(),
 		"tokenfactory", "params")
