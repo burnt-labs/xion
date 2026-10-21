@@ -1,14 +1,19 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protowire"
 
+	gogoproto "github.com/cosmos/gogoproto/proto"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
+	legacyfeeabs "github.com/burnt-labs/xion/app/legacy/feeabs"
 )
 
 // Message type URLs of every proposal stored on xion-mainnet-1 at v31; gov queries and export must decode them.
@@ -78,4 +83,65 @@ func TestLegacyParameterChangeProposalDecodes(t *testing.T) {
 	c, ok := got.Content.GetCachedValue().(govv1beta1.Content)
 	require.True(t, ok)
 	require.Equal(t, "set min gas", c.GetTitle())
+}
+
+// The fee abstraction types live in app/legacy/feeabs, but their proto package is still
+// xion.feeabs.v1beta1, so the type URLs stored on chain resolve to them unchanged.
+func TestLegacyFeeabsTypeURLs(t *testing.T) {
+	app := Setup(t)
+	for url, msg := range map[string]gogoproto.Message{
+		"/xion.feeabs.v1beta1.MsgSendQueryIbcDenomTWAP":             &legacyfeeabs.MsgSendQueryIbcDenomTWAP{},
+		"/xion.feeabs.v1beta1.MsgSwapCrossChain":                    &legacyfeeabs.MsgSwapCrossChain{},
+		"/xion.feeabs.v1beta1.MsgFundFeeAbsModuleAccount":           &legacyfeeabs.MsgFundFeeAbsModuleAccount{},
+		"/xion.feeabs.v1beta1.MsgUpdateParams":                      &legacyfeeabs.MsgUpdateParams{},
+		"/xion.feeabs.v1beta1.MsgAddHostZone":                       &legacyfeeabs.MsgAddHostZone{},
+		"/xion.feeabs.v1beta1.MsgUpdateHostZone":                    &legacyfeeabs.MsgUpdateHostZone{},
+		"/xion.feeabs.v1beta1.MsgRemoveHostZone":                    &legacyfeeabs.MsgRemoveHostZone{},
+		"/xion.feeabs.v1beta1.AddHostZoneProposal":                  &legacyfeeabs.AddHostZoneProposal{},
+		"/xion.feeabs.v1beta1.DeleteHostZoneProposal":               &legacyfeeabs.DeleteHostZoneProposal{},
+		"/xion.feeabs.v1beta1.SetHostZoneProposal":                  &legacyfeeabs.SetHostZoneProposal{},
+		"/feeabstraction.feeabs.v1beta1.MsgAddHostZone":             &legacyfeeabs.MsgAddHostZone{},
+		"/feeabstraction.feeabs.v1beta1.MsgUpdateParams":            &legacyfeeabs.MsgUpdateParams{},
+		"/feeabstraction.feeabs.v1beta1.AddHostZoneProposal":        &legacyfeeabs.AddHostZoneProposal{},
+		"/feeabstraction.feeabs.v1beta1.MsgFundFeeAbsModuleAccount": &legacyfeeabs.MsgFundFeeAbsModuleAccount{},
+		"/feeabstraction.feeabs.v1beta1.MsgSendQueryIbcDenomTWAP":   &legacyfeeabs.MsgSendQueryIbcDenomTWAP{},
+		"/feeabstraction.feeabs.v1beta1.MsgSwapCrossChain":          &legacyfeeabs.MsgSwapCrossChain{},
+		"/feeabstraction.feeabs.v1beta1.MsgUpdateHostZone":          &legacyfeeabs.MsgUpdateHostZone{},
+		"/feeabstraction.feeabs.v1beta1.MsgRemoveHostZone":          &legacyfeeabs.MsgRemoveHostZone{},
+		"/feeabstraction.feeabs.v1beta1.DeleteHostZoneProposal":     &legacyfeeabs.DeleteHostZoneProposal{},
+		"/feeabstraction.feeabs.v1beta1.SetHostZoneProposal":        &legacyfeeabs.SetHostZoneProposal{},
+	} {
+		if !strings.HasPrefix(url, "/feeabstraction.") {
+			require.Equal(t, url, "/"+gogoproto.MessageName(msg))
+		}
+		resolved, err := app.InterfaceRegistry().Resolve(url)
+		require.NoError(t, err, url)
+		require.IsType(t, msg, resolved, url)
+	}
+}
+
+// A passed proposal whose message is a fee abstraction Msg decodes through the app codec.
+func TestLegacyFeeabsProposalDecodes(t *testing.T) {
+	app := Setup(t)
+
+	msg := &legacyfeeabs.MsgAddHostZone{
+		Authority: "xion10d07y265gmmuvt4z0w9aw880jnsr700jctf8qc",
+		HostChainConfig: legacyfeeabs.HostChainFeeAbsConfig{
+			IbcDenom:                "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518",
+			OsmosisPoolTokenDenomIn: "uosmo",
+			PoolId:                  1,
+		},
+	}
+	msgAny, err := codectypes.NewAnyWithValue(msg)
+	require.NoError(t, err)
+	require.Equal(t, "/xion.feeabs.v1beta1.MsgAddHostZone", msgAny.TypeUrl)
+	bz, err := app.AppCodec().Marshal(&govv1.Proposal{Id: 1, Messages: []*codectypes.Any{msgAny}})
+	require.NoError(t, err)
+
+	var decoded govv1.Proposal
+	require.NoError(t, app.AppCodec().Unmarshal(bz, &decoded))
+	msgs, err := decoded.GetMsgs()
+	require.NoError(t, err)
+	require.Len(t, msgs, 1)
+	require.Equal(t, msg, msgs[0])
 }
