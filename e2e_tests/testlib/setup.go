@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -84,6 +85,17 @@ func BuildXionChain(t *testing.T) *cosmos.CosmosChain {
 	return BuildXionChainWithSpec(t, XionLocalChainSpec(t, 3, 1))
 }
 
+var dockerSetupMu sync.Mutex
+
+// DockerSetup wraps interchaintest.DockerSetup so parallel tests create their networks one at a time.
+// interchaintest lists the used subnets and then creates a random 172.x /24, so two parallel tests can
+// pick the same subnet and one panics with "Pool overlaps with other one on this address space".
+func DockerSetup(t *testing.T) (*client.Client, string) {
+	dockerSetupMu.Lock()
+	defer dockerSetupMu.Unlock()
+	return interchaintest.DockerSetup(t)
+}
+
 // BuildXionChainWithSpec builds a Xion chain using a chain spec
 func BuildXionChainWithSpec(t *testing.T, spec *interchaintest.ChainSpec) *cosmos.CosmosChain {
 	ctx := t.Context()
@@ -92,7 +104,7 @@ func BuildXionChainWithSpec(t *testing.T, spec *interchaintest.ChainSpec) *cosmo
 
 	xion := chains[0].(*cosmos.CosmosChain)
 
-	client, network := interchaintest.DockerSetup(t)
+	client, network := DockerSetup(t)
 
 	// Prep Interchain
 	ic := interchaintest.NewInterchain().

@@ -38,7 +38,7 @@ func TestIBCMinFeeMultiDenom(t *testing.T) {
 		testlib.OsmosisChainSpec(1, 0),
 	})
 
-	client, network := interchaintest.DockerSetup(t)
+	client, network := testlib.DockerSetup(t)
 
 	chain, counterpartyChain := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
 

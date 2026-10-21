@@ -51,7 +51,7 @@ func TestIBCTimeout(t *testing.T) {
 		osmosisChainSpec,
 	})
 
-	client, network := interchaintest.DockerSetup(t)
+	client, network := testlib.DockerSetup(t)
 
 	xionChain, osmosisChain := chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
 
