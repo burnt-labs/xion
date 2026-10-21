@@ -122,6 +122,7 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	legacyfeeabs "github.com/burnt-labs/xion/app/legacy/feeabs"
 	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
 	legacyparams "github.com/burnt-labs/xion/app/legacy/params"
 	"github.com/burnt-labs/xion/indexer"
@@ -313,6 +314,10 @@ func NewWasmApp(
 	legacyibcwasm.RegisterInterfaces(interfaceRegistry)
 	legacyparams.RegisterInterfaces(interfaceRegistry)
 	legacyparams.RegisterLegacyAminoCodec(legacyAmino)
+	// The fee abstraction module was removed in v20, but gov proposals in state
+	// still carry its messages. See app/legacy/feeabs.
+	legacyfeeabs.RegisterInterfaces(interfaceRegistry)
+	legacyfeeabs.RegisterCodec(legacyAmino)
 
 	baseAppOptions = append(baseAppOptions, baseapp.SetOptimisticExecution())
 

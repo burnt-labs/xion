@@ -15,7 +15,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	feeabstypes "github.com/burnt-labs/xion/x/feeabs/types"
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 	"github.com/burnt-labs/xion/x/xion/keeper"
 	"github.com/burnt-labs/xion/x/xion/types"
@@ -37,13 +36,11 @@ func (AppModuleBasic) Name() string {
 // RegisterLegacyAminoCodec implements AppModuleBasic interface
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
-	feeabstypes.RegisterCodec(cdc)
 }
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
-	feeabstypes.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
