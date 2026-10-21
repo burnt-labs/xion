@@ -84,6 +84,19 @@ func TestInitGenesis(t *testing.T) {
 	require.Len(t, allAudiences, 2)
 }
 
+func TestInitGenesisInvalidParams(t *testing.T) {
+	k, ctx := setupKeeperForGenesis(t)
+	before := types.NewParams(45_000_000_000, 20_000)
+	require.NoError(t, k.SetParams(ctx, before))
+	genState := types.DefaultGenesis()
+	genState.Params.DeploymentGas = 0
+
+	require.Panics(t, func() {
+		jwk.InitGenesis(ctx, k, *genState)
+	})
+	require.Equal(t, before, k.GetParams(ctx))
+}
+
 func TestExportGenesis(t *testing.T) {
 	k, ctx := setupKeeperForGenesis(t)
 
@@ -94,7 +107,7 @@ func TestExportGenesis(t *testing.T) {
 		DeploymentGas: 2000000,
 		TimeOffset:    2000,
 	}
-	k.SetParams(ctx, customParams)
+	require.NoError(t, k.SetParams(ctx, customParams))
 
 	audiences := []types.Audience{
 		{
@@ -136,7 +149,7 @@ func TestGenesisRoundTrip(t *testing.T) {
 		DeploymentGas: 3000000,
 		TimeOffset:    3000,
 	}
-	k1.SetParams(ctx1, originalParams)
+	require.NoError(t, k1.SetParams(ctx1, originalParams))
 
 	originalAudiences := []types.Audience{
 		{

@@ -15,6 +15,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/burnt-labs/xion/x/globalfee"
 	"github.com/burnt-labs/xion/x/globalfee/keeper"
@@ -36,7 +38,7 @@ func TestRegisterServices(t *testing.T) {
 			registry := codectypes.NewInterfaceRegistry()
 			globalfee.AppModuleBasic{}.RegisterInterfaces(registry)
 			cdc := codec.NewProtoCodec(registry)
-			k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), "authority")
+			k := keeper.NewKeeper(cdc, runtime.NewKVStoreService(key), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 			legacy := runtime.NewKVStoreService(legacyKey)
 			amino := codec.NewLegacyAmino()
 			appModule := globalfee.NewAppModule(cdc, k, legacy, amino)
@@ -84,7 +86,7 @@ func TestRegisterServices(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, params, migrated)
 
-			_, err = msgHandler(ctx, &types.MsgUpdateParams{Authority: "other", Params: params})
+			_, err = msgHandler(ctx, &types.MsgUpdateParams{Authority: authtypes.NewModuleAddress("other").String(), Params: params})
 			require.ErrorIs(t, err, types.ErrInvalidAuthority)
 			params.MaxTotalBypassMinFeeMsgGasUsage = 654321
 			_, err = msgHandler(ctx, &types.MsgUpdateParams{Authority: k.GetAuthority(), Params: params})

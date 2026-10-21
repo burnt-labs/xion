@@ -96,7 +96,7 @@ func TestMigrate3To4(t *testing.T) {
 			cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 			k := keeper.NewKeeper(cdc, storeKey, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 			before := types.NewParams(math.MaxInt64, 123)
-			k.SetParams(ctx, before)
+			require.NoError(t, k.SetParams(ctx, before))
 			for key, value := range tt.legacy {
 				ctx.KVStore(legacyKey).Set([]byte(key), []byte(value))
 			}

@@ -41,9 +41,5 @@ func (m Migrator) Migrate3To4(ctx sdk.Context) error {
 			}
 		}
 	}
-	if err := params.Validate(); err != nil {
-		return err
-	}
-	m.k.SetParams(ctx, params)
-	return nil
+	return m.k.SetParams(ctx, params)
 }

@@ -36,7 +36,7 @@ func setupModuleTest(t testing.TB) (jwk.AppModule, sdk.Context, keeper.Keeper) {
 	)
 
 	// Initialize with default params
-	k.SetParams(ctx.Ctx, types.DefaultParams())
+	require.NoError(t, k.SetParams(ctx.Ctx, types.DefaultParams()))
 
 	appModule := jwk.NewAppModule(cdc, k, runtime.NewKVStoreService(storeKey), codec.NewLegacyAmino())
 	return appModule, ctx.Ctx, k

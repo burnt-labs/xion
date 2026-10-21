@@ -55,7 +55,7 @@ func TestUpdateParams(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			k, ctx := setupKeeper(t)
 			before := types.DefaultParams()
-			k.SetParams(ctx, before)
+			require.NoError(t, k.SetParams(ctx, before))
 			server := keeper.NewMsgServerImpl(k)
 			response, err := server.UpdateParams(ctx, &types.MsgUpdateParams{
 				Authority: tt.authority,

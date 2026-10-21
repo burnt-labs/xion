@@ -62,13 +62,6 @@ apis:
     tags:
       rename:
         Query: Feegrant
-  - url: ./cosmos/gov/v1beta1/query.swagger.json
-    operationIds:
-      rename:
-        Params: GovParams
-    tags:
-      rename:
-        Query: Gov
   - url: ./cosmos/gov/v1/query.swagger.json
     operationIds:
       rename:

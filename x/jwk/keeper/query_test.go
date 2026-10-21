@@ -28,7 +28,7 @@ func TestQueryParams(t *testing.T) {
 	// Use ctx directly instead of wrapping
 
 	params := types.DefaultParams()
-	k.SetParams(ctx, params)
+	require.NoError(t, k.SetParams(ctx, params))
 
 	response, err := k.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
@@ -745,7 +745,7 @@ func TestQueryValidateJWTSuccessAndTimeOffset(t *testing.T) {
 
 	// Set up time offset for testing (exercise GetTimeOffset path)
 	params := types.NewParams(60, 1000) // 60 seconds time offset, 1000 gas
-	k.SetParams(ctx, params)
+	require.NoError(t, k.SetParams(ctx, params))
 
 	// Verify that GetTimeOffset is working
 	timeOffset := k.GetTimeOffset(ctx)
@@ -941,7 +941,7 @@ func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 	)
 
 	// Initialize with default params
-	k.SetParams(ctx.Ctx, types.DefaultParams())
+	require.NoError(t, k.SetParams(ctx.Ctx, types.DefaultParams()))
 
 	// Use ctx directly instead of wrapping
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()

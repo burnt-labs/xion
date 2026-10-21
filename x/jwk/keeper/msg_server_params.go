@@ -15,9 +15,8 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	if msg.Authority != k.GetAuthority() {
 		return nil, errorsmod.Wrapf(types.ErrInvalidAuthority, "expected %s, got %s", k.GetAuthority(), msg.Authority)
 	}
-	if err := msg.Params.Validate(); err != nil {
+	if err := k.SetParams(ctx, msg.Params); err != nil {
 		return nil, err
 	}
-	k.SetParams(ctx, msg.Params)
 	return &types.MsgUpdateParamsResponse{}, nil
 }
