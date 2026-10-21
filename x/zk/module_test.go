@@ -9,10 +9,12 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -245,5 +247,42 @@ func TestAppModule_IsAppModule(t *testing.T) {
 	// IsAppModule is a marker method that should not panic
 	require.NotPanics(t, func() {
 		appModule.IsAppModule()
+	})
+}
+
+// newConfigurator returns a configurator backed by fresh message and query
+// routers so RegisterServices can be exercised against the real interface.
+func newConfigurator(t *testing.T) module.Configurator {
+	t.Helper()
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+	msgRouter := baseapp.NewMsgServiceRouter()
+	msgRouter.SetInterfaceRegistry(encCfg.InterfaceRegistry)
+	queryRouter := baseapp.NewGRPCQueryRouter()
+	queryRouter.SetInterfaceRegistry(encCfg.InterfaceRegistry)
+
+	return module.NewConfigurator(encCfg.Codec, msgRouter, queryRouter)
+}
+
+func TestAppModule_RegisterServicesWithConfigurator(t *testing.T) {
+	appModule, _ := setupModule(t)
+	noopMigration := func(sdk.Context) error { return nil }
+
+	t.Run("registers services and migrations", func(t *testing.T) {
+		cfg := newConfigurator(t)
+		require.NotPanics(t, func() { appModule.RegisterServices(cfg) })
+	})
+
+	t.Run("panics when the v1 migration is taken", func(t *testing.T) {
+		cfg := newConfigurator(t)
+		require.NoError(t, cfg.RegisterMigration(types.ModuleName, 1, noopMigration))
+		require.Panics(t, func() { appModule.RegisterServices(cfg) })
+	})
+
+	t.Run("panics when the v2 migration is taken", func(t *testing.T) {
+		cfg := newConfigurator(t)
+		require.NoError(t, cfg.RegisterMigration(types.ModuleName, 2, noopMigration))
+		require.Panics(t, func() { appModule.RegisterServices(cfg) })
 	})
 }

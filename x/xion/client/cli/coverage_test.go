@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -31,6 +30,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 )
 
 // shared test constants to avoid duplication (goconst) and clarify intent

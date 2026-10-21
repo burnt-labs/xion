@@ -96,6 +96,16 @@ func TestRegisterServices(t *testing.T) {
 		appModule.RegisterServices(mockCfgError)
 	})
 
+	// The v2->v3 registration is reported separately from the v1->v2 one
+	mockCfgSecondError := &testConfigurator{
+		msgServer:       &mockGrpcServer{},
+		queryServer:     &mockGrpcServer{},
+		failFromVersion: 2,
+	}
+	require.PanicsWithValue(t, "failed to migrate x/jwk from v2 to v3: mock migration error from version 2", func() {
+		appModule.RegisterServices(mockCfgSecondError)
+	})
+
 	// Also test the panic case with nil configurator for extra coverage
 	appModuleEmpty := jwk.AppModule{}
 	require.Panics(t, func() {
@@ -119,6 +129,8 @@ type testConfigurator struct {
 	msgServer   grpc1.Server
 	queryServer grpc1.Server
 	shouldError bool
+	// failFromVersion rejects only the migration registered from this version
+	failFromVersion uint64
 }
 
 func (tc *testConfigurator) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
@@ -140,6 +152,9 @@ func (tc *testConfigurator) QueryServer() grpc1.Server {
 func (tc *testConfigurator) RegisterMigration(moduleName string, fromVersion uint64, handler module.MigrationHandler) error {
 	if tc.shouldError {
 		return fmt.Errorf("mock migration error for testing")
+	}
+	if tc.failFromVersion != 0 && fromVersion == tc.failFromVersion {
+		return fmt.Errorf("mock migration error from version %d", fromVersion)
 	}
 	return nil // Success case to avoid panic
 }

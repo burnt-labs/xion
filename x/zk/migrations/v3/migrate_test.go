@@ -1,11 +1,14 @@
 package v3_test
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -110,5 +113,76 @@ func TestMigrateStore(t *testing.T) {
 		require.Equal(t, params.MaxVkeySizeBytes, got.MaxVkeySizeBytes)
 		require.Equal(t, params.UploadChunkSize, got.UploadChunkSize)
 		require.Equal(t, params.UploadChunkGas, got.UploadChunkGas)
+	})
+}
+
+var errStoreUnavailable = errors.New("store unavailable")
+
+// faultyStoreService serves a store whose reads or writes fail on demand.
+type faultyStoreService struct {
+	store.KVStoreService
+
+	failGet bool
+	failSet bool
+}
+
+func (s faultyStoreService) OpenKVStore(ctx context.Context) store.KVStore {
+	return faultyStore{KVStore: s.KVStoreService.OpenKVStore(ctx), failGet: s.failGet, failSet: s.failSet}
+}
+
+type faultyStore struct {
+	store.KVStore
+
+	failGet bool
+	failSet bool
+}
+
+func (s faultyStore) Get(key []byte) ([]byte, error) {
+	if s.failGet {
+		return nil, errStoreUnavailable
+	}
+	return s.KVStore.Get(key)
+}
+
+func (s faultyStore) Set(key, value []byte) error {
+	if s.failSet {
+		return errStoreUnavailable
+	}
+	return s.KVStore.Set(key, value)
+}
+
+func newParamsItem(t *testing.T, svc store.KVStoreService, cdc codec.Codec) collections.Item[types.Params] {
+	t.Helper()
+	sb := collections.NewSchemaBuilder(svc)
+	item := collections.NewItem(sb, types.ParamsKey, "params", codec.CollValue[types.Params](cdc))
+	_, err := sb.Build()
+	require.NoError(t, err)
+	return item
+}
+
+func TestMigrateStoreFailures(t *testing.T) {
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+	key := storetypes.NewKVStoreKey(types.ModuleName)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+	ctx := testCtx.Ctx
+	storeService := runtime.NewKVStoreService(key)
+
+	t.Run("params read fails", func(t *testing.T) {
+		item := newParamsItem(t, faultyStoreService{KVStoreService: storeService, failGet: true}, encCfg.Codec)
+		err := v3.MigrateStore(ctx, item)
+		require.ErrorContains(t, err, errStoreUnavailable.Error())
+	})
+
+	t.Run("params write fails", func(t *testing.T) {
+		// Seed pre-v3 params through a working store, then migrate through one
+		// that refuses writes.
+		seed := newParamsItem(t, storeService, encCfg.Codec)
+		require.NoError(t, seed.Set(ctx, types.Params{MaxVkeySizeBytes: 1000, UploadChunkSize: 20, UploadChunkGas: 10_000}))
+
+		item := newParamsItem(t, faultyStoreService{KVStoreService: storeService, failSet: true}, encCfg.Codec)
+		err := v3.MigrateStore(ctx, item)
+		require.ErrorContains(t, err, errStoreUnavailable.Error())
 	})
 }
