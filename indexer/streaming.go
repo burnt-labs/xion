@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"path/filepath"
+	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
@@ -41,6 +42,8 @@ type StreamService struct {
 	feegrantQuerier indexerfeegrant.QueryServer
 	addrCodec       address.Codec
 	cdc             codec.Codec
+	closeOnce       sync.Once
+	closeErr        error
 }
 
 type kvAccessor struct {
@@ -117,9 +120,13 @@ func (ss *StreamService) RegisterServices(cfg module.Configurator) error {
 	return nil
 }
 
+// Close is idempotent: SDK v0.55 server shutdown calls app.Close() twice and pebble panics on a second close.
 func (ss *StreamService) Close() error {
-	ss.log.Info("closing xion_indexer.db")
-	return ss.db.Close()
+	ss.closeOnce.Do(func() {
+		ss.log.Info("closing xion_indexer.db")
+		ss.closeErr = ss.db.Close()
+	})
+	return ss.closeErr
 }
 
 // ListenFinalizeBlock will receive the request and response of a block

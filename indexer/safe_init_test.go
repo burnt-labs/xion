@@ -58,6 +58,15 @@ func TestNewSafeIndexer_Success(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// SDK v0.55 server shutdown calls app.Close() from two cleanup paths.
+func TestStreamService_CloseTwice(t *testing.T) {
+	service := NewSafeIndexer(t.TempDir(), setupTestCodec(), addresscodec.NewBech32Codec("xion"), log.NewTestLogger(t))
+	_, ok := service.(*StreamService)
+	require.True(t, ok)
+	require.NoError(t, service.Close())
+	require.NotPanics(t, func() { require.NoError(t, service.Close()) })
+}
+
 func TestNewSafeIndexer_DatabaseInitFailure(t *testing.T) {
 	// Use an invalid directory path that will cause DB initialization to fail
 	invalidDir := "/invalid/path/that/does/not/exist"
