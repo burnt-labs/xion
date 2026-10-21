@@ -36,6 +36,15 @@ func TestAllWhitelistedPathsEnsured(t *testing.T) {
 		"/xion.jwk.v1.Query/Audience",
 		"/xion.jwk.v1.Query/Params",
 		"/xion.jwk.v1.Query/ValidateJWT",
+		"/xion.dkim.v1.Query/DkimPubKeys",
+		"/xion.dkim.v1.Query/Params",
+		"/xion.dkim.v1.Query/DkimPubKey",
+		"/xion.dkim.v1.Query/Authenticate",
+		"/xion.zk.v1.Query/ProofVerify",
+		"/xion.zk.v1.Query/ProofVerifyUltraHonk",
+		"/xion.zk.v1.Query/ProofVerifyGnark",
+		"/xion.zk.v1.Query/VKey",
+		"/xion.zk.v1.Query/VKeyByName",
 	}
 
 	seen := make(map[string]struct{}, len(paths))

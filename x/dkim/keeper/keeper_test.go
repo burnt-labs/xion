@@ -31,6 +31,8 @@ type TestFixture struct {
 	suite.Suite
 
 	ctx         sdk.Context
+	dkimKey     *storetypes.KVStoreKey
+	faults      *faultyStoreService
 	k           keeper.Keeper
 	zkeeper     zkkeeper.Keeper
 	msgServer   types.MsgServer
@@ -66,7 +68,9 @@ func SetupTest(t *testing.T) *TestFixture {
 		},
 		map[string]*storetypes.MemoryStoreKey{},
 	)
-	storeService := runtime.NewKVStoreService(dkimKey)
+	f.dkimKey = dkimKey
+	f.faults = &faultyStoreService{inner: runtime.NewKVStoreService(dkimKey)}
+	storeService := store.KVStoreService(f.faults)
 	zkStoreService := runtime.NewKVStoreService(zkKey)
 
 	// Register SDK modules.

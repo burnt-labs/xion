@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	aa "github.com/burnt-labs/xion/x/abstractaccount"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -16,6 +15,7 @@ import (
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	aa "github.com/burnt-labs/xion/x/abstractaccount"
 	"github.com/burnt-labs/xion/x/globalfee"
 )
 

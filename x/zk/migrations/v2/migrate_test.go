@@ -1,11 +1,14 @@
 package v2_test
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -56,4 +59,37 @@ func TestMigrateStore(t *testing.T) {
 		}
 		require.Equal(t, expectedVkey.KeyBytes, newVkey.KeyBytes)
 	})
+}
+
+var errWriteFailed = errors.New("write failed")
+
+// unwritableStoreService serves a store whose writes always fail.
+type unwritableStoreService struct {
+	store.KVStoreService
+}
+
+func (s unwritableStoreService) OpenKVStore(ctx context.Context) store.KVStore {
+	return unwritableStore{KVStore: s.KVStoreService.OpenKVStore(ctx)}
+}
+
+type unwritableStore struct {
+	store.KVStore
+}
+
+func (unwritableStore) Set([]byte, []byte) error { return errWriteFailed }
+
+func TestMigrateStoreWriteFailure(t *testing.T) {
+	encCfg := moduletestutil.MakeTestEncodingConfig()
+	types.RegisterInterfaces(encCfg.InterfaceRegistry)
+
+	key := storetypes.NewKVStoreKey(types.ModuleName)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+	sb := collections.NewSchemaBuilder(unwritableStoreService{KVStoreService: runtime.NewKVStoreService(key)})
+	vkeys := collections.NewMap(sb, types.VKeyPrefix, "vkeys", collections.Uint64Key, codec.CollValue[types.VKey](encCfg.Codec))
+	_, err := sb.Build()
+	require.NoError(t, err)
+
+	err = v2.MigrateStore(testCtx.Ctx, vkeys)
+	require.ErrorContains(t, err, errWriteFailed.Error())
 }
