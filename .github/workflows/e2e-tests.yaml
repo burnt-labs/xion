@@ -36,6 +36,7 @@ jobs:
           - { dir: "indexer", type: "IndexerNonConsensusCritical" }
           # - {dir: "ibc", type: "IBC"}
           - { dir: "ibc", type: "IBCMinFeeMultiDenom" }
+          - { dir: "ibc", type: "IBCPacketForward" }
           - { dir: "jwk", type: "JWKAlgorithmConfusion" }
           - { dir: "jwk", type: "JWKAudienceMismatch" }
           - { dir: "jwk", type: "JWKExpiredToken" }
