@@ -77,6 +77,11 @@ func (m *MockBankKeeper) GetBalance(ctx context.Context, addr sdk.AccAddress, de
 	return args.Get(0).(sdk.Coin)
 }
 
+func (m *MockBankKeeper) GetSupply(ctx context.Context, denom string) sdk.Coin {
+	args := m.Called(ctx, denom)
+	return args.Get(0).(sdk.Coin)
+}
+
 func (m *MockBankKeeper) BurnCoins(ctx context.Context, moduleName string, amt sdk.Coins) error {
 	args := m.Called(ctx, moduleName, amt)
 	return args.Error(0)
