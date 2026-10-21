@@ -8,7 +8,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// wasmd fork with genesis exports
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.70.4-xion.2
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.70.5-xion.1
 	github.com/burnt-labs/xion => ../
 
 	// interchaintest requires v11.0.0, which sorts after the SDK 0.55 migration pin.
@@ -75,7 +75,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/CosmWasm/wasmvm/v3 v3.0.8 // indirect
+	github.com/CosmWasm/wasmvm/v3 v3.0.9 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.36.0 // indirect

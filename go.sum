@@ -68,8 +68,8 @@ github.com/Azure/go-autorest/logger v0.1.0/go.mod h1:oExouG+K6PryycPJfVSxi/koC6L
 github.com/Azure/go-autorest/tracing v0.5.0/go.mod h1:r/s2XiOKccPW3HrqB+W0TQzfbtp2fGCgRFtBroKn4Dk=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CosmWasm/wasmvm/v3 v3.0.8 h1:RwucGylWvzHH4Bh7fwMcQf7ta7rJvh4qXW1wU06X/Z8=
-github.com/CosmWasm/wasmvm/v3 v3.0.8/go.mod h1:oknpb1bFERvvKcY7vHRp1F/Y/z66xVrsl7n9uWkOAlM=
+github.com/CosmWasm/wasmvm/v3 v3.0.9 h1:pQGrS3w8udbKvumbNUBrZgZXfDM+3mHXRdZ0EOVn3zU=
+github.com/CosmWasm/wasmvm/v3 v3.0.9/go.mod h1:oknpb1bFERvvKcY7vHRp1F/Y/z66xVrsl7n9uWkOAlM=
 github.com/DataDog/datadog-go v4.8.3+incompatible h1:fNGaYSuObuQb5nzeTQqowRAd9bpDIRRV4/gUtIBjh8Q=
 github.com/DataDog/datadog-go v4.8.3+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.7 h1:ybO8RBeh29qrxIhCA9E8gKY6xfONU9T6G6aP9DTKfLE=
@@ -182,8 +182,8 @@ github.com/burnt-labs/barretenberg-go v0.6.1 h1:iwoubycqlvq/H3nnJmeXATDakWF+eOWE
 github.com/burnt-labs/barretenberg-go v0.6.1/go.mod h1:2SJlaxo5WVRzoaT+Di/VlSmIzrvPriLklpXqZXvSusI=
 github.com/burnt-labs/tokenfactory v0.55.0-xion.1 h1:4UisIRfHZSMf8BcT5KYHdjKr9ComUZjOOUJPRcL0CA4=
 github.com/burnt-labs/tokenfactory v0.55.0-xion.1/go.mod h1:PwujgS+49yYvynXTsK5WJuYLtRrGlTR/gQAHF3fRyTw=
-github.com/burnt-labs/wasmd v0.70.4-xion.2 h1:S5cEidxBKK88pUNw6EOPVmuRYg2SLvobsVy2saRS8XA=
-github.com/burnt-labs/wasmd v0.70.4-xion.2/go.mod h1:tfO6/vfgJROlYv9ecN4EUL940v5festIrIeVrWaNmYE=
+github.com/burnt-labs/wasmd v0.70.5-xion.1 h1:mN35BSZh2dnuUtb5ggGKzAl/lmc5WY1TW89Uo/YcO1A=
+github.com/burnt-labs/wasmd v0.70.5-xion.1/go.mod h1:lhwuLxHf4oSGPrciqsXNzXZ/Glplu0uARxnVeHdQhSw=
 github.com/bytedance/gopkg v0.1.4 h1:oZnQwnX82KAIWb7033bEwtxvTqXcYMxDBaQxo5JJHWM=
 github.com/bytedance/gopkg v0.1.4/go.mod h1:v1zWfPm21Fb+OsyXN2VAHdL6TBb2L88anLQgdyje6R4=
 github.com/bytedance/sonic v1.15.1 h1:nJD5PmM0vY7J8CT6MxoqbVAAMhkSmV2HgRAUrrpLoOw=

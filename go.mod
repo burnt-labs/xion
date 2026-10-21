@@ -6,7 +6,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// wasmd fork with genesis exports
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.70.4-xion.2
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.70.5-xion.1
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
@@ -34,7 +34,7 @@ require (
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/tools/confix v0.1.2
 	github.com/CosmWasm/wasmd v0.70.4
-	github.com/CosmWasm/wasmvm/v3 v3.0.8
+	github.com/CosmWasm/wasmvm/v3 v3.0.9
 	github.com/btcsuite/btcd/btcutil v1.2.0
 	github.com/burnt-labs/barretenberg-go v0.6.1
 	github.com/cometbft/cometbft v0.40.0
