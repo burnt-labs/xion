@@ -203,8 +203,9 @@ func TestQueryProofVerifyUltraHonkStoredKeyShapes(t *testing.T) {
 		_, err := f.k.AddVKey(f.ctx, f.govModAddr, "honk", vkBytes, "", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
 		require.NoError(t, err)
 
+		// Aligned and canonical, but below barretenberg's minimum proof size.
 		_, err = f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
-			Proof:        make([]byte, 100),
+			Proof:        make([]byte, 96),
 			PublicInputs: publicInputsBytes,
 			VkeyName:     "honk",
 		})

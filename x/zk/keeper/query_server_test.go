@@ -2,6 +2,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"math/big"
@@ -1687,6 +1688,53 @@ func TestQueryProofVerifyUltraHonk_InvalidRequest(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
+	// Proofs must be a whole number of field elements.
+	for _, tc := range []struct {
+		name   string
+		mutate func([]byte) []byte
+	}{
+		{"proof + 1 trailing byte 0x00", func(p []byte) []byte { return append(p, 0x00) }},
+		{"proof + 1 trailing byte 0x01", func(p []byte) []byte { return append(p, 0x01) }},
+		{"proof + 1 trailing byte 0xff", func(p []byte) []byte { return append(p, 0xff) }},
+		{"proof + 7 trailing bytes", func(p []byte) []byte { return append(p, make([]byte, 7)...) }},
+		{"proof + 31 trailing bytes", func(p []byte) []byte {
+			for i := 0; i < 31; i++ {
+				p = append(p, 0x01)
+			}
+			return p
+		}},
+		{"proof truncated by 1 byte", func(p []byte) []byte { return p[:len(p)-1] }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mutated := tc.mutate(append([]byte{}, proofBytes...))
+			req := &types.QueryVerifyUltraHonkRequest{
+				Proof:        mutated,
+				PublicInputs: publicInputsBytes,
+				VkeyName:     "ultrahonk_circuit",
+			}
+			resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, req)
+			require.Error(t, err, "unaligned proof must be rejected")
+			require.ErrorIs(t, err, types.ErrInvalidRequest)
+			require.Contains(t, err.Error(), "multiple of")
+			require.Nil(t, resp)
+		})
+	}
+
+	// Proof elements must be canonical field elements.
+	t.Run("proof element not canonical (x + r)", func(t *testing.T) {
+		mutated := append([]byte{}, proofBytes...)
+		first := new(big.Int).SetBytes(mutated[:barretenberg.FieldElementSize])
+		first.Add(first, ultraHonkScalarPrime(t)).FillBytes(mutated[:barretenberg.FieldElementSize])
+		resp, err := f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        mutated,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_circuit",
+		})
+		require.ErrorIs(t, err, types.ErrInvalidRequest)
+		require.Contains(t, err.Error(), "proof element[0] is not a canonical BN254 scalar field element")
+		require.Nil(t, resp)
+	})
+
 	t.Run("proof exceeds max size", func(t *testing.T) {
 		req := &types.QueryVerifyUltraHonkRequest{
 			Proof:        make([]byte, int(types.DefaultMaxUltraHonkProofSizeBytes)+1),
@@ -1951,6 +1999,106 @@ func TestQueryProofVerifyUltraHonk_NonCanonicalPublicInputRejected(t *testing.T)
 	})
 }
 
+// TestQueryProofVerifyUltraHonk_ProofValidation checks proof request
+// validation against the real verifier: malformed proofs are invalid
+// requests, and well-formed but altered proofs yield a false verdict.
+func TestQueryProofVerifyUltraHonk_ProofValidation(t *testing.T) {
+	requireRealBarretenberg(t)
+	vkBytes, proofBytes, publicInputsBytes := loadBarretenbergTestdata(t)
+	f := SetupTest(t)
+
+	_, err := f.k.AddVKey(f.ctx, f.govModAddr, "ultrahonk_circuit", vkBytes, "UltraHonk test vkey", types.ProofSystem_PROOF_SYSTEM_ULTRA_HONK_ZK)
+	require.NoError(t, err)
+	require.Zero(t, len(proofBytes)%barretenberg.FieldElementSize, "reference proof is expected to be field-element aligned")
+
+	submit := func(t *testing.T, proof []byte) (*types.ProofVerifyUltraHonkResponse, error) {
+		t.Helper()
+		return f.queryServer.ProofVerifyUltraHonk(f.ctx, &types.QueryVerifyUltraHonkRequest{
+			Proof:        proof,
+			PublicInputs: publicInputsBytes,
+			VkeyName:     "ultrahonk_circuit",
+		})
+	}
+
+	t.Run("canonical encoding verifies", func(t *testing.T) {
+		resp, err := submit(t, proofBytes)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.True(t, resp.Verified)
+	})
+
+	for _, tc := range []struct {
+		name  string
+		proof []byte
+	}{
+		{"+ 0x00", append(append([]byte{}, proofBytes...), 0x00)},
+		{"+ 0x01", append(append([]byte{}, proofBytes...), 0x01)},
+		{"+ 0xff", append(append([]byte{}, proofBytes...), 0xff)},
+		{"+ 7 arbitrary bytes", append(append([]byte{}, proofBytes...), 1, 2, 3, 4, 5, 6, 7)},
+		{"+ 31 arbitrary bytes", append(append([]byte{}, proofBytes...), bytes.Repeat([]byte{0xab}, 31)...)},
+		{"truncated by 1", proofBytes[:len(proofBytes)-1]},
+		{"truncated by 31", proofBytes[:len(proofBytes)-31]},
+	} {
+		t.Run("unaligned proof rejected: "+tc.name, func(t *testing.T) {
+			require.NotZero(t, len(tc.proof)%barretenberg.FieldElementSize,
+				"case %q must be unaligned", tc.name)
+			resp, err := submit(t, tc.proof)
+			require.Error(t, err, "unaligned proof must be rejected")
+			require.ErrorIs(t, err, types.ErrInvalidRequest)
+			require.Contains(t, err.Error(), "multiple of")
+			require.Nil(t, resp)
+		})
+	}
+
+	// Every proof element is checked for canonicality.
+	t.Run("non-canonical proof elements rejected", func(t *testing.T) {
+		r := ultraHonkScalarPrime(t)
+		limit := new(big.Int).Lsh(big.NewInt(1), 8*barretenberg.FieldElementSize)
+		maxElem := new(big.Int).Sub(limit, big.NewInt(1))
+		for i := 0; i < len(proofBytes)/barretenberg.FieldElementSize; i++ {
+			elem := proofBytes[i*barretenberg.FieldElementSize : (i+1)*barretenberg.FieldElementSize]
+			require.Negativef(t, new(big.Int).SetBytes(elem).Cmp(r), "reference proof element %d must be canonical", i)
+
+			candidates := []*big.Int{r, maxElem}
+			for v := new(big.Int).Add(new(big.Int).SetBytes(elem), r); v.Cmp(limit) < 0; v = new(big.Int).Add(v, r) {
+				candidates = append(candidates, v)
+			}
+			for _, v := range candidates {
+				mutated := append([]byte{}, proofBytes...)
+				v.FillBytes(mutated[i*barretenberg.FieldElementSize : (i+1)*barretenberg.FieldElementSize])
+				resp, err := submit(t, mutated)
+				require.ErrorIsf(t, err, types.ErrInvalidRequest, "element %d value %s", i, v.Text(16))
+				require.Containsf(t, err.Error(), fmt.Sprintf("proof element[%d]", i), "element %d value %s", i, v.Text(16))
+				require.Nil(t, resp)
+			}
+		}
+	})
+
+	t.Run("full extra field element reaches verifier and yields false verdict", func(t *testing.T) {
+		mutated := append(append([]byte{}, proofBytes...), make([]byte, barretenberg.FieldElementSize)...)
+		resp, err := submit(t, mutated)
+		require.NoError(t, err, "aligned encodings must reach the verifier, not error")
+		require.NotNil(t, resp)
+		require.False(t, resp.Verified)
+	})
+
+	t.Run("body mutation reaches verifier and yields false verdict", func(t *testing.T) {
+		mutated := append([]byte{}, proofBytes...)
+		mutated[100] ^= 0xff
+		resp, err := submit(t, mutated)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.False(t, resp.Verified)
+	})
+
+	t.Run("truncated by one field element reaches verifier and yields false verdict", func(t *testing.T) {
+		resp, err := submit(t, proofBytes[:len(proofBytes)-barretenberg.FieldElementSize])
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.False(t, resp.Verified)
+	})
+}
+
 // TestQueryProofVerifyUltraHonk_VkeyDigestEcho covers the key-identity gate.
 //
 // A vkey NAME is a mutable binding and an ID's contents are mutable in place:
@@ -2053,6 +2201,14 @@ func TestQueryProofVerifyUltraHonk_VkeyDigestEcho(t *testing.T) {
 	// property (stored digest != caller's pin => verified false), which is what
 	// makes the swap detectable. Add the end-to-end swap case alongside a second
 	// fixture.
+}
+
+// ultraHonkScalarPrime returns the BN254 scalar field modulus r.
+func ultraHonkScalarPrime(t testing.TB) *big.Int {
+	t.Helper()
+	r, ok := new(big.Int).SetString("21888242871839275222246405745257275088548364400416034343698204186575808495617", 10)
+	require.True(t, ok)
+	return r
 }
 
 // requireRealBarretenberg skips a case that needs a genuine verification verdict.
