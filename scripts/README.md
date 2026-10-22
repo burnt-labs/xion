@@ -8,20 +8,17 @@ See [`go.mod`](../go.mod) for version.
 
 ## Local v31 snapshot-conversion tooling
 
-Build the previous-version binary from this branch, which supplies the
-application-specific `newTestnetApp`/`InitForTestnet` callback:
+Build normally from this branch:
 
 ```sh
-bash scripts/build-in-place-testnet.sh
-# Optional output path, configured in your environment:
-bash scripts/build-in-place-testnet.sh "$PREV_BIN"
+make build
 ```
 
-The helper targets SDK v0.53.8. It copies the SDK into a temporary directory
-and applies `in-place-testnet-sdk.patch` there to construct complete replacement
-commit signatures, including their block-ID flags. It does not edit the module
-cache, `go.mod`, or `go.sum`. Use this helper to build the snapshot-conversion
-binary until that SDK correction is included in the dependency itself.
+Xion implements both application and consensus conversion in Go. The native
+command constructs complete replacement commit signatures, updates validator
+history and the cached genesis chain ID, and writes canonical CometBFT genesis
+JSON before normal SDK startup. No SDK patch, custom build helper, dependency
+fork, or special build flags are needed.
 
 Use `in-place-testnet` only on a disposable copy of node state, with fresh
 validator and operator keys and a different chain ID:
@@ -51,3 +48,11 @@ owns the Bash rehearsal runner; this branch only supplies the previous binary.
 
 The binary must accept the snapshot's stored upgrade history. No upgrade
 compatibility check is bypassed and no module version is rewritten.
+
+Verified with an ordinary `make build`: persisted v31 state converted and
+committed its first replacement-chain block at height 5, executed a signed bank
+transfer, and resumed normal `start` through height 12. Module versions and
+non-default globalfee/JWK parameters survived, with no manual signer or genesis
+JSON rewrite. The same binary also completed the proposal-based v32 handoff:
+proposal 1 passed, v32 applied at height 67, and blocks resumed through height 70.
+This used disposable synthetic state, not a successful mainnet-archive migration.
