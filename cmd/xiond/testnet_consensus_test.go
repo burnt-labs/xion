@@ -265,8 +265,18 @@ func TestInstallTestnetValidatorKeyWithoutPreviousKey(t *testing.T) {
 	installed, err := installTestnetValidatorKey(config, key)
 	require.NoError(t, err)
 	require.Equal(t, key.PubKey(), installed.Key.PubKey)
-	require.NoFileExists(t, config.PrivValidatorKeyFile()+testnetValidatorBackupSuffix)
+	// The empty key backup records that this conversion installed the key.
+	backup, err := os.ReadFile(config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Empty(t, backup)
 	require.NoFileExists(t, config.PrivValidatorStateFile()+testnetValidatorBackupSuffix)
+
+	// A second install keeps that record rather than backing up its own key.
+	_, err = installTestnetValidatorKey(config, cmted25519.GenPrivKey())
+	require.NoError(t, err)
+	backup, err = os.ReadFile(config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Empty(t, backup)
 }
 
 // requireTestnetValidatorFilesUnchanged asserts that a refused conversion left
@@ -338,72 +348,6 @@ func TestPrepareTestnetConsensusRejectsUnsafeChainID(t *testing.T) {
 			require.NoError(t, stateStore.Close())
 
 			requireTestnetValidatorFilesUnchanged(t, fixture.config, before)
-		})
-	}
-}
-
-func TestPrepareTestnetConsensusRejectsUnsafeChainID(t *testing.T) {
-	tests := []struct {
-		name    string
-		chainID func(sourceChainID string) string
-		wantErr string
-	}{
-		{
-			name:    "same as source",
-			chainID: func(source string) string { return source },
-			wantErr: "must differ from source chain ID",
-		},
-		{
-			name:    "revision of source",
-			chainID: func(source string) string { return source + "-2" },
-			wantErr: "is a revision of source chain ID",
-		},
-		{
-			name:    "mainnet",
-			chainID: func(string) string { return "xion-mainnet-1" },
-			wantErr: "reuses the public network name xion-mainnet-N",
-		},
-		{
-			name:    "testnet",
-			chainID: func(string) string { return "xion-testnet-2" },
-			wantErr: "reuses the public network name xion-testnet-N",
-		},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			fixture := setupTestnetConsensusFixture(t)
-			genesisBefore, err := os.ReadFile(fixture.config.GenesisFile())
-			require.NoError(t, err)
-			pvStateBefore, err := os.ReadFile(fixture.config.PrivValidatorStateFile())
-			require.NoError(t, err)
-
-			err = prepareTestnetConsensus(
-				fixture.config,
-				tc.chainID(fixture.sourceChainID),
-				fixture.height,
-				fixture.appHash,
-				900_000_000_000_000,
-			)
-			require.ErrorContains(t, err, tc.wantErr)
-
-			stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: fixture.config})
-			require.NoError(t, err)
-			stateStore := sm.NewStore(stateDB, sm.StoreOptions{})
-			state, err := stateStore.Load()
-			require.NoError(t, err)
-			require.Equal(t, fixture.sourceChainID, state.ChainID)
-			require.NoError(t, stateStore.Close())
-
-			genesisAfter, err := os.ReadFile(fixture.config.GenesisFile())
-			require.NoError(t, err)
-			require.Equal(t, genesisBefore, genesisAfter)
-			pvStateAfter, err := os.ReadFile(fixture.config.PrivValidatorStateFile())
-			require.NoError(t, err)
-			require.Equal(t, pvStateBefore, pvStateAfter)
-			addrBook, err := os.ReadFile(fixture.config.P2P.AddrBookFile())
-			require.NoError(t, err)
-			require.Equal(t, `{"addrs":["source-peer"]}`, string(addrBook))
-			require.FileExists(t, fixture.config.Consensus.WalFile())
 		})
 	}
 }

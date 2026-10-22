@@ -26,14 +26,8 @@ canonical CometBFT genesis JSON. The command starts through the normal SDK
 server path rather than SDK `testnetify`. This builds a **v32** converter, not
 the v31 binary needed for the v31-to-v32 rehearsal below.
 
-Use `in-place-testnet` only on a disposable copy of node state, with fresh
-validator and operator keys and a different chain ID. The command refuses the
-source chain ID and any other revision of it (IBC treats `foo-2` as `foo-1`
-upgraded): signatures are bound to the chain ID, so reusing the source ID would
-make the copy's transactions and votes valid on the source network. As a
-precaution, it also refuses any `xion-mainnet-N` or `xion-testnet-N` chain ID.
-Never load a live validator's consensus key into a copy named after that
-validator's network: its votes there can become double-sign evidence.
+Use only a disposable copy of persisted state and a fresh operator key.
+Protections, in order:
 
 1. **Fresh validator key per copy.** The command generates a new consensus key
    for every conversion; the copy's only validator signs with it. The home's
@@ -48,19 +42,46 @@ validator's network: its votes there can become double-sign evidence.
    chain ID is refused as a precaution against transactions that could be
    replayed on those networks.
 
-`--home` must be given explicitly, and a home with `priv_validator_laddr` set
-(a remote-signer validator) is refused. Nothing is written if a check fails or
-the prompt is declined. The initializer replaces active validator indices,
-initializes distribution/slashing records, mints synthetic stake and local
-operator funds, and shortens governance voting periods to 20 seconds (10
-seconds expedited). Existing validator/delegation records remain, while
-the replacement validator has synthetic shares without a self-delegation.
-Supply and staking invariants are not a replica of the source chain.
+`--home` must be given on the command line: the command does not fall back to
+the default node home or to `XIOND_HOME`. A home with `priv_validator_laddr`
+set is refused: a remote-signer validator (tmkms, horcrux) or a sentry keeps an
+unused stub key in `config/`, so copy the data and clear `priv_validator_laddr`
+first. A `config.toml` that points the validator key or state file, the data
+directory, the WAL, the address book or the genesis file outside the home is
+refused too: a copy of a validator's config may name its live key on a secrets
+mount. Nothing is written if a check fails or the prompt is declined, except
+that the node creates a default `config.toml` or `app.toml` if the home lacks
+one, as every `xiond` command does. The
+initializer replaces active validator indices, initializes distribution/slashing
+records, mints synthetic stake and local operator funds, and shortens governance
+voting periods to 20 seconds (10 seconds expedited). Existing
+validator/delegation records remain, while the replacement validator has
+synthetic shares without a self-delegation. Supply and staking invariants are
+not a replica of the source chain. The source validators also keep status
+`Bonded`; they only leave the power and last-validator indices. A delegation to
+or undelegation from one of them puts it back in the power index, and the next
+block adds it to the CometBFT validator set. Its power is negligible next to the
+local validator, so the chain keeps running, but it misses every block and is
+jailed and slashed for downtime: expect those events in the copy.
+
+`--grpc-only` is refused: without consensus no block commits, and the conversion
+only completes with the first new block.
 
 Resume a converted chain with normal `start` on the same home. Do not convert
-the same home twice. The optional `--trigger-testnet-upgrade` schedules the named
-upgrade ten blocks after the loaded height so conversion writes commit first.
-Stored module versions and upgrade-compatibility checks are not bypassed.
+the same home twice. The application half of a conversion only commits with the
+first new block, while the CometBFT half is written before the node starts. If
+the command exits before that first block commits (a busy port, a signal, a
+crash), plain `start` halts with `validator does not exist`: rerun the same
+`in-place-testnet` command, with the same chain ID, on the same home. The rerun
+keeps the validator key the interrupted conversion installed (it is used only
+when the home holds the `*.pre-testnet` key backup, which is written empty
+when the home had no key, and the converted consensus set
+is exactly that key at the testnet power) and finishes the WAL and address-book
+reset if it was cut short. If consensus state was only partly written, the
+command says the conversion cannot be resumed; start again from a fresh copy.
+The optional `--trigger-testnet-upgrade` schedules the named upgrade ten blocks
+after the loaded height so conversion writes commit first. Stored module
+versions and upgrade-compatibility checks are not bypassed.
 
 Native conversion was exercised on persisted v32 state using the normal build:
 the converted chain committed a signed bank transfer and resumed ordinary
@@ -107,6 +128,14 @@ It converts using v31, commits several blocks, submits/deposits/votes for an
 upgrade proposal, requires that proposal to pass and the exact scheduled halt,
 then starts the v32 candidate on the **same home**. No direct trigger flag,
 bridge migration, module-version rewriting, or upgrade-guard bypass is used.
+
+The script refuses to start if anything listens on the RPC port or the P2P
+port below it, and refuses `--source-chain xion-testnet-2` for v32. The v32
+upgrade registers the checksum-derived abstract accounts of the chain IDs in
+`checksumAccountCodes` (`app/upgrades.go`) and looks them up by the chain ID
+the upgrade runs under. A rehearsal runs under its own chain ID, so a testnet-2
+snapshot would skip that backfill and still report success. Mainnet, the
+default, has no such entries.
 
 Success requires resumed blocks, the exact applied upgrade height, expected
 v32 module versions, unmounted retired stores, and preserved globalfee/JWK

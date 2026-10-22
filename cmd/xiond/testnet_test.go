@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 )
 
@@ -84,18 +85,56 @@ func TestInPlaceTestnetRejectsStandaloneBeforeMutation(t *testing.T) {
 	require.Empty(t, entries, "rejected standalone conversion must not initialize or open node state")
 }
 
-func TestInPlaceTestnetRejectsPublicChainIDBeforeMutation(t *testing.T) {
-	for _, chainID := range []string{"xion-mainnet-1", "xion-testnet-2", "xion-mainnet-2", "XION-Testnet-2"} {
-		t.Run(chainID, func(t *testing.T) {
+func TestInPlaceTestnetRejectsGRPCOnlyBeforeMutation(t *testing.T) {
+	home := t.TempDir()
+	before := writeTestSourceHome(t, home, "xion-devnet-1")
+	cmd := newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--grpc-only", "--skip-confirmation"})
+	require.ErrorContains(t, cmd.Execute(), "cannot run with --grpc-only")
+	require.Equal(t, before, snapshotTestHome(t, home), "a gRPC-only run must not open or convert node state")
+
+	// The same setting from the node's configuration or environment.
+	cmd = newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
+		serverCtx.Viper.Set("grpc-only", true)
+	})
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+	require.ErrorContains(t, cmd.Execute(), "cannot run with --grpc-only")
+	require.Equal(t, before, snapshotTestHome(t, home))
+}
+
+func TestInPlaceTestnetRejectsPathsOutsideHome(t *testing.T) {
+	outside := t.TempDir()
+	for name, configure := range map[string]func(*server.Context){
+		"priv_validator_key_file": func(serverCtx *server.Context) {
+			serverCtx.Config.PrivValidatorKey = filepath.Join(outside, "priv_validator_key.json")
+		},
+		"priv_validator_state_file": func(serverCtx *server.Context) {
+			serverCtx.Config.PrivValidatorState = filepath.Join(outside, "priv_validator_state.json")
+		},
+		"db_dir": func(serverCtx *server.Context) {
+			serverCtx.Config.DBPath = "../live-data"
+		},
+		"consensus.wal_file": func(serverCtx *server.Context) {
+			serverCtx.Config.Consensus.WalPath = filepath.Join(outside, "cs.wal", "wal")
+		},
+		"p2p.addr_book_file": func(serverCtx *server.Context) {
+			serverCtx.Config.P2P.AddrBook = filepath.Join(outside, "addrbook.json")
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
 			home := t.TempDir()
 			before := writeTestSourceHome(t, home, "xion-devnet-1")
-			cmd := newTestInPlaceTestnetCmd(t, home, nil)
-			cmd.SetArgs([]string{chainID, "operator", "--home", home})
-			cmd.SetIn(strings.NewReader("y\n"))
-			require.ErrorContains(t, cmd.Execute(), "reuses the public network name")
-			require.Equal(t, before, snapshotTestHome(t, home), "rejected conversion must not change node state")
+			cmd := newTestInPlaceTestnetCmd(t, home, configure)
+			cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+			err := cmd.Execute()
+			require.ErrorContains(t, err, name+" (")
+			require.ErrorContains(t, err, "is outside the home")
+			require.Equal(t, before, snapshotTestHome(t, home))
 		})
 	}
+	entries, err := os.ReadDir(outside)
+	require.NoError(t, err)
+	require.Empty(t, entries)
 }
 
 func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
@@ -106,6 +145,29 @@ func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
 	cmd := newTestInPlaceTestnetCmd(t, home, nil)
 	cmd.SetArgs([]string{"fork-test", "operator", "--skip-confirmation"})
 	require.ErrorContains(t, cmd.Execute(), "requires an explicit --home")
+	require.Equal(t, before, snapshotTestHome(t, home))
+}
+
+// The root pre-run applies XIOND_HOME and config values to unset flags with
+// Flags().Set, which marks --home as changed. That must not count as an
+// explicit --home.
+func TestInPlaceTestnetRejectsHomeFromEnvironment(t *testing.T) {
+	home := t.TempDir()
+	before := writeTestSourceHome(t, home, "xion-devnet-1")
+	root := &cobra.Command{
+		Use: "xiond",
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			return cmd.Flags().Set(flags.FlagHome, home)
+		},
+	}
+	root.AddCommand(newTestInPlaceTestnetCmd(t, home, nil))
+	serverCtx := server.NewDefaultContext()
+	serverCtx.Config.SetRoot(home)
+	root.SetArgs([]string{"in-place-testnet", "fork-test", "operator", "--skip-confirmation"})
+	root.SetOut(io.Discard)
+	root.SetErr(io.Discard)
+	err := root.ExecuteContext(context.WithValue(context.Background(), server.ServerContextKey, serverCtx))
+	require.ErrorContains(t, err, "requires an explicit --home")
 	require.Equal(t, before, snapshotTestHome(t, home))
 }
 
@@ -130,6 +192,7 @@ func TestInPlaceTestnetRejectsUnsafeChainIDBeforeConfirmation(t *testing.T) {
 		{name: "testnet fork named mainnet", source: "xion-testnet-2", chainID: "xion-mainnet-1", wantErr: "reuses the public network name xion-mainnet-N"},
 		{name: "mainnet fork named testnet", source: "xion-mainnet-1", chainID: "xion-testnet-2", wantErr: "reuses the public network name xion-testnet-N"},
 		{name: "mainnet next revision", source: "xion-mainnet-1", chainID: "xion-mainnet-2", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "public name in another case", source: "xion-devnet-1", chainID: "XION-Testnet-2", wantErr: "reuses the public network name xion-testnet-N"},
 		{name: "same as source", source: "xion-devnet-1", chainID: "xion-devnet-1", wantErr: "must differ from source chain ID"},
 		{name: "revision of source", source: "xion-devnet-1", chainID: "xion-devnet-2", wantErr: "is a revision of source chain ID"},
 	}
@@ -144,6 +207,47 @@ func TestInPlaceTestnetRejectsUnsafeChainIDBeforeConfirmation(t *testing.T) {
 			require.Equal(t, before, snapshotTestHome(t, home))
 		})
 	}
+}
+
+// A home whose genesis already carries the new chain ID and whose validator key
+// was replaced by a conversion is a rerun after an interrupted conversion. It
+// passes the command-level source check (consensus state decides whether it can
+// be finished), but a public network name is still refused.
+func TestInPlaceTestnetRerunAfterInterruptedConversion(t *testing.T) {
+	home := t.TempDir()
+	writeTestSourceHome(t, home, "fork-test")
+	require.NoError(t, os.WriteFile(filepath.Join(home, "config", "priv_validator_key.json"+testnetValidatorBackupSuffix), []byte("{}"), 0o600))
+	before := snapshotTestHome(t, home)
+
+	cmd := newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home})
+	cmd.SetIn(strings.NewReader("no\n"))
+	var stderr bytes.Buffer
+	cmd.SetErr(&stderr)
+	require.NoError(t, cmd.Execute())
+	require.Contains(t, stderr.String(), "Home "+home+" already has chain ID fork-test in its genesis file: finishing the interrupted conversion")
+	require.NotContains(t, stderr.String(), "New validator consensus address")
+	require.Contains(t, stderr.String(), "Conversion cancelled.")
+	require.Equal(t, before, snapshotTestHome(t, home))
+
+	// Another revision of the chain it was converted to points back at it.
+	cmd = newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"fork-test-2", "operator", "--home", home})
+	cmd.SetIn(strings.NewReader("y\n"))
+	err := cmd.Execute()
+	require.ErrorContains(t, err, "is a revision of source chain ID")
+	require.ErrorContains(t, err, "already converted to fork-test; to finish an interrupted conversion, rerun with that chain ID")
+	require.Equal(t, before, snapshotTestHome(t, home))
+
+	home = t.TempDir()
+	writeTestSourceHome(t, home, "xion-testnet-2")
+	require.NoError(t, os.WriteFile(filepath.Join(home, "config", "priv_validator_key.json"+testnetValidatorBackupSuffix), []byte("{}"), 0o600))
+	before = snapshotTestHome(t, home)
+	cmd = newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"xion-testnet-2", "operator", "--home", home})
+	cmd.SetIn(strings.NewReader("y\n"))
+	require.ErrorContains(t, cmd.Execute(), "reuses the public network name")
+	require.Equal(t, before, snapshotTestHome(t, home))
 }
 
 func TestInPlaceTestnetRejectsMissingGenesis(t *testing.T) {

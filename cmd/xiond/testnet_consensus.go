@@ -31,6 +31,12 @@ const testnetValidatorHistoryRadius int64 = 10
 // key and signing state kept inside the home.
 const testnetValidatorBackupSuffix = ".pre-testnet"
 
+// testnetConversionCompleteKey marks, in the CometBFT state database, the chain
+// ID whose consensus conversion finished, network-file reset included. It is
+// written before the node starts, so a home without it for the current chain
+// ID has not run consensus as the testnet yet.
+var testnetConversionCompleteKey = []byte("xionTestnetConversionComplete")
+
 // prepareTestnetConsensus converts the persisted CometBFT state to the local
 // validator and chain ID. The application must already be loaded and converted,
 // but not committed, before this function is called.
@@ -106,9 +112,6 @@ func prepareTestnetConsensus(
 	if state.LastBlockHeight <= 0 {
 		return fmt.Errorf("persisted CometBFT state height must be positive: %d", state.LastBlockHeight)
 	}
-	if err := app.ValidateTestnetChainID(chainID, state.ChainID); err != nil {
-		return err
-	}
 	if state.LastBlockHeight > appHeight {
 		return fmt.Errorf("CometBFT state height %d is ahead of application height %d", state.LastBlockHeight, appHeight)
 	}
@@ -133,20 +136,16 @@ func prepareTestnetConsensus(
 		return err
 	}
 
-	privValidator := pvm.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
-	validatorPubKey, err := privValidator.GetPubKey()
-	if err != nil {
-		return fmt.Errorf("load local validator public key: %w", err)
-	}
+	validatorPubKey := validatorKey.PubKey()
 	validatorAddress := validatorPubKey.Address()
 
 	// The application half of a conversion only lands when the first new block
 	// commits, while this function writes consensus state immediately. A run
-	// that exits in between leaves consensus converted to the local validator
-	// at the testnet power over an unconverted application. The caller has
-	// already checked that the application's committed state does not know the
-	// local consensus key, so a source chain validated by that key alone is
-	// refused before this point.
+	// that exits in between leaves consensus converted to the key it installed,
+	// at the testnet power, over an unconverted application. The caller passes
+	// that installed key back only for such a home (see
+	// installedTestnetValidatorKey); every other run passes a fresh key, which
+	// cannot match.
 	if onlyTestnetValidator(state, validatorAddress, validatorPower) {
 		if err := checkInterruptedTestnetConversion(
 			state, cachedGenesis, diskGenesis, blockStore, blockMeta,
@@ -175,9 +174,6 @@ func prepareTestnetConsensus(
 	if cachedGenesis.ChainID != state.ChainID {
 		return fmt.Errorf("cached genesis chain ID %q does not match CometBFT state chain ID %q", cachedGenesis.ChainID, state.ChainID)
 	}
-
-	validatorPubKey := validatorKey.PubKey()
-	validatorAddress := validatorPubKey.Address()
 	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
 		if validators != nil && validators.HasAddress(validatorAddress) {
 			return fmt.Errorf("testnet validator key %X belongs to the source consensus validator set", validatorAddress)
@@ -304,10 +300,18 @@ func prepareTestnetConsensus(
 	if err := diskGenesis.SaveAs(config.GenesisFile()); err != nil {
 		return fmt.Errorf("save canonical testnet genesis: %w", err)
 	}
+	return finishTestnetConversion(config, stateDB, chainID)
+}
+
+// finishTestnetConversion resets the source network files and then records
+// that the conversion to chainID is complete.
+func finishTestnetConversion(config *cmtcfg.Config, stateDB cometdbm.DB, chainID string) error {
 	if err := resetTestnetNetworkFiles(config); err != nil {
 		return err
 	}
-
+	if err := stateDB.SetSync(testnetConversionCompleteKey, []byte(chainID)); err != nil {
+		return fmt.Errorf("save testnet conversion marker: %w", err)
+	}
 	return nil
 }
 
@@ -323,8 +327,23 @@ func installTestnetValidatorKey(config *cmtcfg.Config, validatorKey cmtcrypto.Pr
 		} else if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("check validator backup %s: %w", backup, err)
 		}
-		if err := os.Rename(path, backup); err != nil && !os.IsNotExist(err) {
+		err := os.Rename(path, backup)
+		if err == nil {
+			continue
+		}
+		if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("move aside previous validator file %s: %w", path, err)
+		}
+		// A home without a validator key still gets a key backup, empty, so a
+		// rerun can recognize the key this conversion installs (see
+		// installedTestnetValidatorKey).
+		if path == keyFile {
+			if err := os.MkdirAll(filepath.Dir(backup), 0o700); err != nil {
+				return nil, fmt.Errorf("create validator directory %s: %w", filepath.Dir(backup), err)
+			}
+			if err := os.WriteFile(backup, nil, 0o600); err != nil {
+				return nil, fmt.Errorf("record missing validator key in %s: %w", backup, err)
+			}
 		}
 	}
 	for _, dir := range []string{filepath.Dir(keyFile), filepath.Dir(stateFile)} {
@@ -335,6 +354,116 @@ func installTestnetValidatorKey(config *cmtcfg.Config, validatorKey cmtcrypto.Pr
 	privValidator := pvm.NewFilePV(validatorKey, keyFile, stateFile)
 	privValidator.Save()
 	return privValidator, nil
+}
+
+// onlyTestnetValidator reports whether every consensus validator set in state
+// consists of exactly the local validator at the testnet power, as a
+// conversion writes it.
+func onlyTestnetValidator(state sm.State, validatorAddress []byte, validatorPower int64) bool {
+	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
+		if validators == nil || validators.Size() != 1 {
+			return false
+		}
+		if validator := validators.Validators[0]; !bytes.Equal(validator.Address, validatorAddress) || validator.VotingPower != validatorPower {
+			return false
+		}
+	}
+	return true
+}
+
+// checkInterruptedTestnetConversion decides whether a home whose consensus
+// state was already converted, but whose application conversion never
+// committed, can be resumed. It can when every consensus write of the earlier
+// run is in place for the same chain ID and snapshot: the caller's freshly
+// converted application then completes the conversion and nothing here is
+// rewritten. Anything else is reported as an interrupted conversion that needs
+// a fresh copy, rather than as a misleading validator-key error.
+func checkInterruptedTestnetConversion(
+	state sm.State,
+	cachedGenesis *cmttypes.GenesisDoc,
+	diskGenesis *cmttypes.GenesisDoc,
+	blockStore *store.BlockStore,
+	blockMeta *cmttypes.BlockMeta,
+	chainID string,
+	appHeight int64,
+	appHash []byte,
+	validatorAddress []byte,
+) error {
+	if state.ChainID != chainID {
+		return fmt.Errorf("an earlier in-place-testnet run was interrupted after converting consensus state to chain ID %q; rerun with that chain ID to finish it, or start again from a fresh copy of the source home", state.ChainID)
+	}
+	interrupted := func(format string, args ...any) error {
+		return fmt.Errorf("an earlier in-place-testnet run was interrupted and cannot be resumed (%s); start again from a fresh copy of the source home", fmt.Sprintf(format, args...))
+	}
+	if state.LastBlockHeight != appHeight {
+		return interrupted("consensus state height %d does not match application height %d", state.LastBlockHeight, appHeight)
+	}
+	if !bytes.Equal(state.AppHash, appHash) {
+		return interrupted("consensus application hash at height %d does not match the loaded application", appHeight)
+	}
+	if !state.LastBlockID.Equals(blockMeta.BlockID) {
+		return interrupted("consensus last block ID does not match the stored block at height %d", appHeight)
+	}
+	if cachedGenesis.ChainID != chainID {
+		return interrupted("cached genesis chain ID is %q", cachedGenesis.ChainID)
+	}
+	if diskGenesis.ChainID != chainID {
+		return interrupted("genesis file chain ID is %q", diskGenesis.ChainID)
+	}
+	seenCommit := blockStore.LoadSeenCommit(appHeight)
+	if seenCommit == nil || len(seenCommit.Signatures) != 1 ||
+		!bytes.Equal(seenCommit.Signatures[0].ValidatorAddress, validatorAddress) ||
+		!seenCommit.BlockID.Equals(blockMeta.BlockID) {
+		return interrupted("no testnet commit is stored for height %d", appHeight)
+	}
+	return nil
+}
+
+// installedTestnetValidatorKey returns the validator key an earlier, interrupted
+// conversion of this home installed, or nil when there is none. A key is only
+// returned when the home holds the backup that installing it leaves and every
+// consensus validator set in the persisted state is exactly that key at
+// validatorPower, as a conversion writes it. Any other home, including a source
+// home whose own key validates it alone, gets nil and so a fresh key.
+func installedTestnetValidatorKey(config *cmtcfg.Config, validatorPower int64) (_ cmtcrypto.PrivKey, returnErr error) {
+	keyFile := config.PrivValidatorKeyFile()
+	if _, err := os.Lstat(keyFile + testnetValidatorBackupSuffix); os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("check validator backup %s: %w", keyFile+testnetValidatorBackupSuffix, err)
+	}
+	keyJSON, err := os.ReadFile(keyFile)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("read validator key %s: %w", keyFile, err)
+	}
+	var key pvm.FilePVKey
+	if err := cmtjson.Unmarshal(keyJSON, &key); err != nil {
+		return nil, fmt.Errorf("decode validator key %s: %w", keyFile, err)
+	}
+	if key.PrivKey == nil {
+		return nil, fmt.Errorf("validator key %s has no private key", keyFile)
+	}
+
+	stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: config})
+	if err != nil {
+		return nil, fmt.Errorf("open CometBFT state database: %w", err)
+	}
+	stateStore := sm.NewStore(stateDB, sm.StoreOptions{
+		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
+	})
+	defer func() {
+		returnErr = errors.Join(returnErr, stateStore.Close())
+	}()
+	state, err := stateStore.Load()
+	if err != nil {
+		return nil, fmt.Errorf("load CometBFT state: %w", err)
+	}
+	if !onlyTestnetValidator(state, key.PrivKey.PubKey().Address(), validatorPower) {
+		return nil, nil
+	}
+	return key.PrivKey, nil
 }
 
 func loadCachedTestnetGenesis(stateDB cometdbm.DB, fallback *cmttypes.GenesisDoc) (*cmttypes.GenesisDoc, error) {
