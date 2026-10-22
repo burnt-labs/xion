@@ -32,6 +32,11 @@ const testnetValidatorHistoryRadius int64 = 10
 // ID has not run consensus as the testnet yet.
 var testnetConversionCompleteKey = []byte("xionTestnetConversionComplete")
 
+// validateFreshTestnetChainID checks the chain ID of a conversion that has not
+// started yet. Tests replace it to reproduce homes that an older binary,
+// without the source chain ID check, began converting.
+var validateFreshTestnetChainID = app.ValidateTestnetChainID
+
 // prepareTestnetConsensus converts the persisted CometBFT state to the local
 // validator and chain ID. The application must already be loaded and converted,
 // but not committed, before this function is called.
@@ -148,6 +153,14 @@ func prepareTestnetConsensus(
 		); err != nil {
 			return err
 		}
+		// Consensus state already carries the new chain ID here, so the source
+		// chain ID comes from the stored source block at the snapshot height,
+		// which a conversion never rewrites. This refuses resuming a home that
+		// an older binary, without the source-family check, began converting
+		// to a revision of its source chain ID.
+		if err := app.ValidateTestnetChainID(chainID, blockMeta.Header.ChainID); err != nil {
+			return err
+		}
 		// Without the completion marker the earlier run stopped before or
 		// during the network-file reset, and the node never ran on this chain,
 		// so any WAL or address book left is the source chain's: finish the
@@ -163,7 +176,7 @@ func prepareTestnetConsensus(
 		return finishTestnetConversion(config, stateDB, chainID)
 	}
 
-	if err := app.ValidateTestnetChainID(chainID, state.ChainID); err != nil {
+	if err := validateFreshTestnetChainID(chainID, state.ChainID); err != nil {
 		return err
 	}
 	if cachedGenesis.ChainID != state.ChainID {
