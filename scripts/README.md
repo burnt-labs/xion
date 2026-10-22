@@ -29,10 +29,12 @@ the v31 binary needed for the v31-to-v32 rehearsal below.
 Use only a disposable copy of persisted state, fresh validator/operator keys,
 and a different chain ID. `--home` must be given explicitly, and a home with
 `priv_validator_laddr` set (a remote-signer validator) is refused. The new
-chain ID must not be the source chain ID or another revision of it, and must
-not be in the `xion-mainnet-N` or `xion-testnet-N` families: signatures are
-bound to the chain ID, so reusing a public network's ID would make the copy's
-transactions and votes valid on that network. The initializer replaces active
+chain ID must not be the source chain ID or another revision of it (IBC treats
+`foo-2` as `foo-1` upgraded). Signatures are bound to the chain ID, so reusing
+the source ID would make the copy's transactions and votes valid on the source
+network. Other chain IDs are accepted, including one used by another live
+network; transactions signed on such a copy can be replayed on that network,
+so pick an unused name. The initializer replaces active
 validator indices, initializes distribution/slashing records, mints synthetic
 stake and local operator funds, and shortens governance voting periods to 20
 seconds (10 seconds expedited). Existing validator/delegation records remain, while

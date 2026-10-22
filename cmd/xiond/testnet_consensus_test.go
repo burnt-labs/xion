@@ -211,16 +211,6 @@ func TestPrepareTestnetConsensusRejectsUnsafeChainID(t *testing.T) {
 			chainID: func(source string) string { return source + "-2" },
 			wantErr: "is a revision of source chain ID",
 		},
-		{
-			name:    "mainnet",
-			chainID: func(string) string { return "xion-mainnet-1" },
-			wantErr: "reuses the public network name xion-mainnet-N",
-		},
-		{
-			name:    "testnet",
-			chainID: func(string) string { return "xion-testnet-2" },
-			wantErr: "reuses the public network name xion-testnet-N",
-		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
