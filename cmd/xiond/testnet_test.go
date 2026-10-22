@@ -192,6 +192,7 @@ func TestInPlaceTestnetRejectsUnsafeChainIDBeforeConfirmation(t *testing.T) {
 		{name: "testnet fork named mainnet", source: "xion-testnet-2", chainID: "xion-mainnet-1", wantErr: "reuses the public network name xion-mainnet-N"},
 		{name: "mainnet fork named testnet", source: "xion-mainnet-1", chainID: "xion-testnet-2", wantErr: "reuses the public network name xion-testnet-N"},
 		{name: "mainnet next revision", source: "xion-mainnet-1", chainID: "xion-mainnet-2", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "public name in another case", source: "xion-devnet-1", chainID: "XION-Testnet-2", wantErr: "reuses the public network name xion-testnet-N"},
 		{name: "same as source", source: "xion-devnet-1", chainID: "xion-devnet-1", wantErr: "must differ from source chain ID"},
 		{name: "revision of source", source: "xion-devnet-1", chainID: "xion-devnet-2", wantErr: "is a revision of source chain ID"},
 	}
