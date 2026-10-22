@@ -84,6 +84,20 @@ func TestInPlaceTestnetRejectsStandaloneBeforeMutation(t *testing.T) {
 	require.Empty(t, entries, "rejected standalone conversion must not initialize or open node state")
 }
 
+func TestInPlaceTestnetRejectsPublicChainIDBeforeMutation(t *testing.T) {
+	for _, chainID := range []string{"xion-mainnet-1", "xion-testnet-2", "xion-mainnet-2", "XION-Testnet-2"} {
+		t.Run(chainID, func(t *testing.T) {
+			home := t.TempDir()
+			before := writeTestSourceHome(t, home, "xion-devnet-1")
+			cmd := newTestInPlaceTestnetCmd(t, home, nil)
+			cmd.SetArgs([]string{chainID, "operator", "--home", home})
+			cmd.SetIn(strings.NewReader("y\n"))
+			require.ErrorContains(t, cmd.Execute(), "reuses the public network name")
+			require.Equal(t, before, snapshotTestHome(t, home), "rejected conversion must not change node state")
+		})
+	}
+}
+
 func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
 	home := t.TempDir()
 	before := writeTestSourceHome(t, home, "xion-mainnet-1")

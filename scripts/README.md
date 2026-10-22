@@ -26,8 +26,14 @@ canonical CometBFT genesis JSON. The command starts through the normal SDK
 server path rather than SDK `testnetify`. This builds a **v32** converter, not
 the v31 binary needed for the v31-to-v32 rehearsal below.
 
-Use only a disposable copy of persisted state and a fresh operator key.
-Protections, in order:
+Use `in-place-testnet` only on a disposable copy of node state, with fresh
+validator and operator keys and a different chain ID. The command refuses the
+source chain ID and any other revision of it (IBC treats `foo-2` as `foo-1`
+upgraded): signatures are bound to the chain ID, so reusing the source ID would
+make the copy's transactions and votes valid on the source network. As a
+precaution, it also refuses any `xion-mainnet-N` or `xion-testnet-N` chain ID.
+Never load a live validator's consensus key into a copy named after that
+validator's network: its votes there can become double-sign evidence.
 
 1. **Fresh validator key per copy.** The command generates a new consensus key
    for every conversion; the copy's only validator signs with it. The home's

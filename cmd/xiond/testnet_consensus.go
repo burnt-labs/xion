@@ -132,6 +132,46 @@ func prepareTestnetConsensus(
 	if err != nil {
 		return err
 	}
+
+	privValidator := pvm.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
+	validatorPubKey, err := privValidator.GetPubKey()
+	if err != nil {
+		return fmt.Errorf("load local validator public key: %w", err)
+	}
+	validatorAddress := validatorPubKey.Address()
+
+	// The application half of a conversion only lands when the first new block
+	// commits, while this function writes consensus state immediately. A run
+	// that exits in between leaves consensus converted to the local validator
+	// at the testnet power over an unconverted application. The caller has
+	// already checked that the application's committed state does not know the
+	// local consensus key, so a source chain validated by that key alone is
+	// refused before this point.
+	if onlyTestnetValidator(state, validatorAddress, validatorPower) {
+		if err := checkInterruptedTestnetConversion(
+			state, cachedGenesis, diskGenesis, blockStore, blockMeta,
+			chainID, appHeight, appHash, validatorAddress,
+		); err != nil {
+			return err
+		}
+		// Without the completion marker the earlier run stopped before or
+		// during the network-file reset, and the node never ran on this chain,
+		// so any WAL or address book left is the source chain's: finish the
+		// reset. With the marker, those files may belong to the testnet already
+		// and stay as they are.
+		complete, err := stateDB.Get(testnetConversionCompleteKey)
+		if err != nil {
+			return fmt.Errorf("read testnet conversion marker: %w", err)
+		}
+		if string(complete) == chainID {
+			return nil
+		}
+		return finishTestnetConversion(config, stateDB, chainID)
+	}
+
+	if err := app.ValidateTestnetChainID(chainID, state.ChainID); err != nil {
+		return err
+	}
 	if cachedGenesis.ChainID != state.ChainID {
 		return fmt.Errorf("cached genesis chain ID %q does not match CometBFT state chain ID %q", cachedGenesis.ChainID, state.ChainID)
 	}
