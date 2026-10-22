@@ -42,19 +42,37 @@ Protections, in order:
    chain ID is refused as a precaution against transactions that could be
    replayed on those networks.
 
-`--home` must be given explicitly, and a home with `priv_validator_laddr` set
-(a remote-signer validator) is refused. Nothing is written if a check fails or
-the prompt is declined. The initializer replaces active validator indices,
-initializes distribution/slashing records, mints synthetic stake and local
-operator funds, and shortens governance voting periods to 20 seconds (10
-seconds expedited). Existing validator/delegation records remain, while
-the replacement validator has synthetic shares without a self-delegation.
-Supply and staking invariants are not a replica of the source chain.
+`--home` must be given on the command line: the command does not fall back to
+the default node home or to `XIOND_HOME`. A home with `priv_validator_laddr`
+set is refused: a remote-signer validator (tmkms, horcrux) or a sentry keeps an
+unused stub key in `config/`, so copy the data and clear `priv_validator_laddr`
+first. Nothing is written if a check fails or the prompt is declined. The
+initializer replaces active validator indices, initializes distribution/slashing
+records, mints synthetic stake and local operator funds, and shortens governance
+voting periods to 20 seconds (10 seconds expedited). Existing
+validator/delegation records remain, while the replacement validator has
+synthetic shares without a self-delegation. Supply and staking invariants are
+not a replica of the source chain. The source validators also keep status
+`Bonded`; they only leave the power and last-validator indices. A delegation to
+or undelegation from one of them puts it back in the power index, and the next
+block adds it to the CometBFT validator set. Its power is negligible next to the
+local validator, so the chain keeps running, but it misses every block and is
+jailed and slashed for downtime: expect those events in the copy.
 
 Resume a converted chain with normal `start` on the same home. Do not convert
-the same home twice. The optional `--trigger-testnet-upgrade` schedules the named
-upgrade ten blocks after the loaded height so conversion writes commit first.
-Stored module versions and upgrade-compatibility checks are not bypassed.
+the same home twice. The application half of a conversion only commits with the
+first new block, while the CometBFT half is written before the node starts. If
+the command exits before that first block commits (a busy port, a signal, a
+crash), plain `start` halts with `validator does not exist`: rerun the same
+`in-place-testnet` command, with the same chain ID, on the same home. The rerun
+keeps the validator key the interrupted conversion installed (it is used only
+when the home holds the `*.pre-testnet` backup and the converted consensus set
+is exactly that key at the testnet power) and finishes the WAL and address-book
+reset if it was cut short. If consensus state was only partly written, the
+command says the conversion cannot be resumed; start again from a fresh copy.
+The optional `--trigger-testnet-upgrade` schedules the named upgrade ten blocks
+after the loaded height so conversion writes commit first. Stored module
+versions and upgrade-compatibility checks are not bypassed.
 
 Native conversion was exercised on persisted v32 state using the normal build:
 the converted chain committed a signed bank transfer and resumed ordinary
