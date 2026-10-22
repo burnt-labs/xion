@@ -8,7 +8,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 
 	// wasmd fork with genesis exports
-	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.70.5-xion.1
+	github.com/CosmWasm/wasmd => github.com/burnt-labs/wasmd v0.70.5-xion.2
 	github.com/burnt-labs/xion => ../
 
 	// interchaintest requires v11.0.0, which sorts after the SDK 0.55 migration pin.
