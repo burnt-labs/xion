@@ -203,11 +203,13 @@ func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, ch
 
 // checkTestnetPathsInHome refuses a configuration that points any file the
 // conversion moves or rewrites outside the home. A config.toml copied from a
-// validator may name absolute paths, for example a key on a secrets mount;
-// converting the copy would then move aside and replace the live validator's
-// key and signing state, or rewrite its consensus state.
+// validator may name absolute paths, for example a key on a secrets mount, and
+// a copy may symlink a directory such as config/ to the live node's; converting
+// the copy would then move aside and replace the live validator's key and
+// signing state, or rewrite its consensus state. Paths are compared after
+// resolving symlinks.
 func checkTestnetPathsInHome(config *cmtcfg.Config) error {
-	root, err := filepath.Abs(config.RootDir)
+	root, err := resolveTestnetPath(config.RootDir)
 	if err != nil {
 		return fmt.Errorf("resolve home %s: %w", config.RootDir, err)
 	}
@@ -219,7 +221,7 @@ func checkTestnetPathsInHome(config *cmtcfg.Config) error {
 		{"consensus.wal_file", config.Consensus.WalFile()},
 		{"p2p.addr_book_file", config.P2P.AddrBookFile()},
 	} {
-		path, err := filepath.Abs(setting.path)
+		path, err := resolveTestnetPath(setting.path)
 		if err != nil {
 			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
 		}
@@ -229,6 +231,32 @@ func checkTestnetPathsInHome(config *cmtcfg.Config) error {
 		}
 	}
 	return nil
+}
+
+// resolveTestnetPath returns path as an absolute path with every symlink in
+// its existing part resolved. Components that do not exist yet are appended
+// as they are.
+func resolveTestnetPath(path string) (string, error) {
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	missing := ""
+	for {
+		resolved, err := filepath.EvalSymlinks(path)
+		if err == nil {
+			return filepath.Join(resolved, missing), nil
+		}
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+		parent := filepath.Dir(path)
+		if parent == path {
+			return filepath.Join(path, missing), nil
+		}
+		missing = filepath.Join(filepath.Base(path), missing)
+		path = parent
+	}
 }
 
 // readGenesisChainID streams the top-level chain_id out of a genesis file

@@ -137,6 +137,41 @@ func TestInPlaceTestnetRejectsPathsOutsideHome(t *testing.T) {
 	require.Empty(t, entries)
 }
 
+// A directory inside the home that is a symlink to another node's directory
+// is outside the home, even though the configured paths are relative.
+func TestInPlaceTestnetRejectsSymlinkOutOfHome(t *testing.T) {
+	live := t.TempDir()
+	liveKey := filepath.Join(live, "priv_validator_key.json")
+	require.NoError(t, os.WriteFile(liveKey, []byte("live key"), 0o600))
+
+	home := t.TempDir()
+	writeTestSourceHome(t, home, "xion-devnet-1")
+	require.NoError(t, os.Rename(filepath.Join(home, "config"), filepath.Join(home, "config.real")))
+	require.NoError(t, os.Symlink(live, filepath.Join(home, "config")))
+	require.NoError(t, os.Rename(filepath.Join(home, "config.real", "genesis.json"), filepath.Join(home, "genesis.json")))
+	cmd := newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
+		serverCtx.Config.Genesis = "genesis.json"
+	})
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+	require.ErrorContains(t, cmd.Execute(), "priv_validator_key_file (")
+	data, err := os.ReadFile(liveKey)
+	require.NoError(t, err)
+	require.Equal(t, "live key", string(data))
+	entries, err := os.ReadDir(live)
+	require.NoError(t, err)
+	require.Len(t, entries, 1, "nothing may be written next to the live key")
+
+	// A home reached through a symlink is still inside itself.
+	linkedHome := filepath.Join(t.TempDir(), "linked-home")
+	target := t.TempDir()
+	writeTestSourceHome(t, target, "xion-devnet-1")
+	require.NoError(t, os.Symlink(target, linkedHome))
+	cmd = newTestInPlaceTestnetCmd(t, linkedHome, nil)
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", linkedHome})
+	cmd.SetIn(strings.NewReader("no\n"))
+	require.NoError(t, cmd.Execute())
+}
+
 func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
 	home := t.TempDir()
 	before := writeTestSourceHome(t, home, "xion-mainnet-1")
