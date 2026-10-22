@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
+	cmtcfg "github.com/cometbft/cometbft/config"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 )
@@ -48,6 +50,11 @@ func snapshotTestHome(t *testing.T, home string) map[string]string {
 	files := map[string]string{}
 	require.NoError(t, filepath.Walk(home, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
+			return err
+		}
+		if info.Mode()&os.ModeSymlink != 0 {
+			target, err := os.Readlink(path)
+			files[path] = "symlink to " + target
 			return err
 		}
 		data, err := os.ReadFile(path)
@@ -135,6 +142,63 @@ func TestInPlaceTestnetRejectsPathsOutsideHome(t *testing.T) {
 	entries, err := os.ReadDir(outside)
 	require.NoError(t, err)
 	require.Empty(t, entries)
+}
+
+func TestInPlaceTestnetRejectsSymlinksOutsideHome(t *testing.T) {
+	for name, tc := range map[string]struct {
+		link func(t *testing.T, home, outside string)
+		want string
+	}{
+		// A copied home whose data/ still links to the source node's data.
+		// The signing state is the first setting under data/ that is checked.
+		"data directory": {
+			link: func(t *testing.T, home, outside string) {
+				require.NoError(t, os.Mkdir(filepath.Join(outside, "data"), 0o700))
+				require.NoError(t, os.Symlink(filepath.Join(outside, "data"), filepath.Join(home, "data")))
+			},
+			want: "priv_validator_state_file (",
+		},
+		// A key file linked to the source validator's key.
+		"validator key": {
+			link: func(t *testing.T, home, outside string) {
+				require.NoError(t, os.WriteFile(filepath.Join(outside, "priv_validator_key.json"), []byte("source key"), 0o600))
+				require.NoError(t, os.Symlink(filepath.Join(outside, "priv_validator_key.json"), filepath.Join(home, "config", "priv_validator_key.json")))
+			},
+			want: "priv_validator_key_file (",
+		},
+		// A dangling link: writing the signing state would create its target.
+		"dangling signing state": {
+			link: func(t *testing.T, home, outside string) {
+				require.NoError(t, os.Mkdir(filepath.Join(home, "data"), 0o700))
+				require.NoError(t, os.Symlink(filepath.Join(outside, "missing", "priv_validator_state.json"), filepath.Join(home, "data", "priv_validator_state.json")))
+			},
+			want: "symlink to a missing target",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			home, outside := t.TempDir(), t.TempDir()
+			writeTestSourceHome(t, home, "xion-devnet-1")
+			tc.link(t, home, outside)
+			beforeHome, beforeOutside := snapshotTestHome(t, home), snapshotTestHome(t, outside)
+			cmd := newTestInPlaceTestnetCmd(t, home, nil)
+			cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+			err := cmd.Execute()
+			require.ErrorContains(t, err, tc.want)
+			require.Equal(t, beforeHome, snapshotTestHome(t, home))
+			require.Equal(t, beforeOutside, snapshotTestHome(t, outside), "a refused conversion must not write through the link")
+		})
+	}
+}
+
+func TestTestnetPathsInHomeFollowsSymlinkedHome(t *testing.T) {
+	target := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(target, "config"), 0o700))
+	require.NoError(t, os.Mkdir(filepath.Join(target, "data"), 0o700))
+	home := filepath.Join(t.TempDir(), "home")
+	require.NoError(t, os.Symlink(target, home))
+	config := cmtcfg.DefaultConfig()
+	config.SetRoot(home)
+	require.NoError(t, checkTestnetPathsInHome(config), "a home reached through a symlink keeps its own files inside it")
 }
 
 func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
