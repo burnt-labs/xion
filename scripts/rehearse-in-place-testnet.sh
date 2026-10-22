@@ -26,7 +26,8 @@ Usage: $0 [options]
   --prev-bin PATH    Previous binary with in-place-testnet (required; or set PREV_BIN)
   --cur-bin PATH     Prebuilt candidate (or CUR_BIN); otherwise run make build
   --work-dir PATH    NEW extraction folder (or WORK_DIR); existing paths refused
-  --source-chain ID  Snapshot network ID (default: xion-mainnet-1; set for testnet)
+  --source-chain ID  Snapshot network ID (default: xion-mainnet-1; xion-testnet-2
+                     is refused for v32, see scripts/README.md)
   --genesis PATH     Optional source genesis (or GENESIS) instead of the initialized one
   --chain ID         Isolated rehearsal chain ID (default: rehearsal-1)
   --upgrade NAME     Upgrade handler name (default: v32)
@@ -201,7 +202,14 @@ extract_snapshot() {
 [[ -n $SNAPSHOT && -f $SNAPSHOT ]] || die 'Set SNAPSHOT or pass --snapshot PATH to an existing archive'
 for tool in jq tar lz4 curl realpath sha256sum; do command -v "$tool" >/dev/null || die "Missing command: $tool"; done
 [[ $PORT =~ ^[0-9]+$ && $TIMEOUT =~ ^[0-9]+$ ]] || die 'Port and timeout must be positive integers'
-((PORT > 1024 && PORT < 65536 && TIMEOUT > 0)) || die 'Invalid port or timeout'
+((PORT > 1025 && PORT < 65536 && TIMEOUT > 0)) || die 'Invalid port or timeout'
+# The v32 upgrade backfills checksum-derived abstract accounts only on the chain
+# IDs listed in app/upgrades.go (checksumAccountCodes), keyed by the chain ID
+# the upgrade runs under. A rehearsal runs under its own chain ID, so a
+# xion-testnet-2 snapshot would skip that backfill and still pass.
+if [[ $UPGRADE == v32 && $SOURCE_CHAIN == xion-testnet-2 ]]; then
+  die 'xion-testnet-2 cannot be rehearsed for v32: its checksum-account backfill is keyed by chain ID and would be skipped under the rehearsal chain ID'
+fi
 PREV_BIN=$(realpath -e -- "$PREV_BIN")
 SNAPSHOT=$(realpath -e -- "$SNAPSHOT")
 [[ -x $PREV_BIN ]] || die 'Supply an executable previous binary'
@@ -209,8 +217,14 @@ SNAPSHOT=$(realpath -e -- "$SNAPSHOT")
 if [[ -z $WORK_DIR ]]; then WORK_DIR="${SNAPSHOT%.tar.lz4}.rehearsal-$(date +%Y%m%d-%H%M%S)-$$"; fi
 WORK_DIR=$(realpath -m -- "$WORK_DIR")
 [[ ! -e $WORK_DIR && ! -L $WORK_DIR ]] || die "Extraction folder already exists: $WORK_DIR"
-# Fail before extraction if the chosen local RPC endpoint is already occupied.
-if curl -s --max-time 1 "http://127.0.0.1:$PORT/status" >/dev/null; then die "RPC port $PORT is occupied"; fi
+# Fail before extraction if anything listens on the RPC or P2P port. A
+# conversion that cannot bind them dies after it has rewritten consensus state.
+# The node binds both on 127.0.0.1, so a successful loopback connection means
+# the bind would fail.
+port_in_use() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+for port in "$PORT" "$((PORT - 1))"; do
+  if port_in_use "$port"; then die "Port $port is in use (RPC uses --port, P2P uses --port minus 1)"; fi
+done
 if [[ -z $CUR_BIN ]]; then
   command -v make >/dev/null || die 'Missing command: make'
   CUR_BIN=$(realpath -m -- "$ROOT/build/xiond")
