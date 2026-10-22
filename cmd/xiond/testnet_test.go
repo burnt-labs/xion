@@ -190,6 +190,47 @@ func TestInPlaceTestnetRejectsSymlinksOutsideHome(t *testing.T) {
 	}
 }
 
+// A setting that names an entry outside the home is refused even when that
+// entry is a symlink into the home: the conversion renames the key file and
+// removes the address book, which moves or deletes the outside link itself.
+func TestInPlaceTestnetRejectsOutsideLinksIntoHome(t *testing.T) {
+	for name, tc := range map[string]struct {
+		file      string
+		configure func(serverCtx *server.Context, link string)
+	}{
+		"priv_validator_key_file": {
+			file: "priv_validator_key.json",
+			configure: func(serverCtx *server.Context, link string) {
+				serverCtx.Config.PrivValidatorKey = link
+			},
+		},
+		"p2p.addr_book_file": {
+			file: "addrbook.json",
+			configure: func(serverCtx *server.Context, link string) {
+				serverCtx.Config.P2P.AddrBook = link
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			home, outside := t.TempDir(), t.TempDir()
+			writeTestSourceHome(t, home, "xion-devnet-1")
+			require.NoError(t, os.WriteFile(filepath.Join(home, "config", tc.file), []byte("home file"), 0o600))
+			link := filepath.Join(outside, tc.file)
+			require.NoError(t, os.Symlink(filepath.Join(home, "config", tc.file), link))
+			beforeHome, beforeOutside := snapshotTestHome(t, home), snapshotTestHome(t, outside)
+			cmd := newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
+				tc.configure(serverCtx, link)
+			})
+			cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+			err := cmd.Execute()
+			require.ErrorContains(t, err, name+" (")
+			require.ErrorContains(t, err, "is outside the home")
+			require.Equal(t, beforeHome, snapshotTestHome(t, home))
+			require.Equal(t, beforeOutside, snapshotTestHome(t, outside), "a refused conversion must not move or remove the outside link")
+		})
+	}
+}
+
 func TestTestnetPathsInHomeFollowsSymlinkedHome(t *testing.T) {
 	target := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(target, "config"), 0o700))

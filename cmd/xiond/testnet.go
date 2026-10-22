@@ -208,6 +208,9 @@ func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, ch
 // key and signing state, or rewrite its consensus state. Paths are compared
 // after resolving symlinks, because a copy can also carry a symlink (data/ or
 // a key file linked to the source node's) that the conversion would follow.
+// Both the entry itself (its directory resolved) and what it points to must be
+// inside the home: the conversion renames and removes some entries, which acts
+// on the link, not its target, so an outside link into the home is refused too.
 func checkTestnetPathsInHome(config *cmtcfg.Config) error {
 	root, err := resolveTestnetPath(config.RootDir)
 	if err != nil {
@@ -221,13 +224,23 @@ func checkTestnetPathsInHome(config *cmtcfg.Config) error {
 		{"consensus.wal_file", config.Consensus.WalFile()},
 		{"p2p.addr_book_file", config.P2P.AddrBookFile()},
 	} {
-		path, err := resolveTestnetPath(setting.path)
+		abs, err := filepath.Abs(setting.path)
 		if err != nil {
 			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
 		}
-		rel, err := filepath.Rel(root, path)
-		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			return fmt.Errorf("refusing to convert: %s (%s) is outside the home %s; point it inside the disposable copy", setting.name, path, root)
+		dir, err := resolveTestnetPath(filepath.Dir(abs))
+		if err != nil {
+			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
+		}
+		target, err := resolveTestnetPath(abs)
+		if err != nil {
+			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
+		}
+		for _, path := range []string{filepath.Join(dir, filepath.Base(abs)), target} {
+			rel, err := filepath.Rel(root, path)
+			if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+				return fmt.Errorf("refusing to convert: %s (%s) is outside the home %s; point it inside the disposable copy", setting.name, path, root)
+			}
 		}
 	}
 	return nil
