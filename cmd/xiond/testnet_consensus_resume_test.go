@@ -100,11 +100,11 @@ func TestPrepareTestnetConsensusRefusesResumingRevisionOfSource(t *testing.T) {
 
 	validateFreshTestnetChainID = func(string, string) error { return nil }
 	t.Cleanup(func() { validateFreshTestnetChainID = app.ValidateTestnetChainID })
-	require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower))
+	require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower, fixture.newKey))
 	first := readConvertedTestnetConsensus(t, fixture.config, fixture.height)
 	validateFreshTestnetChainID = app.ValidateTestnetChainID
 
-	err := prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower)
+	err := prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower, fixture.newKey)
 	require.ErrorContains(t, err, "is a revision of source chain ID")
 	require.Equal(t, first, readConvertedTestnetConsensus(t, fixture.config, fixture.height))
 }
