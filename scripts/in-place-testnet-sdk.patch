@@ -1,0 +1,24 @@
+--- a/server/start.go
++++ b/server/start.go
+@@ -889,18 +889,14 @@
+ 	vote.Timestamp = voteProto.Timestamp
+ 
+ 	// Modify the block's lastCommit to be signed only by our validator
+-	block.LastCommit.Signatures[0].ValidatorAddress = validatorAddress
+-	block.LastCommit.Signatures[0].Signature = vote.Signature
+-	block.LastCommit.Signatures = []cmttypes.CommitSig{block.LastCommit.Signatures[0]}
++	block.LastCommit.Round = vote.Round
++	block.LastCommit.Signatures = []cmttypes.CommitSig{vote.CommitSig()}
+ 
+ 	// Load the seenCommit of the lastBlockHeight and modify it to be signed from our validator
+ 	seenCommit := blockStore.LoadSeenCommit(state.LastBlockHeight)
+ 	seenCommit.BlockID = state.LastBlockID
+ 	seenCommit.Round = vote.Round
+-	seenCommit.Signatures[0].Signature = vote.Signature
+-	seenCommit.Signatures[0].ValidatorAddress = validatorAddress
+-	seenCommit.Signatures[0].Timestamp = vote.Timestamp
+-	seenCommit.Signatures = []cmttypes.CommitSig{seenCommit.Signatures[0]}
++	seenCommit.Signatures = []cmttypes.CommitSig{vote.CommitSig()}
+ 	err = blockStore.SaveSeenCommit(state.LastBlockHeight, seenCommit)
+ 	if err != nil {
+ 		return nil, err

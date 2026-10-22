@@ -180,7 +180,7 @@ func initRootCmd(rootCmd *cobra.Command,
 
 	// in-place-testnet: create and run a testnet from this node's state
 	// (e.g. a restored snapshot) without a genesis export.
-	server.AddTestnetCreatorCommand(rootCmd, newApp, addModuleInitFlags)
+	server.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
