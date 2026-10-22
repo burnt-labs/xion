@@ -27,10 +27,15 @@ server path rather than SDK `testnetify`. This builds a **v32** converter, not
 the v31 binary needed for the v31-to-v32 rehearsal below.
 
 Use only a disposable copy of persisted state, fresh validator/operator keys,
-and a different chain ID. The initializer replaces active validator indices,
-initializes distribution/slashing records, mints synthetic stake and local
-operator funds, and shortens governance voting periods to 20 seconds
-(10 seconds expedited). Existing validator/delegation records remain, while
+and a different chain ID. `--home` must be given explicitly, and a home with
+`priv_validator_laddr` set (a remote-signer validator) is refused. The new
+chain ID must not be the source chain ID or another revision of it, and must
+not be in the `xion-mainnet-N` or `xion-testnet-N` families: signatures are
+bound to the chain ID, so reusing a public network's ID would make the copy's
+transactions and votes valid on that network. The initializer replaces active
+validator indices, initializes distribution/slashing records, mints synthetic
+stake and local operator funds, and shortens governance voting periods to 20
+seconds (10 seconds expedited). Existing validator/delegation records remain, while
 the replacement validator has synthetic shares without a self-delegation.
 Supply and staking invariants are not a replica of the source chain.
 

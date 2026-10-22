@@ -2,7 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -74,6 +77,12 @@ func inPlaceTestnetCmd() *cobra.Command {
 		if err != nil {
 			return err
 		}
+		serverCtx := server.GetServerContextFromCmd(cmd)
+		sourceChainID, err := checkInPlaceTestnetTarget(cmd, serverCtx.Config, args[0])
+		if err != nil {
+			return err
+		}
+		cmd.PrintErrf("Converting home %s from source chain %s to new chain %s.\n", serverCtx.Config.RootDir, sourceChainID, args[0])
 		if !skip {
 			cmd.PrintErrln("This irreversibly changes the selected home. Use only a disposable copy with fresh keys. Continue? (y/N)")
 			answer, err := bufio.NewReader(cmd.InOrStdin()).ReadString('\n')
@@ -86,7 +95,6 @@ func inPlaceTestnetCmd() *cobra.Command {
 				return nil
 			}
 		}
-		serverCtx := server.GetServerContextFromCmd(cmd)
 		config = serverCtx.Config
 		chainID, operator = args[0], args[1]
 		upgradeName, err = cmd.Flags().GetString(server.KeyTriggerTestnetUpgrade)
@@ -99,4 +107,67 @@ func inPlaceTestnetCmd() *cobra.Command {
 		return start(cmd, nil)
 	}
 	return cmd
+}
+
+// checkInPlaceTestnetTarget refuses a home that is not clearly a disposable
+// copy, or a replacement chain ID that is unsafe for it, before anything in the
+// home is opened. It returns the source chain ID from the home's genesis file.
+// The key guards cannot recognize a remote-signer validator or a sentry, whose
+// config/ holds an unused stub key, so an explicit --home is required and a
+// remote-signer configuration is refused outright.
+func checkInPlaceTestnetTarget(cmd *cobra.Command, config *cmtcfg.Config, chainID string) (string, error) {
+	if !cmd.Flags().Changed(flags.FlagHome) {
+		return "", errors.New("in-place-testnet requires an explicit --home naming the disposable copy to convert")
+	}
+	if config == nil {
+		return "", errors.New("CometBFT config is required")
+	}
+	if laddr := strings.TrimSpace(config.PrivValidatorListenAddr); laddr != "" {
+		return "", fmt.Errorf("refusing to convert a home that uses a remote signer (priv_validator_laddr = %q); convert a disposable copy with priv_validator_laddr cleared and a fresh local key", laddr)
+	}
+	sourceChainID, err := readGenesisChainID(config.GenesisFile())
+	if err != nil {
+		return "", err
+	}
+	if err := app.ValidateTestnetChainID(chainID, sourceChainID); err != nil {
+		return "", err
+	}
+	return sourceChainID, nil
+}
+
+// readGenesisChainID streams the top-level chain_id out of a genesis file
+// without loading the application state.
+func readGenesisChainID(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", fmt.Errorf("read source genesis: %w", err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+	decoder := json.NewDecoder(bufio.NewReader(file))
+	if token, err := decoder.Token(); err != nil || token != json.Delim('{') {
+		return "", fmt.Errorf("read source genesis %s: not a JSON object", path)
+	}
+	for decoder.More() {
+		token, err := decoder.Token()
+		if err != nil {
+			return "", fmt.Errorf("read source genesis %s: %w", path, err)
+		}
+		if key, _ := token.(string); key == "chain_id" {
+			var chainID string
+			if err := decoder.Decode(&chainID); err != nil {
+				return "", fmt.Errorf("read source genesis %s chain_id: %w", path, err)
+			}
+			if strings.TrimSpace(chainID) == "" {
+				break
+			}
+			return chainID, nil
+		}
+		var skipped json.RawMessage
+		if err := decoder.Decode(&skipped); err != nil {
+			return "", fmt.Errorf("read source genesis %s: %w", path, err)
+		}
+	}
+	return "", fmt.Errorf("source genesis %s has no chain_id", path)
 }
