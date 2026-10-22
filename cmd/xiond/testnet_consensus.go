@@ -95,9 +95,6 @@ func prepareTestnetConsensus(
 	if state.LastBlockHeight <= 0 {
 		return fmt.Errorf("persisted CometBFT state height must be positive: %d", state.LastBlockHeight)
 	}
-	if state.ChainID == chainID {
-		return fmt.Errorf("testnet chain ID %q must differ from source chain ID", chainID)
-	}
 	if state.LastBlockHeight > appHeight {
 		return fmt.Errorf("CometBFT state height %d is ahead of application height %d", state.LastBlockHeight, appHeight)
 	}
@@ -121,9 +118,6 @@ func prepareTestnetConsensus(
 	if err != nil {
 		return err
 	}
-	if cachedGenesis.ChainID != state.ChainID {
-		return fmt.Errorf("cached genesis chain ID %q does not match CometBFT state chain ID %q", cachedGenesis.ChainID, state.ChainID)
-	}
 
 	privValidator := pvm.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
 	validatorPubKey, err := privValidator.GetPubKey()
@@ -131,6 +125,27 @@ func prepareTestnetConsensus(
 		return fmt.Errorf("load local validator public key: %w", err)
 	}
 	validatorAddress := validatorPubKey.Address()
+
+	// The application half of a conversion only lands when the first new block
+	// commits, while this function writes consensus state immediately. A run
+	// that exits in between leaves consensus converted to the local validator
+	// at the testnet power over an unconverted application. The caller has
+	// already checked that the application's committed state does not know the
+	// local consensus key, so a source chain validated by that key alone is
+	// refused before this point.
+	if onlyTestnetValidator(state, validatorAddress, validatorPower) {
+		return checkInterruptedTestnetConversion(
+			state, cachedGenesis, diskGenesis, blockStore, blockMeta,
+			chainID, appHeight, appHash, validatorAddress,
+		)
+	}
+
+	if state.ChainID == chainID {
+		return fmt.Errorf("testnet chain ID %q must differ from source chain ID", chainID)
+	}
+	if cachedGenesis.ChainID != state.ChainID {
+		return fmt.Errorf("cached genesis chain ID %q does not match CometBFT state chain ID %q", cachedGenesis.ChainID, state.ChainID)
+	}
 	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
 		if validators != nil && validators.HasAddress(validatorAddress) {
 			return fmt.Errorf("local validator key %X belongs to the source consensus validator set", validatorAddress)
@@ -274,6 +289,69 @@ func prepareTestnetConsensus(
 		return err
 	}
 
+	return nil
+}
+
+// onlyTestnetValidator reports whether every consensus validator set in state
+// consists of exactly the local validator at the testnet power, as a
+// conversion writes it.
+func onlyTestnetValidator(state sm.State, validatorAddress []byte, validatorPower int64) bool {
+	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
+		if validators == nil || validators.Size() != 1 {
+			return false
+		}
+		if validator := validators.Validators[0]; !bytes.Equal(validator.Address, validatorAddress) || validator.VotingPower != validatorPower {
+			return false
+		}
+	}
+	return true
+}
+
+// checkInterruptedTestnetConversion decides whether a home whose consensus
+// state was already converted, but whose application conversion never
+// committed, can be resumed. It can when every consensus write of the earlier
+// run is in place for the same chain ID and snapshot: the caller's freshly
+// converted application then completes the conversion and nothing here is
+// rewritten. Anything else is reported as an interrupted conversion that needs
+// a fresh copy, rather than as a misleading validator-key error.
+func checkInterruptedTestnetConversion(
+	state sm.State,
+	cachedGenesis *cmttypes.GenesisDoc,
+	diskGenesis *cmttypes.GenesisDoc,
+	blockStore *store.BlockStore,
+	blockMeta *cmttypes.BlockMeta,
+	chainID string,
+	appHeight int64,
+	appHash []byte,
+	validatorAddress []byte,
+) error {
+	if state.ChainID != chainID {
+		return fmt.Errorf("an earlier in-place-testnet run was interrupted after converting consensus state to chain ID %q; rerun with that chain ID to finish it, or start again from a fresh copy of the source home", state.ChainID)
+	}
+	interrupted := func(format string, args ...any) error {
+		return fmt.Errorf("an earlier in-place-testnet run was interrupted and cannot be resumed (%s); start again from a fresh copy of the source home", fmt.Sprintf(format, args...))
+	}
+	if state.LastBlockHeight != appHeight {
+		return interrupted("consensus state height %d does not match application height %d", state.LastBlockHeight, appHeight)
+	}
+	if !bytes.Equal(state.AppHash, appHash) {
+		return interrupted("consensus application hash at height %d does not match the loaded application", appHeight)
+	}
+	if !state.LastBlockID.Equals(blockMeta.BlockID) {
+		return interrupted("consensus last block ID does not match the stored block at height %d", appHeight)
+	}
+	if cachedGenesis.ChainID != chainID {
+		return interrupted("cached genesis chain ID is %q", cachedGenesis.ChainID)
+	}
+	if diskGenesis.ChainID != chainID {
+		return interrupted("genesis file chain ID is %q", diskGenesis.ChainID)
+	}
+	seenCommit := blockStore.LoadSeenCommit(appHeight)
+	if seenCommit == nil || len(seenCommit.Signatures) != 1 ||
+		!bytes.Equal(seenCommit.Signatures[0].ValidatorAddress, validatorAddress) ||
+		!seenCommit.BlockID.Equals(blockMeta.BlockID) {
+		return interrupted("no testnet commit is stored for height %d", appHeight)
+	}
 	return nil
 }
 
