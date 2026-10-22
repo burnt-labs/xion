@@ -162,18 +162,23 @@ func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, ch
 	if err != nil {
 		return "", false, err
 	}
-	if sourceChainID == chainID {
-		backup := config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix
-		if _, err := os.Lstat(backup); err == nil {
-			if err := app.ValidateTestnetChainID(chainID, ""); err != nil {
-				return "", false, err
-			}
-			return sourceChainID, true, nil
-		} else if !os.IsNotExist(err) {
-			return "", false, fmt.Errorf("check validator backup %s: %w", backup, err)
+	backup := config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix
+	converted := false
+	if _, err := os.Lstat(backup); err == nil {
+		converted = true
+	} else if !os.IsNotExist(err) {
+		return "", false, fmt.Errorf("check validator backup %s: %w", backup, err)
+	}
+	if converted && sourceChainID == chainID {
+		if err := app.ValidateTestnetChainID(chainID, ""); err != nil {
+			return "", false, err
 		}
+		return sourceChainID, true, nil
 	}
 	if err := app.ValidateTestnetChainID(chainID, sourceChainID); err != nil {
+		if converted {
+			return "", false, fmt.Errorf("%w (this home was already converted to %s; to finish an interrupted conversion, rerun with that chain ID)", err, sourceChainID)
+		}
 		return "", false, err
 	}
 	return sourceChainID, false, nil

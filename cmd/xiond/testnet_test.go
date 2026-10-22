@@ -177,6 +177,15 @@ func TestInPlaceTestnetRerunAfterInterruptedConversion(t *testing.T) {
 	require.Contains(t, stderr.String(), "Conversion cancelled.")
 	require.Equal(t, before, snapshotTestHome(t, home))
 
+	// Another revision of the chain it was converted to points back at it.
+	cmd = newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"fork-test-2", "operator", "--home", home})
+	cmd.SetIn(strings.NewReader("y\n"))
+	err := cmd.Execute()
+	require.ErrorContains(t, err, "is a revision of source chain ID")
+	require.ErrorContains(t, err, "already converted to fork-test; to finish an interrupted conversion, rerun with that chain ID")
+	require.Equal(t, before, snapshotTestHome(t, home))
+
 	home = t.TempDir()
 	writeTestSourceHome(t, home, "xion-testnet-2")
 	require.NoError(t, os.WriteFile(filepath.Join(home, "config", "priv_validator_key.json"+testnetValidatorBackupSuffix), []byte("{}"), 0o600))
