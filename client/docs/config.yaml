@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   title: Verona - gRPC Gateway docs
   description: A REST interface for Verona state queries
-  version: v30
+  version: v32
 apis:
   - url: ./cosmos/auth/v1beta1/query.swagger.json
     operationIds:
@@ -190,6 +190,20 @@ apis:
     tags:
       rename:
         Query: Verona
+  - url: ./xion/dkim/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: VeronaDKIMParams
+    tags:
+      rename:
+        Query: VeronaDKIM
+  - url: ./xion/zk/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: VeronaZKParams
+    tags:
+      rename:
+        Query: VeronaZK
   - url: ./abstractaccount/v1/query.swagger.json
     operationIds:
       rename:
