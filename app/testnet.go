@@ -26,6 +26,51 @@ import (
 
 const testnetValidatorPower int64 = 900_000_000_000_000
 
+// publicNetworkChainFamilies are the chain-ID names, without the revision
+// number, of public XION networks. Transactions and consensus votes are signed
+// over the chain ID, so a converted copy that reuses one of these names makes
+// its signatures valid on the real network: replayable transactions and, with a
+// production validator key, double-sign evidence.
+var publicNetworkChainFamilies = []string{"xion-mainnet", "xion-testnet"}
+
+// ValidateTestnetChainID rejects a replacement chain ID that reuses a public
+// XION network name in any revision (xion-mainnet-N, xion-testnet-N, compared
+// case-insensitively), or, when sourceChainID is not empty, that equals the
+// source chain ID or is another revision of it.
+func ValidateTestnetChainID(chainID, sourceChainID string) error {
+	if strings.TrimSpace(chainID) == "" {
+		return errors.New("testnet chain ID is required")
+	}
+	family := testnetChainIDFamily(chainID)
+	for _, public := range publicNetworkChainFamilies {
+		if family == public {
+			return fmt.Errorf("testnet chain ID %q reuses the public network name %s-N; choose a chain ID outside the %s family", chainID, public, public)
+		}
+	}
+	if sourceChainID == "" {
+		return nil
+	}
+	if chainID == sourceChainID {
+		return fmt.Errorf("testnet chain ID %q must differ from source chain ID", chainID)
+	}
+	if family == testnetChainIDFamily(sourceChainID) {
+		return fmt.Errorf("testnet chain ID %q is a revision of source chain ID %q; choose a different name, not a different revision number", chainID, sourceChainID)
+	}
+	return nil
+}
+
+// testnetChainIDFamily returns the lower-cased chain ID without a trailing
+// "-<revision number>", following the IBC {name}-{revision} convention.
+func testnetChainIDFamily(chainID string) string {
+	id := strings.ToLower(strings.TrimSpace(chainID))
+	if i := strings.LastIndexByte(id, '-'); i > 0 {
+		if revision := id[i+1:]; revision != "" && strings.Trim(revision, "0123456789") == "" {
+			return id[:i]
+		}
+	}
+	return id
+}
+
 // InitForTestnet replaces the active validator set with the local testnet
 // validator and optionally schedules an upgrade after ten blocks, allowing the
 // converted application state to commit before the old binary halts.
@@ -34,8 +79,8 @@ func (app *WasmApp) InitForTestnet(pubKey cmtcrypto.PubKey, operator, chainID, u
 	if pubKey == nil {
 		return errors.New("testnet validator public key is required")
 	}
-	if strings.TrimSpace(chainID) == "" {
-		return errors.New("testnet chain ID is required")
+	if err := ValidateTestnetChainID(chainID, ""); err != nil {
+		return err
 	}
 	if len(chainID) > cmttypes.MaxChainIDLen {
 		return fmt.Errorf("testnet chain ID is too long: got %d bytes, maximum is %d", len(chainID), cmttypes.MaxChainIDLen)

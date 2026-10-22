@@ -11,6 +11,7 @@ import (
 
 	cometdbm "github.com/cometbft/cometbft-db"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	pvm "github.com/cometbft/cometbft/privval"
 	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
@@ -20,9 +21,15 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	"github.com/burnt-labs/xion/app"
 )
 
 const testnetValidatorHistoryRadius int64 = 10
+
+// testnetValidatorBackupSuffix names the copy of the home's previous validator
+// key and signing state kept inside the home.
+const testnetValidatorBackupSuffix = ".pre-testnet"
 
 // prepareTestnetConsensus converts the persisted CometBFT state to the local
 // validator and chain ID. The application must already be loaded and converted,
@@ -33,6 +40,7 @@ func prepareTestnetConsensus(
 	appHeight int64,
 	appHash []byte,
 	validatorPower int64,
+	validatorKey cmtcrypto.PrivKey,
 ) (returnErr error) {
 	if config == nil {
 		return errors.New("CometBFT config is required")
@@ -51,6 +59,9 @@ func prepareTestnetConsensus(
 	}
 	if validatorPower <= 0 {
 		return fmt.Errorf("testnet validator power must be positive: %d", validatorPower)
+	}
+	if validatorKey == nil {
+		return errors.New("testnet validator key is required")
 	}
 	if validatorPower > cmttypes.MaxTotalVotingPower {
 		return fmt.Errorf("testnet validator power %d exceeds maximum %d", validatorPower, cmttypes.MaxTotalVotingPower)
@@ -95,8 +106,8 @@ func prepareTestnetConsensus(
 	if state.LastBlockHeight <= 0 {
 		return fmt.Errorf("persisted CometBFT state height must be positive: %d", state.LastBlockHeight)
 	}
-	if state.ChainID == chainID {
-		return fmt.Errorf("testnet chain ID %q must differ from source chain ID", chainID)
+	if err := app.ValidateTestnetChainID(chainID, state.ChainID); err != nil {
+		return err
 	}
 	if state.LastBlockHeight > appHeight {
 		return fmt.Errorf("CometBFT state height %d is ahead of application height %d", state.LastBlockHeight, appHeight)
@@ -125,35 +136,12 @@ func prepareTestnetConsensus(
 		return fmt.Errorf("cached genesis chain ID %q does not match CometBFT state chain ID %q", cachedGenesis.ChainID, state.ChainID)
 	}
 
-	privValidator := pvm.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
-	validatorPubKey, err := privValidator.GetPubKey()
-	if err != nil {
-		return fmt.Errorf("load local validator public key: %w", err)
-	}
+	validatorPubKey := validatorKey.PubKey()
 	validatorAddress := validatorPubKey.Address()
 	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
 		if validators != nil && validators.HasAddress(validatorAddress) {
-			return fmt.Errorf("local validator key %X belongs to the source consensus validator set", validatorAddress)
+			return fmt.Errorf("testnet validator key %X belongs to the source consensus validator set", validatorAddress)
 		}
-	}
-
-	lastSignState := privValidator.LastSignState
-	hasSignerState := lastSignState.Height != 0 ||
-		lastSignState.Round != 0 ||
-		lastSignState.Step != 0 ||
-		len(lastSignState.SignBytes) != 0 ||
-		len(lastSignState.Signature) != 0
-	if hasSignerState {
-		if len(lastSignState.SignBytes) == 0 || len(lastSignState.Signature) == 0 {
-			return errors.New("persisted validator signing state is incomplete")
-		}
-		if validatorPubKey.VerifySignature(lastSignState.SignBytes, lastSignState.Signature) {
-			return errors.New("local validator key already has persisted signing state")
-		}
-		// The data directory can carry the source node's signing watermark while
-		// config contains a fresh fork key. Ignore that foreign watermark only
-		// after proving this key is not part of the source consensus validator set.
-		privValidator = pvm.LoadFilePVEmptyState(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
 	}
 
 	if state.LastBlockHeight == appHeight {
@@ -205,6 +193,12 @@ func prepareTestnetConsensus(
 		Timestamp:        voteTime,
 		ValidatorAddress: validatorAddress,
 		ValidatorIndex:   0,
+	}
+	// Every check has passed: from here on the home is written. Install the
+	// fresh key first so nothing below can sign with the home's previous key.
+	privValidator, err := installTestnetValidatorKey(config, validatorKey)
+	if err != nil {
+		return err
 	}
 	voteProto := vote.ToProto()
 	if err := privValidator.SignVote(chainID, voteProto); err != nil {
@@ -275,6 +269,32 @@ func prepareTestnetConsensus(
 	}
 
 	return nil
+}
+
+// installTestnetValidatorKey moves the home's validator key and signing state
+// aside (keeping the first backup if the home was converted before) and writes
+// the fresh testnet key with empty signing state.
+func installTestnetValidatorKey(config *cmtcfg.Config, validatorKey cmtcrypto.PrivKey) (*pvm.FilePV, error) {
+	keyFile, stateFile := config.PrivValidatorKeyFile(), config.PrivValidatorStateFile()
+	for _, path := range []string{keyFile, stateFile} {
+		backup := path + testnetValidatorBackupSuffix
+		if _, err := os.Lstat(backup); err == nil {
+			continue
+		} else if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("check validator backup %s: %w", backup, err)
+		}
+		if err := os.Rename(path, backup); err != nil && !os.IsNotExist(err) {
+			return nil, fmt.Errorf("move aside previous validator file %s: %w", path, err)
+		}
+	}
+	for _, dir := range []string{filepath.Dir(keyFile), filepath.Dir(stateFile)} {
+		if err := os.MkdirAll(dir, 0o700); err != nil {
+			return nil, fmt.Errorf("create validator directory %s: %w", dir, err)
+		}
+	}
+	privValidator := pvm.NewFilePV(validatorKey, keyFile, stateFile)
+	privValidator.Save()
+	return privValidator, nil
 }
 
 func loadCachedTestnetGenesis(stateDB cometdbm.DB, fallback *cmttypes.GenesisDoc) (*cmttypes.GenesisDoc, error) {
