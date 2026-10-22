@@ -69,6 +69,7 @@ func TestInPlaceTestnetDeclinedLeavesHomeUntouched(t *testing.T) {
 	cmd.SetErr(&stderr)
 	require.NoError(t, cmd.Execute())
 	require.Contains(t, stderr.String(), "Converting home "+home+" from source chain xion-mainnet-1 to new chain fork-test.")
+	require.Contains(t, stderr.String(), "New validator consensus address: ")
 	require.Contains(t, stderr.String(), "Conversion cancelled.")
 	require.Equal(t, before, snapshotTestHome(t, home), "declining conversion must not initialize or open node state")
 }
@@ -105,15 +106,18 @@ func TestInPlaceTestnetRejectsRemoteSignerHome(t *testing.T) {
 	require.Equal(t, before, snapshotTestHome(t, home))
 }
 
-func TestInPlaceTestnetRejectsSourceChainIDBeforeConfirmation(t *testing.T) {
+func TestInPlaceTestnetRejectsUnsafeChainIDBeforeConfirmation(t *testing.T) {
 	tests := []struct {
 		name    string
 		source  string
 		chainID string
 		wantErr string
 	}{
-		{name: "same as source", source: "xion-mainnet-1", chainID: "xion-mainnet-1", wantErr: "must differ from source chain ID"},
-		{name: "revision of source", source: "xion-mainnet-1", chainID: "xion-mainnet-2", wantErr: "is a revision of source chain ID"},
+		{name: "testnet fork named mainnet", source: "xion-testnet-2", chainID: "xion-mainnet-1", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "mainnet fork named testnet", source: "xion-mainnet-1", chainID: "xion-testnet-2", wantErr: "reuses the public network name xion-testnet-N"},
+		{name: "mainnet next revision", source: "xion-mainnet-1", chainID: "xion-mainnet-2", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "same as source", source: "xion-devnet-1", chainID: "xion-devnet-1", wantErr: "must differ from source chain ID"},
+		{name: "revision of source", source: "xion-devnet-1", chainID: "xion-devnet-2", wantErr: "is a revision of source chain ID"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -126,22 +130,6 @@ func TestInPlaceTestnetRejectsSourceChainIDBeforeConfirmation(t *testing.T) {
 			require.Equal(t, before, snapshotTestHome(t, home))
 		})
 	}
-}
-
-func TestInPlaceTestnetAcceptsOtherNetworkChainID(t *testing.T) {
-	// Only the source's own chain ID is refused: a testnet-2 copy may be named
-	// xion-mainnet-1. Declining at the prompt shows the check passed.
-	home := t.TempDir()
-	before := writeTestSourceHome(t, home, "xion-testnet-2")
-	cmd := newTestInPlaceTestnetCmd(t, home, nil)
-	cmd.SetArgs([]string{"xion-mainnet-1", "operator", "--home", home})
-	cmd.SetIn(strings.NewReader("n\n"))
-	var stderr bytes.Buffer
-	cmd.SetErr(&stderr)
-	require.NoError(t, cmd.Execute())
-	require.Contains(t, stderr.String(), "from source chain xion-testnet-2 to new chain xion-mainnet-1.")
-	require.Contains(t, stderr.String(), "Conversion cancelled.")
-	require.Equal(t, before, snapshotTestHome(t, home))
 }
 
 func TestInPlaceTestnetRejectsMissingGenesis(t *testing.T) {

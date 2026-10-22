@@ -26,15 +26,26 @@ import (
 
 const testnetValidatorPower int64 = 900_000_000_000_000
 
-// ValidateTestnetChainID rejects an empty replacement chain ID and, when
-// sourceChainID is not empty, one that equals the source chain ID or is another
-// revision of it (foo-1 to foo-2). Votes and transactions are signed over the
-// chain ID, so reusing the source ID would make the copy's signatures valid on
-// the source network; IBC treats a revision bump as the same chain upgraded.
-// Any other chain ID, including one used by another live network, is accepted.
+// publicNetworkChainFamilies are the chain-ID names, without the revision
+// number, of public XION networks. Transactions and consensus votes are signed
+// over the chain ID, so a converted copy that reuses one of these names makes
+// its signatures valid on the real network: replayable transactions and, with a
+// production validator key, double-sign evidence.
+var publicNetworkChainFamilies = []string{"xion-mainnet", "xion-testnet"}
+
+// ValidateTestnetChainID rejects a replacement chain ID that reuses a public
+// XION network name in any revision (xion-mainnet-N, xion-testnet-N, compared
+// case-insensitively), or, when sourceChainID is not empty, that equals the
+// source chain ID or is another revision of it.
 func ValidateTestnetChainID(chainID, sourceChainID string) error {
 	if strings.TrimSpace(chainID) == "" {
 		return errors.New("testnet chain ID is required")
+	}
+	family := testnetChainIDFamily(chainID)
+	for _, public := range publicNetworkChainFamilies {
+		if family == public {
+			return fmt.Errorf("testnet chain ID %q reuses the public network name %s-N; choose a chain ID outside the %s family", chainID, public, public)
+		}
 	}
 	if sourceChainID == "" {
 		return nil
@@ -42,16 +53,16 @@ func ValidateTestnetChainID(chainID, sourceChainID string) error {
 	if chainID == sourceChainID {
 		return fmt.Errorf("testnet chain ID %q must differ from source chain ID", chainID)
 	}
-	if testnetChainIDFamily(chainID) == testnetChainIDFamily(sourceChainID) {
+	if family == testnetChainIDFamily(sourceChainID) {
 		return fmt.Errorf("testnet chain ID %q is a revision of source chain ID %q; choose a different name, not a different revision number", chainID, sourceChainID)
 	}
 	return nil
 }
 
-// testnetChainIDFamily returns the chain ID without a trailing
+// testnetChainIDFamily returns the lower-cased chain ID without a trailing
 // "-<revision number>", following the IBC {name}-{revision} convention.
 func testnetChainIDFamily(chainID string) string {
-	id := strings.TrimSpace(chainID)
+	id := strings.ToLower(strings.TrimSpace(chainID))
 	if i := strings.LastIndexByte(id, '-'); i > 0 {
 		if revision := id[i+1:]; revision != "" && strings.Trim(revision, "0123456789") == "" {
 			return id[:i]

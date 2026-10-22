@@ -26,19 +26,28 @@ canonical CometBFT genesis JSON. The command starts through the normal SDK
 server path rather than SDK `testnetify`. This builds a **v32** converter, not
 the v31 binary needed for the v31-to-v32 rehearsal below.
 
-Use only a disposable copy of persisted state, fresh validator/operator keys,
-and a different chain ID. `--home` must be given explicitly, and a home with
-`priv_validator_laddr` set (a remote-signer validator) is refused. The new
-chain ID must not be the source chain ID or another revision of it (IBC treats
-`foo-2` as `foo-1` upgraded). Signatures are bound to the chain ID, so reusing
-the source ID would make the copy's transactions and votes valid on the source
-network. Other chain IDs are accepted, including one another network uses.
-Never load a live validator's consensus key into a copy named after that
-validator's network: its votes there can become double-sign evidence. The
-initializer replaces active validator indices, initializes distribution/slashing
-records, mints synthetic stake and local operator funds, and shortens governance
-voting periods to 20 seconds (10 seconds expedited). Existing
-validator/delegation records remain, while
+Use only a disposable copy of persisted state and a fresh operator key.
+Protections, in order:
+
+1. **Fresh validator key per copy.** The command generates a new consensus key
+   for every conversion; the copy's only validator signs with it. The home's
+   existing `priv_validator_key.json` and `priv_validator_state.json` are moved
+   to `*.pre-testnet` inside the home (the first backup is kept) and never used
+   for signing, so a copy cannot double-sign with a live validator's key under
+   any chain ID. The new consensus address is printed before conversion.
+2. **Not the source chain.** The new chain ID must differ from the source chain
+   ID and must not be another revision of it (IBC treats `foo-2` as `foo-1`
+   upgraded).
+3. **Not a public network name.** Any `xion-mainnet-N` or `xion-testnet-N`
+   chain ID is refused as a precaution against transactions that could be
+   replayed on those networks.
+
+`--home` must be given explicitly, and a home with `priv_validator_laddr` set
+(a remote-signer validator) is refused. Nothing is written if a check fails or
+the prompt is declined. The initializer replaces active validator indices,
+initializes distribution/slashing records, mints synthetic stake and local
+operator funds, and shortens governance voting periods to 20 seconds (10
+seconds expedited). Existing validator/delegation records remain, while
 the replacement validator has synthetic shares without a self-delegation.
 Supply and staking invariants are not a replica of the source chain.
 

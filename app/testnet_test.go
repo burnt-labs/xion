@@ -162,6 +162,18 @@ func TestInitForTestnetInvalidInputLeavesStateUnmutated(t *testing.T) {
 				return pubKey, operator, ""
 			},
 		},
+		{
+			name: "mainnet chain ID",
+			mutateArgs: func(pubKey cmtcrypto.PubKey, operator, _ string) (cmtcrypto.PubKey, string, string) {
+				return pubKey, operator, "xion-mainnet-1"
+			},
+		},
+		{
+			name: "testnet chain ID",
+			mutateArgs: func(pubKey cmtcrypto.PubKey, operator, _ string) (cmtcrypto.PubKey, string, string) {
+				return pubKey, operator, "xion-testnet-2"
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -264,16 +276,20 @@ func TestValidateTestnetChainID(t *testing.T) {
 		wantErr string
 	}{
 		{name: "fresh name", chainID: "xion-rehearsal-1", source: "xion-mainnet-1"},
+		{name: "fresh name from testnet", chainID: "rehearsal-1", source: "xion-testnet-2"},
 		{name: "fresh name without source", chainID: "xion-rehearsal-1"},
-		{name: "testnet copy named mainnet", chainID: "xion-mainnet-1", source: "xion-testnet-2"},
-		{name: "mainnet copy named testnet", chainID: "xion-testnet-2", source: "xion-mainnet-1"},
-		{name: "longer name sharing the source prefix", chainID: "xion-mainnet-fork-1", source: "xion-mainnet-1"},
-		{name: "different case is another chain", chainID: "XION-Mainnet-2", source: "xion-mainnet-1"},
+		{name: "name containing a public family", chainID: "xion-mainnet-fork-1", source: "xion-mainnet-1"},
+		{name: "local devnet family", chainID: "xion-local-testnet-1", source: "xion-mainnet-1"},
 		{name: "empty", chainID: " ", source: "xion-mainnet-1", wantErr: "testnet chain ID is required"},
-		{name: "empty without source", chainID: "", wantErr: "testnet chain ID is required"},
-		{name: "same as source", chainID: "xion-mainnet-1", source: "xion-mainnet-1", wantErr: "must differ from source chain ID"},
-		{name: "source next revision", chainID: "xion-mainnet-2", source: "xion-mainnet-1", wantErr: "is a revision of source chain ID"},
-		{name: "source earlier revision", chainID: "xion-testnet-1", source: "xion-testnet-2", wantErr: "is a revision of source chain ID"},
+		{name: "mainnet", chainID: "xion-mainnet-1", source: "xion-testnet-2", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "testnet", chainID: "xion-testnet-2", source: "xion-mainnet-1", wantErr: "reuses the public network name xion-testnet-N"},
+		{name: "mainnet without source", chainID: "xion-mainnet-1", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "mainnet other revision", chainID: "xion-mainnet-2", source: "xion-mainnet-1", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "retired testnet revision", chainID: "xion-testnet-1", source: "xion-testnet-2", wantErr: "reuses the public network name xion-testnet-N"},
+		{name: "mainnet without revision", chainID: "xion-mainnet", source: "xion-testnet-2", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "mainnet different case", chainID: "XION-Mainnet-1", source: "xion-testnet-2", wantErr: "reuses the public network name xion-mainnet-N"},
+		{name: "same as source", chainID: "xion-devnet-1", source: "xion-devnet-1", wantErr: "must differ from source chain ID"},
+		{name: "source other revision", chainID: "xion-devnet-2", source: "xion-devnet-1", wantErr: "is a revision of source chain ID"},
 		{name: "source without revision", chainID: "localxion-2", source: "localxion", wantErr: "is a revision of source chain ID"},
 		{name: "source revision dropped", chainID: "xion-devnet", source: "xion-devnet-1", wantErr: "is a revision of source chain ID"},
 	}
