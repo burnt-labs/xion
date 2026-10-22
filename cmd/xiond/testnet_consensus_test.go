@@ -265,8 +265,18 @@ func TestInstallTestnetValidatorKeyWithoutPreviousKey(t *testing.T) {
 	installed, err := installTestnetValidatorKey(config, key)
 	require.NoError(t, err)
 	require.Equal(t, key.PubKey(), installed.Key.PubKey)
-	require.NoFileExists(t, config.PrivValidatorKeyFile()+testnetValidatorBackupSuffix)
+	// The empty key backup records that this conversion installed the key.
+	backup, err := os.ReadFile(config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Empty(t, backup)
 	require.NoFileExists(t, config.PrivValidatorStateFile()+testnetValidatorBackupSuffix)
+
+	// A second install keeps that record rather than backing up its own key.
+	_, err = installTestnetValidatorKey(config, cmted25519.GenPrivKey())
+	require.NoError(t, err)
+	backup, err = os.ReadFile(config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Empty(t, backup)
 }
 
 // requireTestnetValidatorFilesUnchanged asserts that a refused conversion left

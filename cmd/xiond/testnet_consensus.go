@@ -327,8 +327,23 @@ func installTestnetValidatorKey(config *cmtcfg.Config, validatorKey cmtcrypto.Pr
 		} else if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("check validator backup %s: %w", backup, err)
 		}
-		if err := os.Rename(path, backup); err != nil && !os.IsNotExist(err) {
+		err := os.Rename(path, backup)
+		if err == nil {
+			continue
+		}
+		if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("move aside previous validator file %s: %w", path, err)
+		}
+		// A home without a validator key still gets a key backup, empty, so a
+		// rerun can recognize the key this conversion installs (see
+		// installedTestnetValidatorKey).
+		if path == keyFile {
+			if err := os.MkdirAll(filepath.Dir(backup), 0o700); err != nil {
+				return nil, fmt.Errorf("create validator directory %s: %w", filepath.Dir(backup), err)
+			}
+			if err := os.WriteFile(backup, nil, 0o600); err != nil {
+				return nil, fmt.Errorf("record missing validator key in %s: %w", backup, err)
+			}
 		}
 	}
 	for _, dir := range []string{filepath.Dir(keyFile), filepath.Dir(stateFile)} {

@@ -59,6 +59,9 @@ block adds it to the CometBFT validator set. Its power is negligible next to the
 local validator, so the chain keeps running, but it misses every block and is
 jailed and slashed for downtime: expect those events in the copy.
 
+`--grpc-only` is refused: without consensus no block commits, and the conversion
+only completes with the first new block.
+
 Resume a converted chain with normal `start` on the same home. Do not convert
 the same home twice. The application half of a conversion only commits with the
 first new block, while the CometBFT half is written before the node starts. If
@@ -66,7 +69,8 @@ the command exits before that first block commits (a busy port, a signal, a
 crash), plain `start` halts with `validator does not exist`: rerun the same
 `in-place-testnet` command, with the same chain ID, on the same home. The rerun
 keeps the validator key the interrupted conversion installed (it is used only
-when the home holds the `*.pre-testnet` backup and the converted consensus set
+when the home holds the `*.pre-testnet` key backup, which is written empty
+when the home had no key, and the converted consensus set
 is exactly that key at the testnet power) and finishes the WAL and address-book
 reset if it was cut short. If consensus state was only partly written, the
 command says the conversion cannot be resumed; start again from a fresh copy.
@@ -119,6 +123,14 @@ It converts using v31, commits several blocks, submits/deposits/votes for an
 upgrade proposal, requires that proposal to pass and the exact scheduled halt,
 then starts the v32 candidate on the **same home**. No direct trigger flag,
 bridge migration, module-version rewriting, or upgrade-guard bypass is used.
+
+The script refuses to start if anything listens on the RPC port or the P2P
+port below it, and refuses `--source-chain xion-testnet-2` for v32. The v32
+upgrade registers the checksum-derived abstract accounts of the chain IDs in
+`checksumAccountCodes` (`app/upgrades.go`) and looks them up by the chain ID
+the upgrade runs under. A rehearsal runs under its own chain ID, so a testnet-2
+snapshot would skip that backfill and still report success. Mainnet, the
+default, has no such entries.
 
 Success requires resumed blocks, the exact applied upgrade height, expected
 v32 module versions, unmounted retired stores, and preserved globalfee/JWK

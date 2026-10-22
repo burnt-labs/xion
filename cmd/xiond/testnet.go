@@ -29,6 +29,10 @@ import (
 
 // inPlaceTestnetCmd uses normal SDK startup with chain-owned application and
 // consensus conversion. Normal start never invokes this creator.
+// testnetGRPCOnlyFlag is the start command's flag for running without
+// consensus (the SDK does not export its name).
+const testnetGRPCOnlyFlag = "grpc-only"
+
 func inPlaceTestnetCmd() *cobra.Command {
 	var config *cmtcfg.Config
 	var chainID, operator, upgradeName string
@@ -97,6 +101,15 @@ func inPlaceTestnetCmd() *cobra.Command {
 			return err
 		}
 		serverCtx := server.GetServerContextFromCmd(cmd)
+		// In gRPC-only mode no block is ever produced, so the application half
+		// of the conversion, which commits with the first new block, never lands.
+		grpcOnly, err := cmd.Flags().GetBool(testnetGRPCOnlyFlag)
+		if err != nil {
+			return err
+		}
+		if grpcOnly || serverCtx.Viper.GetBool(testnetGRPCOnlyFlag) {
+			return fmt.Errorf("in-place-testnet cannot run with --%s: the conversion only completes when the first new block commits", testnetGRPCOnlyFlag)
+		}
 		sourceChainID, resuming, err := checkInPlaceTestnetTarget(homeOnCommandLine, serverCtx.Config, args[0])
 		if err != nil {
 			return err

@@ -230,6 +230,16 @@ func TestInstalledTestnetValidatorKey(t *testing.T) {
 		require.Nil(t, key, "a consensus set at another power was not written by a conversion")
 	})
 
+	t.Run("interrupted conversion of a home that had no validator key", func(t *testing.T) {
+		fixture := setupTestnetConsensusFixture(t)
+		require.NoError(t, os.Remove(fixture.config.PrivValidatorKeyFile()))
+		require.NoError(t, prepareTestnetConsensus(fixture.config, "xion-rehearsal-1", fixture.height, fixture.appHash, resumeTestValidatorPower, fixture.newKey))
+		key, err := installedTestnetValidatorKey(fixture.config, resumeTestValidatorPower)
+		require.NoError(t, err)
+		require.NotNil(t, key)
+		require.True(t, key.Equals(fixture.newKey), "the key the interrupted run installed is reused")
+	})
+
 	t.Run("interrupted conversion without the key backup", func(t *testing.T) {
 		fixture := setupTestnetConsensusFixture(t)
 		require.NoError(t, prepareTestnetConsensus(fixture.config, "xion-rehearsal-1", fixture.height, fixture.appHash, resumeTestValidatorPower, fixture.newKey))

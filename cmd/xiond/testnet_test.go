@@ -85,6 +85,23 @@ func TestInPlaceTestnetRejectsStandaloneBeforeMutation(t *testing.T) {
 	require.Empty(t, entries, "rejected standalone conversion must not initialize or open node state")
 }
 
+func TestInPlaceTestnetRejectsGRPCOnlyBeforeMutation(t *testing.T) {
+	home := t.TempDir()
+	before := writeTestSourceHome(t, home, "xion-devnet-1")
+	cmd := newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--grpc-only", "--skip-confirmation"})
+	require.ErrorContains(t, cmd.Execute(), "cannot run with --grpc-only")
+	require.Equal(t, before, snapshotTestHome(t, home), "a gRPC-only run must not open or convert node state")
+
+	// The same setting from the node's configuration or environment.
+	cmd = newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
+		serverCtx.Viper.Set("grpc-only", true)
+	})
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+	require.ErrorContains(t, cmd.Execute(), "cannot run with --grpc-only")
+	require.Equal(t, before, snapshotTestHome(t, home))
+}
+
 func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
 	home := t.TempDir()
 	before := writeTestSourceHome(t, home, "xion-mainnet-1")
