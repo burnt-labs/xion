@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -171,6 +172,9 @@ func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, ch
 	if laddr := strings.TrimSpace(config.PrivValidatorListenAddr); laddr != "" {
 		return "", false, fmt.Errorf("refusing to convert a home that uses a remote signer (priv_validator_laddr = %q); convert a disposable copy with priv_validator_laddr cleared and a fresh local key", laddr)
 	}
+	if err := checkTestnetPathsInHome(config); err != nil {
+		return "", false, err
+	}
 	sourceChainID, err := readGenesisChainID(config.GenesisFile())
 	if err != nil {
 		return "", false, err
@@ -195,6 +199,36 @@ func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, ch
 		return "", false, err
 	}
 	return sourceChainID, false, nil
+}
+
+// checkTestnetPathsInHome refuses a configuration that points any file the
+// conversion moves or rewrites outside the home. A config.toml copied from a
+// validator may name absolute paths, for example a key on a secrets mount;
+// converting the copy would then move aside and replace the live validator's
+// key and signing state, or rewrite its consensus state.
+func checkTestnetPathsInHome(config *cmtcfg.Config) error {
+	root, err := filepath.Abs(config.RootDir)
+	if err != nil {
+		return fmt.Errorf("resolve home %s: %w", config.RootDir, err)
+	}
+	for _, setting := range []struct{ name, path string }{
+		{"genesis_file", config.GenesisFile()},
+		{"priv_validator_key_file", config.PrivValidatorKeyFile()},
+		{"priv_validator_state_file", config.PrivValidatorStateFile()},
+		{"db_dir", config.DBDir()},
+		{"consensus.wal_file", config.Consensus.WalFile()},
+		{"p2p.addr_book_file", config.P2P.AddrBookFile()},
+	} {
+		path, err := filepath.Abs(setting.path)
+		if err != nil {
+			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
+		}
+		rel, err := filepath.Rel(root, path)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return fmt.Errorf("refusing to convert: %s (%s) is outside the home %s; point it inside the disposable copy", setting.name, path, root)
+		}
+	}
+	return nil
 }
 
 // readGenesisChainID streams the top-level chain_id out of a genesis file

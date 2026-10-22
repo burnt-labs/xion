@@ -102,6 +102,41 @@ func TestInPlaceTestnetRejectsGRPCOnlyBeforeMutation(t *testing.T) {
 	require.Equal(t, before, snapshotTestHome(t, home))
 }
 
+func TestInPlaceTestnetRejectsPathsOutsideHome(t *testing.T) {
+	outside := t.TempDir()
+	for name, configure := range map[string]func(*server.Context){
+		"priv_validator_key_file": func(serverCtx *server.Context) {
+			serverCtx.Config.PrivValidatorKey = filepath.Join(outside, "priv_validator_key.json")
+		},
+		"priv_validator_state_file": func(serverCtx *server.Context) {
+			serverCtx.Config.PrivValidatorState = filepath.Join(outside, "priv_validator_state.json")
+		},
+		"db_dir": func(serverCtx *server.Context) {
+			serverCtx.Config.DBPath = "../live-data"
+		},
+		"consensus.wal_file": func(serverCtx *server.Context) {
+			serverCtx.Config.Consensus.WalPath = filepath.Join(outside, "cs.wal", "wal")
+		},
+		"p2p.addr_book_file": func(serverCtx *server.Context) {
+			serverCtx.Config.P2P.AddrBook = filepath.Join(outside, "addrbook.json")
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			home := t.TempDir()
+			before := writeTestSourceHome(t, home, "xion-devnet-1")
+			cmd := newTestInPlaceTestnetCmd(t, home, configure)
+			cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+			err := cmd.Execute()
+			require.ErrorContains(t, err, name+" (")
+			require.ErrorContains(t, err, "is outside the home")
+			require.Equal(t, before, snapshotTestHome(t, home))
+		})
+	}
+	entries, err := os.ReadDir(outside)
+	require.NoError(t, err)
+	require.Empty(t, entries)
+}
+
 func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
 	home := t.TempDir()
 	before := writeTestSourceHome(t, home, "xion-mainnet-1")

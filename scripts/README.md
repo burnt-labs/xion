@@ -46,7 +46,12 @@ Protections, in order:
 the default node home or to `XIOND_HOME`. A home with `priv_validator_laddr`
 set is refused: a remote-signer validator (tmkms, horcrux) or a sentry keeps an
 unused stub key in `config/`, so copy the data and clear `priv_validator_laddr`
-first. Nothing is written if a check fails or the prompt is declined. The
+first. A `config.toml` that points the validator key or state file, the data
+directory, the WAL, the address book or the genesis file outside the home is
+refused too: a copy of a validator's config may name its live key on a secrets
+mount. Nothing is written if a check fails or the prompt is declined, except
+that the node creates a default `config.toml` or `app.toml` if the home lacks
+one, as every `xiond` command does. The
 initializer replaces active validator indices, initializes distribution/slashing
 records, mints synthetic stake and local operator funds, and shortens governance
 voting periods to 20 seconds (10 seconds expedited). Existing
