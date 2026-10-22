@@ -86,6 +86,11 @@ func inPlaceTestnetCmd() *cobra.Command {
 		if err != nil {
 			return err
 		}
+		// Refuse public network chain IDs before anything in the home is opened;
+		// the source chain ID is checked against persisted state during conversion.
+		if err := app.ValidateTestnetChainID(args[0], ""); err != nil {
+			return err
+		}
 		serverCtx := server.GetServerContextFromCmd(cmd)
 		sourceChainID, err := checkInPlaceTestnetTarget(homeOnCommandLine, serverCtx.Config)
 		if err != nil {

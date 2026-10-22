@@ -20,6 +20,8 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	"github.com/burnt-labs/xion/app"
 )
 
 const testnetValidatorHistoryRadius int64 = 10
@@ -161,8 +163,8 @@ func prepareTestnetConsensus(
 		return finishTestnetConversion(config, stateDB, chainID)
 	}
 
-	if state.ChainID == chainID {
-		return fmt.Errorf("testnet chain ID %q must differ from source chain ID", chainID)
+	if err := app.ValidateTestnetChainID(chainID, state.ChainID); err != nil {
+		return err
 	}
 	if cachedGenesis.ChainID != state.ChainID {
 		return fmt.Errorf("cached genesis chain ID %q does not match CometBFT state chain ID %q", cachedGenesis.ChainID, state.ChainID)
