@@ -235,6 +235,13 @@ func checkTestnetPathsInHome(config *cmtcfg.Config) error {
 		{"consensus.wal_file", config.Consensus.WalFile()},
 		{"p2p.addr_book_file", config.P2P.AddrBookFile()},
 	} {
+		// The conversion reaches some of these files through filepath.Dir or
+		// filepath.Join, which drop "dir/.." lexically, and others through the
+		// path as configured, which the kernel resolves after following dir.
+		// A ".." after a directory lets the two name different files.
+		if hasInnerDotDot(setting.path) {
+			return fmt.Errorf("refusing to convert: %s (%s) has \"..\" after a directory; give the path without it", setting.name, setting.path)
+		}
 		entry, target, err := resolveTestnetPath(setting.path)
 		if err != nil {
 			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
@@ -295,6 +302,26 @@ func checkTestnetLinksInHome(name, dir string, inHome func(string) bool, visited
 		return nil
 	})
 	return err
+}
+
+// hasInnerDotDot reports whether path has a ".." element after a directory
+// name, the case where cleaning the path lexically and resolving it through
+// the filesystem can disagree. Leading ".." elements resolve the same way
+// either way.
+func hasInnerDotDot(path string) bool {
+	named := false
+	for _, part := range strings.Split(path, string(filepath.Separator)) {
+		switch part {
+		case "", ".":
+		case "..":
+			if named {
+				return true
+			}
+		default:
+			named = true
+		}
+	}
+	return false
 }
 
 // resolveTestnetPath follows path the way the operating system does,

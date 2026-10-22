@@ -231,24 +231,68 @@ func TestInPlaceTestnetRejectsOutsideLinksIntoHome(t *testing.T) {
 	}
 }
 
-// A ".." after a symlink applies to the link's target, as the kernel resolves
-// it, not lexically: home/s/../key.json with s linked out is outside the home.
-func TestInPlaceTestnetRejectsDotDotAfterSymlink(t *testing.T) {
-	home, outside := t.TempDir(), t.TempDir()
-	writeTestSourceHome(t, home, "xion-devnet-1")
-	require.NoError(t, os.Mkdir(filepath.Join(outside, "subdir"), 0o700))
-	require.NoError(t, os.WriteFile(filepath.Join(outside, "priv_validator_key.json"), []byte("source key"), 0o600))
-	require.NoError(t, os.Symlink(filepath.Join(outside, "subdir"), filepath.Join(home, "s")))
-	beforeHome, beforeOutside := snapshotTestHome(t, home), snapshotTestHome(t, outside)
-	cmd := newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
-		serverCtx.Config.PrivValidatorKey = home + "/s/../priv_validator_key.json"
-	})
-	cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
-	err := cmd.Execute()
-	require.ErrorContains(t, err, "priv_validator_key_file (")
-	require.ErrorContains(t, err, "is outside the home")
-	require.Equal(t, beforeHome, snapshotTestHome(t, home))
-	require.Equal(t, beforeOutside, snapshotTestHome(t, outside))
+// A ".." after a directory is refused: the conversion reaches some files
+// through the path as configured, which the kernel resolves after following a
+// symlink, and some through filepath.Dir, which drops "dir/.." lexically.
+func TestInPlaceTestnetRejectsDotDotAfterDirectory(t *testing.T) {
+	for name, tc := range map[string]struct {
+		setting   string
+		configure func(serverCtx *server.Context, home, outside string)
+	}{
+		// home/s/../key.json with s linked out: the rename follows s.
+		"priv_validator_key_file": {
+			setting: "priv_validator_key_file (",
+			configure: func(serverCtx *server.Context, home, outside string) {
+				require.NoError(t, os.Mkdir(filepath.Join(outside, "subdir"), 0o700))
+				require.NoError(t, os.WriteFile(filepath.Join(outside, "priv_validator_key.json"), []byte("source key"), 0o600))
+				require.NoError(t, os.Symlink(filepath.Join(outside, "subdir"), filepath.Join(home, "s")))
+				serverCtx.Config.PrivValidatorKey = home + "/s/../priv_validator_key.json"
+			},
+		},
+		// outside/s/../wal with s linked into the home resolves inside it,
+		// but the WAL reset lists filepath.Dir of the setting: outside.
+		"consensus.wal_file": {
+			setting: "consensus.wal_file (",
+			configure: func(serverCtx *server.Context, home, outside string) {
+				require.NoError(t, os.Mkdir(filepath.Join(home, "sub"), 0o700))
+				require.NoError(t, os.WriteFile(filepath.Join(outside, "wal"), []byte("source wal"), 0o600))
+				require.NoError(t, os.WriteFile(filepath.Join(outside, "wal.001"), []byte("source wal"), 0o600))
+				require.NoError(t, os.Symlink(filepath.Join(home, "sub"), filepath.Join(outside, "s")))
+				serverCtx.Config.Consensus.WalPath = outside + "/s/../wal"
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			home, outside := t.TempDir(), t.TempDir()
+			writeTestSourceHome(t, home, "xion-devnet-1")
+			// The configure hook runs here and creates the links.
+			cmd := newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
+				tc.configure(serverCtx, home, outside)
+			})
+			beforeHome, beforeOutside := snapshotTestHome(t, home), snapshotTestHome(t, outside)
+			cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+			err := cmd.Execute()
+			require.ErrorContains(t, err, tc.setting)
+			require.ErrorContains(t, err, `has ".." after a directory`)
+			require.Equal(t, beforeHome, snapshotTestHome(t, home))
+			require.Equal(t, beforeOutside, snapshotTestHome(t, outside))
+		})
+	}
+}
+
+func TestHasInnerDotDot(t *testing.T) {
+	for path, want := range map[string]bool{
+		"/home/node/config/key.json":   false,
+		"../copy/config/key.json":      false,
+		"/../home/node/key.json":       false,
+		"/home/./node//key.json":       false,
+		"/home/node/s/../key.json":     true,
+		"copy/../other/data":           true,
+		"/home/node/data/..":           true,
+		"/home/node/data/..file/state": false,
+	} {
+		require.Equal(t, want, hasInnerDotDot(path), path)
+	}
 }
 
 // The databases are opened beneath db_dir and data/, so a database linked to
