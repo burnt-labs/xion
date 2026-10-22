@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,6 +24,7 @@ type convertedTestnetConsensus struct {
 	seenCommit  *cmttypes.Commit
 	signerState []byte
 	genesis     []byte
+	marker      []byte
 }
 
 func readConvertedTestnetConsensus(t *testing.T, config *cmtcfg.Config, height int64) convertedTestnetConsensus {
@@ -31,6 +33,8 @@ func readConvertedTestnetConsensus(t *testing.T, config *cmtcfg.Config, height i
 	require.NoError(t, err)
 	stateStore := sm.NewStore(stateDB, sm.StoreOptions{})
 	state, err := stateStore.Load()
+	require.NoError(t, err)
+	marker, err := stateDB.Get(testnetConversionCompleteKey)
 	require.NoError(t, err)
 	require.NoError(t, stateStore.Close())
 
@@ -44,7 +48,7 @@ func readConvertedTestnetConsensus(t *testing.T, config *cmtcfg.Config, height i
 	require.NoError(t, err)
 	genesis, err := os.ReadFile(config.GenesisFile())
 	require.NoError(t, err)
-	return convertedTestnetConsensus{state: state, seenCommit: seenCommit, signerState: signerState, genesis: genesis}
+	return convertedTestnetConsensus{state: state, seenCommit: seenCommit, signerState: signerState, genesis: genesis, marker: marker}
 }
 
 // The application half of a conversion only commits with the first new block.
@@ -57,6 +61,7 @@ func TestPrepareTestnetConsensusResumesInterruptedConversion(t *testing.T) {
 	chainID := "xion-rehearsal-1"
 	require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower))
 	first := readConvertedTestnetConsensus(t, fixture.config, fixture.height)
+	require.Equal(t, chainID, string(first.marker))
 
 	// The interrupted node may already have written a WAL for the new chain.
 	require.NoError(t, os.WriteFile(fixture.config.Consensus.WalFile(), []byte("testnet WAL"), 0o600))
@@ -120,4 +125,70 @@ func TestPrepareTestnetConsensusRejectsUnresumableInterruptedConversion(t *testi
 			require.ErrorContains(t, err, "start again from a fresh copy")
 		})
 	}
+}
+
+func setTestnetConversionMarker(t *testing.T, config *cmtcfg.Config, value []byte) {
+	t.Helper()
+	stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: config})
+	require.NoError(t, err)
+	if value == nil {
+		require.NoError(t, stateDB.DeleteSync(testnetConversionCompleteKey))
+	} else {
+		require.NoError(t, stateDB.SetSync(testnetConversionCompleteKey, value))
+	}
+	require.NoError(t, stateDB.Close())
+}
+
+// A run killed after the genesis writes but before the network-file reset
+// finished leaves the source WAL and address book behind and no completion
+// marker. Resuming must finish that reset.
+func TestPrepareTestnetConsensusResumeFinishesNetworkReset(t *testing.T) {
+	for name, marker := range map[string][]byte{
+		"no marker":                 nil,
+		"marker for an older chain": []byte("xion-rehearsal-0"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			fixture := setupTestnetConsensusFixture(t)
+			chainID := "xion-rehearsal-1"
+			require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower))
+			setTestnetConversionMarker(t, fixture.config, marker)
+			require.NoError(t, os.WriteFile(fixture.config.Consensus.WalFile(), []byte("source WAL"), 0o600))
+			require.NoError(t, os.WriteFile(fixture.config.Consensus.WalFile()+".000", []byte("rotated source WAL"), 0o600))
+			require.NoError(t, os.WriteFile(fixture.config.P2P.AddrBookFile(), []byte(`{"addrs":["source-peer"]}`), 0o600))
+			before := readConvertedTestnetConsensus(t, fixture.config, fixture.height)
+
+			require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower))
+			after := readConvertedTestnetConsensus(t, fixture.config, fixture.height)
+			require.Equal(t, chainID, string(after.marker))
+			after.marker = before.marker
+			require.Equal(t, before, after, "only the network files and the marker may change")
+			walFiles, err := filepath.Glob(fixture.config.Consensus.WalFile() + "*")
+			require.NoError(t, err)
+			require.Empty(t, walFiles)
+			addrBook, err := os.ReadFile(fixture.config.P2P.AddrBookFile())
+			require.NoError(t, err)
+			require.Equal(t, "{}", string(addrBook))
+		})
+	}
+}
+
+// A conversion whose network-file reset failed can be rerun once the cause is
+// fixed, and the rerun completes the reset.
+func TestPrepareTestnetConsensusRetriesFailedNetworkReset(t *testing.T) {
+	fixture := setupTestnetConsensusFixture(t)
+	chainID := "xion-rehearsal-1"
+	walPath := fixture.config.Consensus.WalFile()
+	require.NoError(t, os.Remove(walPath))
+	require.NoError(t, os.Mkdir(walPath, 0o700))
+
+	err := prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower)
+	require.ErrorContains(t, err, "consensus WAL path is a directory")
+	require.Empty(t, readConvertedTestnetConsensus(t, fixture.config, fixture.height).marker)
+
+	require.NoError(t, os.Remove(walPath))
+	require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower))
+	require.Equal(t, chainID, string(readConvertedTestnetConsensus(t, fixture.config, fixture.height).marker))
+	walFiles, err := filepath.Glob(walPath + "*")
+	require.NoError(t, err)
+	require.Empty(t, walFiles, "the rotated source WAL must be removed on the rerun")
 }

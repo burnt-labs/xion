@@ -62,7 +62,15 @@ func inPlaceTestnetCmd() *cobra.Command {
 	cmd.Use = "in-place-testnet [newChainID] [newOperatorAddress]"
 	cmd.Short = "Convert disposable persisted state into a local testnet and start it"
 	cmd.Long = "Replace application and consensus validator state on a disposable copy, change its chain ID, and start a local testnet. Use fresh local keys and an explicit --home; homes that use a remote signer are refused. Resume with normal start; do not convert the same home twice. If a conversion exits before the first new block commits, rerun the same command on the same home to finish it."
-	cmd.Args = cobra.ExactArgs(2)
+	// Record whether --home was given on the command line here: cobra validates
+	// arguments after parsing flags but before the root pre-run, which applies
+	// XIOND_HOME and config values through Flags().Set and so marks --home as
+	// changed even when it was not typed.
+	var homeOnCommandLine bool
+	cmd.Args = func(cmd *cobra.Command, args []string) error {
+		homeOnCommandLine = cmd.Flags().Changed(flags.FlagHome)
+		return cobra.ExactArgs(2)(cmd, args)
+	}
 	cmd.Flags().Bool("skip-confirmation", false, "Skip confirmation of disposable-state conversion")
 	cmd.Flags().String(server.KeyTriggerTestnetUpgrade, "", "Optionally schedule an upgrade ten blocks after the loaded height")
 	addModuleInitFlags(cmd)
@@ -79,7 +87,7 @@ func inPlaceTestnetCmd() *cobra.Command {
 			return err
 		}
 		serverCtx := server.GetServerContextFromCmd(cmd)
-		sourceChainID, err := checkInPlaceTestnetTarget(cmd, serverCtx.Config)
+		sourceChainID, err := checkInPlaceTestnetTarget(homeOnCommandLine, serverCtx.Config)
 		if err != nil {
 			return err
 		}
@@ -114,9 +122,10 @@ func inPlaceTestnetCmd() *cobra.Command {
 // copy before anything in it is opened, and returns the chain ID from the
 // home's genesis file. The key guards cannot recognize a remote-signer
 // validator or a sentry, whose config holds an unused stub key, so an explicit
-// --home is required and a remote-signer configuration is refused outright.
-func checkInPlaceTestnetTarget(cmd *cobra.Command, config *cmtcfg.Config) (string, error) {
-	if !cmd.Flags().Changed(flags.FlagHome) {
+// --home on the command line is required (XIOND_HOME does not count) and a
+// remote-signer configuration is refused outright.
+func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config) (string, error) {
+	if !homeOnCommandLine {
 		return "", errors.New("in-place-testnet requires an explicit --home naming the disposable copy to convert")
 	}
 	if config == nil {
@@ -157,10 +166,30 @@ func readGenesisChainID(path string) (string, error) {
 			}
 			return chainID, nil
 		}
-		var skipped json.RawMessage
-		if err := decoder.Decode(&skipped); err != nil {
+		if err := skipJSONValue(decoder); err != nil {
 			return "", fmt.Errorf("read source genesis %s: %w", path, err)
 		}
 	}
 	return "", fmt.Errorf("source genesis %s has no chain_id", path)
+}
+
+// skipJSONValue consumes the next value token by token, so a large app_state
+// ahead of chain_id is never held in memory as a whole.
+func skipJSONValue(decoder *json.Decoder) error {
+	depth := 0
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		switch token {
+		case json.Delim('{'), json.Delim('['):
+			depth++
+		case json.Delim('}'), json.Delim(']'):
+			depth--
+		}
+		if depth == 0 {
+			return nil
+		}
+	}
 }

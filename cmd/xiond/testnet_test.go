@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 )
 
@@ -99,6 +100,29 @@ func TestInPlaceTestnetRequiresExplicitHome(t *testing.T) {
 	require.Equal(t, before, snapshotTestHome(t, home))
 }
 
+// The root pre-run applies XIOND_HOME and config values to unset flags with
+// Flags().Set, which marks --home as changed. That must not count as an
+// explicit --home.
+func TestInPlaceTestnetRejectsHomeFromEnvironment(t *testing.T) {
+	home := t.TempDir()
+	before := writeTestSourceHome(t, home, "xion-devnet-1")
+	root := &cobra.Command{
+		Use: "xiond",
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			return cmd.Flags().Set(flags.FlagHome, home)
+		},
+	}
+	root.AddCommand(newTestInPlaceTestnetCmd(t, home, nil))
+	serverCtx := server.NewDefaultContext()
+	serverCtx.Config.SetRoot(home)
+	root.SetArgs([]string{"in-place-testnet", "fork-test", "operator", "--skip-confirmation"})
+	root.SetOut(io.Discard)
+	root.SetErr(io.Discard)
+	err := root.ExecuteContext(context.WithValue(context.Background(), server.ServerContextKey, serverCtx))
+	require.ErrorContains(t, err, "requires an explicit --home")
+	require.Equal(t, before, snapshotTestHome(t, home))
+}
+
 // A remote-signer validator or a sentry keeps an unused stub key in config/,
 // which passes the local key guards. Such a home must be refused before any of
 // its state is opened, even with --skip-confirmation.
@@ -134,6 +158,10 @@ func TestReadGenesisChainID(t *testing.T) {
 	chainID, err := readGenesisChainID(write("after-app-state.json", `{"app_state":{"x":[1,{"chain_id":"nested"}]},"chain_id":"xion-testnet-2"}`))
 	require.NoError(t, err)
 	require.Equal(t, "xion-testnet-2", chainID)
+
+	chainID, err = readGenesisChainID(write("scalars-first.json", `{"initial_height":1,"app_hash":"","consensus":null,"app_state":{"a":[[],{}],"b":"x"},"chain_id":"xion-devnet-1","validators":[]}`))
+	require.NoError(t, err)
+	require.Equal(t, "xion-devnet-1", chainID)
 
 	_, err = readGenesisChainID(write("missing.json", `{"app_state":{"chain_id":"nested"}}`))
 	require.ErrorContains(t, err, "has no chain_id")

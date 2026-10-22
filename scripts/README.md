@@ -28,8 +28,8 @@ validator and operator keys and a different chain ID:
   --home "$SCRATCH_HOME" --skip-confirmation
 ```
 
-`--home` is required: the command refuses to fall back to the default node
-home. It also refuses a home whose `priv_validator_laddr` is set. A
+`--home` is required on the command line: the command does not fall back to
+the default node home or to `XIOND_HOME`. It also refuses a home whose `priv_validator_laddr` is set. A
 remote-signer validator (tmkms, horcrux) or a sentry keeps an unused stub key
 in `config/`, which the key checks cannot tell apart from a fresh key, so copy
 the data, clear `priv_validator_laddr` and generate a fresh local key first.
@@ -58,7 +58,9 @@ block commits (a busy port, a signal, a crash), plain `start` on that home halts
 with `validator does not exist`: rerun the same `in-place-testnet` command, with
 the same chain ID and keys, on the same home to finish the conversion. If
 consensus state was only partly written, the command says the conversion was
-interrupted and cannot be resumed; start again from a fresh copy. The optional
+interrupted and cannot be resumed; start again from a fresh copy. A rerun also
+finishes the WAL and address-book reset if the earlier run stopped before it
+completed. The optional
 `--trigger-testnet-upgrade` schedules the named upgrade ten blocks after the
 loaded height so conversion writes can commit first.
 

@@ -24,6 +24,12 @@ import (
 
 const testnetValidatorHistoryRadius int64 = 10
 
+// testnetConversionCompleteKey marks, in the CometBFT state database, the chain
+// ID whose consensus conversion finished, network-file reset included. It is
+// written before the node starts, so a home without it for the current chain
+// ID has not run consensus as the testnet yet.
+var testnetConversionCompleteKey = []byte("xionTestnetConversionComplete")
+
 // prepareTestnetConsensus converts the persisted CometBFT state to the local
 // validator and chain ID. The application must already be loaded and converted,
 // but not committed, before this function is called.
@@ -134,10 +140,25 @@ func prepareTestnetConsensus(
 	// local consensus key, so a source chain validated by that key alone is
 	// refused before this point.
 	if onlyTestnetValidator(state, validatorAddress, validatorPower) {
-		return checkInterruptedTestnetConversion(
+		if err := checkInterruptedTestnetConversion(
 			state, cachedGenesis, diskGenesis, blockStore, blockMeta,
 			chainID, appHeight, appHash, validatorAddress,
-		)
+		); err != nil {
+			return err
+		}
+		// Without the completion marker the earlier run stopped before or
+		// during the network-file reset, and the node never ran on this chain,
+		// so any WAL or address book left is the source chain's: finish the
+		// reset. With the marker, those files may belong to the testnet already
+		// and stay as they are.
+		complete, err := stateDB.Get(testnetConversionCompleteKey)
+		if err != nil {
+			return fmt.Errorf("read testnet conversion marker: %w", err)
+		}
+		if string(complete) == chainID {
+			return nil
+		}
+		return finishTestnetConversion(config, stateDB, chainID)
 	}
 
 	if state.ChainID == chainID {
@@ -285,10 +306,18 @@ func prepareTestnetConsensus(
 	if err := diskGenesis.SaveAs(config.GenesisFile()); err != nil {
 		return fmt.Errorf("save canonical testnet genesis: %w", err)
 	}
+	return finishTestnetConversion(config, stateDB, chainID)
+}
+
+// finishTestnetConversion resets the source network files and then records
+// that the conversion to chainID is complete.
+func finishTestnetConversion(config *cmtcfg.Config, stateDB cometdbm.DB, chainID string) error {
 	if err := resetTestnetNetworkFiles(config); err != nil {
 		return err
 	}
-
+	if err := stateDB.SetSync(testnetConversionCompleteKey, []byte(chainID)); err != nil {
+		return fmt.Errorf("save testnet conversion marker: %w", err)
+	}
 	return nil
 }
 
