@@ -156,6 +156,38 @@ func TestInPlaceTestnetRejectsUnsafeChainIDBeforeConfirmation(t *testing.T) {
 	}
 }
 
+// A home whose genesis already carries the new chain ID and whose validator key
+// was replaced by a conversion is a rerun after an interrupted conversion. It
+// passes the command-level source check (consensus state decides whether it can
+// be finished), but a public network name is still refused.
+func TestInPlaceTestnetRerunAfterInterruptedConversion(t *testing.T) {
+	home := t.TempDir()
+	writeTestSourceHome(t, home, "fork-test")
+	require.NoError(t, os.WriteFile(filepath.Join(home, "config", "priv_validator_key.json"+testnetValidatorBackupSuffix), []byte("{}"), 0o600))
+	before := snapshotTestHome(t, home)
+
+	cmd := newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home})
+	cmd.SetIn(strings.NewReader("no\n"))
+	var stderr bytes.Buffer
+	cmd.SetErr(&stderr)
+	require.NoError(t, cmd.Execute())
+	require.Contains(t, stderr.String(), "Home "+home+" already has chain ID fork-test in its genesis file: finishing the interrupted conversion")
+	require.NotContains(t, stderr.String(), "New validator consensus address")
+	require.Contains(t, stderr.String(), "Conversion cancelled.")
+	require.Equal(t, before, snapshotTestHome(t, home))
+
+	home = t.TempDir()
+	writeTestSourceHome(t, home, "xion-testnet-2")
+	require.NoError(t, os.WriteFile(filepath.Join(home, "config", "priv_validator_key.json"+testnetValidatorBackupSuffix), []byte("{}"), 0o600))
+	before = snapshotTestHome(t, home)
+	cmd = newTestInPlaceTestnetCmd(t, home, nil)
+	cmd.SetArgs([]string{"xion-testnet-2", "operator", "--home", home})
+	cmd.SetIn(strings.NewReader("y\n"))
+	require.ErrorContains(t, cmd.Execute(), "reuses the public network name")
+	require.Equal(t, before, snapshotTestHome(t, home))
+}
+
 func TestInPlaceTestnetRejectsMissingGenesis(t *testing.T) {
 	home := t.TempDir()
 	cmd := newTestInPlaceTestnetCmd(t, home, nil)

@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmted25519 "github.com/cometbft/cometbft/crypto/ed25519"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
@@ -32,13 +33,24 @@ func inPlaceTestnetCmd() *cobra.Command {
 	var config *cmtcfg.Config
 	var chainID, operator, upgradeName string
 	// validatorKey is generated for every conversion. The home's existing
-	// validator key is never used, so the copy cannot sign with a live key.
-	var validatorKey cmted25519.PrivKey
+	// validator key is never used, so the copy cannot sign with a live key. The
+	// one exception is a rerun on a home whose earlier conversion was
+	// interrupted: it keeps the key that conversion installed.
+	var validatorKey cmtcrypto.PrivKey
 	creator := func(logger log.Logger, db dbm.DB, appOpts servertypes.AppOptions) servertypes.Application {
 		wasmApp := newApp(logger, db, appOpts).(*app.WasmApp)
 		height, appHash := wasmApp.LastBlockHeight(), wasmApp.LastCommitID().Hash
 		if height <= 0 {
 			panic("in-place-testnet requires persisted blocks; start the source chain first")
+		}
+		installedKey, err := installedTestnetValidatorKey(config, app.TestnetValidatorPower)
+		if err != nil {
+			panic(fmt.Errorf("check for an interrupted in-place testnet conversion: %w", err))
+		}
+		if installedKey != nil {
+			validatorKey = installedKey
+			logger.Info("finishing an interrupted in-place testnet conversion with the validator key it installed",
+				"consensus_address", sdk.ConsAddress(installedKey.PubKey().Address()).String())
 		}
 		pubKey := validatorKey.PubKey()
 		if err := wasmApp.InitForTestnet(pubKey, operator, chainID, upgradeName); err != nil {
@@ -59,7 +71,7 @@ func inPlaceTestnetCmd() *cobra.Command {
 	start := cmd.RunE
 	cmd.Use = "in-place-testnet [newChainID] [newOperatorAddress]"
 	cmd.Short = "Convert disposable persisted state into a local testnet and start it"
-	cmd.Long = "Replace application and consensus validator state on a disposable copy, change its chain ID, and start a local testnet with a freshly generated validator key. Resume with normal start; do not convert the same home twice."
+	cmd.Long = "Replace application and consensus validator state on a disposable copy, change its chain ID, and start a local testnet with a freshly generated validator key. Use an explicit --home; homes that use a remote signer are refused. Resume with normal start; do not convert the same home twice. If a conversion exits before the first new block commits, rerun the same command on the same home to finish it."
 	// Record whether --home was given on the command line here: cobra validates
 	// arguments after parsing flags but before the root pre-run, which applies
 	// XIOND_HOME and config values through Flags().Set and so marks --home as
@@ -85,15 +97,19 @@ func inPlaceTestnetCmd() *cobra.Command {
 			return err
 		}
 		serverCtx := server.GetServerContextFromCmd(cmd)
-		sourceChainID, err := checkInPlaceTestnetTarget(homeOnCommandLine, serverCtx.Config, args[0])
+		sourceChainID, resuming, err := checkInPlaceTestnetTarget(homeOnCommandLine, serverCtx.Config, args[0])
 		if err != nil {
 			return err
 		}
 		// Generated in memory only; it is written to the home after the last
 		// conversion check passes.
 		newKey := cmted25519.GenPrivKey()
-		cmd.PrintErrf("Converting home %s from source chain %s to new chain %s.\n", serverCtx.Config.RootDir, sourceChainID, args[0])
-		cmd.PrintErrf("New validator consensus address: %s (fresh key; the home's existing validator key is moved aside and not used).\n", sdk.ConsAddress(newKey.PubKey().Address()))
+		if resuming {
+			cmd.PrintErrf("Home %s already has chain ID %s in its genesis file: finishing the interrupted conversion to it, with the validator key that conversion installed.\n", serverCtx.Config.RootDir, args[0])
+		} else {
+			cmd.PrintErrf("Converting home %s from source chain %s to new chain %s.\n", serverCtx.Config.RootDir, sourceChainID, args[0])
+			cmd.PrintErrf("New validator consensus address: %s (fresh key; the home's existing validator key is moved aside and not used).\n", sdk.ConsAddress(newKey.PubKey().Address()))
+		}
 		if !skip {
 			cmd.PrintErrln("This irreversibly changes the selected home. Use only a disposable copy. Continue? (y/N)")
 			answer, err := bufio.NewReader(cmd.InOrStdin()).ReadString('\n')
@@ -123,29 +139,44 @@ func inPlaceTestnetCmd() *cobra.Command {
 
 // checkInPlaceTestnetTarget refuses a home that is not clearly a disposable
 // copy, or a replacement chain ID that is unsafe for it, before anything in the
-// home is opened. It returns the source chain ID from the home's genesis file.
+// home is opened. It returns the source chain ID from the home's genesis file,
+// and whether the home looks like an interrupted conversion to chainID: its
+// genesis already carries chainID and a conversion has installed a validator
+// key. prepareTestnetConsensus then decides from the persisted consensus state
+// whether that conversion can be finished, and refuses the home otherwise.
 // The key guards cannot recognize a remote-signer validator or a sentry, whose
 // config/ holds an unused stub key, so an explicit --home on the command line
 // is required (XIOND_HOME does not count) and a remote-signer configuration is
 // refused outright.
-func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, chainID string) (string, error) {
+func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, chainID string) (string, bool, error) {
 	if !homeOnCommandLine {
-		return "", errors.New("in-place-testnet requires an explicit --home naming the disposable copy to convert")
+		return "", false, errors.New("in-place-testnet requires an explicit --home naming the disposable copy to convert")
 	}
 	if config == nil {
-		return "", errors.New("CometBFT config is required")
+		return "", false, errors.New("CometBFT config is required")
 	}
 	if laddr := strings.TrimSpace(config.PrivValidatorListenAddr); laddr != "" {
-		return "", fmt.Errorf("refusing to convert a home that uses a remote signer (priv_validator_laddr = %q); convert a disposable copy with priv_validator_laddr cleared and a fresh local key", laddr)
+		return "", false, fmt.Errorf("refusing to convert a home that uses a remote signer (priv_validator_laddr = %q); convert a disposable copy with priv_validator_laddr cleared and a fresh local key", laddr)
 	}
 	sourceChainID, err := readGenesisChainID(config.GenesisFile())
 	if err != nil {
-		return "", err
+		return "", false, err
+	}
+	if sourceChainID == chainID {
+		backup := config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix
+		if _, err := os.Lstat(backup); err == nil {
+			if err := app.ValidateTestnetChainID(chainID, ""); err != nil {
+				return "", false, err
+			}
+			return sourceChainID, true, nil
+		} else if !os.IsNotExist(err) {
+			return "", false, fmt.Errorf("check validator backup %s: %w", backup, err)
+		}
 	}
 	if err := app.ValidateTestnetChainID(chainID, sourceChainID); err != nil {
-		return "", err
+		return "", false, err
 	}
-	return sourceChainID, nil
+	return sourceChainID, false, nil
 }
 
 // readGenesisChainID streams the top-level chain_id out of a genesis file
