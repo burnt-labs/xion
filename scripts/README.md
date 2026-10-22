@@ -22,9 +22,12 @@ fork, or special build flags are needed.
 
 Use `in-place-testnet` only on a disposable copy of node state, with fresh
 validator and operator keys and a different chain ID. The command refuses the
-source chain ID, another revision of it, and any `xion-mainnet-N` or
-`xion-testnet-N` chain ID: signatures are bound to the chain ID, so reusing a
-public network's ID would make the copy's transactions and votes valid there.
+source chain ID and any other revision of it (IBC treats `foo-2` as `foo-1`
+upgraded): signatures are bound to the chain ID, so reusing the source ID would
+make the copy's transactions and votes valid on the source network. Other chain
+IDs are accepted, including one another network uses. Never load a live
+validator's consensus key into a copy named after that validator's network: its
+votes there can become double-sign evidence.
 
 ```sh
 "$PREV_BIN" in-place-testnet "$TEST_CHAIN_ID" "$OPERATOR_ADDRESS" \
