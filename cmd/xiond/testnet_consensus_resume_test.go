@@ -13,6 +13,8 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	"github.com/burnt-labs/xion/app"
 )
 
 const resumeTestValidatorPower int64 = 900_000_000_000_000
@@ -82,6 +84,25 @@ func TestPrepareTestnetConsensusInterruptedConversionNeedsSameChainID(t *testing
 	err := prepareTestnetConsensus(fixture.config, "xion-rehearsal-2", fixture.height, fixture.appHash, resumeTestValidatorPower)
 	require.ErrorContains(t, err, `interrupted after converting consensus state to chain ID "xion-rehearsal-1"`)
 	require.ErrorContains(t, err, "rerun with that chain ID")
+	require.Equal(t, first, readConvertedTestnetConsensus(t, fixture.config, fixture.height))
+}
+
+// A home that an older binary, without the source-family check, began
+// converting to a revision of the source chain ID must not be completed: the
+// resume path has no source chain ID in consensus state any more and checks
+// the stored source block instead.
+func TestPrepareTestnetConsensusRefusesResumingRevisionOfSource(t *testing.T) {
+	fixture := setupTestnetConsensusFixture(t)
+	chainID := fixture.sourceChainID + "-2"
+
+	validateFreshTestnetChainID = func(string, string) error { return nil }
+	t.Cleanup(func() { validateFreshTestnetChainID = app.ValidateTestnetChainID })
+	require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower))
+	first := readConvertedTestnetConsensus(t, fixture.config, fixture.height)
+	validateFreshTestnetChainID = app.ValidateTestnetChainID
+
+	err := prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, resumeTestValidatorPower)
+	require.ErrorContains(t, err, "is a revision of source chain ID")
 	require.Equal(t, first, readConvertedTestnetConsensus(t, fixture.config, fixture.height))
 }
 
