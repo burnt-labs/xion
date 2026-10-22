@@ -231,6 +231,69 @@ func TestInPlaceTestnetRejectsOutsideLinksIntoHome(t *testing.T) {
 	}
 }
 
+// A ".." after a symlink applies to the link's target, as the kernel resolves
+// it, not lexically: home/s/../key.json with s linked out is outside the home.
+func TestInPlaceTestnetRejectsDotDotAfterSymlink(t *testing.T) {
+	home, outside := t.TempDir(), t.TempDir()
+	writeTestSourceHome(t, home, "xion-devnet-1")
+	require.NoError(t, os.Mkdir(filepath.Join(outside, "subdir"), 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(outside, "priv_validator_key.json"), []byte("source key"), 0o600))
+	require.NoError(t, os.Symlink(filepath.Join(outside, "subdir"), filepath.Join(home, "s")))
+	beforeHome, beforeOutside := snapshotTestHome(t, home), snapshotTestHome(t, outside)
+	cmd := newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
+		serverCtx.Config.PrivValidatorKey = home + "/s/../priv_validator_key.json"
+	})
+	cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+	err := cmd.Execute()
+	require.ErrorContains(t, err, "priv_validator_key_file (")
+	require.ErrorContains(t, err, "is outside the home")
+	require.Equal(t, beforeHome, snapshotTestHome(t, home))
+	require.Equal(t, beforeOutside, snapshotTestHome(t, outside))
+}
+
+// The databases are opened beneath db_dir and data/, so a database linked to
+// the source node's is refused even when the directory itself is in the home.
+func TestInPlaceTestnetRejectsDatabaseLinksOutsideHome(t *testing.T) {
+	for name, tc := range map[string]struct {
+		dbPath, db string
+	}{
+		"application database":                    {dbPath: "data", db: "application.db"},
+		"consensus database in a separate db_dir": {dbPath: "cometbft", db: "blockstore.db"},
+		"nested link":                             {dbPath: "data", db: filepath.Join("snapshots", "metadata.db")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			home, outside := t.TempDir(), t.TempDir()
+			writeTestSourceHome(t, home, "xion-devnet-1")
+			require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(home, tc.dbPath, tc.db)), 0o700))
+			require.NoError(t, os.MkdirAll(filepath.Join(outside, "source.db"), 0o700))
+			require.NoError(t, os.WriteFile(filepath.Join(outside, "source.db", "000001.ldb"), []byte("source state"), 0o600))
+			require.NoError(t, os.Symlink(filepath.Join(outside, "source.db"), filepath.Join(home, tc.dbPath, tc.db)))
+			beforeHome, beforeOutside := snapshotTestHome(t, home), snapshotTestHome(t, outside)
+			cmd := newTestInPlaceTestnetCmd(t, home, func(serverCtx *server.Context) {
+				serverCtx.Config.DBPath = tc.dbPath
+			})
+			cmd.SetArgs([]string{"fork-test", "operator", "--home", home, "--skip-confirmation"})
+			err := cmd.Execute()
+			require.ErrorContains(t, err, tc.db+" under ")
+			require.ErrorContains(t, err, "outside the home")
+			require.Equal(t, beforeHome, snapshotTestHome(t, home))
+			require.Equal(t, beforeOutside, snapshotTestHome(t, outside))
+		})
+	}
+}
+
+// A database linked to another directory inside the home is fine.
+func TestTestnetPathsInHomeAllowsDatabaseLinksInsideHome(t *testing.T) {
+	home := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(home, "config"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(home, "data"), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Join(home, "disk2", "application.db"), 0o700))
+	require.NoError(t, os.Symlink(filepath.Join(home, "disk2", "application.db"), filepath.Join(home, "data", "application.db")))
+	config := cmtcfg.DefaultConfig()
+	config.SetRoot(home)
+	require.NoError(t, checkTestnetPathsInHome(config))
+}
+
 func TestTestnetPathsInHomeFollowsSymlinkedHome(t *testing.T) {
 	target := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(target, "config"), 0o700))
@@ -385,4 +448,34 @@ func TestReadGenesisChainID(t *testing.T) {
 
 	_, err = readGenesisChainID(write("array.json", `[]`))
 	require.ErrorContains(t, err, "not a JSON object")
+}
+
+func TestResolveTestnetPath(t *testing.T) {
+	dir, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "real", "sub"), 0o700))
+	require.NoError(t, os.Symlink(filepath.Join(dir, "real", "sub"), filepath.Join(dir, "link")))
+
+	// A relative path starts from the real working directory.
+	t.Chdir(filepath.Join(dir, "link"))
+	entry, target, err := resolveTestnetPath("new/file")
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(dir, "real", "sub", "new", "file"), target)
+	require.Equal(t, target, entry)
+
+	// ".." after a link leaves the link's target, not the link.
+	entry, target, err = resolveTestnetPath(dir + "/link/../file")
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(dir, "real", "file"), target)
+	require.Equal(t, target, entry)
+
+	// The entry keeps the link's own name; the target follows it.
+	entry, target, err = resolveTestnetPath(filepath.Join(dir, "link"))
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(dir, "link"), entry)
+	require.Equal(t, filepath.Join(dir, "real", "sub"), target)
+
+	// ".." below a directory that does not exist yet is refused.
+	_, _, err = resolveTestnetPath(dir + "/missing/../file")
+	require.ErrorContains(t, err, `".." below the missing`)
 }

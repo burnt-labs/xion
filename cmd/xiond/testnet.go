@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -211,10 +213,19 @@ func checkInPlaceTestnetTarget(homeOnCommandLine bool, config *cmtcfg.Config, ch
 // Both the entry itself (its directory resolved) and what it points to must be
 // inside the home: the conversion renames and removes some entries, which acts
 // on the link, not its target, so an outside link into the home is refused too.
+// The databases are opened beneath db_dir and the application's data/, so a
+// symlink anywhere below those (application.db linked to the source node's)
+// must also stay inside the home.
 func checkTestnetPathsInHome(config *cmtcfg.Config) error {
-	root, err := resolveTestnetPath(config.RootDir)
+	// The node addresses its files by joining onto the home, which cleans the
+	// path, so the home is resolved in that form too.
+	_, root, err := resolveTestnetPath(filepath.Clean(config.RootDir))
 	if err != nil {
 		return fmt.Errorf("resolve home %s: %w", config.RootDir, err)
+	}
+	inHome := func(path string) bool {
+		rel, err := filepath.Rel(root, path)
+		return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 	}
 	for _, setting := range []struct{ name, path string }{
 		{"genesis_file", config.GenesisFile()},
@@ -224,57 +235,120 @@ func checkTestnetPathsInHome(config *cmtcfg.Config) error {
 		{"consensus.wal_file", config.Consensus.WalFile()},
 		{"p2p.addr_book_file", config.P2P.AddrBookFile()},
 	} {
-		abs, err := filepath.Abs(setting.path)
+		entry, target, err := resolveTestnetPath(setting.path)
 		if err != nil {
 			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
 		}
-		dir, err := resolveTestnetPath(filepath.Dir(abs))
-		if err != nil {
-			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
-		}
-		target, err := resolveTestnetPath(abs)
-		if err != nil {
-			return fmt.Errorf("resolve %s %s: %w", setting.name, setting.path, err)
-		}
-		for _, path := range []string{filepath.Join(dir, filepath.Base(abs)), target} {
-			rel, err := filepath.Rel(root, path)
-			if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		for _, path := range []string{entry, target} {
+			if !inHome(path) {
 				return fmt.Errorf("refusing to convert: %s (%s) is outside the home %s; point it inside the disposable copy", setting.name, path, root)
 			}
+		}
+	}
+	visited := map[string]bool{}
+	for _, dir := range []struct{ name, path string }{
+		{"db_dir", config.DBDir()},
+		{"the application data directory", filepath.Join(config.RootDir, "data")},
+	} {
+		if err := checkTestnetLinksInHome(dir.name, dir.path, inHome, visited); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-// resolveTestnetPath returns the absolute path with every symlink in its
-// existing part resolved. The part that does not exist yet (a file the
-// conversion or node will create) is appended unchanged.
-func resolveTestnetPath(path string) (string, error) {
-	abs, err := filepath.Abs(path)
+// checkTestnetLinksInHome refuses a symlink anywhere below dir whose target
+// is outside the home, following links to directories inside the home. A
+// directory that does not exist yet holds no links.
+func checkTestnetLinksInHome(name, dir string, inHome func(string) bool, visited map[string]bool) error {
+	_, start, err := resolveTestnetPath(dir)
 	if err != nil {
-		return "", err
+		return fmt.Errorf("resolve %s %s: %w", name, dir, err)
 	}
-	existing, missing := abs, ""
-	for {
-		resolved, err := filepath.EvalSymlinks(existing)
+	if !inHome(start) {
+		return fmt.Errorf("refusing to convert: %s (%s) is outside the home; point it inside the disposable copy", name, start)
+	}
+	if visited[start] {
+		return nil
+	}
+	visited[start] = true
+	err = filepath.WalkDir(start, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			if path == start && errors.Is(err, fs.ErrNotExist) {
+				return filepath.SkipAll
+			}
+			return err
+		}
+		if d.Type()&fs.ModeSymlink == 0 {
+			return nil
+		}
+		_, target, err := resolveTestnetPath(path)
+		if err != nil {
+			return fmt.Errorf("refusing to convert: %s under %s: %w", path, name, err)
+		}
+		if !inHome(target) {
+			return fmt.Errorf("refusing to convert: %s under %s links to %s, outside the home; replace the link with a copy", path, name, target)
+		}
+		if info, err := os.Stat(target); err == nil && info.IsDir() {
+			return checkTestnetLinksInHome(name, target, inHome, visited)
+		}
+		return nil
+	})
+	return err
+}
+
+// resolveTestnetPath follows path the way the operating system does,
+// component by component, so a symlink is resolved before a ".." after it
+// applies. It returns the final directory entry (its directory resolved, its
+// own name kept) and the fully resolved target. The part of the path that does
+// not exist yet (a file the conversion or node will create) is appended as it
+// is; a dangling symlink is refused, because creating the file would create
+// its target somewhere that cannot be checked.
+func resolveTestnetPath(path string) (entry, target string, err error) {
+	resolved := string(filepath.Separator)
+	if !filepath.IsAbs(path) {
+		wd, err := os.Getwd()
+		if err != nil {
+			return "", "", err
+		}
+		// The kernel resolves a relative path from the real working
+		// directory, not from the one $PWD names.
+		if resolved, err = filepath.EvalSymlinks(wd); err != nil {
+			return "", "", err
+		}
+	}
+	entry = resolved
+	parts := strings.Split(path, string(filepath.Separator))
+	for i, part := range parts {
+		switch part {
+		case "", ".":
+			continue
+		case "..":
+			resolved = filepath.Dir(resolved)
+			entry = resolved
+			continue
+		}
+		entry = filepath.Join(resolved, part)
+		real, err := filepath.EvalSymlinks(entry)
 		if err == nil {
-			return filepath.Join(resolved, missing), nil
+			resolved = real
+			continue
 		}
 		if !os.IsNotExist(err) {
-			return "", err
+			return "", "", err
 		}
-		// A dangling symlink: creating the file would follow it to a target
-		// that cannot be checked here.
-		if info, lerr := os.Lstat(existing); lerr == nil && info.Mode()&os.ModeSymlink != 0 {
-			return "", fmt.Errorf("%s is a symlink to a missing target", existing)
+		if info, lerr := os.Lstat(entry); lerr == nil && info.Mode()&os.ModeSymlink != 0 {
+			return "", "", fmt.Errorf("%s is a symlink to a missing target", entry)
 		}
-		parent := filepath.Dir(existing)
-		if parent == existing {
-			return abs, nil
+		// Nothing exists from here on, so nothing further can be a symlink.
+		rest := parts[i+1:]
+		if slices.Contains(rest, "..") {
+			return "", "", fmt.Errorf("%s has \"..\" below the missing %s", path, entry)
 		}
-		missing = filepath.Join(filepath.Base(existing), missing)
-		existing = parent
+		target = filepath.Join(append([]string{entry}, rest...)...)
+		return target, target, nil
 	}
+	return entry, resolved, nil
 }
 
 // readGenesisChainID streams the top-level chain_id out of a genesis file
