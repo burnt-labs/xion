@@ -20,6 +20,8 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	"github.com/burnt-labs/xion/app"
 )
 
 const testnetValidatorHistoryRadius int64 = 10
@@ -95,8 +97,8 @@ func prepareTestnetConsensus(
 	if state.LastBlockHeight <= 0 {
 		return fmt.Errorf("persisted CometBFT state height must be positive: %d", state.LastBlockHeight)
 	}
-	if state.ChainID == chainID {
-		return fmt.Errorf("testnet chain ID %q must differ from source chain ID", chainID)
+	if err := app.ValidateTestnetChainID(chainID, state.ChainID); err != nil {
+		return err
 	}
 	if state.LastBlockHeight > appHeight {
 		return fmt.Errorf("CometBFT state height %d is ahead of application height %d", state.LastBlockHeight, appHeight)

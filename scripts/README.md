@@ -21,7 +21,10 @@ JSON before normal SDK startup. No SDK patch, custom build helper, dependency
 fork, or special build flags are needed.
 
 Use `in-place-testnet` only on a disposable copy of node state, with fresh
-validator and operator keys and a different chain ID:
+validator and operator keys and a different chain ID. The command refuses the
+source chain ID, another revision of it, and any `xion-mainnet-N` or
+`xion-testnet-N` chain ID: signatures are bound to the chain ID, so reusing a
+public network's ID would make the copy's transactions and votes valid there.
 
 ```sh
 "$PREV_BIN" in-place-testnet "$TEST_CHAIN_ID" "$OPERATOR_ADDRESS" \
