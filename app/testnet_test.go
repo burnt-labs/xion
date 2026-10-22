@@ -6,8 +6,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmted25519 "github.com/cometbft/cometbft/crypto/ed25519"
+	cryptoenc "github.com/cometbft/cometbft/crypto/encoding"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 
@@ -111,6 +113,78 @@ func TestInitForTestnetReplacesValidatorInfrastructureAndSchedulesUpgrade(t *tes
 	require.NoError(t, err)
 	require.Equal(t, "v32", plan.Name)
 	require.Equal(t, snapshotHeight+10, plan.Height)
+}
+
+// After conversion the next block is decided by the local validator alone.
+// Every begin and end blocker must accept that block, and the only validator
+// update CometBFT receives is the local validator at the testnet power, which
+// matches the consensus set the command writes. Without the staking,
+// distribution and slashing records this block halts the chain.
+func TestInitForTestnetFirstBlocksCommit(t *testing.T) {
+	wasmApp := setupMultiValidatorTestnetApp(t, 3)
+	_, err := wasmApp.Commit()
+	require.NoError(t, err)
+	snapshotHeight := wasmApp.LastBlockHeight()
+	require.Positive(t, snapshotHeight)
+
+	chainID := "xion-rehearsal-1"
+	pubKey := cmted25519.GenPrivKey().PubKey()
+	operator := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
+	require.NoError(t, wasmApp.InitForTestnet(pubKey, operator, chainID, ""))
+
+	localVote := abci.VoteInfo{
+		Validator:   abci.Validator{Address: pubKey.Address(), Power: expectedTestnetValidatorPower},
+		BlockIdFlag: tmproto.BlockIDFlagCommit,
+	}
+	newValidatorSet := cmttypes.NewValidatorSet([]*cmttypes.Validator{
+		cmttypes.NewValidator(pubKey, expectedTestnetValidatorPower),
+	})
+	blockTime := time.Now().UTC()
+	finalizeBlock := func(height int64) *abci.ResponseFinalizeBlock {
+		t.Helper()
+		blockTime = blockTime.Add(5 * time.Second)
+		response, err := wasmApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+			Height:             height,
+			Time:               blockTime,
+			Hash:               wasmApp.LastCommitID().Hash,
+			ProposerAddress:    pubKey.Address(),
+			NextValidatorsHash: newValidatorSet.Hash(),
+			DecidedLastCommit:  abci.CommitInfo{Round: 0, Votes: []abci.VoteInfo{localVote}},
+		})
+		require.NoError(t, err)
+		_, err = wasmApp.Commit()
+		require.NoError(t, err)
+		require.Equal(t, height, wasmApp.LastBlockHeight())
+		return response
+	}
+
+	first := finalizeBlock(snapshotHeight + 1)
+	expectedPubKey, err := cryptoenc.PubKeyToProto(pubKey)
+	require.NoError(t, err)
+	require.Equal(t, []abci.ValidatorUpdate{{
+		PubKey: expectedPubKey,
+		Power:  expectedTestnetValidatorPower,
+	}}, first.ValidatorUpdates)
+
+	second := finalizeBlock(snapshotHeight + 2)
+	require.Empty(t, second.ValidatorUpdates, "the committed validator set must already match consensus")
+
+	ctx := testnetContext(wasmApp, chainID)
+	lastValidators, err := wasmApp.StakingKeeper.GetLastValidators(ctx)
+	require.NoError(t, err)
+	require.Len(t, lastValidators, 1)
+	lastValidatorAddress, err := wasmApp.StakingKeeper.ValidatorAddressCodec().StringToBytes(lastValidators[0].GetOperator())
+	require.NoError(t, err)
+	localValidator, err := wasmApp.StakingKeeper.GetValidatorByConsAddr(ctx, sdk.ConsAddress(pubKey.Address()))
+	require.NoError(t, err)
+	require.Equal(t, localValidator.OperatorAddress, lastValidators[0].OperatorAddress)
+	lastPower, err := wasmApp.StakingKeeper.GetLastValidatorPower(ctx, lastValidatorAddress)
+	require.NoError(t, err)
+	require.Equal(t, expectedTestnetValidatorPower, lastPower)
+	signingInfo, err := wasmApp.SlashingKeeper.GetValidatorSigningInfo(ctx, sdk.ConsAddress(pubKey.Address()))
+	require.NoError(t, err)
+	require.Zero(t, signingInfo.MissedBlocksCounter)
+	require.False(t, signingInfo.Tombstoned)
 }
 
 func TestInitForTestnetPreservesUnrelatedParamsAndModuleVersions(t *testing.T) {

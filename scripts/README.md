@@ -28,16 +28,39 @@ validator and operator keys and a different chain ID:
   --home "$SCRATCH_HOME" --skip-confirmation
 ```
 
+`--home` is required on the command line: the command does not fall back to
+the default node home or to `XIOND_HOME`. It also refuses a home whose `priv_validator_laddr` is set. A
+remote-signer validator (tmkms, horcrux) or a sentry keeps an unused stub key
+in `config/`, which the key checks cannot tell apart from a fresh key, so copy
+the data, clear `priv_validator_laddr` and generate a fresh local key first.
+Before converting, the command prints the home and the chain ID in its genesis
+file.
+
 The application callback replaces active validator infrastructure, mints
 synthetic validator stake and local operator funds, and shortens governance
 voting periods to 20 seconds (10 seconds expedited). Existing validator records
 and delegations are retained, but the replacement validator has synthetic shares
 without a self-delegation record. Supply and staking invariants therefore do
 not represent the source chain: use this clone for upgrade behavior, not supply
-or staking-accounting comparisons.
+or staking-accounting comparisons. The source validators also keep status
+`Bonded`; they only leave the power and last-validator indices. A delegation to
+or undelegation from one of them puts it back in the power index, and the next
+block adds it to the CometBFT validator set. Its power is negligible next to the
+local validator, so the chain keeps running, but it misses every block and is
+jailed and slashed for downtime: expect those jail and slash events in the
+clone.
 
 Normal `start` still uses `newApp`. To resume a converted chain, use `start`
-on the same home rather than converting it again. The optional
+on the same home rather than converting it again. The application half of the
+conversion only commits with the first new block, while the CometBFT half is
+written to disk before the node starts. If the command exits before that first
+block commits (a busy port, a signal, a crash), plain `start` on that home halts
+with `validator does not exist`: rerun the same `in-place-testnet` command, with
+the same chain ID and keys, on the same home to finish the conversion. If
+consensus state was only partly written, the command says the conversion was
+interrupted and cannot be resumed; start again from a fresh copy. A rerun also
+finishes the WAL and address-book reset if the earlier run stopped before it
+completed. The optional
 `--trigger-testnet-upgrade` schedules the named upgrade ten blocks after the
 loaded height so conversion writes can commit first.
 
