@@ -37,6 +37,11 @@ jobs:
       - name: Build Linux Binary
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          # An rc tag can share the release commit, and left to itself
+          # GoReleaser takes the highest-sorting tag on HEAD, which is the rc.
+          # Pin it to the tag being released; empty (GoReleaser's default) on
+          # branch and PR builds.
+          GORELEASER_CURRENT_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: |
           set -o pipefail
           make build-${{ matrix.os }}-${{ matrix.arch }} 2>&1 | tee "${RUNNER_TEMP}/build.log"

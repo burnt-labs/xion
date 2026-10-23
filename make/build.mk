@@ -107,6 +107,7 @@ endif
 build-all:
 	$(DOCKER) run --rm \
 		--env NODISTDIR=false \
+		--env GORELEASER_CURRENT_TAG \
 		--platform linux/amd64 \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
@@ -119,6 +120,7 @@ build-local:
 		--env GOARCH=$(GOARCH) \
 		--env NODISTDIR=true \
 		--env GORELEASER_KEY=$(GORELEASER_KEY) \
+		--env GORELEASER_CURRENT_TAG \
 		--volume $(CURDIR):/root/go/src/github.com/burnt-network/xion \
 		--workdir /root/go/src/github.com/burnt-network/xion \
 		$(GORELEASER_CROSS_IMAGE):$(GORELEASER_CROSS_VERSION) \
