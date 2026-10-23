@@ -37,6 +37,7 @@ type BankKeeper interface {
 	SendCoins(ctx context.Context, fromAddr sdktypes.AccAddress, toAddr sdktypes.AccAddress, amt sdktypes.Coins) error
 	InputOutputCoins(ctx context.Context, input banktypes.Input, outputs []banktypes.Output) error
 	GetBalance(ctx context.Context, addr sdktypes.AccAddress, denom string) sdktypes.Coin
+	GetSupply(ctx context.Context, denom string) sdktypes.Coin
 	BurnCoins(ctx context.Context, moduleName string, amt sdktypes.Coins) error
 }
 
@@ -57,6 +58,6 @@ type AbstractAccountKeeper interface {
 }
 
 type StakingKeeper interface {
-	TotalBondedTokens(ctx context.Context) (math.Int, error)
+	TotalValidatorPower(ctx context.Context) (math.Int, error)
 	BondedRatio(ctx context.Context) (math.LegacyDec, error)
 }

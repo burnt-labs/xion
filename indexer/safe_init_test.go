@@ -13,8 +13,7 @@ import (
 
 	db "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
@@ -22,6 +21,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
 
 func setupTestCodec() codec.Codec {
@@ -56,6 +56,15 @@ func TestNewSafeIndexer_Success(t *testing.T) {
 	// Clean up
 	err := service.Close()
 	require.NoError(t, err)
+}
+
+// SDK v0.55 server shutdown calls app.Close() from two cleanup paths.
+func TestStreamService_CloseTwice(t *testing.T) {
+	service := NewSafeIndexer(t.TempDir(), setupTestCodec(), addresscodec.NewBech32Codec("xion"), log.NewTestLogger(t))
+	_, ok := service.(*StreamService)
+	require.True(t, ok)
+	require.NoError(t, service.Close())
+	require.NotPanics(t, func() { require.NoError(t, service.Close()) })
 }
 
 func TestNewSafeIndexer_DatabaseInitFailure(t *testing.T) {

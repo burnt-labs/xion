@@ -8,6 +8,10 @@
 .vscode
 .idea
 
+# Private direnv configuration
+.envrc
+.direnv/
+
 # Build
 vendor
 build

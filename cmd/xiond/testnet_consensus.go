@@ -11,6 +11,7 @@ import (
 
 	cometdbm "github.com/cometbft/cometbft-db"
 	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 	pvm "github.com/cometbft/cometbft/privval"
 	cmtstate "github.com/cometbft/cometbft/proto/tendermint/state"
@@ -25,6 +26,10 @@ import (
 )
 
 const testnetValidatorHistoryRadius int64 = 10
+
+// testnetValidatorBackupSuffix names the copy of the home's previous validator
+// key and signing state kept inside the home.
+const testnetValidatorBackupSuffix = ".pre-testnet"
 
 // testnetConversionCompleteKey marks, in the CometBFT state database, the chain
 // ID whose consensus conversion finished, network-file reset included. It is
@@ -46,6 +51,7 @@ func prepareTestnetConsensus(
 	appHeight int64,
 	appHash []byte,
 	validatorPower int64,
+	validatorKey cmtcrypto.PrivKey,
 ) (returnErr error) {
 	if config == nil {
 		return errors.New("CometBFT config is required")
@@ -64,6 +70,9 @@ func prepareTestnetConsensus(
 	}
 	if validatorPower <= 0 {
 		return fmt.Errorf("testnet validator power must be positive: %d", validatorPower)
+	}
+	if validatorKey == nil {
+		return errors.New("testnet validator key is required")
 	}
 	if validatorPower > cmttypes.MaxTotalVotingPower {
 		return fmt.Errorf("testnet validator power %d exceeds maximum %d", validatorPower, cmttypes.MaxTotalVotingPower)
@@ -132,20 +141,16 @@ func prepareTestnetConsensus(
 		return err
 	}
 
-	privValidator := pvm.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
-	validatorPubKey, err := privValidator.GetPubKey()
-	if err != nil {
-		return fmt.Errorf("load local validator public key: %w", err)
-	}
+	validatorPubKey := validatorKey.PubKey()
 	validatorAddress := validatorPubKey.Address()
 
 	// The application half of a conversion only lands when the first new block
 	// commits, while this function writes consensus state immediately. A run
-	// that exits in between leaves consensus converted to the local validator
-	// at the testnet power over an unconverted application. The caller has
-	// already checked that the application's committed state does not know the
-	// local consensus key, so a source chain validated by that key alone is
-	// refused before this point.
+	// that exits in between leaves consensus converted to the key it installed,
+	// at the testnet power, over an unconverted application. The caller passes
+	// that installed key back only for such a home (see
+	// installedTestnetValidatorKey); every other run passes a fresh key, which
+	// cannot match.
 	if onlyTestnetValidator(state, validatorAddress, validatorPower) {
 		if err := checkInterruptedTestnetConversion(
 			state, cachedGenesis, diskGenesis, blockStore, blockMeta,
@@ -184,27 +189,8 @@ func prepareTestnetConsensus(
 	}
 	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
 		if validators != nil && validators.HasAddress(validatorAddress) {
-			return fmt.Errorf("local validator key %X belongs to the source consensus validator set", validatorAddress)
+			return fmt.Errorf("testnet validator key %X belongs to the source consensus validator set", validatorAddress)
 		}
-	}
-
-	lastSignState := privValidator.LastSignState
-	hasSignerState := lastSignState.Height != 0 ||
-		lastSignState.Round != 0 ||
-		lastSignState.Step != 0 ||
-		len(lastSignState.SignBytes) != 0 ||
-		len(lastSignState.Signature) != 0
-	if hasSignerState {
-		if len(lastSignState.SignBytes) == 0 || len(lastSignState.Signature) == 0 {
-			return errors.New("persisted validator signing state is incomplete")
-		}
-		if validatorPubKey.VerifySignature(lastSignState.SignBytes, lastSignState.Signature) {
-			return errors.New("local validator key already has persisted signing state")
-		}
-		// The data directory can carry the source node's signing watermark while
-		// config contains a fresh fork key. Ignore that foreign watermark only
-		// after proving this key is not part of the source consensus validator set.
-		privValidator = pvm.LoadFilePVEmptyState(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
 	}
 
 	if state.LastBlockHeight == appHeight {
@@ -256,6 +242,12 @@ func prepareTestnetConsensus(
 		Timestamp:        voteTime,
 		ValidatorAddress: validatorAddress,
 		ValidatorIndex:   0,
+	}
+	// Every check has passed: from here on the home is written. Install the
+	// fresh key first so nothing below can sign with the home's previous key.
+	privValidator, err := installTestnetValidatorKey(config, validatorKey)
+	if err != nil {
+		return err
 	}
 	voteProto := vote.ToProto()
 	if err := privValidator.SignVote(chainID, voteProto); err != nil {
@@ -336,6 +328,47 @@ func finishTestnetConversion(config *cmtcfg.Config, stateDB cometdbm.DB, chainID
 	return nil
 }
 
+// installTestnetValidatorKey moves the home's validator key and signing state
+// aside (keeping the first backup if the home was converted before) and writes
+// the fresh testnet key with empty signing state.
+func installTestnetValidatorKey(config *cmtcfg.Config, validatorKey cmtcrypto.PrivKey) (*pvm.FilePV, error) {
+	keyFile, stateFile := config.PrivValidatorKeyFile(), config.PrivValidatorStateFile()
+	for _, path := range []string{keyFile, stateFile} {
+		backup := path + testnetValidatorBackupSuffix
+		if _, err := os.Lstat(backup); err == nil {
+			continue
+		} else if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("check validator backup %s: %w", backup, err)
+		}
+		err := os.Rename(path, backup)
+		if err == nil {
+			continue
+		}
+		if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("move aside previous validator file %s: %w", path, err)
+		}
+		// A home without a validator key still gets a key backup, empty, so a
+		// rerun can recognize the key this conversion installs (see
+		// installedTestnetValidatorKey).
+		if path == keyFile {
+			if err := os.MkdirAll(filepath.Dir(backup), 0o700); err != nil {
+				return nil, fmt.Errorf("create validator directory %s: %w", filepath.Dir(backup), err)
+			}
+			if err := os.WriteFile(backup, nil, 0o600); err != nil {
+				return nil, fmt.Errorf("record missing validator key in %s: %w", backup, err)
+			}
+		}
+	}
+	for _, dir := range []string{filepath.Dir(keyFile), filepath.Dir(stateFile)} {
+		if err := os.MkdirAll(dir, 0o700); err != nil {
+			return nil, fmt.Errorf("create validator directory %s: %w", dir, err)
+		}
+	}
+	privValidator := pvm.NewFilePV(validatorKey, keyFile, stateFile)
+	privValidator.Save()
+	return privValidator, nil
+}
+
 // onlyTestnetValidator reports whether every consensus validator set in state
 // consists of exactly the local validator at the testnet power, as a
 // conversion writes it.
@@ -397,6 +430,53 @@ func checkInterruptedTestnetConversion(
 		return interrupted("no testnet commit is stored for height %d", appHeight)
 	}
 	return nil
+}
+
+// installedTestnetValidatorKey returns the validator key an earlier, interrupted
+// conversion of this home installed, or nil when there is none. A key is only
+// returned when the home holds the backup that installing it leaves and every
+// consensus validator set in the persisted state is exactly that key at
+// validatorPower, as a conversion writes it. Any other home, including a source
+// home whose own key validates it alone, gets nil and so a fresh key.
+func installedTestnetValidatorKey(config *cmtcfg.Config, validatorPower int64) (_ cmtcrypto.PrivKey, returnErr error) {
+	keyFile := config.PrivValidatorKeyFile()
+	if _, err := os.Lstat(keyFile + testnetValidatorBackupSuffix); os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("check validator backup %s: %w", keyFile+testnetValidatorBackupSuffix, err)
+	}
+	keyJSON, err := os.ReadFile(keyFile)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("read validator key %s: %w", keyFile, err)
+	}
+	var key pvm.FilePVKey
+	if err := cmtjson.Unmarshal(keyJSON, &key); err != nil {
+		return nil, fmt.Errorf("decode validator key %s: %w", keyFile, err)
+	}
+	if key.PrivKey == nil {
+		return nil, fmt.Errorf("validator key %s has no private key", keyFile)
+	}
+
+	stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: config})
+	if err != nil {
+		return nil, fmt.Errorf("open CometBFT state database: %w", err)
+	}
+	stateStore := sm.NewStore(stateDB, sm.StoreOptions{
+		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
+	})
+	defer func() {
+		returnErr = errors.Join(returnErr, stateStore.Close())
+	}()
+	state, err := stateStore.Load()
+	if err != nil {
+		return nil, fmt.Errorf("load CometBFT state: %w", err)
+	}
+	if !onlyTestnetValidator(state, key.PrivKey.PubKey().Address(), validatorPower) {
+		return nil, nil
+	}
+	return key.PrivKey, nil
 }
 
 func loadCachedTestnetGenesis(stateDB cometdbm.DB, fallback *cmttypes.GenesisDoc) (*cmttypes.GenesisDoc, error) {

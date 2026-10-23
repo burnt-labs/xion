@@ -4,8 +4,8 @@ This repository is the XION chain-node asset in the
 [Blockchain / DLT bug bounty program](https://github.com/burnt-labs/bug-bounty/blob/main/programs/blockchain.md).
 This file adds repository-specific reporting and coordination details. The
 published [`burnt-labs/bug-bounty`](https://github.com/burnt-labs/bug-bounty)
-program is canonical for scope, severity, eligibility, exclusions, rewards, and
-testing authorization; where the documents differ, the program terms govern.
+program is canonical for scope, severity, exclusions, and testing
+authorization; where the documents differ, the program terms govern.
 
 Do **not** open public GitHub issues, pull requests, discussions, or comments
 containing vulnerability details.
@@ -34,22 +34,16 @@ Include as much of the following as possible:
 
 Automated scanner output without a demonstrated exploit path is not sufficient.
 
-## Response Targets
+## Program Status
 
-We aim to acknowledge reports within **5 business days** and provide a triage
-decision within **14 days**.
-
-Active exploitation, or confirmed attacker awareness of an unpatched
-vulnerability, escalates the issue to Critical **response handling** —
-prioritization, coordination, and disclosure timing — regardless of its
-original classification. That escalation does not change the finding's severity
-assessment or reward eligibility.
+**The Burnt Labs bug bounty program is currently paused.** We welcome
+submissions, but we will not respond to them and will not pay rewards.
 
 ## Coordinated Disclosure
 
 Keep vulnerability details private until Burnt Labs confirms a fix or mitigation
 has been deployed and disclosure is coordinated. Where appropriate, Burnt Labs
-will publish a GitHub Security Advisory and credit finders, reporters, analysts,
+may publish a GitHub Security Advisory and credit finders, reporters, analysts,
 and remediation contributors using GitHub advisory credits.
 
 If a security issue requires a network upgrade, additional time may be needed to
@@ -96,14 +90,14 @@ network or repository they operate.
 
 ## Scope, Severity, and Rewards
 
-The canonical Blockchain / DLT program lists every eligible repository and the
+The canonical Blockchain / DLT program lists every in-scope repository and the
 fork-delta rule for Burnt-maintained dependencies. Scope applies to the current
 mainnet release. Findings affecting only deprecated versions, or already
 remediated in the currently deployed release, are not eligible.
 
-Only **High** and **Critical** findings are reward eligible. Burnt Labs does not
-publish reward amounts. The canonical program governs KYC, duplicate handling,
-severity assessment, and all other reward terms.
+No rewards are paid while the bug bounty program is paused. Submitting a
+report does not entitle you to a bounty or any other payment. The canonical
+program governs severity assessment.
 
 ## Proof of Concept
 
@@ -211,6 +205,6 @@ requires an on-chain governance vote and is auditable in transaction history.
 
 ## Recognition
 
-Burnt Labs credits researchers who help improve XION security. Recognition may
-be included in GitHub Security Advisories, release notes, and public security
-bulletins after coordinated disclosure.
+Burnt Labs may credit researchers who help improve XION security. Recognition
+may be included in GitHub Security Advisories, release notes, and public
+security bulletins after coordinated disclosure.

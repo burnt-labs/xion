@@ -2,7 +2,7 @@ swagger: "2.0"
 info:
   title: Verona - gRPC Gateway docs
   description: A REST interface for Verona state queries
-  version: v30
+  version: v32
 apis:
   - url: ./cosmos/auth/v1beta1/query.swagger.json
     operationIds:
@@ -62,13 +62,6 @@ apis:
     tags:
       rename:
         Query: Feegrant
-  - url: ./cosmos/gov/v1beta1/query.swagger.json
-    operationIds:
-      rename:
-        Params: GovParams
-    tags:
-      rename:
-        Query: Gov
   - url: ./cosmos/gov/v1/query.swagger.json
     operationIds:
       rename:
@@ -83,15 +76,6 @@ apis:
     tags:
       rename:
         Query: Gov
-  - url: ./cosmos/group/v1/query.swagger.json
-    operationIds:
-      rename:
-        Params: GroupParams
-        Proposal: GroupProposal
-        TallyResult: GroupTallyResult
-    tags:
-      rename:
-        Query: Group
   - url: ./cosmos/mint/v1beta1/query.swagger.json
     operationIds:
       rename:
@@ -103,21 +87,6 @@ apis:
     tags:
       rename:
         Query: Mint
-  - url: ./cosmos/nft/v1beta1/query.swagger.json
-    operationIds:
-      rename:
-        Params: NftParams
-        Balance: NftBalance
-    tags:
-      rename:
-        Query: Nft
-  - url: ./cosmos/params/v1beta1/query.swagger.json
-    operationIds:
-      rename:
-        Params: Params
-    tags:
-      rename:
-        Query: Params
   - url: ./cosmos/slashing/v1beta1/query.swagger.json
     operationIds:
       rename:
@@ -221,13 +190,20 @@ apis:
     tags:
       rename:
         Query: Verona
-  - url: ./cosmos/circuit/v1/query.swagger.json
+  - url: ./xion/dkim/v1/query.swagger.json
     operationIds:
       rename:
-        Params: CircuitParams
+        Params: VeronaDKIMParams
     tags:
       rename:
-        Query: Circuit
+        Query: VeronaDKIM
+  - url: ./xion/zk/v1/query.swagger.json
+    operationIds:
+      rename:
+        Params: VeronaZKParams
+    tags:
+      rename:
+        Query: VeronaZK
   - url: ./abstractaccount/v1/query.swagger.json
     operationIds:
       rename:

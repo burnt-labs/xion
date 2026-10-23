@@ -7,9 +7,9 @@ import (
 
 	"cosmossdk.io/math"
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,9 +72,8 @@ func TestIndexerFeeGrant(t *testing.T) {
 	t.Run("QueryAllowancesByGrantee", func(t *testing.T) {
 		t.Log("Step 2: Query allowances by grantee (tests grantee ReversePair index)")
 
-		// Note: The command is "query-grants-by-grantee" but it queries fee allowances
 		stdout, _, err := xion.GetNode().ExecBin(ctx,
-			"indexer", "query-grants-by-grantee",
+			"indexer", "query-allowances-by-grantee",
 			grantee.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
 			"--output", "json",
@@ -154,7 +153,7 @@ func TestIndexerFeeGrant(t *testing.T) {
 
 		// Query grantee's allowances - should now have only 1 (from granter2)
 		stdout, _, err := xion.GetNode().ExecBin(ctx,
-			"indexer", "query-grants-by-grantee",
+			"indexer", "query-allowances-by-grantee",
 			grantee.FormattedAddress(),
 			"--node", xion.GetRPCAddress(),
 			"--output", "json",

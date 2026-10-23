@@ -11,8 +11,8 @@ import (
 
 	signingv1beta1 "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/math"
-	txsigning "cosmossdk.io/x/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	txsigning "github.com/cosmos/cosmos-sdk/x/tx/signing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -20,10 +20,10 @@ import (
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	ibctest "github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/cosmos/interchaintest/v10/testutil"
+	ibctest "github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	"github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/dvsekhvalnov/jose2go/base64url"
 	"github.com/stretchr/testify/require"
 )

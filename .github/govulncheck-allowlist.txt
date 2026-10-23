@@ -13,16 +13,13 @@
 # inherited. Regenerate with `make vulncheck-report` after any dependency or
 # toolchain change, and delete what no longer appears.
 #
-# Baseline retaken on release/v31 under the go1.26.10 toolchain that go.mod
+# Baseline retaken on release/v32 under the go1.26.10 toolchain that go.mod
 # pins. Standard library findings move whenever that directive does, so this
 # file has to be regenerated alongside any toolchain bump.
 
 # --- No fix available ------------------------------------------------------
 # Upstream has published no fixed version. Listed so the exposure is a recorded
 # decision rather than a silent one.
-GO-2023-1821  # cosmos-sdk x/crisis does not halt the chain. Informational
-              # Cosmos advisory against a module we run with default params.
-GO-2023-1881  # cosmos-sdk x/crisis does not charge ConstantFee. As above.
 GO-2024-2584  # cosmos-sdk slashing evasion. No fixed version published.
 GO-2026-4513  # shamaton/msgpack v2.4.1 denial of service. Transitive, reached
               # only through decoding paths that do not take untrusted input.

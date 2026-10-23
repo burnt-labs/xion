@@ -10,16 +10,15 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/xion"
 	"github.com/burnt-labs/xion/x/xion/keeper"
@@ -72,18 +71,10 @@ func setupTestKeeper(t *testing.T) (keeper.Keeper, sdk.Context, codec.JSONCodec)
 	registry := codectypes.NewInterfaceRegistry()
 	types.RegisterInterfaces(registry)
 	cdc := codec.NewProtoCodec(registry)
-	amino := codec.NewLegacyAmino()
-
-	// Create parameter subspace
-	paramsKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tparamsKey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	paramSpace := paramstypes.NewSubspace(cdc, amino, paramsKey, tparamsKey, types.ModuleName)
-
 	// Create keeper with minimal dependencies
 	k := keeper.NewKeeper(
 		cdc,
 		key,
-		paramSpace,
 		nil, // bankKeeper not needed for these tests
 		nil, // accountKeeper not needed for these tests
 		nil, // wasmOpsKeeper not needed for these tests

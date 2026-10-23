@@ -5,12 +5,11 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
 
 // SafeAuthzHandlerUpdate wraps the authz handler update with safe error handling
@@ -75,33 +74,11 @@ func SafeAuthzHandlerUpdate(ctx context.Context, ah *AuthzHandler, pair *storety
 
 // SafeFeeGrantHandlerUpdate wraps the feegrant handler update with safe error handling
 func SafeFeeGrantHandlerUpdate(ctx context.Context, fh *FeeGrantHandler, pair *storetypes.StoreKVPair, logger log.Logger) error {
-	// Validate key length to avoid panic in ParseAddressesFromFeeAllowanceKey
-	// The key format is: 0x00<granteeAddrLen(1)><granteeAddr><granterAddrLen(1)><granterAddr>
-	// Minimum: 1 (prefix) + 1 (grantee len) + 1 (min addr) + 1 (granter len) + 1 (min addr) = 5
-	if len(pair.Key) < 5 {
-		logger.Warn("Invalid feegrant key: too short",
-			"key_len", len(pair.Key),
+	granterAddr, granteeAddr, err := parseFeeAllowanceKey(pair.Key)
+	if err != nil {
+		logger.Warn("Failed to parse feegrant key addresses",
+			"error", err,
 			"key", hex.EncodeToString(pair.Key))
-		return nil // Skip invalid keys
-	}
-
-	// Safely parse addresses with panic recovery
-	var granterAddr, granteeAddr sdk.AccAddress
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				logger.Warn("Failed to parse feegrant key addresses",
-					"panic", r,
-					"key", hex.EncodeToString(pair.Key))
-			}
-		}()
-		granterAddrBz, granteeAddrBz := feegrant.ParseAddressesFromFeeAllowanceKey(pair.Key)
-		granterAddr = sdk.AccAddress(granterAddrBz)
-		granteeAddr = sdk.AccAddress(granteeAddrBz)
-	}()
-
-	// If parsing failed (addresses are nil), skip this entry
-	if granterAddr == nil || granteeAddr == nil {
 		return nil
 	}
 
@@ -135,7 +112,7 @@ func SafeFeeGrantHandlerUpdate(ctx context.Context, fh *FeeGrantHandler, pair *s
 
 	// Handle create/update
 	grant := feegrant.Grant{}
-	err := fh.cdc.Unmarshal(pair.Value, &grant)
+	err = fh.cdc.Unmarshal(pair.Value, &grant)
 	if err != nil {
 		logger.Warn("Failed to unmarshal feegrant allowance, skipping",
 			"key", hex.EncodeToString(pair.Key),

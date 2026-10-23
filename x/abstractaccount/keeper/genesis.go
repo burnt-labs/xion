@@ -32,7 +32,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs *types.GenesisState) []abci.Vali
 		if err != nil {
 			panic(err)
 		}
-		if !bytes.Equal(address, predicted) {
+		if !bytes.Equal(address, predicted) && !k.derivesFromInitCodeChecksum(ctx, sender, entry.Salt, address) {
 			panic(types.ErrInvalidAccountAddressRegistry.Wrapf(
 				"genesis account address %s does not match derived address %s",
 				entry.Address,

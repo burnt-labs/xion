@@ -10,16 +10,14 @@ import (
 
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk"
-	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
 // Test module functions that need coverage
@@ -58,19 +56,8 @@ func TestRegisterServices(t *testing.T) {
 	k, _ := setupKeeperForGenesis(t)
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace like in setupKeeperForGenesis
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
-	// Create AppModule with proper subspace
-	appModule := jwk.NewAppModule(cdc, k, paramStore)
+	storeKey := storetypes.NewKVStoreKey("params")
+	appModule := jwk.NewAppModule(cdc, k, sdkruntime.NewKVStoreService(storeKey), codec.NewLegacyAmino())
 
 	// Test success case - mock configurator that returns no error
 	mockCfgSuccess := &testConfigurator{
@@ -96,6 +83,16 @@ func TestRegisterServices(t *testing.T) {
 		appModule.RegisterServices(mockCfgError)
 	})
 
+	// The v3->v4 registration names its versions in the panic
+	mockCfgSecondError := &testConfigurator{
+		msgServer:       &mockGrpcServer{},
+		queryServer:     &mockGrpcServer{},
+		failFromVersion: 3,
+	}
+	require.PanicsWithValue(t, "failed to migrate x/jwk from v3 to v4: mock migration error from version 3", func() {
+		appModule.RegisterServices(mockCfgSecondError)
+	})
+
 	// Also test the panic case with nil configurator for extra coverage
 	appModuleEmpty := jwk.AppModule{}
 	require.Panics(t, func() {
@@ -119,6 +116,8 @@ type testConfigurator struct {
 	msgServer   grpc1.Server
 	queryServer grpc1.Server
 	shouldError bool
+	// failFromVersion rejects only the migration registered from this version
+	failFromVersion uint64
 }
 
 func (tc *testConfigurator) RegisterService(sd *grpc.ServiceDesc, ss interface{}) {
@@ -140,6 +139,9 @@ func (tc *testConfigurator) QueryServer() grpc1.Server {
 func (tc *testConfigurator) RegisterMigration(moduleName string, fromVersion uint64, handler module.MigrationHandler) error {
 	if tc.shouldError {
 		return fmt.Errorf("mock migration error for testing")
+	}
+	if tc.failFromVersion != 0 && fromVersion == tc.failFromVersion {
+		return fmt.Errorf("mock migration error from version %d", fromVersion)
 	}
 	return nil // Success case to avoid panic
 }

@@ -27,7 +27,7 @@ func TestPrepareTestnetConsensusConvertsPersistedState(t *testing.T) {
 	validatorPower := int64(900_000_000_000_000)
 
 	// A restored data directory can contain a signing watermark produced by the
-	// source key while config contains the fresh local fork key.
+	// source key. It is moved aside with the home's key.
 	foreignPV := pvm.NewFilePV(
 		fixture.sourcePrivKey,
 		filepath.Join(t.TempDir(), "unused-key.json"),
@@ -50,6 +50,7 @@ func TestPrepareTestnetConsensusConvertsPersistedState(t *testing.T) {
 		fixture.height,
 		fixture.appHash,
 		validatorPower,
+		fixture.newKey,
 	))
 
 	stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: fixture.config})
@@ -63,8 +64,10 @@ func TestPrepareTestnetConsensusConvertsPersistedState(t *testing.T) {
 	require.Equal(t, fixture.appHash, state.AppHash)
 	require.Equal(t, fixture.height, state.LastHeightValidatorsChanged)
 
-	localPubKey, err := fixture.localPV.GetPubKey()
+	localPubKey := fixture.newKey.PubKey()
+	homePubKey, err := fixture.localPV.GetPubKey()
 	require.NoError(t, err)
+	require.NotEqual(t, homePubKey.Address(), localPubKey.Address())
 	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
 		require.Len(t, validators.Validators, 1)
 		require.Equal(t, localPubKey.Address(), validators.Validators[0].Address)
@@ -112,6 +115,13 @@ func TestPrepareTestnetConsensusConvertsPersistedState(t *testing.T) {
 	require.Equal(t, newChainID, diskGenesis.ChainID)
 
 	persistedPV := pvm.LoadFilePV(fixture.config.PrivValidatorKeyFile(), fixture.config.PrivValidatorStateFile())
+	require.Equal(t, localPubKey, persistedPV.Key.PubKey)
+	backupPV := pvm.LoadFilePV(
+		fixture.config.PrivValidatorKeyFile()+testnetValidatorBackupSuffix,
+		fixture.config.PrivValidatorStateFile()+testnetValidatorBackupSuffix,
+	)
+	require.Equal(t, homePubKey, backupPV.Key.PubKey)
+	require.Equal(t, fixture.height, backupPV.LastSignState.Height, "source signing watermark is kept in the backup")
 	require.Equal(t, fixture.height, persistedPV.LastSignState.Height)
 	require.NotEmpty(t, persistedPV.LastSignState.SignBytes)
 	require.NotEmpty(t, persistedPV.LastSignState.Signature)
@@ -125,65 +135,91 @@ func TestPrepareTestnetConsensusConvertsPersistedState(t *testing.T) {
 	require.Equal(t, []byte("{}"), addrBook)
 }
 
-func TestPrepareTestnetConsensusRejectsUsedLocalSigner(t *testing.T) {
+func TestPrepareTestnetConsensusReplacesHomeSourceValidatorKey(t *testing.T) {
 	fixture := setupTestnetConsensusFixture(t)
-	localPubKey, err := fixture.localPV.GetPubKey()
-	require.NoError(t, err)
-	vote := &cmttypes.Vote{
-		Type:             cmtproto.PrecommitType,
-		Height:           fixture.height,
-		Round:            0,
-		BlockID:          fixture.blockID,
-		Timestamp:        time.Now().UTC(),
-		ValidatorAddress: localPubKey.Address(),
-		ValidatorIndex:   0,
-	}
-	require.NoError(t, fixture.localPV.SignVote("another-local-chain", vote.ToProto()))
-
-	err = prepareTestnetConsensus(
-		fixture.config,
-		"xion-rehearsal-1",
-		fixture.height,
-		fixture.appHash,
-		900_000_000_000_000,
-	)
-	require.ErrorContains(t, err, "local validator key already has persisted signing state")
-
-	stateDB, openErr := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: fixture.config})
-	require.NoError(t, openErr)
-	stateStore := sm.NewStore(stateDB, sm.StoreOptions{})
-	state, loadErr := stateStore.Load()
-	require.NoError(t, loadErr)
-	require.Equal(t, fixture.sourceChainID, state.ChainID)
-	require.NoError(t, stateStore.Close())
-}
-
-func TestPrepareTestnetConsensusRejectsIncompleteSignerState(t *testing.T) {
-	fixture := setupTestnetConsensusFixture(t)
-	require.NoError(t, os.WriteFile(
-		fixture.config.PrivValidatorStateFile(),
-		[]byte(`{"height":"1","round":0,"step":3}`),
-		0o600,
-	))
-
-	err := prepareTestnetConsensus(
-		fixture.config,
-		"xion-rehearsal-1",
-		fixture.height,
-		fixture.appHash,
-		900_000_000_000_000,
-	)
-	require.ErrorContains(t, err, "persisted validator signing state is incomplete")
-}
-
-func TestPrepareTestnetConsensusRejectsSourceValidatorKey(t *testing.T) {
-	fixture := setupTestnetConsensusFixture(t)
+	// The home holds a source validator key with its own signing watermark, as
+	// a copy of a validator's home would.
 	sourcePV := pvm.NewFilePV(
 		fixture.sourcePrivKey,
 		fixture.config.PrivValidatorKeyFile(),
 		fixture.config.PrivValidatorStateFile(),
 	)
-	sourcePV.Save()
+	sourceVote := &cmttypes.Vote{
+		Type:             cmtproto.PrecommitType,
+		Height:           fixture.height,
+		Round:            0,
+		BlockID:          fixture.blockID,
+		Timestamp:        time.Now().UTC(),
+		ValidatorAddress: sourcePV.GetAddress(),
+		ValidatorIndex:   0,
+	}
+	require.NoError(t, sourcePV.SignVote(fixture.sourceChainID, sourceVote.ToProto()))
+	sourceKeyBytes, err := os.ReadFile(fixture.config.PrivValidatorKeyFile())
+	require.NoError(t, err)
+
+	newChainID := "xion-rehearsal-1"
+	require.NoError(t, prepareTestnetConsensus(
+		fixture.config,
+		newChainID,
+		fixture.height,
+		fixture.appHash,
+		900_000_000_000_000,
+		fixture.newKey,
+	))
+
+	newPubKey := fixture.newKey.PubKey()
+	require.NotEqual(t, fixture.sourcePrivKey.PubKey().Address(), newPubKey.Address())
+	persistedPV := pvm.LoadFilePV(fixture.config.PrivValidatorKeyFile(), fixture.config.PrivValidatorStateFile())
+	require.Equal(t, newPubKey, persistedPV.Key.PubKey)
+	require.True(t, newPubKey.VerifySignature(persistedPV.LastSignState.SignBytes, persistedPV.LastSignState.Signature))
+	backupKeyBytes, err := os.ReadFile(fixture.config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Equal(t, sourceKeyBytes, backupKeyBytes)
+
+	stateDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: fixture.config})
+	require.NoError(t, err)
+	stateStore := sm.NewStore(stateDB, sm.StoreOptions{})
+	state, err := stateStore.Load()
+	require.NoError(t, err)
+	require.NoError(t, stateStore.Close())
+	require.Equal(t, newChainID, state.ChainID)
+	for _, validators := range []*cmttypes.ValidatorSet{state.LastValidators, state.Validators, state.NextValidators} {
+		require.Len(t, validators.Validators, 1)
+		require.Equal(t, newPubKey.Address(), validators.Validators[0].Address)
+	}
+
+	blockStoreDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "blockstore", Config: fixture.config})
+	require.NoError(t, err)
+	blockStore := store.NewBlockStore(blockStoreDB)
+	vote := blockStore.LoadSeenCommit(fixture.height).GetVote(0)
+	require.NoError(t, blockStore.Close())
+	require.Equal(t, newPubKey.Address(), vote.ValidatorAddress)
+	require.True(t, newPubKey.VerifySignature(cmttypes.VoteSignBytes(newChainID, vote.ToProto()), vote.Signature))
+}
+
+func TestPrepareTestnetConsensusIgnoresIncompleteHomeSignerState(t *testing.T) {
+	fixture := setupTestnetConsensusFixture(t)
+	incomplete := []byte(`{"height":"1","round":0,"step":3}`)
+	require.NoError(t, os.WriteFile(fixture.config.PrivValidatorStateFile(), incomplete, 0o600))
+
+	require.NoError(t, prepareTestnetConsensus(
+		fixture.config,
+		"xion-rehearsal-1",
+		fixture.height,
+		fixture.appHash,
+		900_000_000_000_000,
+		fixture.newKey,
+	))
+	backup, err := os.ReadFile(fixture.config.PrivValidatorStateFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Equal(t, incomplete, backup)
+	persistedPV := pvm.LoadFilePV(fixture.config.PrivValidatorKeyFile(), fixture.config.PrivValidatorStateFile())
+	require.Equal(t, fixture.newKey.PubKey(), persistedPV.Key.PubKey)
+}
+
+func TestPrepareTestnetConsensusRejectsNewKeyInSourceValidatorSet(t *testing.T) {
+	fixture := setupTestnetConsensusFixture(t)
+	before := snapshotTestHome(t, fixture.config.RootDir)
 
 	err := prepareTestnetConsensus(
 		fixture.config,
@@ -191,8 +227,74 @@ func TestPrepareTestnetConsensusRejectsSourceValidatorKey(t *testing.T) {
 		fixture.height,
 		fixture.appHash,
 		900_000_000_000_000,
+		fixture.sourcePrivKey,
 	)
 	require.ErrorContains(t, err, "belongs to the source consensus validator set")
+	requireTestnetValidatorFilesUnchanged(t, fixture.config, before)
+}
+
+func TestInstallTestnetValidatorKeyKeepsFirstBackup(t *testing.T) {
+	config := cmtcfg.DefaultConfig().SetRoot(t.TempDir())
+	require.NoError(t, os.MkdirAll(filepath.Dir(config.PrivValidatorKeyFile()), 0o700))
+	require.NoError(t, os.MkdirAll(filepath.Dir(config.PrivValidatorStateFile()), 0o700))
+	original := pvm.GenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
+	original.Save()
+	originalKey, err := os.ReadFile(config.PrivValidatorKeyFile())
+	require.NoError(t, err)
+
+	first := cmted25519.GenPrivKey()
+	_, err = installTestnetValidatorKey(config, first)
+	require.NoError(t, err)
+	second := cmted25519.GenPrivKey()
+	installed, err := installTestnetValidatorKey(config, second)
+	require.NoError(t, err)
+	require.Equal(t, second.PubKey(), installed.Key.PubKey)
+	require.Zero(t, installed.LastSignState.Height)
+
+	backup, err := os.ReadFile(config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Equal(t, originalKey, backup)
+	persisted := pvm.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
+	require.Equal(t, second.PubKey(), persisted.Key.PubKey)
+	require.Zero(t, persisted.LastSignState.Height)
+}
+
+func TestInstallTestnetValidatorKeyWithoutPreviousKey(t *testing.T) {
+	config := cmtcfg.DefaultConfig().SetRoot(t.TempDir())
+	key := cmted25519.GenPrivKey()
+	installed, err := installTestnetValidatorKey(config, key)
+	require.NoError(t, err)
+	require.Equal(t, key.PubKey(), installed.Key.PubKey)
+	// The empty key backup records that this conversion installed the key.
+	backup, err := os.ReadFile(config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Empty(t, backup)
+	require.NoFileExists(t, config.PrivValidatorStateFile()+testnetValidatorBackupSuffix)
+
+	// A second install keeps that record rather than backing up its own key.
+	_, err = installTestnetValidatorKey(config, cmted25519.GenPrivKey())
+	require.NoError(t, err)
+	backup, err = os.ReadFile(config.PrivValidatorKeyFile() + testnetValidatorBackupSuffix)
+	require.NoError(t, err)
+	require.Empty(t, backup)
+}
+
+// requireTestnetValidatorFilesUnchanged asserts that a refused conversion left
+// every file in the home as it was and created no validator backup.
+func requireTestnetValidatorFilesUnchanged(t *testing.T, config *cmtcfg.Config, before map[string]string) {
+	t.Helper()
+	after := snapshotTestHome(t, config.RootDir)
+	for _, path := range []string{
+		config.GenesisFile(),
+		config.PrivValidatorKeyFile(),
+		config.PrivValidatorStateFile(),
+		config.P2P.AddrBookFile(),
+		config.Consensus.WalFile(),
+	} {
+		require.Equal(t, before[path], after[path], path)
+	}
+	require.NoFileExists(t, config.PrivValidatorKeyFile()+testnetValidatorBackupSuffix)
+	require.NoFileExists(t, config.PrivValidatorStateFile()+testnetValidatorBackupSuffix)
 }
 
 func TestPrepareTestnetConsensusRejectsUnsafeChainID(t *testing.T) {
@@ -225,17 +327,15 @@ func TestPrepareTestnetConsensusRejectsUnsafeChainID(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			fixture := setupTestnetConsensusFixture(t)
-			genesisBefore, err := os.ReadFile(fixture.config.GenesisFile())
-			require.NoError(t, err)
-			pvStateBefore, err := os.ReadFile(fixture.config.PrivValidatorStateFile())
-			require.NoError(t, err)
+			before := snapshotTestHome(t, fixture.config.RootDir)
 
-			err = prepareTestnetConsensus(
+			err := prepareTestnetConsensus(
 				fixture.config,
 				tc.chainID(fixture.sourceChainID),
 				fixture.height,
 				fixture.appHash,
 				900_000_000_000_000,
+				fixture.newKey,
 			)
 			require.ErrorContains(t, err, tc.wantErr)
 
@@ -247,16 +347,7 @@ func TestPrepareTestnetConsensusRejectsUnsafeChainID(t *testing.T) {
 			require.Equal(t, fixture.sourceChainID, state.ChainID)
 			require.NoError(t, stateStore.Close())
 
-			genesisAfter, err := os.ReadFile(fixture.config.GenesisFile())
-			require.NoError(t, err)
-			require.Equal(t, genesisBefore, genesisAfter)
-			pvStateAfter, err := os.ReadFile(fixture.config.PrivValidatorStateFile())
-			require.NoError(t, err)
-			require.Equal(t, pvStateBefore, pvStateAfter)
-			addrBook, err := os.ReadFile(fixture.config.P2P.AddrBookFile())
-			require.NoError(t, err)
-			require.Equal(t, `{"addrs":["source-peer"]}`, string(addrBook))
-			require.FileExists(t, fixture.config.Consensus.WalFile())
+			requireTestnetValidatorFilesUnchanged(t, fixture.config, before)
 		})
 	}
 }
@@ -269,6 +360,7 @@ type testnetConsensusFixture struct {
 	sourceChainID string
 	sourcePrivKey cmted25519.PrivKey
 	localPV       *pvm.FilePV
+	newKey        cmted25519.PrivKey
 }
 
 func setupTestnetConsensusFixture(t *testing.T) testnetConsensusFixture {
@@ -371,5 +463,6 @@ func setupTestnetConsensusFixture(t *testing.T) testnetConsensusFixture {
 		sourceChainID: sourceChainID,
 		sourcePrivKey: sourcePrivKey,
 		localPV:       localPV,
+		newKey:        cmted25519.GenPrivKey(),
 	}
 }

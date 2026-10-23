@@ -10,16 +10,14 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/store/prefix"
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk/keeper"
 	"github.com/burnt-labs/xion/x/jwk/types"
@@ -30,7 +28,7 @@ func TestQueryParams(t *testing.T) {
 	// Use ctx directly instead of wrapping
 
 	params := types.DefaultParams()
-	k.SetParams(ctx, params)
+	require.NoError(t, k.SetParams(ctx, params))
 
 	response, err := k.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
@@ -747,7 +745,7 @@ func TestQueryValidateJWTSuccessAndTimeOffset(t *testing.T) {
 
 	// Set up time offset for testing (exercise GetTimeOffset path)
 	params := types.NewParams(60, 1000) // 60 seconds time offset, 1000 gas
-	k.SetParams(ctx, params)
+	require.NoError(t, k.SetParams(ctx, params))
 
 	// Verify that GetTimeOffset is working
 	timeOffset := k.GetTimeOffset(ctx)
@@ -929,30 +927,21 @@ func TestQueryValidateJWTRealSuccess(t *testing.T) {
 func TestQueryAudienceAllUnmarshalError(t *testing.T) {
 	// Create a custom setup with access to the store key
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient_test")
 
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
 	// Create codec
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		paramStore,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Initialize with default params
-	k.SetParams(ctx.Ctx, types.DefaultParams())
+	require.NoError(t, k.SetParams(ctx.Ctx, types.DefaultParams()))
 
 	// Use ctx directly instead of wrapping
 	admin := authtypes.NewModuleAddress(govtypes.ModuleName).String()

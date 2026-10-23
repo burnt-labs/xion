@@ -4,11 +4,14 @@ import (
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/app/keepers"
+	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"
 )
 
 func TestNewXionWasmKeeper(t *testing.T) {
@@ -80,24 +83,39 @@ func TestXionWasmKeeper_GetXionContractMetadata(t *testing.T) {
 		}, "Expected panic with nil keeper")
 	})
 
-	t.Run("returns metadata structure when contract exists", func(t *testing.T) {
-		// Note: This test verifies the metadata structure creation logic
-		// In a real scenario with a full keeper, it would test:
-		// 1. GetContractInfo returns non-nil
-		// 2. Metadata is properly created with ContractInfo
-		// 3. XionContractMetadata structure is returned
+	t.Run("returns not found for an unknown contract", func(t *testing.T) {
+		app := xionapp.Setup(t)
+		ctx := app.NewContext(false)
+		xionKeeper := keepers.NewXionWasmKeeper(&app.WasmKeeper)
 
-		// Since we can't easily mock the keeper without complex setup,
-		// we document that this code path (lines 100-107) creates the
-		// XionContractMetadata struct with the ContractInfo field populated.
+		metadata, err := xionKeeper.GetXionContractMetadata(ctx, xionapp.RandomAccAddress())
+		require.ErrorIs(t, err, wasmtypes.ErrNotFound)
+		require.Nil(t, metadata)
+	})
 
-		// The function logic is:
-		// - Get contract info from keeper
-		// - If nil, return ErrNotFound (tested above)
-		// - If not nil, create XionContractMetadata with it
-		// - Return the metadata with nil error
+	t.Run("returns the stored contract info", func(t *testing.T) {
+		app := xionapp.Setup(t)
+		ctx := app.NewContext(false)
+		xionKeeper := keepers.NewXionWasmKeeper(&app.WasmKeeper)
 
-		// This documents the expected behavior for integration tests
-		t.Skip("Requires full keeper setup - covered by integration tests")
+		creator := xionapp.RandomAccAddress()
+		codeID, _, err := app.AbstractAccountKeeper.ContractKeeper().Create(ctx, creator, aatestdata.AccountWasm, nil)
+		require.NoError(t, err)
+
+		contractAddr := wasmkeeper.BuildContractAddressClassic(codeID, 1)
+		position := &wasmtypes.AbsoluteTxPosition{BlockHeight: 1, TxIndex: 1}
+		contractInfo := wasmtypes.ContractInfo{CodeID: codeID, Creator: creator.String(), Label: "metadata", Created: position}
+		history := []wasmtypes.ContractCodeHistoryEntry{{
+			Operation: wasmtypes.ContractCodeHistoryOperationTypeInit,
+			CodeID:    codeID,
+			Updated:   position,
+			Msg:       []byte("{}"),
+		}}
+		require.NoError(t, app.WasmKeeper.ImportContract(ctx, contractAddr, &contractInfo, nil, history))
+
+		metadata, err := xionKeeper.GetXionContractMetadata(ctx, contractAddr)
+		require.NoError(t, err)
+		require.NotNil(t, metadata)
+		require.Equal(t, contractInfo, *metadata.ContractInfo)
 	})
 }

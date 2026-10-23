@@ -6,31 +6,26 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/globalfee/ante"
+	"github.com/burnt-labs/xion/x/globalfee/keeper"
 	"github.com/burnt-labs/xion/x/globalfee/types"
 )
 
 // TestMultiDenominationFeeValidation tests fee validation with multiple denominations
 func TestMultiDenominationFeeValidation(t *testing.T) {
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	t.Run("ThreeDenominationMinimums", func(t *testing.T) {
 		// Set params with three different fee denominations
@@ -43,10 +38,10 @@ func TestMultiDenominationFeeValidation(t *testing.T) {
 			BypassMinFeeMsgTypes:            []string{},
 			MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 		}
-		subspace.SetParamSet(ctx.Ctx, &params)
+		require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 		stakingDenomFunc := func(ctx sdk.Context) string { return "uxion" }
-		decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+		decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 		globalFees, err := decorator.GetGlobalFee(ctx.Ctx)
 		require.NoError(t, err)
@@ -103,9 +98,9 @@ func TestMultiDenominationFeeValidation(t *testing.T) {
 		err := params.ValidateBasic()
 		require.NoError(t, err, "Empty denomination list should be valid")
 
-		subspace.SetParamSet(ctx.Ctx, &params)
+		require.NoError(t, k.SetParams(ctx.Ctx, params))
 		stakingDenomFunc := func(ctx sdk.Context) string { return "uxion" }
-		decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+		decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 		// Should default to zero fee in staking denom
 		zeroFees, err := decorator.DefaultZeroGlobalFee(ctx.Ctx)
@@ -233,17 +228,11 @@ func TestGasCapValidation(t *testing.T) {
 
 // TestContainsOnlyBypassMinFeeMsgsEdgeCases tests edge cases in bypass detection
 func TestContainsOnlyBypassMinFeeMsgsAdvanced(t *testing.T) {
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	params := types.Params{
 		MinimumGasPrices: sdk.DecCoins{},
@@ -253,10 +242,10 @@ func TestContainsOnlyBypassMinFeeMsgsAdvanced(t *testing.T) {
 		},
 		MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 	}
-	subspace.SetParamSet(ctx.Ctx, &params)
+	require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 	stakingDenomFunc := func(ctx sdk.Context) string { return "uxion" }
-	decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+	decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 	t.Run("EmptyMessageList", func(t *testing.T) {
 		// Empty message list should return true (vacuous truth)
@@ -279,9 +268,9 @@ func TestContainsOnlyBypassMinFeeMsgsAdvanced(t *testing.T) {
 			BypassMinFeeMsgTypes:            []string{}, // Empty bypass list
 			MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 		}
-		subspace.SetParamSet(ctx.Ctx, &emptyParams)
+		require.NoError(t, k.SetParams(ctx.Ctx, emptyParams))
 
-		emptyDecorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+		emptyDecorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 		// Even bypass message types should not bypass with empty list
 		msgs := []sdk.Msg{}
@@ -336,17 +325,11 @@ func TestCombinedFeeRequirementExtended(t *testing.T) {
 
 // TestDefaultZeroGlobalFeeEdgeCases tests edge cases in default zero global fee
 func TestDefaultZeroGlobalFeeEdgeCases(t *testing.T) {
-	storeKey := storetypes.NewKVStoreKey(paramstypes.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient")
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
-	subspace := paramstypes.NewSubspace(
-		codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
+	k := keeper.NewKeeper(codec.NewProtoCodec(codectypes.NewInterfaceRegistry()), runtime.NewKVStoreService(storeKey), "authority")
 
 	t.Run("EmptyStakingDenom", func(t *testing.T) {
 		params := types.Params{
@@ -354,11 +337,11 @@ func TestDefaultZeroGlobalFeeEdgeCases(t *testing.T) {
 			BypassMinFeeMsgTypes:            types.DefaultBypassMinFeeMsgTypes,
 			MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 		}
-		subspace.SetParamSet(ctx.Ctx, &params)
+		require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 		// Staking denom function returns empty string
 		stakingDenomFunc := func(ctx sdk.Context) string { return "" }
-		decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+		decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 		zeroFees, err := decorator.DefaultZeroGlobalFee(ctx.Ctx)
 
@@ -373,10 +356,10 @@ func TestDefaultZeroGlobalFeeEdgeCases(t *testing.T) {
 			BypassMinFeeMsgTypes:            types.DefaultBypassMinFeeMsgTypes,
 			MaxTotalBypassMinFeeMsgGasUsage: 1_000_000,
 		}
-		subspace.SetParamSet(ctx.Ctx, &params)
+		require.NoError(t, k.SetParams(ctx.Ctx, params))
 
 		stakingDenomFunc := func(ctx sdk.Context) string { return "uxion" }
-		decorator := ante.NewFeeDecorator(subspace, stakingDenomFunc)
+		decorator := ante.NewFeeDecorator(&k, stakingDenomFunc)
 
 		zeroFees, err := decorator.DefaultZeroGlobalFee(ctx.Ctx)
 

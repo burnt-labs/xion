@@ -1,21 +1,24 @@
 package indexer
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 
 	"cosmossdk.io/collections"
 	core "cosmossdk.io/collections/corecompat"
 	"cosmossdk.io/collections/indexes"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/feegrant"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 )
 
 var (
 	FeeGrantsPrefix            = collections.NewPrefix(0)
 	FeeGrantGranteeIndexPrefix = collections.NewPrefix(1)
+	feeAllowanceKeyCodec       = collections.PairKeyCodec(sdk.LengthPrefixedAddressKey(sdk.AccAddressKey), sdk.LengthPrefixedAddressKey(sdk.AccAddressKey))
 )
 
 type feegrantIndexes struct {
@@ -82,9 +85,10 @@ func (ah *FeeGrantHandler) SetGrant(ctx context.Context, granter, grantee sdk.Ac
 }
 
 func (ah *FeeGrantHandler) HandleUpdate(ctx context.Context, pair *storetypes.StoreKVPair) error {
-	granterAddrBz, granteeAddrBz := feegrant.ParseAddressesFromFeeAllowanceKey(pair.Key)
-	granterAddr := sdk.AccAddress(granterAddrBz)
-	granteeAddr := sdk.AccAddress(granteeAddrBz)
+	granterAddr, granteeAddr, err := parseFeeAllowanceKey(pair.Key)
+	if err != nil {
+		return err
+	}
 	if pair.Delete {
 		if has, err := ah.FeeAllowances.Has(ctx, collections.Join(granterAddr, granteeAddr)); err != nil {
 			return err
@@ -97,9 +101,24 @@ func (ah *FeeGrantHandler) HandleUpdate(ctx context.Context, pair *storetypes.St
 	}
 
 	feegrant := feegrant.Grant{}
-	err := ah.cdc.Unmarshal(pair.Value, &feegrant)
+	err = ah.cdc.Unmarshal(pair.Value, &feegrant)
 	if err != nil {
 		return err
 	}
 	return ah.SetGrant(ctx, granterAddr, granteeAddr, feegrant)
+}
+
+func parseFeeAllowanceKey(key []byte) (sdk.AccAddress, sdk.AccAddress, error) {
+	if !bytes.HasPrefix(key, feegrant.FeeAllowanceKeyPrefix) {
+		return nil, nil, fmt.Errorf("invalid feegrant key prefix")
+	}
+	key = key[len(feegrant.FeeAllowanceKeyPrefix):]
+	n, addresses, err := feeAllowanceKeyCodec.Decode(key)
+	if err != nil {
+		return nil, nil, err
+	}
+	if n != len(key) || len(addresses.K1()) == 0 || len(addresses.K2()) == 0 {
+		return nil, nil, fmt.Errorf("invalid feegrant address key")
+	}
+	return addresses.K2(), addresses.K1(), nil
 }

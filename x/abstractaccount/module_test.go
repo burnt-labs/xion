@@ -70,7 +70,7 @@ func makeMockAccount(app *xionapp.WasmApp, ctx sdk.Context, keybase keyring.Keyr
 		return nil, err
 	}
 
-	return authtypes.NewBaseAccount(pk.Address().Bytes(), pk, app.AccountKeeper.NextAccountNumber(ctx), 0), nil
+	return app.AccountKeeper.NewAccount(ctx, authtypes.NewBaseAccount(pk.Address().Bytes(), pk, 0, 0)), nil
 }
 
 type Signer struct {

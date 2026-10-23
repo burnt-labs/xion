@@ -14,7 +14,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	sdkmath "cosmossdk.io/math"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,6 +21,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 const expectedTestnetValidatorPower int64 = 900_000_000_000_000
@@ -105,9 +105,8 @@ func TestInitForTestnetReplacesValidatorInfrastructureAndSchedulesUpgrade(t *tes
 			require.True(t, operatorBalance.Amount.GTE(deposit.Amount), "operator must be able to deposit a governance proposal")
 		}
 	}
-	require.Positive(t, *govParams.VotingPeriod)
-	require.LessOrEqual(t, *govParams.VotingPeriod, 30*time.Second)
-	require.Less(t, *govParams.ExpeditedVotingPeriod, *govParams.VotingPeriod)
+	require.Equal(t, 20*time.Second, *govParams.VotingPeriod)
+	require.Equal(t, 10*time.Second, *govParams.ExpeditedVotingPeriod)
 
 	plan, err := wasmApp.UpgradeKeeper.GetUpgradePlan(ctx)
 	require.NoError(t, err)

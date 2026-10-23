@@ -29,7 +29,7 @@ func TestPrepareTestnetConsensusRestoresExtendedCommit(t *testing.T) {
 	require.NoError(t, stateStore.Close())
 
 	chainID := "extended-testnet"
-	require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, 100))
+	require.NoError(t, prepareTestnetConsensus(fixture.config, chainID, fixture.height, fixture.appHash, 100, fixture.newKey))
 	blockDB, err := cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "blockstore", Config: fixture.config})
 	require.NoError(t, err)
 	blockStore := store.NewBlockStore(blockDB)
@@ -39,8 +39,7 @@ func TestPrepareTestnetConsensusRestoresExtendedCommit(t *testing.T) {
 	require.Equal(t, fixture.blockID, extendedCommit.BlockID)
 	require.Len(t, extendedCommit.ExtendedSignatures, 1)
 	vote := extendedCommit.GetExtendedVote(0)
-	pubKey, err := fixture.localPV.GetPubKey()
-	require.NoError(t, err)
+	pubKey := fixture.newKey.PubKey()
 	require.True(t, pubKey.VerifySignature(cmttypes.VoteSignBytes(chainID, vote.ToProto()), vote.Signature))
 	require.True(t, pubKey.VerifySignature(cmttypes.VoteExtensionSignBytes(chainID, vote.ToProto()), vote.ExtensionSignature))
 }
@@ -79,7 +78,7 @@ func TestPrepareTestnetConsensusRecoversDiscardedResponses(t *testing.T) {
 	require.NoError(t, stateStore.SaveFinalizeBlockResponse(block.Height, response))
 	require.NoError(t, stateStore.Close())
 
-	require.NoError(t, prepareTestnetConsensus(fixture.config, "recovered-testnet", block.Height, appHash, 100))
+	require.NoError(t, prepareTestnetConsensus(fixture.config, "recovered-testnet", block.Height, appHash, 100, fixture.newKey))
 	stateDB, err = cmtcfg.DefaultDBProvider(&cmtcfg.DBContext{ID: "state", Config: fixture.config})
 	require.NoError(t, err)
 	stateStore = sm.NewStore(stateDB, sm.StoreOptions{DiscardABCIResponses: true})

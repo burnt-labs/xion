@@ -58,18 +58,9 @@ func TestGlobalFeeParams(t *testing.T) {
 	require.NotNil(t, params.BypassMinFeeMsgTypes)
 	require.Equal(t, uint64(1_000_000), params.MaxTotalBypassMinFeeMsgGasUsage)
 
-	// Test ParamKeyTable
-	keyTable := types.ParamKeyTable()
-	require.NotNil(t, keyTable)
-
 	// Test ValidateBasic
 	err := params.ValidateBasic()
 	require.NoError(t, err)
-
-	// Test ParamSetPairs
-	pairs := params.ParamSetPairs()
-	require.NotNil(t, pairs)
-	require.Len(t, pairs, 3) // MinimumGasPrices, BypassMinFeeMsgTypes, MaxTotalBypassMinFeeMsgGasUsage
 }
 
 func TestGlobalFeeCodec(t *testing.T) {

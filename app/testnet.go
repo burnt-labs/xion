@@ -13,7 +13,6 @@ import (
 
 	corestore "cosmossdk.io/core/store"
 	sdkmath "cosmossdk.io/math"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -22,9 +21,12 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-const testnetValidatorPower int64 = 900_000_000_000_000
+// TestnetValidatorPower is the consensus power InitForTestnet gives the local
+// testnet validator.
+const TestnetValidatorPower int64 = 900_000_000_000_000
 
 // publicNetworkChainFamilies are the chain-ID names, without the revision
 // number, of public XION networks. Transactions and consensus votes are signed
@@ -115,8 +117,10 @@ func (app *WasmApp) InitForTestnet(pubKey cmtcrypto.PubKey, operator, chainID, u
 
 	height := app.LastBlockHeight()
 	baseCtx := app.NewUncachedContext(true, tmproto.Header{ChainID: chainID, Height: height})
-	validatorTokens := app.StakingKeeper.TokensFromConsensusPower(baseCtx, testnetValidatorPower)
+	validatorTokens := app.StakingKeeper.TokensFromConsensusPower(baseCtx, TestnetValidatorPower)
 	newValidator.Status = stakingtypes.Bonded
+	// The synthetic stake and matching shares make the rehearsal validator
+	// operational; they intentionally do not replicate production staking accounting.
 	newValidator.Tokens = validatorTokens
 	newValidator.DelegatorShares = sdkmath.LegacyNewDecFromInt(validatorTokens)
 	newValidator.Commission = stakingtypes.NewCommission(
@@ -125,8 +129,8 @@ func (app *WasmApp) InitForTestnet(pubKey cmtcrypto.PubKey, operator, chainID, u
 		sdkmath.LegacyMustNewDecFromStr("0.05"),
 	)
 	newValidator.MinSelfDelegation = sdkmath.OneInt()
-	if power := newValidator.ConsensusPower(app.StakingKeeper.PowerReduction(baseCtx)); power != testnetValidatorPower {
-		return fmt.Errorf("testnet validator power mismatch: got %d, expected %d", power, testnetValidatorPower)
+	if power := newValidator.ConsensusPower(app.StakingKeeper.PowerReduction(baseCtx)); power != TestnetValidatorPower {
+		return fmt.Errorf("testnet validator power mismatch: got %d, expected %d", power, TestnetValidatorPower)
 	}
 
 	consensusAddressBytes, err := newValidator.GetConsAddr()

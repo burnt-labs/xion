@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -42,6 +42,14 @@ type TestFixture struct {
 
 func SetupTest(t *testing.T) *TestFixture {
 	t.Helper()
+	return setupFixture(t, nil)
+}
+
+// setupFixture builds the keeper fixture. When wrap is non-nil it decorates the
+// store service the keeper is constructed with, which lets tests inject store
+// failures without touching the keeper itself.
+func setupFixture(t *testing.T, wrap func(store.KVStoreService) store.KVStoreService) *TestFixture {
+	t.Helper()
 	f := new(TestFixture)
 	require := require.New(t)
 
@@ -54,6 +62,9 @@ func SetupTest(t *testing.T) *TestFixture {
 
 	key := storetypes.NewKVStoreKey(types.ModuleName)
 	storeService := runtime.NewKVStoreService(key)
+	if wrap != nil {
+		storeService = wrap(storeService)
+	}
 	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
 
 	f.ctx = testCtx.Ctx
