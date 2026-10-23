@@ -211,6 +211,49 @@ func TestReleaseArtifactsRequired(t *testing.T) {
 // release commit (v31.0.1-rc1 and v31.0.1 on 3ef408a), and GoReleaser picks
 // the highest-sorting tag on HEAD by itself, which is the rc, so the job must
 // check out and name the resolved tag explicitly.
+// An rc tag can share the release commit (v31.0.1-rc1 and v31.0.1 on 3ef408a),
+// and GoReleaser left to itself takes the highest-sorting tag on HEAD, the rc:
+// v31.0.1 shipped binaries reporting v31.0.1-rc1. Every Create Release build
+// job pins GoReleaser to the triggering tag, and build-local hands it to the
+// goreleaser-cross container.
+func TestReleaseBinariesPinCurrentTag(t *testing.T) {
+	const want = "${{ github.ref_type == 'tag' && github.ref_name || '' }}"
+	for _, wf := range []string{"binaries-linux.yaml", "binaries-darwin.yaml"} {
+		job, ok := readReleaseWorkflow(t, wf)["build-binaries"]
+		if !ok {
+			t.Fatalf("%s: missing build-binaries job", wf)
+		}
+		var found int
+		for _, step := range job.Steps {
+			if !strings.Contains(step.Run, "make build-") {
+				continue
+			}
+			found++
+			if cur, _ := step.Env["GORELEASER_CURRENT_TAG"].(string); cur != want {
+				t.Errorf("%s: step %q sets GORELEASER_CURRENT_TAG to %q, want %q", wf, step.Name, cur, want)
+			}
+		}
+		if found != 1 {
+			t.Fatalf("%s: found %d make build steps, want 1", wf, found)
+		}
+	}
+
+	b, err := os.ReadFile(filepath.Join("..", "make", "build.mk"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, target := range []string{"build-local:", "build-all:"} {
+		_, rest, ok := strings.Cut(string(b), "\n"+target+"\n")
+		if !ok {
+			t.Fatalf("make/build.mk: missing %s target", target)
+		}
+		recipe, _, _ := strings.Cut(rest, "\n\n")
+		if !strings.Contains(recipe, "--env GORELEASER_CURRENT_TAG ") {
+			t.Errorf("make/build.mk %s does not pass GORELEASER_CURRENT_TAG into the container", target)
+		}
+	}
+}
+
 func TestPublishFuryPackagesResolvedTag(t *testing.T) {
 	jobs := readReleaseWorkflow(t, "publish-release.yaml")
 	fury, ok := jobs["publish-fury"]
