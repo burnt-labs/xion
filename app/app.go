@@ -273,6 +273,7 @@ type WasmApp struct {
 
 	// indexer
 	indexerService *indexer.StreamService
+	storeTracer    *storeTracer
 }
 
 // NewWasmApp returns a reference to an initialized WasmApp.
@@ -943,8 +944,30 @@ func NewWasmApp(
 		services = append(services, app.indexerService)
 	}
 
+	// Keep the listeners RegisterStreamingServices set up from [streaming.abci]
+	// in app.toml; the xion indexer is added to them, not swapped in.
+	listeners := append(app.StreamingManager().ABCIListeners, services...)
+
+	// `xiond start --trace-store <file>`: write every store change to <file>.
+	// The tracer listens to every KV store and passes the change set on to the
+	// other listeners.
+	if traceStore := cast.ToString(appOpts.Get(FlagTraceStore)); traceStore != "" {
+		traceFile, err := openTraceStore(traceStore)
+		if err != nil {
+			panic(err)
+		}
+		allKeys := make([]storetypes.StoreKey, 0, len(keys))
+		for _, k := range keys {
+			allKeys = append(allKeys, k)
+		}
+		app.CommitMultiStore().AddListeners(allKeys)
+		app.storeTracer = newStoreTracer(app.CommitMultiStore(), traceFile, listeners)
+		listeners = []storetypes.ABCIListener{app.storeTracer}
+		app.Logger().Info("tracing store writes", "file", traceStore)
+	}
+
 	streamManager := storetypes.StreamingManager{
-		ABCIListeners: services,
+		ABCIListeners: listeners,
 		StopNodeOnErr: false, // Changed from true to prevent indexer errors from halting the node
 	}
 	// attach stream manager
@@ -1226,6 +1249,12 @@ func (app *WasmApp) Close() error {
 	err = app.indexerService.Close()
 	if err != nil {
 		errs = append(errs, err)
+	}
+
+	if app.storeTracer != nil {
+		if err := app.storeTracer.Close(); err != nil {
+			errs = append(errs, err)
+		}
 	}
 	return errors.Join(errs...)
 }
