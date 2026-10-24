@@ -2,7 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
@@ -94,17 +97,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
-			customTMConfig := initTendermintConfig()
-
-			if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig); err != nil {
-				return err
-			}
-
-			if err := applyValidatorTimeout(cmd); err != nil {
-				return err
-			}
-			return nil
+			return interceptServerConfigs(cmd)
 		},
 	}
 
@@ -128,30 +121,98 @@ func initTendermintConfig() *tmcfg.Config {
 	return tmcfg.DefaultConfig()
 }
 
-// setValidatorTimeout applies the CLI-only timeout after config.toml is loaded.
+// timeoutCommitFlag is the start-only flag that sets CometBFT's
+// consensus.timeout_commit.
+const timeoutCommitFlag = "consensus.timeout_commit"
+
+// interceptServerConfigs loads config.toml and app.toml into the server
+// context, then applies the validator timeout. It is the server half of the
+// root pre-run.
+func interceptServerConfigs(cmd *cobra.Command) error {
+	// Read this before the SDK loads the configuration: it copies config.toml
+	// and environment values into every flag the command line left unset and
+	// so marks them as changed.
+	timeoutOnCommandLine := cmd.Flags().Changed(timeoutCommitFlag)
+
+	customAppTemplate, customAppConfig := initAppConfig()
+	customTMConfig := initTendermintConfig()
+
+	if err := server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig); err != nil {
+		return err
+	}
+
+	return applyValidatorTimeout(cmd, timeoutOnCommandLine)
+}
+
+// setValidatorTimeout applies the timeout after config.toml is loaded.
 func setValidatorTimeout(serverCtx *server.Context, timeoutCommit time.Duration) {
 	serverCtx.Config.Consensus.TimeoutCommit = timeoutCommit
 }
 
-// applyValidatorTimeout applies the start-only flag after config.toml is loaded.
-// Other commands also run the root PersistentPreRunE, but do not register this
-// flag and must continue without attempting to read it.
+// applyValidatorTimeout sets consensus.timeout_commit for commands that
+// register the start-only flag. Other commands also run the root pre-run, but
+// do not register the flag and are left alone.
 //
-// The flag's one-second default deliberately overrides whatever config.toml
-// holds: the chain targets one-second blocks, and only an explicit
-// --consensus.timeout_commit on the command line may change that.
-func applyValidatorTimeout(cmd *cobra.Command) error {
-	if cmd.Flags().Lookup("consensus.timeout_commit") == nil {
+// The chain targets one-second blocks, so the flag's one-second default
+// replaces whatever config.toml holds: the SDK writes 5s into every new
+// config.toml, which is how validators drift to 5s. Only an explicit operator
+// setting may change it, in this order:
+//  1. --consensus.timeout_commit on the command line;
+//  2. the environment variable the SDK binds to the flag
+//     (XIOND_CONSENSUS_TIMEOUT_COMMIT for a binary named xiond);
+//  3. otherwise the flag's default; config.toml is ignored.
+//
+// timeoutOnCommandLine must be read before the SDK loads the configuration.
+func applyValidatorTimeout(cmd *cobra.Command, timeoutOnCommandLine bool) error {
+	flag := cmd.Flags().Lookup(timeoutCommitFlag)
+	if flag == nil {
 		return nil
 	}
 
-	timeoutCommit, err := cmd.Flags().GetDuration("consensus.timeout_commit")
-	if err != nil {
-		return err
+	serverCtx := server.GetServerContextFromCmd(cmd)
+
+	if timeoutOnCommandLine || timeoutCommitInEnv() {
+		// The SDK has already resolved the command line over the environment
+		// into the flag.
+		timeoutCommit, err := cmd.Flags().GetDuration(timeoutCommitFlag)
+		if err != nil {
+			return err
+		}
+		setValidatorTimeout(serverCtx, timeoutCommit)
+		return nil
 	}
 
-	setValidatorTimeout(server.GetServerContextFromCmd(cmd), timeoutCommit)
+	timeoutCommit, err := time.ParseDuration(flag.DefValue)
+	if err != nil {
+		return fmt.Errorf("parse %s default %q: %w", timeoutCommitFlag, flag.DefValue, err)
+	}
+	if fromConfig := serverCtx.Config.Consensus.TimeoutCommit; fromConfig != timeoutCommit && serverCtx.Logger != nil {
+		serverCtx.Logger.Info("ignoring consensus.timeout_commit from config.toml; set --consensus.timeout_commit to change it",
+			"config_toml", fromConfig.String(), "timeout_commit", timeoutCommit.String())
+	}
+	setValidatorTimeout(serverCtx, timeoutCommit)
 	return nil
+}
+
+// timeoutCommitInEnv reports whether the environment sets the timeout flag.
+// It mirrors how the SDK binds the environment to flags in
+// server.InterceptConfigsAndCreateContext (automatic <EXECUTABLE>_ prefix) and
+// bindFlags (explicit <executable>_<FLAG> binding), without config.toml.
+func timeoutCommitInEnv() bool {
+	executable, err := os.Executable()
+	if err != nil {
+		return false
+	}
+	basename := path.Base(executable)
+
+	v := viper.New()
+	v.SetEnvPrefix(basename)
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+	v.AutomaticEnv()
+	if err := v.BindEnv(timeoutCommitFlag, fmt.Sprintf("%s_%s", basename, strings.ToUpper(strings.ReplaceAll(timeoutCommitFlag, "-", "_")))); err != nil {
+		return false
+	}
+	return v.IsSet(timeoutCommitFlag)
 }
 
 // initAppConfig helps to override default appConfig template and configs.
@@ -193,7 +254,8 @@ func initRootCmd(rootCmd *cobra.Command,
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	wasm.AddModuleInitFlags(startCmd)
-	startCmd.Flags().Duration("consensus.timeout_commit", time.Second, "How long to wait after committing a block before starting the next height")
+	startCmd.Flags().Duration(timeoutCommitFlag, time.Second, "How long to wait after committing a block before starting the next height; overrides config.toml (env: XIOND_CONSENSUS_TIMEOUT_COMMIT)")
+	startCmd.Flags().String(app.FlagTraceStore, "", "Write every committed store write and delete to this file (or FIFO) as JSON lines, for state indexers")
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
