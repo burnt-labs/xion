@@ -16,10 +16,10 @@ import (
 	"github.com/burnt-labs/xion/x/zk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1beta "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -185,21 +185,21 @@ func submitAndPassProposalWithGas(
 		return 0, err
 	}
 
-	propInfo, err := chain.GovQueryProposal(ctx, proposalID)
+	propInfo, err := chain.GovQueryProposalV1(ctx, proposalID)
 	if err != nil {
 		return 0, err
 	}
-	require.Equal(t, propInfo.Status, govv1beta.StatusVotingPeriod)
+	require.Equal(t, propInfo.Status, govv1.StatusVotingPeriod)
 
-	err = chain.VoteOnProposalAllValidators(ctx, propInfo.ProposalId, cosmos.ProposalVoteYes)
+	err = chain.VoteOnProposalAllValidators(ctx, propInfo.Id, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	require.Eventuallyf(t, func() bool {
-		proposalInfo, err := chain.GovQueryProposal(ctx, proposalID)
+		proposalInfo, err := chain.GovQueryProposalV1(ctx, proposalID)
 		if err != nil {
 			require.NoError(t, err)
 		} else {
-			if proposalInfo.Status == govv1beta.StatusPassed {
+			if proposalInfo.Status == govv1.StatusPassed {
 				return true
 			}
 			t.Logf("Waiting for proposal %d to reach PASSED, current status: %s", proposalID, proposalInfo.Status)

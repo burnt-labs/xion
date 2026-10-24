@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 // Wasm is the 02-client client type of light clients created by the 08-wasm

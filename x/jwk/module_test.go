@@ -5,16 +5,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/burnt-labs/xion/x/jwk"
 	"github.com/burnt-labs/xion/x/jwk/keeper"
@@ -23,32 +22,23 @@ import (
 
 func setupModuleTest(t testing.TB) (jwk.AppModule, sdk.Context, keeper.Keeper) {
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
+	tkey := storetypes.NewTransientStoreKey("transient_test")
 
 	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
 
 	// Create codec
 	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
 
-	// Create param subspace
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		paramStore,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Initialize with default params
-	k.SetParams(ctx.Ctx, types.DefaultParams())
+	require.NoError(t, k.SetParams(ctx.Ctx, types.DefaultParams()))
 
-	appModule := jwk.NewAppModule(cdc, k, paramStore)
+	appModule := jwk.NewAppModule(cdc, k, runtime.NewKVStoreService(storeKey), codec.NewLegacyAmino())
 	return appModule, ctx.Ctx, k
 }
 
@@ -101,7 +91,7 @@ func TestAppModule(t *testing.T) {
 	appModule, ctx, k := setupModuleTest(t)
 
 	// Test ConsensusVersion
-	require.Equal(t, uint64(3), appModule.ConsensusVersion())
+	require.Equal(t, uint64(4), appModule.ConsensusVersion())
 
 	// Test IsOnePerModuleType and IsAppModule (these just need to not panic)
 	require.NotPanics(t, func() {
@@ -164,7 +154,7 @@ func TestJWKAppModule(t *testing.T) {
 
 	// Test ConsensusVersion
 	version := appModule.ConsensusVersion()
-	require.Equal(t, uint64(3), version)
+	require.Equal(t, uint64(4), version)
 
 	// Note: RegisterServices requires a proper configurator to work,
 	// so we skip testing it with nil to avoid panics
@@ -219,7 +209,7 @@ func TestAppModuleProperties(t *testing.T) {
 	appModule, _, _ := setupModuleTest(t)
 
 	// Test module functions
-	require.Equal(t, uint64(3), appModule.ConsensusVersion())
+	require.Equal(t, uint64(4), appModule.ConsensusVersion())
 
 	// Test that these don't panic
 	require.NotPanics(t, func() {

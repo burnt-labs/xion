@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"path/filepath"
+	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
@@ -13,15 +14,15 @@ import (
 
 	"cosmossdk.io/collections/corecompat"
 	"cosmossdk.io/core/address"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	indexerauthz "github.com/burnt-labs/xion/indexer/authz"
 	indexerfeegrant "github.com/burnt-labs/xion/indexer/feegrant"
@@ -41,6 +42,8 @@ type StreamService struct {
 	feegrantQuerier indexerfeegrant.QueryServer
 	addrCodec       address.Codec
 	cdc             codec.Codec
+	closeOnce       sync.Once
+	closeErr        error
 }
 
 type kvAccessor struct {
@@ -117,9 +120,13 @@ func (ss *StreamService) RegisterServices(cfg module.Configurator) error {
 	return nil
 }
 
+// Close is idempotent: SDK v0.55 server shutdown calls app.Close() twice and pebble panics on a second close.
 func (ss *StreamService) Close() error {
-	ss.log.Info("closing xion_indexer.db")
-	return ss.db.Close()
+	ss.closeOnce.Do(func() {
+		ss.log.Info("closing xion_indexer.db")
+		ss.closeErr = ss.db.Close()
+	})
+	return ss.closeErr
 }
 
 // ListenFinalizeBlock will receive the request and response of a block

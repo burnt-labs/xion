@@ -6,20 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
-
-var _ paramtypes.ParamSet = (*Params)(nil)
-
-var (
-	ParamStoreKeyTimeOffset    = []byte("TimeOffset")
-	ParamStoreKeyDeploymentGas = []byte("DeploymentGas")
-)
-
-// ParamKeyTable the param key table for launch module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
 
 // NewParams creates a new Params instance
 func NewParams(timeOffset, deploymentGas uint64) Params {
@@ -35,14 +22,6 @@ func DefaultParams() Params {
 	timeOffset := uint64(30_000_000_000) // 30 seconds in nanoseconds
 
 	return NewParams(timeOffset, deploymentGas)
-}
-
-// ParamSetPairs get the params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(ParamStoreKeyDeploymentGas, &p.DeploymentGas, validateDeploymentGas),
-		paramtypes.NewParamSetPair(ParamStoreKeyTimeOffset, &p.TimeOffset, validateTimeOffset),
-	}
 }
 
 func validateDeploymentGas(i interface{}) error {

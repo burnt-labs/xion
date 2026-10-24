@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -74,6 +74,11 @@ func (m *MockAccountKeeper) GetModuleAccount(ctx context.Context, moduleName str
 
 func (m *MockBankKeeper) GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin {
 	args := m.Called(ctx, addr, denom)
+	return args.Get(0).(sdk.Coin)
+}
+
+func (m *MockBankKeeper) GetSupply(ctx context.Context, denom string) sdk.Coin {
+	args := m.Called(ctx, denom)
 	return args.Get(0).(sdk.Coin)
 }
 

@@ -22,7 +22,7 @@ func TestMigrateValidationDecorator(t *testing.T) {
 
 	// Create an AbstractAccount with unique account number
 	absAccAddr := xionapp.RandomAccAddress()
-	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
+	absAcc := app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(absAccAddr.String(), 0, 0))
 	app.AccountKeeper.SetAccount(ctx, absAcc)
 
 	// Create a regular account (non-AA) - use NewAccountWithAddress to let it assign account num
@@ -113,7 +113,7 @@ func TestMigrateValidationDecorator_AllowAllCodeIDs(t *testing.T) {
 
 	// Create an AbstractAccount with unique account number
 	absAccAddr := xionapp.RandomAccAddress()
-	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
+	absAcc := app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(absAccAddr.String(), 0, 0))
 	app.AccountKeeper.SetAccount(ctx, absAcc)
 
 	// Set params to allow all code IDs
@@ -183,7 +183,7 @@ func TestMigrateValidationDecorator_AuthzWrapped(t *testing.T) {
 	ctx := app.NewContext(false)
 
 	absAccAddr := xionapp.RandomAccAddress()
-	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
+	absAcc := app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(absAccAddr.String(), 0, 0))
 	app.AccountKeeper.SetAccount(ctx, absAcc)
 
 	grantee := xionapp.RandomAccAddress()
@@ -277,7 +277,7 @@ func TestMigrateValidationDecorator_UninspectableExec(t *testing.T) {
 	ctx := app.NewContext(false)
 
 	absAccAddr := xionapp.RandomAccAddress()
-	absAcc := types.NewAbstractAccount(absAccAddr.String(), app.AccountKeeper.NextAccountNumber(ctx), 0)
+	absAcc := app.AccountKeeper.NewAccount(ctx, types.NewAbstractAccount(absAccAddr.String(), 0, 0))
 	app.AccountKeeper.SetAccount(ctx, absAcc)
 
 	grantee := xionapp.RandomAccAddress()

@@ -1,123 +1,115 @@
 package keeper_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/burnt-labs/xion/x/jwk/keeper"
-	v1migration "github.com/burnt-labs/xion/x/jwk/migrations/v1"
 	"github.com/burnt-labs/xion/x/jwk/types"
 )
 
-func TestMigrations(t *testing.T) {
-	k, ctx := setupKeeper(t)
+func TestMigrate3To4(t *testing.T) {
+	tests := []struct {
+		name   string
+		legacy map[string]string
+		want   types.Params
+		err    string
+	}{
+		{
+			name: "mainnet params",
+			legacy: map[string]string{
+				"jwk/TimeOffset":    `"30000000000"`,
+				"jwk/DeploymentGas": `"10000"`,
+			},
+			want: types.NewParams(30_000_000_000, 10_000),
+		},
+		{
+			name: "custom params",
+			legacy: map[string]string{
+				"jwk/TimeOffset":    `"45000000000"`,
+				"jwk/DeploymentGas": `"20000"`,
+			},
+			want: types.NewParams(45_000_000_000, 20_000),
+		},
+		{
+			name: "missing keys",
+			want: types.DefaultParams(),
+		},
+		{
+			name:   "missing time offset",
+			legacy: map[string]string{"jwk/DeploymentGas": `"20000"`},
+			want:   types.NewParams(types.DefaultParams().TimeOffset, 20_000),
+		},
+		{
+			name:   "missing deployment gas",
+			legacy: map[string]string{"jwk/TimeOffset": `"45000000000"`},
+			want:   types.NewParams(45_000_000_000, types.DefaultParams().DeploymentGas),
+		},
+		{
+			name:   "malformed time offset",
+			legacy: map[string]string{"jwk/TimeOffset": `"invalid"`},
+			err:    "decode jwk/TimeOffset",
+		},
+		{
+			name: "malformed deployment gas",
+			legacy: map[string]string{
+				"jwk/TimeOffset":    `"45000000000"`,
+				"jwk/DeploymentGas": `invalid`,
+			},
+			err: "decode jwk/DeploymentGas",
+		},
+		{
+			name:   "invalid deployment gas",
+			legacy: map[string]string{"jwk/DeploymentGas": `"0"`},
+			err:    "deployment gas must be positive",
+		},
+		{
+			name:   "invalid time offset",
+			legacy: map[string]string{"jwk/TimeOffset": `"0"`},
+			err:    "time offset must be positive",
+		},
+		{
+			name:   "time offset overflows int64",
+			legacy: map[string]string{"jwk/TimeOffset": `"9223372036854775808"`},
+			err:    "time offset exceeds max int64",
+		},
+	}
 
-	// Test that we can get the current params (this verifies the keeper works)
-	params := k.GetParams(ctx)
-	require.NotNil(t, params)
-	require.Equal(t, uint64(10_000), params.DeploymentGas)
-	require.Equal(t, uint64(30_000_000_000), params.TimeOffset)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+			legacyKey := storetypes.NewKVStoreKey("params")
+			ctx := testutil.DefaultContextWithKeys(map[string]*storetypes.KVStoreKey{
+				types.StoreKey: storeKey,
+				"params":       legacyKey,
+			}, nil, nil)
+			cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+			k := keeper.NewKeeper(cdc, storeKey, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+			before := types.NewParams(math.MaxInt64, 123)
+			require.NoError(t, k.SetParams(ctx, before))
+			for key, value := range tt.legacy {
+				ctx.KVStore(legacyKey).Set([]byte(key), []byte(value))
+			}
 
-	// Test NewMigrator
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
-
-	migrator := keeper.NewMigrator(paramStore)
-	require.NotNil(t, migrator)
-
-	// Test Migrate1To2 with proper context
-	dbCtx := testutil.DefaultContextWithDB(t, storeKey, tkey)
-	err := migrator.Migrate1To2(dbCtx.Ctx)
-	require.NoError(t, err)
-
-	// Test Migrate2To3 - set DeploymentGas so GetParamSet doesn't panic,
-	// and set a broken TimeOffset that the migration should correct.
-	paramStore.Set(dbCtx.Ctx, types.ParamStoreKeyDeploymentGas, uint64(10_000))
-	paramStore.Set(dbCtx.Ctx, types.ParamStoreKeyTimeOffset, uint64(30_000))
-	err = migrator.Migrate2To3(dbCtx.Ctx)
-	require.NoError(t, err)
-
-	var afterOffset uint64
-	paramStore.Get(dbCtx.Ctx, types.ParamStoreKeyTimeOffset, &afterOffset)
-	require.Equal(t, uint64(30_000_000_000), afterOffset)
-}
-
-func TestMigrateStore(t *testing.T) {
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	dbCtx := testutil.DefaultContextWithDB(t, storeKey, tkey)
-
-	// Create codec
-	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-
-	// Create param subspace
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
-
-	// Test the actual migration function from v1 package
-	err := v1migration.MigrateStore(dbCtx.Ctx, paramStore)
-	require.NoError(t, err)
-}
-
-func TestMigrationV1Functions(t *testing.T) {
-	// Test the migration function exists and can be called
-	require.NotNil(t, v1migration.MigrateStore)
-
-	// Test the actual migration function with proper store setup
-	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
-	tkey := storetypes.NewTransientStoreKey(paramstypes.TStoreKey)
-	ctx := testutil.DefaultContextWithDB(t, storeKey, tkey)
-	cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
-
-	// Test case 1: Create param subspace WITHOUT key table first
-	paramStore := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey,
-		tkey,
-		types.ModuleName,
-	)
-	// Don't call WithKeyTable here to test that branch in MigrateStore
-
-	// Test MigrateStore - this should exercise the key table creation branch
-	err := v1migration.MigrateStore(ctx.Ctx, paramStore)
-	require.NoError(t, err)
-
-	// Test case 2: Create a fresh param subspace with key table already set
-	storeKey2 := storetypes.NewKVStoreKey(types.StoreKey + "2")
-	tkey2 := storetypes.NewTransientStoreKey(paramstypes.TStoreKey + "2")
-	ctx2 := testutil.DefaultContextWithDB(t, storeKey2, tkey2)
-
-	paramStoreWithKeyTable := paramstypes.NewSubspace(
-		cdc,
-		codec.NewLegacyAmino(),
-		storeKey2,
-		tkey2,
-		types.ModuleName,
-	).WithKeyTable(types.ParamKeyTable())
-
-	err = v1migration.MigrateStore(ctx2.Ctx, paramStoreWithKeyTable)
-	require.NoError(t, err)
+			m := keeper.NewMigrator(k, runtime.NewKVStoreService(legacyKey), codec.NewLegacyAmino())
+			err := m.Migrate3To4(ctx)
+			if tt.err != "" {
+				require.ErrorContains(t, err, tt.err)
+				require.Equal(t, before, k.GetParams(ctx))
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, k.GetParams(ctx))
+		})
+	}
 }

@@ -137,17 +137,15 @@ func validatePublicInputsInScalarField(inputs []string) error {
 	return nil
 }
 
-// validateUltraHonkPublicInputsCanonical rejects any 32-byte big-endian public
-// input whose numeric value is >= the BN254 scalar field prime. Barretenberg
-// builds the field elements with many_from_buffer<uint256_t>, which reduces a
-// value >= the prime instead of rejecting it, so without this gate a proof over
-// X would verify just as well against any alias X + k*r.
-func validateUltraHonkPublicInputsCanonical(publicInputs []byte) error {
-	for i := 0; i+barretenberg.FieldElementSize <= len(publicInputs); i += barretenberg.FieldElementSize {
-		if new(big.Int).SetBytes(publicInputs[i:i+barretenberg.FieldElementSize]).Cmp(bn254ScalarPrime) >= 0 {
+// validateUltraHonkFieldElementsCanonical requires every 32-byte big-endian
+// element of data to be a canonical BN254 scalar field element (< r). The
+// caller enforces FieldElementSize alignment first.
+func validateUltraHonkFieldElementsCanonical(field string, data []byte) error {
+	for i := 0; i+barretenberg.FieldElementSize <= len(data); i += barretenberg.FieldElementSize {
+		if new(big.Int).SetBytes(data[i:i+barretenberg.FieldElementSize]).Cmp(bn254ScalarPrime) >= 0 {
 			return errors.Wrapf(types.ErrInvalidRequest,
-				"public input[%d] is not a canonical BN254 scalar field element",
-				i/barretenberg.FieldElementSize)
+				"%s[%d] is not a canonical BN254 scalar field element",
+				field, i/barretenberg.FieldElementSize)
 		}
 	}
 	return nil
@@ -189,6 +187,19 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 		)
 	}
 
+	// UltraHonk proofs are a sequence of canonical 32-byte field elements.
+	if len(req.GetProof())%barretenberg.FieldElementSize != 0 {
+		return nil, errors.Wrapf(
+			types.ErrInvalidRequest,
+			"proof length %d is not a multiple of %d",
+			len(req.GetProof()),
+			barretenberg.FieldElementSize,
+		)
+	}
+	if err := validateUltraHonkFieldElementsCanonical("proof element", req.GetProof()); err != nil {
+		return nil, err
+	}
+
 	// Resolve vkey by name or ID (prefer name when both are set, same as Groth16 verify-proof)
 	var vkey types.VKey
 	switch {
@@ -220,7 +231,7 @@ func (q Querier) ProofVerifyUltraHonk(c context.Context, req *types.QueryVerifyU
 	}
 
 	// Reject any public input that is not a canonical BN254 scalar field element.
-	if err := validateUltraHonkPublicInputsCanonical(publicInputs); err != nil {
+	if err := validateUltraHonkFieldElementsCanonical("public input", publicInputs); err != nil {
 		return nil, err
 	}
 

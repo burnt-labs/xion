@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ARG GORELEASER_IMAGE="ghcr.io/goreleaser/goreleaser-cross"
-ARG GORELEASER_VERSION="v1.25.3"
+ARG GORELEASER_VERSION="v1.26.5"
 # Docker Official Image, pinned by digest (multi-arch index). The
 # ghcr.io/linuxcontainers mirror stops at 3.20, which is past end of support.
 ARG ALPINE_IMAGE="docker.io/library/alpine"

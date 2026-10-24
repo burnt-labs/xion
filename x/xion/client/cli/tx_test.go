@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/math"
-	"cosmossdk.io/x/feegrant"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -21,6 +20,7 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	"github.com/burnt-labs/xion/x/xion/client/cli"
 )
@@ -788,7 +788,7 @@ func (s *CLITestSuite) TestNewAddAuthenticatorCmd_RunESignModes() {
 	accounts := testutil.CreateKeyringAccounts(s.T(), s.kr, 1)
 	contractAddr := accounts[0].Address.String()
 	// modes to exercise each switch branch + default
-	modes := []string{"", flags.SignModeDirect, flags.SignModeLegacyAminoJSON, flags.SignModeDirectAux, flags.SignModeTextual, flags.SignModeEIP191}
+	modes := []string{"", flags.SignModeDirect, flags.SignModeLegacyAminoJSON, flags.SignModeDirectAux, flags.SignModeEIP191}
 
 	for _, mode := range modes {
 		// capture

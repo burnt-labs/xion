@@ -36,6 +36,7 @@ jobs:
           - { dir: "indexer", type: "IndexerNonConsensusCritical" }
           # - {dir: "ibc", type: "IBC"}
           - { dir: "ibc", type: "IBCMinFeeMultiDenom" }
+          - { dir: "ibc", type: "IBCPacketForward" }
           - { dir: "jwk", type: "JWKAlgorithmConfusion" }
           - { dir: "jwk", type: "JWKAudienceMismatch" }
           - { dir: "jwk", type: "JWKExpiredToken" }
@@ -101,5 +102,8 @@ jobs:
         env:
           E2E_SKIP_CLEANUP: true
           XION_IMAGE: local/xion:${{ matrix.os }}-${{ matrix.arch }}
+          # The upgrade tests look up the latest release on api.github.com; unauthenticated
+          # calls from shared runner IPs hit the per-IP rate limit and fail with 403.
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           make test-run TEST_NAME=Test${{ matrix.test.type }} DIR_NAME=${{ matrix.test.dir }}

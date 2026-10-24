@@ -8,13 +8,12 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
-	feegranttypes "cosmossdk.io/x/feegrant"
-
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -65,9 +64,9 @@ func init() {
 	setWhitelistedQuery("/cosmos.feegrant.v1beta1.Query/AllowancesByGranter", func() proto.Message { return &feegranttypes.QueryAllowancesByGranterResponse{} })
 
 	// gov
-	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Deposit", func() proto.Message { return &govtypesv1.QueryDepositResponse{} })
-	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Params", func() proto.Message { return &govtypesv1.QueryParamsResponse{} })
-	setWhitelistedQuery("/cosmos.gov.v1beta1.Query/Vote", func() proto.Message { return &govtypesv1.QueryVoteResponse{} })
+	setWhitelistedQuery("/cosmos.gov.v1.Query/Deposit", func() proto.Message { return &govtypesv1.QueryDepositResponse{} })
+	setWhitelistedQuery("/cosmos.gov.v1.Query/Params", func() proto.Message { return &govtypesv1.QueryParamsResponse{} })
+	setWhitelistedQuery("/cosmos.gov.v1.Query/Vote", func() proto.Message { return &govtypesv1.QueryVoteResponse{} })
 
 	// slashing
 	setWhitelistedQuery("/cosmos.slashing.v1beta1.Query/Params", func() proto.Message { return &slashingtypes.QueryParamsResponse{} })

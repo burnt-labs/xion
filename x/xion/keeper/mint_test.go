@@ -12,6 +12,11 @@ import (
 
 	"cosmossdk.io/math"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
+	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -29,6 +34,16 @@ type MockMintBankKeeper struct {
 func (m *MockMintBankKeeper) GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin {
 	args := m.Called(ctx, addr, denom)
 	return args.Get(0).(sdk.Coin)
+}
+
+func (m *MockMintBankKeeper) GetSupply(ctx context.Context, denom string) sdk.Coin {
+	args := m.Called(ctx, denom)
+	return args.Get(0).(sdk.Coin)
+}
+
+func (m *MockMintBankKeeper) MintCoins(ctx context.Context, moduleName string, amt sdk.Coins) error {
+	args := m.Called(ctx, moduleName, amt)
+	return args.Error(0)
 }
 
 func (m *MockMintBankKeeper) BurnCoins(ctx context.Context, moduleName string, amt sdk.Coins) error {
@@ -80,11 +95,20 @@ func (m *MockMintAccountKeeper) GetModuleAccount(ctx context.Context, moduleName
 	return args.Get(0).(sdk.ModuleAccountI)
 }
 
+func (m *MockMintAccountKeeper) GetModuleAddress(moduleName string) sdk.AccAddress {
+	args := m.Called(moduleName)
+	return args.Get(0).(sdk.AccAddress)
+}
+
+func (m *MockMintAccountKeeper) SetModuleAccount(ctx context.Context, account sdk.ModuleAccountI) {
+	m.Called(ctx, account)
+}
+
 type MockMintStakingKeeper struct {
 	mock.Mock
 }
 
-func (m *MockMintStakingKeeper) TotalBondedTokens(ctx context.Context) (math.Int, error) {
+func (m *MockMintStakingKeeper) TotalValidatorPower(ctx context.Context) (math.Int, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(math.Int), args.Error(1)
 }
@@ -92,6 +116,11 @@ func (m *MockMintStakingKeeper) TotalBondedTokens(ctx context.Context) (math.Int
 func (m *MockMintStakingKeeper) BondedRatio(ctx context.Context) (math.LegacyDec, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(math.LegacyDec), args.Error(1)
+}
+
+func (m *MockMintStakingKeeper) StakingTokenSupply(ctx context.Context) (math.Int, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(math.Int), args.Error(1)
 }
 
 func TestStakedInflationMintFn_FunctionCreation(t *testing.T) {
@@ -551,7 +580,7 @@ func TestStakedInflationMintFn_ExecutionErrorPaths(t *testing.T) {
 				bankKeeper.On("BurnCoins", mock.Anything, authtypes.FeeCollectorName, mock.Anything).Return(nil)
 
 				// Mock staking keeper
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
@@ -575,14 +604,14 @@ func TestStakedInflationMintFn_ExecutionErrorPaths(t *testing.T) {
 				// Mock burn error
 				bankKeeper.On("BurnCoins", mock.Anything, authtypes.FeeCollectorName, mock.Anything).Return(errors.New("insufficient funds"))
 
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
 			expectErr: true,
 		},
 		{
-			name: "Staking keeper TotalBondedTokens returns error",
+			name: "Staking keeper TotalValidatorPower returns error",
 			setupMocks: func() (*MockMintBankKeeper, *MockMintAccountKeeper, *MockMintStakingKeeper) {
 				bankKeeper := &MockMintBankKeeper{}
 				accountKeeper := &MockMintAccountKeeper{}
@@ -596,7 +625,7 @@ func TestStakedInflationMintFn_ExecutionErrorPaths(t *testing.T) {
 				bankKeeper.On("GetBalance", mock.Anything, mock.Anything, "stake").Return(sdk.NewInt64Coin("stake", 100))
 
 				// Mock staking keeper error
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.ZeroInt(), errors.New("staking error"))
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.ZeroInt(), errors.New("staking error"))
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
@@ -668,7 +697,7 @@ func TestStakedInflationMintFn_CodePathCoverage(t *testing.T) {
 				// Small balance (less than needed amount)
 				bankKeeper.On("GetBalance", mock.Anything, mock.Anything, "stake").Return(sdk.NewInt64Coin("stake", 100))
 
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
@@ -691,7 +720,7 @@ func TestStakedInflationMintFn_CodePathCoverage(t *testing.T) {
 				// Mock burn operation
 				bankKeeper.On("BurnCoins", mock.Anything, feeCollectorName, mock.Anything).Return(nil)
 
-				stakingKeeper.On("TotalBondedTokens", mock.Anything).Return(math.NewInt(1000), nil)
+				stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil)
 
 				return bankKeeper, accountKeeper, stakingKeeper
 			},
@@ -808,5 +837,86 @@ func TestStakedInflationMintFn_EdgeCases(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, tc.test)
+	}
+}
+
+func TestStakedInflationMintFn_MaxSupply(t *testing.T) {
+	testCases := []struct {
+		name          string
+		maxSupply     int64
+		collectedFees int64
+		minted        int64
+		burned        int64
+	}{
+		{name: "unlimited", maxSupply: 0, collectedFees: 20, minted: 80},
+		{name: "below cap", maxSupply: 1100, collectedFees: 20, minted: 80},
+		{name: "partially clamped", maxSupply: 1050, collectedFees: 20, minted: 50},
+		{name: "reaches cap exactly", maxSupply: 1080, collectedFees: 20, minted: 80},
+		{name: "at cap", maxSupply: 1000, collectedFees: 20},
+		{name: "above cap", maxSupply: 950, collectedFees: 20},
+		{name: "unlimited fee burning", maxSupply: 0, collectedFees: 150, burned: 50},
+		{name: "capped fee burning", maxSupply: 1000, collectedFees: 150, burned: 50},
+		{name: "fees meet provision at cap", maxSupply: 1000, collectedFees: 100},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			key := storetypes.NewKVStoreKey(minttypes.StoreKey)
+			ctx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test")).Ctx
+			cdc := codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+			bankKeeper := &MockMintBankKeeper{}
+			accountKeeper := &MockMintAccountKeeper{}
+			stakingKeeper := &MockMintStakingKeeper{}
+			feeCollector := authtypes.NewEmptyModuleAccount(authtypes.FeeCollectorName)
+			accountKeeper.On("GetModuleAddress", minttypes.ModuleName).Return(authtypes.NewModuleAddress(minttypes.ModuleName)).Once()
+			accountKeeper.On("GetModuleAccount", mock.Anything, authtypes.FeeCollectorName).Return(feeCollector).Once()
+			bankKeeper.On("GetBalance", mock.Anything, feeCollector.GetAddress(), "uxion").Return(sdk.NewInt64Coin("uxion", tc.collectedFees)).Once()
+			stakingKeeper.On("BondedRatio", mock.Anything).Return(math.LegacyNewDecWithPrec(5, 1), nil).Once()
+			stakingKeeper.On("TotalValidatorPower", mock.Anything).Return(math.NewInt(1000), nil).Once()
+
+			mintedCoins := sdk.NewCoins(sdk.NewInt64Coin("uxion", tc.minted))
+			if tc.collectedFees < 100 {
+				if tc.maxSupply > 0 {
+					bankKeeper.On("GetSupply", mock.Anything, "uxion").Return(sdk.NewInt64Coin("uxion", 1000)).Once()
+				}
+				if tc.minted > 0 {
+					bankKeeper.On("MintCoins", mock.Anything, minttypes.ModuleName, mintedCoins).Return(nil).Once()
+				}
+				bankKeeper.On("SendCoinsFromModuleToModule", mock.Anything, minttypes.ModuleName, authtypes.FeeCollectorName, mintedCoins).Return(nil).Once()
+			} else {
+				bankKeeper.On("BurnCoins", mock.Anything, authtypes.FeeCollectorName, sdk.NewCoins(sdk.NewInt64Coin("uxion", tc.burned))).Return(nil).Once()
+			}
+
+			inflationFn := func(context.Context, minttypes.Minter, minttypes.Params, math.LegacyDec) math.LegacyDec {
+				return math.LegacyNewDecWithPrec(1, 1)
+			}
+			k := mintkeeper.NewKeeper(cdc, runtime.NewKVStoreService(key), stakingKeeper, accountKeeper, bankKeeper, authtypes.FeeCollectorName, "authority",
+				mintkeeper.WithMintFn(StakedInflationMintFn(authtypes.FeeCollectorName, inflationFn, bankKeeper, accountKeeper, stakingKeeper)))
+			params := minttypes.DefaultParams()
+			params.MintDenom = "uxion"
+			params.BlocksPerYear = 1
+			params.MaxSupply = math.NewInt(tc.maxSupply)
+			require.NoError(t, k.Params.Set(ctx, params))
+			require.NoError(t, k.Minter.Set(ctx, minttypes.DefaultInitialMinter()))
+
+			require.NoError(t, k.MintFn(ctx))
+
+			minter, err := k.Minter.Get(ctx)
+			require.NoError(t, err)
+			require.Equal(t, "100.000000000000000000", minter.AnnualProvisions.String())
+			require.Equal(t, sdk.Events{sdk.NewEvent(
+				minttypes.EventTypeMint,
+				sdk.NewAttribute(minttypes.AttributeKeyBondedRatio, "0.500000000000000000"),
+				sdk.NewAttribute(minttypes.AttributeKeyInflation, "0.100000000000000000"),
+				sdk.NewAttribute(minttypes.AttributeKeyAnnualProvisions, "100.000000000000000000"),
+				sdk.NewAttribute(AttributeKeyNeededAmount, "100"),
+				sdk.NewAttribute(AttributeKeyMintedAmount, math.NewInt(tc.minted).String()),
+				sdk.NewAttribute(AttributeKeyCollectedAmount, math.NewInt(tc.collectedFees).String()),
+				sdk.NewAttribute(AttributeKeyBurnedAmount, math.NewInt(tc.burned).String()),
+			)}, ctx.EventManager().Events())
+			bankKeeper.AssertExpectations(t)
+			accountKeeper.AssertExpectations(t)
+			stakingKeeper.AssertExpectations(t)
+		})
 	}
 }

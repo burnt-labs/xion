@@ -13,11 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	xionapp "github.com/burnt-labs/xion/app"
-	"github.com/burnt-labs/xion/x/globalfee"
 	xionfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
 	globfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 )
@@ -55,27 +53,20 @@ func noBondDenom(_ sdk.Context) string {
 }
 
 func (s *IntegrationTestSuite) SetupTestGlobalFeeStoreAndMinGasPrice(minGasPrice []sdk.DecCoin, globalFeeParams *globfeetypes.Params, bondDenom func(sdk.Context) string) (xionfeeante.FeeDecorator, sdk.AnteHandler) {
-	subspace := s.app.GetSubspace(globalfee.ModuleName)
-	subspace.SetParamSet(s.ctx, globalFeeParams)
+	s.Require().NoError(s.app.GlobalFeeKeeper.SetParams(s.ctx, *globalFeeParams))
 	s.ctx = s.ctx.WithMinGasPrices(minGasPrice).WithIsCheckTx(true)
 
 	// set staking params
 	stakingParam := stakingtypes.DefaultParams()
 	stakingParam.BondDenom = testBondDenom
-
+	s.Require().NoError(s.app.StakingKeeper.SetParams(s.ctx, stakingParam))
 	// build fee decorator
-	feeDecorator := xionfeeante.NewFeeDecorator(subspace, bondDenom)
+	feeDecorator := xionfeeante.NewFeeDecorator(&s.app.GlobalFeeKeeper, bondDenom)
 
 	// chain fee decorator to antehandler
 	antehandler := sdk.ChainAnteDecorators(feeDecorator)
 
 	return feeDecorator, antehandler
-}
-
-// SetupTestStakingSubspace sets uxion as bond denom for the fee tests.
-func (s *IntegrationTestSuite) SetupTestStakingSubspace(params stakingtypes.Params) types.Subspace {
-	s.app.GetSubspace(stakingtypes.ModuleName).SetParamSet(s.ctx, &params)
-	return s.app.GetSubspace(stakingtypes.ModuleName)
 }
 
 func (s *IntegrationTestSuite) CreateTestTx(privs []cryptotypes.PrivKey, accNums []uint64, accSeqs []uint64, chainID string) (xauthsigning.Tx, error) {

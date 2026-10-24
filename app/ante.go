@@ -4,24 +4,22 @@ import (
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmTypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-	ibcante "github.com/cosmos/ibc-go/v10/modules/core/ante"
-	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v11/modules/core/ante"
+	"github.com/cosmos/ibc-go/v11/modules/core/keeper"
 
 	corestoretypes "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
-	circuitante "cosmossdk.io/x/circuit/ante"
-	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 
 	"github.com/burnt-labs/xion/x/abstractaccount"
 	aakeeper "github.com/burnt-labs/xion/x/abstractaccount/keeper"
 	globalfeeante "github.com/burnt-labs/xion/x/globalfee/ante"
+	globalfeekeeper "github.com/burnt-labs/xion/x/globalfee/keeper"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -32,10 +30,9 @@ type HandlerOptions struct {
 	IBCKeeper             *keeper.Keeper
 	NodeConfig            *wasmTypes.NodeConfig
 	TXCounterStoreService corestoretypes.KVStoreService
-	GlobalFeeSubspace     paramtypes.Subspace
+	GlobalFeeKeeper       *globalfeekeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
 	AbstractAccountKeeper aakeeper.Keeper
-	CircuitKeeper         *circuitkeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -54,25 +51,21 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.NodeConfig == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm config is required for ante builder")
 	}
-	if options.GlobalFeeSubspace.Name() == "" {
-		return nil, errorsmod.Wrap(sdkerrors.ErrNotFound, "globalfee param store is required for AnteHandler")
+	if options.GlobalFeeKeeper == nil {
+		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "globalfee keeper is required for AnteHandler")
 	}
 	if options.TXCounterStoreService == nil {
 		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "wasm store service is required for ante builder")
-	}
-	if options.CircuitKeeper == nil {
-		return nil, errorsmod.Wrap(sdkerrors.ErrLogic, "circuit keeper is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // outermost AnteDecorator. SetUpContext must be called first
 		wasmkeeper.NewLimitSimulationGasDecorator(options.NodeConfig.SimulationGasLimit), // after setup context to enforce limits early
 		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreService),
-		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		// this changes the minGasFees,
 		// and must occur before gas fee checks
-		globalfeeante.NewFeeDecorator(options.GlobalFeeSubspace, func(context sdk.Context) string {
+		globalfeeante.NewFeeDecorator(options.GlobalFeeKeeper, func(context sdk.Context) string {
 			bondDenom, err := options.StakingKeeper.BondDenom(context)
 			if err != nil {
 				panic(err)

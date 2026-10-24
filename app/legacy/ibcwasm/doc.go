@@ -15,18 +15,32 @@
 // outright rather than skipping the rows it cannot decode. xion-mainnet-1 has no
 // 08-wasm records, but one binary serves both chains.
 //
+// The same chain also holds governance proposals whose messages are 08-wasm
+// Msg types (MsgStoreCode, MsgRemoveChecksum, MsgMigrateContract). The gov
+// Proposals query decodes every proposal it pages through, so one such proposal
+// fails the whole listing with "no concrete type registered", and the single
+// Proposal query fails the same way for that proposal.
+//
 // So the concrete types are retained and nothing else is. RegisterInterfaces
-// registers only ClientState, ConsensusState, and ClientMessage. There is
-// deliberately no keeper, no store key, no client route, and no registration of
-// MsgStoreCode, MsgMigrateContract, or MsgRemoveChecksum: the existing records
-// decode, export, and validate, while no Wasm client can be created or updated.
+// registers ClientState, ConsensusState, and ClientMessage as IBC client types,
+// and the three request messages as sdk.Msg implementations. There is
+// deliberately no keeper, no store key, no client route, and no Msg server: the
+// existing records decode, export, and validate, and historical proposals list
+// and render, while no Wasm client can be created or updated and no 08-wasm
+// message can be executed. tx.pb.go carries the generated Msg service
+// declarations, but nothing calls RegisterMsgServer, so the Msg router has no
+// handler for these type URLs.
 //
 // wasm.pb.go is vendored verbatim from ibc-go's
 // modules/light-clients/08-wasm/v10@v10.5.0/types, with only the package clause
 // changed. Its source, ibc/lightclients/wasm/v1/wasm.proto, is byte-identical at
 // the ibc-go v10.7.0 tag this repository pins, and the messages are frozen wire
-// formats. It is copied rather than imported because the 08-wasm types package
-// pulls wasmvm in through wasm_vm.go, store.go, gas_register.go, and
-// expected_interfaces.go — depending on it would drag the fork back in. It is not
-// part of `make proto-gen` output; the proto lives in ibc-go.
+// formats. tx.pb.go is vendored verbatim from
+// modules/light-clients/08-wasm/types/tx.pb.go at ibc-go commit
+// 40c9dbe397c8bb385dc03cd2cfc8e36c4023a2ba (v10.7.0), again with only the
+// package clause changed. Both are copied rather than imported because the
+// 08-wasm types package pulls wasmvm in through wasm_vm.go, store.go,
+// gas_register.go, and expected_interfaces.go — depending on it would drag the
+// fork back in. Neither is part of `make proto-gen` output; the protos live in
+// ibc-go.
 package ibcwasm

@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,6 +31,8 @@ type TestFixture struct {
 	suite.Suite
 
 	ctx         sdk.Context
+	dkimKey     *storetypes.KVStoreKey
+	faults      *faultyStoreService
 	k           keeper.Keeper
 	zkeeper     zkkeeper.Keeper
 	msgServer   types.MsgServer
@@ -66,7 +68,9 @@ func SetupTest(t *testing.T) *TestFixture {
 		},
 		map[string]*storetypes.MemoryStoreKey{},
 	)
-	storeService := runtime.NewKVStoreService(dkimKey)
+	f.dkimKey = dkimKey
+	f.faults = &faultyStoreService{inner: runtime.NewKVStoreService(dkimKey)}
+	storeService := store.KVStoreService(f.faults)
 	zkStoreService := runtime.NewKVStoreService(zkKey)
 
 	// Register SDK modules.

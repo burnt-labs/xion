@@ -2,6 +2,7 @@ package genesis_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -10,7 +11,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	xionapp "github.com/burnt-labs/xion/app"
 	"github.com/burnt-labs/xion/app/genesis"
+	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"
 )
 
 func TestNewWasmGenesisImporter(t *testing.T) {
@@ -80,4 +83,44 @@ func TestWasmGenesisImporter_ImportAutoIncrementID(t *testing.T) {
 			_ = importer.ImportAutoIncrementID(ctx, sequenceKey, val)
 		}, "Expected panic with nil keeper")
 	})
+}
+
+// TestWasmGenesisImporterWithKeeper imports code, a contract and a sequence
+// through a real keeper and reads each back.
+func TestWasmGenesisImporterWithKeeper(t *testing.T) {
+	app := xionapp.Setup(t)
+	ctx := app.NewContext(false)
+	importer := genesis.NewWasmGenesisImporter(&app.WasmKeeper)
+
+	const codeID = uint64(7)
+	creator := xionapp.RandomAccAddress()
+	checksum := sha256.Sum256(aatestdata.AccountWasm)
+	codeInfo := wasmtypes.CodeInfo{
+		CodeHash:          checksum[:],
+		Creator:           creator.String(),
+		InstantiateConfig: wasmtypes.AllowEverybody,
+	}
+	require.NoError(t, importer.ImportCode(ctx, codeID, codeInfo, aatestdata.AccountWasm))
+	require.Equal(t, &codeInfo, app.WasmKeeper.GetCodeInfo(ctx, codeID))
+
+	contractAddr := wasmkeeper.BuildContractAddressClassic(codeID, 1)
+	position := &wasmtypes.AbsoluteTxPosition{BlockHeight: 1, TxIndex: 1}
+	contractInfo := wasmtypes.ContractInfo{CodeID: codeID, Creator: creator.String(), Label: "imported", Created: position}
+	history := []wasmtypes.ContractCodeHistoryEntry{{
+		Operation: wasmtypes.ContractCodeHistoryOperationTypeGenesis,
+		CodeID:    codeID,
+		Updated:   position,
+		Msg:       []byte("{}"),
+	}}
+	state := []wasmtypes.Model{{Key: []byte("config"), Value: []byte(`{"owner":"nobody"}`)}}
+	require.NoError(t, importer.ImportContract(ctx, contractAddr, &contractInfo, state, history))
+	require.Equal(t, &contractInfo, app.WasmKeeper.GetContractInfo(ctx, contractAddr))
+	require.Equal(t, state[0].Value, app.WasmKeeper.QueryRaw(ctx, contractAddr, state[0].Key))
+
+	// Code 7 is the highest imported id, so the code sequence has to resume above it.
+	require.NoError(t, importer.ImportAutoIncrementID(ctx, wasmtypes.KeySequenceCodeID, codeID+1))
+	next, err := app.WasmKeeper.PeekAutoIncrementID(ctx, wasmtypes.KeySequenceCodeID)
+	require.NoError(t, err)
+	require.Equal(t, codeID+1, next)
+	require.ErrorIs(t, importer.ImportAutoIncrementID(ctx, wasmtypes.KeySequenceCodeID, codeID+2), wasmtypes.ErrDuplicate)
 }

@@ -3,7 +3,7 @@ package xion.feeabs.v1beta1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/burnt-labs/xion/x/feeabs/types";
+option go_package = "github.com/burnt-labs/xion/app/legacy/feeabs";
 
 // HostChainFeeAbsStatus represents the status of a host chain fee abstraction
 // configuration

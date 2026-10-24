@@ -2,13 +2,19 @@ syntax = "proto3";
 
 package xion.jwk.v1;
 
-import "xion/jwk/v1/audience.proto";
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "xion/jwk/v1/audience.proto";
+import "xion/jwk/v1/params.proto";
 
 option go_package = "github.com/burnt-labs/xion/x/jwk/types";
 
 // Msg defines the Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // CreateAudienceClaim creates a new audience claim
   rpc CreateAudienceClaim(MsgCreateAudienceClaim)
       returns (MsgCreateAudienceClaimResponse);
@@ -21,6 +27,9 @@ service Msg {
   rpc UpdateAudience(MsgUpdateAudience) returns (MsgUpdateAudienceResponse);
   // DeleteAudience deletes an existing audience
   rpc DeleteAudience(MsgDeleteAudience) returns (MsgDeleteAudienceResponse);
+  // UpdateParams updates the module parameters. Only the governance account
+  // may call it.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgCreateAudienceClaim defines the message for creating an audience claim
@@ -103,3 +112,21 @@ message MsgDeleteAudience {
 
 // MsgDeleteAudienceResponse defines the response for deleting an audience
 message MsgDeleteAudienceResponse {}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "jwk/MsgUpdateParams";
+
+  // authority is the address of the governance account.
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+
+  // params defines the parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [ (gogoproto.nullable) = false ];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}

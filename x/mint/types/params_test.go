@@ -460,6 +460,12 @@ func TestValidateGoalBonded(t *testing.T) {
 			expectedErr: true,
 			errContains: "goal bonded cannot be nil",
 		},
+		{
+			name:        "greater than one",
+			value:       math.LegacyNewDecWithPrec(101, 2),
+			expectedErr: true,
+			errContains: "goal bonded too large",
+		},
 	}
 
 	for _, tt := range tests {

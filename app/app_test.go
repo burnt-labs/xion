@@ -2,11 +2,14 @@ package app
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"os"
+	"strings"
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
@@ -14,12 +17,11 @@ import (
 	"github.com/cometbft/cometbft/abci/types"
 
 	dbm "github.com/cosmos/cosmos-db"
-	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcclient "github.com/cosmos/ibc-go/v11/modules/core/02-client"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"cosmossdk.io/math"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server/api"
@@ -27,10 +29,13 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
+	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
+	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
+	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
 )
 
 var emptyWasmOpts []wasmkeeper.Option
@@ -53,7 +58,6 @@ func TestWasmdExport(t *testing.T) {
 	newGapp := NewWasmApp(
 		log.NewLogger(os.Stdout),
 		db,
-		nil,
 		true,
 		simtestutil.NewAppOptionsWithFlagHome(t.TempDir()),
 		emptyWasmOpts,
@@ -117,12 +121,7 @@ func TestAppGetters(t *testing.T) {
 	require.NotNil(t, storeKey)
 
 	// Test GetTKey()
-	tkey := gapp.GetTKey(paramstypes.TStoreKey)
-	require.NotNil(t, tkey)
-
-	// Test GetSubspace()
-	subspace := gapp.GetSubspace("bank")
-	require.NotNil(t, subspace)
+	require.NotNil(t, gapp.GetTKey(aatypes.TransientStoreKey))
 
 	// Test SimulationManager()
 	simManager := gapp.SimulationManager()
@@ -408,22 +407,116 @@ func TestRegisterUpgradeHandlers(t *testing.T) {
 }
 
 func TestNextUpgradeHandler(t *testing.T) {
-	t.Run("migrates then configures abstract account registration", func(t *testing.T) {
+	t.Run("skips the testnet backfill on a chain without code 1880", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("xion-testnet-2")
+		require.Nil(t, gapp.WasmKeeper.GetCodeInfo(ctx, 1880))
+
+		_, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
+		require.NoError(t, err)
+	})
+
+	t.Run("migrates legacy x/params values into globalfee and jwk", func(t *testing.T) {
 		gapp := Setup(t)
 		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
 		fromVM := gapp.ModuleManager.GetVersionMap()
-		fromVM[aatypes.ModuleName] = 2
+		fromVM[globalfeetypes.ModuleName] = 2
+		fromVM[jwktypes.ModuleName] = 3
+
+		globalFeeParams := globalfeetypes.DefaultParams()
+		globalFeeParams.MinimumGasPrices = sdk.NewDecCoins(
+			sdk.NewDecCoinFromDec("ibc/F082B65C88E4B6D5EF1DB243CDA1D331D002759E938A0F5CD3FFDC5D53B3E349", math.LegacyMustNewDecFromStr("0.005")),
+			sdk.NewDecCoinFromDec("uxion", math.LegacyMustNewDecFromStr("0.001")),
+		)
+		jwkParams := jwktypes.Params{TimeOffset: 30000000000, DeploymentGas: 10000}
+		legacyParams := ctx.KVStore(gapp.GetKey(legacyParamsStoreKey))
+		for key, value := range map[string]interface{}{
+			"globalfee/MinimumGasPricesParam":           globalFeeParams.MinimumGasPrices,
+			"globalfee/BypassMinFeeMsgTypes":            globalFeeParams.BypassMinFeeMsgTypes,
+			"globalfee/MaxTotalBypassMinFeeMsgGasUsage": globalFeeParams.MaxTotalBypassMinFeeMsgGasUsage,
+			"jwk/TimeOffset":                            jwkParams.TimeOffset,
+			"jwk/DeploymentGas":                         jwkParams.DeploymentGas,
+		} {
+			bz, err := gapp.LegacyAmino().MarshalJSON(value)
+			require.NoError(t, err)
+			legacyParams.Set([]byte(key), bz)
+		}
 
 		vm, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, fromVM)
 		require.NoError(t, err)
-		require.Equal(t, uint64(3), vm[aatypes.ModuleName])
+		require.Equal(t, uint64(3), vm[globalfeetypes.ModuleName])
+		require.Equal(t, uint64(4), vm[jwktypes.ModuleName])
+		migratedGlobalFeeParams, err := gapp.GlobalFeeKeeper.GetParams(ctx)
+		require.NoError(t, err)
+		require.Equal(t, globalFeeParams, migratedGlobalFeeParams)
+		require.Equal(t, jwkParams, gapp.JwkKeeper.GetParams(ctx))
+	})
 
-		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
+	t.Run("refuses when the code's checksum is not the pinned one", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("backfill-mismatch")
+		codeID, _, err := gapp.AbstractAccountKeeper.ContractKeeper().Create(ctx, RandomAccAddress(), aatestdata.AccountWasm, nil)
 		require.NoError(t, err)
-		expected, err := hex.DecodeString(mainnetAddressDerivationHash)
+		t.Cleanup(func() { delete(checksumAccountCodes, "backfill-mismatch") })
+		checksumAccountCodes["backfill-mismatch"] = []checksumAccountCode{{codeID: codeID, checksum: strings.Repeat("AB", 32)}}
+
+		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
+		require.ErrorIs(t, err, aatypes.ErrInvalidAccountAddressRegistry)
+	})
+
+	t.Run("refuses a checksum that is not hex", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("backfill-bad-hex")
+		codeID, _, err := gapp.AbstractAccountKeeper.ContractKeeper().Create(ctx, RandomAccAddress(), aatestdata.AccountWasm, nil)
 		require.NoError(t, err)
-		require.Equal(t, expected, params.AddressDerivationHash)
-		require.True(t, params.RegistrationEnabled)
+		t.Cleanup(func() { delete(checksumAccountCodes, "backfill-bad-hex") })
+		checksumAccountCodes["backfill-bad-hex"] = []checksumAccountCode{{codeID: codeID, checksum: "not hex"}}
+
+		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
+		require.ErrorContains(t, err, "decode checksum")
+	})
+
+	t.Run("pins xion-testnet-2 to code 1880's checksum", func(t *testing.T) {
+		require.Equal(t, map[string][]checksumAccountCode{
+			"xion-testnet-2": {{codeID: 1880, checksum: "D27A379FF65EB47A9E538E3A3D46101DE2A6C0B86BA3D0BF014C0403849414E6"}},
+		}, checksumAccountCodes)
+	})
+
+	t.Run("registers the chain's checksum-derived accounts", func(t *testing.T) {
+		gapp := Setup(t)
+		ctx := gapp.NewContext(false).WithChainID("backfill-test")
+		creator := RandomAccAddress()
+		codeID, checksum, err := gapp.AbstractAccountKeeper.ContractKeeper().Create(ctx, creator, aatestdata.AccountWasm, nil)
+		require.NoError(t, err)
+		t.Cleanup(func() { delete(checksumAccountCodes, "backfill-test") })
+		checksumAccountCodes["backfill-test"] = []checksumAccountCode{{codeID: codeID, checksum: hex.EncodeToString(checksum)}}
+
+		pubkey := "A08EGB7ro1ORuFhjOnZcSgwYlpe0DSFjVNUIkNNQxwKQ"
+		salt := sha256.Sum256([]byte(pubkey))
+		address := wasmkeeper.BuildContractAddressPredictable(checksum, creator, salt[:], nil)
+		position := &wasmtypes.AbsoluteTxPosition{BlockHeight: 1, TxIndex: 1}
+		_, err = wasmkeeper.InitGenesis(ctx, &gapp.WasmKeeper, wasmtypes.GenesisState{
+			Params: gapp.WasmKeeper.GetParams(ctx),
+			Contracts: []wasmtypes.Contract{{
+				ContractAddress: address.String(),
+				ContractInfo:    wasmtypes.ContractInfo{CodeID: codeID, Creator: creator.String(), Label: "account", Created: position},
+				ContractCodeHistory: []wasmtypes.ContractCodeHistoryEntry{{
+					Operation: wasmtypes.ContractCodeHistoryOperationTypeInit,
+					CodeID:    codeID,
+					Updated:   position,
+					Msg:       []byte(`{"authenticator":{"Secp256K1":{"id":0,"pubkey":"` + pubkey + `","signature":"c2ln"}}}`),
+				}},
+			}},
+		})
+		require.NoError(t, err)
+		gapp.AccountKeeper.SetAccount(ctx, gapp.AccountKeeper.NewAccount(ctx, aatypes.NewAbstractAccount(address.String(), 0, 0)))
+
+		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
+		require.NoError(t, err)
+
+		registered, found := gapp.AbstractAccountKeeper.GetAccountAddress(ctx, creator, salt[:])
+		require.True(t, found)
+		require.Equal(t, address, registered)
 	})
 
 	t.Run("runs migrations successfully", func(t *testing.T) {
@@ -508,16 +601,16 @@ func TestNextUpgradeHandler(t *testing.T) {
 	})
 }
 
-func TestNextStoreUpgradesRemovesIBCWasmStore(t *testing.T) {
+func TestNextStoreUpgradesRemovesRetiredModuleStores(t *testing.T) {
 	storeUpgrades := nextStoreUpgrades(UpgradeName)
 
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)
-	require.Equal(t, []string{removedIBCWasmStoreKey}, storeUpgrades.Deleted)
+	require.Equal(t, []string{"group", "nft", "circuit", "crisis"}, storeUpgrades.Deleted)
 }
 
-func TestNextStoreUpgradesDoesNotRemoveIBCWasmStoreForOtherUpgrades(t *testing.T) {
-	storeUpgrades := nextStoreUpgrades("v32")
+func TestNextStoreUpgradesKeepsStoresForOtherUpgrades(t *testing.T) {
+	storeUpgrades := nextStoreUpgrades("v31")
 
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)
@@ -569,159 +662,6 @@ func TestExportGenesisWithLegacyIBCWasmClient(t *testing.T) {
 	genesisState := ibcclient.ExportGenesis(ctx, clientKeeper)
 	genesisState.Params = clienttypes.NewParams(clienttypes.AllowAllClients)
 	require.NoError(t, genesisState.Validate())
-}
-
-func TestConfigureAbstractAccountAddressDerivation(t *testing.T) {
-	for _, tc := range []struct {
-		name    string
-		chainID string
-		hashHex string
-	}{
-		{name: "mainnet", chainID: "xion-mainnet-1", hashHex: mainnetAddressDerivationHash},
-		{name: "testnet", chainID: "xion-testnet-2", hashHex: testnetAddressDerivationHash},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			gapp := Setup(t)
-			ctx := gapp.NewContext(false).WithChainID(tc.chainID)
-
-			require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
-			params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
-			require.NoError(t, err)
-			expected, err := hex.DecodeString(tc.hashHex)
-			require.NoError(t, err)
-			require.Equal(t, expected, params.AddressDerivationHash)
-			require.True(t, params.RegistrationEnabled)
-
-			// Reapplying the upgrade configuration is idempotent.
-			require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
-		})
-	}
-
-	t.Run("unsupported chain remains disabled", func(t *testing.T) {
-		gapp := Setup(t)
-		ctx := gapp.NewContext(false).WithChainID("localnet")
-
-		require.NoError(t, gapp.configureAbstractAccountAddressDerivation(ctx))
-		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
-		require.NoError(t, err)
-		require.Empty(t, params.AddressDerivationHash)
-		require.False(t, params.RegistrationEnabled)
-	})
-
-	t.Run("rejects a conflicting configured namespace", func(t *testing.T) {
-		gapp := Setup(t)
-		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
-		params, err := gapp.AbstractAccountKeeper.GetParams(ctx)
-		require.NoError(t, err)
-		params.AddressDerivationHash = make([]byte, 32)
-		require.NoError(t, gapp.AbstractAccountKeeper.SetParams(ctx, params))
-
-		err = gapp.configureAbstractAccountAddressDerivation(ctx)
-		require.ErrorIs(t, err, aatypes.ErrImmutableAddressHash)
-	})
-}
-
-func TestAddVeronaDenomMetadataAliases(t *testing.T) {
-	gapp := Setup(t)
-	ctx := gapp.NewContext(false)
-
-	gapp.addVeronaDenomMetadataAliases(ctx)
-	gapp.addVeronaDenomMetadataAliases(ctx)
-
-	metadata, found := gapp.BankKeeper.GetDenomMetaData(ctx, "uxion")
-	require.True(t, found)
-	require.Equal(t, "uxion", metadata.Base)
-	require.Equal(t, "XION", metadata.Display)
-	require.Equal(t, "xion", metadata.Name)
-	require.Equal(t, "XION", metadata.Symbol)
-	require.NoError(t, metadata.Validate())
-
-	requireAliases := func(denom string, aliases ...string) {
-		t.Helper()
-
-		for _, unit := range metadata.DenomUnits {
-			if unit.Denom != denom {
-				continue
-			}
-
-			for _, alias := range aliases {
-				require.Contains(t, unit.Aliases, alias)
-				require.Equal(t, 1, countString(unit.Aliases, alias), "alias should only be added once")
-			}
-			return
-		}
-
-		require.Failf(t, "missing denom unit", "denom unit %s not found", denom)
-	}
-
-	requireAliases("uxion", "microxion", "uverona", "microverona")
-	requireAliases("mxion", "millixion", "mverona", "milliverona")
-	requireAliases("XION", "xion", "verona", "VERONA")
-}
-
-func TestAddVeronaDenomMetadataAliasesAddsMissingMxionUnit(t *testing.T) {
-	gapp := Setup(t)
-	ctx := gapp.NewContext(false)
-
-	gapp.BankKeeper.SetDenomMetaData(ctx, banktypes.Metadata{
-		Description: "The native staking token of the Xion network.",
-		Base:        "uxion",
-		Display:     "XION",
-		Name:        "xion",
-		Symbol:      "XION",
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    "uxion",
-				Exponent: 0,
-				Aliases:  []string{"microxion"},
-			},
-			{
-				Denom:    "XION",
-				Exponent: 6,
-			},
-		},
-	})
-
-	gapp.addVeronaDenomMetadataAliases(ctx)
-
-	metadata, found := gapp.BankKeeper.GetDenomMetaData(ctx, "uxion")
-	require.True(t, found)
-	require.NoError(t, metadata.Validate())
-
-	var mxion *banktypes.DenomUnit
-	for _, unit := range metadata.DenomUnits {
-		if unit.Denom == "mxion" {
-			mxion = unit
-			break
-		}
-	}
-	require.NotNil(t, mxion)
-	require.Equal(t, uint32(3), mxion.Exponent)
-	require.Contains(t, mxion.Aliases, "millixion")
-	require.Contains(t, mxion.Aliases, "mverona")
-	require.Contains(t, mxion.Aliases, "milliverona")
-
-	var xion *banktypes.DenomUnit
-	for _, unit := range metadata.DenomUnits {
-		if unit.Denom == "XION" {
-			xion = unit
-			break
-		}
-	}
-	require.NotNil(t, xion)
-	require.Contains(t, xion.Aliases, "xion")
-	require.Contains(t, xion.Aliases, "verona")
-	require.Contains(t, xion.Aliases, "VERONA")
-}
-
-func countString(values []string, value string) int {
-	count := 0
-	for _, item := range values {
-		if item == value {
-			count++
-		}
-	}
-	return count
 }
 
 func TestIsModuleInitialized(t *testing.T) {

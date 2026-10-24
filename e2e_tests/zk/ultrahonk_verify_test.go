@@ -13,8 +13,8 @@ import (
 
 	"github.com/burnt-labs/xion/e2e_tests/testlib"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/interchaintest/v10"
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
 	"github.com/stretchr/testify/require"
 )
 

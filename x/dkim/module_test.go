@@ -8,11 +8,11 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkruntime "github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil/integration"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -208,18 +208,6 @@ func TestAppModuleBasic_GetQueryCmd(t *testing.T) {
 	cmd := basic.GetQueryCmd()
 	require.NotNil(t, cmd)
 	require.Equal(t, types.ModuleName, cmd.Use)
-}
-
-func TestAppModule_RegisterInvariants(t *testing.T) {
-	appModule := setupModule(t)
-
-	// Should not panic (it's a no-op)
-	require.NotPanics(t, func() {
-		appModule.RegisterInvariants(nil)
-	})
-
-	// Call it directly to ensure coverage
-	appModule.RegisterInvariants(nil)
 }
 
 func TestAppModule_QuerierRoute(t *testing.T) {
