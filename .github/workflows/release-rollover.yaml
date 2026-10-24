@@ -6,13 +6,24 @@ name: release-rollover
 # default branch and its target-branch is a static string, which is why the
 # retarget lands on main.
 #
+# The retarget commit is made with the GraphQL createCommitOnBranch mutation
+# rather than git push, so GitHub signs it and it shows as Verified: main
+# requires signed commits and takes merge commits only, so an unsigned commit
+# here could not reach main without a ruleset bypass.
+#
 # workflow_dispatch is the manual fallback: it skips branch creation and
-# just reconciles target-branch to the highest existing release/v* branch.
+# reconciles target-branch to the highest existing release/v* branch, or to
+# the existing release/v* branch given as the target-branch input.
 on:
   pull_request:
     types: [closed]
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      target-branch:
+        description: Existing release/vN branch to point dependabot at (default is the highest release/v* branch)
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -34,11 +45,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MERGED_REF: ${{ github.event.pull_request.head.ref || '' }}
+          TARGET_INPUT: ${{ inputs.target-branch || '' }}
         run: |
           set -euo pipefail
 
+          release_re='^release/v[0-9]+(\.[0-9]+)*$'
           if [ -n "$MERGED_REF" ]; then
-            if ! printf '%s' "$MERGED_REF" | grep -qE '^release/v[0-9]+(\.[0-9]+)*$'; then
+            if ! printf '%s' "$MERGED_REF" | grep -qE "$release_re"; then
               echo "not a numeric release branch: $MERGED_REF"
               exit 0
             fi
@@ -51,10 +64,20 @@ jobs:
               git push origin "HEAD:refs/heads/$next"
               echo "created $next from main@$(git rev-parse --short HEAD)"
             fi
+          elif [ -n "$TARGET_INPUT" ]; then
+            if ! printf '%s' "$TARGET_INPUT" | grep -qE "$release_re"; then
+              echo "target-branch must be a release/vN branch: $TARGET_INPUT" >&2
+              exit 1
+            fi
+            if ! git ls-remote --exit-code --heads origin "$TARGET_INPUT" > /dev/null; then
+              echo "target-branch does not exist: $TARGET_INPUT" >&2
+              exit 1
+            fi
+            next=$TARGET_INPUT
           else
             next=$(git ls-remote --heads origin 'release/v*' \
               | sed 's|.*refs/heads/||' \
-              | grep -E '^release/v[0-9]+(\.[0-9]+)*$' \
+              | grep -E "$release_re" \
               | sort -V | tail -n1)
             if [ -z "$next" ]; then
               echo "no release branches found" >&2
@@ -68,13 +91,57 @@ jobs:
             exit 0
           fi
           sed -i "s|^\( *target-branch:\) .*|\1 $next|" .github/dependabot.yml
-          git switch -c automation/dependabot-target
-          git -c user.name='github-actions[bot]' \
-              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit -am "ci: point dependabot at $next"
-          git push -f -u origin automation/dependabot-target
-          if [ "$(gh pr list --head automation/dependabot-target --base main --state open --json number --jq length)" = "0" ]; then
-            gh pr create --base main \
+
+          # Choose the parent of the retarget commit. An open retarget PR keeps
+          # its branch and gets the new commit on top; resetting that branch to
+          # main would leave the PR without commits and GitHub would close it.
+          # Otherwise the branch is (re)pointed at the checked-out main.
+          branch=automation/dependabot-target
+          base=$(git rev-parse HEAD)
+          open_prs=$(gh pr list --head "$branch" --base main --state open --json number --jq length)
+          if branch_head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" --jq '.object.sha' 2> /dev/null); then
+            if [ "$open_prs" = "0" ]; then
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch" \
+                -f sha="$base" -F force=true > /dev/null
+              parent=$base
+            else
+              parent=$branch_head
+            fi
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/heads/$branch" -f sha="$base" > /dev/null
+            parent=$base
+          fi
+
+          oid=$(jq -n \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg branch "$branch" \
+            --arg parent "$parent" \
+            --arg headline "ci: point dependabot at $next" \
+            --arg contents "$(base64 -w0 .github/dependabot.yml)" \
+            '{
+              query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+              variables: {input: {
+                branch: {repositoryNameWithOwner: $repo, branchName: $branch},
+                expectedHeadOid: $parent,
+                message: {headline: $headline},
+                fileChanges: {additions: [{path: ".github/dependabot.yml", contents: $contents}]}
+              }}
+            }' \
+            | gh api graphql --input - --jq '.data.createCommitOnBranch.commit.oid')
+          if [ -z "$oid" ] || [ "$oid" = "null" ]; then
+            echo "createCommitOnBranch returned no commit" >&2
+            exit 1
+          fi
+          verified=$(gh api "repos/$GITHUB_REPOSITORY/commits/$oid" --jq '.commit.verification.verified')
+          if [ "$verified" != "true" ]; then
+            echo "retarget commit $oid is not verified" >&2
+            exit 1
+          fi
+          echo "created verified commit $oid on $branch"
+
+          if [ "$open_prs" = "0" ]; then
+            gh pr create --base main --head "$branch" \
               --title "ci: point dependabot at $next" \
               --body "Retargets dependabot version updates from \`$current\` to \`$next\`. Opened by the release-rollover workflow; \`dependabot.yml\` is only read from the default branch, which is why this PR targets \`main\`."
           else
