@@ -1,3 +1,5 @@
+# Sanctioned bespoke (github-workflows v1.8.0): GoReleaser/Gemfury publication, native installer verification and tag-aware cross-repository chain dispatches have no equivalent shared npm/Cloudflare/Phala flow.
+# Revisit when the shared platform supports this existing contract.
 name: Publish Release
 
 on:
@@ -28,7 +30,7 @@ permissions:
 jobs:
   resolve-tag:
     name: Resolve Release Tag
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
       is_rc: ${{ steps.tag.outputs.is_rc }}
@@ -238,7 +240,7 @@ jobs:
     name: Trigger Types
     needs: resolve-tag
     if: github.repository == 'burnt-labs/xion' && !inputs.packages_only
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     steps:
       - name: Trigger and wait for xion-types release
         env:
@@ -261,7 +263,7 @@ jobs:
     name: Update Chain Registry
     needs: resolve-tag
     if: github.repository == 'burnt-labs/xion' && !inputs.packages_only
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     steps:
       - name: Dispatch and wait for xion-assets update
         env:
@@ -288,7 +290,7 @@ jobs:
     name: Network Upgrade PR
     needs: resolve-tag
     if: github.repository == 'burnt-labs/xion' && !inputs.packages_only
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     steps:
       - name: Trigger and wait for upgrade workflow
         env:
