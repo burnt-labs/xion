@@ -20,9 +20,7 @@ jobs:
           - arm64
 
     permissions:
-      id-token: write
       contents: read
-      packages: write
 
     steps:
       - name: Checkout
