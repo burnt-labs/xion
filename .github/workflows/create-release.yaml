@@ -12,6 +12,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+  pull-requests: write
+
 jobs:
   # A manual run from a branch would hand the branch name to GoReleaser as the
   # release tag, and from the default branch would also push `latest`. Every
