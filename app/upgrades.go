@@ -2,16 +2,11 @@ package app
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
-
-	channelv11 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/migrations/v11"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
 
 	"cosmossdk.io/collections"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -19,36 +14,10 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-const UpgradeName = "v32"
+const UpgradeName = "v33"
 
 // Kept mounted for the v32 globalfee/jwk migrations; delete in the next upgrade.
 const legacyParamsStoreKey = "params"
-
-var removedStoreKeys = []string{"group", "nft", "circuit", "crisis"}
-
-// checksumAccountCode is a code whose accounts were registered, before the
-// (sender, salt) registry existed, at addresses derived from the code's
-// checksum rather than from the address derivation hash.
-type checksumAccountCode struct {
-	codeID   uint64
-	checksum string
-}
-
-// checksumAccountCodes lists those codes per chain. On xion-testnet-2, code
-// 1880 registered accounts this way from governance proposal 63 until v31.
-var checksumAccountCodes = map[string][]checksumAccountCode{
-	"xion-testnet-2": {{codeID: 1880, checksum: "D27A379FF65EB47A9E538E3A3D46101DE2A6C0B86BA3D0BF014C0403849414E6"}},
-}
-
-// feeAllowanceQueueFixHeights is, per chain, the block whose PreBlocker runs
-// migrateFeeAllowanceQueueValues. These chains ran the v32 upgrade before the
-// handler did so and halted on the first legacy queue entry to expire: the
-// EndBlocker of xion-testnet-2 block 19286361 failed with "collections:
-// encoding error: wanted size to be at least 1". That block is decided but was
-// never applied, so rewriting the queue at its start changes no applied state.
-var feeAllowanceQueueFixHeights = map[string]int64{
-	"xion-testnet-2": 19286361,
-}
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -69,7 +38,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 
 // NextStoreLoader is the store loader that is called during the upgrade process.
 func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader baseapp.StoreLoader) {
-	storeUpgrades := nextStoreUpgrades(upgradeInfo.Name)
+	storeUpgrades := nextStoreUpgrades()
 	if len(storeUpgrades.Added) != 0 {
 		app.Logger().Info("upgrade", upgradeInfo.Name, "will add stores", storeUpgrades.Added)
 	}
@@ -83,16 +52,14 @@ func (app *WasmApp) NextStoreLoader(upgradeInfo upgradetypes.Plan) (storeLoader 
 	return storeLoader
 }
 
-func nextStoreUpgrades(upgradeName string) storetypes.StoreUpgrades {
-	storeUpgrades := storetypes.StoreUpgrades{
+// nextStoreUpgrades lists the stores the upgrade adds, renames, or deletes. v33
+// changes none; v32 already deleted the retired module stores.
+func nextStoreUpgrades() storetypes.StoreUpgrades {
+	return storetypes.StoreUpgrades{
 		Added:   []string{},
 		Renamed: []storetypes.StoreRename{},
 		Deleted: []string{},
 	}
-	if upgradeName == UpgradeName {
-		storeUpgrades.Deleted = removedStoreKeys
-	}
-	return storeUpgrades
 }
 
 // getExistingStoreNames returns a map of store names that already exist in the database.
@@ -139,38 +106,13 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 		panic(fmt.Sprintf("failed to run migrations: %s", err))
 	}
 
-	// v32
-	if err := app.migrateIBCChannelsToV11(sdkCtx); err != nil {
-		return nil, fmt.Errorf("migrate ibc channels to v11: %w", err)
-	}
-	if err := app.backfillChecksumAccountAddresses(sdkCtx); err != nil {
-		return nil, fmt.Errorf("backfill checksum account addresses: %w", err)
-	}
+	// v33
 	if err := app.migrateFeeAllowanceQueueValues(sdkCtx); err != nil {
 		return nil, fmt.Errorf("migrate feegrant queue values: %w", err)
 	}
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
-}
-
-// migrateIBCChannelsToV11 moves every channel's NextSequenceSend to the ibc-go v11 key and sets the
-// IBC v2 aliases. ibc-go v11 keeps core at consensus version 8, so RunMigrations never runs it, and
-// without it SendPacket fails on every pre-existing channel. Skipped when no v1 key
-// (nextSequenceSend/ports/...) is left, because rerunning it would overwrite the moved sequences with
-// zero; v2 keys (nextSequenceSend//<channel>) share the outer prefix, so match the v1 shape.
-func (app *WasmApp) migrateIBCChannelsToV11(ctx sdktypes.Context) error {
-	key := app.GetKey(ibcexported.StoreKey)
-	v1Prefix := []byte(channelv11.KeyNextSeqSendPrefix + "/" + channelv11.KeyPortPrefix + "/")
-	it := storetypes.KVStorePrefixIterator(ctx.KVStore(key), v1Prefix)
-	hasLegacy := it.Valid()
-	if err := it.Close(); err != nil {
-		return err
-	}
-	if !hasLegacy {
-		return nil
-	}
-	return channelv11.MigrateStore(ctx, runtime.NewKVStoreService(key), app.appCodec, app.IBCKeeper)
 }
 
 // migrateFeeAllowanceQueueValues rewrites the fee allowance queue entries that
@@ -200,36 +142,6 @@ func (app *WasmApp) migrateFeeAllowanceQueueValues(ctx sdktypes.Context) error {
 		store.Set(key, value)
 	}
 	ctx.Logger().Info("migrated feegrant queue values", "entries", len(legacy))
-	return nil
-}
-
-// backfillChecksumAccountAddresses registers the (sender, salt) entries of the
-// chain's checksum-derived accounts (see checksumAccountCodes). Chains without
-// such accounts, including a local chain that only shares the chain ID and has
-// no such code, are left unchanged. A code that exists with another checksum
-// fails the upgrade.
-func (app *WasmApp) backfillChecksumAccountAddresses(ctx sdktypes.Context) error {
-	for _, code := range checksumAccountCodes[ctx.ChainID()] {
-		if app.WasmKeeper.GetCodeInfo(ctx, code.codeID) == nil {
-			ctx.Logger().Info("no checksum-derived abstract accounts to register: code not on chain", "code_id", code.codeID)
-			continue
-		}
-		checksum, err := hex.DecodeString(code.checksum)
-		if err != nil {
-			return fmt.Errorf("decode checksum of code %d: %w", code.codeID, err)
-		}
-		result, err := app.AbstractAccountKeeper.BackfillChecksumAccountAddresses(ctx, code.codeID, checksum)
-		if err != nil {
-			return err
-		}
-		ctx.Logger().Info(
-			"registered checksum-derived abstract account addresses",
-			"code_id", code.codeID,
-			"registered", result.Registered,
-			"skipped", result.Skipped,
-		)
-	}
-
 	return nil
 }
 
