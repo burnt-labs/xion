@@ -2,14 +2,10 @@ package app
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"os"
-	"strings"
 	"testing"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/stretchr/testify/require"
@@ -32,7 +28,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	legacyibcwasm "github.com/burnt-labs/xion/app/legacy/ibcwasm"
-	aatestdata "github.com/burnt-labs/xion/x/abstractaccount/testdata"
 	aatypes "github.com/burnt-labs/xion/x/abstractaccount/types"
 	globalfeetypes "github.com/burnt-labs/xion/x/globalfee/types"
 	jwktypes "github.com/burnt-labs/xion/x/jwk/types"
@@ -407,15 +402,6 @@ func TestRegisterUpgradeHandlers(t *testing.T) {
 }
 
 func TestNextUpgradeHandler(t *testing.T) {
-	t.Run("skips the testnet backfill on a chain without code 1880", func(t *testing.T) {
-		gapp := Setup(t)
-		ctx := gapp.NewContext(false).WithChainID("xion-testnet-2")
-		require.Nil(t, gapp.WasmKeeper.GetCodeInfo(ctx, 1880))
-
-		_, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
-		require.NoError(t, err)
-	})
-
 	t.Run("migrates legacy x/params values into globalfee and jwk", func(t *testing.T) {
 		gapp := Setup(t)
 		ctx := gapp.NewContext(false).WithChainID("xion-mainnet-1")
@@ -450,73 +436,6 @@ func TestNextUpgradeHandler(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, globalFeeParams, migratedGlobalFeeParams)
 		require.Equal(t, jwkParams, gapp.JwkKeeper.GetParams(ctx))
-	})
-
-	t.Run("refuses when the code's checksum is not the pinned one", func(t *testing.T) {
-		gapp := Setup(t)
-		ctx := gapp.NewContext(false).WithChainID("backfill-mismatch")
-		codeID, _, err := gapp.AbstractAccountKeeper.ContractKeeper().Create(ctx, RandomAccAddress(), aatestdata.AccountWasm, nil)
-		require.NoError(t, err)
-		t.Cleanup(func() { delete(checksumAccountCodes, "backfill-mismatch") })
-		checksumAccountCodes["backfill-mismatch"] = []checksumAccountCode{{codeID: codeID, checksum: strings.Repeat("AB", 32)}}
-
-		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
-		require.ErrorIs(t, err, aatypes.ErrInvalidAccountAddressRegistry)
-	})
-
-	t.Run("refuses a checksum that is not hex", func(t *testing.T) {
-		gapp := Setup(t)
-		ctx := gapp.NewContext(false).WithChainID("backfill-bad-hex")
-		codeID, _, err := gapp.AbstractAccountKeeper.ContractKeeper().Create(ctx, RandomAccAddress(), aatestdata.AccountWasm, nil)
-		require.NoError(t, err)
-		t.Cleanup(func() { delete(checksumAccountCodes, "backfill-bad-hex") })
-		checksumAccountCodes["backfill-bad-hex"] = []checksumAccountCode{{codeID: codeID, checksum: "not hex"}}
-
-		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
-		require.ErrorContains(t, err, "decode checksum")
-	})
-
-	t.Run("pins xion-testnet-2 to code 1880's checksum", func(t *testing.T) {
-		require.Equal(t, map[string][]checksumAccountCode{
-			"xion-testnet-2": {{codeID: 1880, checksum: "D27A379FF65EB47A9E538E3A3D46101DE2A6C0B86BA3D0BF014C0403849414E6"}},
-		}, checksumAccountCodes)
-	})
-
-	t.Run("registers the chain's checksum-derived accounts", func(t *testing.T) {
-		gapp := Setup(t)
-		ctx := gapp.NewContext(false).WithChainID("backfill-test")
-		creator := RandomAccAddress()
-		codeID, checksum, err := gapp.AbstractAccountKeeper.ContractKeeper().Create(ctx, creator, aatestdata.AccountWasm, nil)
-		require.NoError(t, err)
-		t.Cleanup(func() { delete(checksumAccountCodes, "backfill-test") })
-		checksumAccountCodes["backfill-test"] = []checksumAccountCode{{codeID: codeID, checksum: hex.EncodeToString(checksum)}}
-
-		pubkey := "A08EGB7ro1ORuFhjOnZcSgwYlpe0DSFjVNUIkNNQxwKQ"
-		salt := sha256.Sum256([]byte(pubkey))
-		address := wasmkeeper.BuildContractAddressPredictable(checksum, creator, salt[:], nil)
-		position := &wasmtypes.AbsoluteTxPosition{BlockHeight: 1, TxIndex: 1}
-		_, err = wasmkeeper.InitGenesis(ctx, &gapp.WasmKeeper, wasmtypes.GenesisState{
-			Params: gapp.WasmKeeper.GetParams(ctx),
-			Contracts: []wasmtypes.Contract{{
-				ContractAddress: address.String(),
-				ContractInfo:    wasmtypes.ContractInfo{CodeID: codeID, Creator: creator.String(), Label: "account", Created: position},
-				ContractCodeHistory: []wasmtypes.ContractCodeHistoryEntry{{
-					Operation: wasmtypes.ContractCodeHistoryOperationTypeInit,
-					CodeID:    codeID,
-					Updated:   position,
-					Msg:       []byte(`{"authenticator":{"Secp256K1":{"id":0,"pubkey":"` + pubkey + `","signature":"c2ln"}}}`),
-				}},
-			}},
-		})
-		require.NoError(t, err)
-		gapp.AccountKeeper.SetAccount(ctx, gapp.AccountKeeper.NewAccount(ctx, aatypes.NewAbstractAccount(address.String(), 0, 0)))
-
-		_, err = gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
-		require.NoError(t, err)
-
-		registered, found := gapp.AbstractAccountKeeper.GetAccountAddress(ctx, creator, salt[:])
-		require.True(t, found)
-		require.Equal(t, address, registered)
 	})
 
 	t.Run("runs migrations successfully", func(t *testing.T) {
@@ -601,16 +520,10 @@ func TestNextUpgradeHandler(t *testing.T) {
 	})
 }
 
-func TestNextStoreUpgradesRemovesRetiredModuleStores(t *testing.T) {
-	storeUpgrades := nextStoreUpgrades(UpgradeName)
-
-	require.Empty(t, storeUpgrades.Added)
-	require.Empty(t, storeUpgrades.Renamed)
-	require.Equal(t, []string{"group", "nft", "circuit", "crisis"}, storeUpgrades.Deleted)
-}
-
-func TestNextStoreUpgradesKeepsStoresForOtherUpgrades(t *testing.T) {
-	storeUpgrades := nextStoreUpgrades("v31")
+func TestNextStoreUpgradesChangesNoStores(t *testing.T) {
+	// v32 already deleted the retired module stores; deleting them again, or
+	// any other store, would need a deliberate entry here.
+	storeUpgrades := nextStoreUpgrades()
 
 	require.Empty(t, storeUpgrades.Added)
 	require.Empty(t, storeUpgrades.Renamed)
