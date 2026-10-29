@@ -14,7 +14,7 @@ updates:
       - "/e2e_tests"
     schedule:
       interval: weekly
-    target-branch: release/v32
+    target-branch: release/v33
     groups:
       go_modules:
         patterns:

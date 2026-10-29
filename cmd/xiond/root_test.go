@@ -16,6 +16,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
+
+	"github.com/burnt-labs/xion/app"
 )
 
 func TestSetValidatorTimeout(t *testing.T) {
@@ -64,6 +66,18 @@ func TestApplyValidatorTimeout(t *testing.T) {
 			require.Equal(t, tc.expected, serverCtx.Config.Consensus.TimeoutCommit)
 		})
 	}
+}
+
+func TestStartAcceptsTraceStore(t *testing.T) {
+	// Indexer nodes run `xiond start --trace-store <fifo>`; SDK v0.55 dropped
+	// the flag, so xiond registers it itself.
+	cmd := &cobra.Command{Use: "start"}
+	addModuleInitFlags(cmd)
+	require.NoError(t, cmd.ParseFlags([]string{"--trace-store", "/tmp/trace.pipe"}))
+
+	got, err := cmd.Flags().GetString(app.FlagTraceStore)
+	require.NoError(t, err)
+	require.Equal(t, "/tmp/trace.pipe", got)
 }
 
 // TestEffectiveTimeoutCommit runs the server pre-run the way xiond does
