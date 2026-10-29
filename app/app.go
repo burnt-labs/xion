@@ -1106,11 +1106,6 @@ func (app *WasmApp) Name() string { return app.BaseApp.Name() }
 
 // PreBlocker application updates every pre block
 func (app *WasmApp) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
-	if height, ok := feeAllowanceQueueFixHeights[ctx.ChainID()]; ok && ctx.BlockHeight() == height {
-		if err := app.migrateFeeAllowanceQueueValues(ctx); err != nil {
-			return nil, fmt.Errorf("migrate feegrant queue values: %w", err)
-		}
-	}
 	return app.ModuleManager.PreBlock(ctx)
 }
 
