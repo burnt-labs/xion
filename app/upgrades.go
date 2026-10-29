@@ -8,11 +8,14 @@ import (
 	channelv11 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/migrations/v11"
 	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
 
+	"cosmossdk.io/collections"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
@@ -35,6 +38,16 @@ type checksumAccountCode struct {
 // 1880 registered accounts this way from governance proposal 63 until v31.
 var checksumAccountCodes = map[string][]checksumAccountCode{
 	"xion-testnet-2": {{codeID: 1880, checksum: "D27A379FF65EB47A9E538E3A3D46101DE2A6C0B86BA3D0BF014C0403849414E6"}},
+}
+
+// feeAllowanceQueueFixHeights is, per chain, the block whose PreBlocker runs
+// migrateFeeAllowanceQueueValues. These chains ran the v32 upgrade before the
+// handler did so and halted on the first legacy queue entry to expire: the
+// EndBlocker of xion-testnet-2 block 19286361 failed with "collections:
+// encoding error: wanted size to be at least 1". That block is decided but was
+// never applied, so rewriting the queue at its start changes no applied state.
+var feeAllowanceQueueFixHeights = map[string]int64{
+	"xion-testnet-2": 19286361,
 }
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
@@ -133,6 +146,9 @@ func (app *WasmApp) NextUpgradeHandler(ctx context.Context, plan upgradetypes.Pl
 	if err := app.backfillChecksumAccountAddresses(sdkCtx); err != nil {
 		return nil, fmt.Errorf("backfill checksum account addresses: %w", err)
 	}
+	if err := app.migrateFeeAllowanceQueueValues(sdkCtx); err != nil {
+		return nil, fmt.Errorf("migrate feegrant queue values: %w", err)
+	}
 
 	sdkCtx.Logger().Info("upgrade complete", "name", plan.Name)
 	return migrations, err
@@ -155,6 +171,36 @@ func (app *WasmApp) migrateIBCChannelsToV11(ctx sdktypes.Context) error {
 		return nil
 	}
 	return channelv11.MigrateStore(ctx, runtime.NewKVStoreService(key), app.appCodec, app.IBCKeeper)
+}
+
+// migrateFeeAllowanceQueueValues rewrites the fee allowance queue entries that
+// cosmossdk.io/x/feegrant stored with an empty value to the BoolValue encoding
+// the SDK v0.55 feegrant keeper reads. RemoveExpiredAllowances decodes the value
+// of every expired entry, and BoolValue rejects an empty one, so a single legacy
+// entry fails the feegrant EndBlocker once it expires. The module kept consensus
+// version 2, so RunMigrations does not cover this. Entries already holding a
+// value are left alone, which makes the rewrite idempotent.
+func (app *WasmApp) migrateFeeAllowanceQueueValues(ctx sdktypes.Context) error {
+	value, err := collections.BoolValue.Encode(true)
+	if err != nil {
+		return err
+	}
+	store := ctx.KVStore(app.GetKey(feegrant.StoreKey))
+	it := storetypes.KVStorePrefixIterator(store, feegrant.FeeAllowanceQueueKeyPrefix)
+	var legacy [][]byte
+	for ; it.Valid(); it.Next() {
+		if len(it.Value()) == 0 {
+			legacy = append(legacy, it.Key())
+		}
+	}
+	if err := it.Close(); err != nil {
+		return err
+	}
+	for _, key := range legacy {
+		store.Set(key, value)
+	}
+	ctx.Logger().Info("migrated feegrant queue values", "entries", len(legacy))
+	return nil
 }
 
 // backfillChecksumAccountAddresses registers the (sender, salt) entries of the
