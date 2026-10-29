@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -15,16 +16,36 @@ type GithubRelease struct {
 }
 
 // GetLatestGithubRelease fetches the latest release tag from the GitHub API.
+//
+// The request carries GITHUB_TOKEN when it is set. Unauthenticated calls share a
+// 60-per-hour limit per source IP, which CI runners behind shared egress exhaust,
+// and GitHub answers those with 403.
 func GetLatestGithubRelease(repo string) (string, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", repo)
+	return getLatestGithubRelease(http.DefaultClient, "https://api.github.com", repo, os.Getenv("GITHUB_TOKEN"))
+}
 
-	resp, err := http.Get(url)
+func getLatestGithubRelease(client *http.Client, apiBase, repo, token string) (string, error) {
+	url := fmt.Sprintf("%s/repos/%s/releases/latest", apiBase, repo)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to build latest release request: %w", err)
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch latest release: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if remaining := resp.Header.Get("X-RateLimit-Remaining"); remaining != "" {
+			return "", fmt.Errorf("unexpected status code: %d (rate limit remaining %s, authenticated %t)", resp.StatusCode, remaining, token != "")
+		}
 		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 

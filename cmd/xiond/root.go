@@ -255,6 +255,7 @@ func initRootCmd(rootCmd *cobra.Command,
 func addModuleInitFlags(startCmd *cobra.Command) {
 	wasm.AddModuleInitFlags(startCmd)
 	startCmd.Flags().Duration(timeoutCommitFlag, time.Second, "How long to wait after committing a block before starting the next height; overrides config.toml (env: XIOND_CONSENSUS_TIMEOUT_COMMIT)")
+	startCmd.Flags().String(app.FlagTraceStore, "", "Write every committed store write and delete to this file (or FIFO) as JSON lines, for state indexers")
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
