@@ -1,3 +1,5 @@
+# Sanctioned bespoke (github-workflows v1.8.0): Release-branch creation and signed Dependabot-retarget API writes are not provided by shared release metadata flows, which do not own this chain branch lifecycle.
+# Revisit when the shared platform supports this existing contract.
 name: release-rollover
 
 # When a release/vN branch merges into main, cut release/v(N+1) from the
@@ -36,7 +38,7 @@ jobs:
       (github.event.pull_request.merged == true &&
        github.event.pull_request.head.repo.full_name == github.repository &&
        startsWith(github.event.pull_request.head.ref, 'release/v'))
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     steps:
       - uses: actions/checkout@v7
         with:
