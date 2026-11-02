@@ -16,7 +16,9 @@ import (
 
 const UpgradeName = "v33"
 
-// Kept mounted for the v32 globalfee/jwk migrations; delete in the next upgrade.
+// The legacy x/params store, read by the globalfee 2->3 and jwk 3->4
+// migrations. Both networks ran them in v32; removing the store takes a store
+// deletion in an upgrade plus dropping it from the jwk and globalfee wiring.
 const legacyParamsStoreKey = "params"
 
 func (app *WasmApp) RegisterUpgradeHandlers() {
