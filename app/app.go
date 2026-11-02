@@ -1121,6 +1121,9 @@ func (app *WasmApp) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 
 // EndBlocker application updates every end block
 func (app *WasmApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+	if err := app.fixDueLegacyFeeAllowanceQueue(ctx); err != nil {
+		return sdk.EndBlock{}, fmt.Errorf("fix legacy feegrant queue values: %w", err)
+	}
 	return app.ModuleManager.EndBlock(ctx)
 }
 
