@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/collections"
+	collcodec "cosmossdk.io/collections/codec"
 	"cosmossdk.io/core/appmodule"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
@@ -18,7 +19,7 @@ import (
 func feegrantEndBlocker(t *testing.T, gapp *WasmApp) appmodule.HasEndBlocker {
 	t.Helper()
 	endBlocker, ok := gapp.ModuleManager.Modules[feegrant.ModuleName].(appmodule.HasEndBlocker)
-	require.True(t, ok)
+	require.True(t, ok, "feegrant module does not implement appmodule.HasEndBlocker")
 	return endBlocker
 }
 
@@ -40,7 +41,7 @@ func TestLegacyFeeAllowanceQueueFixWaitsForExpiry(t *testing.T) {
 	require.NoError(t, endBlocker.EndBlock(before))
 
 	control, _ := ctx.WithBlockTime(expired).CacheContext()
-	require.ErrorContains(t, endBlocker.EndBlock(control), "wanted size to be at least 1")
+	require.ErrorIs(t, endBlocker.EndBlock(control), collcodec.ErrEncoding, "unfixed legacy queue value must fail the feegrant EndBlocker")
 
 	at := ctx.WithBlockTime(expired)
 	require.NoError(t, gapp.fixDueLegacyFeeAllowanceQueue(at))
