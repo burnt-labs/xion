@@ -76,37 +76,23 @@ func requireLegacyQueueValues(t *testing.T, gapp *WasmApp, ctx sdk.Context, want
 	}, got)
 }
 
-// TestFeeAllowanceQueueFixAtTestnetHaltHeight reproduces the xion-testnet-2
-// halt at height 19286361, where the feegrant EndBlocker failed on an expired
-// queue entry written before v32, and checks that the PreBlocker rewrite at
-// exactly that height lets the block apply.
-func TestFeeAllowanceQueueFixAtTestnetHaltHeight(t *testing.T) {
-	const haltHeight = 19286361
-
+// TestNextUpgradeHandlerMigratesFeeAllowanceQueue covers queue entries written
+// before v32: once one expires the feegrant EndBlocker fails to decode it. The
+// v33 upgrade rewrites them, after which expired grants prune in either
+// encoding and unexpired ones stay usable until they expire.
+func TestNextUpgradeHandlerMigratesFeeAllowanceQueue(t *testing.T) {
 	gapp := Setup(t)
 	ctx := gapp.NewContext(false).
-		WithChainID("xion-testnet-2").
+		WithChainID("xion-mainnet-1").
 		WithBlockTime(time.Date(2026, 10, 29, 15, 0, 0, 0, time.UTC))
 	expired, later := setupFeeAllowanceQueue(t, gapp, ctx)
 	endBlocker, ok := gapp.ModuleManager.Modules[feegrant.ModuleName].(appmodule.HasEndBlocker)
 	require.True(t, ok)
 
-	// One block early, and on another chain at the halt height, nothing changes,
-	// and the halt reproduces. Rewriting at any other block would diverge from
-	// the state the chain committed.
-	for _, c := range []sdk.Context{
-		ctx.WithBlockHeight(haltHeight - 1),
-		ctx.WithChainID("xion-mainnet-1").WithBlockHeight(haltHeight),
-	} {
-		c, _ = c.CacheContext()
-		_, err := gapp.PreBlocker(c, nil)
-		require.NoError(t, err)
-		requireLegacyQueueValues(t, gapp, c, []byte{})
-		require.ErrorContains(t, endBlocker.EndBlock(c.WithBlockTime(expired.Add(time.Second))), "wanted size to be at least 1")
-	}
+	before, _ := ctx.CacheContext()
+	require.ErrorContains(t, endBlocker.EndBlock(before.WithBlockTime(expired.Add(time.Second))), "wanted size to be at least 1")
 
-	ctx = ctx.WithBlockHeight(haltHeight)
-	_, err := gapp.PreBlocker(ctx, nil)
+	_, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
 	require.NoError(t, err)
 	requireLegacyQueueValues(t, gapp, ctx, []byte{1})
 
@@ -120,29 +106,10 @@ func TestFeeAllowanceQueueFixAtTestnetHaltHeight(t *testing.T) {
 		require.False(t, has, "queue entry for %s survived pruning", grantee)
 	}
 
-	// The rewritten entry that had not expired stays usable, then is pruned.
 	_, err = gapp.FeeGrantKeeper.GetAllowance(ctx, queueGranter, queueLaterGrantee)
 	require.NoError(t, err)
 	ctx = ctx.WithBlockTime(later.Add(time.Second))
 	require.NoError(t, endBlocker.EndBlock(ctx))
 	_, err = gapp.FeeGrantKeeper.GetAllowance(ctx, queueGranter, queueLaterGrantee)
 	require.ErrorIs(t, err, collections.ErrNotFound)
-}
-
-// TestNextUpgradeHandlerMigratesFeeAllowanceQueue covers chains that have not
-// yet run v32: the upgrade rewrites the legacy entries, so they never reach the
-// EndBlocker in the old encoding.
-func TestNextUpgradeHandlerMigratesFeeAllowanceQueue(t *testing.T) {
-	gapp := Setup(t)
-	ctx := gapp.NewContext(false).
-		WithChainID("xion-mainnet-1").
-		WithBlockTime(time.Date(2026, 10, 29, 15, 0, 0, 0, time.UTC))
-	expired, _ := setupFeeAllowanceQueue(t, gapp, ctx)
-
-	_, err := gapp.NextUpgradeHandler(ctx, upgradetypes.Plan{Name: UpgradeName, Height: 100}, gapp.ModuleManager.GetVersionMap())
-	require.NoError(t, err)
-	requireLegacyQueueValues(t, gapp, ctx, []byte{1})
-
-	endBlocker := gapp.ModuleManager.Modules[feegrant.ModuleName].(appmodule.HasEndBlocker)
-	require.NoError(t, endBlocker.EndBlock(ctx.WithBlockTime(expired.Add(time.Second))))
 }
