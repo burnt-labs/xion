@@ -1,0 +1,46 @@
+{
+  "categories": {
+    "supply-chain": {
+      "accepts": 0,
+      "examples": [
+        "S2 on PR #599"
+      ],
+      "rejects": 1,
+      "weighted_score": -0.3333
+    }
+  },
+  "events": 1,
+  "funnel": {
+    "already_posted": 0,
+    "by_severity": {},
+    "duration_s": 0.0,
+    "killed": 0,
+    "killed_by_stage": {
+      "dismissed": 0,
+      "gated": 0,
+      "merged": 0,
+      "unanchored": 0,
+      "unruled": 0
+    },
+    "outcomes": {},
+    "posted": 0,
+    "raised": 0,
+    "refuted": 0,
+    "reviews": 0,
+    "tokens": {
+      "billed_input": 0,
+      "cache_write": 0,
+      "input": 0
+    },
+    "tokens_per_posted_finding": null,
+    "window_days": 30
+  },
+  "generated_at": "2026-11-07T02:26:24+00:00",
+  "users": {
+    "2xburnt": {
+      "accepts": 0,
+      "rate": 0.3333,
+      "rejects": 1
+    }
+  }
+}

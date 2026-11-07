@@ -1,2 +1,4 @@
 events.jsonl merge=union
 dismissals.jsonl merge=union
+triage.jsonl merge=union
+funnel.jsonl merge=union
