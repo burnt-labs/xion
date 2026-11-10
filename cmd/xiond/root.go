@@ -56,10 +56,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	cfg.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	cfg.Seal()
 
-	dir, err := os.MkdirTemp("", "wasmd")
-	if err != nil {
-		panic("failed to create temp dir: " + err.Error())
-	}
+	dir := tempDir()
+	defer os.RemoveAll(dir)
 	tempApp := app.NewWasmApp(log.NewNopLogger(), dbm.NewMemDB(), false, simtestutil.NewAppOptionsWithFlagHome(dir), []wasmkeeper.Option{})
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
@@ -67,7 +65,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		TxConfig:          tempApp.TxConfig(),
 		Amino:             tempApp.LegacyAmino(),
 	}
-	os.RemoveAll(dir)
 
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
@@ -385,3 +382,11 @@ func appExport(
 	return wasmApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
+var tempDir = func() string {
+	dir, err := os.MkdirTemp("", "wasmd")
+	if err != nil {
+		panic("failed to create temp dir: " + err.Error())
+	}
+
+	return dir
+}
